@@ -235,7 +235,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (IsDragging || e.Button != MouseButton.Left) return false;
+            if (IsDragging || e.Button != MouseButton.Left || Content.AliveInternalChildren.Count == 0)
+                return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
@@ -354,6 +355,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnScroll(ScrollEvent e)
         {
+            if (Content.AliveInternalChildren.Count == 0)
+                return false;
+
             bool isPrecise = e.IsPrecise;
 
             Vector2 scrollDelta = e.ScrollDelta;

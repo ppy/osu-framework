@@ -220,6 +220,74 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void RewindBetweenDisparateValues()
+        {
+            boxTest(box =>
+            {
+                box.Alpha = 0;
+            });
+
+            // move forward to future point in time before adding transforms.
+            checkAtTime(interval * 4, _ => true);
+
+            AddStep("add transforms", () =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.FadeOutFromOne(interval);
+                    box.Delay(interval * 3).FadeOutFromOne(interval);
+
+                    // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
+                    box.RemoveTransform(box.Transforms[2]);
+                    box.RemoveTransform(box.Transforms[0]);
+                }
+            });
+
+            checkAtTime(0, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 1, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 0));
+
+            // importantly, this should be 0 not 1, reading from the EndValue of the first FadeOutFromOne transform.
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+        }
+
+        [Test]
+        public void AddPastTransformFromFuture()
+        {
+            boxTest(box =>
+            {
+                box.Alpha = 0;
+            });
+
+            // move forward to future point in time before adding transforms.
+            checkAtTime(interval * 4, _ => true);
+
+            AddStep("add transforms", () =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.FadeOutFromOne(interval);
+                    box.Delay(interval * 3).FadeInFromZero(interval);
+
+                    // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
+                    box.RemoveTransform(box.Transforms[2]);
+                    box.RemoveTransform(box.Transforms[0]);
+                }
+            });
+
+            AddStep("add one more transform in the middle", () =>
+            {
+                using (box.BeginAbsoluteSequence(interval * 2))
+                    box.FadeIn(interval * 0.5);
+            });
+
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 2.5, box => Precision.AlmostEquals(box.Alpha, 1));
+        }
+
+        [Test]
         public void LoopSequence()
         {
             boxTest(box => { box.RotateTo(0).RotateTo(90, interval).Loop(); });

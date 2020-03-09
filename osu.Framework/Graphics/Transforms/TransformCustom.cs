@@ -150,31 +150,16 @@ namespace osu.Framework.Graphics.Transforms
         /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
         /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
         /// <see cref="Transform.EndTime"/>, and a current time.
-        /// Optionally, or when no suitable "ValueAt" from <see cref="Interpolation"/> exists, a custom function can be supplied
-        /// via <paramref name="interpolationFunc"/>.
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
-        /// <param name="interpolationFunc">
-        /// The function to be used for interpolating between <see cref="Transform{TValue}.StartValue"/> and
-        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
-        /// <see cref="Transform.EndTime"/>, and a current time.
-        /// If null, an interpolation method "ValueAt" from <see cref="Interpolation"/> with a suitable signature is picked.
-        /// If none exists, then this parameter must not be null.
-        /// </param>
-        public TransformCustom(string propertyOrFieldName, InterpolationFunc<TValue> interpolationFunc = null)
+        public TransformCustom(string propertyOrFieldName)
         {
             TargetMember = propertyOrFieldName;
 
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
-
-            if (this.interpolationFunc == null)
-            {
-                throw new InvalidOperationException(
-                    $"Need to pass a custom {nameof(interpolationFunc)} since no default {nameof(Interpolation)}.{nameof(Interpolation.ValueAt)} exists.");
-            }
+            interpolationFunc = Interpolation.ValueAt;
         }
 
         private TValue valueAt(double time)

@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
@@ -69,6 +70,25 @@ namespace osu.Framework.Platform
         /// Whether this <see cref="GameWindow"/> is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
+
+        public virtual IEnumerable<Display> Displays => new[] { Display };
+
+        public virtual Display Display => CurrentDisplay.ToDisplay();
+
+        /// <summary>
+        /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
+        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplay"/>,
+        /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
+        /// report refresh rates such as 59.992863 where SDL2 will report 60.
+        /// </summary>
+        public virtual DisplayMode DisplayMode
+        {
+            get
+            {
+                var display = CurrentDisplay;
+                return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate));
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.

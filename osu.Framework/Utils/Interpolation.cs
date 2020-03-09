@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
@@ -248,6 +250,9 @@ namespace osu.Framework.Utils
                 val1.Height + t * (val2.X - val1.Height));
         }
 
+        public static TValue ValueAt<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
+            => GenericInterpolation<TValue>.FUNCTION(time, startValue, endValue, startTime, endTime, easing);
+
         #region Easing constants
 
         private const double elastic_const = 2 * Math.PI / .3;
@@ -414,29 +419,34 @@ namespace osu.Framework.Utils
                     return --time * Math.Pow(time, 10) + 1;
             }
         }
-    }
 
-    internal static class Interpolation<TValue>
-    {
-        public static readonly InterpolationFunc<TValue> FUNCTION;
-
-        static Interpolation()
+        private static class GenericInterpolation<TValue>
         {
-            const string interpolation_method = nameof(Interpolation.ValueAt);
+            public static readonly InterpolationFunc<TValue> FUNCTION;
 
-            var parameters = typeof(InterpolationFunc<TValue>)
-                             .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
-                             ?.GetParameters().Select(p => p.ParameterType).ToArray();
+            static GenericInterpolation()
+            {
+                const string interpolation_method = nameof(Interpolation.ValueAt);
 
-            var valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters)
-                                ?? typeof(TValue).GetMethod(interpolation_method, parameters)
-                                ?? throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Add a method with the name {interpolation_method} with the parameters of {nameof(InterpolationFunc<TValue>)} or interpolate the value manually.");
+                var parameters = typeof(InterpolationFunc<TValue>)
+                                 .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
+                                 ?.GetParameters().Select(p => p.ParameterType).ToArray();
 
-            FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
+                MethodInfo valueAtMethod = typeof(Interpolation).GetMethod(interpolation_method, parameters);
+
+                if (valueAtMethod != null)
+                    FUNCTION = (InterpolationFunc<TValue>)valueAtMethod.CreateDelegate(typeof(InterpolationFunc<TValue>));
+                else
+                {
+                    var typeRef = FormatterServices.GetSafeUninitializedObject(typeof(TValue)) as IInterpolable<TValue>;
+
+                    if (typeRef == null)
+                        throw new NotSupportedException($"Type {typeof(TValue)} has no interpolation function. Implement the interface {typeof(IInterpolable<TValue>)} interface on the object.");
+
+                    FUNCTION = typeRef.ValueAt;
+                }
+            }
         }
-
-        public static TValue ValueAt(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easing = Easing.None)
-            => FUNCTION(time, startValue, endValue, startTime, endTime, easing);
     }
 
     public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);

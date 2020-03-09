@@ -294,7 +294,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (Math.Abs(direction) != 1)
                 throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
-            TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
+            TabItem<T>[] switchableTabs = TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
             int tabCount = switchableTabs.Length;
 
             if (tabCount == 0)
@@ -397,9 +397,25 @@ namespace osu.Framework.Graphics.UserInterface
             public Action<TabItem<T>, bool> TabVisibilityChanged;
 
             /// <summary>
-            /// The list of tabs currently displayed by this container.
+            /// The list of tabs currently displayed by this container, in order of appearance.
             /// </summary>
             public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
+
+            /// <summary>
+            /// The list of all tabs in this container, in order of appearance.
+            /// </summary>
+            public IEnumerable<TabItem<T>> AllTabItems => GetFlowingTabs(AliveInternalChildren).OfType<TabItem<T>>();
+
+            // The flowing children should only contain the present children, but we also need to consider the non-present children for retrieving all tab items.
+            // So the ordering is delegated to a separate method (GetFlowingTabs()).
+            public sealed override IEnumerable<Drawable> FlowingChildren => GetFlowingTabs(AliveInternalChildren.Where(d => d.IsPresent));
+
+            /// <summary>
+            /// Re-orders a given list of <see cref="TabItem{T}"/>s in the order that they should appear.
+            /// </summary>
+            /// <param name="tabs">The <see cref="TabItem{T}"/>s to order.</param>
+            /// <returns>The re-ordered list of <see cref="TabItem{T}"/>s.</returns>
+            public virtual IEnumerable<Drawable> GetFlowingTabs(IEnumerable<Drawable> tabs) => tabs.OrderBy(GetLayoutPosition).ThenBy(d => d.ChildID);
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
