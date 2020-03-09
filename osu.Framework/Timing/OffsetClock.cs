@@ -5,7 +5,7 @@ namespace osu.Framework.Timing
 {
     public class OffsetClock : IClock
     {
-        protected IClock Source;
+        public IClock Source { get; }
 
         public double Offset;
 

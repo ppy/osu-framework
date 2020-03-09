@@ -84,6 +84,8 @@ namespace osu.Framework.Platform
             public double CurrentTime => time += increment;
             public double Rate => 1;
             public bool IsRunning => true;
+
+            public IClock Source { get; } = null;
         }
     }
 }

@@ -11,5 +11,6 @@ namespace osu.Framework.Timing
         public double CurrentTime { get; set; }
         public double Rate { get; set; }
         public bool IsRunning { get; set; }
+        public IClock Source { get; } = null;
     }
 }
