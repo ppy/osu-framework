@@ -21,7 +21,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Markdig" Version="0.18.1" />
+    <PackageReference Include="Markdig" Version="0.18.3" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.2.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
