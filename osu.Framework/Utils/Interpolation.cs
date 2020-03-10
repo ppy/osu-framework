@@ -234,7 +234,7 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return startColour;
 
-                float t = Math.Max(0, Math.Min(1, (float)ApplyEasing(easing, current / duration)));
+                float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
 
                 return new Color4(
                     startColour.R + t * (endColour.R - startColour.R),
@@ -286,7 +286,7 @@ namespace osu.Framework.Utils
                 if (duration == 0)
                     return val2;
 
-                double t = ApplyEasing(easing, current / duration);
+                double t = easing.ApplyEasing(current / duration);
                 return val1 + t * (val2 - val1);
             }
 
@@ -298,7 +298,7 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return val1;
 
-                float t = (float)ApplyEasing(easing, current / duration);
+                float t = (float)easing.ApplyEasing(current / duration);
                 return val1 + t * (val2 - val1);
             }
 
@@ -310,7 +310,7 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return val1;
 
-                float t = (float)ApplyEasing(easing, current / duration);
+                float t = (float)easing.ApplyEasing(current / duration);
 
                 return new RectangleF(
                     val1.X + t * (val2.X - val1.X),
