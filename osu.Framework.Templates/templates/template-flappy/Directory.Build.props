@@ -1,0 +1,6 @@
+<!-- Contains required properties for osu!framework projects. -->
+<Project>
+  <PropertyGroup>
+    <ApplicationManifest>$(MSBuildThisFileDirectory)app.manifest</ApplicationManifest>
+  </PropertyGroup>
+</Project>
