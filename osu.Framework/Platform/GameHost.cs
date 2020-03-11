@@ -571,6 +571,16 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
+        /// </summary>
+        public void Suspend() => threadRunner.Suspend();
+
+        /// <summary>
+        /// Resumes all of the current paused threads after <see cref="Suspend"/> was called.
+        /// </summary>
+        public void Resume() => threadRunner.Start();
+
         private ThreadRunner threadRunner;
 
         private void windowUpdate()
