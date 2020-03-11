@@ -1,4 +1,5 @@
-﻿using FlappyDon.Game.Elements;
+﻿using System.Diagnostics;
+using FlappyDon.Game.Elements;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
@@ -187,6 +188,8 @@ namespace FlappyDon.Game
 
         private void ready()
         {
+            Debug.Assert(state == GameState.Ready);
+
             // Reset score
             scoreCounter.Reset();
 
@@ -211,6 +214,8 @@ namespace FlappyDon.Game
 
         private void play()
         {
+            Debug.Assert(state == GameState.Playing);
+
             obstacles.Start();
             logoSprite.Hide();
             scoreCounter.ScoreSpriteText.Show();
@@ -218,6 +223,8 @@ namespace FlappyDon.Game
 
         private void fail()
         {
+            Debug.Assert(state == GameState.GameOver);
+
             const double fade_in_duration = 30.0;
 
             // Play a brief flash to make the hit very visible and show the game over text
