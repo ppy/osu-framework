@@ -38,6 +38,9 @@ namespace osu.Framework.Bindables
             get => value;
             set
             {
+                if (Source is IHasPropertyGuards pg)
+                    pg.CheckPropertyValueChange(this, value);
+
                 Set(value);
             }
         }

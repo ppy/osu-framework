@@ -17,7 +17,7 @@ namespace osu.Framework.Bindables
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, ISerializableBindable, IHasPropertyGuards
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -197,6 +197,12 @@ namespace osu.Framework.Bindables
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
+        }
+
+        void IHasPropertyGuards.CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value) => CheckPropertyValueChange(property, value);
+
+        protected virtual void CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value)
+        {
         }
 
         /// <summary>
