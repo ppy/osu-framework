@@ -277,6 +277,9 @@ namespace osu.Framework.Audio
             // reduce latency to a known sane minimum.
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
 
+            // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
+
             // without this, if bass falls back to directsound legacy mode the audio playback offset will be way off.
             Bass.Configure(ManagedBass.Configuration.TruePlayPosition, 0);
 
@@ -285,6 +288,9 @@ namespace osu.Framework.Audio
 
             // For iOS devices, set the default audio policy to one that obeys the mute switch.
             Bass.Configure(ManagedBass.Configuration.IOSMixAudio, 5);
+
+            // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
+            Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
             return Bass.Init(device);
         }
