@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Bindables
@@ -43,6 +42,12 @@ namespace osu.Framework.Bindables
             // used for GetBoundCopy, where we don't want a source.
         }
 
+        protected override void CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value)
+        {
+            if (source != null && hasBeenReturned)
+                throw new InvalidOperationException($"Cannot perform operations on a {nameof(LeasedBindable<T>)} that has been {nameof(Return)}ed.");
+        }
+
         private bool hasBeenReturned;
 
         /// <summary>
@@ -59,48 +64,6 @@ namespace osu.Framework.Bindables
             UnbindAll();
         }
 
-        public override T Value
-        {
-            get => base.Value;
-            set
-            {
-                if (source != null)
-                    checkValid();
-
-                if (EqualityComparer<T>.Default.Equals(Value, value)) return;
-
-                SetValue(base.Value, value, true);
-            }
-        }
-
-        public override T Default
-        {
-            get => base.Default;
-            set
-            {
-                if (source != null)
-                    checkValid();
-
-                if (EqualityComparer<T>.Default.Equals(Default, value)) return;
-
-                SetDefaultValue(base.Default, value, true);
-            }
-        }
-
-        public override bool Disabled
-        {
-            get => base.Disabled;
-            set
-            {
-                if (source != null)
-                    checkValid();
-
-                if (Disabled == value) return;
-
-                SetDisabled(value, true);
-            }
-        }
-
         public override void UnbindAll()
         {
             if (source != null && !hasBeenReturned)
@@ -115,12 +78,6 @@ namespace osu.Framework.Bindables
             }
 
             base.UnbindAll();
-        }
-
-        private void checkValid()
-        {
-            if (source != null && hasBeenReturned)
-                throw new InvalidOperationException($"Cannot perform operations on a {nameof(LeasedBindable<T>)} that has been {nameof(Return)}ed.");
         }
     }
 }
