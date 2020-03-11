@@ -109,11 +109,14 @@ namespace FlappyDon.Game
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!onInputEvent(e.Key == Key.Space && e.Repeat == false))
+            if (e.Repeat)
                 return base.OnKeyDown(e);
 
-            // Return true to denote we captured the input here, so we don't need to continue the chain
-            return true;
+            if (e.Key == Key.Space && handleTap())
+                // Return true to denote we captured the input here, so we don't need to continue the chain
+                return true;
+
+            return base.OnKeyDown(e);
         }
 
         protected override bool OnMouseDown(MouseDownEvent e)
@@ -124,41 +127,40 @@ namespace FlappyDon.Game
             if (verticalOffset < 0.05f || verticalOffset > 0.95f)
                 return base.OnMouseDown(e);
 
-            if (!onInputEvent(true))
-                return base.OnMouseDown(e);
+            if (handleTap())
+                // Return true to denote we captured the input here, so we don't need to continue the chain
+                return true;
 
-            // Return true to denote we captured the input here, so we don't need to continue the chain
-            return true;
-        }
-
-        private void onTapEvent()
-        {
-            // Start the game
-            changeGameState(GameState.Playing);
-
-            // Animate the bird flying up
-            bird.FlyUp();
+            return base.OnMouseDown(e);
         }
 
         /// <summary>
         /// Handles all of the commonly shared input logic between mouse clicks,
         /// button pushes and screen taps
         /// </summary>
-        /// <returns>Returns true if successfully handled (so input should stop here), or false if the event should continue to be forwarded</returns>
-        private bool onInputEvent(bool inputCondition)
+        /// <returns>Returns true if successfully handled.</returns>
+        private bool handleTap()
         {
             // After dying, disable input briefly to stop the user restarting the game too quickly.
             if (disableInput)
                 return false;
 
-            if (state == GameState.GameOver)
-                reset();
-            else if (inputCondition)
-                onTapEvent();
-            else
-                return false;
+            switch (state)
+            {
+                case GameState.GameOver:
+                    reset();
+                    return true;
 
-            return true;
+                case GameState.Playing:
+                    // Animate the bird flying up
+                    bird.FlyUp();
+                    return true;
+
+                default:
+                    // Start the game
+                    changeGameState(GameState.Playing);
+                    return true;
+            }
         }
 
         private void reset() => changeGameState(GameState.Ready);
