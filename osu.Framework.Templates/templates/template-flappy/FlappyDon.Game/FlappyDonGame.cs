@@ -95,6 +95,74 @@ namespace FlappyDon.Game
             ready();
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            switch (gameState)
+            {
+                case GameState.Playing:
+                    // Register a collision if the bird hits a pipe or the ground
+                    if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
+                        changeGameState(GameState.GameOver);
+                    break;
+            }
+        }
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            if (!onInputEvent(e.Key == Key.Space && e.Repeat == false))
+                return base.OnKeyDown(e);
+
+            // Return true to denote we captured the input here, so we don't need to continue the chain
+            return true;
+        }
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            // Since some devices rely on top or bottom swipe touches, (eg, swipe-to-close on iPhone X),
+            // disregard events around those areas
+            float verticalOffset = e.MouseDownPosition.Y / DrawHeight;
+            if (verticalOffset < 0.05f || verticalOffset > 0.95f)
+                return base.OnMouseDown(e);
+
+            if (!onInputEvent(true))
+                return base.OnMouseDown(e);
+
+            // Return true to denote we captured the input here, so we don't need to continue the chain
+            return true;
+        }
+
+        private void onTapEvent()
+        {
+            // Start the game
+            changeGameState(GameState.Playing);
+
+            // Animate the bird flying up
+            bird.FlyUp();
+        }
+
+        /// <summary>
+        /// Handles all of the commonly shared input logic between mouse clicks,
+        /// button pushes and screen taps
+        /// </summary>
+        /// <returns>Returns true if successfully handled (so input should stop here), or false if the event should continue to be forwarded</returns>
+        private bool onInputEvent(bool inputCondition)
+        {
+            // After dying, disable input briefly to stop the user restarting the game too quickly.
+            if (disableInput)
+                return false;
+
+            if (gameState == GameState.GameOver)
+                reset();
+            else if (inputCondition)
+                onTapEvent();
+            else
+                return false;
+
+            return true;
+        }
+
         private void reset()
         {
             changeGameState(GameState.Ready);
@@ -190,74 +258,6 @@ namespace FlappyDon.Game
         {
             scoreCounter.IncrementScore();
             scoreSound.Play();
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            switch (gameState)
-            {
-                case GameState.Playing:
-                    // Register a collision if the bird hits a pipe or the ground
-                    if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
-                        changeGameState(GameState.GameOver);
-                    break;
-            }
-        }
-
-        private void onTapEvent()
-        {
-            // Start the game
-            changeGameState(GameState.Playing);
-
-            // Animate the bird flying up
-            bird.FlyUp();
-        }
-
-        protected override bool OnKeyDown(KeyDownEvent e)
-        {
-            if (!onInputEvent(e.Key == Key.Space && e.Repeat == false))
-                return base.OnKeyDown(e);
-
-            // Return true to denote we captured the input here, so we don't need to continue the chain
-            return true;
-        }
-
-        protected override bool OnMouseDown(MouseDownEvent e)
-        {
-            // Since some devices rely on top or bottom swipe touches, (eg, swipe-to-close on iPhone X),
-            // disregard events around those areas
-            float verticalOffset = e.MouseDownPosition.Y / DrawHeight;
-            if (verticalOffset < 0.05f || verticalOffset > 0.95f)
-                return base.OnMouseDown(e);
-
-            if (!onInputEvent(true))
-                return base.OnMouseDown(e);
-
-            // Return true to denote we captured the input here, so we don't need to continue the chain
-            return true;
-        }
-
-        /// <summary>
-        /// Handles all of the commonly shared input logic between mouse clicks,
-        /// button pushes and screen taps
-        /// </summary>
-        /// <returns>Returns true if successfully handled (so input should stop here), or false if the event should continue to be forwarded</returns>
-        private bool onInputEvent(bool inputCondition)
-        {
-            // After dying, disable input briefly to stop the user restarting the game too quickly.
-            if (disableInput)
-                return false;
-
-            if (gameState == GameState.GameOver)
-                reset();
-            else if (inputCondition)
-                onTapEvent();
-            else
-                return false;
-
-            return true;
         }
     }
 }
