@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             Schedule(() =>
             {
-                Add(videoSprite = new VideoSprite(wr.ResponseStream)
+                Add(videoSprite = new VideoSprite(wr.ResponseStream, false)
                 {
                     Loop = false,
                     Clock = new FramedClock(clock = new ManualClock()),
