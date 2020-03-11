@@ -37,7 +37,7 @@ namespace FlappyDon.Game
         private DrawableSample whooshSound;
 
         // Game state
-        private GameState gameState = GameState.Ready;
+        private GameState state = GameState.Ready;
         private bool disableInput;
 
         [BackgroundDependencyLoader]
@@ -73,7 +73,11 @@ namespace FlappyDon.Game
             AddInternal(gameScreen);
 
             // Register a method to be triggered each time the bird crosses a pipe threshold
-            obstacles.ThresholdCrossed = thresholdCrossed;
+            obstacles.ThresholdCrossed = _ =>
+            {
+                scoreCounter.IncrementScore();
+                scoreSound.Play();
+            };
 
             // Set the Y offset from the top that counts as the ground for the bird
             bird.GroundY = 525.0f;
@@ -92,7 +96,7 @@ namespace FlappyDon.Game
         {
             base.Update();
 
-            switch (gameState)
+            switch (state)
             {
                 case GameState.Playing:
                     // Register a collision if the bird hits a pipe or the ground
@@ -146,7 +150,7 @@ namespace FlappyDon.Game
             if (disableInput)
                 return false;
 
-            if (gameState == GameState.GameOver)
+            if (state == GameState.GameOver)
                 reset();
             else if (inputCondition)
                 onTapEvent();
@@ -156,23 +160,16 @@ namespace FlappyDon.Game
             return true;
         }
 
-        private void reset()
-        {
-            changeGameState(GameState.Ready);
-        }
+        private void reset() => changeGameState(GameState.Ready);
 
-        private void disableGameInput(double duration)
+        private void changeGameState(GameState newState)
         {
-            disableInput = true;
-            Scheduler.AddDelayed(() => disableInput = false, duration);
-        }
-
-        private void changeGameState(GameState state)
-        {
-            if (state == gameState)
+            if (newState == state)
                 return;
 
-            switch (state)
+            state = newState;
+
+            switch (newState)
             {
                 case GameState.Ready:
                     ready();
@@ -186,8 +183,6 @@ namespace FlappyDon.Game
                     fail();
                     break;
             }
-
-            gameState = state;
         }
 
         private void ready()
@@ -223,10 +218,10 @@ namespace FlappyDon.Game
 
         private void fail()
         {
-            // Play a brief flash to make the hit very visible and show the game over text
-            // at the peak of the flash
             const double fade_in_duration = 30.0;
 
+            // Play a brief flash to make the hit very visible and show the game over text
+            // at the peak of the flash
             screenFlash.Flash(fade_in_duration, 500.0);
             Scheduler.AddDelayed(() => gameOverSprite.Show(), fade_in_duration);
 
@@ -247,10 +242,10 @@ namespace FlappyDon.Game
             disableGameInput(500.0f);
         }
 
-        private void thresholdCrossed(int crossedCount)
+        private void disableGameInput(double duration)
         {
-            scoreCounter.IncrementScore();
-            scoreSound.Play();
+            disableInput = true;
+            Scheduler.AddDelayed(() => disableInput = false, duration);
         }
     }
 }
