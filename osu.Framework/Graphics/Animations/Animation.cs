@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Animations
                 frameIndex = frameData.Count - 1;
 
             CurrentFrameIndex = frameIndex;
-            displayFrame(CurrentFrameIndex);
+            updateCurrentFrame();
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Animations
             OnFrameAdded(frame.Content, frame.Duration);
 
             if (frameData.Count == 1)
-                displayFrame(0);
+                updateCurrentFrame();
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Animations
                 AddFrame(t.Content, t.Duration);
         }
 
-        private void displayFrame(int index)
+        private void updateCurrentFrame()
         {
             var frame = CurrentFrame;
 
@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Animations
                     }
                 }
 
-                displayFrame(CurrentFrameIndex);
+                updateCurrentFrame();
             }
         }
     }
