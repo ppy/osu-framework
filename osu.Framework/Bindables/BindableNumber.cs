@@ -17,6 +17,8 @@ namespace osu.Framework.Bindables
 
         public event Action<T> MaxValueChanged;
 
+        protected readonly BindableProperty<T> PrecisionProperty, MinValueProperty, MaxValueProperty;
+
         public BindableNumber(T defaultValue = default)
             : base(defaultValue)
         {
@@ -29,56 +31,68 @@ namespace osu.Framework.Bindables
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
             }
 
-            minValue = DefaultMinValue;
-            maxValue = DefaultMaxValue;
-            precision = DefaultPrecision;
+            PrecisionProperty = new BindableProperty<T>(DefaultPrecision, this, b => (b as BindableNumber<T>)?.PrecisionProperty)
+            {
+                OnValueChange = (_, precision) => PrecisionChanged?.Invoke(precision),
+            };
 
-            // Re-apply the current value to apply the default min/max/precision values
-            SetValue(Value);
+            MinValueProperty = new BindableProperty<T>(DefaultMinValue, this, b => (b as BindableNumber<T>)?.MinValueProperty)
+            {
+                OnValueChange = (_, minValue) => MinValueChanged?.Invoke(minValue),
+            };
+
+            MaxValueProperty = new BindableProperty<T>(DefaultMaxValue, this, b => (b as BindableNumber<T>)?.MaxValueProperty)
+            {
+                OnValueChange = (_, maxValue) => MaxValueChanged?.Invoke(maxValue),
+            };
+
+            // Update the current (default) value to apply precision/min-value/max-value to it.
+            updateValue(Value);
         }
-
-        private T precision;
 
         public T Precision
         {
-            get => precision;
+            get => PrecisionProperty.Value;
             set
             {
-                if (precision.Equals(value))
-                    return;
+                PrecisionProperty.Value = value;
 
-                if (value.CompareTo(default) <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Precision), value, "Must be greater than 0.");
-
-                SetPrecision(value, true, this);
+                // Update value with precision changes.
+                updateValue(Value);
             }
         }
 
-        /// <summary>
-        /// Sets the precision. This method does no equality comparisons.
-        /// </summary>
-        /// <param name="precision">The new precision.</param>
-        /// <param name="updateCurrentValue">Whether to update the current value after the precision is set.</param>
-        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetPrecision(T precision, bool updateCurrentValue, BindableNumber<T> source)
+        public T MinValue
         {
-            this.precision = precision;
-            TriggerPrecisionChange(source);
-
-            if (updateCurrentValue)
+            get => MinValueProperty.Value;
+            set
             {
-                // Re-apply the current value to apply the new precision
-                SetValue(Value);
+                MinValueProperty.Value = value;
+
+                // Update value with minimum-value changes.
+                updateValue(Value);
+            }
+        }
+
+        public T MaxValue
+        {
+            get => MaxValueProperty.Value;
+            set
+            {
+                MaxValueProperty.Value = value;
+
+                // Update value with maximum-value changes.
+                updateValue(Value);
             }
         }
 
         public override T Value
         {
             get => base.Value;
-            set => SetValue(value);
+            set => updateValue(value);
         }
 
-        internal void SetValue(T value)
+        private void updateValue(T value)
         {
             if (Precision.CompareTo(DefaultPrecision) > 0)
             {
@@ -91,67 +105,14 @@ namespace osu.Framework.Bindables
                 base.Value = clamp(value, MinValue, MaxValue);
         }
 
-        private T minValue;
-
-        public T MinValue
+        protected override void CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value)
         {
-            get => minValue;
-            set
+            base.CheckPropertyValueChange(property, value);
+
+            if (value is T number && property == PrecisionProperty)
             {
-                if (minValue.Equals(value))
-                    return;
-
-                SetMinValue(value, true, this);
-            }
-        }
-
-        /// <summary>
-        /// Sets the minimum value. This method does no equality comparisons.
-        /// </summary>
-        /// <param name="minValue">The new minimum value.</param>
-        /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
-        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMinValue(T minValue, bool updateCurrentValue, BindableNumber<T> source)
-        {
-            this.minValue = minValue;
-            TriggerMinValueChange(source);
-
-            if (updateCurrentValue)
-            {
-                // Re-apply the current value to apply the new minimum value
-                SetValue(Value);
-            }
-        }
-
-        private T maxValue;
-
-        public T MaxValue
-        {
-            get => maxValue;
-            set
-            {
-                if (maxValue.Equals(value))
-                    return;
-
-                SetMaxValue(value, true, this);
-            }
-        }
-
-        /// <summary>
-        /// Sets the maximum value. This method does no equality comparisons.
-        /// </summary>
-        /// <param name="maxValue">The new maximum value.</param>
-        /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
-        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
-        {
-            this.maxValue = maxValue;
-            TriggerMaxValueChange(source);
-
-            if (updateCurrentValue)
-            {
-                // Re-apply the current value to apply the new maximum value
-                SetValue(Value);
+                if (number.CompareTo(default) <= 0)
+                    throw new InvalidOperationException($"Can not set {nameof(Precision)} to zero or negative value: {value}");
             }
         }
 
@@ -253,69 +214,9 @@ namespace osu.Framework.Bindables
         {
             base.TriggerChange();
 
-            TriggerPrecisionChange(this, false);
-            TriggerMinValueChange(this, false);
-            TriggerMaxValueChange(this, false);
-        }
-
-        protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = precision;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in Bindings)
-                {
-                    if (b == source) continue;
-
-                    if (b is BindableNumber<T> bn)
-                        bn.SetPrecision(precision, false, this);
-                }
-            }
-
-            if (beforePropagation.Equals(precision))
-                PrecisionChanged?.Invoke(precision);
-        }
-
-        protected void TriggerMinValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = minValue;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in Bindings)
-                {
-                    if (b == source) continue;
-
-                    if (b is BindableNumber<T> bn)
-                        bn.SetMinValue(minValue, false, this);
-                }
-            }
-
-            if (beforePropagation.Equals(minValue))
-                MinValueChanged?.Invoke(minValue);
-        }
-
-        protected void TriggerMaxValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = maxValue;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in Bindings)
-                {
-                    if (b == source) continue;
-
-                    if (b is BindableNumber<T> bn)
-                        bn.SetMaxValue(maxValue, false, this);
-                }
-            }
-
-            if (beforePropagation.Equals(maxValue))
-                MaxValueChanged?.Invoke(maxValue);
+            PrecisionProperty.TriggerChange(Precision, false);
+            MinValueProperty.TriggerChange(MinValue, false);
+            MaxValueProperty.TriggerChange(MaxValue, false);
         }
 
         public override void BindTo(Bindable<T> them)
