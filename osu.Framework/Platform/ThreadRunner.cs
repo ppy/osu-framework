@@ -120,6 +120,16 @@ namespace osu.Framework.Platform
 
         public void Start() => ensureCorrectExecutionMode();
 
+        public void Suspend()
+        {
+            // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
+            foreach (var t in Threads.Reverse())
+                t.Pause();
+
+            // set the active execution mode back to null to set the state checking back to when it can be resumed.
+            activeExecutionMode = null;
+        }
+
         public void Stop()
         {
             const int thread_join_timeout = 30000;
@@ -147,9 +157,8 @@ namespace osu.Framework.Platform
                 // in the case we have not yet got an execution mode, set this early to allow usage in GameThread.Initialize overrides.
                 activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
-            // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
-            foreach (var t in Threads.Reverse())
-                t.Pause();
+            // Suspend all threads
+            Suspend();
 
             switch (ExecutionMode)
             {
