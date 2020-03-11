@@ -359,6 +359,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
         public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
             bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
@@ -372,6 +373,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
         public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);
