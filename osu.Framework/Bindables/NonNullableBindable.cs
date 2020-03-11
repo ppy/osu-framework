@@ -9,23 +9,18 @@ namespace osu.Framework.Bindables
         where T : class
     {
         public NonNullableBindable(T defaultValue)
+            : base(defaultValue)
         {
             if (defaultValue == null)
                 throw new ArgumentNullException(nameof(defaultValue));
-
-            Value = Default = defaultValue;
         }
 
-        public override T Value
+        protected override void CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value)
         {
-            get => base.Value;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(Value), $"Cannot set {nameof(Value)} of a {nameof(NonNullableBindable<T>)} to null.");
+            base.CheckPropertyValueChange(property, value);
 
-                base.Value = value;
-            }
+            if (value == null)
+                throw new ArgumentNullException(nameof(value), $"Cannot set {null} value to {nameof(NonNullableBindable<T>)} properties.");
         }
     }
 }
