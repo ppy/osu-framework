@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.Animations
         public double DefaultFrameLength = 1000.0 / 60.0;
 
         private readonly List<FrameData<T>> frameData;
-        private int currentFrameIndex;
 
         private double currentFrameTime;
 
@@ -27,6 +26,8 @@ namespace osu.Framework.Graphics.Animations
         /// The number of frames this animation has.
         /// </summary>
         public int FrameCount => frameData.Count;
+
+        public int CurrentFrameIndex { get; private set; }
 
         /// <summary>
         /// True if the animation is playing, false otherwise.
@@ -37,6 +38,8 @@ namespace osu.Framework.Graphics.Animations
         /// True if the animation should start over from the first frame after finishing. False if it should stop playing and keep displaying the last frame when finishing.
         /// </summary>
         public bool Repeat { get; set; }
+
+        public T CurrentFrame => frameData[CurrentFrameIndex].Content;
 
         protected Animation()
         {
@@ -87,8 +90,8 @@ namespace osu.Framework.Graphics.Animations
             else if (frameIndex >= frameData.Count)
                 frameIndex = frameData.Count - 1;
 
-            currentFrameIndex = frameIndex;
-            displayFrame(currentFrameIndex);
+            CurrentFrameIndex = frameIndex;
+            updateCurrentFrame();
         }
 
         /// <summary>
@@ -111,7 +114,7 @@ namespace osu.Framework.Graphics.Animations
             OnFrameAdded(frame.Content, frame.Duration);
 
             if (frameData.Count == 1)
-                displayFrame(0);
+                updateCurrentFrame();
         }
 
         /// <summary>
@@ -134,13 +137,13 @@ namespace osu.Framework.Graphics.Animations
                 AddFrame(t.Content, t.Duration);
         }
 
-        private void displayFrame(int index)
+        private void updateCurrentFrame()
         {
-            var frame = frameData[index];
+            var frame = CurrentFrame;
 
             if (RelativeSizeAxes != Axes.Both)
             {
-                var frameSize = GetFrameSize(frame.Content);
+                var frameSize = GetFrameSize(frame);
 
                 if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
                     base.Width = frameSize.X;
@@ -149,7 +152,7 @@ namespace osu.Framework.Graphics.Animations
                     base.Height = frameSize.Y;
             }
 
-            DisplayFrame(frameData[index].Content);
+            DisplayFrame(frame);
         }
 
         /// <summary>
@@ -183,27 +186,27 @@ namespace osu.Framework.Graphics.Animations
             {
                 currentFrameTime += Time.Elapsed;
 
-                while (currentFrameTime > frameData[currentFrameIndex].Duration)
+                while (currentFrameTime > frameData[CurrentFrameIndex].Duration)
                 {
-                    currentFrameTime -= frameData[currentFrameIndex].Duration;
-                    ++currentFrameIndex;
+                    currentFrameTime -= frameData[CurrentFrameIndex].Duration;
+                    ++CurrentFrameIndex;
 
-                    if (currentFrameIndex >= frameData.Count)
+                    if (CurrentFrameIndex >= frameData.Count)
                     {
                         if (Repeat)
                         {
-                            currentFrameIndex = 0;
+                            CurrentFrameIndex = 0;
                         }
                         else
                         {
-                            currentFrameIndex = frameData.Count - 1;
+                            CurrentFrameIndex = frameData.Count - 1;
                             IsPlaying = false;
                             break;
                         }
                     }
                 }
 
-                displayFrame(currentFrameIndex);
+                updateCurrentFrame();
             }
         }
     }
