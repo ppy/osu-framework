@@ -359,10 +359,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            BindTexture(texture?.TextureId ?? 0, unit);
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
+
+            return didBind;
         }
 
         /// <summary>
@@ -370,22 +372,23 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);
 
-            if (last_bound_texture[index] != textureId)
-            {
-                FlushCurrentBatch();
+            if (last_bound_texture[index] == textureId)
+                return false;
 
-                GL.ActiveTexture(unit);
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
+            FlushCurrentBatch();
 
-                last_bound_texture[index] = textureId;
-                last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+            GL.ActiveTexture(unit);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
 
-                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-            }
+            last_bound_texture[index] = textureId;
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+
+            FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+            return true;
         }
 
         private static BlendingParameters lastBlendingParameters;
