@@ -29,8 +29,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear)
             : base(width, height, manualMipmaps, filteringMode)
         {
-            lock (all_atlases)
-                all_atlases.Add(this);
+            all_atlases.Add(this);
 
             TextureCreated?.Invoke(this);
         }
@@ -38,18 +37,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Retrieves all currently-active <see cref="TextureGLAtlas"/>es.
         /// </summary>
-        public static TextureGLAtlas[] GetAllAtlases()
-        {
-            lock (all_atlases)
-                return all_atlases.ToArray();
-        }
+        public static TextureGLAtlas[] GetAllAtlases() => all_atlases.ToArray();
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
 
-            lock (all_atlases)
-                all_atlases.Remove(this);
+            all_atlases.Remove(this);
         }
     }
 }
