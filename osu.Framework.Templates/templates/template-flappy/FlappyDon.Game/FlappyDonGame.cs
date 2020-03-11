@@ -137,8 +137,7 @@ namespace FlappyDon.Game
             // Play reset noise
             whooshSound.Play();
 
-            // Flash screen to hide the
-            // UI/backdrop element transitions
+            // Flash screen to hide the UI/backdrop element transitions
             screenFlash.Flash(0.0, 700.0);
 
             // Reset state of game elements
@@ -165,9 +164,10 @@ namespace FlappyDon.Game
         {
             // Play a brief flash to make the hit very visible and show the game over text
             // at the peak of the flash
-            double fadeInDuration = 30.0;
-            screenFlash.Flash(fadeInDuration, 500.0);
-            Scheduler.AddDelayed(() => gameOverSprite.Show(), fadeInDuration);
+            const double fade_in_duration = 30.0;
+
+            screenFlash.Flash(fade_in_duration, 500.0);
+            Scheduler.AddDelayed(() => gameOverSprite.Show(), fade_in_duration);
 
             // Play the punch sound, and then the 'fall' sound slightly after
             punchSound.Play();
