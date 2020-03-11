@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     var atlas = AtlasTexture;
 
-                    if (atlas == null)
+                    if (atlas?.Available != true)
                     {
                         Expire();
                         return;
