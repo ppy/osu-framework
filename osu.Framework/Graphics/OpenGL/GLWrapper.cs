@@ -57,6 +57,18 @@ namespace osu.Framework.Graphics.OpenGL
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
         public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
+        /// <summary>
+        /// The maximum number of texture uploads to dequeue and upload per frame.
+        /// Defaults to 32.
+        /// </summary>
+        public static int MaxTexturesUploadedPerFrame { get; set; } = 32;
+
+        /// <summary>
+        /// The maximum number of pixels to upload per frame.
+        /// Defaults to 2 megapixels (8mb alloc).
+        /// </summary>
+        public static int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
+
         private static readonly Scheduler reset_scheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
@@ -130,8 +142,9 @@ namespace osu.Framework.Graphics.OpenGL
             stat_texture_uploads_performed.Value = 0;
 
             // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
-            int targetUploads = Math.Max(1, texture_upload_queue.Count / 2);
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
             int uploads = 0;
+            int uploadedPixels = 0;
 
             // continue attempting to upload textures until enough uploads have been performed.
             while (texture_upload_queue.TryDequeue(out TextureGL texture))
@@ -146,6 +159,9 @@ namespace osu.Framework.Graphics.OpenGL
                 stat_texture_uploads_performed.Value++;
 
                 if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
                     break;
             }
 
