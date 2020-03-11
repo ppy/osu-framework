@@ -194,17 +194,16 @@ namespace FlappyDon.Game
 
         protected override void Update()
         {
-            if (gameState == GameState.GameOver)
-                return;
-
-            // Register a collision if the bird hits a pipe or the ground
-            if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
-            {
-                changeGameState(GameState.GameOver);
-                return;
-            }
-
             base.Update();
+
+            switch (gameState)
+            {
+                case GameState.Playing:
+                    // Register a collision if the bird hits a pipe or the ground
+                    if (obstacles.CheckForCollision(bird.CollisionQuad) || bird.IsTouchingGround)
+                        changeGameState(GameState.GameOver);
+                    break;
+            }
         }
 
         private void onTapEvent()
