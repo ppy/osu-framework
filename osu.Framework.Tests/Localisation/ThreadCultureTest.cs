@@ -54,9 +54,12 @@ namespace osu.Framework.Tests.Localisation
         private void setCulture(string name) => AddStep($"set culture = {name}", () =>
         {
             var locale = config.GetBindable<string>(FrameworkSetting.Locale);
-            // force ValueChanged to trigger by calling SetValue explicitly instead of setting .Value
+
+            locale.Value = name;
+
+            // force ValueChanged to trigger by calling TriggerChange explicitly
             // this is done since the existing value might have been the same and TestScene.SetUpTestForUnit() might have overridden the culture silently
-            locale.SetValue(locale.Value, name);
+            locale.TriggerChange();
         });
 
         private void assertCulture(string name)

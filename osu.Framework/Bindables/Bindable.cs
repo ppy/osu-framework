@@ -14,92 +14,36 @@ using osu.Framework.Lists;
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// A generic implementation of a <see cref="IBindable"/>
+    /// A generic implementation of a <see cref="IBindable"/>.
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
     public class Bindable<T> : IBindable<T>, ISerializableBindable, IHasPropertyGuards
     {
         /// <summary>
-        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
+        /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerChange"/>).
         /// </summary>
         public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
+        /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerChange"/>).
         /// </summary>
         public event Action<bool> DisabledChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
+        /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerChange"/>).
         /// </summary>
         public event Action<ValueChangedEvent<T>> DefaultChanged;
 
-        private T value;
-
-        private T defaultValue;
-
-        private bool disabled;
-
-        /// <summary>
-        /// Whether this bindable has been disabled. When disabled, attempting to change the <see cref="Value"/> will result in an <see cref="InvalidOperationException"/>.
-        /// </summary>
-        public virtual bool Disabled
-        {
-            get => disabled;
-            set
-            {
-                // if a lease is active, disabled can *only* be changed by that leased bindable.
-                throwIfLeased();
-
-                if (disabled == value) return;
-
-                SetDisabled(value);
-            }
-        }
-
-        internal void SetDisabled(bool value, bool bypassChecks = false, Bindable<T> source = null)
-        {
-            if (!bypassChecks)
-                throwIfLeased();
-
-            disabled = value;
-            TriggerDisabledChange(source ?? this, true, bypassChecks);
-        }
-
-        /// <summary>
-        /// Check whether the current <see cref="Value"/> is equal to <see cref="Default"/>.
-        /// </summary>
-        public virtual bool IsDefault => EqualityComparer<T>.Default.Equals(value, Default);
-
-        /// <summary>
-        /// Revert the current <see cref="Value"/> to the defined <see cref="Default"/>.
-        /// </summary>
-        public void SetDefault() => Value = Default;
+        protected readonly BindableProperty<T> ValueProperty, DefaultProperty;
+        protected readonly BindableProperty<bool> DisabledProperty;
 
         /// <summary>
         /// The current value of this bindable.
         /// </summary>
         public virtual T Value
         {
-            get => value;
-            set
-            {
-                // intentionally don't have throwIfLeased() here.
-                // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Value.
-
-                if (Disabled)
-                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
-
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
-
-                SetValue(this.value, value);
-            }
-        }
-
-        internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
-        {
-            this.value = value;
-            TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
+            get => ValueProperty.Value;
+            set => ValueProperty.Value = value;
         }
 
         /// <summary>
@@ -107,26 +51,28 @@ namespace osu.Framework.Bindables
         /// </summary>
         public virtual T Default
         {
-            get => defaultValue;
-            set
-            {
-                // intentionally don't have throwIfLeased() here.
-                // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Default.
-
-                if (Disabled)
-                    throw new InvalidOperationException($"Can not set default value to \"{value.ToString()}\" as bindable is disabled.");
-
-                if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
-
-                SetDefaultValue(defaultValue, value);
-            }
+            get => DefaultProperty.Value;
+            set => DefaultProperty.Value = value;
         }
 
-        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        /// <summary>
+        /// Whether this bindable has been disabled. When disabled, attempting to change the <see cref="Value"/> will result in an <see cref="InvalidOperationException"/>.
+        /// </summary>
+        public virtual bool Disabled
         {
-            defaultValue = value;
-            TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
+            get => DisabledProperty.Value;
+            set => DisabledProperty.Value = value;
         }
+
+        /// <summary>
+        /// Check whether the current <see cref="Value"/> is equal to <see cref="Default"/>.
+        /// </summary>
+        public virtual bool IsDefault => EqualityComparer<T>.Default.Equals(Value, Default);
+
+        /// <summary>
+        /// Revert the current <see cref="Value"/> to the defined <see cref="Default"/>.
+        /// </summary>
+        public void SetDefault() => Value = Default;
 
         private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
 
@@ -152,7 +98,20 @@ namespace osu.Framework.Bindables
         /// <param name="defaultValue">The initial and default value for this bindable.</param>
         public Bindable(T defaultValue = default)
         {
-            value = Default = defaultValue;
+            ValueProperty = new BindableProperty<T>(defaultValue, this, b => (b as Bindable<T>)?.ValueProperty)
+            {
+                OnValueChange = (o, n) => ValueChanged?.Invoke(new ValueChangedEvent<T>(o, n)),
+            };
+
+            DefaultProperty = new BindableProperty<T>(defaultValue, this, b => (b as Bindable<T>)?.DefaultProperty)
+            {
+                OnValueChange = (o, n) => DefaultChanged?.Invoke(new ValueChangedEvent<T>(o, n)),
+            };
+
+            DisabledProperty = new DisabledBindableProperty(this, b => (b as Bindable<T>)?.DisabledProperty)
+            {
+                OnValueChange = (_, d) => DisabledChanged?.Invoke(d),
+            };
         }
 
         void IBindable.BindTo(IBindable them)
@@ -203,6 +162,16 @@ namespace osu.Framework.Bindables
 
         protected virtual void CheckPropertyValueChange<TValue>(IBindableProperty<TValue> property, TValue value)
         {
+            if (property == DisabledProperty)
+            {
+                // if a lease is active, disabled can *only* be changed by that leased bindable.
+                throwIfLeased();
+
+                return;
+            }
+
+            if (Disabled)
+                throw new InvalidOperationException($"Can not set value to \"{value}\" as bindable is disabled.");
         }
 
         /// <summary>
@@ -265,70 +234,14 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Raise <see cref="ValueChanged"/> and <see cref="DisabledChanged"/> once, without any changes actually occurring.
+        /// Raise <see cref="ValueChanged"/>, <see cref="DefaultChanged"/> and <see cref="DisabledChanged"/> once, without any changes actually occurring.
         /// This does not propagate to any outward bound bindables.
         /// </summary>
         public virtual void TriggerChange()
         {
-            TriggerValueChange(value, this, false);
-            TriggerDisabledChange(this, false);
-        }
-
-        protected void TriggerValueChange(T previousValue, Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = value;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in InternalBindings)
-                {
-                    if (b == source) continue;
-
-                    b.SetValue(previousValue, value, bypassChecks, this);
-                }
-            }
-
-            if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
-                ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
-        }
-
-        protected void TriggerDefaultChange(T previousValue, Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = defaultValue;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in InternalBindings)
-                {
-                    if (b == source) continue;
-
-                    b.SetDefaultValue(previousValue, defaultValue, bypassChecks, this);
-                }
-            }
-
-            if (EqualityComparer<T>.Default.Equals(beforePropagation, defaultValue))
-                DefaultChanged?.Invoke(new ValueChangedEvent<T>(previousValue, defaultValue));
-        }
-
-        protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            bool beforePropagation = disabled;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in InternalBindings)
-                {
-                    if (b == source) continue;
-
-                    b.SetDisabled(disabled, bypassChecks, this);
-                }
-            }
-
-            if (beforePropagation == disabled)
-                DisabledChanged?.Invoke(disabled);
+            ValueProperty.TriggerChange(Value, false);
+            DefaultProperty.TriggerChange(Default, false);
+            DisabledProperty.TriggerChange(Disabled, false);
         }
 
         /// <summary>
@@ -382,7 +295,7 @@ namespace osu.Framework.Bindables
 
         public string Description { get; set; }
 
-        public override string ToString() => value?.ToString() ?? string.Empty;
+        public override string ToString() => Value?.ToString() ?? string.Empty;
 
         /// <summary>
         /// Create an unbound clone of this bindable.
@@ -478,6 +391,24 @@ namespace osu.Framework.Bindables
         {
             if (isLeased)
                 throw new InvalidOperationException($"Cannot perform this operation on a {nameof(Bindable<T>)} that is currently in a leased state.");
+        }
+
+        private class DisabledBindableProperty : BindableProperty<bool>
+        {
+            public new Bindable<T> Source => base.Source as Bindable<T>;
+
+            public DisabledBindableProperty(Bindable<T> source, Func<IBindable, BindableProperty<bool>> getPropertyOf)
+                : base(false, source, getPropertyOf)
+            {
+            }
+
+            protected override void Set(bool oldValue, bool newValue, IBindable propagationRoot, IBindable triggeringBindable)
+            {
+                if (!(propagationRoot is ILeasedBindable))
+                    Source.throwIfLeased();
+
+                base.Set(oldValue, newValue, propagationRoot, triggeringBindable);
+            }
         }
     }
 }
