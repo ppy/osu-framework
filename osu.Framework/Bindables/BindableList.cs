@@ -31,7 +31,7 @@ namespace osu.Framework.Bindables
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
+        /// An event which is raised when <see cref="Disabled"/>'s state has changed.
         /// </summary>
         public event Action<bool> DisabledChanged;
 
@@ -52,6 +52,11 @@ namespace osu.Framework.Bindables
         /// <param name="items">The items that are going to be contained in the newly created <see cref="BindableList{T}"/>.</param>
         public BindableList(IEnumerable<T> items = null)
         {
+            DisabledProperty = new BindableProperty<bool>(false, this, b => (b as BindableList<T>)?.DisabledProperty)
+            {
+                OnValueChange = (_, disabled) => DisabledChanged?.Invoke(disabled),
+            };
+
             if (items != null)
                 collection.AddRange(items);
         }
@@ -412,23 +417,15 @@ namespace osu.Framework.Bindables
 
         #region ICanBeDisabled
 
-        private bool disabled;
+        protected BindableProperty<bool> DisabledProperty;
 
         /// <summary>
         /// Whether this <see cref="BindableList{T}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableList{T}"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
         public bool Disabled
         {
-            get => disabled;
-            set
-            {
-                if (value == disabled)
-                    return;
-
-                disabled = value;
-
-                triggerDisabledChange();
-            }
+            get => DisabledProperty.Value;
+            set => DisabledProperty.Value = value;
         }
 
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
@@ -436,21 +433,6 @@ namespace osu.Framework.Bindables
             DisabledChanged += onChange;
             if (runOnceImmediately)
                 onChange(Disabled);
-        }
-
-        private void triggerDisabledChange(bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            bool beforePropagation = disabled;
-
-            if (propagateToBindings && bindings != null)
-            {
-                foreach (var b in bindings)
-                    b.Disabled = disabled;
-            }
-
-            if (beforePropagation == disabled)
-                DisabledChanged?.Invoke(disabled);
         }
 
         #endregion ICanBeDisabled
