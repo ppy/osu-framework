@@ -200,6 +200,8 @@ namespace osu.Framework.Platform
 
         private readonly ToolkitOptions toolkitOptions;
 
+        private bool suspended;
+
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
             this.toolkitOptions = toolkitOptions;
@@ -574,17 +576,28 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
         /// </summary>
-        public void Suspend() => threadRunner.Suspend();
+        public void Suspend()
+        {
+            threadRunner.Suspend();
+            suspended = true;
+        }
 
         /// <summary>
         /// Resumes all of the current paused threads after <see cref="Suspend"/> was called.
         /// </summary>
-        public void Resume() => threadRunner.Start();
+        public void Resume()
+        {
+            threadRunner.Start();
+            suspended = false;
+        }
 
         private ThreadRunner threadRunner;
 
         private void windowUpdate()
         {
+            if (suspended)
+                return;
+
             inputPerformanceCollectionPeriod?.Dispose();
 
             threadRunner.RunMainLoop();
