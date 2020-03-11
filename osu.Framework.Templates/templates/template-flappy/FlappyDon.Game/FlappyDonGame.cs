@@ -9,13 +9,6 @@ using osuTK.Input;
 
 namespace FlappyDon.Game
 {
-    enum GameState
-    {
-        Ready,
-        Playing,
-        GameOver
-    }
-
     public class FlappyDonGame : FlappyDonGameBase
     {
         // The main container for holding all of the game content
