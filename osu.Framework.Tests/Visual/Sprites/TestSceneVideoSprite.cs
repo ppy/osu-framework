@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Sprites
     {
         private ManualClock clock;
         private VideoSprite videoSprite;
-        private SpriteText timeText;
+        private readonly SpriteText timeText;
         private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
@@ -24,7 +24,22 @@ namespace osu.Framework.Tests.Visual.Sprites
         public TestSceneVideoSprite()
         {
             loadVideo();
-            Add(new SpriteText { Text = "Video is loading... " });
+
+            Add(timeText = new SpriteText
+            {
+                Text = "Video is loading...",
+                Depth = -1
+            });
+
+            AddUntilStep("wait for video to load", () => videoSprite != null);
+
+            AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
+            AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
+            AddToggleStep("Toggle looping", newState =>
+            {
+                videoSprite.Loop = newState;
+                clock.CurrentTime = 0;
+            });
         }
 
         private async void loadVideo()
@@ -34,28 +49,13 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             Schedule(() =>
             {
-                Clear();
-
-                videoSprite = new VideoSprite(wr.ResponseStream);
-                decoderState.BindTo(videoSprite.State);
-                Add(videoSprite);
-                videoSprite.Loop = false;
-
-                clock = new ManualClock();
-                videoSprite.Clock = new FramedClock(clock);
-
-                Add(timeText = new SpriteText
+                Add(videoSprite = new VideoSprite(wr.ResponseStream, false)
                 {
-                    Font = FrameworkFont.Condensed.With(fixedWidth: true)
+                    Loop = false,
+                    Clock = new FramedClock(clock = new ManualClock()),
                 });
 
-                AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
-                AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
-                AddToggleStep("Toggle looping", newState =>
-                {
-                    videoSprite.Loop = newState;
-                    clock.CurrentTime = 0;
-                });
+                timeText.Font = FrameworkFont.Condensed.With(fixedWidth: true);
             });
         }
 
