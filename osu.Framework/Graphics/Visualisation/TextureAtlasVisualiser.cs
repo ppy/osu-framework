@@ -26,7 +26,8 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Spacing = new Vector2(10),
+                Spacing = new Vector2(22),
+                Padding = new MarginPadding(10),
             };
         }
 
@@ -71,8 +72,8 @@ namespace osu.Framework.Graphics.Visualisation
             public TexturePanel(TextureGLAtlas atlasTexture)
             {
                 atlasReference = new WeakReference<TextureGLAtlas>(atlasTexture);
-                Width = 100;
-                AutoSizeAxes = Axes.Y;
+
+                Size = new Vector2(100, 132);
 
                 InternalChild = new FillFlowContainer
                 {
@@ -105,7 +106,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16)
+                            Font = FontUsage.Default.With(size: 16),
                         },
                     }
                 };
