@@ -59,11 +59,12 @@ namespace osu.Framework.iOS
 
         public override void ObserveValue(NSString keyPath, NSObject ofObject, NSDictionary change, IntPtr context)
         {
-            if (keyPath != "outputVolume")
-                return;
-
-            AVAudioSession audioSession = AVAudioSession.SharedInstance();
-            audioSession.SetCategory(AVAudioSessionCategory.Playback);
+            switch (keyPath)
+            {
+                case "outputVolume":
+                    AVAudioSession.SharedInstance().SetCategory(AVAudioSessionCategory.Playback);
+                    break;
+            }
         }
     }
 }
