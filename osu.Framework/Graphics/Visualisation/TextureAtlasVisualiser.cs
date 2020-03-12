@@ -3,14 +3,12 @@
 
 using System;
 using System.Linq;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -28,7 +26,8 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Spacing = new Vector2(10),
+                Spacing = new Vector2(22),
+                Padding = new MarginPadding(10),
             };
         }
 
@@ -39,16 +38,16 @@ namespace osu.Framework.Graphics.Visualisation
             foreach (var tex in TextureGLAtlas.GetAllAtlases())
                 addTexture(tex);
 
-            TextureGLAtlas.TextureAdded += addTexture;
-            TextureGLAtlas.TextureRemoved += removeTexture;
+            TextureGLAtlas.TextureCreated += addTexture;
         }
 
         protected override void PopOut()
         {
             base.PopOut();
 
-            TextureGLAtlas.TextureAdded -= addTexture;
-            TextureGLAtlas.TextureRemoved -= removeTexture;
+            panelFlow.Clear();
+
+            TextureGLAtlas.TextureCreated -= addTexture;
         }
 
         private void addTexture(TextureGLAtlas texture) => Schedule(() =>
@@ -59,20 +58,22 @@ namespace osu.Framework.Graphics.Visualisation
             panelFlow.Add(new TexturePanel(texture));
         });
 
-        private void removeTexture(TextureGLAtlas texture) => Schedule(() => panelFlow.RemoveAll(p => p.AtlasTexture == texture));
-
         private class TexturePanel : CompositeDrawable
         {
-            public readonly TextureGLAtlas AtlasTexture;
+            private readonly WeakReference<TextureGLAtlas> atlasReference;
+
+            public TextureGLAtlas AtlasTexture => atlasReference.TryGetTarget(out var tex) ? tex : null;
 
             private readonly SpriteText titleText;
             private readonly SpriteText footerText;
 
+            private readonly UsageBackground usage;
+
             public TexturePanel(TextureGLAtlas atlasTexture)
             {
-                AtlasTexture = atlasTexture;
-                Width = 100;
-                AutoSizeAxes = Axes.Y;
+                atlasReference = new WeakReference<TextureGLAtlas>(atlasTexture);
+
+                Size = new Vector2(100, 132);
 
                 InternalChild = new FillFlowContainer
                 {
@@ -95,37 +96,17 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Children = new Drawable[]
                             {
-                                new UsageBackground(atlasTexture)
+                                usage = new UsageBackground(atlasReference)
                                 {
-                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(100)
                                 },
-                                new Container
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    Height = 100,
-                                    Padding = new MarginPadding(5),
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Black
-                                        },
-                                        new Sprite
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            FillMode = FillMode.Fit,
-                                            Texture = new Texture(atlasTexture),
-                                        }
-                                    }
-                                }
                             },
                         },
                         footerText = new SpriteText
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16)
+                            Font = FontUsage.Default.With(size: 16),
                         },
                     }
                 };
@@ -137,8 +118,16 @@ namespace osu.Framework.Graphics.Visualisation
 
                 try
                 {
-                    titleText.Text = $"{AtlasTexture.Width}x{AtlasTexture.Height}";
-                    footerText.Text = $"{AtlasTexture.TextureId}";
+                    var atlas = AtlasTexture;
+
+                    if (atlas?.Available != true)
+                    {
+                        Expire();
+                        return;
+                    }
+
+                    titleText.Text = $"{atlas.TextureId}. {atlas.Width}x{atlas.Height} ";
+                    footerText.Text = Precision.AlmostBigger(usage.AverageUsagesPerFrame, 1) ? $"{usage.AverageUsagesPerFrame:N0} binds" : string.Empty;
                 }
                 catch { }
             }
@@ -146,13 +135,15 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class UsageBackground : Box
         {
-            private readonly TextureGLAtlas atlasTexture;
+            private readonly WeakReference<TextureGLAtlas> atlasReference;
 
-            private float avgUsagesPerFrame;
+            private ulong lastBindCount;
 
-            public UsageBackground(TextureGLAtlas atlasTexture)
+            public float AverageUsagesPerFrame { get; private set; }
+
+            public UsageBackground(WeakReference<TextureGLAtlas> atlasReference)
             {
-                this.atlasTexture = atlasTexture;
+                this.atlasReference = atlasReference;
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -161,10 +152,9 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 protected new UsageBackground Source => (UsageBackground)base.Source;
 
-                private ulong lastBindCount;
                 private ColourInfo drawColour;
 
-                private TextureGLAtlas atlasTexture;
+                private WeakReference<TextureGLAtlas> atlasReference;
 
                 public UsageBackgroundDrawNode(Box source)
                     : base(source)
@@ -175,30 +165,51 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     base.ApplyState();
 
-                    atlasTexture = Source.atlasTexture;
+                    atlasReference = Source.atlasReference;
                 }
 
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
                 {
-                    if (!atlasTexture.Available)
+                    if (!atlasReference.TryGetTarget(out var texture))
                         return;
 
-                    ulong delta = atlasTexture.BindCount - lastBindCount;
+                    if (!texture.Available)
+                        return;
 
-                    Source.avgUsagesPerFrame = Source.avgUsagesPerFrame * 0.9f + delta * 0.1f;
+                    ulong delta = texture.BindCount - Source.lastBindCount;
+
+                    Source.AverageUsagesPerFrame = Source.AverageUsagesPerFrame * 0.9f + delta * 0.1f;
 
                     drawColour = DrawColourInfo.Colour;
-                    drawColour.ApplyChild(Interpolation.ValueAt(Source.avgUsagesPerFrame, Color4.Red.Opacity(0), Color4.Red, 0, 200));
+                    drawColour.ApplyChild(
+                        Precision.AlmostBigger(Source.AverageUsagesPerFrame, 1)
+                            ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
+                            : Color4.Transparent);
 
                     base.Draw(vertexAction);
 
-                    lastBindCount = atlasTexture.BindCount;
+                    // intentionally after draw to avoid counting our own bind.
+                    Source.lastBindCount = texture.BindCount;
                 }
 
                 protected override void Blit(Action<TexturedVertex2D> vertexAction)
                 {
-                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, null, vertexAction,
-                        new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
+                    if (!atlasReference.TryGetTarget(out var texture))
+                        return;
+
+                    const float border_width = 4;
+
+                    // border
+                    DrawQuad(Texture, ScreenSpaceDrawQuad, drawColour, null, vertexAction);
+
+                    var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
+
+                    // background
+                    DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
+
+                    // atlas texture
+                    texture.Bind();
+                    DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;
