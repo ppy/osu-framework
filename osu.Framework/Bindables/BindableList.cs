@@ -41,10 +41,10 @@ namespace osu.Framework.Bindables
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
-        IEnumerable<IBindable> IBindable.Bindings => bindings;
-        public IEnumerable<IBindableList<T>> Bindings => bindings;
+        IEnumerable<IBindable> IBindable.Bindings => Bindings;
+        IEnumerable<IBindableList<T>> IBindableList<T>.Bindings => Bindings;
 
-        private LockedWeakList<BindableList<T>> bindings;
+        protected internal LockedWeakList<BindableList<T>> Bindings;
 
         /// <summary>
         /// Creates a new <see cref="BindableList{T}"/>, optionally adding the items of the given collection.
@@ -77,9 +77,9 @@ namespace osu.Framework.Bindables
 
             collection[index] = item;
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -105,9 +105,9 @@ namespace osu.Framework.Bindables
 
             collection.Add(item);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -141,9 +141,9 @@ namespace osu.Framework.Bindables
 
             collection.Insert(index, item);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -174,9 +174,9 @@ namespace osu.Framework.Bindables
 
             collection.Clear();
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -216,9 +216,9 @@ namespace osu.Framework.Bindables
 
             collection.RemoveAt(index);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -253,9 +253,9 @@ namespace osu.Framework.Bindables
             if (removedItems.Count == 0)
                 return;
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // Prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -283,9 +283,9 @@ namespace osu.Framework.Bindables
 
             collection.RemoveAt(index);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -313,9 +313,9 @@ namespace osu.Framework.Bindables
             // RemoveAll is internally optimised
             collection.RemoveAll(match);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -443,9 +443,9 @@ namespace osu.Framework.Bindables
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             bool beforePropagation = disabled;
 
-            if (propagateToBindings && bindings != null)
+            if (propagateToBindings && Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                     b.Disabled = disabled;
             }
 
@@ -470,13 +470,13 @@ namespace osu.Framework.Bindables
 
         public void UnbindBindings()
         {
-            if (bindings == null)
+            if (Bindings == null)
                 return;
 
-            foreach (var b in bindings)
+            foreach (var b in Bindings)
                 b.unbind(this);
 
-            bindings?.Clear();
+            Bindings?.Clear();
         }
 
         public void UnbindAll()
@@ -495,7 +495,7 @@ namespace osu.Framework.Bindables
         }
 
         private void unbind(BindableList<T> binding)
-            => bindings.Remove(binding.weakReference);
+            => Bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
@@ -521,9 +521,9 @@ namespace osu.Framework.Bindables
 
             collection.AddRange(items.Cast<T>());
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -552,9 +552,9 @@ namespace osu.Framework.Bindables
             collection.RemoveAt(oldIndex);
             collection.Insert(newIndex, item);
 
-            if (bindings != null)
+            if (Bindings != null)
             {
-                foreach (var b in bindings)
+                foreach (var b in Bindings)
                 {
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
@@ -599,7 +599,7 @@ namespace osu.Framework.Bindables
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) ?? false)
+            if (Bindings?.Contains(weakReference) ?? false)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
@@ -614,13 +614,13 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<BindableList<T>> weakReference)
         {
-            if (bindings == null)
-                bindings = new LockedWeakList<BindableList<T>>();
+            if (Bindings == null)
+                Bindings = new LockedWeakList<BindableList<T>>();
 
-            bindings.Add(weakReference);
+            Bindings.Add(weakReference);
         }
 
-        private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => bindings?.Remove(weakReference);
+        private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => Bindings?.Remove(weakReference);
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 

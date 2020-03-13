@@ -14,7 +14,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// The list of all bindables that are bound to this <see cref="IBindable"/>.
         /// </summary>
-        IEnumerable<IBindable> Bindings { get; }
+        protected internal IEnumerable<IBindable> Bindings { get; }
 
         /// <summary>
         /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
@@ -64,7 +64,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// The list of all bindables that are bound to this <see cref="IBindable{T}"/>.
         /// </summary>
-        new IEnumerable<IBindable<T>> Bindings { get; }
+        protected internal new IEnumerable<IBindable<T>> Bindings { get; }
 
         /// <summary>
         /// Binds ourselves to another bindable such that we receive any values and value limitations of the bindable we bind width.
