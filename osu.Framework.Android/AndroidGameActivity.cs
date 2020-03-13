@@ -56,13 +56,16 @@ namespace osu.Framework.Android
                 }
             };
 
-            gameView.Host.AllowScreenSuspension.BindValueChanged(allow =>
+            gameView.HostStarted += host =>
             {
-                if (allow.NewValue)
-                    Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-                else
-                    Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
-            }, true);
+                host.AllowScreenSuspension.BindValueChanged(allow =>
+                {
+                    if (allow.NewValue)
+                        Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                    else
+                        Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                }, true);
+            };
         }
 
         protected override void OnPause()
