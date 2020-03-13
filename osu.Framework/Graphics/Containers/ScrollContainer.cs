@@ -255,11 +255,11 @@ namespace osu.Framework.Graphics.Containers
                 switch (e.Key)
                 {
                     case Key.PageUp:
-                        ScrollTo(target - displayableContent);
+                        OnUserScroll(target - displayableContent);
                         return true;
 
                     case Key.PageDown:
-                        ScrollTo(target + displayableContent);
+                        OnUserScroll(target + displayableContent);
                         return true;
                 }
             }
@@ -324,7 +324,7 @@ namespace osu.Framework.Graphics.Containers
             // can be removed if/when drag events are split out per axis or contain direction information.
             dragBlocksClick |= Math.Abs(e.MouseDownPosition[ScrollDim] - e.MousePosition[ScrollDim]) > dragButtonManager.ClickDragDistance;
 
-            offset(scrollOffset, false);
+            scrollByOffset(scrollOffset, false);
         }
 
         protected override void OnDragEnd(DragEndEvent e)
@@ -350,7 +350,7 @@ namespace osu.Framework.Graphics.Containers
             // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
-            offset((float)distance, true, DistanceDecayDrag);
+            scrollByOffset((float)distance, true, DistanceDecayDrag);
         }
 
         protected override bool OnScroll(ScrollEvent e)
@@ -365,7 +365,7 @@ namespace osu.Framework.Graphics.Containers
             if (ScrollDirection == Direction.Horizontal && scrollDelta.X != 0)
                 scrollDeltaFloat = scrollDelta.X;
 
-            offset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
+            scrollByOffset((isPrecise ? 10 : 80) * -scrollDeltaFloat, true, isPrecise ? 0.05 : DistanceDecayScroll);
             return true;
         }
 
@@ -381,7 +381,8 @@ namespace osu.Framework.Graphics.Containers
             Current += offset;
         }
 
-        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+        private void scrollByOffset(float value, bool animated, double distanceDecay = float.PositiveInfinity) =>
+            OnUserScroll(target + value, animated, distanceDecay);
 
         /// <summary>
         /// Scroll to the start of available content.
@@ -411,6 +412,15 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="offset">The amount by which we should scroll.</param>
         /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
+
+        /// <summary>
+        /// Handle a scroll to an absolute position from a user input.
+        /// </summary>
+        /// <param name="value">The position to scroll to.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// <param name="distanceDecay">Controls the rate with which the target position is approached after jumping to a specific location. Default is <see cref="DistanceDecayJump"/>.</param>
+        protected virtual void OnUserScroll(float value, bool animated = true, double? distanceDecay = null) =>
+            ScrollTo(value, animated, distanceDecay);
 
         /// <summary>
         /// Scrolls to an absolute position.
