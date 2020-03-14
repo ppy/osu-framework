@@ -3,7 +3,6 @@
 
 using osuTK;
 using System;
-using JetBrains.Annotations;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
@@ -12,7 +11,7 @@ namespace osu.Framework.Graphics
     /// Holds data about the margin or padding of a <see cref="Drawable"/>.
     /// The margin describes the size of an empty area around its <see cref="Drawable"/>, while the padding describes the size of an empty area inside its container.
     /// </summary>
-    public struct MarginPadding : IEquatable<MarginPadding>
+    public struct MarginPadding : IInterpolable<MarginPadding>, IEquatable<MarginPadding>
     {
         /// <summary>
         /// The absolute size of the space that should be left empty above the <see cref="Drawable"/> if used as margin, or
@@ -95,16 +94,13 @@ namespace osu.Framework.Graphics
                 Bottom = -mp.Bottom,
             };
 
-        [UsedImplicitly]
-        public static MarginPadding ValueAt(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, Easing easingType = Easing.None)
-        {
-            return new MarginPadding
+        public MarginPadding ValueAt(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, Easing easingType)
+            => new MarginPadding
             {
                 Left = Interpolation.ValueAt(time, startValue.Left, endValue.Left, startTime, endTime, easingType),
                 Top = Interpolation.ValueAt(time, startValue.Top, endValue.Top, startTime, endTime, easingType),
                 Right = Interpolation.ValueAt(time, startValue.Right, endValue.Right, startTime, endTime, easingType),
                 Bottom = Interpolation.ValueAt(time, startValue.Bottom, endValue.Bottom, startTime, endTime, easingType),
             };
-        }
     }
 }

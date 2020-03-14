@@ -34,6 +34,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
+        /// <summary>
+        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// </summary>
+        public ulong BindCount { get; private set; }
+
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
@@ -320,7 +325,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(this, unit);
+            if (GLWrapper.BindTexture(this, unit))
+                BindCount++;
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();

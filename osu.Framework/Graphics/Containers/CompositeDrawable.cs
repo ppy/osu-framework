@@ -16,7 +16,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
-using osu.Framework.Caching;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
 using System.Threading.Tasks;
@@ -25,6 +24,7 @@ using osu.Framework.Development;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Layout;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
@@ -49,6 +49,8 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren = new SortedList<Drawable>(new ChildComparer(this));
             aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
+
+            AddLayout(childrenSizeDependencies);
         }
 
         [Resolved]
@@ -210,7 +212,8 @@ namespace osu.Framework.Graphics.Containers
             loadComponents(ref components, Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default) where TLoadable : Drawable
+        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+            where TLoadable : Drawable
         {
             foreach (var c in components)
             {
@@ -461,7 +464,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.IsAlive = false;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
+                Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
 
             return true;
         }
@@ -499,7 +502,7 @@ namespace osu.Framework.Graphics.Containers
             RequestsPositionalInputSubTree = RequestsPositionalInput;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+                Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
         }
 
         /// <summary>
@@ -542,7 +545,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(drawable);
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.RequiredParentSizeToFit, drawable);
+                Invalidate(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
         }
 
         /// <summary>
@@ -662,9 +665,6 @@ namespace osu.Framework.Graphics.Containers
 
             FrameStatistics.Add(StatisticsCounterType.CCL, internalChildren.Count);
 
-            if (anyAliveChanged)
-                childrenSizeDependencies.Invalidate();
-
             return anyAliveChanged;
         }
 
@@ -750,6 +750,8 @@ namespace osu.Framework.Graphics.Containers
             child.IsAlive = true;
 
             ChildBecameAlive?.Invoke(child);
+
+            Invalidate(Invalidation.Presence, InvalidationSource.Child);
         }
 
         /// <summary>
@@ -769,6 +771,8 @@ namespace osu.Framework.Graphics.Containers
 
             ChildDied?.Invoke(child);
 
+            bool removed = false;
+
             if (child.RemoveWhenNotAlive)
             {
                 RemoveInternal(child);
@@ -776,10 +780,12 @@ namespace osu.Framework.Graphics.Containers
                 if (child.DisposeOnDeathRemoval)
                     DisposeChildAsync(child);
 
-                return true;
+                removed = true;
             }
 
-            return false;
+            Invalidate(Invalidation.Presence, InvalidationSource.Child);
+
+            return removed;
         }
 
         internal override void UnbindAllBindablesSubTree()
@@ -945,28 +951,17 @@ namespace osu.Framework.Graphics.Containers
 
         #region Invalidation
 
-        /// <summary>
-        /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
-        /// </summary>
-        /// <param name="invalidation">The type of invalidation applied to the child.</param>
-        /// <param name="source">The child which caused this invalidation. May be null to indicate that a specific child wasn't specified.</param>
-        public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                childrenSizeDependencies.Invalidate();
-        }
+            bool anyInvalidated = base.OnInvalidate(invalidation, source);
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
-
-            if (!shallPropagate) return true;
+            // Child invalidations should not propagate to other children.
+            if (source == InvalidationSource.Child)
+                return anyInvalidated;
 
             for (int i = 0; i < internalChildren.Count; ++i)
             {
                 Drawable c = internalChildren[i];
-                Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
@@ -975,8 +970,7 @@ namespace osu.Framework.Graphics.Containers
                 // Other geometry things like rotation, shearing, etc don't affect child properties.
                 childInvalidation &= ~Invalidation.MiscGeometry;
 
-                // Relative positioning can however affect child geometry
-                // ReSharper disable once PossibleNullReferenceException
+                // Relative positioning can however affect child geometry.
                 if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
                     childInvalidation |= Invalidation.MiscGeometry;
 
@@ -984,10 +978,31 @@ namespace osu.Framework.Graphics.Containers
                 if (c.RelativeSizeAxes == Axes.None)
                     childInvalidation &= ~Invalidation.DrawSize;
 
-                c.Invalidate(childInvalidation, this);
+                anyInvalidated |= c.Invalidate(childInvalidation, InvalidationSource.Parent);
             }
 
-            return true;
+            return anyInvalidated;
+        }
+
+        /// <summary>
+        /// Invalidates the children size dependencies of this <see cref="CompositeDrawable"/> when a child's position or size changes.
+        /// </summary>
+        /// <param name="invalidation">The <see cref="Invalidation"/> to invalidate with.</param>
+        /// <param name="axes">The position or size <see cref="Axes"/> that changed.</param>
+        /// <param name="source">The source <see cref="Drawable"/>.</param>
+        internal void InvalidateChildrenSizeDependencies(Invalidation invalidation, Axes axes, Drawable source)
+        {
+            // Store the current state of the children size dependencies.
+            // This state may be restored later if the invalidation proved to be unnecessary.
+            bool wasValid = childrenSizeDependencies.IsValid;
+
+            // The invalidation still needs to occur as normal, since a derived CompositeDrawable may want to respond to children size invalidations.
+            Invalidate(invalidation, InvalidationSource.Child);
+
+            // If all the changed axes were bypassed and an invalidation occurred, the children size dependencies can immediately be
+            // re-validated without a recomputation, as a recomputation would not change the auto-sized size.
+            if (wasValid && (axes & source.BypassAutoSizeAxes) == axes)
+                childrenSizeDependencies.Validate();
         }
 
         #endregion
@@ -1646,7 +1661,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal event Action OnAutoSize;
 
-        private readonly Cached childrenSizeDependencies = new Cached();
+        private readonly LayoutValue childrenSizeDependencies = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         public override float Width
         {

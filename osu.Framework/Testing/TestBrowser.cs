@@ -467,28 +467,30 @@ namespace osu.Framework.Testing
                 if (name.StartsWith("Test"))
                     name = name.Substring(4);
 
-                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
-                {
-                    hadTestAttributeTest = true;
-                    handleTestMethod(m, name);
+                int runCount = 1;
 
-                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
+                    runCount += (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+
+                for (int i = 0; i < runCount; i++)
+                {
+                    string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
+
+                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
                     {
-                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}{repeatSuffix}");
 
-                        for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{name} ({i})");
+                        handleTestMethod(m);
                     }
-                }
 
-                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
-                {
-                    hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)}){repeatSuffix}");
 
-                    addSetUpSteps();
-
-                    m.Invoke(CurrentTest, tc.Arguments);
+                        handleTestMethod(m, tc.Arguments);
+                    }
                 }
             }
 
@@ -507,7 +509,7 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStep
+                    CurrentTest.AddStep(new SetUpStepButton
                     {
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -516,24 +518,11 @@ namespace osu.Framework.Testing
                 CurrentTest.RunSetUpSteps();
             }
 
-            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            void handleTestMethod(MethodInfo methodInfo, object[] arguments = null)
             {
-                CurrentTest.AddLabel(name ?? methodInfo.Name);
-
                 addSetUpSteps();
-
-                methodInfo.Invoke(CurrentTest, null);
-
+                methodInfo.Invoke(CurrentTest, arguments);
                 CurrentTest.RunTearDownSteps();
-            }
-        }
-
-        private class SetUpStep : SingleStepButton
-        {
-            public SetUpStep()
-            {
-                Text = "[SetUp]";
-                LightColour = Color4.Teal;
             }
         }
 
@@ -549,7 +538,7 @@ namespace osu.Framework.Testing
                     // stop once one actual step has been run.
                     return true;
 
-                if (!(s is SetUpStep) && !(s is LabelStep))
+                if (!(s is SetUpStepButton) && !(s is LabelStep))
                     actualStepCount++;
 
                 return false;

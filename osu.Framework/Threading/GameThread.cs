@@ -76,6 +76,10 @@ namespace osu.Framework.Threading
 
             Clock.Throttling = withThrottling;
 
+            Monitor.MakeCurrent();
+
+            updateCulture();
+
             initializedEvent.Set();
         }
 
@@ -169,6 +173,8 @@ namespace osu.Framework.Threading
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
                     Clock.ProcessFrame();
+
+                Monitor?.EndFrame();
             }
             catch (Exception e)
             {

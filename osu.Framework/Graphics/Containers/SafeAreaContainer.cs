@@ -4,8 +4,8 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -16,6 +16,11 @@ namespace osu.Framework.Graphics.Containers
     public class SafeAreaContainer : Container
     {
         private readonly BindableSafeArea safeAreaPadding = new BindableSafeArea();
+
+        public SafeAreaContainer()
+        {
+            AddLayout(PaddingCache);
+        }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -43,15 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Edges safeAreaOverrideEdges = Edges.None;
 
-        protected readonly Cached PaddingCache = new Cached();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit)) > 0)
-                PaddingCache.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
+        protected readonly LayoutValue PaddingCache = new LayoutValue(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit);
 
         protected override void UpdateAfterChildrenLife()
         {

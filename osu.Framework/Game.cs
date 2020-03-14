@@ -60,6 +60,8 @@ namespace osu.Framework
 
         private DrawVisualiser drawVisualiser;
 
+        private TextureAtlasVisualiser atlasVisualiser;
+
         private LogOverlay logOverlay;
 
         protected override Container<Drawable> Content => content;
@@ -278,6 +280,20 @@ namespace osu.Framework
                     }
 
                     drawVisualiser.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleAtlasVisualiser:
+
+                    if (atlasVisualiser == null)
+                    {
+                        LoadComponentAsync(atlasVisualiser = new TextureAtlasVisualiser
+                        {
+                            Position = new Vector2(100 + 2 * ToolWindow.WIDTH, 100),
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    atlasVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
