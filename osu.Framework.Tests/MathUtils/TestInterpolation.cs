@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -89,8 +90,9 @@ namespace osu.Framework.Tests.MathUtils
 
             public bool Equals(TestClassWithValueAt other) => i == other.i;
 
-            public TestClassWithValueAt ValueAt(double time, TestClassWithValueAt startValue, TestClassWithValueAt endValue, double startTime, double endTime, Easing easingType)
-                => new TestClassWithValueAt(Interpolation.ValueAt(time, startValue.i, endValue.i, startTime, endTime, easingType));
+            public TestClassWithValueAt ValueAt<TEasing>(double time, TestClassWithValueAt startValue, TestClassWithValueAt endValue, double startTime, double endTime, in TEasing easing)
+                where TEasing : IEasingFunction
+                => new TestClassWithValueAt(Interpolation.ValueAt(time, startValue.i, endValue.i, startTime, endTime, easing));
 
             public override string ToString() => $"{nameof(i)}: {i}";
         }

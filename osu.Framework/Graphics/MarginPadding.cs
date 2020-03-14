@@ -3,6 +3,7 @@
 
 using osuTK;
 using System;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
@@ -94,13 +95,14 @@ namespace osu.Framework.Graphics
                 Bottom = -mp.Bottom,
             };
 
-        public MarginPadding ValueAt(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, Easing easingType)
+        public MarginPadding ValueAt<TEasing>(double time, MarginPadding startValue, MarginPadding endValue, double startTime, double endTime, in TEasing easing)
+            where TEasing : IEasingFunction
             => new MarginPadding
             {
-                Left = Interpolation.ValueAt(time, startValue.Left, endValue.Left, startTime, endTime, easingType),
-                Top = Interpolation.ValueAt(time, startValue.Top, endValue.Top, startTime, endTime, easingType),
-                Right = Interpolation.ValueAt(time, startValue.Right, endValue.Right, startTime, endTime, easingType),
-                Bottom = Interpolation.ValueAt(time, startValue.Bottom, endValue.Bottom, startTime, endTime, easingType),
+                Left = Interpolation.ValueAt(time, startValue.Left, endValue.Left, startTime, endTime, easing),
+                Top = Interpolation.ValueAt(time, startValue.Top, endValue.Top, startTime, endTime, easing),
+                Right = Interpolation.ValueAt(time, startValue.Right, endValue.Right, startTime, endTime, easing),
+                Bottom = Interpolation.ValueAt(time, startValue.Bottom, endValue.Bottom, startTime, endTime, easing),
             };
     }
 }
