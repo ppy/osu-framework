@@ -334,6 +334,13 @@ namespace osu.Framework.Bindables
             }
 
             base.BindTo(them);
+
+            if (!Value.Equals(them.Value))
+            {
+                throw new InvalidOperationException(
+                    $"Can not bind to a bindable with a value not compatible with this {nameof(BindableNumber<T>)} properties. "
+                    + $"Value: {them.Value}, {nameof(BindableNumber<T>)}'s properties: (range: [{MinValue} - {MaxValue}], precision: {Precision}).");
+            }
         }
 
         /// <summary>
