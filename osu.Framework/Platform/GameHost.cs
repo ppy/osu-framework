@@ -57,6 +57,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        /// <remarks>
+        /// To preserve battery life on mobile devices, this should be left on whenever possible.
+        /// </remarks>
+        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
+
         public bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
