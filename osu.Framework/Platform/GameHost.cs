@@ -603,10 +603,11 @@ namespace osu.Framework.Platform
 
         private void windowUpdate()
         {
+            inputPerformanceCollectionPeriod?.Dispose();
+            inputPerformanceCollectionPeriod = null;
+
             if (suspended)
                 return;
-
-            inputPerformanceCollectionPeriod?.Dispose();
 
             threadRunner.RunMainLoop();
 
