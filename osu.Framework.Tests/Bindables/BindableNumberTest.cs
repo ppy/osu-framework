@@ -200,23 +200,6 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable.Value, Is.EqualTo(3));
         }
 
-        /// <summary>
-        /// Ensures that the value is updated when you bind to a bindable with a value that doesn't respect the number properties.
-        /// </summary>
-        [Test]
-        public void TestValueUpdatedOnBindingToInvalidValueBindable()
-        {
-            var bindable = new BindableInt { MinValue = 50, MaxValue = 200, Value = 55 };
-            var remote = new Bindable<int>(15);
-
-            // The value on bindable should change in this sequence: 55 (initial) -> 15 ('remote' value on bind) -> 50 (value updated with number props)
-            // The value of remote should change in this sequence: 15 (initial) -> 50 (updated from 'bindable')
-            bindable.BindTo(remote);
-
-            Assert.That(remote.Value, Is.EqualTo(50));
-            Assert.That(remote.Value, Is.EqualTo(bindable.Value));
-        }
-
         private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), Convert.ChangeType(0, type));
 
         private class BindableNumberWithDefaultMaxValue : BindableInt

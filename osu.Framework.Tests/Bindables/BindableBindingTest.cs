@@ -23,6 +23,15 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestBindToIncompatibleValueBindable()
+        {
+            BindableInt bindable1 = new BindableInt { MinValue = 100, MaxValue = 200, Value = 150 };
+            Bindable<int> bindable2 = new Bindable<int>(50);
+
+            Assert.Throws<InvalidOperationException>(() => bindable1.BindTo(bindable2));
+        }
+
+        [Test]
         public void TestPropagation()
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
