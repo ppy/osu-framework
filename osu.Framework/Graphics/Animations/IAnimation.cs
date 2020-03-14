@@ -14,6 +14,11 @@ namespace osu.Framework.Graphics.Animations
         int FrameCount { get; }
 
         /// <summary>
+        /// The currently visible frame's index.
+        /// </summary>
+        int CurrentFrameIndex { get; }
+
+        /// <summary>
         /// True if the animation is playing, false otherwise.
         /// </summary>
         bool IsPlaying { get; set; }
