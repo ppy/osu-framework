@@ -86,7 +86,7 @@ namespace osu.Framework.Audio
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
-        private readonly Thread deviceSyncThread;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -126,27 +126,28 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            // sync audioDevices every 200ms
-            deviceSyncThread = new Thread(() =>
+            // sync audioDevices every 1000ms
+            CancellationToken token = cancellationTokenSource.Token;
+            var thread = new Thread(() =>
             {
-                while (true)
+                while (!token.IsCancellationRequested)
                 {
                     try
                     {
                         syncAudioDevices();
-                        System.Threading.Thread.Sleep(200);
+                        System.Threading.Thread.Sleep(1000);
                     }
                     catch
                     {
                     }
                 }
-            });
-            deviceSyncThread.Start();
+            }) { IsBackground = true };
+            thread.Start();
         }
 
         protected override void Dispose(bool disposing)
         {
-            deviceSyncThread.Abort();
+            cancellationTokenSource.Cancel();
             Thread.UnregisterManager(this);
 
             OnNewDevice = null;
