@@ -86,7 +86,7 @@ namespace osu.Framework.Audio
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly Thread deviceSyncThread;
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -127,27 +127,26 @@ namespace osu.Framework.Audio
             });
 
             // sync audioDevices every 200ms
-            CancellationToken token = cancellationTokenSource.Token;
-            Task.Factory.StartNew(() =>
+            deviceSyncThread = new Thread(() =>
             {
-                while (!token.IsCancellationRequested)
+                while (true)
                 {
                     try
                     {
-                        var task = Task.Delay(200, token);
                         syncAudioDevices();
-                        task.Wait(token);
+                        System.Threading.Thread.Sleep(200);
                     }
                     catch
                     {
                     }
                 }
-            }, token, TaskCreationOptions.None, TaskScheduler.Default);
+            });
+            deviceSyncThread.Start();
         }
 
         protected override void Dispose(bool disposing)
         {
-            cancellationTokenSource.Cancel();
+            deviceSyncThread.Abort();
             Thread.UnregisterManager(this);
 
             OnNewDevice = null;
@@ -163,8 +162,11 @@ namespace osu.Framework.Audio
 
         private void onDevicesChanged()
         {
-            if (!IsCurrentDeviceValid() || Bass.CurrentDevice <= Bass.NoSoundDevice)
-                setAudioDevice();
+            scheduler.Add(() =>
+            {
+                if (!IsCurrentDeviceValid() || Bass.CurrentDevice <= Bass.NoSoundDevice)
+                    setAudioDevice();
+            });
         }
 
         /// <summary>
@@ -306,7 +308,7 @@ namespace osu.Framework.Audio
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
-                scheduler.Add(onDevicesChanged);
+                onDevicesChanged();
                 eventScheduler.Add(delegate
                 {
                     foreach (var d in newDevices)
