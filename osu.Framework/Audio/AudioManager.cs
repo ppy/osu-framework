@@ -3,16 +3,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
-using System.Linq;
-using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
@@ -32,9 +35,6 @@ namespace osu.Framework.Audio
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
         internal readonly AudioThread Thread;
-
-        private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
-        private List<string> audioDeviceNames = new List<string>();
 
         /// <summary>
         /// The names of all available audio devices.
@@ -78,9 +78,15 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        // Mutated by multiple threads, must be thread safe.
+        private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
+        private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
+
         private Scheduler scheduler => Thread.Scheduler;
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
+
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -120,34 +126,28 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            // check for device validity every 100ms
-            scheduler.AddDelayed(() =>
+            // sync audioDevices every 200ms
+            CancellationToken token = cancellationTokenSource.Token;
+            Task.Factory.StartNew(() =>
             {
-                try
+                while (!token.IsCancellationRequested)
                 {
-                    if (!IsCurrentDeviceValid())
-                        setAudioDevice();
+                    try
+                    {
+                        var task = Task.Delay(200, token);
+                        syncAudioDevices();
+                        task.Wait(token);
+                    }
+                    catch
+                    {
+                    }
                 }
-                catch
-                {
-                }
-            }, 100, true);
-
-            // enumerate new list of devices every second
-            scheduler.AddDelayed(() =>
-            {
-                try
-                {
-                    setAudioDevice(AudioDevice.Value);
-                }
-                catch
-                {
-                }
-            }, 1000, true);
+            }, token, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         protected override void Dispose(bool disposing)
         {
+            cancellationTokenSource.Cancel();
             Thread.UnregisterManager(this);
 
             OnNewDevice = null;
@@ -159,6 +159,12 @@ namespace osu.Framework.Audio
         private void onDeviceChanged(ValueChangedEvent<string> args)
         {
             scheduler.Add(() => setAudioDevice(args.NewValue));
+        }
+
+        private void onDevicesChanged()
+        {
+            if (!IsCurrentDeviceValid() || Bass.CurrentDevice <= Bass.NoSoundDevice)
+                setAudioDevice();
         }
 
         /// <summary>
@@ -189,8 +195,6 @@ namespace osu.Framework.Audio
             return sm;
         }
 
-        private DeviceInfo currentAudioDevice;
-
         /// <summary>
         /// Sets the output audio device by its name.
         /// This will automatically fall back to the system default device on failure.
@@ -198,8 +202,6 @@ namespace osu.Framework.Audio
         /// <param name="deviceName">Name of the audio device, or null to use the configured device preference <see cref="AudioDevice"/>.</param>
         private bool setAudioDevice(string deviceName = null)
         {
-            updateAvailableAudioDevices();
-
             deviceName ??= AudioDevice.Value;
 
             // try using the specified device
@@ -215,7 +217,6 @@ namespace osu.Framework.Audio
                 return true;
 
             //we're fucked. even "No sound" device won't initialise.
-            currentAudioDevice = default;
             return false;
         }
 
@@ -228,7 +229,7 @@ namespace osu.Framework.Audio
                 return false;
 
             // same device
-            if (device.IsInitialized && device.Name == currentAudioDevice.Name)
+            if (device.IsInitialized && deviceIndex == Bass.CurrentDevice)
                 return true;
 
             // initialize new device
@@ -245,6 +246,9 @@ namespace osu.Framework.Audio
                 InitBass(deviceIndex);
             }
 
+            // Sync newly initialized device
+            syncAudioDevices();
+
             if (Bass.LastError != Errors.OK)
             {
                 Logger.Log($@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.", LoggingTarget.Runtime, LogLevel.Important);
@@ -258,8 +262,6 @@ namespace osu.Framework.Audio
                           Drive:                      {device.Driver}");
 
             //we have successfully initialised a new device.
-            currentAudioDevice = device;
-
             UpdateDevice(deviceIndex);
 
             Bass.PlaybackBufferLength = 100;
@@ -292,21 +294,22 @@ namespace osu.Framework.Audio
             return Bass.Init(device);
         }
 
-        private void updateAvailableAudioDevices()
+        private void syncAudioDevices()
         {
-            audioDevices = EnumerateAllDevices().ToList();
+            audioDevices = EnumerateAllDevices().ToImmutableList();
 
             // Bass should always be providing "No sound" device
             Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToList();
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
 
             var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
             var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
+                scheduler.Add(onDevicesChanged);
                 eventScheduler.Add(delegate
                 {
                     foreach (var d in newDevices)
@@ -326,12 +329,14 @@ namespace osu.Framework.Audio
 
         protected virtual bool IsCurrentDeviceValid()
         {
-            var deviceIndex = Bass.CurrentDevice;
-            var device = deviceIndex == Bass.DefaultDevice ? default : Bass.GetDeviceInfo(deviceIndex);
-
+            var device = audioDevices.ElementAtOrDefault(Bass.CurrentDevice);
             return device.IsEnabled && device.IsInitialized;
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()} ({currentAudioDevice})";
+        public override string ToString()
+        {
+            var deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
+            return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
+        }
     }
 }
