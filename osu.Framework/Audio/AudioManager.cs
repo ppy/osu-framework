@@ -246,9 +246,6 @@ namespace osu.Framework.Audio
                 InitBass(deviceIndex);
             }
 
-            // Sync newly initialized device
-            syncAudioDevices();
-
             if (Bass.LastError != Errors.OK)
             {
                 Logger.Log($@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.", LoggingTarget.Runtime, LogLevel.Important);
