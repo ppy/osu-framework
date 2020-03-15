@@ -129,6 +129,11 @@ namespace osu.Framework.Audio
             CancellationToken token = cancellationTokenSource.Token;
             var thread = new Thread(() =>
             {
+                syncAudioDevices();
+                // If user has no audio devices at initialization, force one to be set.
+                if (audioDeviceNames.IsEmpty)
+                    scheduler.Add(() => setAudioDevice());
+
                 while (!token.IsCancellationRequested)
                 {
                     try
