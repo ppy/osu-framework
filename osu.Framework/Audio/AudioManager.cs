@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -141,7 +140,10 @@ namespace osu.Framework.Audio
                     {
                     }
                 }
-            }) { IsBackground = true };
+            })
+            {
+                IsBackground = true
+            };
             thread.Start();
         }
 
