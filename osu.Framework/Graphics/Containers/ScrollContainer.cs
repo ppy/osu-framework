@@ -311,8 +311,17 @@ namespace osu.Framework.Graphics.Containers
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
+            float clampedScrollOffset = scrollOffset;
 
+            float clampedTarget = Clamp(target);
+            if (clampedTarget + scrollOffset > scrollableExtent)
+            {
+                clampedScrollOffset = scrollableExtent - clampedTarget;
+            }
+            else if (clampedTarget + scrollOffset < 0)
+            {
+                clampedScrollOffset = -clampedTarget;
+            }
             Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
             // If we are dragging past the extent of the scrollable area, half the offset
