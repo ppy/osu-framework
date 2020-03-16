@@ -132,6 +132,24 @@ namespace osu.Framework.Graphics.Containers
         /// <returns></returns>
         protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, scrollableExtent + extension), -extension);
 
+        /// <summary>
+        /// Clamp an offset from a position to the available scroll range. This is used to avoid precision problems with floats.
+        /// </summary>
+        /// <param name="position">The position value to clamp.</param>
+        /// <param name="offset">The offset from the position value to clamp.</param>
+        /// <param name="extension">An extension value beyond the normal extent.</param>
+        /// <returns></returns>
+        protected float ClampOffset(float position, float offset, float extension = 0)
+        {
+            var clampedPosition = Clamp(position);
+            if (clampedPosition + offset > scrollableExtent + extension)
+                return scrollableExtent + extension - clampedPosition;
+            if (clampedPosition + offset < -extension)
+                return -clampedPosition - extension;
+
+            return offset;
+        }
+
         protected override Container<T> Content => ScrollContent;
 
         /// <summary>
@@ -311,17 +329,8 @@ namespace osu.Framework.Graphics.Containers
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = scrollOffset;
+            float clampedScrollOffset = ClampOffset(target, scrollOffset);
 
-            float clampedTarget = Clamp(target);
-            if (clampedTarget + scrollOffset > scrollableExtent)
-            {
-                clampedScrollOffset = scrollableExtent - clampedTarget;
-            }
-            else if (clampedTarget + scrollOffset < 0)
-            {
-                clampedScrollOffset = -clampedTarget;
-            }
             Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
             // If we are dragging past the extent of the scrollable area, half the offset
