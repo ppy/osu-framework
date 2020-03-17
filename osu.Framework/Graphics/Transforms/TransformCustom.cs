@@ -15,8 +15,11 @@ namespace osu.Framework.Graphics.Transforms
     /// A transform which operates on arbitrary fields or properties of a given target.
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
+    /// <typeparam name="TEasing">The type of easing.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : class, ITransformable
+    internal class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+        where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
         private delegate TValue ReadFunc(T transformable);
 
@@ -141,7 +144,7 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
+        private readonly InterpolationFunc<TValue, TEasing> interpolationFunc;
 
         /// <summary>
         /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
@@ -175,5 +178,14 @@ namespace osu.Framework.Graphics.Transforms
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+    }
+
+    internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
+        where T : class, ITransformable
+    {
+        public TransformCustom(string propertyOrFieldName)
+            : base(propertyOrFieldName)
+        {
+        }
     }
 }

@@ -412,7 +412,7 @@ namespace osu.Framework.Graphics.Transforms
 
         /// <summary>
         /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
-        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TThis}(TThis, Transform{TValue, TThis}, TValue, double, Easing)"/>.
+        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TEasing, TThis}"/>.
         /// Added <see cref="Transform"/>s are immediately applied, and therefore have an immediate effect on this object if the current time of this
         /// object falls within <see cref="Transform.StartTime"/> and <see cref="Transform.EndTime"/>.
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.

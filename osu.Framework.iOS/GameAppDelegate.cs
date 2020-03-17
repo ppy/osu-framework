@@ -66,5 +66,9 @@ namespace osu.Framework.iOS
                     break;
             }
         }
+
+        public override void DidEnterBackground(UIApplication application) => host.Suspend();
+
+        public override void WillEnterForeground(UIApplication application) => host.Resume();
     }
 }

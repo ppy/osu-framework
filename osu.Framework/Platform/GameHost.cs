@@ -57,6 +57,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
 
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        /// <remarks>
+        /// To preserve battery life on mobile devices, this should be left on whenever possible.
+        /// </remarks>
+        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
+
         public bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
@@ -199,6 +207,8 @@ namespace osu.Framework.Platform
         private Toolkit toolkit;
 
         private readonly ToolkitOptions toolkitOptions;
+
+        private bool suspended;
 
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
@@ -571,11 +581,33 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
+        /// </summary>
+        public void Suspend()
+        {
+            threadRunner.Suspend();
+            suspended = true;
+        }
+
+        /// <summary>
+        /// Resumes all of the current paused threads after <see cref="Suspend"/> was called.
+        /// </summary>
+        public void Resume()
+        {
+            threadRunner.Start();
+            suspended = false;
+        }
+
         private ThreadRunner threadRunner;
 
         private void windowUpdate()
         {
             inputPerformanceCollectionPeriod?.Dispose();
+            inputPerformanceCollectionPeriod = null;
+
+            if (suspended)
+                return;
 
             threadRunner.RunMainLoop();
 

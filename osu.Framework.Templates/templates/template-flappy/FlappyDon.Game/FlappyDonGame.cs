@@ -221,6 +221,9 @@ namespace FlappyDon.Game
             obstacles.Start();
             logoSprite.Hide();
             scoreCounter.ScoreSpriteText.Show();
+
+            // the bird should always start flying up when the game starts, ready for the player to take over.
+            bird.FlyUp();
         }
 
         private void fail()
