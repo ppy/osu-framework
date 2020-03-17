@@ -129,11 +129,6 @@ namespace osu.Framework.Audio
 
             scheduler.Add(() =>
             {
-                syncAudioDevices();
-                // If user has no audio devices at initialization, force one to be set.
-                if (audioDeviceNames.IsEmpty)
-                    scheduler.Add(() => setAudioDevice());
-
                 // sync audioDevices every 1000ms
                 new Thread(() =>
                 {
@@ -175,7 +170,7 @@ namespace osu.Framework.Audio
         {
             scheduler.Add(() =>
             {
-                if (!IsCurrentDeviceValid() || Bass.CurrentDevice <= Bass.NoSoundDevice)
+                if (!IsCurrentDeviceValid())
                     setAudioDevice();
             });
         }
@@ -306,10 +301,14 @@ namespace osu.Framework.Audio
 
         private void syncAudioDevices()
         {
-            audioDevices = EnumerateAllDevices().ToImmutableList();
+            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
+            if (audioDevices.SequenceEqual(updatedAudioDevices))
+                return;
+            audioDevices = updatedAudioDevices;
 
             // Bass should always be providing "No sound" device
             Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+            onDevicesChanged();
 
             var oldDeviceNames = audioDeviceNames;
             var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
@@ -319,7 +318,6 @@ namespace osu.Framework.Audio
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
-                onDevicesChanged();
                 eventScheduler.Add(delegate
                 {
                     foreach (var d in newDevices)
@@ -337,10 +335,12 @@ namespace osu.Framework.Audio
                 yield return Bass.GetDeviceInfo(i);
         }
 
+        // The current device is considered valid if it is enabled, initialized, and not a fallback device.
         protected virtual bool IsCurrentDeviceValid()
         {
             var device = audioDevices.ElementAtOrDefault(Bass.CurrentDevice);
-            return device.IsEnabled && device.IsInitialized;
+            bool isFallback = AudioDevice.Value == null ? !device.IsDefault : device.Name != AudioDevice.Value;
+            return device.IsEnabled && device.IsInitialized && !isFallback;
         }
 
         public override string ToString()
