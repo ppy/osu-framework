@@ -77,6 +77,8 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        public override bool IsLoaded => Bass.CurrentDevice != Bass.DefaultDevice;
+
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
         private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
@@ -137,8 +139,8 @@ namespace osu.Framework.Audio
                     {
                         try
                         {
-                            Thread.Sleep(1000);
                             syncAudioDevices();
+                            Thread.Sleep(1000);
                         }
                         catch
                         {
