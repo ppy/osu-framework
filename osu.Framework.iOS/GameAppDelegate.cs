@@ -12,6 +12,8 @@ namespace osu.Framework.iOS
 {
     public abstract class GameAppDelegate : UIApplicationDelegate
     {
+        private const string output_volume = "outputVolume";
+
         public override UIWindow Window { get; set; }
 
         private IOSGameView gameView;
@@ -38,7 +40,7 @@ namespace osu.Framework.iOS
 
             // Watch for the volume button changing in order to change audio policy
             AVAudioSession audioSession = AVAudioSession.SharedInstance();
-            audioSession.AddObserver(this, "outputVolume", NSKeyValueObservingOptions.New, IntPtr.Zero);
+            audioSession.AddObserver(this, output_volume, NSKeyValueObservingOptions.New, IntPtr.Zero);
 
             return true;
         }
@@ -61,7 +63,7 @@ namespace osu.Framework.iOS
         {
             switch (keyPath)
             {
-                case "outputVolume":
+                case output_volume:
                     AVAudioSession.SharedInstance().SetCategory(AVAudioSessionCategory.Playback);
                     break;
             }
