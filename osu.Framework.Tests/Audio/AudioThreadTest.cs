@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
@@ -37,6 +38,8 @@ namespace osu.Framework.Tests.Audio
             thread.Exit();
 
             WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
+
+            Bass.Free();
         }
 
         public void CheckTrackIsProgressing(Track track)
