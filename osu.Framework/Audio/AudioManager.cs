@@ -33,7 +33,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
-        internal readonly AudioThread Thread;
+        private readonly AudioThread thread;
 
         /// <summary>
         /// The names of all available audio devices.
@@ -81,7 +81,7 @@ namespace osu.Framework.Audio
         private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
         private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
 
-        private Scheduler scheduler => Thread.Scheduler;
+        private Scheduler scheduler => thread.Scheduler;
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
@@ -103,9 +103,9 @@ namespace osu.Framework.Audio
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(AudioThread audioThread, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
-            Thread = audioThread;
+            thread = audioThread;
 
-            Thread.RegisterManager(this);
+            thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += onDeviceChanged;
 
@@ -141,7 +141,7 @@ namespace osu.Framework.Audio
                     {
                         try
                         {
-                            System.Threading.Thread.Sleep(1000);
+                            Thread.Sleep(1000);
                             syncAudioDevices();
                         }
                         catch
@@ -158,7 +158,7 @@ namespace osu.Framework.Audio
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
-            Thread.UnregisterManager(this);
+            thread.UnregisterManager(this);
 
             OnNewDevice = null;
             OnLostDevice = null;
