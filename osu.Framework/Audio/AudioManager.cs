@@ -86,6 +86,7 @@ namespace osu.Framework.Audio
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private readonly DeviceInfoUpdateComparer updateComparer = new DeviceInfoUpdateComparer();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -301,9 +302,13 @@ namespace osu.Framework.Audio
 
         private void syncAudioDevices()
         {
+            // audioDevices are updated if:
+            // - A new device is added
+            // - An existing device is Enabled/Disabled or set as Default
             var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
-            if (audioDevices.SequenceEqual(updatedAudioDevices))
+            if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
                 return;
+
             audioDevices = updatedAudioDevices;
 
             // Bass should always be providing "No sound" device
@@ -347,6 +352,13 @@ namespace osu.Framework.Audio
         {
             var deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
+        }
+
+        private class DeviceInfoUpdateComparer : IEqualityComparer<DeviceInfo>
+        {
+            public bool Equals(DeviceInfo x, DeviceInfo y) => x.IsEnabled == y.IsEnabled && x.IsDefault == y.IsDefault;
+
+            public int GetHashCode(DeviceInfo obj) => obj.Name.GetHashCode();
         }
     }
 }
