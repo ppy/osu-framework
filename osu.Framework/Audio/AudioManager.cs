@@ -85,7 +85,7 @@ namespace osu.Framework.Audio
 
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -125,36 +125,39 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            // sync audioDevices every 1000ms
-            CancellationToken token = cancellationTokenSource.Token;
-            var thread = new Thread(() =>
+            CancellationToken token = cancelSource.Token;
+
+            scheduler.Add(() =>
             {
                 syncAudioDevices();
                 // If user has no audio devices at initialization, force one to be set.
                 if (audioDeviceNames.IsEmpty)
                     scheduler.Add(() => setAudioDevice());
 
-                while (!token.IsCancellationRequested)
+                // sync audioDevices every 1000ms
+                new Thread(() =>
                 {
-                    try
+                    while (!token.IsCancellationRequested)
                     {
-                        syncAudioDevices();
-                        System.Threading.Thread.Sleep(1000);
+                        try
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                            syncAudioDevices();
+                        }
+                        catch
+                        {
+                        }
                     }
-                    catch
-                    {
-                    }
-                }
-            })
-            {
-                IsBackground = true
-            };
-            thread.Start();
+                })
+                {
+                    IsBackground = true
+                }.Start();
+            });
         }
 
         protected override void Dispose(bool disposing)
         {
-            cancellationTokenSource.Cancel();
+            cancelSource.Cancel();
             Thread.UnregisterManager(this);
 
             OnNewDevice = null;
