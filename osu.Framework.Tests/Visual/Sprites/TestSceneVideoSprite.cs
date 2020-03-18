@@ -5,18 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
-using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
-using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
         private ManualClock clock;
-        private VideoSprite videoSprite;
+        private TestVideoSprite videoSprite;
         private MemoryStream videoStream;
 
         public TestSceneVideoSprite()
@@ -69,15 +69,15 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 localStream.Seek(0, SeekOrigin.Begin);
 
-                videoContainer.Child = videoSprite = new VideoSprite(localStream, false)
+                videoContainer.Child = videoSprite = new TestVideoSprite(localStream, false)
                 {
                     Loop = false,
                     Clock = new FramedClock(clock = new ManualClock()),
                 };
             });
 
-            AddUntilStep("wait for video to load", () => videoSprite.IsLoaded);
-            AddStep("reset clock", () => clock.CurrentTime = 0);
+            AddUntilStep("Wait for video to load", () => videoSprite.IsLoaded);
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
         [Test]
@@ -117,6 +117,26 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Looped", () => videoSprite.PlaybackPosition < videoSprite.Duration - 1000);
         }
 
+        [Test]
+        public void TestTextureShader()
+        {
+            AddStep("Enable masking + colour", () =>
+            {
+                videoSprite.UseRoundedShader = false;
+                videoSprite.Colour = Color4Extensions.FromHex("#ea7948");
+            });
+        }
+
+        [Test]
+        public void TestRoundedTextureShader()
+        {
+            AddStep("Enable masking + colour", () =>
+            {
+                videoSprite.UseRoundedShader = true;
+                videoSprite.Colour = Color4Extensions.FromHex("#ea7948");
+            });
+        }
+
         private int currentSecond;
         private int fps;
         private int lastFramesProcessed;
@@ -148,6 +168,47 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     + $"FPS: {fps} | "
                                     + $"State: {decoderState.Value}";
                 }
+            }
+        }
+
+        private class TestVideoSprite : VideoSprite
+        {
+            public TestVideoSprite([NotNull] Stream stream, bool startAtCurrentTime = true)
+                : base(stream, startAtCurrentTime)
+            {
+            }
+
+            private bool? useRoundedShader;
+
+            public bool? UseRoundedShader
+            {
+                get => useRoundedShader;
+                set
+                {
+                    useRoundedShader = value;
+                    Invalidate(Invalidation.DrawNode);
+                }
+            }
+
+            protected override DrawNode CreateDrawNode() => new TestVideoSpriteDrawNode(this);
+        }
+
+        private class TestVideoSpriteDrawNode : VideoSpriteDrawNode
+        {
+            protected override bool RequiresRoundedShader => useRoundedShader ?? base.RequiresRoundedShader;
+
+            private bool? useRoundedShader;
+
+            public TestVideoSpriteDrawNode(VideoSprite source)
+                : base(source)
+            {
+            }
+
+            public override void ApplyState()
+            {
+                base.ApplyState();
+
+                useRoundedShader = ((TestVideoSprite)Source).UseRoundedShader;
             }
         }
     }
