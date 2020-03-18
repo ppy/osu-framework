@@ -109,6 +109,7 @@ namespace osu.Framework.Graphics
                 Parent = null;
 
                 OnUpdate = null;
+                OnInput = null;
                 Invalidated = null;
 
                 OnDispose?.Invoke();
@@ -1957,11 +1958,16 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
+        /// This event is fired when this drawable receives an input event.
+        /// </summary>
+        public event Func<UIEvent, bool> OnInput;
+
+        /// <summary>
         /// Handle a UI event.
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e) => false;
+        protected virtual bool Handle(UIEvent e) => OnInput?.Invoke(e) ?? false;
 
         /// <summary>
         /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
@@ -2195,15 +2201,26 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        private bool requestsNonPositionalCached;
+        private bool requestsPositionalCached;
+
         /// <summary>
         /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool RequestsNonPositionalInput { get; private set; }
+        internal bool RequestsNonPositionalInput
+        {
+            get => requestsNonPositionalCached || OnInput != null;
+            private set => requestsNonPositionalCached = value;
+        }
 
         /// <summary>
         /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool RequestsPositionalInput { get; private set; }
+        internal bool RequestsPositionalInput
+        {
+            get => requestsPositionalCached || OnInput != null;
+            private set => requestsPositionalCached = value;
+        }
 
         /// <summary>
         /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable
@@ -2219,13 +2236,13 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden or if <see cref="OnInput"/> is assigned.
         /// </summary>
         public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden or if <see cref="OnInput"/> is assigned.
         /// </summary>
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
