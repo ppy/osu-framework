@@ -1957,7 +1957,7 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
-        event Func<UIEvent, bool> onInput;
+        private event Func<UIEvent, bool> onInput;
 
         /// <summary>
         /// This event is fired when this drawable receives an input event.
