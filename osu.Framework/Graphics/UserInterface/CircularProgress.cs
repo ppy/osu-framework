@@ -43,6 +43,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
+            => FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
+            where TEasing : IEasingFunction
             => this.TransformBindableTo(Current, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
@@ -94,6 +98,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
-            => t.Append(cp => cp.TransformBindableTo(cp.Current, newValue, duration, easing));
+            => t.Append(cp => cp.FillTo(newValue, duration, easing));
     }
 }
