@@ -81,11 +81,6 @@ namespace osu.Framework.Threading
                     manager.Dispose();
                 managers.Clear();
             }
-
-            // Call Free() for all initialized audio devices.
-            while (Bass.Free())
-            {
-            }
         }
     }
 }
