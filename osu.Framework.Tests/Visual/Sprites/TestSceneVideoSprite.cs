@@ -118,23 +118,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
-        public void TestTextureShader()
+        public void TestShader()
         {
-            AddStep("Enable masking + colour", () =>
-            {
-                videoSprite.UseRoundedShader = false;
-                videoSprite.Colour = Color4Extensions.FromHex("#ea7948");
-            });
-        }
-
-        [Test]
-        public void TestRoundedTextureShader()
-        {
-            AddStep("Enable masking + colour", () =>
-            {
-                videoSprite.UseRoundedShader = true;
-                videoSprite.Colour = Color4Extensions.FromHex("#ea7948");
-            });
+            AddStep("Set colour", () => videoSprite.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
+            AddStep("Use normal shader", () => videoSprite.UseRoundedShader = false);
+            AddStep("Use rounded shader", () => videoSprite.UseRoundedShader = true);
         }
 
         private int currentSecond;
