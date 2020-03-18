@@ -98,6 +98,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
             where TEasing : IEasingFunction
-            => t.Append(cp => cp.TransformBindableTo(cp.Current, newValue, duration, easing));
+            => t.Append(cp => cp.FillTo(newValue, duration, easing));
     }
 }
