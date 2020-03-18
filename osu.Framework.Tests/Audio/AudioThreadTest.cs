@@ -38,8 +38,6 @@ namespace osu.Framework.Tests.Audio
             thread.Exit();
 
             WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
-
-            Bass.Free();
         }
 
         public void CheckTrackIsProgressing(Track track)

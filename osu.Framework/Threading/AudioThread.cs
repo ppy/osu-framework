@@ -82,7 +82,9 @@ namespace osu.Framework.Threading
                 managers.Clear();
             }
 
-            Bass.Free();
+            while (Bass.Free())
+            {
+            }
         }
     }
 }
