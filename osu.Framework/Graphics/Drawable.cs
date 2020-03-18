@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics
                 Parent = null;
 
                 OnUpdate = null;
-                OnInput = null;
+                onInput = null;
                 Invalidated = null;
 
                 OnDispose?.Invoke();
@@ -1957,17 +1957,29 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
+        event Func<UIEvent, bool> onInput;
+
         /// <summary>
         /// This event is fired when this drawable receives an input event.
         /// </summary>
-        public event Func<UIEvent, bool> OnInput;
+        public event Func<UIEvent, bool> OnInput
+        {
+            add
+            {
+                onInput += value;
+
+                RequestsNonPositionalInputSubTree = RequestsNonPositionalInput = true;
+                RequestsPositionalInputSubTree = RequestsPositionalInput = true;
+            }
+            remove => onInput -= value;
+        }
 
         /// <summary>
         /// Handle a UI event.
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e) => OnInput?.Invoke(e) ?? false;
+        protected virtual bool Handle(UIEvent e) => onInput?.Invoke(e) ?? false;
 
         /// <summary>
         /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
@@ -2201,26 +2213,15 @@ namespace osu.Framework.Graphics
 
         #endregion
 
-        private bool requestsNonPositionalCached;
-        private bool requestsPositionalCached;
-
         /// <summary>
         /// Whether this drawable should receive non-positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool RequestsNonPositionalInput
-        {
-            get => requestsNonPositionalCached || OnInput != null;
-            private set => requestsNonPositionalCached = value;
-        }
+        internal bool RequestsNonPositionalInput { get; private set; }
 
         /// <summary>
         /// Whether this drawable should receive positional input. This does not mean that the drawable will immediately handle the received input, but that it may handle it at some point.
         /// </summary>
-        internal bool RequestsPositionalInput
-        {
-            get => requestsPositionalCached || OnInput != null;
-            private set => requestsPositionalCached = value;
-        }
+        internal bool RequestsPositionalInput { get; private set; }
 
         /// <summary>
         /// Conservatively approximates whether there is a descendant which <see cref="RequestsNonPositionalInput"/> in the sub-tree rooted at this drawable
