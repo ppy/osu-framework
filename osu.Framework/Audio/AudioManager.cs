@@ -77,7 +77,9 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        public override bool IsLoaded => Bass.CurrentDevice != Bass.DefaultDevice;
+        public override bool IsLoaded => base.IsLoaded &&
+                                         // bass default device is a null device (-1), not the actual system default.
+                                         Bass.CurrentDevice != Bass.DefaultDevice;
 
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
@@ -318,6 +320,7 @@ namespace osu.Framework.Audio
 
             // Bass should always be providing "No sound" device
             Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+
             onDevicesChanged();
 
             var oldDeviceNames = audioDeviceNames;
