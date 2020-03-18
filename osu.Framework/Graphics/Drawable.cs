@@ -276,8 +276,8 @@ namespace osu.Framework.Graphics
 
             double timeBefore = DebugUtils.LogPerformanceIssues ? perf_clock.CurrentTime : 0;
 
-            RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
-            RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
+            RequestsNonPositionalInput = onInput != null || HandleInputCache.RequestsNonPositionalInput(this);
+            RequestsPositionalInput = onInput != null || HandleInputCache.RequestsPositionalInput(this);
 
             RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
             RequestsPositionalInputSubTree = RequestsPositionalInput;
