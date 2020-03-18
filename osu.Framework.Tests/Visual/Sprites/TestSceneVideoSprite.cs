@@ -28,9 +28,6 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
-        [Resolved]
-        private GameHost host { get; set; }
-
         private ManualClock clock;
         private VideoSprite videoSprite;
         private MemoryStream videoStream;
@@ -47,8 +44,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         [BackgroundDependencyLoader]
         private void load()
         {
-            host.Window.WindowState = WindowState.Minimized;
-
             var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
             wr.PerformAsync();
 
