@@ -95,7 +95,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="path">The subdirectory to use as a root.</param>
         /// <returns>A more specific storage.</returns>
-        public Storage GetStorageForDirectory(string path)
+        public virtual Storage GetStorageForDirectory(string path)
         {
             if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
                 path += Path.DirectorySeparatorChar;
