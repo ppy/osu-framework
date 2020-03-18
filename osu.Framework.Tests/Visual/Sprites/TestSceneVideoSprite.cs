@@ -3,60 +3,123 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
+using osu.Framework.Platform;
+using osu.Framework.Testing;
 using osu.Framework.Timing;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestSceneVideoSprite : FrameworkTestScene
     {
-        private ManualClock clock;
-        private VideoSprite videoSprite;
+        private readonly Container videoContainer;
         private readonly SpriteText timeText;
         private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
+        [Resolved]
+        private GameHost host { get; set; }
+
+        private ManualClock clock;
+        private VideoSprite videoSprite;
+        private MemoryStream videoStream;
+
         public TestSceneVideoSprite()
         {
-            loadVideo();
-
-            Add(timeText = new SpriteText
+            Children = new Drawable[]
             {
-                Text = "Video is loading...",
-                Depth = -1
-            });
-
-            AddUntilStep("wait for video to load", () => videoSprite != null);
-
-            AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10_000.0);
-            AddStep("Jump back by 10 seconds", () => clock.CurrentTime = Math.Max(0, clock.CurrentTime - 10_000.0));
-            AddToggleStep("Toggle looping", newState =>
-            {
-                videoSprite.Loop = newState;
-                clock.CurrentTime = 0;
-            });
+                videoContainer = new Container { RelativeSizeAxes = Axes.Both },
+                timeText = new SpriteText { Text = "Video is loading..." }
+            };
         }
 
-        private async void loadVideo()
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
-            await wr.PerformAsync();
+            host.Window.WindowState = WindowState.Minimized;
 
-            Schedule(() =>
+            var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
+            wr.PerformAsync();
+
+            while (!wr.Completed)
+                Thread.Sleep(100);
+
+            videoStream = new MemoryStream();
+            wr.ResponseStream.CopyTo(videoStream);
+
+            timeText.Font = FrameworkFont.Condensed.With(fixedWidth: true);
+        }
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep("load video", () =>
             {
-                Add(videoSprite = new VideoSprite(wr.ResponseStream, false)
+                videoStream.Seek(0, SeekOrigin.Begin);
+
+                // Gets disposed when the video decoder/sprite is disposed
+                var localStream = new MemoryStream();
+                videoStream.CopyTo(localStream);
+
+                localStream.Seek(0, SeekOrigin.Begin);
+
+                videoContainer.Child = videoSprite = new VideoSprite(localStream, false)
                 {
                     Loop = false,
                     Clock = new FramedClock(clock = new ManualClock()),
-                });
-
-                timeText.Font = FrameworkFont.Condensed.With(fixedWidth: true);
+                };
             });
+
+            AddUntilStep("wait for video to load", () => videoSprite.IsLoaded);
+            AddStep("reset clock", () => clock.CurrentTime = 0);
+        }
+
+        [Test]
+        public void TestJumpForward()
+        {
+            AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
+            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= 10000);
+        }
+
+        [Test]
+        public void TestJumpBack()
+        {
+            AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
+            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= 30000);
+
+            AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
+            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition < 30000);
+        }
+
+        [Test]
+        public void TestVideoDoesNotLoopIfDisabled()
+        {
+            AddStep("Seek to end", () => clock.CurrentTime = videoSprite.Duration);
+            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= videoSprite.Duration - 1000);
+
+            AddWaitStep("Wait for playback", 10);
+            AddAssert("Not looped", () => videoSprite.PlaybackPosition >= videoSprite.Duration - 1000);
+        }
+
+        [Test]
+        public void TestVideoLoopsIfEnabled()
+        {
+            AddStep("Set looping", () => videoSprite.Loop = true);
+            AddStep("Seek to end", () => clock.CurrentTime = videoSprite.Duration);
+
+            AddWaitStep("Wait for playback", 10);
+            AddUntilStep("Looped", () => videoSprite.PlaybackPosition < videoSprite.Duration - 1000);
         }
 
         private int currentSecond;
