@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
@@ -86,6 +87,12 @@ namespace osu.Framework.Tests.Audio
             current ??= CurrentDevice;
 
             AudioThreadTest.WaitForOrAssert(() => CurrentDevice != current, $"Timed out while waiting for the device to change from {current}.", timeoutMs);
+        }
+
+        public new void Dispose()
+        {
+            Dispose(true);
+            Thread.Sleep(1000); // Ensure sync thread has been cancelled
         }
     }
 }
