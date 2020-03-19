@@ -35,11 +35,11 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void TearDown()
         {
+            Manager?.Dispose();
+
             Assert.IsFalse(thread.Exited);
 
             thread.Exit();
-
-            Manager?.Dispose();
 
             WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
         }

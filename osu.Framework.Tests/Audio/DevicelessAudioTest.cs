@@ -36,12 +36,10 @@ namespace osu.Framework.Tests.Audio
 
             WaitForOrAssert(() => !track.IsRunning, "Track did not stop", 1000);
 
-            Assert.IsFalse(track.IsRunning);
-
             // seek track
             track.Seek(0);
 
-            Assert.IsFalse(track.IsRunning);
+            Assert.IsFalse(track.IsRunning, "Track started again");
             WaitForOrAssert(() => track.CurrentTime == 0, "Track did not seek correctly", 1000);
         }
     }
