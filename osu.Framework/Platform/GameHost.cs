@@ -567,7 +567,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            threadRunner.RunMainLoop();
+                            windowUpdate();
                     }
                 }
                 catch (OutOfMemoryException)
