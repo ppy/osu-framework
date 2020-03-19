@@ -18,7 +18,9 @@ namespace osu.Framework.Graphics.Transforms
         public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            interpolationFunc = Interpolation.ValueAt;
+
+            interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
+                => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }

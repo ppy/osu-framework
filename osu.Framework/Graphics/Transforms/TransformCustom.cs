@@ -162,7 +162,8 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            interpolationFunc = Interpolation.ValueAt;
+            interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
+                => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
         }
 
         private TValue valueAt(double time)
