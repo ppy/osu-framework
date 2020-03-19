@@ -143,10 +143,10 @@ namespace osu.Framework.Allocation
                 throw new ArgumentNullException(nameof(instance));
             }
 
-            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
+            info = info.WithType(type.GetUnderlyingNullableType() ?? type);
 
             var instanceType = instance.GetType();
-            instanceType = Nullable.GetUnderlyingType(instanceType) ?? instanceType;
+            instanceType = instanceType.GetUnderlyingNullableType() ?? instanceType;
 
             if (instanceType.IsValueType && !allowValueTypes)
                 throw new ArgumentException($"{instanceType.ReadableName()} must be a class to be cached as a dependency.", nameof(instance));
@@ -167,7 +167,7 @@ namespace osu.Framework.Allocation
 
         public object Get(Type type, CacheInfo info)
         {
-            info = info.WithType(Nullable.GetUnderlyingType(type) ?? type);
+            info = info.WithType(type.GetUnderlyingNullableType() ?? type);
 
             if (cache.TryGetValue(info, out var existing))
                 return existing;
