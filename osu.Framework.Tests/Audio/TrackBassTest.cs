@@ -27,7 +27,8 @@ namespace osu.Framework.Tests.Audio
         public void Setup()
         {
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Assert.IsTrue(Bass.Init(0), $"Failed to initialize Bass:{Bass.LastError}");
+            Bass.Init(0);
+            Assert.IsTrue(Bass.LastError == Errors.OK || Bass.LastError == Errors.Already);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 

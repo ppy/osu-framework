@@ -22,7 +22,8 @@ namespace osu.Framework.Tests.Audio
         public virtual void SetUp()
         {
             // If Bass is not in its default state, previous usage was not properly cleaned up.
-            Assert.AreEqual(Bass.DefaultDevice, Bass.CurrentDevice);
+            while (Bass.CurrentDevice != Bass.DefaultDevice)
+                Bass.Free();
 
             thread = new AudioThread();
 
