@@ -63,13 +63,14 @@ namespace osu.Framework.Benchmarks
                     }
                 });
 
-                while (threadRunner == null || threadRunner.RunAutomaticMainLoop.IsSet)
+                // wait for the game to initialise before continuing with the benchmark process.
+                while (threadRunner?.HasRunOnce != true)
                     Thread.Sleep(10);
             }
 
             protected override void Dispose(bool isDisposing)
             {
-                threadRunner.RunAutomaticMainLoop.Set();
+                threadRunner.RunOnce.Set();
                 base.Dispose(isDisposing);
             }
 
@@ -80,11 +81,22 @@ namespace osu.Framework.Benchmarks
 
         private class ManualThreadRunner : ThreadRunner
         {
-            public readonly ManualResetEventSlim RunAutomaticMainLoop = new ManualResetEventSlim(true);
+            /// <summary>
+            /// This is used to delay the initialisation process until the headless input thread has run once.
+            /// Does not get reset with subsequence runs.
+            /// </summary>
+            public bool HasRunOnce { get; private set; }
+
+            /// <summary>
+            /// Set this to run one frame on the headless input thread.
+            /// This is used for the initialise and shutdown processes, whereas <see cref="RunSingleFrame"/> is used for the benchmark process.
+            /// </summary>
+            public readonly ManualResetEventSlim RunOnce = new ManualResetEventSlim();
 
             public ManualThreadRunner(InputThread mainThread)
                 : base(mainThread)
             {
+                RunOnce.Set();
             }
 
             public void RunSingleFrame()
@@ -95,9 +107,11 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                RunAutomaticMainLoop.Wait();
+                RunOnce.Wait();
                 RunSingleFrame();
-                RunAutomaticMainLoop.Reset();
+                RunOnce.Reset();
+
+                HasRunOnce = true;
             }
         }
     }
