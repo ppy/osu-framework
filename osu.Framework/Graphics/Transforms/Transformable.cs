@@ -366,7 +366,7 @@ namespace osu.Framework.Graphics.Transforms
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new InvokeOnDisposal<(Transformable transformable, double delay, bool recursive, double newTransformDelay)>((this, delay, recursive, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<(Transformable transformable, double delay, bool recursive, double newTransformDelay)>((this, delay, recursive, newTransformDelay), sender =>
             {
                 if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
                 {
@@ -391,7 +391,7 @@ namespace osu.Framework.Graphics.Transforms
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            return new InvokeOnDisposal<(Transformable transformable, double oldTransformDelay, double newTransformDelay)>((this, oldTransformDelay, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<(Transformable transformable, double oldTransformDelay, double newTransformDelay)>((this, oldTransformDelay, newTransformDelay), sender =>
             {
                 if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
                 {

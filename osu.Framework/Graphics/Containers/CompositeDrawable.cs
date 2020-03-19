@@ -1198,7 +1198,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in internalChildren)
                 disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
 
-            return new InvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
+            return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
             {
                 foreach (var a in actions)
                     a.Dispose();
