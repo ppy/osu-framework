@@ -18,7 +18,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Runs a game host in a specifc threading mode.
     /// </summary>
-    internal class ThreadRunner
+    public class ThreadRunner
     {
         private readonly InputThread mainThread;
 
@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
 
         public ExecutionMode ExecutionMode { private get; set; } = ExecutionMode.MultiThreaded;
 
-        public void RunMainLoop()
+        public virtual void RunMainLoop()
         {
             // propagate any requested change in execution mode at a safe point in frame execution
             ensureCorrectExecutionMode();

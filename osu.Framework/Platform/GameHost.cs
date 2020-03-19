@@ -480,7 +480,7 @@ namespace osu.Framework.Platform
             {
                 SetupToolkit();
 
-                threadRunner = new ThreadRunner(InputThread = new InputThread());
+                threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -567,7 +567,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            InputThread.ProcessFrame();
+                            windowUpdate();
                     }
                 }
                 catch (OutOfMemoryException)
@@ -934,6 +934,13 @@ namespace osu.Framework.Platform
         /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
         public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+
+        /// <summary>
+        /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.
+        /// </summary>
+        /// <param name="mainThread">The main thread.</param>
+        /// <returns>The <see cref="ThreadRunner"/>.</returns>
+        protected virtual ThreadRunner CreateThreadRunner(InputThread mainThread) => new ThreadRunner(mainThread);
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ namespace osu.Framework.Screens
         /// <summary>
         /// The currently-active <see cref="IScreen"/>.
         /// </summary>
-        public IScreen CurrentScreen => stack.FirstOrDefault();
+        public IScreen CurrentScreen => stack.Count == 0 ? null : stack.Peek();
 
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
