@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
@@ -89,10 +90,12 @@ namespace osu.Framework.Tests.Audio
             AudioThreadTest.WaitForOrAssert(() => CurrentDevice != current, $"Timed out while waiting for the device to change from {current}.", timeoutMs);
         }
 
-        public new void Dispose()
+        // Override Dispose here because AudioManager schedules its Dispose on the AudioThread by default.
+        public override void Dispose()
         {
             Dispose(true);
             Thread.Sleep(1000); // Ensure sync thread has been cancelled
+            base.Dispose();
         }
     }
 }

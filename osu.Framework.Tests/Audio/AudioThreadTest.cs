@@ -26,6 +26,9 @@ namespace osu.Framework.Tests.Audio
 
             Manager = new AudioManagerWithDeviceLoss(thread, store, store);
 
+            // If manager is already loaded, previous instance was not cleaned up.
+            Assert.IsFalse(Manager.IsLoaded);
+
             thread.Start();
         }
 

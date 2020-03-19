@@ -12,6 +12,9 @@ namespace osu.Framework.Tests.Audio
         {
             base.SetUp();
 
+            // wait for any device to be initialized
+            Manager.WaitForDeviceChange(-1);
+
             // lose all devices
             Manager.SimulateDeviceLoss();
         }
