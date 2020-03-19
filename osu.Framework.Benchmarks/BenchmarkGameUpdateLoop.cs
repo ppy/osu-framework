@@ -8,8 +8,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
-using osu.Framework.Tests.IO;
+using osu.Framework.Threading;
 using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
@@ -35,6 +34,7 @@ namespace osu.Framework.Benchmarks
         [OneTimeTearDown]
         public virtual void TearDown()
         {
+            gameHost?.Exit();
             gameHost?.Dispose();
         }
 
@@ -62,13 +62,11 @@ namespace osu.Framework.Benchmarks
         /// </summary>
         public class ManualGameHost : HeadlessGameHost
         {
-            private readonly ManualResetEventSlim hasProcessed = new ManualResetEventSlim(false);
+            private ManualThreadRunner threadRunner;
 
             public ManualGameHost(Game runnableGame)
-                : base("manual", false, true, false)
+                : base("manual")
             {
-                RunningSingleThreaded = true;
-
                 Task.Run(() =>
                 {
                     try
@@ -81,37 +79,45 @@ namespace osu.Framework.Benchmarks
                     }
                 });
 
-                hasProcessed.Wait();
-            }
-
-            public void RunSingleFrame() => base.ProcessInputFrame();
-
-            protected override void ProcessInputFrame()
-            {
-                InputThread.ActiveHz = 0;
-                InputThread.InactiveHz = 0;
-
-                if (!hasProcessed.IsSet)
-                {
-                    hasProcessed.Set();
-                    RunSingleFrame();
-                }
-
-                Thread.Sleep(10);
-            }
-
-            protected override void PerformExit(bool immediately)
-            {
-                hasProcessed.Reset();
-                base.PerformExit(immediately);
+                while (threadRunner == null || !threadRunner.HasRunOnce.IsSet)
+                    Thread.Sleep(10);
             }
 
             protected override void Dispose(bool isDisposing)
             {
-                if (ExecutionState != ExecutionState.Stopped)
-                    Exit();
-
+                threadRunner.HasRunOnce.Reset();
                 base.Dispose(isDisposing);
+            }
+
+            public void RunSingleFrame() => threadRunner.RunSingleFrame();
+
+            protected override ThreadRunner CreateThreadRunner(InputThread mainThread) => threadRunner = new ManualThreadRunner(mainThread);
+        }
+
+        private class ManualThreadRunner : ThreadRunner
+        {
+            public readonly ManualResetEventSlim HasRunOnce = new ManualResetEventSlim();
+
+            public ManualThreadRunner(InputThread mainThread)
+                : base(mainThread)
+            {
+            }
+
+            public void RunSingleFrame()
+            {
+                ExecutionMode = ExecutionMode.SingleThread;
+                base.RunMainLoop();
+            }
+
+            public override void RunMainLoop()
+            {
+                ExecutionMode = ExecutionMode.SingleThread;
+
+                if (HasRunOnce.IsSet)
+                    return;
+
+                base.RunMainLoop();
+                HasRunOnce.Set();
             }
         }
     }
