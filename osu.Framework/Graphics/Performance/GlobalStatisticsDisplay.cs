@@ -4,9 +4,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Performance
@@ -19,6 +21,8 @@ namespace osu.Framework.Graphics.Performance
         private readonly FillFlowContainer<StatisticsGroup> groups;
 
         private DotNetRuntimeListener listener;
+
+        private Bindable<bool> performanceLogging;
 
         public GlobalStatisticsDisplay()
             : base("Global Statistics", "(Ctrl+F2 to toggle)")
@@ -36,9 +40,11 @@ namespace osu.Framework.Graphics.Performance
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost host)
         {
             listener = new DotNetRuntimeListener();
+
+            performanceLogging = host.PerformanceLogging.GetBoundCopy();
         }
 
         protected override void LoadComplete()
@@ -50,6 +56,13 @@ namespace osu.Framework.Graphics.Performance
 
             // ToArray is to guard against collection modification in underlying bindable.
             add(GlobalStatistics.Statistics.ToArray());
+
+            State.BindValueChanged(visibilityChanged, true);
+        }
+
+        private void visibilityChanged(ValueChangedEvent<Visibility> state)
+        {
+            performanceLogging.Value = state.NewValue == Visibility.Visible;
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>

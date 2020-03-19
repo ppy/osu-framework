@@ -6,8 +6,10 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
@@ -88,6 +90,22 @@ namespace osu.Framework.Tests.Visual.Platform
 
             // go back to initial window mode
             AddStep($"revert to {initialWindowMode.ToString()}", () => windowMode.Value = initialWindowMode);
+
+            // show the available displays
+            AddStep("query Window.Displays", () =>
+            {
+                var displays = window.Displays.ToArray();
+                Logger.Log($"Available displays: {displays.Length}");
+                displays.ForEach(display =>
+                {
+                    Logger.Log(display.ToString());
+                    display.DisplayModes.ForEach(mode => Logger.Log($"-- {mode}"));
+                });
+            });
+
+            AddStep("query Window.Display", () => Logger.Log(window.Display.ToString()));
+
+            AddStep("query Window.DisplayMode", () => Logger.Log(window.DisplayMode.ToString()));
         }
 
         protected override void Update()

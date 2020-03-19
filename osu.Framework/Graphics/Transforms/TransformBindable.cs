@@ -6,18 +6,19 @@ using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    internal class TransformBindable<TValue, T> : Transform<TValue, T>
+    internal class TransformBindable<TValue, TEasing, T> : Transform<TValue, TEasing, T>
         where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
         public override string TargetMember { get; }
 
         private readonly Bindable<TValue> targetBindable;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
+        private readonly InterpolationFunc<TValue, TEasing> interpolationFunc;
 
-        public TransformBindable(Bindable<TValue> targetBindable, InterpolationFunc<TValue> interpolationFunc)
+        public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+            interpolationFunc = Interpolation.ValueAt;
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }

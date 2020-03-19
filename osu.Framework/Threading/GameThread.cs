@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -63,9 +64,26 @@ namespace osu.Framework.Threading
 
         public bool Running => Thread?.IsAlive == true;
 
+        public virtual bool IsCurrent => true;
+
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        public Action OnThreadStart;
+        internal void Initialize(bool withThrottling)
+        {
+            MakeCurrent();
+
+            OnInitialize();
+
+            Clock.Throttling = withThrottling;
+
+            Monitor.MakeCurrent();
+
+            updateCulture();
+
+            initializedEvent.Set();
+        }
+
+        protected virtual void OnInitialize() { }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
@@ -79,7 +97,7 @@ namespace osu.Framework.Threading
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
-            Scheduler = new Scheduler(null, Clock);
+            Scheduler = new GameThreadScheduler(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -106,52 +124,66 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
-
-            OnThreadStart?.Invoke();
-
-            initializedEvent.Set();
-
-            while (!exitCompleted && !paused)
+            try
             {
-                try
+                Initialize(true);
+
+                while (!exitCompleted && !paused)
                 {
                     ProcessFrame();
                 }
-                catch (Exception e)
-                {
-                    if (UnhandledException != null)
-                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                    else
-                        throw;
-                }
             }
-
-            Thread = null;
+            finally
+            {
+                Cleanup();
+            }
         }
 
-        public void ProcessFrame()
+        /// <summary>
+        /// Run when thread transitions into an active/processing state.
+        /// </summary>
+        internal virtual void MakeCurrent()
         {
-            if (exitCompleted)
-                return;
+            ThreadSafety.ResetAllForCurrentThread();
+        }
 
-            if (exitRequested)
+        internal void ProcessFrame()
+        {
+            try
             {
-                PerformExit();
-                exitCompleted = true;
-                return;
+                if (exitCompleted)
+                    return;
+
+                if (exitRequested)
+                {
+                    PerformExit();
+                    exitCompleted = true;
+                    return;
+                }
+
+                MakeCurrent();
+
+                Monitor?.NewFrame();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
+                    Scheduler.Update();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
+                    OnNewFrame?.Invoke();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
+                    Clock.ProcessFrame();
+
+                Monitor?.EndFrame();
             }
-
-            Monitor?.NewFrame();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
-                Scheduler.Update();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
-                OnNewFrame?.Invoke();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
-                Clock.ProcessFrame();
+            catch (Exception e)
+            {
+                if (UnhandledException != null && !ThreadSafety.IsInputThread)
+                    // the handler schedules back to the input thread, so don't run it if we are already on the input thread
+                    UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                else
+                    throw;
+            }
         }
 
         private volatile bool exitRequested;
@@ -184,7 +216,21 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            paused = true;
+            if (Thread != null)
+            {
+                paused = true;
+                while (Running)
+                    Thread.Sleep(1);
+            }
+            else
+            {
+                Cleanup();
+            }
+        }
+
+        protected virtual void Cleanup()
+        {
+            Thread = null;
         }
 
         public void Exit() => exitRequested = true;
@@ -203,6 +249,14 @@ namespace osu.Framework.Threading
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+        }
+
+        public class GameThreadScheduler : Scheduler
+        {
+            public GameThreadScheduler(GameThread thread)
+                : base(() => thread.IsCurrent, thread.Clock)
+            {
+            }
         }
     }
 }

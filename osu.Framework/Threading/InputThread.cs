@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -19,6 +20,15 @@ namespace osu.Framework.Threading
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
         };
+
+        public override bool IsCurrent => ThreadSafety.IsInputThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsInputThread = true;
+        }
 
         public override void Start()
         {

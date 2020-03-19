@@ -3,9 +3,9 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using osu.Framework.Layout;
 using osuTK;
 using osuTK.Graphics;
 
@@ -20,10 +20,15 @@ namespace osu.Framework.Graphics.Sprites
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private readonly Cached layout = new Cached();
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.Colour, conditions: (s, _) => ((SpriteIcon)s).Shadow);
         private Container shadowVisibility;
 
         private FontStore store;
+
+        public SpriteIcon()
+        {
+            AddLayout(layout);
+        }
 
         [BackgroundDependencyLoader]
         private void load(FontStore store)
@@ -86,13 +91,6 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             loadedIcon = loadableIcon;
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.Colour) > 0 && Shadow)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         protected override void Update()

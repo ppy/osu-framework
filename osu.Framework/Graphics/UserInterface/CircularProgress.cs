@@ -90,6 +90,10 @@ namespace osu.Framework.Graphics.UserInterface
     public static class CircularProgressTransformSequenceExtensions
     {
         public static TransformSequence<CircularProgress> FillTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
+            where TEasing : IEasingFunction
             => t.Append(cp => cp.TransformBindableTo(cp.Current, newValue, duration, easing));
     }
 }

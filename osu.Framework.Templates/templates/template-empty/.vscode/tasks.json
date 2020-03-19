@@ -58,6 +58,15 @@
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
+        }, {
+            "label": "Restore",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "restore",
+                "TemplateGame.sln"
+            ],
+            "problemMatcher": []
         }
     ]
 }

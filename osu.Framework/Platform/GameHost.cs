@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -38,10 +37,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Input.StateChanges;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
-using Key = osuTK.Input.Key;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
 using WindowState = osuTK.WindowState;
 
@@ -59,6 +56,14 @@ namespace osu.Framework.Platform
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        /// <remarks>
+        /// To preserve battery life on mobile devices, this should be left on whenever possible.
+        /// </remarks>
+        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
@@ -130,9 +135,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual bool CapsLockEnabled => false;
 
-        private readonly List<GameThread> threads = new List<GameThread>();
-
-        public IEnumerable<GameThread> Threads => threads;
+        public IEnumerable<GameThread> Threads => threadRunner.Threads;
 
         /// <summary>
         /// Register a thread to be monitored and tracked by this <see cref="GameHost"/>
@@ -140,10 +143,11 @@ namespace osu.Framework.Platform
         /// <param name="thread">The thread.</param>
         public void RegisterThread(GameThread thread)
         {
-            threads.Add(thread);
+            threadRunner.AddThread(thread);
+
             thread.IsActive.BindTo(IsActive);
             thread.UnhandledException = unhandledExceptionHandler;
-            thread.Monitor.EnablePerformanceProfiling = performanceLogging.Value;
+            thread.Monitor.EnablePerformanceProfiling = PerformanceLogging.Value;
         }
 
         /// <summary>
@@ -152,14 +156,13 @@ namespace osu.Framework.Platform
         /// <param name="thread">The thread.</param>
         public void UnregisterThread(GameThread thread)
         {
-            if (!threads.Remove(thread))
-                return;
+            threadRunner.RemoveThread(thread);
 
             IsActive.UnbindFrom(thread.IsActive);
             thread.UnhandledException = null;
         }
 
-        public GameThread DrawThread;
+        public DrawThread DrawThread;
         public GameThread UpdateThread;
         public InputThread InputThread;
         public AudioThread AudioThread;
@@ -169,7 +172,7 @@ namespace osu.Framework.Platform
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
-            set => UpdateThread.ActiveHz = maximumUpdateHz = value;
+            set => threadRunner.MaximumUpdateHz = UpdateThread.ActiveHz = maximumUpdateHz = value;
         }
 
         private double maximumDrawHz;
@@ -186,7 +189,7 @@ namespace osu.Framework.Platform
             set
             {
                 DrawThread.InactiveHz = value;
-                UpdateThread.InactiveHz = value;
+                threadRunner.MaximumInactiveHz = UpdateThread.InactiveHz = value;
             }
         }
 
@@ -204,6 +207,8 @@ namespace osu.Framework.Platform
         private Toolkit toolkit;
 
         private readonly ToolkitOptions toolkitOptions;
+
+        private bool suspended;
 
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
@@ -265,8 +270,8 @@ namespace osu.Framework.Platform
             //wait for a potentially blocking response
             while (!response.HasValue)
             {
-                if (runningSingleThreaded)
-                    ProcessInputFrame();
+                if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
+                    threadRunner.RunMainLoop();
                 else
                     Thread.Sleep(1);
             }
@@ -284,15 +289,6 @@ namespace osu.Framework.Platform
         }
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
-
-        protected virtual void UpdateInitialize()
-        {
-            if (!runningSingleThreaded)
-            {
-                //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-                DrawThread.WaitUntilInitialized();
-            }
-        }
 
         protected Container Root;
 
@@ -315,21 +311,13 @@ namespace osu.Framework.Platform
             // Ensure we maintain a valid size for any children immediately scaling by the window size
             Root.Size = Vector2.ComponentMax(Vector2.One, Root.Size);
 
+            TypePerformanceMonitor.NewFrame();
+
             Root.UpdateSubTree();
             Root.UpdateSubTreeMasking(Root, Root.ScreenSpaceDrawQuad.AABBFloat);
 
             using (var buffer = DrawRoots.Get(UsageType.Write))
                 buffer.Object = Root.GenerateDrawNodeSubtree(frameCount, buffer.Index, false);
-        }
-
-        protected virtual void DrawInitialize()
-        {
-            Window.MakeCurrent();
-            GLWrapper.Initialize(this);
-
-            setVSyncMode();
-
-            GLWrapper.Reset(new Vector2(Window.ClientSize.Width, Window.ClientSize.Height));
         }
 
         private long lastDrawFrameId;
@@ -468,7 +456,7 @@ namespace osu.Framework.Platform
             // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
             ExecutionState = ExecutionState.Stopping;
             Window?.Close();
-            stopAllThreads();
+            threadRunner.Stop();
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
         }
@@ -492,22 +480,21 @@ namespace osu.Framework.Platform
             {
                 SetupToolkit();
 
+                threadRunner = new ThreadRunner(InputThread = new InputThread());
+
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
 
-                RegisterThread(DrawThread = new DrawThread(DrawFrame)
-                {
-                    OnThreadStart = DrawInitialize,
-                });
+                RegisterThread(InputThread);
 
-                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame)
+                RegisterThread(AudioThread = new AudioThread());
+
+                RegisterThread(UpdateThread = new UpdateThread(UpdateFrame, DrawThread)
                 {
-                    OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true },
                 });
 
-                RegisterThread(InputThread = new InputThread());
-                RegisterThread(AudioThread = new AudioThread());
+                RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
 
                 Trace.Listeners.Clear();
                 Trace.Listeners.Add(new ThrowingTraceListener());
@@ -530,7 +517,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                SetupConfig(game.GetFrameworkConfigDefaults());
+                SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 if (Window != null)
                 {
@@ -542,21 +529,9 @@ namespace osu.Framework.Platform
 
                 resetInputHandlers();
 
-                if (runningSingleThreaded)
-                {
-                    foreach (var t in threads)
-                    {
-                        t.OnThreadStart?.Invoke();
-                        t.OnThreadStart = null;
-                    }
-                }
-                else
-                {
-                    foreach (var t in threads)
-                        t.Start();
+                threadRunner.Start();
 
-                    DrawThread.WaitUntilInitialized();
-                }
+                DrawThread.WaitUntilInitialized();
 
                 bootstrapSceneGraph(game);
 
@@ -576,22 +551,16 @@ namespace osu.Framework.Platform
                     if (Window != null)
                     {
                         if (Window is SDLWindow window)
-                        {
-                            window.KeyDown += keyDown;
-                            window.Update += ProcessInputFrame;
-                        }
+                            window.Update += windowUpdate;
                         else
-                        {
-                            Window.KeyDown += legacyKeyDown;
-                            Window.UpdateFrame += (o, e) => ProcessInputFrame();
-                        }
+                            Window.UpdateFrame += (o, e) => windowUpdate();
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
 
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).
-                        Window.Exited += stopAllThreads;
+                        Window.Exited += threadRunner.Stop;
 
                         Window.Run();
                     }
@@ -612,49 +581,35 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool runningSingleThreaded;
-
-        public bool RunningSingleThreaded
+        /// <summary>
+        /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
+        /// </summary>
+        public void Suspend()
         {
-            get => runningSingleThreaded;
-            set
-            {
-                if (value == runningSingleThreaded) return;
-
-                InputThread?.Scheduler.Add(() =>
-                {
-                    if (!value)
-                    {
-                        foreach (var t in threads)
-                            t.Start();
-                    }
-                    else
-                    {
-                        foreach (var t in threads)
-                            t.Pause();
-
-                        while (threads.Any(t => t.Running))
-                            Thread.Sleep(1);
-                    }
-
-                    runningSingleThreaded = value;
-                    ThreadSafety.SingleThreadThread = runningSingleThreaded ? Thread.CurrentThread : null;
-                });
-            }
+            threadRunner.Suspend();
+            suspended = true;
         }
 
-        protected virtual void ProcessInputFrame()
+        /// <summary>
+        /// Resumes all of the current paused threads after <see cref="Suspend"/> was called.
+        /// </summary>
+        public void Resume()
+        {
+            threadRunner.Start();
+            suspended = false;
+        }
+
+        private ThreadRunner threadRunner;
+
+        private void windowUpdate()
         {
             inputPerformanceCollectionPeriod?.Dispose();
+            inputPerformanceCollectionPeriod = null;
 
-            InputThread.ProcessFrame();
+            if (suspended)
+                return;
 
-            if (runningSingleThreaded)
-            {
-                AudioThread.ProcessFrame();
-                UpdateThread.ProcessFrame();
-                DrawThread.ProcessFrame();
-            }
+            threadRunner.RunMainLoop();
 
             inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
@@ -728,48 +683,6 @@ namespace osu.Framework.Platform
             Root = root;
         }
 
-        private const int thread_join_timeout = 30000;
-
-        private void stopAllThreads()
-        {
-            threads.ForEach(t => t.Exit());
-            threads.Where(t => t.Running).ForEach(t =>
-            {
-                if (!t.Thread.Join(thread_join_timeout))
-                    Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
-            });
-
-            // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            while (!InputThread.Exited)
-                InputThread.ProcessFrame();
-        }
-
-        private void legacyKeyDown(object sender, KeyboardKeyEventArgs e)
-        {
-            if (e.Control && e.Key == Key.F7)
-                cycleFrameSync();
-
-            if (e.Control && e.Key == Key.F6)
-                RunningSingleThreaded = !RunningSingleThreaded;
-        }
-
-        private void keyDown(KeyboardKeyInput e)
-        {
-            // TODO: check for control key
-            if (e.Entries.Any(x => x.Button == Key.F7 && x.IsPressed))
-                cycleFrameSync();
-        }
-
-        private void cycleFrameSync()
-        {
-            var nextMode = frameSyncMode.Value + 1;
-
-            if (nextMode > FrameSync.Unlimited)
-                nextMode = FrameSync.VSync;
-
-            frameSyncMode.Value = nextMode;
-        }
-
         private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
         private Bindable<bool> bypassFrontToBackPass;
@@ -779,28 +692,22 @@ namespace osu.Framework.Platform
         private Bindable<string> ignoredInputHandlers;
 
         private Bindable<double> cursorSensitivity;
-        private readonly Bindable<bool> performanceLogging = new Bindable<bool>();
+
+        public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
         private Bindable<WindowMode> windowMode;
 
+        private Bindable<ExecutionMode> executionMode;
+
         private Bindable<string> threadLocale;
 
-        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected virtual void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            var hostDefaults = new Dictionary<FrameworkSetting, object>
-            {
-                { FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed }
-            };
-
-            // merge defaults provided by game into host defaults.
-            if (gameDefaults != null)
-            {
-                foreach (var d in gameDefaults)
-                    hostDefaults[d.Key] = d.Value;
-            }
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.WindowMode))
+                defaultOverrides.Add(FrameworkSetting.WindowMode, Window?.DefaultWindowMode ?? WindowMode.Windowed);
 
             Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
-            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, hostDefaults));
+            Dependencies.Cache(Config = new FrameworkConfigManager(Storage, defaultOverrides));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
             windowMode.BindValueChanged(mode =>
@@ -811,6 +718,9 @@ namespace osu.Framework.Platform
                 if (!Window.SupportedWindowModes.Contains(mode.NewValue))
                     windowMode.Value = Window.DefaultWindowMode;
             }, true);
+
+            executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
+            executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
@@ -855,8 +765,8 @@ namespace osu.Framework.Platform
                         break;
                 }
 
-                if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
-                if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
+                MaximumDrawHz = drawLimiter;
+                MaximumUpdateHz = updateLimiter;
             };
 
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
@@ -885,11 +795,11 @@ namespace osu.Framework.Platform
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
 
-            DebugConfig.BindWith(DebugSetting.PerformanceLogging, performanceLogging);
-            performanceLogging.BindValueChanged(logging =>
+            PerformanceLogging.BindValueChanged(logging =>
             {
-                threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
+                Threads.ForEach(t => t.Monitor.EnablePerformanceProfiling = logging.NewValue);
                 DebugUtils.LogPerformanceIssues = logging.NewValue;
+                TypePerformanceMonitor.Active = logging.NewValue;
             }, true);
 
             bypassFrontToBackPass = DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
@@ -902,7 +812,7 @@ namespace osu.Framework.Platform
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-                foreach (var t in threads)
+                foreach (var t in Threads)
                 {
                     t.Scheduler.Add(() => { t.CurrentCulture = culture; });
                 }

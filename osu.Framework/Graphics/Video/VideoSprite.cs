@@ -12,6 +12,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -60,12 +61,10 @@ namespace osu.Framework.Graphics.Video
         {
             get
             {
-                if (!startTime.HasValue)
-                    return 0;
+                if (Loop)
+                    return Clock.CurrentTime % Duration;
 
-                if (Loop) return (Clock.CurrentTime - startTime.Value) % Duration;
-
-                return Math.Min(Clock.CurrentTime - startTime.Value, Duration);
+                return Math.Min(Clock.CurrentTime, Duration);
             }
         }
 
@@ -83,11 +82,10 @@ namespace osu.Framework.Graphics.Video
 
         internal int AvailableFrames => availableFrames.Count;
 
-        private double? startTime;
-
         private VideoDecoder decoder;
 
         private readonly Stream stream;
+        private readonly bool startAtCurrentTime;
 
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
@@ -112,14 +110,29 @@ namespace osu.Framework.Graphics.Video
 
         protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(this);
 
-        public VideoSprite([NotNull] Stream stream)
+        /// <summary>
+        /// Creates a new <see cref="VideoSprite"/>.
+        /// </summary>
+        /// <param name="filename">The video file.</param>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.<br />
+        /// If <code>true</code>, the current clock time will be assumed as the 0th video frame. A custom <see cref="Clock"/> cannot be set.<br />
+        /// If <code>false</code>, a current clock time of 0 will be assumed as the 0th video frame. A custom <see cref="Clock"/> can be set.</param>
+        public VideoSprite(string filename, bool startAtCurrentTime = true)
+            : this(File.OpenRead(filename), startAtCurrentTime)
         {
-            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
-        public VideoSprite(string filename)
-            : this(File.OpenRead(filename))
+        /// <summary>
+        /// Creates a new <see cref="VideoSprite"/>.
+        /// </summary>
+        /// <param name="stream">The video file stream.</param>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.<br />
+        /// If <code>true</code>, the current clock time will be assumed as the 0th video frame. A custom <see cref="Clock"/> cannot be set.<br />
+        /// If <code>false</code>, a current clock time of 0 will be assumed as the 0th video frame. A custom <see cref="Clock"/> can be set.</param>
+        public VideoSprite([NotNull] Stream stream, bool startAtCurrentTime = true)
         {
+            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
+            this.startAtCurrentTime = startAtCurrentTime;
         }
 
         [BackgroundDependencyLoader]
@@ -133,12 +146,29 @@ namespace osu.Framework.Graphics.Video
             decoder.StartDecoding();
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (startAtCurrentTime)
+                base.Clock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
+        }
+
+        public override IFrameBasedClock Clock
+        {
+            get => base.Clock;
+            set
+            {
+                if (startAtCurrentTime)
+                    throw new InvalidOperationException($"A {nameof(VideoSprite)} with {startAtCurrentTime} = true cannot receive a custom {nameof(Clock)}.");
+
+                base.Clock = value;
+            }
+        }
+
         protected override void Update()
         {
             base.Update();
-
-            if (!startTime.HasValue)
-                startTime = Clock.CurrentTime;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
 

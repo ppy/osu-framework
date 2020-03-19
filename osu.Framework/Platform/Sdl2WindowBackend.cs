@@ -2,6 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using osu.Framework.Caching;
 using osu.Framework.Extensions;
@@ -12,6 +15,7 @@ using Veldrid.Sdl2;
 using Key = osuTK.Input.Key;
 using MouseButton = osuTK.Input.MouseButton;
 using MouseEvent = Veldrid.MouseEvent;
+using Point = Veldrid.Point;
 using TKVector2 = osuTK.Vector2;
 
 namespace osu.Framework.Platform
@@ -140,6 +144,28 @@ namespace osu.Framework.Platform
 
                 scheduler.Add(() => implementation.WindowState = value);
             }
+        }
+
+        public IEnumerable<Display> Displays =>
+            Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
+
+        public Display Display => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
+
+        public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
+
+        private static Display displayFromSDL(int displayIndex)
+        {
+            var displayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
+                                         .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
+                                         .ToArray();
+
+            return new Display(displayIndex, Sdl2Functions.SDL_GetDisplayName(displayIndex), Sdl2Functions.SDL_GetDisplayBounds(displayIndex), displayModes);
+        }
+
+        private static DisplayMode displayModeFromSDL(SDL_DisplayMode mode)
+        {
+            Sdl2Functions.SDL_PixelFormatEnumToMasks(mode.Format, out var bpp, out _, out _, out _, out _);
+            return new DisplayMode(Sdl2Functions.SDL_GetPixelFormatName(mode.Format), new Size(mode.Width, mode.Height), bpp, mode.RefreshRate);
         }
 
         #endregion
