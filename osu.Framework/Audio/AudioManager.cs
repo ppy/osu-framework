@@ -90,6 +90,7 @@ namespace osu.Framework.Audio
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private readonly Thread syncThread;
         private readonly DeviceInfoUpdateComparer updateComparer = new DeviceInfoUpdateComparer();
 
         /// <summary>
@@ -131,34 +132,33 @@ namespace osu.Framework.Audio
             });
 
             CancellationToken token = cancelSource.Token;
-
-            scheduler.Add(() =>
+            // sync audioDevices every 1000ms
+            syncThread = new Thread(() =>
             {
-                // sync audioDevices every 1000ms
-                new Thread(() =>
+                while (!token.IsCancellationRequested)
                 {
-                    while (!token.IsCancellationRequested)
+                    try
                     {
-                        try
-                        {
-                            syncAudioDevices();
-                            Thread.Sleep(1000);
-                        }
-                        catch
-                        {
-                        }
+                        syncAudioDevices();
+                        Thread.Sleep(1000);
                     }
-                })
-                {
-                    IsBackground = true
-                }.Start();
-            });
+                    catch
+                    {
+                    }
+                }
+            })
+            {
+                IsBackground = true
+            };
+
+            scheduler.Add(() => syncThread.Start());
         }
 
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
             thread.UnregisterManager(this);
+            syncThread.Join(); // Wait for thread to exit
 
             OnNewDevice = null;
             OnLostDevice = null;

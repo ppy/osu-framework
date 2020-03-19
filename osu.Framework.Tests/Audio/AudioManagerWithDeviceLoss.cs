@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
@@ -93,7 +92,6 @@ namespace osu.Framework.Tests.Audio
         public override void Dispose()
         {
             Dispose(true);
-            Thread.Sleep(1000); // Ensure sync thread has been cancelled
             base.Dispose();
         }
     }
