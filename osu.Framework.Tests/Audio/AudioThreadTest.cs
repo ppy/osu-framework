@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
@@ -20,14 +21,14 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public virtual void SetUp()
         {
+            // If Bass is not in its default state, previous usage was not properly cleaned up.
+            Assert.AreEqual(Bass.DefaultDevice, Bass.CurrentDevice);
+
             thread = new AudioThread();
 
             var store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.Tests.dll"), @"Resources");
 
             Manager = new AudioManagerWithDeviceLoss(thread, store, store);
-
-            // If manager is already loaded, previous instance was not cleaned up.
-            Assert.IsFalse(Manager.IsLoaded);
 
             thread.Start();
         }

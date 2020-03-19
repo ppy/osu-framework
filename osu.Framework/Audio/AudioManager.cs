@@ -15,6 +15,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Threading;
+using ThreadState = System.Threading.ThreadState;
 
 namespace osu.Framework.Audio
 {
@@ -158,7 +159,8 @@ namespace osu.Framework.Audio
         {
             cancelSource.Cancel();
             thread.UnregisterManager(this);
-            syncThread.Join(); // Wait for thread to exit
+            if (syncThread.ThreadState != ThreadState.Unstarted)
+                syncThread.Join(); // Wait for thread to exit
 
             OnNewDevice = null;
             OnLostDevice = null;
