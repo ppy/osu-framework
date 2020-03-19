@@ -75,12 +75,16 @@ namespace osu.Framework.Threading
         {
             base.PerformExit();
 
+            List<AudioManager> managersCopy;
+
             lock (managers)
             {
-                foreach (var manager in managers)
-                    manager.Dispose();
+                managersCopy = new List<AudioManager>(managers);
                 managers.Clear();
             }
+
+            foreach (var manager in managersCopy)
+                manager.Dispose();
         }
     }
 }
