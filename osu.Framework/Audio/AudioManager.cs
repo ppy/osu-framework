@@ -77,6 +77,10 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
+        public override bool IsLoaded => base.IsLoaded &&
+                                         // bass default device is a null device (-1), not the actual system default.
+                                         Bass.CurrentDevice != Bass.DefaultDevice;
+
         // Mutated by multiple threads, must be thread safe.
         private ImmutableList<DeviceInfo> audioDevices = ImmutableList<DeviceInfo>.Empty;
         private ImmutableList<string> audioDeviceNames = ImmutableList<string>.Empty;
@@ -86,6 +90,7 @@ namespace osu.Framework.Audio
         private Scheduler eventScheduler => EventScheduler ?? scheduler;
 
         private readonly CancellationTokenSource cancelSource = new CancellationTokenSource();
+        private readonly DeviceInfoUpdateComparer updateComparer = new DeviceInfoUpdateComparer();
 
         /// <summary>
         /// The scheduler used for invoking publicly exposed delegate events.
@@ -94,6 +99,8 @@ namespace osu.Framework.Audio
 
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
+
+        private bool didInitialise;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -129,11 +136,6 @@ namespace osu.Framework.Audio
 
             scheduler.Add(() =>
             {
-                syncAudioDevices();
-                // If user has no audio devices at initialization, force one to be set.
-                if (audioDeviceNames.IsEmpty)
-                    scheduler.Add(() => setAudioDevice());
-
                 // sync audioDevices every 1000ms
                 new Thread(() =>
                 {
@@ -141,8 +143,8 @@ namespace osu.Framework.Audio
                     {
                         try
                         {
-                            Thread.Sleep(1000);
                             syncAudioDevices();
+                            Thread.Sleep(1000);
                         }
                         catch
                         {
@@ -163,6 +165,8 @@ namespace osu.Framework.Audio
             OnNewDevice = null;
             OnLostDevice = null;
 
+            FreeBass();
+
             base.Dispose(disposing);
         }
 
@@ -175,7 +179,7 @@ namespace osu.Framework.Audio
         {
             scheduler.Add(() =>
             {
-                if (!IsCurrentDeviceValid() || Bass.CurrentDevice <= Bass.NoSoundDevice)
+                if (!IsCurrentDeviceValid())
                     setAudioDevice();
             });
         }
@@ -255,7 +259,7 @@ namespace osu.Framework.Audio
                 // If it is, it means we can just tell Bass to use the already initialized device without much
                 // other fuzz.
                 Bass.CurrentDevice = deviceIndex;
-                Bass.Free();
+                FreeBass();
                 InitBass(deviceIndex);
             }
 
@@ -286,6 +290,9 @@ namespace osu.Framework.Audio
         /// </summary>
         protected virtual bool InitBass(int device)
         {
+            if (Bass.CurrentDevice == device)
+                return true;
+
             // reduce latency to a known sane minimum.
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
 
@@ -304,15 +311,34 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
+            didInitialise = true;
+
             return Bass.Init(device);
+        }
+
+        protected void FreeBass()
+        {
+            if (!didInitialise) return;
+
+            Bass.Free();
+            didInitialise = false;
         }
 
         private void syncAudioDevices()
         {
-            audioDevices = EnumerateAllDevices().ToImmutableList();
+            // audioDevices are updated if:
+            // - A new device is added
+            // - An existing device is Enabled/Disabled or set as Default
+            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
+            if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
+                return;
+
+            audioDevices = updatedAudioDevices;
 
             // Bass should always be providing "No sound" device
             Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+
+            onDevicesChanged();
 
             var oldDeviceNames = audioDeviceNames;
             var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
@@ -322,7 +348,6 @@ namespace osu.Framework.Audio
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
-                onDevicesChanged();
                 eventScheduler.Add(delegate
                 {
                     foreach (var d in newDevices)
@@ -340,16 +365,25 @@ namespace osu.Framework.Audio
                 yield return Bass.GetDeviceInfo(i);
         }
 
+        // The current device is considered valid if it is enabled, initialized, and not a fallback device.
         protected virtual bool IsCurrentDeviceValid()
         {
             var device = audioDevices.ElementAtOrDefault(Bass.CurrentDevice);
-            return device.IsEnabled && device.IsInitialized;
+            bool isFallback = AudioDevice.Value == null ? !device.IsDefault : device.Name != AudioDevice.Value;
+            return device.IsEnabled && device.IsInitialized && !isFallback;
         }
 
         public override string ToString()
         {
             var deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
+        }
+
+        private class DeviceInfoUpdateComparer : IEqualityComparer<DeviceInfo>
+        {
+            public bool Equals(DeviceInfo x, DeviceInfo y) => x.IsEnabled == y.IsEnabled && x.IsDefault == y.IsDefault;
+
+            public int GetHashCode(DeviceInfo obj) => obj.Name.GetHashCode();
         }
     }
 }

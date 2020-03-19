@@ -82,7 +82,10 @@ namespace osu.Framework.Threading
                 managers.Clear();
             }
 
-            Bass.Free();
+            // Safety net to ensure we have freed all devices before exiting.
+            // This is mainly required for device-lost scenarios.
+            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+            while (Bass.Free()) { }
         }
     }
 }
