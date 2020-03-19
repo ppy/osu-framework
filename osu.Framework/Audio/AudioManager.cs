@@ -100,8 +100,6 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
-        private bool didInitialise;
-
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
         /// </summary>
@@ -165,7 +163,10 @@ namespace osu.Framework.Audio
             OnNewDevice = null;
             OnLostDevice = null;
 
-            FreeBass();
+            // Safety net to ensure we have freed all devices before exiting.
+            // This is mainly required for device-lost scenarios.
+            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+            while (Bass.Free()) { }
 
             base.Dispose(disposing);
         }
@@ -255,11 +256,13 @@ namespace osu.Framework.Audio
 
             if (Bass.LastError == Errors.Already)
             {
+                Trace.Assert(Bass.CurrentDevice != deviceIndex, "Reinitializing active device will free stream.");
+
                 // We check if the initialization error is that we already initialized the device
                 // If it is, it means we can just tell Bass to use the already initialized device without much
                 // other fuzz.
                 Bass.CurrentDevice = deviceIndex;
-                FreeBass();
+                Bass.Free();
                 InitBass(deviceIndex);
             }
 
@@ -311,17 +314,7 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
-            didInitialise = true;
-
             return Bass.Init(device);
-        }
-
-        protected void FreeBass()
-        {
-            if (!didInitialise) return;
-
-            Bass.Free();
-            didInitialise = false;
         }
 
         private void syncAudioDevices()
