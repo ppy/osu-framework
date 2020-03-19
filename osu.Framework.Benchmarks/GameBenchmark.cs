@@ -95,12 +95,10 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                ExecutionMode = ExecutionMode.SingleThread;
-
                 if (HasRunOnce.IsSet)
                     return;
 
-                base.RunMainLoop();
+                RunSingleFrame();
                 HasRunOnce.Set();
             }
         }
