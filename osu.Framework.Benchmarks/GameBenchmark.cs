@@ -63,13 +63,13 @@ namespace osu.Framework.Benchmarks
                     }
                 });
 
-                while (threadRunner == null || !threadRunner.HasRunOnce.IsSet)
+                while (threadRunner == null || threadRunner.RunAutomaticMainLoop.IsSet)
                     Thread.Sleep(10);
             }
 
             protected override void Dispose(bool isDisposing)
             {
-                threadRunner.HasRunOnce.Reset();
+                threadRunner.RunAutomaticMainLoop.Set();
                 base.Dispose(isDisposing);
             }
 
@@ -80,7 +80,7 @@ namespace osu.Framework.Benchmarks
 
         private class ManualThreadRunner : ThreadRunner
         {
-            public readonly ManualResetEventSlim HasRunOnce = new ManualResetEventSlim();
+            public readonly ManualResetEventSlim RunAutomaticMainLoop = new ManualResetEventSlim(true);
 
             public ManualThreadRunner(InputThread mainThread)
                 : base(mainThread)
@@ -95,11 +95,9 @@ namespace osu.Framework.Benchmarks
 
             public override void RunMainLoop()
             {
-                if (HasRunOnce.IsSet)
-                    return;
-
+                RunAutomaticMainLoop.Wait();
                 RunSingleFrame();
-                HasRunOnce.Set();
+                RunAutomaticMainLoop.Reset();
             }
         }
     }
