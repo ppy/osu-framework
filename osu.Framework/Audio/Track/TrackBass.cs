@@ -144,8 +144,11 @@ namespace osu.Framework.Audio.Track
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            Bass.ChannelSetDevice(activeStream, deviceIndex);
-            Trace.Assert(Bass.LastError == Errors.OK);
+            if (!Bass.ChannelSetDevice(activeStream, deviceIndex) && Bass.LastError == Errors.Already)
+                return;
+
+            // Errors.Init here means Free() was called on a device while attached to activeStream.
+            Trace.Assert(Bass.LastError == Errors.OK, $"Bass.ChannelSetDevice error:{Bass.LastError}");
 
             // Bass may leave us in an invalid state after the output device changes (this is true for "No sound" device)
             // if the observed state was playing before change, we should force things into a good state.
