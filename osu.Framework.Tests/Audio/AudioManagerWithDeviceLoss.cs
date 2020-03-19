@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
-using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
