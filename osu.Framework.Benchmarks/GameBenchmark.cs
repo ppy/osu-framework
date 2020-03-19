@@ -5,17 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using NUnit.Framework;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
-using osuTK.Graphics;
 
 namespace osu.Framework.Benchmarks
 {
     [TestFixture]
     [MemoryDiagnoser]
-    public class BenchmarkGameUpdateLoop
+    public abstract class GameBenchmark
     {
         private ManualGameHost gameHost;
 
@@ -23,12 +20,8 @@ namespace osu.Framework.Benchmarks
         [OneTimeSetUp]
         public virtual void SetUp()
         {
-            gameHost = new ManualGameHost(new PoopGame());
+            gameHost = new ManualGameHost(CreateGame());
         }
-
-        [Test]
-        [Benchmark]
-        public void RunBenchmark() => gameHost.RunSingleFrame();
 
         [GlobalCleanup]
         [OneTimeTearDown]
@@ -38,29 +31,20 @@ namespace osu.Framework.Benchmarks
             gameHost?.Dispose();
         }
 
-        private class PoopGame : Game
-        {
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
+        /// <summary>
+        /// Runs a single game frame.
+        /// </summary>
+        protected void RunSingleFrame() => gameHost.RunSingleFrame();
 
-                for (int i = 0; i < 1000; i++)
-                {
-                    var box = new Box
-                    {
-                        Colour = Color4.Black,
-                        RelativeSizeAxes = Axes.Both,
-                    };
-                    Add(box);
-                    box.Spin(200, RotationDirection.Clockwise);
-                }
-            }
-        }
+        /// <summary>
+        /// Creates the game.
+        /// </summary>
+        protected abstract Game CreateGame();
 
         /// <summary>
         /// Ad headless host for testing purposes. Contains an arbitrary game that is running after construction.
         /// </summary>
-        public class ManualGameHost : HeadlessGameHost
+        private class ManualGameHost : HeadlessGameHost
         {
             private ManualThreadRunner threadRunner;
 
