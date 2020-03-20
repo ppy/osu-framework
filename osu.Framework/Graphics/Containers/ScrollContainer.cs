@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
         /// </summary>
-        public float Target { get; private set; }
+        protected float Target { get; private set; }
 
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
 
