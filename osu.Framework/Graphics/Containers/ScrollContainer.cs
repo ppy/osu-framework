@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
         /// </summary>
-        private float target;
+        protected float Target { get; private set; }
 
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
 
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
         /// Whether we are currently scrolled as far as possible into the scroll direction.
         /// </summary>
         /// <param name="lenience">How close to the extent we need to be.</param>
-        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
+        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(Target, scrollableExtent, lenience);
 
         /// <summary>
         /// The container holding all children which are getting scrolled around.
@@ -255,11 +255,11 @@ namespace osu.Framework.Graphics.Containers
                 switch (e.Key)
                 {
                     case Key.PageUp:
-                        OnUserScroll(target - displayableContent);
+                        OnUserScroll(Target - displayableContent);
                         return true;
 
                     case Key.PageDown:
-                        OnUserScroll(target + displayableContent);
+                        OnUserScroll(Target + displayableContent);
                         return true;
                 }
             }
@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.Containers
             if (IsDragging || e.Button != MouseButton.Left) return false;
 
             // Continue from where we currently are scrolled to.
-            target = Current;
+            Target = Current;
 
             return true;
         }
@@ -311,7 +311,7 @@ namespace osu.Framework.Graphics.Containers
             Vector2 childDelta = ToLocalSpace(e.ScreenSpaceMousePosition) - ToLocalSpace(e.ScreenSpaceLastMousePosition);
 
             float scrollOffset = -childDelta[ScrollDim];
-            float clampedScrollOffset = Clamp(target + scrollOffset) - Clamp(target);
+            float clampedScrollOffset = Clamp(Target + scrollOffset) - Clamp(Target);
 
             Debug.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
@@ -377,12 +377,12 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="offset">The scroll offset.</param>
         public void OffsetScrollPosition(float offset)
         {
-            target += offset;
+            Target += offset;
             Current += offset;
         }
 
         private void scrollByOffset(float value, bool animated, double distanceDecay = float.PositiveInfinity) =>
-            OnUserScroll(target + value, animated, distanceDecay);
+            OnUserScroll(Target + value, animated, distanceDecay);
 
         /// <summary>
         /// Scroll to the start of available content.
@@ -411,7 +411,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="offset">The amount by which we should scroll.</param>
         /// <param name="animated">Whether to animate the movement.</param>
-        public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
+        public void ScrollBy(float offset, bool animated = true) => scrollTo(Target + offset, animated);
 
         /// <summary>
         /// Handle a scroll to an absolute position from a user input.
@@ -432,12 +432,12 @@ namespace osu.Framework.Graphics.Containers
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            target = Clamp(value, ClampExtension);
+            Target = Clamp(value, ClampExtension);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
             else
-                Current = target;
+                Current = Target;
         }
 
         /// <summary>
@@ -489,31 +489,31 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!IsDragging && Current != Clamp(Current) && target != Clamp(target, -0.01f))
+            if (!IsDragging && Current != Clamp(Current) && Target != Clamp(Target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
-                target = Clamp(target, ClampExtension);
+                Target = Clamp(Target, ClampExtension);
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if (Current < target && target < 0 || Current > target && target > scrollableExtent)
+                if (Current < Target && Target < 0 || Current > Target && Target > scrollableExtent)
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
-                target = (float)Interpolation.Lerp(Clamp(target), target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
+                Target = (float)Interpolation.Lerp(Clamp(Target), Target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
 
-                float clampedTarget = Clamp(target);
-                if (Precision.AlmostEquals(clampedTarget, target))
-                    target = clampedTarget;
+                float clampedTarget = Clamp(Target);
+                if (Precision.AlmostEquals(clampedTarget, Target))
+                    Target = clampedTarget;
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            Current = (float)Interpolation.Lerp(target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+            Current = (float)Interpolation.Lerp(Target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
-            if (Precision.AlmostEquals(Current, target))
-                Current = target;
+            if (Precision.AlmostEquals(Current, Target))
+                Current = Target;
         }
 
         protected override void UpdateAfterChildren()
