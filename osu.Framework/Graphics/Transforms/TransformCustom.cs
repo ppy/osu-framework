@@ -162,7 +162,9 @@ namespace osu.Framework.Graphics.Transforms
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
 
-            interpolationFunc = Interpolation.ValueAt;
+            // Lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+            interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
+                => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
         }
 
         private TValue valueAt(double time)
