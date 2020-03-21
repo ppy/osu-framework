@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             this.targetBindable = targetBindable;
 
+            // Lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
             interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
                 => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
 
