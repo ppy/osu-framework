@@ -699,6 +699,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPushOnExiting()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1)
+            {
+                Exiting = () =>
+                {
+                    screen1.Push(screen2 = new TestScreen(id: 2));
+                    return true;
+                }
+            });
+
+            AddStep("Exit screen 1", () => screen1.Exit());
+            AddUntilStep("Ensure current screen 2", () => ReferenceEquals(screen2, stack.CurrentScreen));
+        }
+
+        [Test]
         public void TestInvalidPushBlocksNonImmediateSuspend()
         {
             TestScreen screen1 = null;
