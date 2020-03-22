@@ -30,13 +30,13 @@ namespace osu.Framework.Tests.Visual.Screens
             AddUntilStep("Wait for current", () => beforeExit.IsLoaded);
 
             AddStep("Exit test screen", () => beforeExit.Exit()); // No exceptions should be thrown.
-            AddAssert("Test screen is not current", () => !object.ReferenceEquals(beforeExit, stack.CurrentScreen));
+            AddAssert("Test screen is not current", () => !ReferenceEquals(beforeExit, stack.CurrentScreen));
             AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
         private class TestScreen : Screen
         {
-            private string screenText;
+            private readonly string screenText;
 
             public TestScreen(string screenText)
             {
