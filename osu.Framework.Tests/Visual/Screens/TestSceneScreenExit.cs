@@ -61,6 +61,5 @@ namespace osu.Framework.Tests.Visual.Screens
                 return true;
             }
         }
-
     }
 }
