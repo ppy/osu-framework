@@ -267,9 +267,7 @@ namespace osu.Framework.Screens
                 bool blockRequested = toExit.OnExiting(next);
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
-                {
                     return true;
-                }
 
                 stack.Pop();
             }
