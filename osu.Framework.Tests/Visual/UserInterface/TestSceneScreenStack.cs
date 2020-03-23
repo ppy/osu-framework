@@ -702,19 +702,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestPushOnExiting()
         {
             TestScreen screen1 = null;
-            TestScreen screen2 = null;
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1)
             {
                 Exiting = () =>
                 {
-                    screen1.Push(screen2 = new TestScreen(id: 2));
+                    screen1.Push(new TestScreen(id: 2));
                     return true;
                 }
             });
 
             AddStep("Exit screen 1", () => screen1.Exit());
-            AddUntilStep("Ensure current screen 2", () => ReferenceEquals(screen2, stack.CurrentScreen));
+            AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
         [Test]
