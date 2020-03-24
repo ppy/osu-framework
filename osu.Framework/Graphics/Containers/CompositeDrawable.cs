@@ -1188,19 +1188,19 @@ namespace osu.Framework.Graphics.Containers
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
-        public override InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
+        public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
             var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
             if (!recursive)
                 return baseDisposalAction;
 
-            List<InvokeOnDisposal> disposalActions = new List<InvokeOnDisposal>(internalChildren.Count + 1) { baseDisposalAction };
+            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1) { baseDisposalAction };
             foreach (var c in internalChildren)
                 disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
             {
-                foreach (var a in disposalActions)
+                foreach (var a in actions)
                     a.Dispose();
             });
         }
