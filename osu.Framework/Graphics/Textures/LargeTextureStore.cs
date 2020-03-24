@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Threading;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -14,7 +12,6 @@ namespace osu.Framework.Graphics.Textures
     /// </summary>
     public class LargeTextureStore : TextureStore
     {
-        private readonly object referenceCountLock = new object();
         private readonly ConcurrentDictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new ConcurrentDictionary<string, TextureWithRefCount.ReferenceCount>();
 
         public LargeTextureStore(IResourceStore<TextureUpload> store = null)
@@ -36,15 +33,13 @@ namespace osu.Framework.Graphics.Textures
             if (tex?.TextureGL == null)
                 return null;
 
-            var count = referenceCounts.GetOrAdd(name, n => new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(name)));
+            var count = referenceCounts.GetOrAdd(name, n => new TextureWithRefCount.ReferenceCount(() => onAllReferencesLost(name)));
 
             return new TextureWithRefCount(tex.TextureGL, count);
         }
 
         private void onAllReferencesLost(string name)
         {
-            Debug.Assert(Monitor.IsEntered(referenceCountLock));
-
             referenceCounts.TryRemove(name, out _);
             Purge(name);
         }
