@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -14,7 +15,8 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<TextureUpload>
     {
-        private readonly ConcurrentDictionary<string, Texture> textureCache = new ConcurrentDictionary<string, Texture>();
+        private readonly ConcurrentDictionary<string, Lazy<Task<Texture>>> textureCache
+            = new ConcurrentDictionary<string, Lazy<Task<Texture>>>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -47,9 +49,31 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
+        private async Task<Texture> getTextureAsync(string name)
+        {
+            try
+            {
+                return loadRaw(await base.GetAsync(name));
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                return null;
+            }
+        }
 
-        private Texture getTexture(string name) => loadRaw(base.Get(name));
+        private Texture getTexture(string name)
+        {
+            try
+            {
+                return loadRaw(base.Get(name));
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                return null;
+            }
+        }
 
         private Texture loadRaw(TextureUpload upload)
         {
@@ -72,7 +96,19 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public new Task<Texture> GetAsync(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return Task.FromResult<Texture>(null);
+
+            this.LogIfNonBackgroundThread(name);
+
+            return textureCache.GetOrAdd(
+                name,
+                n => new Lazy<Task<Texture>>(
+                    () => getTextureAsync(n),
+                    LazyThreadSafetyMode.ExecutionAndPublication)
+            ).Value;
+        }
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -85,16 +121,12 @@ namespace osu.Framework.Graphics.Textures
 
             this.LogIfNonBackgroundThread(name);
 
-            try
-            {
-                // refresh the texture if no longer available (may have been previously disposed).
-                return textureCache.GetOrAdd(name, n => getTexture(n));
-            }
-            catch (TextureTooLargeForGLException)
-            {
-                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                return null;
-            }
+            return textureCache.GetOrAdd(
+                name,
+                n => new Lazy<Task<Texture>>(
+                    () => Task.FromResult(getTexture(n)),
+                    LazyThreadSafetyMode.ExecutionAndPublication)
+            ).Value.Result;
         }
 
         /// <summary>
@@ -104,7 +136,7 @@ namespace osu.Framework.Graphics.Textures
         protected void Purge(string name)
         {
             if (textureCache.TryRemove(name, out var tex))
-                tex.Dispose();
+                tex.Value.Result?.Dispose();
         }
     }
 }
