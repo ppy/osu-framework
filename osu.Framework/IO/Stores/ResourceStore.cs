@@ -66,9 +66,9 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)
         {
-            storesLock.EnterWriteLock();
             try
             {
+                storesLock.EnterWriteLock();
                 stores.Add(store);
             }
             finally
@@ -83,9 +83,9 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to remove.</param>
         public virtual void RemoveStore(IResourceStore<T> store)
         {
-            storesLock.EnterWriteLock();
             try
             {
+                storesLock.EnterWriteLock();
                 stores.Remove(store);
             }
             finally
@@ -109,9 +109,9 @@ namespace osu.Framework.IO.Stores
             // required for locking
             IResourceStore<T>[] localStores;
 
-            storesLock.EnterReadLock();
             try
             {
+                storesLock.EnterReadLock();
                 localStores = stores.ToArray();
             }
             finally
@@ -146,9 +146,10 @@ namespace osu.Framework.IO.Stores
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            storesLock.EnterReadLock();
             try
             {
+                storesLock.EnterReadLock();
+
                 foreach (IResourceStore<T> store in stores)
                 {
                     foreach (string f in filenames)
@@ -175,9 +176,10 @@ namespace osu.Framework.IO.Stores
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            storesLock.EnterReadLock();
             try
             {
+                storesLock.EnterReadLock();
+
                 foreach (IResourceStore<T> store in stores)
                 {
                     foreach (string f in filenames)
@@ -235,9 +237,9 @@ namespace osu.Framework.IO.Stores
 
         public virtual IEnumerable<string> GetAvailableResources()
         {
-            storesLock.EnterReadLock();
             try
             {
+                storesLock.EnterReadLock();
                 return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
             }
             finally
@@ -256,9 +258,9 @@ namespace osu.Framework.IO.Stores
             {
                 isDisposed = true;
 
-                storesLock.EnterWriteLock();
                 try
                 {
+                    storesLock.EnterWriteLock();
                     stores.ForEach(s => s.Dispose());
                     stores.Clear();
                 }
