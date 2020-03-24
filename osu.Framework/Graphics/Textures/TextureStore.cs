@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<TextureUpload>
     {
-        private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        private readonly ConcurrentDictionary<string, Texture> textureCache = new ConcurrentDictionary<string, Texture>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -85,22 +85,15 @@ namespace osu.Framework.Graphics.Textures
 
             this.LogIfNonBackgroundThread(name);
 
-            lock (textureCache)
+            try
             {
                 // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(name, out var tex))
-                {
-                    try
-                    {
-                        textureCache[name] = tex = getTexture(name);
-                    }
-                    catch (TextureTooLargeForGLException)
-                    {
-                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                    }
-                }
-
-                return tex;
+                return textureCache.GetOrAdd(name, n => getTexture(n));
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                return null;
             }
         }
 
@@ -110,12 +103,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture to purge from the cache.</param>
         protected void Purge(string name)
         {
-            lock (textureCache)
-            {
-                if (textureCache.TryGetValue(name, out var tex))
-                    tex.Dispose();
-                textureCache.Remove(name);
-            }
+            if (textureCache.TryRemove(name, out var tex))
+                tex.Dispose();
         }
     }
 }
