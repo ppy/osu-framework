@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<TextureUpload>
     {
-        private readonly ConcurrentDictionary<string, Lazy<Task<Texture>>> textureCache
-            = new ConcurrentDictionary<string, Lazy<Task<Texture>>>();
+        private readonly ConcurrentDictionary<string, Lazy<Texture>> textureCache
+            = new ConcurrentDictionary<string, Lazy<Texture>>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -96,19 +96,7 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        public new Task<Texture> GetAsync(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return Task.FromResult<Texture>(null);
-
-            this.LogIfNonBackgroundThread(name);
-
-            return textureCache.GetOrAdd(
-                name,
-                n => new Lazy<Task<Texture>>(
-                    () => getTextureAsync(n),
-                    LazyThreadSafetyMode.ExecutionAndPublication)
-            ).Value;
-        }
+        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // add async path after reconsidering threading model
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -123,10 +111,10 @@ namespace osu.Framework.Graphics.Textures
 
             return textureCache.GetOrAdd(
                 name,
-                n => new Lazy<Task<Texture>>(
-                    () => Task.FromResult(getTexture(n)),
+                n => new Lazy<Texture>(
+                    () => getTexture(n),
                     LazyThreadSafetyMode.ExecutionAndPublication)
-            ).Value.Result;
+            ).Value;
         }
 
         /// <summary>
@@ -136,7 +124,7 @@ namespace osu.Framework.Graphics.Textures
         protected void Purge(string name)
         {
             if (textureCache.TryRemove(name, out var tex))
-                tex.Value.Result?.Dispose();
+                tex.Value?.Dispose();
         }
     }
 }

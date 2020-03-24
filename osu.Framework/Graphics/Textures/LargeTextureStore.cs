@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
