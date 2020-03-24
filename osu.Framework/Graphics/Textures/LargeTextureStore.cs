@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Textures
             if (tex?.TextureGL == null)
                 return null;
 
-            var count = referenceCounts.GetOrAdd(name, n => new TextureWithRefCount.ReferenceCount(() => onAllReferencesLost(name)));
+            var count = referenceCounts.GetOrAdd(name, n => new TextureWithRefCount.ReferenceCount(() => onAllReferencesLost(n)));
 
             return new TextureWithRefCount(tex.TextureGL, count);
         }
