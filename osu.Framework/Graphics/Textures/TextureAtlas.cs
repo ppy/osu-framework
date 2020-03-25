@@ -106,7 +106,8 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
         internal TextureGL Add(int width, int height)
         {
-            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING)
+            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING
+                || (width > atlasWidth - PADDING - WHITE_PIXEL_SIZE && height > atlasHeight - PADDING - WHITE_PIXEL_SIZE))
                 return null;
 
             lock (textureRetrievalLock)
