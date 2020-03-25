@@ -28,9 +28,9 @@ namespace osu.Framework.Tests.Graphics
             else
             {
                 Assert.True(width > 1024 - TextureAtlas.PADDING || height > 1008 - TextureAtlas.PADDING ||
-                 (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE
+                            (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE
                              && height > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE),
-                     message: $"Returned texture is null, but should have fit: {width}x{height}");
+                    message: $"Returned texture is null, but should have fit: {width}x{height}");
             }
         }
 
@@ -44,6 +44,7 @@ namespace osu.Framework.Tests.Graphics
                 (985, 985), (1020, 985), (1500, 985),
                 (1020, 1020), (1500, 1500)
             };
+
             foreach (var size in testSizes)
             {
                 Assert.DoesNotThrow(() => testWithSize(size.Item1, size.Item2), $"Size {size.Item1}x{size.Item2} has thrown an exception");
