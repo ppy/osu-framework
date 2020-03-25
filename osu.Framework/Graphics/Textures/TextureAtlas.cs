@@ -74,6 +74,7 @@ namespace osu.Framework.Graphics.Textures
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
+
             if (currentPosition.Y + height > atlasHeight - PADDING)
             {
                 if (height > atlasHeight - PADDING - WHITE_PIXEL_SIZE
@@ -81,9 +82,11 @@ namespace osu.Framework.Graphics.Textures
                 {
                     return null;
                 }
+
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
+
             if (currentPosition.X + width > atlasWidth - PADDING)
             {
                 int maxY = 0;
