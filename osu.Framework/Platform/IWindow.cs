@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osuTK;
 using osuTK.Platform;
 
 namespace osu.Framework.Platform
@@ -61,11 +60,6 @@ namespace osu.Framework.Platform
         WindowMode DefaultWindowMode { get; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
-        /// </summary>
-        DisplayDevice CurrentDisplay { get; }
-
-        /// <summary>
         /// Whether this <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
         IBindable<bool> IsActive { get; }
@@ -81,11 +75,6 @@ namespace osu.Framework.Platform
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
         IBindableList<WindowMode> SupportedWindowModes { get; }
-
-        /// <summary>
-        /// Available resolutions for full-screen display.
-        /// </summary>
-        IEnumerable<DisplayResolution> AvailableResolutions { get; }
 
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
