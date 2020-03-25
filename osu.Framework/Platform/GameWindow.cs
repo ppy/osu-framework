@@ -118,7 +118,7 @@ namespace osu.Framework.Platform
                 }
             };
 
-            WindowStateChanged += (o, e) => isActive.Value = WindowState != WindowState.Minimized;
+            WindowStateChanged += (o, e) => isActive.Value = WindowState != osuTK.WindowState.Minimized;
 
             MakeCurrent();
 
@@ -315,7 +315,7 @@ namespace osu.Framework.Platform
         public bool Exists => Implementation.Exists;
         public IWindowInfo WindowInfo => Implementation.WindowInfo;
 
-        public virtual WindowState WindowState
+        public virtual osuTK.WindowState WindowState
         {
             get => Implementation.WindowState;
             set => Implementation.WindowState = value;

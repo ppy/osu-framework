@@ -305,7 +305,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != WindowState.Minimized)
+            else if (Window.WindowState != osuTK.WindowState.Minimized)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size

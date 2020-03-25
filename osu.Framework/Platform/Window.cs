@@ -12,7 +12,6 @@ using osu.Framework.Input.StateChanges;
 using osuTK;
 using osuTK.Input;
 using osuTK.Platform;
-using WindowState = Veldrid.WindowState;
 
 namespace osu.Framework.Platform
 {
@@ -399,7 +398,7 @@ namespace osu.Framework.Platform
         osuTK.WindowState INativeWindow.WindowState
         {
             get => WindowState.Value.ToOsuTK();
-            set => WindowState.Value = value.ToVeldrid();
+            set => WindowState.Value = value.ToFramework();
         }
 
         public WindowBorder WindowBorder { get; set; }

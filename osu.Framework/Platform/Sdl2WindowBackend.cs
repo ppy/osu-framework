@@ -136,12 +136,12 @@ namespace osu.Framework.Platform
 
         public WindowState WindowState
         {
-            get => implementation?.WindowState ?? windowState;
+            get => implementation?.WindowState.ToFramework() ?? windowState;
             set
             {
                 windowState = value;
 
-                scheduler.Add(() => implementation.WindowState = value);
+                scheduler.Add(() => implementation.WindowState = value.ToVeldrid());
             }
         }
 
@@ -319,7 +319,7 @@ namespace osu.Framework.Platform
 
         private void implementation_Resized()
         {
-            if (implementation.WindowState != windowState)
+            if (implementation.WindowState.ToFramework() != windowState)
                 OnWindowStateChanged();
 
             OnResized();
@@ -332,20 +332,17 @@ namespace osu.Framework.Platform
                 case WindowState.Normal:
                     return 0;
 
-                case WindowState.FullScreen:
+                case WindowState.Fullscreen:
                     return SDL_WindowFlags.Fullscreen;
 
-                case WindowState.Maximized:
+                case WindowState.Maximised:
                     return SDL_WindowFlags.Maximized;
 
-                case WindowState.Minimized:
+                case WindowState.Minimised:
                     return SDL_WindowFlags.Minimized;
 
-                case WindowState.BorderlessFullScreen:
+                case WindowState.FullscreenBorderless:
                     return SDL_WindowFlags.FullScreenDesktop;
-
-                case WindowState.Hidden:
-                    return SDL_WindowFlags.Hidden;
             }
 
             return 0;
