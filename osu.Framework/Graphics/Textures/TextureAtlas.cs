@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Textures
             lock (textureRetrievalLock)
             {
                 var pos = findPosition(width, height);
-                
+
                 if(pos == null) return null;
 
                 Vector2I position = pos.Value;

@@ -1,3 +1,6 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using NUnit.Framework;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
@@ -24,9 +27,9 @@ namespace osu.Framework.Tests.Graphics
             }
             else
             {
-                Assert.True(width > 1024 - TextureAtlas.PADDING || height > 1008 - TextureAtlas.PADDING || 
-                        (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE 
-                            && height > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE), 
+                Assert.True(width > 1024 - TextureAtlas.PADDING || height > 1008 - TextureAtlas.PADDING ||
+                        (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE
+                            && height > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE),
                         message: $"Returned texture is null, but should have fit: {width}x{height}");
             }
         }
