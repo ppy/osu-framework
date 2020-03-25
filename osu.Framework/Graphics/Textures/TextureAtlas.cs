@@ -91,7 +91,6 @@ namespace osu.Framework.Graphics.Textures
 
                 return findPosition(width, height);
             }
-            Logger.Log($"{currentPosition.X} {currentPosition.Y} {width}x{height} {atlasWidth - PADDING}", LoggingTarget.Performance);
 
             var result = currentPosition;
             currentPosition.X += width + PADDING;
