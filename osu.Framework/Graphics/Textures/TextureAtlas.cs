@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Textures
             {
                 var pos = findPosition(width, height);
 
-                if(pos == null) return null;
+                if (pos == null) return null;
 
                 Vector2I position = pos.Value;
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);

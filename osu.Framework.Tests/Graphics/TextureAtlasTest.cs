@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Graphics
         {
             TextureAtlas atlas = new TextureAtlas(1024, 1024);
             TextureGL texture = atlas.Add(width, height);
-            if(texture != null)
+            if (texture != null)
             {
                 Assert.AreEqual(texture.Width, width, message: $"Width: {texture.Width} != {width} for texture {width}x{height}");
                 Assert.AreEqual(texture.Height, height, message: $"Height: {texture.Height} != {height} for texture {width}x{height}");
