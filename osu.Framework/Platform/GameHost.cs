@@ -386,7 +386,7 @@ namespace osu.Framework.Platform
         {
             Window.SwapBuffers();
 
-            if (Window.VSync == VSyncMode.On)
+            if (Window.VerticalSync)
                 // without glFinish, vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 GL.Finish();
@@ -823,7 +823,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();

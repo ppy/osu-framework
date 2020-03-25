@@ -260,6 +260,12 @@ namespace osu.Framework.Platform
 
         public virtual VSyncMode VSync { get; set; }
 
+        public bool VerticalSync
+        {
+            get => VSync == VSyncMode.On;
+            set => VSync = value ? VSyncMode.On : VSyncMode.Off;
+        }
+
         public virtual void CycleMode()
         {
             var currentValue = WindowMode.Value;
