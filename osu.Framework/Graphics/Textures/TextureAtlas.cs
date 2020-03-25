@@ -74,12 +74,12 @@ namespace osu.Framework.Graphics.Textures
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-            else if (currentPosition.Y + height > atlasHeight - PADDING)
+            if (currentPosition.Y + height > atlasHeight - PADDING)
             {
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-            else if (currentPosition.X + width > atlasWidth - PADDING)
+            if (currentPosition.X + width > atlasWidth - PADDING)
             {
                 int maxY = 0;
 
@@ -91,6 +91,7 @@ namespace osu.Framework.Graphics.Textures
 
                 return findPosition(width, height);
             }
+            Logger.Log($"{currentPosition.X} {currentPosition.Y} {width}x{height} {atlasWidth - PADDING}", LoggingTarget.Performance);
 
             var result = currentPosition;
             currentPosition.X += width + PADDING;
@@ -106,7 +107,7 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
         internal TextureGL Add(int width, int height)
         {
-            if (width > atlasWidth || height > atlasHeight)
+            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING)
                 return null;
 
             lock (textureRetrievalLock)
