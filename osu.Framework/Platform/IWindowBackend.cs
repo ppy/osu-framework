@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input.StateChanges;
-using Veldrid;
-using Point = System.Drawing.Point;
 
 namespace osu.Framework.Platform
 {

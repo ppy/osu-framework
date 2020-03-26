@@ -40,7 +40,6 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
-using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Platform
 {
