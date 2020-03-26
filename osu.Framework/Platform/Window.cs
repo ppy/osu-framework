@@ -63,6 +63,7 @@ namespace osu.Framework.Platform
         public Display CurrentDisplay => windowBackend.CurrentDisplay;
 
         public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
+        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
         #endregion
 
@@ -97,6 +98,10 @@ namespace osu.Framework.Platform
 
         #region Immutable Bindables
 
+        private readonly BindableBool isActive = new BindableBool(true);
+
+        public IBindable<bool> IsActive => isActive;
+
         private readonly BindableBool focused = new BindableBool();
 
         /// <summary>
@@ -110,6 +115,10 @@ namespace osu.Framework.Platform
         /// Provides a read-only bindable that monitors the whether the cursor is in the window.
         /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
+
+        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
+
+        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         #endregion
 
@@ -329,6 +338,16 @@ namespace osu.Framework.Platform
         /// May be unrequired for some backends.
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
+
+        public void CycleMode()
+        {
+            // TODO: CycleMode
+        }
+
+        public void SetupWindow(FrameworkConfigManager config)
+        {
+            // TODO: SetupWindow
+        }
 
         #endregion
 
@@ -568,21 +587,6 @@ namespace osu.Framework.Platform
             set => CursorState.Value = value;
         }
 
-        public VSyncMode VSync
-        {
-            get => VerticalSync ? VSyncMode.On : VSyncMode.Off;
-            set => VerticalSync = value == VSyncMode.On;
-        }
-
-        public WindowMode DefaultWindowMode => WindowMode.Windowed;
-
-        private readonly BindableBool isActive = new BindableBool(true);
-        public IBindable<bool> IsActive => isActive;
-
-        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
-
         bool INativeWindow.Focused => Focused.Value;
 
         bool INativeWindow.Visible
@@ -592,16 +596,6 @@ namespace osu.Framework.Platform
         }
 
         bool INativeWindow.Exists => Exists;
-
-        public void CycleMode()
-        {
-            // TODO: CycleMode
-        }
-
-        public void SetupWindow(FrameworkConfigManager config)
-        {
-            // TODO: SetupWindow
-        }
 
         public void Run(double updateRate) => Run();
 
