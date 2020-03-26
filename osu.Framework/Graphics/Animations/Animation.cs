@@ -1,8 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
+using System.Linq;
+using osu.Framework.Timing;
 using osuTK;
 
 namespace osu.Framework.Graphics.Animations
@@ -18,9 +21,24 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public double DefaultFrameLength = 1000.0 / 60.0;
 
+        public double PlaybackPosition
+        {
+            get
+            {
+                if (Repeat)
+                    return Clock.CurrentTime % Duration;
+
+                return Math.Min(Clock.CurrentTime, Duration);
+            }
+        }
+
+        public double Duration => frameData.Sum(f => f.Duration);
+
         private readonly List<FrameData<T>> frameData;
 
         private double currentFrameTime;
+
+        private readonly bool startAtCurrentTime;
 
         /// <summary>
         /// The number of frames this animation has.
@@ -41,11 +59,37 @@ namespace osu.Framework.Graphics.Animations
 
         public T CurrentFrame => frameData[CurrentFrameIndex].Content;
 
-        protected Animation()
+        /// <summary>
+        /// Construct a new animation.
+        /// </summary>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
+        protected Animation(bool startAtCurrentTime = true)
         {
+            this.startAtCurrentTime = startAtCurrentTime;
+
             frameData = new List<FrameData<T>>();
             IsPlaying = true;
             Repeat = true;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (startAtCurrentTime)
+                base.Clock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
+        }
+
+        public override IFrameBasedClock Clock
+        {
+            get => base.Clock;
+            set
+            {
+                if (startAtCurrentTime)
+                    throw new InvalidOperationException($"A {nameof(Animation<T>)} with {startAtCurrentTime} = true cannot receive a custom {nameof(Clock)}.");
+
+                base.Clock = value;
+            }
         }
 
         private bool hasCustomWidth;
@@ -182,32 +226,29 @@ namespace osu.Framework.Graphics.Animations
         {
             base.Update();
 
-            if (IsPlaying && frameData.Count > 0)
+            if (!IsPlaying || frameData.Count <= 0) return;
+
+            while (currentFrameTime > frameData[CurrentFrameIndex].Duration)
             {
-                currentFrameTime += Time.Elapsed;
+                currentFrameTime -= frameData[CurrentFrameIndex].Duration;
+                ++CurrentFrameIndex;
 
-                while (currentFrameTime > frameData[CurrentFrameIndex].Duration)
+                if (CurrentFrameIndex >= frameData.Count)
                 {
-                    currentFrameTime -= frameData[CurrentFrameIndex].Duration;
-                    ++CurrentFrameIndex;
-
-                    if (CurrentFrameIndex >= frameData.Count)
+                    if (Repeat)
                     {
-                        if (Repeat)
-                        {
-                            CurrentFrameIndex = 0;
-                        }
-                        else
-                        {
-                            CurrentFrameIndex = frameData.Count - 1;
-                            IsPlaying = false;
-                            break;
-                        }
+                        CurrentFrameIndex = 0;
+                    }
+                    else
+                    {
+                        CurrentFrameIndex = frameData.Count - 1;
+                        IsPlaying = false;
+                        break;
                     }
                 }
-
-                updateCurrentFrame();
             }
+
+            updateCurrentFrame();
         }
     }
 }

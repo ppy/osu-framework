@@ -18,16 +18,5 @@ namespace osu.Framework.Graphics.Animations
         /// The duration to display the frame for.
         /// </summary>
         public double Duration { get; set; }
-
-        /// <summary>
-        /// Constructs new frame data with the given content and duration.
-        /// </summary>
-        /// <param name="content">The content of the frame.</param>
-        /// <param name="duration">The duration the frame will be displayed for.</param>
-        public FrameData(T content, double duration)
-        {
-            Content = content;
-            Duration = duration;
-        }
     }
 }
