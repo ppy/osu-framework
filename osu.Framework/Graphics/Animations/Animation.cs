@@ -36,8 +36,6 @@ namespace osu.Framework.Graphics.Animations
 
         private readonly List<FrameData<T>> frameData;
 
-        private double currentFrameTime;
-
         private readonly bool startAtCurrentTime;
 
         /// <summary>
@@ -148,7 +146,8 @@ namespace osu.Framework.Graphics.Animations
             AddFrame(new FrameData<T>
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
-                Content = content
+                Content = content,
+                Position = frameData.LastOrDefault().Position + frameData.LastOrDefault().Duration
             });
         }
 
@@ -228,25 +227,11 @@ namespace osu.Framework.Graphics.Animations
 
             if (!IsPlaying || frameData.Count <= 0) return;
 
-            while (currentFrameTime > frameData[CurrentFrameIndex].Duration)
-            {
-                currentFrameTime -= frameData[CurrentFrameIndex].Duration;
-                ++CurrentFrameIndex;
+            while (CurrentFrameIndex < frameData.Count && PlaybackPosition > frameData[CurrentFrameIndex].Position + frameData[CurrentFrameIndex].Duration)
+                CurrentFrameIndex++;
 
-                if (CurrentFrameIndex >= frameData.Count)
-                {
-                    if (Repeat)
-                    {
-                        CurrentFrameIndex = 0;
-                    }
-                    else
-                    {
-                        CurrentFrameIndex = frameData.Count - 1;
-                        IsPlaying = false;
-                        break;
-                    }
-                }
-            }
+            while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].Position)
+                CurrentFrameIndex--;
 
             updateCurrentFrame();
         }

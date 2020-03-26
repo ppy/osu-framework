@@ -101,7 +101,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         private int currentSecond;
-        private int lastFramesProcessed;
 
         protected override void Update()
         {
@@ -117,7 +116,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                 if (newSecond != currentSecond)
                 {
                     currentSecond = newSecond;
-                    lastFramesProcessed = animation.FramesProcessed;
                 }
 
                 if (timeText != null)

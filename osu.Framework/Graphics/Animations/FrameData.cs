@@ -18,5 +18,7 @@ namespace osu.Framework.Graphics.Animations
         /// The duration to display the frame for.
         /// </summary>
         public double Duration { get; set; }
+
+        internal double Position { get; set; }
     }
 }
