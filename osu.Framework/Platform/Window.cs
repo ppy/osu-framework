@@ -439,13 +439,13 @@ namespace osu.Framework.Platform
 
         public int Width
         {
-            get => (int)Size.Value.Width;
+            get => Size.Value.Width;
             set => Size.Value = new Size(value, Size.Value.Height);
         }
 
         public int Height
         {
-            get => (int)Size.Value.Height;
+            get => Size.Value.Height;
             set => Size.Value = new Size(Size.Value.Width, value);
         }
 
