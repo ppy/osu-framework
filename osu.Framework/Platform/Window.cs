@@ -58,9 +58,11 @@ namespace osu.Framework.Platform
 
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
-        public Display Display => windowBackend.Display;
+        public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
 
-        public DisplayMode DisplayMode => windowBackend.DisplayMode;
+        public Display CurrentDisplay => windowBackend.CurrentDisplay;
+
+        public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
 
         #endregion
 
@@ -74,7 +76,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's unscaled internal size.
         /// </summary>
-        public Bindable<Size> Size { get; } = new Bindable<Size>();
+        public Bindable<Size> Size { get; } = new BindableSize();
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="WindowState"/>.
@@ -89,7 +91,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
         /// </summary>
-        public Bindable<bool> Visible { get; } = new Bindable<bool>();
+        public Bindable<bool> Visible { get; } = new BindableBool();
 
         #endregion
 

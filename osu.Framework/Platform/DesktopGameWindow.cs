@@ -38,11 +38,11 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice CurrentDisplay
+        public override DisplayDevice CurrentDisplayDevice
         {
             set
             {
-                if (value == null || value == CurrentDisplay) return;
+                if (value == null || value == CurrentDisplayDevice) return;
 
                 var windowMode = WindowMode.Value;
                 WindowMode.Value = Configuration.WindowMode.Windowed;
@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
+        public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplayDevice.AvailableResolutions;
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
@@ -94,7 +94,7 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += e =>
             {
                 if (WindowState == osuTK.WindowState.Fullscreen)
-                    ChangeResolution(CurrentDisplay, e.NewValue);
+                    ChangeResolution(CurrentDisplayDevice, e.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>
@@ -174,10 +174,10 @@ namespace osu.Framework.Platform
                 windowPositionY.Value = Position.Y;
             }
 
-            windowDisplayIndex.Value = CurrentDisplay.GetIndex();
+            windowDisplayIndex.Value = CurrentDisplayDevice.GetIndex();
         }
 
-        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplay = DisplayDevice.GetDisplay(args.NewValue);
+        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplayDevice = DisplayDevice.GetDisplay(args.NewValue);
 
         private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
         {
@@ -202,7 +202,7 @@ namespace osu.Framework.Platform
 
         public void CentreToScreen(DisplayDevice display = null)
         {
-            if (display != null) CurrentDisplay = display;
+            if (display != null) CurrentDisplayDevice = display;
             Position = new Vector2(0.5f);
         }
 
@@ -210,7 +210,7 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
-            var currentDisplay = CurrentDisplay;
+            var currentDisplay = CurrentDisplayDevice;
 
             try
             {
@@ -279,7 +279,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                var display = CurrentDisplay;
+                var display = CurrentDisplayDevice;
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
@@ -288,7 +288,7 @@ namespace osu.Framework.Platform
             }
             set
             {
-                var display = CurrentDisplay;
+                var display = CurrentDisplayDevice;
 
                 var relativeLocation = new Point(
                     (int)Math.Round((display.Width - Size.Width) * value.X),

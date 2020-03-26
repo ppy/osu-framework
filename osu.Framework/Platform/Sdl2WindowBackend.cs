@@ -148,9 +148,11 @@ namespace osu.Framework.Platform
         public IEnumerable<Display> Displays =>
             Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
 
-        public Display Display => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
+        public Display PrimaryDisplay => displayFromSDL(0);
 
-        public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
+        public Display CurrentDisplay => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
+
+        public DisplayMode CurrentDisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
 
         private static Display displayFromSDL(int displayIndex)
         {

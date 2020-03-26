@@ -82,13 +82,18 @@ namespace osu.Framework.Platform
         IEnumerable<Display> Displays { get; }
 
         /// <summary>
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
+        /// </summary>
+        Display PrimaryDisplay { get; }
+
+        /// <summary>
         /// Gets the <see cref="Display"/> that this window is currently on.
         /// </summary>
-        Display Display { get; }
+        Display CurrentDisplay { get; }
 
         /// <summary>
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode DisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; }
     }
 }

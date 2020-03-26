@@ -71,9 +71,11 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public virtual IEnumerable<Display> Displays => new[] { Display };
+        public virtual IEnumerable<Display> Displays => new[] { PrimaryDisplay };
 
-        public virtual Display Display => CurrentDisplay.ToDisplay();
+        public virtual Display PrimaryDisplay => DisplayDevice.Default.ToDisplay();
+
+        public virtual Display CurrentDisplay => CurrentDisplayDevice.ToDisplay();
 
         /// <summary>
         /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
@@ -81,11 +83,11 @@ namespace osu.Framework.Platform
         /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
         /// report refresh rates such as 59.992863 where SDL2 will report 60.
         /// </summary>
-        public virtual DisplayMode DisplayMode
+        public virtual DisplayMode CurrentDisplayMode
         {
             get
             {
-                var display = CurrentDisplay;
+                var display = CurrentDisplayDevice;
                 return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate));
             }
         }
@@ -225,10 +227,10 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
         /// <returns></returns>
-        public virtual DisplayDevice CurrentDisplay
+        public virtual DisplayDevice CurrentDisplayDevice
         {
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
-            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
+            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplayDevice)} cannot be set.");
         }
 
         private string getVersionNumberSubstring(string version)
