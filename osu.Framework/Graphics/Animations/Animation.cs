@@ -18,9 +18,13 @@ namespace osu.Framework.Graphics.Animations
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
+        /// Defaults to 60fps.
         /// </summary>
         public double DefaultFrameLength = 1000.0 / 60.0;
 
+        /// <summary>
+        /// The current playback position of the animation, in milliseconds.
+        /// </summary>
         public double PlaybackPosition
         {
             get
@@ -32,7 +36,7 @@ namespace osu.Framework.Graphics.Animations
             }
         }
 
-        public double Duration => frameData.Sum(f => f.Duration);
+        public double Duration { get; private set; }
 
         private readonly List<FrameData<T>> frameData;
 
@@ -143,12 +147,18 @@ namespace osu.Framework.Graphics.Animations
         /// <param name="displayDuration">The duration the new frame should be displayed for.</param>
         public void AddFrame(T content, double? displayDuration = null)
         {
-            AddFrame(new FrameData<T>
+            var lastFrame = frameData.LastOrDefault();
+
+            var frame = new FrameData<T>
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
                 Content = content,
-                Position = frameData.LastOrDefault().Position + frameData.LastOrDefault().Duration
-            });
+                Position = lastFrame.Position + lastFrame.Duration
+            };
+
+            AddFrame(frame);
+
+            Duration += frame.Duration;
         }
 
         public void AddFrame(FrameData<T> frame)
