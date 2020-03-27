@@ -64,8 +64,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
             loadNewVideo();
-
             AddUntilStep("Wait for video to load", () => videoSprite.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
