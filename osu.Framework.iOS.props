@@ -66,7 +66,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.149" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.153" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
     <PackageReference Include="NUnit" Version="3.12.0" />
