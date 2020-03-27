@@ -34,7 +34,7 @@
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.149" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.153" />
     <PackageReference Include="StbiSharp" Version="1.0.11" />
     <PackageReference Include="Veldrid" Version="4.7.0" />
     <PackageReference Include="Veldrid.Sdl2" Version="4.7.0" />
