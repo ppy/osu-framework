@@ -11,6 +11,28 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class TextureAtlasTest
     {
+        [TestCase(0, 0)]
+        [TestCase(1, 1)]
+        [TestCase(984, 20)]
+        [TestCase(985, 20)]
+        [TestCase(1020, 20)]
+        [TestCase(1024, 20)]
+        [TestCase(1025, 20)]
+        [TestCase(20, 984)]
+        [TestCase(20, 985)]
+        [TestCase(20, 1020)]
+        [TestCase(20, 1024)]
+        [TestCase(20, 1500)]
+        [TestCase(985, 985)]
+        [TestCase(1020, 985)]
+        [TestCase(1500, 985)]
+        [TestCase(1020, 1020)]
+        [TestCase(1500, 1500)]
+        public void TestAtlasAdd(int width, int height)
+        {
+            Assert.DoesNotThrow(() => testWithSize(width, height));
+        }
+
         private void testWithSize(int width, int height)
         {
             TextureAtlas atlas = new TextureAtlas(1024, 1024);
@@ -31,23 +53,6 @@ namespace osu.Framework.Tests.Graphics
                             (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE
                              && height > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE),
                     message: $"Returned texture is null, but should have fit: {width}x{height}");
-            }
-        }
-
-        [Test]
-        public void TestAtlasAdd()
-        {
-            var testSizes = new[]
-            {
-                (0, 0), (1, 1), (984, 20), (985, 20), (1020, 20), (1024, 20), (1025, 20),
-                (20, 984), (20, 985), (20, 1020), (20, 1024), (20, 1500),
-                (985, 985), (1020, 985), (1500, 985),
-                (1020, 1020), (1500, 1500)
-            };
-
-            foreach (var size in testSizes)
-            {
-                Assert.DoesNotThrow(() => testWithSize(size.Item1, size.Item2), $"Size {size.Item1}x{size.Item2} has thrown an exception");
             }
         }
     }
