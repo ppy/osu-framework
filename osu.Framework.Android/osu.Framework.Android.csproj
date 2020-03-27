@@ -23,7 +23,7 @@
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osuTK.Android" Version="1.0.149" />
+    <PackageReference Include="ppy.osuTK.Android" Version="1.0.153" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so"/>
