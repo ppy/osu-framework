@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Animations
             if (!startAtCurrentTime)
                 throw new InvalidOperationException($"A {nameof(Animation<T>)} with {startAtCurrentTime} = false cannot seek as it is dependent on an external clock.");
 
-            offsetClock.Offset = offsetClock.CurrentTime + frameData[frameIndex].DisplayTime;
+            offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
             currentFrameCache.Invalidate();
         }
 
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Animations
         {
             var lastFrame = frameData.LastOrDefault();
 
-            frame.DisplayTime = lastFrame.DisplayTime + lastFrame.Duration;
+            frame.DisplayStartTime = lastFrame.DisplayEndTime;
             Duration += frame.Duration;
 
             frameData.Add(frame);
@@ -221,18 +221,30 @@ namespace osu.Framework.Graphics.Animations
         {
             base.Update();
 
-            if (!IsPlaying || frameData.Count <= 0) return;
+            if (!IsPlaying)
+                offsetClock.Offset -= Time.Elapsed;
 
-            while (CurrentFrameIndex < frameData.Count && PlaybackPosition > frameData[CurrentFrameIndex].DisplayTime + frameData[CurrentFrameIndex].Duration)
-            {
-                CurrentFrameIndex++;
-                currentFrameCache.Invalidate();
-            }
+            if (frameData.Count == 0) return;
 
-            while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayTime)
+            switch (PlaybackPosition.CompareTo(frameData[CurrentFrameIndex].DisplayStartTime))
             {
-                CurrentFrameIndex--;
-                currentFrameCache.Invalidate();
+                case -1:
+                    while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayStartTime)
+                    {
+                        CurrentFrameIndex--;
+                        currentFrameCache.Invalidate();
+                    }
+
+                    break;
+
+                case 1:
+                    while (CurrentFrameIndex < frameData.Count - 1 && PlaybackPosition >= frameData[CurrentFrameIndex].DisplayEndTime)
+                    {
+                        CurrentFrameIndex++;
+                        currentFrameCache.Invalidate();
+                    }
+
+                    break;
             }
 
             if (!currentFrameCache.IsValid)

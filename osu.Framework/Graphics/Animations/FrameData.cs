@@ -22,6 +22,11 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// The time at which this frame is displayed in the containing animation.
         /// </summary>
-        internal double DisplayTime { get; set; }
+        internal double DisplayStartTime { get; set; }
+
+        /// <summary>
+        /// The time at which this frame is no longer displayed.
+        /// </summary>
+        internal double DisplayEndTime => DisplayStartTime + Duration;
     }
 }

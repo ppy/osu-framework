@@ -18,8 +18,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestSceneAnimation : FrameworkTestScene
     {
-        private readonly Container animationContainer;
-        private readonly SpriteText timeText;
+        private SpriteText timeText;
 
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
@@ -31,29 +30,49 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private TestAnimation animation;
 
-        public TestSceneAnimation()
-        {
-            Children = new Drawable[]
-            {
-                animationContainer = new Container { RelativeSizeAxes = Axes.Both },
-                timeText = new SpriteText { Text = "Animation is loading..." }
-            };
-        }
-
         [SetUpSteps]
         public void SetUpSteps()
         {
             AddStep("load video", () =>
             {
-                animationContainer.Child = animation = new TestAnimation
+                Children = new Drawable[]
                 {
-                    Repeat = false,
-                    Clock = new FramedClock(clock = new ManualClock()),
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Clock = new FramedClock(clock = new ManualClock()),
+                        Child = animation = new TestAnimation
+                        {
+                            Repeat = false,
+                        }
+                    },
+                    timeText = new SpriteText { Text = "Animation is loading..." }
                 };
             });
 
             AddUntilStep("Wait for video to load", () => animation.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
+        }
+
+        [Test]
+        public void TestFrameSeeking()
+        {
+            AddAssert("frame count is correct", () => animation.FrameCount == TestAnimation.LOADABLE_FRAMES);
+            AddUntilStep("wait for frames to pass", () => animation.CurrentFrameIndex > 10);
+            AddStep("stop animation", () => animation.Stop());
+            AddAssert("is stopped", () => !animation.IsPlaying);
+
+            AddStep("goto frame 60", () => animation.GotoFrame(60));
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+
+            AddStep("goto frame 30", () => animation.GotoFrame(30));
+            AddAssert("is at frame 30", () => animation.CurrentFrameIndex == 30);
+
+            AddStep("goto frame 60", () => animation.GotoFrame(60));
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+
+            AddStep("start animation", () => animation.Play());
+            AddUntilStep("continues to frame 70", () => animation.CurrentFrameIndex == 70);
         }
 
         [Test]
@@ -109,13 +128,14 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class TestAnimation : TextureAnimation
         {
+            public const int LOADABLE_FRAMES = 72;
+
             [Resolved]
             private FontStore fontStore { get; set; }
 
             public int FramesProcessed;
 
             public TestAnimation()
-                : base(false)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
@@ -130,7 +150,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             [BackgroundDependencyLoader]
             private void load()
             {
-                for (int i = 0; i <= 72; i++)
+                for (int i = 0; i < LOADABLE_FRAMES; i++)
                 {
                     AddFrame(new Texture(fontStore.Get(null, (char)('0' + i)).Texture.TextureGL)
                     {
