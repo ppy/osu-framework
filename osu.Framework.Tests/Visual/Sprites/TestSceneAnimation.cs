@@ -29,29 +29,40 @@ namespace osu.Framework.Tests.Visual.Sprites
         private ManualClock clock;
 
         private TestAnimation animation;
+        private Container animationContainer;
 
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("load video", () =>
+            AddStep("load container", () =>
             {
                 Children = new Drawable[]
                 {
-                    new Container
+                    animationContainer = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Clock = new FramedClock(clock = new ManualClock()),
-                        Child = animation = new TestAnimation
-                        {
-                            Repeat = false,
-                        }
+                        Clock = new FramedClock(clock ??= new ManualClock()),
                     },
                     timeText = new SpriteText { Text = "Animation is loading..." }
                 };
             });
 
-            AddUntilStep("Wait for video to load", () => animation.IsLoaded);
+            loadNewAnimation();
+
             AddStep("Reset clock", () => clock.CurrentTime = 0);
+        }
+
+        private void loadNewAnimation()
+        {
+            AddStep("load animation", () =>
+            {
+                animationContainer.Child = animation = new TestAnimation
+                {
+                    Repeat = false,
+                };
+            });
+
+            AddUntilStep("Wait for video to load", () => animation.IsLoaded);
         }
 
         [Test]
@@ -73,6 +84,18 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("start animation", () => animation.Play());
             AddUntilStep("continues to frame 70", () => animation.CurrentFrameIndex == 70);
+        }
+
+        [Test]
+        public void TestStartFromCurrentTime()
+        {
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddWaitStep("Wait some", 20);
+
+            loadNewAnimation();
+
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
         }
 
         [Test]

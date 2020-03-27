@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.Animations
             base.LoadComplete();
 
             if (startAtCurrentTime)
-                base.Clock = offsetClock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
+                base.Clock = offsetClock = new FramedOffsetClock(Clock) { Offset = -Clock.CurrentTime };
         }
 
         public override IFrameBasedClock Clock
