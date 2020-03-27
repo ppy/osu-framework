@@ -40,12 +40,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             };
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            timeText.Font = FrameworkFont.Condensed.With(fixedWidth: true);
-        }
-
         [SetUpSteps]
         public void SetUpSteps()
         {
@@ -100,8 +94,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Looped", () => animation.PlaybackPosition < animation.Duration - 1000);
         }
 
-        private int currentSecond;
-
         protected override void Update()
         {
             base.Update();
@@ -111,17 +103,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             if (animation != null)
             {
-                var newSecond = (int)(animation.PlaybackPosition / 1000.0);
-
-                if (newSecond != currentSecond)
-                {
-                    currentSecond = newSecond;
-                }
-
-                if (timeText != null)
-                {
-                    timeText.Text = $"frame: {animation.CurrentFrameIndex} total: {animation.FramesProcessed}";
-                }
+                timeText.Text = $"playback: {animation.PlaybackPosition:N0} current frame: {animation.CurrentFrameIndex} total frames: {animation.FramesProcessed}";
             }
         }
 
