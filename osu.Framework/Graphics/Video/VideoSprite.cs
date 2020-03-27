@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Video
             base.LoadComplete();
 
             if (startAtCurrentTime)
-                base.Clock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
+                base.Clock = new FramedOffsetClock(Clock) { Offset = -Clock.CurrentTime };
         }
 
         public override IFrameBasedClock Clock
