@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Caching;
 using osu.Framework.Timing;
 using osuTK;
 
@@ -61,6 +62,10 @@ namespace osu.Framework.Graphics.Animations
 
         public T CurrentFrame => frameData[CurrentFrameIndex].Content;
 
+        private readonly Cached currentFrameCache = new Cached();
+
+        private FramedOffsetClock offsetClock;
+
         /// <summary>
         /// Construct a new animation.
         /// </summary>
@@ -79,7 +84,7 @@ namespace osu.Framework.Graphics.Animations
             base.LoadComplete();
 
             if (startAtCurrentTime)
-                base.Clock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
+                base.Clock = offsetClock = new FramedOffsetClock(Clock) { Offset = Clock.CurrentTime };
         }
 
         public override IFrameBasedClock Clock
@@ -136,8 +141,11 @@ namespace osu.Framework.Graphics.Animations
             else if (frameIndex >= frameData.Count)
                 frameIndex = frameData.Count - 1;
 
-            CurrentFrameIndex = frameIndex;
-            updateCurrentFrame();
+            if (!startAtCurrentTime)
+                throw new InvalidOperationException($"A {nameof(Animation<T>)} with {startAtCurrentTime} = false cannot seek as it is dependent on an external clock.");
+
+            offsetClock.Offset = offsetClock.CurrentTime + frameData[frameIndex].DisplayTime;
+            currentFrameCache.Invalidate();
         }
 
         /// <summary>
@@ -164,9 +172,6 @@ namespace osu.Framework.Graphics.Animations
             frameData.Add(frame);
 
             OnFrameAdded(frame.Content, frame.Duration);
-
-            if (frameData.Count == 1)
-                updateCurrentFrame();
         }
 
         /// <summary>
@@ -187,24 +192,6 @@ namespace osu.Framework.Graphics.Animations
         {
             foreach (var t in frames)
                 AddFrame(t.Content, t.Duration);
-        }
-
-        private void updateCurrentFrame()
-        {
-            var frame = CurrentFrame;
-
-            if (RelativeSizeAxes != Axes.Both)
-            {
-                var frameSize = GetFrameSize(frame);
-
-                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
-                    base.Width = frameSize.X;
-
-                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
-                    base.Height = frameSize.Y;
-            }
-
-            DisplayFrame(frame);
         }
 
         /// <summary>
@@ -237,12 +224,39 @@ namespace osu.Framework.Graphics.Animations
             if (!IsPlaying || frameData.Count <= 0) return;
 
             while (CurrentFrameIndex < frameData.Count && PlaybackPosition > frameData[CurrentFrameIndex].DisplayTime + frameData[CurrentFrameIndex].Duration)
+            {
                 CurrentFrameIndex++;
+                currentFrameCache.Invalidate();
+            }
 
             while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayTime)
+            {
                 CurrentFrameIndex--;
+                currentFrameCache.Invalidate();
+            }
 
-            updateCurrentFrame();
+            if (!currentFrameCache.IsValid)
+                updateCurrentFrame();
+        }
+
+        private void updateCurrentFrame()
+        {
+            var frame = CurrentFrame;
+
+            if (RelativeSizeAxes != Axes.Both)
+            {
+                var frameSize = GetFrameSize(frame);
+
+                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
+                    base.Width = frameSize.X;
+
+                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
+                    base.Height = frameSize.Y;
+            }
+
+            DisplayFrame(frame);
+
+            currentFrameCache.Validate();
         }
     }
 }
