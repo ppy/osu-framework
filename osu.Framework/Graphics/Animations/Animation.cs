@@ -147,23 +147,22 @@ namespace osu.Framework.Graphics.Animations
         /// <param name="displayDuration">The duration the new frame should be displayed for.</param>
         public void AddFrame(T content, double? displayDuration = null)
         {
-            var lastFrame = frameData.LastOrDefault();
-
-            var frame = new FrameData<T>
+            AddFrame(new FrameData<T>
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
                 Content = content,
-                Position = lastFrame.Position + lastFrame.Duration
-            };
-
-            AddFrame(frame);
-
-            Duration += frame.Duration;
+            });
         }
 
         public void AddFrame(FrameData<T> frame)
         {
+            var lastFrame = frameData.LastOrDefault();
+
+            frame.DisplayTime = lastFrame.DisplayTime + lastFrame.Duration;
+            Duration += frame.Duration;
+
             frameData.Add(frame);
+
             OnFrameAdded(frame.Content, frame.Duration);
 
             if (frameData.Count == 1)
@@ -237,10 +236,10 @@ namespace osu.Framework.Graphics.Animations
 
             if (!IsPlaying || frameData.Count <= 0) return;
 
-            while (CurrentFrameIndex < frameData.Count && PlaybackPosition > frameData[CurrentFrameIndex].Position + frameData[CurrentFrameIndex].Duration)
+            while (CurrentFrameIndex < frameData.Count && PlaybackPosition > frameData[CurrentFrameIndex].DisplayTime + frameData[CurrentFrameIndex].Duration)
                 CurrentFrameIndex++;
 
-            while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].Position)
+            while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayTime)
                 CurrentFrameIndex--;
 
             updateCurrentFrame();

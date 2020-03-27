@@ -19,6 +19,9 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public double Duration { get; set; }
 
-        internal double Position { get; set; }
+        /// <summary>
+        /// The time at which this frame is displayed in the containing animation.
+        /// </summary>
+        internal double DisplayTime { get; set; }
     }
 }
