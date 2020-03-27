@@ -3,9 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
+using System.Drawing;
 using osu.Framework.Input.StateChanges;
-using Veldrid;
 
 namespace osu.Framework.Platform
 {
@@ -29,12 +28,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's position in screen space.
         /// </summary>
-        Vector2 Position { get; set; }
+        Point Position { get; set; }
 
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        Vector2 Size { get; set; }
+        Size Size { get; set; }
 
         /// <summary>
         /// Returns the scale of window's drawable area.
@@ -143,7 +142,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        event Action<Vector2> Moved;
+        event Action<Point> Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
