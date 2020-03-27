@@ -67,19 +67,27 @@ namespace osu.Framework.Graphics.Textures
             currentPosition = new Vector2I(Math.Max(currentPosition.X, PADDING), PADDING);
         }
 
-        private Vector2I findPosition(int width, int height)
+        private Vector2I? findPosition(int width, int height)
         {
             if (AtlasTexture == null)
             {
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-            else if (currentPosition.Y + height > atlasHeight - PADDING)
+
+            if (currentPosition.Y + height > atlasHeight - PADDING)
             {
+                if (height > atlasHeight - PADDING - WHITE_PIXEL_SIZE
+                    && width > atlasWidth - PADDING - WHITE_PIXEL_SIZE)
+                {
+                    return null;
+                }
+
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
-            else if (currentPosition.X + width > atlasWidth - PADDING)
+
+            if (currentPosition.X + width > atlasWidth - PADDING)
             {
                 int maxY = 0;
 
@@ -106,12 +114,16 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
         internal TextureGL Add(int width, int height)
         {
-            if (width > atlasWidth || height > atlasHeight)
+            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING)
                 return null;
 
             lock (textureRetrievalLock)
             {
-                Vector2I position = findPosition(width, height);
+                var pos = findPosition(width, height);
+
+                if (pos == null) return null;
+
+                Vector2I position = pos.Value;
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
