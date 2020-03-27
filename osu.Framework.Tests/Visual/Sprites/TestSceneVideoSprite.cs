@@ -28,7 +28,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
-        private ManualClock clock;
+        private readonly ManualClock clock;
+
         private TestVideoSprite videoSprite;
         private MemoryStream videoStream;
 
