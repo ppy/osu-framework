@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Animations
             set
             {
                 if (startAtCurrentTime)
-                    throw new InvalidOperationException($"A {nameof(Animation<T>)} with {startAtCurrentTime} = true cannot receive a custom {nameof(Clock)}.");
+                    throw new InvalidOperationException($"A {nameof(Animation<T>)} with {nameof(startAtCurrentTime)} = true cannot receive a custom {nameof(Clock)}.");
 
                 base.Clock = value;
             }
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Animations
                 frameIndex = frameData.Count - 1;
 
             if (!startAtCurrentTime)
-                throw new InvalidOperationException($"A {nameof(Animation<T>)} with {startAtCurrentTime} = false cannot seek as it is dependent on an external clock.");
+                throw new InvalidOperationException($"A {nameof(Animation<T>)} with {nameof(startAtCurrentTime)} = false cannot seek as it is dependent on an external clock.");
 
             offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
             currentFrameCache.Invalidate();

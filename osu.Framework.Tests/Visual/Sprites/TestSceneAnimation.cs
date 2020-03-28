@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 };
             });
 
-            AddUntilStep("Wait for video to load", () => animation.IsLoaded);
+            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
         }
 
         [Test]
