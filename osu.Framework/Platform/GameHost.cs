@@ -40,7 +40,6 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
-using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Platform
 {
@@ -305,7 +304,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != WindowState.Minimized)
+            else if (Window.WindowState != osuTK.WindowState.Minimized)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -386,7 +385,7 @@ namespace osu.Framework.Platform
         {
             Window.SwapBuffers();
 
-            if (Window.VSync == VSyncMode.On)
+            if (Window.VerticalSync)
                 // without glFinish, vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 GL.Finish();
@@ -823,7 +822,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
