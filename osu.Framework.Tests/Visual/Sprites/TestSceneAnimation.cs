@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     animationContainer = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Clock = new FramedClock(clock ??= new ManualClock()),
+                        Clock = new FramedClock(clock = new ManualClock()),
                     },
                     timeText = new SpriteText { Text = "Animation is loading..." }
                 };
