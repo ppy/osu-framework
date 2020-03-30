@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Construct a new animation.
         /// </summary>
-        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th animation frame.</param>
         protected Animation(bool startAtCurrentTime = true)
         {
             this.startAtCurrentTime = startAtCurrentTime;
