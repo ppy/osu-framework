@@ -30,7 +30,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             {
                 var typeArgs = t.GetGenericArguments().Except(usedTypes);
                 if (typeArgs.Any())
-                    result += "<" + string.Join(",", typeArgs.Select(genType => readableName(genType, usedTypes))) + ">";
+                    result += '<' + string.Join(',', typeArgs.Select(genType => readableName(genType, usedTypes))) + '>';
             }
 
             return result;

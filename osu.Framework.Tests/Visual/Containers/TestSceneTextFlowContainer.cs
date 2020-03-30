@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("children have correct anchors", () => textContainer.Children.All(c => c.Anchor == anchor && c.Origin == anchor));
             AddAssert("children are positioned correctly", () =>
             {
-                var result = string.Join("", textContainer.Children
+                var result = string.Concat(textContainer.Children
                                                           .OrderBy(c => c.ScreenSpaceDrawQuad.TopLeft.Y)
                                                           .ThenBy(c => c is TextFlowContainer.NewLineContainer ? 0 : c.ScreenSpaceDrawQuad.TopLeft.X)
                                                           .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
