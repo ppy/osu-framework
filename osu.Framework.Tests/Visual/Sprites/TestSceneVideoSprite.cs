@@ -28,7 +28,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
-        private ManualClock clock;
+        private readonly ManualClock clock;
+
         private TestVideoSprite videoSprite;
         private MemoryStream videoStream;
 
@@ -36,7 +37,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Children = new Drawable[]
             {
-                videoContainer = new Container { RelativeSizeAxes = Axes.Both },
+                videoContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Clock = new FramedClock(clock = new ManualClock()),
+                },
                 timeText = new SpriteText { Text = "Video is loading..." }
             };
         }
@@ -59,6 +64,14 @@ namespace osu.Framework.Tests.Visual.Sprites
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
+            loadNewVideo();
+            AddUntilStep("Wait for video to load", () => videoSprite.IsLoaded);
+            AddStep("Reset clock", () => clock.CurrentTime = 0);
+        }
+
+        private void loadNewVideo()
+        {
             AddStep("load video", () =>
             {
                 videoStream.Seek(0, SeekOrigin.Begin);
@@ -69,15 +82,23 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 localStream.Seek(0, SeekOrigin.Begin);
 
-                videoContainer.Child = videoSprite = new TestVideoSprite(localStream, false)
+                videoContainer.Child = videoSprite = new TestVideoSprite(localStream)
                 {
                     Loop = false,
-                    Clock = new FramedClock(clock = new ManualClock()),
                 };
             });
+        }
 
-            AddUntilStep("Wait for video to load", () => videoSprite.IsLoaded);
-            AddStep("Reset clock", () => clock.CurrentTime = 0);
+        [Test]
+        public void TestStartFromCurrentTime()
+        {
+            AddAssert("Video is near start", () => videoSprite.PlaybackPosition < 1000);
+
+            AddWaitStep("Wait some", 20);
+
+            loadNewVideo();
+
+            AddAssert("Video is near start", () => videoSprite.PlaybackPosition < 1000);
         }
 
         [Test]

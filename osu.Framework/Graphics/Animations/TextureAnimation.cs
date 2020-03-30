@@ -14,7 +14,8 @@ namespace osu.Framework.Graphics.Animations
     {
         private readonly Sprite textureHolder;
 
-        public TextureAnimation()
+        public TextureAnimation(bool startAtCurrentTime = true)
+            : base(startAtCurrentTime)
         {
             InternalChild = textureHolder = new Sprite
             {

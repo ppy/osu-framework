@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Platform;
 using TKVector2 = osuTK.Vector2;
 using SNVector2 = System.Numerics.Vector2;
 using SDPoint = System.Drawing.Point;
@@ -40,53 +41,91 @@ namespace osu.Framework.Extensions
         public static SNVector2 ToSystemNumerics(this VPoint point) =>
             new SNVector2(point.X, point.Y);
 
-        public static TKWindowState ToOsuTK(this VWindowState state)
+        public static TKWindowState ToOsuTK(this WindowState state)
         {
             switch (state)
             {
-                case VWindowState.Normal:
+                case WindowState.Normal:
                     return TKWindowState.Normal;
 
-                case VWindowState.FullScreen:
+                case WindowState.Fullscreen:
+                case WindowState.FullscreenBorderless:
                     return TKWindowState.Fullscreen;
 
-                case VWindowState.Maximized:
+                case WindowState.Maximised:
                     return TKWindowState.Maximized;
 
-                case VWindowState.Minimized:
+                case WindowState.Minimised:
                     return TKWindowState.Minimized;
-
-                case VWindowState.BorderlessFullScreen:
-                    // WARNING: not supported by osuTK.WindowState
-                    return TKWindowState.Fullscreen;
-
-                case VWindowState.Hidden:
-                    // WARNING: not supported by osuTK.WindowState
-                    return TKWindowState.Normal;
             }
 
             return TKWindowState.Normal;
         }
 
-        public static VWindowState ToVeldrid(this TKWindowState state)
+        public static VWindowState ToVeldrid(this WindowState state)
+        {
+            switch (state)
+            {
+                case WindowState.Normal:
+                    return VWindowState.Normal;
+
+                case WindowState.Minimised:
+                    return VWindowState.Minimized;
+
+                case WindowState.Maximised:
+                    return VWindowState.Maximized;
+
+                case WindowState.Fullscreen:
+                    return VWindowState.FullScreen;
+
+                case WindowState.FullscreenBorderless:
+                    return VWindowState.BorderlessFullScreen;
+            }
+
+            return VWindowState.Normal;
+        }
+
+        public static WindowState ToFramework(this VWindowState state)
+        {
+            switch (state)
+            {
+                case VWindowState.Normal:
+                    return WindowState.Normal;
+
+                case VWindowState.Minimized:
+                    return WindowState.Minimised;
+
+                case VWindowState.Maximized:
+                    return WindowState.Maximised;
+
+                case VWindowState.FullScreen:
+                    return WindowState.Fullscreen;
+
+                case VWindowState.BorderlessFullScreen:
+                    return WindowState.FullscreenBorderless;
+            }
+
+            return WindowState.Normal;
+        }
+
+        public static WindowState ToFramework(this TKWindowState state)
         {
             switch (state)
             {
                 case TKWindowState.Normal:
-                    return VWindowState.Normal;
+                    return WindowState.Normal;
 
                 case TKWindowState.Minimized:
-                    return VWindowState.Minimized;
+                    return WindowState.Minimised;
 
                 case TKWindowState.Maximized:
-                    return VWindowState.Maximized;
+                    return WindowState.Maximised;
 
                 case TKWindowState.Fullscreen:
-                    return VWindowState.FullScreen;
+                    return WindowState.Fullscreen;
             }
 
-            // WARNING: some cases not supported by osuTK.WindowState
-            return VWindowState.Normal;
+            return WindowState.Normal;
         }
     }
 }
