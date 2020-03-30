@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Textures
             {
                 Vector2I position = Vector2I.Zero;
 
-                if(!whitePixel)
+                if (!whitePixel)
                 {
                     var pos = findPosition(width, height);
 
