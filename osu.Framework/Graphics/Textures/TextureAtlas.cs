@@ -85,7 +85,6 @@ namespace osu.Framework.Graphics.Textures
 
             if (currentPosition.Y + height > atlasHeight - PADDING)
             {
-
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
