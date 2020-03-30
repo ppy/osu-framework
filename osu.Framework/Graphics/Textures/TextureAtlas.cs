@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
 
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
-            using (var whiteTex = Add(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE))
+            using (var whiteTex = Add(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE, whitePixel: true))
                 whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
 
             currentPosition = new Vector2I(Math.Max(currentPosition.X, PADDING), PADDING);
@@ -69,6 +69,14 @@ namespace osu.Framework.Graphics.Textures
 
         private Vector2I? findPosition(int width, int height)
         {
+            // exceeds bounds in one direction
+            if (width > atlasWidth - PADDING * 2 || height > atlasHeight - PADDING * 2)
+                return null;
+
+            // exceeds bounds in both directions (in this one, we have to account for the white pixel)
+            if (height > atlasHeight - PADDING * 2 - WHITE_PIXEL_SIZE && width > atlasWidth - PADDING * 2 - WHITE_PIXEL_SIZE)
+                return null;
+
             if (AtlasTexture == null)
             {
                 Logger.Log($"TextureAtlas initialised ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
@@ -77,11 +85,6 @@ namespace osu.Framework.Graphics.Textures
 
             if (currentPosition.Y + height > atlasHeight - PADDING)
             {
-                if (height > atlasHeight - PADDING - WHITE_PIXEL_SIZE
-                    && width > atlasWidth - PADDING - WHITE_PIXEL_SIZE)
-                {
-                    return null;
-                }
 
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
@@ -111,19 +114,23 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="width">The width of the requested texture.</param>
         /// <param name="height">The height of the requested texture.</param>
+        /// <param name="whitePixel">Whether or not it's the white pixel we're adding</param>
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
-        internal TextureGL Add(int width, int height)
+        internal TextureGL Add(int width, int height, bool whitePixel = false)
         {
-            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING)
-                return null;
-
             lock (textureRetrievalLock)
             {
-                var pos = findPosition(width, height);
+                Vector2I position = Vector2I.Zero;
 
-                if (pos == null) return null;
+                if(!whitePixel)
+                {
+                    var pos = findPosition(width, height);
 
-                Vector2I position = pos.Value;
+                    if (pos == null) return null;
+
+                    position = pos.Value;
+                }
+
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 

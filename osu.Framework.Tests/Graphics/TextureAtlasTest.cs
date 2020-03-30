@@ -15,17 +15,21 @@ namespace osu.Framework.Tests.Graphics
         [TestCase(1, 1)]
         [TestCase(984, 20)]
         [TestCase(985, 20)]
+        [TestCase(1008, 20)]
         [TestCase(1020, 20)]
         [TestCase(1024, 20)]
         [TestCase(1025, 20)]
         [TestCase(20, 984)]
         [TestCase(20, 985)]
+        [TestCase(20, 1008)]
         [TestCase(20, 1020)]
         [TestCase(20, 1024)]
         [TestCase(20, 1500)]
+        [TestCase(984, 984)]
         [TestCase(985, 985)]
         [TestCase(1020, 985)]
         [TestCase(1500, 985)]
+        [TestCase(1008, 1008)]
         [TestCase(1020, 1020)]
         [TestCase(1500, 1500)]
         public void TestAtlasAdd(int width, int height)
@@ -49,9 +53,9 @@ namespace osu.Framework.Tests.Graphics
             }
             else
             {
-                Assert.True(width > 1024 - TextureAtlas.PADDING || height > 1008 - TextureAtlas.PADDING ||
-                            (width > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE
-                             && height > 1024 - TextureAtlas.PADDING - TextureAtlas.WHITE_PIXEL_SIZE),
+                Assert.True(width > 1024 - TextureAtlas.PADDING * 2 || height > 1024 - TextureAtlas.PADDING * 2 ||
+                            (width > 1024 - TextureAtlas.PADDING * 2 - TextureAtlas.WHITE_PIXEL_SIZE
+                             && height > 1024 - TextureAtlas.PADDING * 2 - TextureAtlas.WHITE_PIXEL_SIZE),
                     message: $"Returned texture is null, but should have fit: {width}x{height}");
             }
         }
