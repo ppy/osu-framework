@@ -15,11 +15,12 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableString"/>.
         /// </summary>
-        internal readonly object Data;
+        internal readonly object? Data;
+        // it's somehow common to call default(LocalisableString), and we should return empty string then.
 
         private LocalisableString(object data) => Data = data;
 
-        public override string ToString() => Data.ToString();
+        public override string ToString() => Data?.ToString() ?? string.Empty;
 
         public bool Equals(LocalisableString other) => Data == other.Data;
 
@@ -31,6 +32,6 @@ namespace osu.Framework.Localisation
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
 
         public override bool Equals(object? obj) => obj is LocalisableString other && Equals(other);
-        public override int GetHashCode() => Data.GetHashCode();
+        public override int GetHashCode() => Data?.GetHashCode() ?? 0;
     }
 }
