@@ -57,9 +57,9 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("children are positioned correctly", () =>
             {
                 var result = string.Concat(textContainer.Children
-                                                          .OrderBy(c => c.ScreenSpaceDrawQuad.TopLeft.Y)
-                                                          .ThenBy(c => c is TextFlowContainer.NewLineContainer ? 0 : c.ScreenSpaceDrawQuad.TopLeft.X)
-                                                          .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
+                                                        .OrderBy(c => c.ScreenSpaceDrawQuad.TopLeft.Y)
+                                                        .ThenBy(c => c is TextFlowContainer.NewLineContainer ? 0 : c.ScreenSpaceDrawQuad.TopLeft.X)
+                                                        .Select(c => (c as SpriteText)?.Text.ToString() ?? "\n"));
                 return result == default_text;
             });
         }
