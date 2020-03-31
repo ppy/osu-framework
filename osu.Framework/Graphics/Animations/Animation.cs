@@ -88,6 +88,9 @@ namespace osu.Framework.Graphics.Animations
             sourceClock ??= Clock;
             base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
             updateOffsetSource();
+
+            if (CurrentFrameIndex > 0)
+                offsetClock.Offset += frameData[CurrentFrameIndex].DisplayStartTime;
         }
 
         private IFrameBasedClock sourceClock;
@@ -155,7 +158,8 @@ namespace osu.Framework.Graphics.Animations
             else if (frameIndex >= frameData.Count)
                 frameIndex = frameData.Count - 1;
 
-            offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
+            if (IsLoaded)
+                offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
             currentFrameCache.Invalidate();
         }
 
