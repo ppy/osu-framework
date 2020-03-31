@@ -64,8 +64,6 @@ namespace osu.Framework.Graphics.Animations
 
         private readonly Cached currentFrameCache = new Cached();
 
-        private FramedOffsetClock offsetClock;
-
         /// <summary>
         /// Construct a new animation.
         /// </summary>
@@ -79,25 +77,41 @@ namespace osu.Framework.Graphics.Animations
             Repeat = true;
         }
 
+        #region Clock Implementation (shared between VideoSprite and Animation)
+
+        private FramedOffsetClock offsetClock;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            if (startAtCurrentTime)
-                base.Clock = offsetClock = new FramedOffsetClock(Clock) { Offset = -Clock.CurrentTime };
+            sourceClock ??= Clock;
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
+            updateOffsetSource();
         }
+
+        private IFrameBasedClock sourceClock;
 
         public override IFrameBasedClock Clock
         {
             get => base.Clock;
             set
             {
-                if (startAtCurrentTime)
-                    throw new InvalidOperationException($"A {nameof(Animation<T>)} with {nameof(startAtCurrentTime)} = true cannot receive a custom {nameof(Clock)}.");
+                sourceClock = value;
 
-                base.Clock = value;
+                if (IsLoaded)
+                    updateOffsetSource();
             }
         }
+
+        private void updateOffsetSource()
+        {
+            offsetClock.ChangeSource(sourceClock);
+            if (startAtCurrentTime)
+                offsetClock.Offset = -sourceClock.CurrentTime;
+        }
+
+        #endregion
 
         private bool hasCustomWidth;
 
@@ -140,9 +154,6 @@ namespace osu.Framework.Graphics.Animations
                 frameIndex = 0;
             else if (frameIndex >= frameData.Count)
                 frameIndex = frameData.Count - 1;
-
-            if (!startAtCurrentTime)
-                throw new InvalidOperationException($"A {nameof(Animation<T>)} with {nameof(startAtCurrentTime)} = false cannot seek as it is dependent on an external clock.");
 
             offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
             currentFrameCache.Invalidate();
