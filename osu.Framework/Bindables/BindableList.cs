@@ -456,7 +456,7 @@ namespace osu.Framework.Bindables
 
         public void UnbindEvents()
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             ItemsAdded = null;
             ItemsRemoved = null;
 #pragma warning restore 618
@@ -649,7 +649,7 @@ namespace osu.Framework.Bindables
 
         private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             switch (args.Action)
             {
                 case NotifyCollectionChangedAction.Add:

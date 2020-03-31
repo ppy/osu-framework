@@ -1,8 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
+using System.Linq;
+using osu.Framework.Caching;
+using osu.Framework.Timing;
 using osuTK;
 
 namespace osu.Framework.Graphics.Animations
@@ -15,18 +19,36 @@ namespace osu.Framework.Graphics.Animations
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
+        /// Defaults to 60fps.
         /// </summary>
         public double DefaultFrameLength = 1000.0 / 60.0;
 
-        private readonly List<FrameData<T>> frameData;
-        private int currentFrameIndex;
+        /// <summary>
+        /// The current playback position of the animation, in milliseconds.
+        /// </summary>
+        public double PlaybackPosition
+        {
+            get
+            {
+                if (Repeat)
+                    return Clock.CurrentTime % Duration;
 
-        private double currentFrameTime;
+                return Math.Min(Clock.CurrentTime, Duration);
+            }
+        }
+
+        public double Duration { get; private set; }
+
+        private readonly List<FrameData<T>> frameData;
+
+        private readonly bool startAtCurrentTime;
 
         /// <summary>
         /// The number of frames this animation has.
         /// </summary>
         public int FrameCount => frameData.Count;
+
+        public int CurrentFrameIndex { get; private set; }
 
         /// <summary>
         /// True if the animation is playing, false otherwise.
@@ -38,12 +60,61 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public bool Repeat { get; set; }
 
-        protected Animation()
+        public T CurrentFrame => frameData[CurrentFrameIndex].Content;
+
+        private readonly Cached currentFrameCache = new Cached();
+
+        /// <summary>
+        /// Construct a new animation.
+        /// </summary>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th animation frame.</param>
+        protected Animation(bool startAtCurrentTime = true)
         {
+            this.startAtCurrentTime = startAtCurrentTime;
+
             frameData = new List<FrameData<T>>();
             IsPlaying = true;
             Repeat = true;
         }
+
+        #region Clock Implementation (shared between VideoSprite and Animation)
+
+        private FramedOffsetClock offsetClock;
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            sourceClock ??= Clock;
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
+            updateOffsetSource();
+
+            if (CurrentFrameIndex > 0)
+                offsetClock.Offset += frameData[CurrentFrameIndex].DisplayStartTime;
+        }
+
+        private IFrameBasedClock sourceClock;
+
+        public override IFrameBasedClock Clock
+        {
+            get => base.Clock;
+            set
+            {
+                sourceClock = value;
+
+                if (IsLoaded)
+                    updateOffsetSource();
+            }
+        }
+
+        private void updateOffsetSource()
+        {
+            offsetClock.ChangeSource(sourceClock);
+            if (startAtCurrentTime)
+                offsetClock.Offset = -sourceClock.CurrentTime;
+        }
+
+        #endregion
 
         private bool hasCustomWidth;
 
@@ -87,8 +158,9 @@ namespace osu.Framework.Graphics.Animations
             else if (frameIndex >= frameData.Count)
                 frameIndex = frameData.Count - 1;
 
-            currentFrameIndex = frameIndex;
-            displayFrame(currentFrameIndex);
+            if (IsLoaded)
+                offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
+            currentFrameCache.Invalidate();
         }
 
         /// <summary>
@@ -101,17 +173,20 @@ namespace osu.Framework.Graphics.Animations
             AddFrame(new FrameData<T>
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
-                Content = content
+                Content = content,
             });
         }
 
         public void AddFrame(FrameData<T> frame)
         {
-            frameData.Add(frame);
-            OnFrameAdded(frame.Content, frame.Duration);
+            var lastFrame = frameData.LastOrDefault();
 
-            if (frameData.Count == 1)
-                displayFrame(0);
+            frame.DisplayStartTime = lastFrame.DisplayEndTime;
+            Duration += frame.Duration;
+
+            frameData.Add(frame);
+
+            OnFrameAdded(frame.Content, frame.Duration);
         }
 
         /// <summary>
@@ -132,24 +207,6 @@ namespace osu.Framework.Graphics.Animations
         {
             foreach (var t in frames)
                 AddFrame(t.Content, t.Duration);
-        }
-
-        private void displayFrame(int index)
-        {
-            var frame = frameData[index];
-
-            if (RelativeSizeAxes != Axes.Both)
-            {
-                var frameSize = GetFrameSize(frame.Content);
-
-                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
-                    base.Width = frameSize.X;
-
-                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
-                    base.Height = frameSize.Y;
-            }
-
-            DisplayFrame(frameData[index].Content);
         }
 
         /// <summary>
@@ -179,32 +236,54 @@ namespace osu.Framework.Graphics.Animations
         {
             base.Update();
 
-            if (IsPlaying && frameData.Count > 0)
+            if (!IsPlaying)
+                offsetClock.Offset -= Time.Elapsed;
+
+            if (frameData.Count == 0) return;
+
+            switch (PlaybackPosition.CompareTo(frameData[CurrentFrameIndex].DisplayStartTime))
             {
-                currentFrameTime += Time.Elapsed;
-
-                while (currentFrameTime > frameData[currentFrameIndex].Duration)
-                {
-                    currentFrameTime -= frameData[currentFrameIndex].Duration;
-                    ++currentFrameIndex;
-
-                    if (currentFrameIndex >= frameData.Count)
+                case -1:
+                    while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayStartTime)
                     {
-                        if (Repeat)
-                        {
-                            currentFrameIndex = 0;
-                        }
-                        else
-                        {
-                            currentFrameIndex = frameData.Count - 1;
-                            IsPlaying = false;
-                            break;
-                        }
+                        CurrentFrameIndex--;
+                        currentFrameCache.Invalidate();
                     }
-                }
 
-                displayFrame(currentFrameIndex);
+                    break;
+
+                case 1:
+                    while (CurrentFrameIndex < frameData.Count - 1 && PlaybackPosition >= frameData[CurrentFrameIndex].DisplayEndTime)
+                    {
+                        CurrentFrameIndex++;
+                        currentFrameCache.Invalidate();
+                    }
+
+                    break;
             }
+
+            if (!currentFrameCache.IsValid)
+                updateCurrentFrame();
+        }
+
+        private void updateCurrentFrame()
+        {
+            var frame = CurrentFrame;
+
+            if (RelativeSizeAxes != Axes.Both)
+            {
+                var frameSize = GetFrameSize(frame);
+
+                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
+                    base.Width = frameSize.X;
+
+                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
+                    base.Height = frameSize.Y;
+            }
+
+            DisplayFrame(frame);
+
+            currentFrameCache.Validate();
         }
     }
 }

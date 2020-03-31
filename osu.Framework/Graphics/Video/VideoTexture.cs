@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Video
 
                 for (int i = 0; i < textureIds.Length; i++)
                 {
-                    GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
+                    GLWrapper.BindTexture(textureIds[i]);
 
                     if (i == 0)
                     {
@@ -84,7 +84,8 @@ namespace osu.Framework.Graphics.Video
 
             for (int i = 0; i < textureIds.Length; i++)
             {
-                GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
+                GLWrapper.BindTexture(textureIds[i]);
+
                 GL.PixelStore(PixelStoreParameter.UnpackRowLength, videoUpload.Frame->linesize[(uint)i]);
                 GL.TexSubImage2D(TextureTarget2d.Texture2D, 0, 0, 0, videoUpload.Frame->width / (i > 0 ? 2 : 1), videoUpload.Frame->height / (i > 0 ? 2 : 1),
                     PixelFormat.Red, PixelType.UnsignedByte, (IntPtr)videoUpload.Frame->data[(uint)i]);

@@ -984,6 +984,27 @@ namespace osu.Framework.Graphics.Containers
             return anyInvalidated;
         }
 
+        /// <summary>
+        /// Invalidates the children size dependencies of this <see cref="CompositeDrawable"/> when a child's position or size changes.
+        /// </summary>
+        /// <param name="invalidation">The <see cref="Invalidation"/> to invalidate with.</param>
+        /// <param name="axes">The position or size <see cref="Axes"/> that changed.</param>
+        /// <param name="source">The source <see cref="Drawable"/>.</param>
+        internal void InvalidateChildrenSizeDependencies(Invalidation invalidation, Axes axes, Drawable source)
+        {
+            // Store the current state of the children size dependencies.
+            // This state may be restored later if the invalidation proved to be unnecessary.
+            bool wasValid = childrenSizeDependencies.IsValid;
+
+            // The invalidation still needs to occur as normal, since a derived CompositeDrawable may want to respond to children size invalidations.
+            Invalidate(invalidation, InvalidationSource.Child);
+
+            // If all the changed axes were bypassed and an invalidation occurred, the children size dependencies can immediately be
+            // re-validated without a recomputation, as a recomputation would not change the auto-sized size.
+            if (wasValid && (axes & source.BypassAutoSizeAxes) == axes)
+                childrenSizeDependencies.Validate();
+        }
+
         #endregion
 
         #region DrawNode
@@ -1167,19 +1188,19 @@ namespace osu.Framework.Graphics.Containers
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
-        public override InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
+        public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
             var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
             if (!recursive)
                 return baseDisposalAction;
 
-            List<InvokeOnDisposal> disposalActions = new List<InvokeOnDisposal>(internalChildren.Count + 1) { baseDisposalAction };
+            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1) { baseDisposalAction };
             foreach (var c in internalChildren)
                 disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
             {
-                foreach (var a in disposalActions)
+                foreach (var a in actions)
                     a.Dispose();
             });
         }

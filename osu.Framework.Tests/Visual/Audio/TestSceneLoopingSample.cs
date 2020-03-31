@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 
@@ -12,11 +13,19 @@ namespace osu.Framework.Tests.Visual.Audio
     {
         private SampleChannel sampleChannel;
         private ISampleStore samples;
+        private AudioManager audioManager;
 
         [BackgroundDependencyLoader]
-        private void load(ISampleStore samples)
+        private void load(ISampleStore samples, AudioManager audioManager)
         {
             this.samples = samples;
+            this.audioManager = audioManager;
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            AddUntilStep("audio device ready", () => audioManager.IsLoaded);
         }
 
         [Test]

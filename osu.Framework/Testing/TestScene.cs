@@ -287,8 +287,26 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
+        public StepButton AddSetupStep(string description, Action action)
+        {
+            var step = new SetUpStepButton
+            {
+                Text = description,
+                Action = action
+            };
+
+            AddStep(step);
+
+            return step;
+        }
+
+        private bool addStepsAsSetupSteps;
+
         public StepButton AddStep(string description, Action action)
         {
+            if (addStepsAsSetupSteps)
+                return AddSetupStep(description, action);
+
             var step = new SingleStepButton
             {
                 Text = description,
@@ -374,8 +392,10 @@ namespace osu.Framework.Testing
 
         internal void RunSetUpSteps()
         {
+            addStepsAsSetupSteps = true;
             foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(SetUpStepsAttribute), true))
                 method.Invoke(this, null);
+            addStepsAsSetupSteps = false;
         }
 
         internal void RunTearDownSteps()

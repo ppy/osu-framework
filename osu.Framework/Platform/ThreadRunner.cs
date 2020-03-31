@@ -18,7 +18,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Runs a game host in a specifc threading mode.
     /// </summary>
-    internal class ThreadRunner
+    public class ThreadRunner
     {
         private readonly InputThread mainThread;
 
@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
 
         public ExecutionMode ExecutionMode { private get; set; } = ExecutionMode.MultiThreaded;
 
-        public void RunMainLoop()
+        public virtual void RunMainLoop()
         {
             // propagate any requested change in execution mode at a safe point in frame execution
             ensureCorrectExecutionMode();
@@ -120,6 +120,14 @@ namespace osu.Framework.Platform
 
         public void Start() => ensureCorrectExecutionMode();
 
+        public void Suspend()
+        {
+            pauseAllThreads();
+
+            // set the active execution mode back to null to set the state checking back to when it can be resumed.
+            activeExecutionMode = null;
+        }
+
         public void Stop()
         {
             const int thread_join_timeout = 30000;
@@ -147,9 +155,7 @@ namespace osu.Framework.Platform
                 // in the case we have not yet got an execution mode, set this early to allow usage in GameThread.Initialize overrides.
                 activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
-            // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
-            foreach (var t in Threads.Reverse())
-                t.Pause();
+            pauseAllThreads();
 
             switch (ExecutionMode)
             {
@@ -184,6 +190,13 @@ namespace osu.Framework.Platform
             activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
             updateMainThreadRates();
+        }
+
+        private void pauseAllThreads()
+        {
+            // shut down threads in reverse to ensure audio stops last (other threads may be waiting on a queued event otherwise)
+            foreach (var t in Threads.Reverse())
+                t.Pause();
         }
 
         private void updateMainThreadRates()
