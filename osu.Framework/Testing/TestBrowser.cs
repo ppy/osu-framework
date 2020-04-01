@@ -220,7 +220,7 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>()
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
                                                                          .FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
@@ -590,7 +590,7 @@ namespace osu.Framework.Testing
 
         private class TestBrowserTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => TestSceneButton.LEFT_TEXT_PADDING;
+            protected override float LeftRightPadding => TestButtonBase.LEFT_TEXT_PADDING;
 
             public TestBrowserTextBox()
             {

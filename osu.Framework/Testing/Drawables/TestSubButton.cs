@@ -9,14 +9,14 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Testing.Drawables
 {
-    internal class TestSceneSubButton : TestSceneButton
+    internal class TestSubButton : TestButtonBase
     {
         private readonly int indentLevel;
 
         private Container boxContainer;
         private const float left_box_width = LEFT_TEXT_PADDING / 2;
 
-        public TestSceneSubButton(Type test, int indentLevel = 0)
+        public TestSubButton(Type test, int indentLevel = 0)
             : base(test)
         {
             this.indentLevel = indentLevel;
