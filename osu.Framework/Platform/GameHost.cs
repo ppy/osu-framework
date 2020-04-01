@@ -248,6 +248,10 @@ namespace osu.Framework.Platform
 
                 //we want to throw this exception on the input thread to interrupt window and also headless execution.
                 InputThread.Scheduler.Add(() => { captured.Throw(); });
+
+                // schedule an exit to the input thread.
+                // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
+                PerformExit(false);
             }
 
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
