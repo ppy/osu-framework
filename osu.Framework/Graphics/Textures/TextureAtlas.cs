@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly int atlasWidth;
         private readonly int atlasHeight;
 
-        private int MaxWidth => atlasWidth - PADDING;
-        private int MaxHeight => atlasHeight - PADDING;
+        private int maxWidth => atlasWidth - PADDING * 2;
+        private int maxHeight => atlasHeight - PADDING * 2;
 
         private Vector2I currentPosition;
 
@@ -102,11 +102,11 @@ namespace osu.Framework.Graphics.Textures
         private bool canFitEmptyTextureAtlas(int width, int height)
         {
             // exceeds bounds in one direction
-            if (width + PADDING > MaxWidth || height + PADDING > MaxHeight)
+            if (width > maxWidth || height > maxHeight)
                 return false;
 
             // exceeds bounds in both directions (in this one, we have to account for the white pixel)
-            if (width + PADDING + WHITE_PIXEL_SIZE > MaxWidth && height + PADDING + WHITE_PIXEL_SIZE > MaxHeight)
+            if (width + WHITE_PIXEL_SIZE > maxWidth && height + WHITE_PIXEL_SIZE > maxHeight)
                 return false;
 
             return true;
@@ -127,13 +127,13 @@ namespace osu.Framework.Graphics.Textures
                 Reset();
             }
 
-            if (currentPosition.Y + height > MaxHeight)
+            if (currentPosition.Y + height + PADDING > atlasHeight)
             {
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
 
-            if (currentPosition.X + width > MaxWidth)
+            if (currentPosition.X + width + PADDING > atlasWidth)
             {
                 int maxY = 0;
 
