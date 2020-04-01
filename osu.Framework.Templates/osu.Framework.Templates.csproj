@@ -10,6 +10,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>content</ContentTargetFolders>
     <NoDefaultExcludes>true</NoDefaultExcludes>
+    <!-- No lib content for target framework. The warning is meaningless for template packages. -->
     <NoWarn>NU5128</NoWarn>
   </PropertyGroup>
 
