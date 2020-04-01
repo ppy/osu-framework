@@ -59,5 +59,31 @@ namespace osu.Framework.Tests.Graphics
                     message: $"Returned texture is null, but should have fit: {width}x{height}");
             }
         }
+
+        [Test]
+        public void TestAtlasFirstRowAddRespectsWhitePixelSize()
+        {
+            const int atlas_size = 1024;
+
+            var atlas = new TextureAtlas(atlas_size, atlas_size);
+
+            TextureGL texture = atlas.Add(64, 64);
+
+            RectangleF rect = texture.GetTextureRect(null);
+            Assert.GreaterOrEqual(atlas_size * rect.X, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, message: "Texture is placed on top of the white pixel");
+        }
+
+        [Test]
+        public void TestAtlasSecondRowAddRespectsWhitePixelSize()
+        {
+            const int atlas_size = 1024;
+
+            var atlas = new TextureAtlas(atlas_size, atlas_size);
+
+            TextureGL texture = atlas.Add(1024 - 2 * TextureAtlas.PADDING, 64);
+
+            RectangleF rect = texture.GetTextureRect(null);
+            Assert.GreaterOrEqual(atlas_size * rect.Y, TextureAtlas.WHITE_PIXEL_SIZE + TextureAtlas.PADDING, message: "Texture is placed on top of the white pixel");
+        }
     }
 }
