@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Textures
             using (var whiteTex = new TextureGLSub(bounds, AtlasTexture))
                 whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
 
-            currentPosition = new Vector2I(Math.Max(currentPosition.X, PADDING), PADDING);
+            currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
         }
 
         /// <summary>
