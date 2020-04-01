@@ -24,13 +24,13 @@ namespace osu.Framework.Extensions.TypeExtensions
 
             // We were declared inside another class. Preprend the name of that class.
             if (t.DeclaringType != null && !usedTypes.Contains(t.DeclaringType))
-                result = readableName(t.DeclaringType, usedTypes) + "+" + result;
+                result = $"{readableName(t.DeclaringType, usedTypes)}+{result}";
 
             if (t.IsGenericType)
             {
                 var typeArgs = t.GetGenericArguments().Except(usedTypes);
                 if (typeArgs.Any())
-                    result += "<" + string.Join(",", typeArgs.Select(genType => readableName(genType, usedTypes))) + ">";
+                    result += $"<{string.Join(',', typeArgs.Select(genType => readableName(genType, usedTypes)))}>";
             }
 
             return result;

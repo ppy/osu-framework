@@ -52,11 +52,11 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
-        private void loadNewAnimation()
+        private void loadNewAnimation(bool startFromCurrent = true)
         {
             AddStep("load animation", () =>
             {
-                animationContainer.Child = animation = new TestAnimation
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
                 {
                     Repeat = false,
                 };
@@ -96,6 +96,42 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewAnimation();
 
             AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+        }
+
+        [Test]
+        public void TestStartFromOngoingTime()
+        {
+            AddWaitStep("Wait some", 20);
+
+            loadNewAnimation(false);
+
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
+        }
+
+        [Test]
+        public void TestSetCustomClockWithCurrentTime()
+        {
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
+
+            AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
+
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+        }
+
+        [Test]
+        public void TestSetCustomClockWithOngoingTime()
+        {
+            loadNewAnimation(false);
+
+            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+
+            AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
+
+            AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
+
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
         }
 
         [Test]
@@ -158,7 +194,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public int FramesProcessed;
 
-            public TestAnimation()
+            public TestAnimation(bool startFromCurrent)
+                : base(startFromCurrent)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;

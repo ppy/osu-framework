@@ -146,25 +146,41 @@ namespace osu.Framework.Graphics.Video
             decoder.StartDecoding();
         }
 
+        #region Clock Implementation (shared between VideoSprite and Animation)
+
+        private FramedOffsetClock offsetClock;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            if (startAtCurrentTime)
-                base.Clock = new FramedOffsetClock(Clock) { Offset = -Clock.CurrentTime };
+            sourceClock ??= Clock;
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
+            updateOffsetSource();
         }
+
+        private IFrameBasedClock sourceClock;
 
         public override IFrameBasedClock Clock
         {
             get => base.Clock;
             set
             {
-                if (startAtCurrentTime)
-                    throw new InvalidOperationException($"A {nameof(VideoSprite)} with {startAtCurrentTime} = true cannot receive a custom {nameof(Clock)}.");
+                sourceClock = value;
 
-                base.Clock = value;
+                if (IsLoaded)
+                    updateOffsetSource();
             }
         }
+
+        private void updateOffsetSource()
+        {
+            offsetClock.ChangeSource(sourceClock);
+            if (startAtCurrentTime)
+                offsetClock.Offset = -sourceClock.CurrentTime;
+        }
+
+        #endregion
 
         protected override void Update()
         {
