@@ -7,7 +7,7 @@
     <AssemblyName>osu.Framework</AssemblyName>
     <Description>A 2D application/game framework written with rhythm games in mind.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;NU5104</NoWarn>
     <DefineConstants>$(DefineConstants);JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
@@ -26,6 +26,7 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="1.1.0" />
+    <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.116301" />
