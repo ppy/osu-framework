@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly int atlasWidth;
         private readonly int atlasHeight;
 
-        private int maxWidth => atlasWidth - PADDING * 2;
-        private int maxHeight => atlasHeight - PADDING * 2;
+        private int maxFittableWidth => atlasWidth - PADDING * 2;
+        private int maxFittableHeight => atlasHeight - PADDING * 2;
 
         private Vector2I currentPosition;
 
@@ -102,11 +102,11 @@ namespace osu.Framework.Graphics.Textures
         private bool canFitEmptyTextureAtlas(int width, int height)
         {
             // exceeds bounds in one direction
-            if (width > maxWidth || height > maxHeight)
+            if (width > maxFittableWidth || height > maxFittableHeight)
                 return false;
 
             // exceeds bounds in both directions (in this one, we have to account for the white pixel)
-            if (width + WHITE_PIXEL_SIZE > maxWidth && height + WHITE_PIXEL_SIZE > maxHeight)
+            if (width + WHITE_PIXEL_SIZE > maxFittableWidth && height + WHITE_PIXEL_SIZE > maxFittableHeight)
                 return false;
 
             return true;
