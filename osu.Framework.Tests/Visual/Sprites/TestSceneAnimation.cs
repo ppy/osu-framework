@@ -166,6 +166,20 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Looped", () => animation.PlaybackPosition < animation.Duration - 1000);
         }
 
+        [Test]
+        public void TestTransformBeforeLoaded()
+        {
+            AddStep("set time to future", () => clock.CurrentTime += 10000);
+
+            loadNewAnimation(postLoadAction: a =>
+            {
+                a.Alpha = 0;
+                a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
+            });
+
+            AddAssert("Is visible", () => animation.Alpha > 0);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
@@ -179,20 +193,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
-        }
-
-        [Test]
-        public void TestTransformBeforeLoaded()
-        {
-            AddStep("set time to future", () => clock.CurrentTime += 10000);
-
-            loadNewAnimation(postLoadAction: a =>
-            {
-                a.Alpha = 0;
-                a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
-            });
-
-            AddAssert("Is visible", () => animation.Alpha > 0);
         }
 
         protected override void Update()
