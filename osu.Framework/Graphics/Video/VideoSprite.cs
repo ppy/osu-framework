@@ -176,6 +176,8 @@ namespace osu.Framework.Graphics.Video
         private void updateOffsetSource()
         {
             offsetClock.ChangeSource(sourceClock);
+            offsetClock.ProcessFrame();
+
             if (startAtCurrentTime)
                 offsetClock.Offset = -sourceClock.CurrentTime;
         }
