@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
-        private void loadNewAnimation(bool startFromCurrent = true)
+        private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
             {
@@ -60,6 +60,8 @@ namespace osu.Framework.Tests.Visual.Sprites
                 {
                     Repeat = false,
                 };
+
+                postLoadAction?.Invoke(animation);
             });
 
             AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
@@ -96,6 +98,13 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewAnimation();
 
             AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+        }
+
+        [Test]
+        public void TestStoppedAnimationIsAtZero()
+        {
+            loadNewAnimation(postLoadAction: a => a.Stop());
+            AddAssert("Animation is at start", () => animation.PlaybackPosition == 0);
         }
 
         [Test]
