@@ -93,6 +93,13 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestStoppedAnimationIsAtSpecifiedFrame()
+        {
+            loadNewAnimation(postLoadAction: a => a.GotoAndStop(2));
+            AddAssert("Animation is at specific frame", () => animation.PlaybackPosition == 500);
+        }
+
+        [Test]
         public void TestStartFromOngoingTime()
         {
             AddWaitStep("Wait some", 20);
