@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Timing;
 using osuTK;
@@ -81,12 +82,19 @@ namespace osu.Framework.Graphics.Animations
 
         private FramedOffsetClock offsetClock;
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            // set in BDL to ensure external operations get placed correctly (ie. a transform applied from a parent's LoadComplete.
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock ??= Clock); // set source here to avoid constructing unused StopwatchClock.
+            updateOffsetSource();
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            sourceClock ??= Clock;
-            base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
+            // run a second time to re-zero the clock.
             updateOffsetSource();
 
             if (CurrentFrameIndex > 0)
@@ -103,7 +111,7 @@ namespace osu.Framework.Graphics.Animations
             {
                 sourceClock = value;
 
-                if (IsLoaded)
+                if (LoadState >= LoadState.Loading)
                     updateOffsetSource();
             }
         }

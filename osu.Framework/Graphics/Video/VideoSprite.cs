@@ -144,20 +144,23 @@ namespace osu.Framework.Graphics.Video
             decoder.Looping = Loop;
             State.BindTo(decoder.State);
             decoder.StartDecoding();
+
+            // set in BDL to ensure external operations get placed correctly (ie. a transform applied from a parent's LoadComplete.
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock ??= Clock); // set source here to avoid constructing unused StopwatchClock.
+            updateOffsetSource();
         }
 
         #region Clock Implementation (shared between VideoSprite and Animation)
-
-        private FramedOffsetClock offsetClock;
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            sourceClock ??= Clock;
-            base.Clock = offsetClock = new FramedOffsetClock(sourceClock); // set source here to avoid constructing unused StopwatchClock.
+            // run a second time to re-zero the clock.
             updateOffsetSource();
         }
+
+        private FramedOffsetClock offsetClock;
 
         private IFrameBasedClock sourceClock;
 
@@ -176,6 +179,8 @@ namespace osu.Framework.Graphics.Video
         private void updateOffsetSource()
         {
             offsetClock.ChangeSource(sourceClock);
+            offsetClock.ProcessFrame();
+
             if (startAtCurrentTime)
                 offsetClock.Offset = -sourceClock.CurrentTime;
         }
