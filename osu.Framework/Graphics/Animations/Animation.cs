@@ -110,6 +110,8 @@ namespace osu.Framework.Graphics.Animations
         private void updateOffsetSource()
         {
             offsetClock.ChangeSource(sourceClock);
+            offsetClock.ProcessFrame();
+
             if (startAtCurrentTime)
                 offsetClock.Offset = -sourceClock.CurrentTime;
         }
