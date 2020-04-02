@@ -52,21 +52,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
-        private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
-        {
-            AddStep("load animation", () =>
-            {
-                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
-                {
-                    Repeat = false,
-                };
-
-                postLoadAction?.Invoke(animation);
-            });
-
-            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
-        }
-
         [Test]
         public void TestFrameSeeking()
         {
@@ -179,6 +164,35 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddWaitStep("Wait for playback", 10);
             AddUntilStep("Looped", () => animation.PlaybackPosition < animation.Duration - 1000);
+        }
+
+        [Test]
+        public void TestTransformBeforeLoaded()
+        {
+            AddStep("set time to future", () => clock.CurrentTime += 10000);
+
+            loadNewAnimation(postLoadAction: a =>
+            {
+                a.Alpha = 0;
+                a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
+            });
+
+            AddAssert("Is visible", () => animation.Alpha > 0);
+        }
+
+        private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
+        {
+            AddStep("load animation", () =>
+            {
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
+                {
+                    Repeat = false,
+                };
+
+                postLoadAction?.Invoke(animation);
+            });
+
+            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
         }
 
         protected override void Update()
