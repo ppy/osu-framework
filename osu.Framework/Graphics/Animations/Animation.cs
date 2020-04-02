@@ -90,7 +90,8 @@ namespace osu.Framework.Graphics.Animations
             updateOffsetSource();
 
             if (CurrentFrameIndex > 0)
-                offsetClock.Offset += frameData[CurrentFrameIndex].DisplayStartTime;
+                // there may be a seek pending from before LoadComplete.
+                gotoCurrentFrame();
         }
 
         private IFrameBasedClock sourceClock;
@@ -155,13 +156,15 @@ namespace osu.Framework.Graphics.Animations
         /// <param name="frameIndex">The zero-based index of the frame to display.</param>
         public void GotoFrame(int frameIndex)
         {
-            if (frameIndex < 0)
-                frameIndex = 0;
-            else if (frameIndex >= frameData.Count)
-                frameIndex = frameData.Count - 1;
+            CurrentFrameIndex = Math.Clamp(frameIndex, 0, frameData.Count);
 
             if (IsLoaded)
-                offsetClock.Offset = frameData[frameIndex].DisplayStartTime - offsetClock.Source.CurrentTime;
+                gotoCurrentFrame();
+        }
+
+        private void gotoCurrentFrame()
+        {
+            offsetClock.Offset = frameData[CurrentFrameIndex].DisplayStartTime - sourceClock.CurrentTime;
             currentFrameCache.Invalidate();
         }
 
