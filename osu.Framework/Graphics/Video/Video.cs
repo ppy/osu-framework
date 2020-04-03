@@ -121,8 +121,8 @@ namespace osu.Framework.Graphics.Video
             {
                 bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
                                     (!Loop ||
-                                     Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                     Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek
+                                     (Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
+                                      Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek)
                                     );
 
                 // we are too far ahead or too far behind
