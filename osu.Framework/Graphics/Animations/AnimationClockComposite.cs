@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.Animations
     {
         private readonly bool startAtCurrentTime;
 
+        private bool hasSeeked;
+
         private readonly ManualClock manualClock = new ManualClock();
 
         /// <summary>
@@ -43,8 +45,7 @@ namespace osu.Framework.Graphics.Animations
             set
             {
                 base.Clock = value;
-
-                manualClock.CurrentTime = !startAtCurrentTime ? Clock.CurrentTime : 0;
+                consumeClockTime();
             }
         }
 
@@ -52,8 +53,11 @@ namespace osu.Framework.Graphics.Animations
         {
             base.LoadComplete();
 
-            if (!startAtCurrentTime)
-                manualClock.CurrentTime = Clock.CurrentTime;
+            // always consume to zero out elapsed for update loop.
+            double elapsed = consumeClockTime();
+
+            if (!startAtCurrentTime && !hasSeeked)
+                manualClock.CurrentTime += elapsed;
         }
 
         protected internal override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(CreateContent)} instead.");
@@ -64,12 +68,14 @@ namespace osu.Framework.Graphics.Animations
         /// <returns></returns>
         public abstract Drawable CreateContent();
 
+        private double lastConsumedTime;
+
         protected override void Update()
         {
             base.Update();
 
             if (IsPlaying)
-                manualClock.CurrentTime += Time.Elapsed;
+                manualClock.CurrentTime += consumeClockTime();
         }
 
         /// <summary>
@@ -84,7 +90,11 @@ namespace osu.Framework.Graphics.Animations
 
                 return Math.Min(manualClock.CurrentTime, Duration);
             }
-            set => manualClock.CurrentTime = value;
+            set
+            {
+                hasSeeked = true;
+                manualClock.CurrentTime = value;
+            }
         }
 
         public double Duration { get; protected set; }
@@ -94,5 +104,12 @@ namespace osu.Framework.Graphics.Animations
         public virtual bool Loop { get; set; }
 
         public void Seek(double time) => PlaybackPosition = time;
+
+        private double consumeClockTime()
+        {
+            double elapsed = Time.Current - lastConsumedTime;
+            lastConsumedTime = Time.Current;
+            return elapsed;
+        }
     }
 }
