@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shaders;
@@ -19,7 +20,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a sprite that plays back a video from a stream or a file.
     /// </summary>
-    public class VideoSprite : Sprite
+    public class VideoSprite : Sprite, IAnimation
     {
         /// <summary>
         /// The duration of the video that is being played. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
@@ -27,14 +28,11 @@ namespace osu.Framework.Graphics.Video
         public double Duration => decoder?.Duration ?? 0;
 
         /// <summary>
-        /// True if the video has finished playing, false otherwise.
-        /// </summary>
-        public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
-
-        /// <summary>
         /// Whether this video is in a buffering state, waiting on decoder or underlying stream.
         /// </summary>
         public bool Buffering { get; private set; }
+
+        private bool loop;
 
         /// <summary>
         /// True if the video should loop after finishing its playback, false otherwise.
@@ -51,7 +49,9 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
-        private bool loop;
+        public bool IsPlaying { get; set; } = true;
+
+        public void Seek(double time) => offsetClock.Offset = time - sourceClock.CurrentTime;
 
         /// <summary>
         /// The current position of the video playback. The playback position is automatically calculated based on the clock of the VideoSprite.
@@ -190,6 +190,9 @@ namespace osu.Framework.Graphics.Video
         protected override void Update()
         {
             base.Update();
+
+            if (!IsPlaying)
+                offsetClock.Offset -= Time.Elapsed;
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
 

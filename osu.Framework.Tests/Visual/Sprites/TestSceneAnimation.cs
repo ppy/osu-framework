@@ -165,7 +165,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestAnimationLoopsIfEnabled()
         {
-            AddStep("Set looping", () => animation.Repeat = true);
+            AddStep("Set looping", () => animation.Loop = true);
             AddStep("Seek to end", () => clock.CurrentTime = animation.Duration - 2000);
             AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
 
@@ -193,7 +193,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             {
                 animationContainer.Child = animation = new TestAnimation(startFromCurrent)
                 {
-                    Repeat = false,
+                    Loop = false,
                 };
 
                 postLoadAction?.Invoke(animation);

@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Animations
     /// Represents a generic, frame-based animation. Inherit this class if you need custom animations.
     /// </summary>
     /// <typeparam name="T">The type of content in the frames of the animation.</typeparam>
-    public abstract class Animation<T> : CompositeDrawable, IAnimation
+    public abstract class Animation<T> : CompositeDrawable, IFramedAnimation
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Animations
         {
             get
             {
-                if (Repeat)
+                if (Loop)
                     return Clock.CurrentTime % Duration;
 
                 return Math.Min(Clock.CurrentTime, Duration);
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// True if the animation should start over from the first frame after finishing. False if it should stop playing and keep displaying the last frame when finishing.
         /// </summary>
-        public bool Repeat { get; set; }
+        public bool Loop { get; set; }
 
         public T CurrentFrame => frameData[CurrentFrameIndex].Content;
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Animations
 
             frameData = new List<FrameData<T>>();
             IsPlaying = true;
-            Repeat = true;
+            Loop = true;
         }
 
         #region Clock Implementation (shared between VideoSprite and Animation)
@@ -157,6 +157,8 @@ namespace osu.Framework.Graphics.Animations
                 Height = value.Y;
             }
         }
+
+        public void Seek(double time) => offsetClock.Offset = time - sourceClock.CurrentTime;
 
         /// <summary>
         /// Displays the frame with the given zero-based frame index.
