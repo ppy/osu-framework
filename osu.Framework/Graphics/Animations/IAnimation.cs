@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Animations
         public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
 
         /// <summary>
-        /// True if the animation is playing, false otherwise. Starts true.
+        /// True if the animation is playing, false otherwise. <c>true</c> by default.
         /// </summary>
         bool IsPlaying { get; set; }
 
