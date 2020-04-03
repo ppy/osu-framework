@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
@@ -13,7 +10,7 @@ using osuTK;
 namespace osu.Framework.Graphics.Video
 {
     /// <summary>
-    /// A sprite which holds a video with a custom conversion matrix.
+    /// A sprite which holds a video with a custom conversion matrix. Use <see cref="Video"/> for loading and displaying a video.
     /// </summary>
     public class VideoSprite : Sprite
     {
