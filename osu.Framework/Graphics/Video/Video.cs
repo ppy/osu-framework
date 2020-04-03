@@ -56,7 +56,6 @@ namespace osu.Framework.Graphics.Video
         private VideoDecoder decoder;
 
         private readonly Stream stream;
-        private readonly bool startAtCurrentTime;
 
         private readonly Queue<DecodedFrame> availableFrames = new Queue<DecodedFrame>();
 
@@ -80,9 +79,7 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new <see cref="Video"/>.
         /// </summary>
         /// <param name="filename">The video file.</param>
-        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.<br />
-        /// If <code>true</code>, the current clock time will be assumed as the 0th video frame. A custom <see cref="Clock"/> cannot be set.<br />
-        /// If <code>false</code>, a current clock time of 0 will be assumed as the 0th video frame. A custom <see cref="Clock"/> can be set.</param>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
         public Video(string filename, bool startAtCurrentTime = true)
             : this(File.OpenRead(filename), startAtCurrentTime)
         {
@@ -94,13 +91,10 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new <see cref="Video"/>.
         /// </summary>
         /// <param name="stream">The video file stream.</param>
-        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.<br />
-        /// If <code>true</code>, the current clock time will be assumed as the 0th video frame. A custom <see cref="Clock"/> cannot be set.<br />
-        /// If <code>false</code>, a current clock time of 0 will be assumed as the 0th video frame. A custom <see cref="Clock"/> can be set.</param>
+        /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
         public Video([NotNull] Stream stream, bool startAtCurrentTime = true)
         {
             this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            this.startAtCurrentTime = startAtCurrentTime;
         }
 
         [BackgroundDependencyLoader]
