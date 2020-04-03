@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Animations
     public interface IAnimation
     {
         /// <summary>
-        /// The duration of the animation. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
+        /// The duration of the animation.
         /// </summary>
         public double Duration { get; }
 
