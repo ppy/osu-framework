@@ -1622,7 +1622,7 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-                localBlending.CopyFromParent(Parent.Blending);
+                localBlending.CopyFromParent(ci.Blending);
 
             localBlending.ApplyDefaultToInherited();
 
