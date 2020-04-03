@@ -2,12 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Allocation;
 using osu.Framework.Caching;
-using osu.Framework.Timing;
+using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Graphics.Animations
@@ -16,7 +14,7 @@ namespace osu.Framework.Graphics.Animations
     /// Represents a generic, frame-based animation. Inherit this class if you need custom animations.
     /// </summary>
     /// <typeparam name="T">The type of content in the frames of the animation.</typeparam>
-    public abstract class Animation<T> : CompositeDrawable, IFramedAnimation
+    public abstract class Animation<T> : AnimationClockComposite, IFramedAnimation
     {
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
@@ -24,25 +22,7 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public double DefaultFrameLength = 1000.0 / 60.0;
 
-        /// <summary>
-        /// The current playback position of the animation, in milliseconds.
-        /// </summary>
-        public double PlaybackPosition
-        {
-            get
-            {
-                if (Loop)
-                    return Clock.CurrentTime % Duration;
-
-                return Math.Min(Clock.CurrentTime, Duration);
-            }
-        }
-
-        public double Duration { get; private set; }
-
         private readonly List<FrameData<T>> frameData;
-
-        private readonly bool startAtCurrentTime;
 
         /// <summary>
         /// The number of frames this animation has.
@@ -51,81 +31,20 @@ namespace osu.Framework.Graphics.Animations
 
         public int CurrentFrameIndex { get; private set; }
 
-        /// <summary>
-        /// True if the animation is playing, false otherwise.
-        /// </summary>
-        public bool IsPlaying { get; set; }
-
-        /// <summary>
-        /// True if the animation should start over from the first frame after finishing. False if it should stop playing and keep displaying the last frame when finishing.
-        /// </summary>
-        public bool Loop { get; set; }
-
         public T CurrentFrame => frameData[CurrentFrameIndex].Content;
 
         private readonly Cached currentFrameCache = new Cached();
 
         /// <summary>
-        /// Construct a new animation.
+        /// Construct a new animation which loops by default.
         /// </summary>
         /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th animation frame.</param>
         protected Animation(bool startAtCurrentTime = true)
+            : base(startAtCurrentTime)
         {
-            this.startAtCurrentTime = startAtCurrentTime;
-
             frameData = new List<FrameData<T>>();
-            IsPlaying = true;
             Loop = true;
         }
-
-        #region Clock Implementation (shared between VideoSprite and Animation)
-
-        private FramedOffsetClock offsetClock;
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            // set in BDL to ensure external operations get placed correctly (ie. a transform applied from a parent's LoadComplete.
-            base.Clock = offsetClock = new FramedOffsetClock(sourceClock ??= Clock, false); // set source here to avoid constructing unused StopwatchClock.
-            updateOffsetSource();
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            // run a second time to re-zero the clock.
-            updateOffsetSource();
-
-            if (CurrentFrameIndex > 0)
-                // there may be a seek pending from before LoadComplete.
-                gotoCurrentFrame();
-        }
-
-        private IFrameBasedClock sourceClock;
-
-        public override IFrameBasedClock Clock
-        {
-            get => base.Clock;
-            set
-            {
-                sourceClock = value;
-
-                if (LoadState >= LoadState.Loading)
-                    updateOffsetSource();
-            }
-        }
-
-        private void updateOffsetSource()
-        {
-            offsetClock.ChangeSource(sourceClock);
-            offsetClock.ProcessFrame();
-
-            if (startAtCurrentTime)
-                offsetClock.Offset = -sourceClock.CurrentTime;
-        }
-
-        #endregion
 
         private bool hasCustomWidth;
 
@@ -158,24 +77,13 @@ namespace osu.Framework.Graphics.Animations
             }
         }
 
-        public void Seek(double time) => offsetClock.Offset = time - sourceClock.CurrentTime;
-
         /// <summary>
         /// Displays the frame with the given zero-based frame index.
         /// </summary>
         /// <param name="frameIndex">The zero-based index of the frame to display.</param>
         public void GotoFrame(int frameIndex)
         {
-            CurrentFrameIndex = Math.Clamp(frameIndex, 0, frameData.Count);
-
-            if (IsLoaded)
-                gotoCurrentFrame();
-        }
-
-        private void gotoCurrentFrame()
-        {
-            offsetClock.Offset = frameData[CurrentFrameIndex].DisplayStartTime - sourceClock.CurrentTime;
-            currentFrameCache.Invalidate();
+            Seek(frameData[Math.Clamp(frameIndex, 0, frameData.Count)].DisplayStartTime);
         }
 
         /// <summary>
@@ -251,17 +159,23 @@ namespace osu.Framework.Graphics.Animations
         {
             base.Update();
 
-            if (!IsPlaying)
-                offsetClock.Offset -= Time.Elapsed;
-
             if (frameData.Count == 0) return;
 
+            updateFrameIndex();
+
+            if (!currentFrameCache.IsValid)
+                updateCurrentFrame();
+        }
+
+        private void updateFrameIndex()
+        {
             switch (PlaybackPosition.CompareTo(frameData[CurrentFrameIndex].DisplayStartTime))
             {
                 case -1:
                     while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayStartTime)
                     {
                         CurrentFrameIndex--;
+                        Logger.Log($"Frame decreased to {CurrentFrameIndex}");
                         currentFrameCache.Invalidate();
                     }
 
@@ -276,13 +190,11 @@ namespace osu.Framework.Graphics.Animations
 
                     break;
             }
-
-            if (!currentFrameCache.IsValid)
-                updateCurrentFrame();
         }
 
         private void updateCurrentFrame()
         {
+            Logger.Log($"Frame increased to {CurrentFrameIndex} {PlaybackPosition} (end {frameData[CurrentFrameIndex].DisplayEndTime})");
             var frame = CurrentFrame;
 
             if (RelativeSizeAxes != Axes.Both)

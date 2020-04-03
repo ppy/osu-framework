@@ -12,23 +12,21 @@ namespace osu.Framework.Graphics.Animations
     /// </summary>
     public class TextureAnimation : Animation<Texture>
     {
-        private readonly Sprite textureHolder;
+        private Sprite textureHolder;
 
         public TextureAnimation(bool startAtCurrentTime = true)
             : base(startAtCurrentTime)
         {
-            InternalChild = textureHolder = new Sprite
-            {
-                RelativeSizeAxes = Axes.Both,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
         }
 
-        protected override void DisplayFrame(Texture content)
+        public override Drawable CreateContent() => textureHolder = new Sprite
         {
-            textureHolder.Texture = content;
-        }
+            RelativeSizeAxes = Axes.Both,
+            Anchor = Anchor.Centre,
+            Origin = Anchor.Centre,
+        };
+
+        protected override void DisplayFrame(Texture content) => textureHolder.Texture = content;
 
         protected override Vector2 GetFrameSize(Texture content) => new Vector2(content?.DisplayWidth ?? 0, content?.DisplayHeight ?? 0);
     }

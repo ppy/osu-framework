@@ -23,7 +23,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(TextureAnimation),
-            typeof(Animation<>)
+            typeof(Animation<>),
+            typeof(AnimationClockComposite)
         };
 
         private ManualClock clock;
