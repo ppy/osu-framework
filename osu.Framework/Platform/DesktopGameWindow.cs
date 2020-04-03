@@ -69,7 +69,7 @@ namespace osu.Framework.Platform
         /// of six devices. These are defined in the <see cref="DisplayIndex"/> enum, and a call to
         /// <see cref="DisplayDevice.GetDisplay"/> with an invalid index will return null (which we skip).
         /// </summary>
-        public override IEnumerable<Display> Displays =>
+        protected override IEnumerable<Display> AvailableDisplays =>
             Enumerable.Range((int)DisplayIndex.First, 6)
                       .Select(index => DisplayDevice.GetDisplay((DisplayIndex)index))
                       .Where(x => x != null)

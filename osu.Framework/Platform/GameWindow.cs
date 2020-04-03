@@ -71,11 +71,22 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        public virtual IEnumerable<Display> Displays => new[] { PrimaryDisplay };
+        private readonly BindableList<Display> displays = new BindableList<Display>();
 
-        public virtual Display PrimaryDisplay => DisplayDevice.Default.ToDisplay();
+        public virtual IBindableList<Display> Displays => displays;
 
-        public virtual Display CurrentDisplay => CurrentDisplayDevice.ToDisplay();
+        private readonly Display[] availableDisplays;
+
+        /// <summary>
+        /// Provides an <see cref="IEnumerable{Display}"/> that will initialise the cached array
+        /// of available displays.
+        /// Defaults to an empty enumerable.
+        /// </summary>
+        protected virtual IEnumerable<Display> AvailableDisplays => Enumerable.Empty<Display>();
+
+        public virtual Display PrimaryDisplay => availableDisplays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
+
+        public virtual Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
         /// <summary>
         /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
@@ -99,6 +110,13 @@ namespace osu.Framework.Platform
         {
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
+
+            availableDisplays = AvailableDisplays.ToArray();
+            displays.AddRange(availableDisplays);
+            CurrentDisplay.Value = PrimaryDisplay;
+
+            Move += (sender, e) => checkCurrentDisplay();
+            Resize += (sender, e) => checkCurrentDisplay();
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
@@ -231,6 +249,13 @@ namespace osu.Framework.Platform
         {
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
             set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplayDevice)} cannot be set.");
+        }
+
+        private void checkCurrentDisplay()
+        {
+            int index = (int)CurrentDisplayDevice.GetIndex();
+            if (index != CurrentDisplay.Value?.Index)
+                CurrentDisplay.Value = AvailableDisplays.Skip(index).FirstOrDefault();
         }
 
         private string getVersionNumberSubstring(string version)
