@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Shaders;
 namespace osu.Framework.Graphics.Video
 {
     /// <summary>
-    /// Represents a sprite that plays back a video from a stream or a file.
+    /// Represents a composite that displays a video played back from a stream or a file.
     /// </summary>
     public class Video : AnimationClockComposite
     {
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         /// <summary>
-        /// True if this VideoSprites decoding process has faulted.
+        /// Whether the video decoding process has faulted.
         /// </summary>
         public bool IsFaulted => decoder?.IsFaulted ?? false;
 

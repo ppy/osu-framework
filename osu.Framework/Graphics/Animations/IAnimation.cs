@@ -9,12 +9,12 @@ namespace osu.Framework.Graphics.Animations
     public interface IAnimation
     {
         /// <summary>
-        /// The duration of the video that is being played. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
+        /// The duration of the animation. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
         public double Duration { get; }
 
         /// <summary>
-        /// True if the video has finished playing, false otherwise.
+        /// True if the animation has finished playing, false otherwise.
         /// </summary>
         public bool FinishedPlaying => !Loop && PlaybackPosition > Duration;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Seek the animation to a specific time value.
         /// </summary>
-        /// <param name="time"></param>
+        /// <param name="time">The time value to seek to.</param>
         void Seek(double time);
 
         /// <summary>

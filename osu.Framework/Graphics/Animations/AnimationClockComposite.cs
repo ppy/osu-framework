@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -65,7 +62,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Create the content container for animation display.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The container providing the content to be added into this <see cref="AnimationClockComposite"/>'s hierarchy.</returns>
         public abstract Drawable CreateContent();
 
         private double lastConsumedTime;
