@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics.Animations
     /// <summary>
     /// This class holds various extension methods for the <see cref="IFramedAnimation"/> interface.
     /// </summary>
-    public static class AnimationExtensions
+    public static class FramedAnimationExtensions
     {
         /// <summary>
         /// Displays the frame with the given zero-based frame index and stops the animation at that frame.
