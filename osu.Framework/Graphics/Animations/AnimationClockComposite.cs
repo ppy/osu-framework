@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Animations
     {
         private readonly bool startAtCurrentTime;
 
-        private ManualClock manualClock;
+        private readonly ManualClock manualClock = new ManualClock();
 
         /// <summary>
         /// Construct a new animation.
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Animations
             base.AddInternal(new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Clock = new FramedClock(manualClock = new ManualClock()),
+                Clock = new FramedClock(manualClock),
                 Child = CreateContent()
             });
         }
@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics.Animations
 
                 return Math.Min(manualClock.CurrentTime, Duration);
             }
+            set => manualClock.CurrentTime = value;
         }
 
         public double Duration { get; protected set; }
@@ -92,6 +93,6 @@ namespace osu.Framework.Graphics.Animations
 
         public virtual bool Loop { get; set; }
 
-        public void Seek(double time) => manualClock.CurrentTime = time;
+        public void Seek(double time) => PlaybackPosition = time;
     }
 }

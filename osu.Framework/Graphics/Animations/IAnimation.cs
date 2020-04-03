@@ -37,6 +37,6 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// The current position of playback.
         /// </summary>
-        public double PlaybackPosition { get; }
+        public double PlaybackPosition { get; set; }
     }
 }
