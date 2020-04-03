@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -114,7 +115,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
-        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
+        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>(Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>());
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
