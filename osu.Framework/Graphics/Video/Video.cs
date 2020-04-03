@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shaders;
+using osuTK;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -73,7 +74,12 @@ namespace osu.Framework.Graphics.Video
 
         private bool isDisposed;
 
-        protected VideoSprite Sprite;
+        internal VideoSprite Sprite;
+
+        /// <summary>
+        /// YUV->RGB conversion matrix based on the video colorspace
+        /// </summary>
+        public Matrix3 ConversionMatrix => decoder.GetConversionMatrix();
 
         /// <summary>
         /// Creates a new <see cref="Video"/>.
@@ -85,7 +91,7 @@ namespace osu.Framework.Graphics.Video
         {
         }
 
-        public override Drawable CreateContent() => Sprite = new VideoSprite();
+        public override Drawable CreateContent() => Sprite = new VideoSprite(this);
 
         /// <summary>
         /// Creates a new <see cref="Video"/>.
@@ -104,9 +110,6 @@ namespace osu.Framework.Graphics.Video
             decoder.Looping = Loop;
             State.BindTo(decoder.State);
             decoder.StartDecoding();
-
-            // must be set post-construction (ie. can't be in CreateContent) due to load order.
-            Sprite.Decoder = decoder;
 
             Duration = decoder.Duration;
         }

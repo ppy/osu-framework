@@ -5,16 +5,20 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osuTK;
 
 namespace osu.Framework.Graphics.Video
 {
     /// <summary>
-    /// A sprite which holds a video with a custom conversion matrix. Use <see cref="Video"/> for loading and displaying a video.
+    /// A sprite which holds a video with a custom conversion matrix.
     /// </summary>
-    public class VideoSprite : Sprite
+    internal class VideoSprite : Sprite
     {
-        public VideoDecoder Decoder;
+        private readonly Video video;
+
+        public VideoSprite(Video video)
+        {
+            this.video = video;
+        }
 
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost, ShaderManager shaders)
@@ -23,11 +27,6 @@ namespace osu.Framework.Graphics.Video
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.VIDEO_ROUNDED);
         }
 
-        /// <summary>
-        /// YUV->RGB conversion matrix based on the video colorspace
-        /// </summary>
-        public Matrix3 ConversionMatrix => Decoder.GetConversionMatrix();
-
-        protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(this);
+        protected override DrawNode CreateDrawNode() => new VideoSpriteDrawNode(video);
     }
 }

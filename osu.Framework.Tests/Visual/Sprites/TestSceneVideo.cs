@@ -213,7 +213,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             private bool? useRoundedShader;
 
             public TestVideoSpriteDrawNode(TestVideo source)
-                : base(source.Sprite)
+                : base(source)
             {
                 this.source = source;
             }
