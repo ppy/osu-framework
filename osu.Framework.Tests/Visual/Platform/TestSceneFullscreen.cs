@@ -7,10 +7,13 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -18,12 +21,13 @@ namespace osu.Framework.Tests.Visual.Platform
     {
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
-        private readonly SpriteText currentDisplay = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
+        private readonly Dropdown<Display> displaysDropdown;
 
         private IWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+        private readonly IBindableList<Display> displays = new BindableList<Display>();
 
         public TestSceneFullscreen()
         {
@@ -31,13 +35,19 @@ namespace osu.Framework.Tests.Visual.Platform
 
             Child = new FillFlowContainer
             {
-                Children = new[]
+                Padding = new MarginPadding(10),
+                Spacing = new Vector2(10),
+                Children = new Drawable[]
                 {
                     currentBindableSize,
                     currentActualSize,
                     currentWindowMode,
                     supportedWindowModes,
-                    currentDisplay
+                    displaysDropdown = new BasicDropdown<Display>
+                    {
+                        ItemSource = displays,
+                        Width = 600,
+                    }
                 },
             };
 
@@ -60,6 +70,10 @@ namespace osu.Framework.Tests.Visual.Platform
 
             if (window == null)
                 return;
+
+            displays.BindTo(window.Displays);
+            displaysDropdown.ItemSource = displays;
+            displaysDropdown.Current.BindTo(window.CurrentDisplay);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
@@ -113,7 +127,6 @@ namespace osu.Framework.Tests.Visual.Platform
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
-            currentDisplay.Text = $"Current display device: {window?.CurrentDisplay}";
         }
     }
 }
