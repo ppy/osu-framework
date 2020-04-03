@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a sprite that plays back a video from a stream or a file.
     /// </summary>
-    public class Video : AnimationClockComposite, IAnimation
+    public class Video : AnimationClockComposite
     {
         /// <summary>
         /// Whether this video is in a buffering state, waiting on decoder or underlying stream.
