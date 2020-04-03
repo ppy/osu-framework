@@ -23,7 +23,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(TextureAnimation),
-            typeof(Animation<>)
+            typeof(Animation<>),
+            typeof(AnimationClockComposite)
         };
 
         private ManualClock clock;
@@ -116,9 +117,13 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
 
+            double posBefore = 0;
+
+            AddStep("store position", () => posBefore = animation.PlaybackPosition);
+
             AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
 
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation continued playing at current position", () => animation.PlaybackPosition - posBefore < 1000);
         }
 
         [Test]
@@ -165,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestAnimationLoopsIfEnabled()
         {
-            AddStep("Set looping", () => animation.Repeat = true);
+            AddStep("Set looping", () => animation.Loop = true);
             AddStep("Seek to end", () => clock.CurrentTime = animation.Duration - 2000);
             AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
 
@@ -176,7 +181,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestTransformBeforeLoaded()
         {
-            AddStep("set time to future", () => clock.CurrentTime += 10000);
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
 
             loadNewAnimation(postLoadAction: a =>
             {
@@ -187,13 +192,26 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("Is visible", () => animation.Alpha > 0);
         }
 
+        [Test]
+        public void TestStartFromFutureTimeWithInitialSeek()
+        {
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
+
+            loadNewAnimation(false, a =>
+            {
+                a.PlaybackPosition = -10000;
+            });
+
+            AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
             {
                 animationContainer.Child = animation = new TestAnimation(startFromCurrent)
                 {
-                    Repeat = false,
+                    Loop = false,
                 };
 
                 postLoadAction?.Invoke(animation);

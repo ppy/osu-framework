@@ -20,7 +20,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
-    public class TestSceneVideoSprite : FrameworkTestScene
+    public class TestSceneVideo : FrameworkTestScene
     {
         private readonly Container videoContainer;
         private readonly SpriteText timeText;
@@ -30,10 +30,10 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private readonly ManualClock clock;
 
-        private TestVideoSprite videoSprite;
+        private TestVideo video;
         private MemoryStream videoStream;
 
-        public TestSceneVideoSprite()
+        public TestSceneVideo()
         {
             Children = new Drawable[]
             {
@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("Reset clock", () => clock.CurrentTime = 0);
             loadNewVideo();
-            AddUntilStep("Wait for video to load", () => videoSprite.IsLoaded);
+            AddUntilStep("Wait for video to load", () => video.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
         }
 
@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 localStream.Seek(0, SeekOrigin.Begin);
 
-                videoContainer.Child = videoSprite = new TestVideoSprite(localStream)
+                videoContainer.Child = video = new TestVideo(localStream)
                 {
                     Loop = false,
                 };
@@ -92,58 +92,58 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestStartFromCurrentTime()
         {
-            AddAssert("Video is near start", () => videoSprite.PlaybackPosition < 1000);
+            AddAssert("Video is near start", () => video.PlaybackPosition < 1000);
 
             AddWaitStep("Wait some", 20);
 
             loadNewVideo();
 
-            AddAssert("Video is near start", () => videoSprite.PlaybackPosition < 1000);
+            AddAssert("Video is near start", () => video.PlaybackPosition < 1000);
         }
 
         [Test]
         public void TestJumpForward()
         {
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
-            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= 10000);
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 10000);
         }
 
         [Test]
         public void TestJumpBack()
         {
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
-            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= 30000);
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
 
             AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
-            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition < 30000);
+            AddUntilStep("Video seeked", () => video.PlaybackPosition < 30000);
         }
 
         [Test]
         public void TestVideoDoesNotLoopIfDisabled()
         {
-            AddStep("Seek to end", () => clock.CurrentTime = videoSprite.Duration);
-            AddUntilStep("Video seeked", () => videoSprite.PlaybackPosition >= videoSprite.Duration - 1000);
+            AddStep("Seek to end", () => clock.CurrentTime = video.Duration);
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= video.Duration - 1000);
 
             AddWaitStep("Wait for playback", 10);
-            AddAssert("Not looped", () => videoSprite.PlaybackPosition >= videoSprite.Duration - 1000);
+            AddAssert("Not looped", () => video.PlaybackPosition >= video.Duration - 1000);
         }
 
         [Test]
         public void TestVideoLoopsIfEnabled()
         {
-            AddStep("Set looping", () => videoSprite.Loop = true);
-            AddStep("Seek to end", () => clock.CurrentTime = videoSprite.Duration);
+            AddStep("Set looping", () => video.Loop = true);
+            AddStep("Seek to end", () => clock.CurrentTime = video.Duration);
 
             AddWaitStep("Wait for playback", 10);
-            AddUntilStep("Looped", () => videoSprite.PlaybackPosition < videoSprite.Duration - 1000);
+            AddUntilStep("Looped", () => video.PlaybackPosition < video.Duration - 1000);
         }
 
         [Test]
         public void TestShader()
         {
-            AddStep("Set colour", () => videoSprite.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
-            AddStep("Use normal shader", () => videoSprite.UseRoundedShader = false);
-            AddStep("Use rounded shader", () => videoSprite.UseRoundedShader = true);
+            AddStep("Set colour", () => video.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
+            AddStep("Use normal shader", () => video.UseRoundedShader = false);
+            AddStep("Use rounded shader", () => video.UseRoundedShader = true);
         }
 
         private int currentSecond;
@@ -157,35 +157,37 @@ namespace osu.Framework.Tests.Visual.Sprites
             if (clock != null)
                 clock.CurrentTime += Clock.ElapsedFrameTime;
 
-            if (videoSprite != null)
+            if (video != null)
             {
-                var newSecond = (int)(videoSprite.PlaybackPosition / 1000.0);
+                var newSecond = (int)(video.PlaybackPosition / 1000.0);
 
                 if (newSecond != currentSecond)
                 {
                     currentSecond = newSecond;
-                    fps = videoSprite.FramesProcessed - lastFramesProcessed;
-                    lastFramesProcessed = videoSprite.FramesProcessed;
+                    fps = video.FramesProcessed - lastFramesProcessed;
+                    lastFramesProcessed = video.FramesProcessed;
                 }
 
                 if (timeText != null)
                 {
-                    timeText.Text = $"aim time: {videoSprite.PlaybackPosition:N2} | "
-                                    + $"video time: {videoSprite.CurrentFrameTime:N2} | "
-                                    + $"duration: {videoSprite.Duration:N2} | "
-                                    + $"buffered {videoSprite.AvailableFrames} | "
+                    timeText.Text = $"aim time: {video.PlaybackPosition:N2} | "
+                                    + $"video time: {video.CurrentFrameTime:N2} | "
+                                    + $"duration: {video.Duration:N2} | "
+                                    + $"buffered {video.AvailableFrames} | "
                                     + $"FPS: {fps} | "
                                     + $"State: {decoderState.Value}";
                 }
             }
         }
 
-        private class TestVideoSprite : VideoSprite
+        private class TestVideo : Video
         {
-            public TestVideoSprite([NotNull] Stream stream, bool startAtCurrentTime = true)
+            public TestVideo([NotNull] Stream stream, bool startAtCurrentTime = true)
                 : base(stream, startAtCurrentTime)
             {
             }
+
+            public new VideoSprite Sprite => base.Sprite;
 
             private bool? useRoundedShader;
 
@@ -204,20 +206,23 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class TestVideoSpriteDrawNode : VideoSpriteDrawNode
         {
+            private readonly TestVideo source;
+
             protected override bool RequiresRoundedShader => useRoundedShader ?? base.RequiresRoundedShader;
 
             private bool? useRoundedShader;
 
-            public TestVideoSpriteDrawNode(VideoSprite source)
+            public TestVideoSpriteDrawNode(TestVideo source)
                 : base(source)
             {
+                this.source = source;
             }
 
             public override void ApplyState()
             {
                 base.ApplyState();
 
-                useRoundedShader = ((TestVideoSprite)Source).UseRoundedShader;
+                useRoundedShader = source.UseRoundedShader;
             }
         }
     }
