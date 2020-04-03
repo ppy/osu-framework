@@ -108,9 +108,9 @@ namespace osu.Framework.Tests.Visual.Platform
             // show the available displays
             AddStep("query Window.Displays", () =>
             {
-                var displays = window.Displays.ToArray();
-                Logger.Log($"Available displays: {displays.Length}");
-                displays.ForEach(display =>
+                var displaysArray = window.Displays.ToArray();
+                Logger.Log($"Available displays: {displaysArray.Length}");
+                displaysArray.ForEach(display =>
                 {
                     Logger.Log(display.ToString());
                     display.DisplayModes.ForEach(mode => Logger.Log($"-- {mode}"));
