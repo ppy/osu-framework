@@ -3,12 +3,21 @@
 
 namespace osu.Framework.Timing
 {
+    /// <summary>
+    /// A framed clock which allows an offset to be added or subtracted from an underlying source clock's time.
+    /// </summary>
     public class FramedOffsetClock : FramedClock
     {
-        private double offset;
-
         public override double CurrentTime => base.CurrentTime + offset;
 
+        private double offset;
+
+        /// <summary>
+        /// The offset to be applied.
+        /// </summary>
+        /// <remarks>
+        /// A positive offset will move time forward.
+        /// </remarks>
         public double Offset
         {
             get => offset;
@@ -19,8 +28,8 @@ namespace osu.Framework.Timing
             }
         }
 
-        public FramedOffsetClock(IClock source)
-            : base(source)
+        public FramedOffsetClock(IClock source, bool processSource = true)
+            : base(source, processSource)
         {
         }
     }

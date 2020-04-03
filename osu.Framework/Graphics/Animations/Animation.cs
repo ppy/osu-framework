@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Animations
         private void load()
         {
             // set in BDL to ensure external operations get placed correctly (ie. a transform applied from a parent's LoadComplete.
-            base.Clock = offsetClock = new FramedOffsetClock(sourceClock ??= Clock); // set source here to avoid constructing unused StopwatchClock.
+            base.Clock = offsetClock = new FramedOffsetClock(sourceClock ??= Clock, false); // set source here to avoid constructing unused StopwatchClock.
             updateOffsetSource();
         }
 
