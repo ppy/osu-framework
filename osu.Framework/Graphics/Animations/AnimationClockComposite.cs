@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Animations
 
         public bool IsPlaying { get; set; } = true;
 
-        public bool Loop { get; set; }
+        public virtual bool Loop { get; set; }
 
         public void Seek(double time) => manualClock.CurrentTime = time;
     }
