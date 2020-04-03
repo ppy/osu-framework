@@ -145,14 +145,32 @@ namespace osu.Framework.Platform
             }
         }
 
-        public IEnumerable<Display> Displays =>
-            Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
+        private Display[] displays = Array.Empty<Display>();
 
-        public Display PrimaryDisplay => displayFromSDL(0);
+        public IEnumerable<Display> Displays => displays;
 
-        public Display CurrentDisplay => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
+        public Display PrimaryDisplay => displays.First();
 
-        public DisplayMode CurrentDisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
+        private int previousDisplayIndex = -1;
+
+        public Display CurrentDisplay
+        {
+            get => Displays.Skip(currentDisplayIndex).First();
+            set
+            {
+                if (value.Index == currentDisplayIndex)
+                    return;
+
+                scheduler.Add(() =>
+                {
+                    int x = value.Bounds.Left + value.Bounds.Width / 2 - implementation.Width / 2;
+                    int y = value.Bounds.Top + value.Bounds.Height / 2 - implementation.Height / 2;
+                    Sdl2Native.SDL_SetWindowPosition(SdlWindowHandle, x, y);
+                });
+            }
+        }
+
+        public DisplayMode CurrentDisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(currentDisplayIndex));
 
         private static Display displayFromSDL(int displayIndex)
         {
@@ -168,6 +186,8 @@ namespace osu.Framework.Platform
             Sdl2Functions.SDL_PixelFormatEnumToMasks(mode.Format, out var bpp, out _, out _, out _, out _);
             return new DisplayMode(Sdl2Functions.SDL_GetPixelFormatName(mode.Format), new Size(mode.Width, mode.Height), bpp, mode.RefreshRate);
         }
+
+        private int currentDisplayIndex => Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle);
 
         #endregion
 
@@ -193,6 +213,7 @@ namespace osu.Framework.Platform
         public event Action<KeyboardKeyInput> KeyUp;
         public event Action<char> KeyTyped;
         public event Action<string> DragDrop;
+        public event Action<Display> DisplayChanged;
 
         #endregion
 
@@ -218,6 +239,7 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
+        protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
 
         #endregion
 
@@ -236,6 +258,8 @@ namespace osu.Framework.Platform
             scale.Invalidate();
             Size = size;
             Position = position;
+
+            displays = Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
 
             implementation.MouseDown += implementation_OnMouseDown;
             implementation.MouseUp += implementation_OnMouseUp;
@@ -289,8 +313,11 @@ namespace osu.Framework.Platform
         /// <param name="key">The key to validate.</param>
         private bool isKeyValid(Veldrid.Key key) => key != Veldrid.Key.Unknown && key != Veldrid.Key.CapsLock;
 
-        private void implementation_OnMoved(Veldrid.Point point) =>
+        private void implementation_OnMoved(Veldrid.Point point)
+        {
+            checkCurrentDisplay();
             OnMoved(new Point(point.X, point.Y));
+        }
 
         private void implementation_OnMouseWheel(MouseWheelEventArgs args) =>
             OnMouseWheel(new MouseScrollRelativeInput { Delta = new TKVector2(0, args.WheelDelta) });
@@ -321,10 +348,24 @@ namespace osu.Framework.Platform
 
         private void implementation_Resized()
         {
+            scale.Invalidate();
+
+            checkCurrentDisplay();
+
             if (implementation.WindowState.ToFramework() != windowState)
                 OnWindowStateChanged();
 
             OnResized();
+        }
+
+        private void checkCurrentDisplay()
+        {
+            if (previousDisplayIndex == currentDisplayIndex)
+                return;
+
+            scale.Invalidate();
+            previousDisplayIndex = currentDisplayIndex;
+            OnDisplayChanged(CurrentDisplay);
         }
 
         private static SDL_WindowFlags getWindowFlags(WindowState state)

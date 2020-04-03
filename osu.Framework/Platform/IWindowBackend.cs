@@ -76,7 +76,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Gets the <see cref="Display"/> that this window is currently on.
         /// </summary>
-        Display CurrentDisplay { get; }
+        Display CurrentDisplay { get; set; }
 
         /// <summary>
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
@@ -186,6 +186,11 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         event Action<string> DragDrop;
+
+        /// <summary>
+        /// Invoked when the current display changes.
+        /// </summary>
+        event Action<Display> DisplayChanged;
 
         #endregion
 

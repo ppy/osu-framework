@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using osu.Framework.Bindables;
@@ -56,14 +55,11 @@ namespace osu.Framework.Platform
         /// </summary>
         public float Scale => windowBackend.Scale;
 
-        public IEnumerable<Display> Displays => windowBackend.Displays;
-
         public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
 
-        public Display CurrentDisplay => windowBackend.CurrentDisplay;
-
         public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
-        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
+
+        public WindowMode DefaultWindowMode => WindowMode.Windowed;
 
         #endregion
 
@@ -94,6 +90,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public Bindable<bool> Visible { get; } = new BindableBool();
 
+        public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
+
         #endregion
 
         #region Immutable Bindables
@@ -119,6 +117,10 @@ namespace osu.Framework.Platform
         public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
+
+        private readonly BindableList<Display> displays = new BindableList<Display>();
+
+        public IBindableList<Display> Displays => displays;
 
         #endregion
 
@@ -288,6 +290,8 @@ namespace osu.Framework.Platform
 
             windowBackend.Create();
 
+            displays.AddRange(windowBackend.Displays);
+
             windowBackend.Resized += windowBackend_Resized;
             windowBackend.WindowStateChanged += () => WindowState.Value = windowBackend.WindowState;
             windowBackend.Moved += windowBackend_Moved;
@@ -311,7 +315,12 @@ namespace osu.Framework.Platform
             windowBackend.MouseWheel += OnMouseWheel;
             windowBackend.DragDrop += OnDragDrop;
 
+            windowBackend.DisplayChanged += d => CurrentDisplay.Value = d;
+
             graphicsBackend.Initialise(windowBackend);
+
+            CurrentDisplay.Value = windowBackend.CurrentDisplay;
+            CurrentDisplay.ValueChanged += evt => this.windowBackend.CurrentDisplay = evt.NewValue;
         }
 
         #endregion

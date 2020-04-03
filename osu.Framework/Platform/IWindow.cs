@@ -77,9 +77,10 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
-        /// Queries the physical displays and their supported resolutions.
+        /// Exposes the physical displays as an <see cref="IBindableList{Display}"/>.
+        /// This is queried a single time on startup.
         /// </summary>
-        IEnumerable<Display> Displays { get; }
+        IBindableList<Display> Displays { get; }
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
@@ -87,9 +88,9 @@ namespace osu.Framework.Platform
         Display PrimaryDisplay { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Exposes the <see cref="Display"/> that this window is currently on as a <see cref="Bindable{Display}"/>.
         /// </summary>
-        Display CurrentDisplay { get; }
+        Bindable<Display> CurrentDisplay { get; }
 
         /// <summary>
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
