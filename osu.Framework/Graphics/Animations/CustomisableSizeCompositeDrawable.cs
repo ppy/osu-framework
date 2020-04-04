@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Animations
         /// <returns>The size of current content.</returns>
         protected abstract Vector2 GetCurrentDisplaySize();
 
-        protected void UpdateSizing()
+        protected virtual void UpdateSizing()
         {
             if (RelativeSizeAxes == Axes.Both) return;
 

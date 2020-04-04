@@ -181,6 +181,14 @@ namespace osu.Framework.Graphics.Video
                 f.Texture.Dispose();
         }
 
+        protected override void UpdateSizing()
+        {
+            base.UpdateSizing();
+
+            // transfer fill mode to handle as one would expect.
+            Sprite.FillMode = FillMode;
+        }
+
         protected override Vector2 GetCurrentDisplaySize() =>
             new Vector2(Sprite.Texture?.DisplayWidth ?? 0, Sprite.Texture?.DisplayHeight ?? 0);
     }
