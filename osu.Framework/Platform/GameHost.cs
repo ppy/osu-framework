@@ -731,11 +731,7 @@ namespace osu.Framework.Platform
                 if (Window == null)
                     return;
 
-                float refreshRate;
-                if (Window is GameWindow gameWindow)
-                    refreshRate = gameWindow.CurrentDisplayDevice?.RefreshRate ?? 0;
-                else
-                    refreshRate = Window.CurrentDisplayMode.RefreshRate;
+                float refreshRate = Window.CurrentDisplayMode.RefreshRate;
 
                 // For invalid refresh rates let's assume 60 Hz as it is most common.
                 if (refreshRate <= 0)
