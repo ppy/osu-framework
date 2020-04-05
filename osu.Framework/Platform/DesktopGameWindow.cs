@@ -81,6 +81,9 @@ namespace osu.Framework.Platform
         {
             Resize += OnResize;
             Move += OnMove;
+
+            CurrentDisplay.ValueChanged += evt =>
+                UpdateFrameScheduler.Add(() => CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)evt.NewValue.Index));
         }
 
         public virtual void SetIconFromStream(Stream stream)
