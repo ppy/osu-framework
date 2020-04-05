@@ -16,6 +16,7 @@ using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Threading;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
@@ -51,6 +52,8 @@ namespace osu.Framework.Platform
         internal readonly bool IsEmbedded;
 
         protected readonly IGameWindow Implementation;
+
+        protected readonly Scheduler UpdateFrameScheduler = new Scheduler();
 
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
@@ -128,15 +131,8 @@ namespace osu.Framework.Platform
 
             supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
-            bool firstUpdate = true;
-            UpdateFrame += (o, e) =>
-            {
-                if (firstUpdate)
-                {
-                    isActive.Value = Focused;
-                    firstUpdate = false;
-                }
-            };
+            UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
+            UpdateFrameScheduler.Add(() => isActive.Value = Focused);
 
             WindowStateChanged += (o, e) => isActive.Value = WindowState != osuTK.WindowState.Minimized;
 
