@@ -8,7 +8,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Animations
 {
-    public abstract class AnimationClockComposite : CompositeDrawable, IAnimation
+    public abstract class AnimationClockComposite : CustomisableSizeCompositeDrawable, IAnimation
     {
         private readonly bool startAtCurrentTime;
 

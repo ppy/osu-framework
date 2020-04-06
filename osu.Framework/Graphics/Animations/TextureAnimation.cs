@@ -28,6 +28,15 @@ namespace osu.Framework.Graphics.Animations
 
         protected override void DisplayFrame(Texture content) => textureHolder.Texture = content;
 
-        protected override Vector2 GetFrameSize(Texture content) => new Vector2(content?.DisplayWidth ?? 0, content?.DisplayHeight ?? 0);
+        protected override void UpdateSizing()
+        {
+            base.UpdateSizing();
+
+            // transfer fill mode to handle as one would expect.
+            textureHolder.FillMode = FillMode;
+        }
+
+        protected override Vector2 GetCurrentDisplaySize() =>
+            new Vector2(textureHolder.Texture?.DisplayWidth ?? 0, textureHolder.Texture?.DisplayHeight ?? 0);
     }
 }

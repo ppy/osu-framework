@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -14,7 +11,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
-using osu.Framework.IO.Network;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -22,18 +18,18 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestSceneVideo : FrameworkTestScene
     {
-        private readonly Container videoContainer;
-        private readonly SpriteText timeText;
+        private Container videoContainer;
+        private SpriteText timeText;
         private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(VideoSpriteDrawNode) };
 
-        private readonly ManualClock clock;
+        private ManualClock clock;
 
         private TestVideo video;
-        private MemoryStream videoStream;
 
-        public TestSceneVideo()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Children = new Drawable[]
             {
@@ -42,23 +38,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                     RelativeSizeAxes = Axes.Both,
                     Clock = new FramedClock(clock = new ManualClock()),
                 },
-                timeText = new SpriteText { Text = "Video is loading..." }
+                timeText = new SpriteText
+                {
+                    Text = "Video is loading...",
+                    Font = FrameworkFont.Condensed.With()
+                }
             };
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
-            wr.PerformAsync();
-
-            while (!wr.Completed)
-                Thread.Sleep(100);
-
-            videoStream = new MemoryStream();
-            wr.ResponseStream.CopyTo(videoStream);
-
-            timeText.Font = FrameworkFont.Condensed.With(fixedWidth: true);
         }
 
         [SetUpSteps]
@@ -74,18 +59,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("load video", () =>
             {
-                videoStream.Seek(0, SeekOrigin.Begin);
-
-                // Gets disposed when the video decoder/sprite is disposed
-                var localStream = new MemoryStream();
-                videoStream.CopyTo(localStream);
-
-                localStream.Seek(0, SeekOrigin.Begin);
-
-                videoContainer.Child = video = new TestVideo(localStream)
-                {
-                    Loop = false,
-                };
+                videoContainer.Child = video = new TestVideo { Loop = false, };
             });
         }
 
@@ -177,52 +151,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     + $"FPS: {fps} | "
                                     + $"State: {decoderState.Value}";
                 }
-            }
-        }
-
-        private class TestVideo : Video
-        {
-            public TestVideo([NotNull] Stream stream, bool startAtCurrentTime = true)
-                : base(stream, startAtCurrentTime)
-            {
-            }
-
-            public new VideoSprite Sprite => base.Sprite;
-
-            private bool? useRoundedShader;
-
-            public bool? UseRoundedShader
-            {
-                get => useRoundedShader;
-                set
-                {
-                    useRoundedShader = value;
-                    Invalidate(Invalidation.DrawNode);
-                }
-            }
-
-            protected override DrawNode CreateDrawNode() => new TestVideoSpriteDrawNode(this);
-        }
-
-        private class TestVideoSpriteDrawNode : VideoSpriteDrawNode
-        {
-            private readonly TestVideo source;
-
-            protected override bool RequiresRoundedShader => useRoundedShader ?? base.RequiresRoundedShader;
-
-            private bool? useRoundedShader;
-
-            public TestVideoSpriteDrawNode(TestVideo source)
-                : base(source)
-            {
-                this.source = source;
-            }
-
-            public override void ApplyState()
-            {
-                base.ApplyState();
-
-                useRoundedShader = source.UseRoundedShader;
             }
         }
     }
