@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Graphics.Animations
@@ -175,7 +174,6 @@ namespace osu.Framework.Graphics.Animations
                     while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayStartTime)
                     {
                         CurrentFrameIndex--;
-                        Logger.Log($"Frame decreased to {CurrentFrameIndex}");
                         currentFrameCache.Invalidate();
                     }
 
@@ -194,7 +192,6 @@ namespace osu.Framework.Graphics.Animations
 
         private void updateCurrentFrame()
         {
-            Logger.Log($"Frame increased to {CurrentFrameIndex} {PlaybackPosition} (end {frameData[CurrentFrameIndex].DisplayEndTime})");
             var frame = CurrentFrame;
 
             if (RelativeSizeAxes != Axes.Both)
