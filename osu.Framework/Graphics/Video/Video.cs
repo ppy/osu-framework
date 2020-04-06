@@ -99,6 +99,7 @@ namespace osu.Framework.Graphics.Video
         /// <param name="stream">The video file stream.</param>
         /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
         public Video([NotNull] Stream stream, bool startAtCurrentTime = true)
+            : base(startAtCurrentTime)
         {
             this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
