@@ -15,5 +15,10 @@ namespace osu.Framework.Testing
         /// A list of types which may be edited and should be included during recompilation.
         /// </summary>
         IReadOnlyList<Type> RequiredTypes { get; }
+
+        /// <summary>
+        /// A reference to the original instance.
+        /// </summary>
+        object DynamicCompilationOriginal { get; }
     }
 }

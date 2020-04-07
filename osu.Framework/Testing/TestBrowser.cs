@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -415,13 +416,19 @@ namespace osu.Framework.Testing
 
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
+            Debug.Assert(newTest != null);
+
             const string dynamic_prefix = "dynamic";
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
+            {
                 toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
+            }
             else
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+
+            newTest.DynamicCompilationOriginal = CurrentTest?.Original ?? CurrentTest;
 
             Assembly.Value = testType.Assembly;
 
