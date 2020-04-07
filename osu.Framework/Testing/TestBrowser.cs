@@ -498,7 +498,7 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.Checkpoint(CurrentTest);
+            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
