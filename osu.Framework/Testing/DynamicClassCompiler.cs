@@ -92,12 +92,20 @@ namespace osu.Framework.Testing
                 if (checkpointObject == null || isCompiling)
                     return;
 
-                var checkpointName = checkpointObject.GetType().Name;
+                var checkpointType = checkpointObject.GetType();
 
                 var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
 
-                // add ourselves as a required type.
-                reqTypes.Add(removeGenerics(checkpointName));
+                // add ourselves
+                reqTypes.Add(removeGenerics(checkpointType.Name));
+
+                // add all parents
+                var derivedType = checkpointType;
+                while ((derivedType = derivedType.BaseType) != null && derivedType != typeof(TestScene))
+                    reqTypes.Add(removeGenerics(derivedType.Name));
+
+                var checkpointName = checkpointObject.GetType().Name;
+
                 // if we are a TestCase, add the class we are testing automatically.
                 reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
 
