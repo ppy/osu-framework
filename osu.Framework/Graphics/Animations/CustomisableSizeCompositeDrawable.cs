@@ -48,8 +48,12 @@ namespace osu.Framework.Graphics.Animations
         /// <returns>The size of current content.</returns>
         protected abstract Vector2 GetCurrentDisplaySize();
 
+        protected abstract float GetFillAspectRatio();
+
         protected virtual void UpdateSizing()
         {
+            FillAspectRatio = GetFillAspectRatio();
+
             if (RelativeSizeAxes == Axes.Both) return;
 
             var frameSize = GetCurrentDisplaySize();
