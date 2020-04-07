@@ -37,6 +37,8 @@ namespace osu.Framework.Testing
         private Task runTask;
         private ITestSceneTestRunner runner;
 
+        public object DynamicCompilationOriginal { get; internal set; }
+
         [OneTimeSetUp]
         public void SetupGameHost()
         {
@@ -148,6 +150,8 @@ namespace osu.Framework.Testing
 
         protected TestScene()
         {
+            DynamicCompilationOriginal = this;
+
             Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
@@ -389,8 +393,6 @@ namespace osu.Framework.Testing
         });
 
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
-
-        public object DynamicCompilationOriginal { get; internal set; }
 
         internal void RunSetUpSteps()
         {
