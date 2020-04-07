@@ -390,6 +390,8 @@ namespace osu.Framework.Testing
 
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
+        public object DynamicCompilationOriginal { get; internal set; }
+
         internal void RunSetUpSteps()
         {
             addStepsAsSetupSteps = true;
