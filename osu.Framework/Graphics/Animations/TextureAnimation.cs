@@ -28,6 +28,8 @@ namespace osu.Framework.Graphics.Animations
 
         protected override void DisplayFrame(Texture content) => textureHolder.Texture = content;
 
+        protected override float GetFillAspectRatio() => textureHolder.FillAspectRatio;
+
         protected override void UpdateSizing()
         {
             base.UpdateSizing();

@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Sprites
     public class TestSceneVideoLayout : GridTestScene
     {
         public TestSceneVideoLayout()
-            : base(1, 3)
+            : base(1, 4)
         {
         }
 
@@ -29,7 +29,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                 RelativeSizeAxes = Axes.Both,
                 FillMode = FillMode.Fit
             });
-            Cell(0, 2).Child = createTest("video - fixed size", () => new TestVideo { Size = new Vector2(100, 50) });
+            Cell(0, 2).Child = createTest("video - relative size + fill", () => new TestVideo
+            {
+                RelativeSizeAxes = Axes.Both,
+                FillMode = FillMode.Fill
+            });
+            Cell(0, 3).Child = createTest("video - fixed size", () => new TestVideo { Size = new Vector2(100, 50) });
         }
 
         private Drawable createTest(string name, Func<Drawable> animationCreationFunc) => new Container

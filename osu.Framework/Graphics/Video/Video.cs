@@ -182,6 +182,8 @@ namespace osu.Framework.Graphics.Video
                 f.Texture.Dispose();
         }
 
+        protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;
+
         protected override void UpdateSizing()
         {
             base.UpdateSizing();
