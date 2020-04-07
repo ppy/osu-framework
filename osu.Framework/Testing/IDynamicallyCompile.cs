@@ -17,7 +17,8 @@ namespace osu.Framework.Testing
         IReadOnlyList<Type> RequiredTypes { get; }
 
         /// <summary>
-        /// A reference to the original instance.
+        /// A reference to the original instance which dynamic compilation was based on.
+        /// Will reference self if already the original.
         /// </summary>
         object DynamicCompilationOriginal { get; }
     }

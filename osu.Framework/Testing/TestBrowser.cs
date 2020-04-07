@@ -404,6 +404,8 @@ namespace osu.Framework.Testing
                 CurrentTest.Dispose();
             }
 
+            var lastTest = CurrentTest;
+
             CurrentTest = null;
 
             if (testType == null && TestTypes.Count > 0)
@@ -423,12 +425,14 @@ namespace osu.Framework.Testing
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
             {
+                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
                 toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
             }
             else
+            {
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
-
-            newTest.DynamicCompilationOriginal = CurrentTest?.Original ?? CurrentTest;
+                newTest.DynamicCompilationOriginal = newTest;
+            }
 
             Assembly.Value = testType.Assembly;
 
