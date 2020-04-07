@@ -25,5 +25,7 @@ namespace osu.Framework.Graphics.Animations
         public override Drawable CreateContent() => container = new Container { RelativeSizeAxes = Axes.Both };
 
         protected override Vector2 GetCurrentDisplaySize() => container.Children.FirstOrDefault()?.DrawSize ?? Vector2.Zero;
+
+        protected override float GetFillAspectRatio() => container.Children.FirstOrDefault()?.FillAspectRatio ?? 1;
     }
 }
