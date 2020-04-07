@@ -92,9 +92,15 @@ namespace osu.Framework.Testing
                 if (checkpointObject == null || isCompiling)
                     return;
 
-                var checkpointName = checkpointObject.GetType().Name;
+                var checkpointType = checkpointObject.GetType();
 
                 var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
+
+                var t = checkpointType;
+                while ((t = t.BaseType) != null && t != typeof(TestScene))
+                    reqTypes.Add(t.Name);
+
+                var checkpointName = checkpointObject.GetType().Name;
 
                 // add ourselves as a required type.
                 reqTypes.Add(removeGenerics(checkpointName));
