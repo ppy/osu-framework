@@ -76,7 +76,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
     <PackageReference Include="System.Memory" Version="4.5.0" NoWarn="NU1605" />
