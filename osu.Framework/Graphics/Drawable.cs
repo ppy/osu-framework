@@ -1834,10 +1834,10 @@ namespace osu.Framework.Graphics
         private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
         {
             // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
-            Invalidate(Invalidation.DrawSize, InvalidationSource.Parent);
+            Invalidate(invalidation, InvalidationSource.Parent);
 
             // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
-            Parent?.InvalidateChildrenSizeDependencies(Invalidation.DrawSize, changedAxes, this);
+            Parent?.InvalidateChildrenSizeDependencies(invalidation, changedAxes, this);
         }
 
         #endregion
