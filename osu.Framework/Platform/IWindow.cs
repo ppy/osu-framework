@@ -77,6 +77,12 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
+        /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
+        /// Supported window modes for the current platform can be retrieved via <see cref="SupportedWindowModes"/>.
+        /// </summary>
+        Bindable<WindowMode> WindowMode { get; }
+
+        /// <summary>
         /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
         /// </summary>
         IEnumerable<Display> Displays { get; }

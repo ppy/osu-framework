@@ -63,7 +63,7 @@ namespace osu.Framework.Platform
 
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
-        public WindowMode DefaultWindowMode => WindowMode.Windowed;
+        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
         #endregion
 
@@ -95,6 +95,8 @@ namespace osu.Framework.Platform
         public Bindable<bool> Visible { get; } = new BindableBool();
 
         public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
+
+        public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         #endregion
 
