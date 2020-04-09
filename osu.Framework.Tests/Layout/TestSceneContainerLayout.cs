@@ -1,10 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
@@ -205,9 +207,84 @@ namespace osu.Framework.Tests.Layout
             AddAssert("not autosized", () => !autoSized);
         }
 
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentSizeNotInvalidatedWhenChildGeometryInvalidated(Axes axes)
+        {
+            Drawable child = null;
+
+            Invalidation invalidation = Invalidation.None;
+
+            AddStep("create test", () =>
+            {
+                Child = new TestContainer1
+                {
+                    Child = child = new Box { Size = new Vector2(200) }
+                }.With(c => c.Invalidated += i => invalidation = i);
+            });
+
+            AddStep("move child", () =>
+            {
+                invalidation = Invalidation.None;
+
+                if (axes == Axes.Both)
+                    child.Position = new Vector2(10);
+                else if (axes == Axes.X)
+                    child.X = 10;
+                else if (axes == Axes.Y)
+                    child.Y = 10;
+            });
+
+            AddAssert("parent only invalidated with geometry", () => invalidation == Invalidation.MiscGeometry);
+        }
+
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentGeometryNotInvalidatedWhenChildSizeInvalidated(Axes axes)
+        {
+            Drawable child = null;
+
+            Invalidation invalidation = Invalidation.None;
+
+            AddStep("create test", () =>
+            {
+                Child = new TestContainer1
+                {
+                    Child = child = new Box { Size = new Vector2(200) }
+                }.With(c => c.Invalidated += i => invalidation = i);
+            });
+
+            AddStep("move child", () =>
+            {
+                invalidation = Invalidation.None;
+
+                if (axes == Axes.Both)
+                    child.Size = new Vector2(10);
+                else if (axes == Axes.X)
+                    child.Width = 10;
+                else if (axes == Axes.Y)
+                    child.Height = 10;
+            });
+
+            AddAssert("parent only invalidated with size", () => invalidation == Invalidation.DrawSize);
+        }
+
         private class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
+        }
+
+        private class TestContainer1 : Container
+        {
+            public new Action<Invalidation> Invalidated;
+
+            protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+            {
+                Invalidated?.Invoke(invalidation);
+                return base.OnInvalidate(invalidation, source);
+            }
         }
     }
 }
