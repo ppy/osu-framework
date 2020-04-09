@@ -3,13 +3,13 @@
 
 namespace osu.Framework.Platform
 {
-    public class SDLWindow : Window
+    public class DesktopWindow : Window
     {
         /// <summary>
-        /// Convenience constructor that uses <see cref="Sdl2WindowBackend"/> and
-        /// <see cref="PassthroughGraphicsBackend"/>.
+        /// Initialises a window for desktop platforms.
+        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="PassthroughGraphicsBackend"/>.
         /// </summary>
-        public SDLWindow()
+        public DesktopWindow()
             : base(new Sdl2WindowBackend(), new PassthroughGraphicsBackend())
         {
         }
