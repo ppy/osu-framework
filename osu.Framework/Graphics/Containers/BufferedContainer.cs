@@ -232,8 +232,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        protected override bool CanBeFlattened => false;
-
         public IShader TextureShader { get; private set; }
 
         public IShader RoundedTextureShader { get; private set; }
