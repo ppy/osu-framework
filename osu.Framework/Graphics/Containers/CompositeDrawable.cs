@@ -228,6 +228,8 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader(true)]
         private void load(ShaderManager shaders, CancellationToken? cancellation)
         {
+            hasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode))?.DeclaringType != typeof(CompositeDrawable);
+
             if (Shader == null)
                 Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
@@ -1009,6 +1011,8 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
+        private bool hasCustomDrawNode;
+
         internal IShader Shader { get; private set; }
 
         protected override DrawNode CreateDrawNode() => new CompositeDrawableDrawNode(this);
@@ -1037,10 +1041,12 @@ namespace osu.Framework.Graphics.Containers
         /// In some cases, the <see cref="DrawNode"/> must always be generated and flattening should not occur.
         /// </summary>
         protected virtual bool CanBeFlattened =>
-            // Masking composite DrawNodes define the masking area for their children
+            // Masking composite DrawNodes define the masking area for their children.
             !Masking
-            // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph
-            && !HasProxy;
+            // Proxied drawables have their DrawNodes drawn elsewhere in the scene graph.
+            && !HasProxy
+            // Custom draw nodes may provide custom drawing procedures.
+            && !hasCustomDrawNode;
 
         private const int amount_children_required_for_masking_check = 2;
 

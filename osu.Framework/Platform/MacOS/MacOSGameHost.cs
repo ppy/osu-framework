@@ -30,7 +30,7 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (Window.VSync != VSyncMode.On)
+            if (!Window.VerticalSync)
                 GL.Finish();
         }
 
