@@ -961,6 +961,11 @@ namespace osu.Framework.Graphics.Containers
             if (source == InvalidationSource.Child)
                 return anyInvalidated;
 
+            // DrawNode invalidations should not propagate to children.
+            invalidation &= ~Invalidation.DrawNode;
+            if (invalidation == Invalidation.None)
+                return anyInvalidated;
+
             for (int i = 0; i < internalChildren.Count; ++i)
             {
                 Drawable c = internalChildren[i];
