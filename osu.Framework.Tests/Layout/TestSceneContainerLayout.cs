@@ -271,6 +271,74 @@ namespace osu.Framework.Tests.Layout
             AddAssert("parent only invalidated with size", () => invalidation == Invalidation.DrawSize);
         }
 
+        /// <summary>
+        /// Tests that a child is not invalidated by its parent when not alive.
+        /// </summary>
+        [Test]
+        public void TestChildNotInvalidatedWhenNotAlive()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        LifetimeStart = double.MaxValue
+                    }
+                };
+
+                // Trigger a validation of draw size.
+                Assert.That(child.DrawSize, Is.EqualTo(new Vector2(200)));
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("resize parent", () => parent.Size = new Vector2(400));
+            AddAssert("child not invalidated", () => !invalidated);
+        }
+
+        /// <summary>
+        /// Tests that a loaded child is invalidated when it becomes alive.
+        /// </summary>
+        [Test]
+        public void TestChildInvalidatedWhenMadeAlive()
+        {
+            Container parent = null;
+            Drawable child = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box { RelativeSizeAxes = Axes.Both }
+                };
+            });
+
+            AddStep("make child dead", () =>
+            {
+                child.LifetimeStart = double.MaxValue;
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            // See above: won't cause an invalidation
+            AddStep("resize parent", () => parent.Size = new Vector2(400));
+
+            AddStep("make child alive", () => child.LifetimeStart = double.MinValue);
+            AddAssert("child invalidated", () => invalidated);
+
+            // Final check to make sure that the correct invalidation occurred
+            AddAssert("child size matches parent", () => child.DrawSize == parent.Size);
+        }
+
         private class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;

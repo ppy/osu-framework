@@ -753,6 +753,10 @@ namespace osu.Framework.Graphics.Containers
 
             ChildBecameAlive?.Invoke(child);
 
+            // Invalidations on non-alive children are blocked, so they must be invalidated once when they become alive.
+            child.Invalidate(source: InvalidationSource.Parent);
+
+            // Notify ourselves that a child has become alive.
             Invalidate(Invalidation.Presence, InvalidationSource.Child);
         }
 
@@ -785,6 +789,7 @@ namespace osu.Framework.Graphics.Containers
                 removed = true;
             }
 
+            // Notify ourselves that a child has died.
             Invalidate(Invalidation.Presence, InvalidationSource.Child);
 
             return removed;
@@ -961,9 +966,9 @@ namespace osu.Framework.Graphics.Containers
             if (source == InvalidationSource.Child)
                 return anyInvalidated;
 
-            for (int i = 0; i < internalChildren.Count; ++i)
+            for (int i = 0; i < aliveInternalChildren.Count; ++i)
             {
-                Drawable c = internalChildren[i];
+                Drawable c = aliveInternalChildren[i];
 
                 Invalidation childInvalidation = invalidation;
                 if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
