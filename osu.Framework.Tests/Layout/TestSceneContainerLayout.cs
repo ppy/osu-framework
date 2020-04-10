@@ -340,10 +340,10 @@ namespace osu.Framework.Tests.Layout
         }
 
         /// <summary>
-        /// Tests that non-alive children always receive non-layout invalidations (Parent & DrawNode).
+        /// Tests that non-alive children always receive Parent invalidations.
         /// </summary>
         [Test]
-        public void TestNonAliveChildReceivesParentAndDrawNodeInvalidations()
+        public void TestNonAliveChildReceivesParentInvalidations()
         {
             Container parent = null;
             bool invalidated = false;
@@ -372,14 +372,37 @@ namespace osu.Framework.Tests.Layout
             });
 
             AddAssert("child invalidated", () => invalidated);
+        }
 
-            AddStep("invalidate drawnode", () =>
+        /// <summary>
+        /// Tests that DrawNode invalidations never propagate.
+        /// </summary>
+        [Test]
+        public void TestDrawNodeInvalidationsNeverPropagate()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box { RelativeSizeAxes = Axes.Both }
+                };
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("invalidate parent", () =>
             {
                 invalidated = false;
                 parent.Invalidate(Invalidation.DrawNode);
             });
 
-            AddAssert("child invalidated", () => invalidated);
+            AddAssert("child not invalidated", () => !invalidated);
         }
 
         private class TestBox1 : Box
