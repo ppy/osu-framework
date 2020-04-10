@@ -28,7 +28,8 @@ namespace osu.Framework.Benchmarks
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
+                    Size = new Vector2(200),
+                    Masking = true
                 };
 
                 for (int i = 0; i < 10000; i++)
