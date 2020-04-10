@@ -339,6 +339,49 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child size matches parent", () => child.DrawSize == parent.Size);
         }
 
+        /// <summary>
+        /// Tests that non-alive children always receive non-layout invalidations (Parent & DrawNode).
+        /// </summary>
+        [Test]
+        public void TestNonAliveChildReceivesParentAndDrawNodeInvalidations()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        LifetimeStart = double.MaxValue
+                    }
+                };
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("invalidate parent", () =>
+            {
+                invalidated = false;
+                parent.Invalidate(Invalidation.Parent);
+            });
+
+            AddAssert("child invalidated", () => invalidated);
+
+            AddStep("invalidate drawnode", () =>
+            {
+                invalidated = false;
+                parent.Invalidate(Invalidation.DrawNode);
+            });
+
+            AddAssert("child invalidated", () => invalidated);
+        }
+
         private class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
