@@ -68,26 +68,14 @@ namespace osu.Framework.Graphics
                    | validate(ref childInvalidation, validation);
         }
 
-        /// <summary>
-        /// Trims off any <see cref="Invalidation"/> flags that should always invalidate.
-        /// </summary>
-        /// <remarks>
-        /// Some <see cref="Invalidation"/> flags act as "markers" to imply the layout hasn't changed but rather that a
-        /// significant change occurred in the scene graph such that the <see cref="DrawNode"/> should always be regenerated.
-        /// Such changes should always be alerted to the <see cref="Drawable"/> and its immediate hierarchy.
-        /// Trimming off the flags here will cause them to never block invalidation.
-        /// </remarks>
-        /// <param name="flags"></param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Invalidation Trim(Invalidation flags) => flags & ~(Invalidation.DrawNode | Invalidation.Parent);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool invalidate(ref Invalidation target, Invalidation flags)
         {
             if ((target & flags) == flags)
                 return false;
 
-            target |= Trim(flags);
+            // Remove all non-layout flags, as they should always propagate and are thus not to be stored.
+            target |= flags & Invalidation.Layout;
             return true;
         }
 
