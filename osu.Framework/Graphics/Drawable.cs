@@ -1733,10 +1733,8 @@ namespace osu.Framework.Graphics
                 Parent?.ValidateSuperTree(validationType);
         }
 
-        private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        public long InvalidationID { get; private set; } = invalidation_counter.Increment();
+        public long InvalidationID { get; private set; } = 1;
 
         /// <summary>
         /// Invalidates the layout of this <see cref="Drawable"/>.
@@ -1792,7 +1790,7 @@ namespace osu.Framework.Graphics
             anyInvalidated |= OnInvalidate(invalidation, source);
 
             if (anyInvalidated)
-                InvalidationID = invalidation_counter.Increment();
+                InvalidationID++;
 
             Invalidated?.Invoke(this);
 
