@@ -12,7 +12,7 @@ namespace osu.Framework.IO.Stores
 {
     public class OnlineStore : IResourceStore<byte[]>
     {
-        public async Task<byte[]> GetAsync(string url)
+        public virtual async Task<byte[]> GetAsync(string url)
         {
             this.LogIfNonBackgroundThread(url);
 
@@ -30,7 +30,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public byte[] Get(string url)
+        public virtual byte[] Get(string url)
         {
             if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                 return null;
@@ -51,7 +51,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public Stream GetStream(string url)
+        public virtual Stream GetStream(string url)
         {
             var ret = Get(url);
 
