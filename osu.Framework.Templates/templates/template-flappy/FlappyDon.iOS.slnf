@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "FlappyDon.sln",
+    "projects": [
+      "FlappyDon.Game\\FlappyDon.Game.csproj",
+      "FlappyDon.Resources\\FlappyDon.Resources.csproj",
+      "FlappyDon.iOS\\FlappyDon.iOS.csproj"
+    ]
+  }
+}

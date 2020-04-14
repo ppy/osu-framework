@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, monitor.Thread)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, thread)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -399,6 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
                     monitor.FramesPool.Return(frame);
                 }
             }

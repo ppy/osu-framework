@@ -18,8 +18,10 @@ namespace osu.Framework.Timing
         /// Construct a new FramedClock with an optional source clock.
         /// </summary>
         /// <param name="source">A source clock which will be used as the backing time source. If null, a StopwatchClock will be created. When provided, the CurrentTime of <paramref name="source"/> will be transferred instantly.</param>
-        public FramedClock(IClock source = null)
+        /// <param name="processSource">Whether the source clock's <see cref="ProcessFrame"/> method should be called during this clock's process call.</param>
+        public FramedClock(IClock source = null, bool processSource = true)
         {
+            this.processSource = processSource;
             ChangeSource(source ?? new StopwatchClock(true));
         }
 
@@ -39,6 +41,8 @@ namespace osu.Framework.Timing
 
         public bool IsRunning => Source?.IsRunning ?? false;
 
+        private readonly bool processSource;
+
         private double timeUntilNextCalculation;
         private double timeSinceLastCalculation;
         private int framesSinceLastCalculation;
@@ -53,7 +57,8 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
-            (Source as IFrameBasedClock)?.ProcessFrame();
+            if (processSource && Source is IFrameBasedClock framedSource)
+                framedSource.ProcessFrame();
 
             if (timeUntilNextCalculation <= 0)
             {

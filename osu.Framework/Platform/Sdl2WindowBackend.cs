@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Numerics;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions;
 using osu.Framework.Input.StateChanges;
@@ -12,6 +14,7 @@ using Veldrid.Sdl2;
 using Key = osuTK.Input.Key;
 using MouseButton = osuTK.Input.MouseButton;
 using MouseEvent = Veldrid.MouseEvent;
+using Point = System.Drawing.Point;
 using TKVector2 = osuTK.Vector2;
 
 namespace osu.Framework.Platform
@@ -64,36 +67,36 @@ namespace osu.Framework.Platform
 
         public bool Exists => implementation?.Exists ?? false;
 
-        private Vector2 position = Vector2.Zero;
+        private Point position = Point.Empty;
 
-        public Vector2 Position
+        public Point Position
         {
-            get => implementation == null ? position : new Vector2(implementation.X, implementation.Y);
+            get => implementation == null ? position : new Point(implementation.X, implementation.Y);
             set
             {
                 position = value;
 
                 scheduler.Add(() =>
                 {
-                    implementation.X = (int)value.X;
-                    implementation.Y = (int)value.Y;
+                    implementation.X = value.X;
+                    implementation.Y = value.Y;
                 });
             }
         }
 
-        private Vector2 size = new Vector2(default_width, default_height);
+        private Size size = new Size(default_width, default_height);
 
-        public Vector2 Size
+        public Size Size
         {
-            get => implementation == null ? size : new Vector2(implementation.Width, implementation.Height);
+            get => implementation == null ? size : new Size(implementation.Width, implementation.Height);
             set
             {
                 size = value;
 
                 scheduler.Add(() =>
                 {
-                    implementation.Width = (int)value.X;
-                    implementation.Height = (int)value.Y;
+                    implementation.Width = value.Width;
+                    implementation.Height = value.Height;
                 });
             }
         }
@@ -133,13 +136,35 @@ namespace osu.Framework.Platform
 
         public WindowState WindowState
         {
-            get => implementation?.WindowState ?? windowState;
+            get => implementation?.WindowState.ToFramework() ?? windowState;
             set
             {
                 windowState = value;
 
-                scheduler.Add(() => implementation.WindowState = value);
+                scheduler.Add(() => implementation.WindowState = value.ToVeldrid());
             }
+        }
+
+        public IEnumerable<Display> Displays =>
+            Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
+
+        public Display Display => displayFromSDL(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle));
+
+        public DisplayMode DisplayMode => displayModeFromSDL(Sdl2Functions.SDL_GetCurrentDisplayMode(Sdl2Functions.SDL_GetWindowDisplayIndex(SdlWindowHandle)));
+
+        private static Display displayFromSDL(int displayIndex)
+        {
+            var displayModes = Enumerable.Range(0, Sdl2Functions.SDL_GetNumDisplayModes(displayIndex))
+                                         .Select(modeIndex => displayModeFromSDL(Sdl2Functions.SDL_GetDisplayMode(displayIndex, modeIndex)))
+                                         .ToArray();
+
+            return new Display(displayIndex, Sdl2Functions.SDL_GetDisplayName(displayIndex), Sdl2Functions.SDL_GetDisplayBounds(displayIndex), displayModes);
+        }
+
+        private static DisplayMode displayModeFromSDL(SDL_DisplayMode mode)
+        {
+            Sdl2Functions.SDL_PixelFormatEnumToMasks(mode.Format, out var bpp, out _, out _, out _, out _);
+            return new DisplayMode(Sdl2Functions.SDL_GetPixelFormatName(mode.Format), new Size(mode.Width, mode.Height), bpp, mode.RefreshRate);
         }
 
         #endregion
@@ -157,7 +182,7 @@ namespace osu.Framework.Platform
         public event Action Hidden;
         public event Action MouseEntered;
         public event Action MouseLeft;
-        public event Action<Vector2> Moved;
+        public event Action<Point> Moved;
         public event Action<MouseScrollRelativeInput> MouseWheel;
         public event Action<MousePositionAbsoluteInput> MouseMove;
         public event Action<MouseButtonInput> MouseDown;
@@ -182,7 +207,7 @@ namespace osu.Framework.Platform
         protected virtual void OnHidden() => Hidden?.Invoke();
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Vector2 point) => Moved?.Invoke(point);
+        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
         protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
         protected virtual void OnMouseMove(MousePositionAbsoluteInput args) => MouseMove?.Invoke(args);
         protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
@@ -203,7 +228,7 @@ namespace osu.Framework.Platform
                                     SDL_WindowFlags.AllowHighDpi |
                                     getWindowFlags(WindowState);
 
-            implementation = new Sdl2Window(Title, (int)position.X, (int)position.Y, (int)size.X, (int)size.Y, flags, false);
+            implementation = new Sdl2Window(Title, position.X, position.Y, size.Width, size.Height, flags, false);
 
             // force a refresh of the size and position now that we can calculate the scale
             scale.Invalidate();
@@ -262,7 +287,8 @@ namespace osu.Framework.Platform
         /// <param name="key">The key to validate.</param>
         private bool isKeyValid(Veldrid.Key key) => key != Veldrid.Key.Unknown && key != Veldrid.Key.CapsLock;
 
-        private void implementation_OnMoved(Point point) => Moved?.Invoke(new Vector2(point.X, point.Y));
+        private void implementation_OnMoved(Veldrid.Point point) =>
+            OnMoved(new Point(point.X, point.Y));
 
         private void implementation_OnMouseWheel(MouseWheelEventArgs args) =>
             OnMouseWheel(new MouseScrollRelativeInput { Delta = new TKVector2(0, args.WheelDelta) });
@@ -293,7 +319,7 @@ namespace osu.Framework.Platform
 
         private void implementation_Resized()
         {
-            if (implementation.WindowState != windowState)
+            if (implementation.WindowState.ToFramework() != windowState)
                 OnWindowStateChanged();
 
             OnResized();
@@ -306,20 +332,17 @@ namespace osu.Framework.Platform
                 case WindowState.Normal:
                     return 0;
 
-                case WindowState.FullScreen:
+                case WindowState.Fullscreen:
                     return SDL_WindowFlags.Fullscreen;
 
-                case WindowState.Maximized:
+                case WindowState.Maximised:
                     return SDL_WindowFlags.Maximized;
 
-                case WindowState.Minimized:
+                case WindowState.Minimised:
                     return SDL_WindowFlags.Minimized;
 
-                case WindowState.BorderlessFullScreen:
+                case WindowState.FullscreenBorderless:
                     return SDL_WindowFlags.FullScreenDesktop;
-
-                case WindowState.Hidden:
-                    return SDL_WindowFlags.Hidden;
             }
 
             return 0;

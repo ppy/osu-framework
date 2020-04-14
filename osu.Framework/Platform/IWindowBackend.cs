@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Numerics;
+using System.Collections.Generic;
+using System.Drawing;
 using osu.Framework.Input.StateChanges;
-using Veldrid;
 
 namespace osu.Framework.Platform
 {
@@ -28,12 +28,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's position in screen space.
         /// </summary>
-        Vector2 Position { get; set; }
+        Point Position { get; set; }
 
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        Vector2 Size { get; set; }
+        Size Size { get; set; }
 
         /// <summary>
         /// Returns the scale of window's drawable area.
@@ -62,6 +62,23 @@ namespace osu.Framework.Platform
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
         bool Exists { get; }
+
+        /// <summary>
+        /// Queries the physical displays and their supported resolutions.
+        /// </summary>
+        IEnumerable<Display> Displays { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Can be null if running headless.
+        /// </summary>
+        Display Display { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Can be null if running headless.
+        /// </summary>
+        DisplayMode DisplayMode { get; }
 
         #endregion
 
@@ -125,7 +142,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        event Action<Vector2> Moved;
+        event Action<Point> Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.

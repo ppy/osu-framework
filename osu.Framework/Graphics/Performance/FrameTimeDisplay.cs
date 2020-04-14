@@ -6,6 +6,7 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Statistics;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -49,8 +50,14 @@ namespace osu.Framework.Graphics.Performance
         }
 
         private float aimWidth;
+
         private double displayFps;
-        private double displayFrameTime;
+
+        private double rollingElapsed;
+
+        private int framesSinceLastUpdate;
+
+        private double elapsedSinceLastUpdate;
 
         private const int updates_per_second = 10;
 
@@ -65,7 +72,6 @@ namespace osu.Framework.Graphics.Performance
                 if (!Counting) return;
 
                 double clockFps = clock.FramesPerSecond;
-                double actualElapsed = clock.ElapsedFrameTime - clock.TimeSlept;
                 double updateHz = clock.MaximumUpdateHz;
 
                 Schedule(() =>
@@ -85,13 +91,18 @@ namespace osu.Framework.Graphics.Performance
                     }
 
                     double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
-                    lastUpdate = Clock.CurrentTime;
 
                     displayFps = Interpolation.Damp(displayFps, clockFps, 0.01, dampRate);
-                    displayFrameTime = Interpolation.Damp(displayFrameTime, actualElapsed, 0.01, dampRate);
+                    if (framesSinceLastUpdate > 0)
+                        rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
 
-                    counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
-                                   + $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz";
+                    lastUpdate = Clock.CurrentTime;
+
+                    framesSinceLastUpdate = 0;
+                    elapsedSinceLastUpdate = 0;
+
+                    counter.Text = $"{displayFps:0}fps({rollingElapsed:0.00}ms)"
+                                   + (clock.Throttling ? $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz" : string.Empty);
                 });
             }, 1000.0 / updates_per_second, true);
         }
@@ -104,6 +115,19 @@ namespace osu.Framework.Graphics.Performance
             }
 
             protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
+        }
+
+        public void NewFrame(FrameStatistics frame)
+        {
+            if (!Counting) return;
+
+            foreach (var pair in frame.CollectedTimes)
+            {
+                if (pair.Key != PerformanceCollectionType.Sleep)
+                    elapsedSinceLastUpdate += pair.Value;
+            }
+
+            framesSinceLastUpdate++;
         }
     }
 }

@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
@@ -70,6 +71,25 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
+        public virtual IEnumerable<Display> Displays => new[] { Display };
+
+        public virtual Display Display => CurrentDisplay.ToDisplay();
+
+        /// <summary>
+        /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
+        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplay"/>,
+        /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
+        /// report refresh rates such as 59.992863 where SDL2 will report 60.
+        /// </summary>
+        public virtual DisplayMode DisplayMode
+        {
+            get
+            {
+                var display = CurrentDisplay;
+                return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate));
+            }
+        }
+
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
@@ -98,7 +118,7 @@ namespace osu.Framework.Platform
                 }
             };
 
-            WindowStateChanged += (o, e) => isActive.Value = WindowState != WindowState.Minimized;
+            WindowStateChanged += (o, e) => isActive.Value = WindowState != osuTK.WindowState.Minimized;
 
             MakeCurrent();
 
@@ -240,6 +260,12 @@ namespace osu.Framework.Platform
 
         public virtual VSyncMode VSync { get; set; }
 
+        public bool VerticalSync
+        {
+            get => VSync == VSyncMode.On;
+            set => VSync = value ? VSyncMode.On : VSyncMode.Off;
+        }
+
         public virtual void CycleMode()
         {
             var currentValue = WindowMode.Value;
@@ -295,7 +321,7 @@ namespace osu.Framework.Platform
         public bool Exists => Implementation.Exists;
         public IWindowInfo WindowInfo => Implementation.WindowInfo;
 
-        public virtual WindowState WindowState
+        public virtual osuTK.WindowState WindowState
         {
             get => Implementation.WindowState;
             set => Implementation.WindowState = value;

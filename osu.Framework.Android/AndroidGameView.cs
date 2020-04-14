@@ -23,6 +23,7 @@ namespace osu.Framework.Android
         public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
+        public event Action<AndroidGameHost> HostStarted;
 
         public AndroidGameView(Context context, Game game)
             : base(context)
@@ -116,6 +117,7 @@ namespace osu.Framework.Android
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
+            HostStarted.Invoke(Host);
         }
 
         private bool handleException(Exception ex)

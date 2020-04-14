@@ -64,6 +64,18 @@ namespace osu.Framework.Platform
             Configuration.WindowMode.Fullscreen,
         };
 
+        /// <summary>
+        /// osuTK's list of available <see cref="DisplayDevice"/>s is private, but it assumes a maximum
+        /// of six devices. These are defined in the <see cref="DisplayIndex"/> enum, and a call to
+        /// <see cref="DisplayDevice.GetDisplay"/> with an invalid index will return null (which we skip).
+        /// </summary>
+        public override IEnumerable<Display> Displays =>
+            Enumerable.Range((int)DisplayIndex.First, 6)
+                      .Select(index => DisplayDevice.GetDisplay((DisplayIndex)index))
+                      .Where(x => x != null)
+                      .Select(ExtensionMethods.ToDisplay)
+                      .ToArray();
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {
@@ -81,13 +93,13 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += e =>
             {
-                if (WindowState == WindowState.Fullscreen)
+                if (WindowState == osuTK.WindowState.Fullscreen)
                     ChangeResolution(CurrentDisplay, e.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>
             {
-                if (WindowState == WindowState.Normal)
+                if (WindowState == osuTK.WindowState.Normal)
                     ClientSize = sizeWindowed.Value;
             };
 
@@ -210,7 +222,7 @@ namespace osu.Framework.Platform
                         ChangeResolution(currentDisplay, sizeFullscreen.Value);
                         lastFullscreenDisplay = currentDisplay;
 
-                        WindowState = WindowState.Fullscreen;
+                        WindowState = osuTK.WindowState.Fullscreen;
                         break;
 
                     case Configuration.WindowMode.Borderless:
@@ -218,7 +230,7 @@ namespace osu.Framework.Platform
                             RestoreResolution(lastFullscreenDisplay);
                         lastFullscreenDisplay = null;
 
-                        WindowState = WindowState.Maximized;
+                        WindowState = osuTK.WindowState.Maximized;
                         WindowBorder = WindowBorder.Hidden;
 
                         // must add 1 to enter borderless
@@ -233,7 +245,7 @@ namespace osu.Framework.Platform
 
                         var newSize = sizeWindowed.Value;
 
-                        WindowState = WindowState.Normal;
+                        WindowState = osuTK.WindowState.Normal;
                         WindowBorder = WindowBorder.Resizable;
 
                         ClientSize = newSize;

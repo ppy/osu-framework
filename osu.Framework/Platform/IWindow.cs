@@ -53,7 +53,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the vertical sync mode of the screen.
         /// </summary>
-        VSyncMode VSync { get; set; }
+        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
@@ -86,5 +86,20 @@ namespace osu.Framework.Platform
         /// Available resolutions for full-screen display.
         /// </summary>
         IEnumerable<DisplayResolution> AvailableResolutions { get; }
+
+        /// <summary>
+        /// Queries the physical displays and their supported resolutions.
+        /// </summary>
+        IEnumerable<Display> Displays { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// </summary>
+        Display Display { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// </summary>
+        DisplayMode DisplayMode { get; }
     }
 }

@@ -6,18 +6,22 @@ using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    internal class TransformBindable<TValue, T> : Transform<TValue, T>
+    internal class TransformBindable<TValue, TEasing, T> : Transform<TValue, TEasing, T>
         where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
         public override string TargetMember { get; }
 
         private readonly Bindable<TValue> targetBindable;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
+        private readonly InterpolationFunc<TValue, TEasing> interpolationFunc;
 
-        public TransformBindable(Bindable<TValue> targetBindable, InterpolationFunc<TValue> interpolationFunc)
+        public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
+
+            // Lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+            interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
+                => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }

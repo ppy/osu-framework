@@ -54,13 +54,18 @@ namespace osu.Framework.Allocation
                         throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
 
                     var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
+                                                 .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
 
                     return (target, dc) =>
                     {
                         try
                         {
-                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
+                            var parameterArray = new object[parameterGetters.Length];
+                            for (int i = 0; i < parameterGetters.Length; i++)
+                                parameterArray[i] = parameterGetters[i](dc);
+
+                            method.Invoke(target, parameterArray);
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {

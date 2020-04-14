@@ -66,7 +66,7 @@ namespace osu.Framework.Input.States
             pressedButtons.AddRange(other.pressedButtons);
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()}({string.Join(" ", pressedButtons)})";
+        public override string ToString() => $@"{GetType().ReadableName()}({string.Join(' ', pressedButtons)})";
 
         public IEnumerator<TButton> GetEnumerator() => ((IEnumerable<TButton>)pressedButtons).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
