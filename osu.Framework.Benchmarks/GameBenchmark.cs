@@ -64,8 +64,7 @@ namespace osu.Framework.Benchmarks
                 });
 
                 // wait for the game to initialise before continuing with the benchmark process.
-                while (threadRunner?.HasRunOnce != true)
-                    Thread.Sleep(10);
+                threadRunner?.HasRunOnce.Wait();
             }
 
             protected override void Dispose(bool isDisposing)
@@ -85,7 +84,7 @@ namespace osu.Framework.Benchmarks
             /// This is used to delay the initialisation process until the headless input thread has run once.
             /// Does not get reset with subsequence runs.
             /// </summary>
-            public bool HasRunOnce { get; private set; }
+            public readonly ManualResetEventSlim HasRunOnce = new ManualResetEventSlim();
 
             /// <summary>
             /// Set this to run one frame on the headless input thread.
@@ -111,7 +110,7 @@ namespace osu.Framework.Benchmarks
                 RunSingleFrame();
                 RunOnce.Reset();
 
-                HasRunOnce = true;
+                HasRunOnce.Set();
             }
         }
     }
