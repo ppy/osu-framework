@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using osu.Framework.Bindables.Bindings;
 using osu.Framework.Graphics;
 
 namespace osu.Framework.Bindables
@@ -28,7 +29,7 @@ namespace osu.Framework.Bindables
             set => base.Value = clamp(value, MinValue, MaxValue);
         }
 
-        public override void BindTo(Bindable<MarginPadding> them)
+        public override void BindTo(Bindable<MarginPadding> them, BindingMode mode = BindingMode.TwoWay)
         {
             if (them is BindableMarginPadding other)
             {
@@ -57,7 +58,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            base.BindTo(them);
+            base.BindTo(them, mode);
         }
 
         public override string ToString() => Value.ToString();

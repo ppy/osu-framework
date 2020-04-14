@@ -2,15 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using osu.Framework.Bindables.Bindings;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
-using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
@@ -151,7 +152,7 @@ namespace osu.Framework.Bindables
             value = Default = defaultValue;
         }
 
-        protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
+        protected ConcurrentDictionary<Bindable<T>, Binding<T>> Bindings { get; private set; }
 
         void IBindable.BindTo(IBindable them)
         {
@@ -183,18 +184,31 @@ namespace osu.Framework.Bindables
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
+        /// <param name="mode">Change propagation strategy</param>
         /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
-        public virtual void BindTo(Bindable<T> them)
+        public virtual void BindTo(Bindable<T> them, BindingMode mode = BindingMode.TwoWay)
         {
-            if (Bindings?.Contains(them) == true)
+            if (Bindings?.ContainsKey(them) == true)
                 throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
 
-            Value = them.Value;
-            Default = them.Default;
-            Disabled = them.Disabled;
+            Binding<T> binding;
 
-            addWeakReference(them.weakReference);
-            them.addWeakReference(weakReference);
+            switch (mode)
+            {
+                case BindingMode.OneWay:
+                    binding = new OneWayBinding<T>(them, this);
+                    break;
+
+                case BindingMode.TwoWay:
+                    binding = new TwoWayBinding<T>(them, this);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+            }
+
+            addBinding(them, binding);
+            them.addBinding(this, binding);
         }
 
         /// <summary>
@@ -221,15 +235,15 @@ namespace osu.Framework.Bindables
                 onChange(Disabled);
         }
 
-        private void addWeakReference(WeakReference<Bindable<T>> weakReference)
+        private void addBinding(Bindable<T> key, Binding<T> binding)
         {
             if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
+                Bindings = new ConcurrentDictionary<Bindable<T>, Binding<T>>();
 
-            Bindings.Add(weakReference);
+            Bindings.TryAdd(key, binding);
         }
 
-        private void removeWeakReference(WeakReference<Bindable<T>> weakReference) => Bindings?.Remove(weakReference);
+        private void removeWeakReference(Bindable<T> key) => Bindings?.TryRemove(key, out var _);
 
         /// <summary>
         /// Parse an object into this instance.
@@ -275,9 +289,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
-                    if (b == source) continue;
-
-                    b.SetValue(previousValue, value, bypassChecks, this);
+                    b.Value.PropagateValueChange(previousValue, value, bypassChecks, this);
                 }
             }
 
@@ -294,9 +306,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
-                    if (b == source) continue;
-
-                    b.SetDefaultValue(previousValue, defaultValue, bypassChecks, this);
+                    b.Value.PropagateDefaultChange(previousValue, defaultValue, bypassChecks, source);
                 }
             }
 
@@ -313,9 +323,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in Bindings)
                 {
-                    if (b == source) continue;
-
-                    b.SetDisabled(disabled, bypassChecks, this);
+                    b.Value.PropagateDisabledChange(source, bypassChecks);
                 }
             }
 
@@ -342,13 +350,13 @@ namespace osu.Framework.Bindables
 
             // ToArray required as this may be called from an async disposal thread.
             // This can lead to deadlocks since each child is also enumerating its Bindings.
-            foreach (var b in Bindings.ToArray())
+            foreach (var b in Bindings.Keys.ToArray())
                 b.Unbind(this);
 
             Bindings.Clear();
         }
 
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
+        protected void Unbind(Bindable<T> binding) => Bindings?.TryRemove(binding, out var _);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
@@ -368,8 +376,8 @@ namespace osu.Framework.Bindables
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
 
-            removeWeakReference(tThem.weakReference);
-            tThem.removeWeakReference(weakReference);
+            Unbind(tThem);
+            tThem.Unbind(this);
         }
 
         public string Description { get; set; }
@@ -391,11 +399,12 @@ namespace osu.Framework.Bindables
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.
         /// </summary>
+        /// /// <param name="bindingMode">Change propagation strategy</param>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        public Bindable<T> GetBoundCopy()
+        public Bindable<T> GetBoundCopy(BindingMode bindingMode = BindingMode.TwoWay)
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            copy.BindTo(this);
+            copy.BindTo(this, bindingMode);
             return copy;
         }
 
@@ -442,7 +451,7 @@ namespace osu.Framework.Bindables
 
             bool found = false;
 
-            foreach (var b in Bindings)
+            foreach (var b in Bindings.Keys)
             {
                 if (b != source)
                     found |= b.checkForLease(this);

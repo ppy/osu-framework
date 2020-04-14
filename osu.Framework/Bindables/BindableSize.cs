@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using osu.Framework.Bindables.Bindings;
 
 namespace osu.Framework.Bindables
 {
@@ -27,7 +28,7 @@ namespace osu.Framework.Bindables
             set => base.Value = clamp(value, MinValue, MaxValue);
         }
 
-        public override void BindTo(Bindable<Size> them)
+        public override void BindTo(Bindable<Size> them, BindingMode mode = BindingMode.TwoWay)
         {
             if (them is BindableSize other)
             {
@@ -43,7 +44,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            base.BindTo(them);
+            base.BindTo(them, mode);
         }
 
         public override string ToString() => $"{Value.Width}x{Value.Height}";
