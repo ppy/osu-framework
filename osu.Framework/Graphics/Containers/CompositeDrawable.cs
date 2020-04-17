@@ -702,7 +702,7 @@ namespace osu.Framework.Graphics.Containers
             }
             else
             {
-                if (child.IsAlive)
+                if (child.IsAlive || child.RemoveWhenNotAlive)
                 {
                     if (MakeChildDead(child))
                         state |= ChildLifeStateChange.Removed;
@@ -770,12 +770,13 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether <paramref name="child"/> has been removed by death.</returns>
         protected bool MakeChildDead(Drawable child)
         {
-            Debug.Assert(child.IsAlive);
+            if (child.IsAlive)
+            {
+                aliveInternalChildren.Remove(child);
+                child.IsAlive = false;
 
-            aliveInternalChildren.Remove(child);
-            child.IsAlive = false;
-
-            ChildDied?.Invoke(child);
+                ChildDied?.Invoke(child);
+            }
 
             bool removed = false;
 
