@@ -155,7 +155,7 @@ namespace osu.Framework.Platform
 
         public Display CurrentDisplay
         {
-            get => Displays.Skip(currentDisplayIndex).First();
+            get => Displays.ElementAtOrDefault(currentDisplayIndex);
             set
             {
                 if (value.Index == currentDisplayIndex)

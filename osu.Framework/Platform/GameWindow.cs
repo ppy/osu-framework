@@ -251,7 +251,7 @@ namespace osu.Framework.Platform
         {
             int index = (int)CurrentDisplayDevice.GetIndex();
             if (index != CurrentDisplay.Value?.Index)
-                CurrentDisplay.Value = AvailableDisplays.Skip(index).FirstOrDefault();
+                CurrentDisplay.Value = AvailableDisplays.ElementAtOrDefault(index);
         }
 
         private string getVersionNumberSubstring(string version)
