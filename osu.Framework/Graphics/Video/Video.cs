@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Video
         {
         }
 
-        public override Drawable CreateContent() => Sprite = new VideoSprite(this);
+        public override Drawable CreateContent() => Sprite = new VideoSprite(this) { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
         /// Creates a new <see cref="Video"/>.
@@ -99,6 +99,7 @@ namespace osu.Framework.Graphics.Video
         /// <param name="stream">The video file stream.</param>
         /// <param name="startAtCurrentTime">Whether the current clock time should be assumed as the 0th video frame.</param>
         public Video([NotNull] Stream stream, bool startAtCurrentTime = true)
+            : base(startAtCurrentTime)
         {
             this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
@@ -149,7 +150,10 @@ namespace osu.Framework.Graphics.Video
 
                 // Check if the new frame has been uploaded so we don't display an old frame
                 if ((tex?.TextureGL as VideoTexture)?.UploadComplete ?? false)
+                {
                     Sprite.Texture = tex;
+                    UpdateSizing();
+                }
             }
 
             if (availableFrames.Count == 0)
@@ -177,5 +181,10 @@ namespace osu.Framework.Graphics.Video
             foreach (var f in availableFrames)
                 f.Texture.Dispose();
         }
+
+        protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;
+
+        protected override Vector2 GetCurrentDisplaySize() =>
+            new Vector2(Sprite.Texture?.DisplayWidth ?? 0, Sprite.Texture?.DisplayHeight ?? 0);
     }
 }

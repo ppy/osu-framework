@@ -62,7 +62,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="Markdig" Version="0.18.3" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.2.2.1" />
-    <PackageReference Include="SharpFNT" Version="1.1.0" />
+    <PackageReference Include="SharpFNT" Version="1.1.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" />
@@ -76,7 +76,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
     <PackageReference Include="System.Memory" Version="4.5.0" NoWarn="NU1605" />

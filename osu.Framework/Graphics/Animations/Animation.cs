@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
-using osu.Framework.Logging;
-using osuTK;
 
 namespace osu.Framework.Graphics.Animations
 {
@@ -44,37 +42,6 @@ namespace osu.Framework.Graphics.Animations
         {
             frameData = new List<FrameData<T>>();
             Loop = true;
-        }
-
-        private bool hasCustomWidth;
-
-        public override float Width
-        {
-            set
-            {
-                base.Width = value;
-                hasCustomWidth = true;
-            }
-        }
-
-        private bool hasCustomHeight;
-
-        public override float Height
-        {
-            set
-            {
-                base.Height = value;
-                hasCustomHeight = true;
-            }
-        }
-
-        public override Vector2 Size
-        {
-            set
-            {
-                Width = value.X;
-                Height = value.Y;
-            }
         }
 
         /// <summary>
@@ -148,13 +115,6 @@ namespace osu.Framework.Graphics.Animations
         {
         }
 
-        /// <summary>
-        /// Retrieves the size of a given frame.
-        /// </summary>
-        /// <param name="content">The frame to retrieve the size of.</param>
-        /// <returns>The size of <paramref name="content"/>.</returns>
-        protected abstract Vector2 GetFrameSize(T content);
-
         protected override void Update()
         {
             base.Update();
@@ -175,7 +135,6 @@ namespace osu.Framework.Graphics.Animations
                     while (CurrentFrameIndex > 0 && PlaybackPosition < frameData[CurrentFrameIndex].DisplayStartTime)
                     {
                         CurrentFrameIndex--;
-                        Logger.Log($"Frame decreased to {CurrentFrameIndex}");
                         currentFrameCache.Invalidate();
                     }
 
@@ -194,21 +153,9 @@ namespace osu.Framework.Graphics.Animations
 
         private void updateCurrentFrame()
         {
-            Logger.Log($"Frame increased to {CurrentFrameIndex} {PlaybackPosition} (end {frameData[CurrentFrameIndex].DisplayEndTime})");
-            var frame = CurrentFrame;
+            DisplayFrame(CurrentFrame);
 
-            if (RelativeSizeAxes != Axes.Both)
-            {
-                var frameSize = GetFrameSize(frame);
-
-                if ((RelativeSizeAxes & Axes.X) == 0 && !hasCustomWidth)
-                    base.Width = frameSize.X;
-
-                if ((RelativeSizeAxes & Axes.Y) == 0 && !hasCustomHeight)
-                    base.Height = frameSize.Y;
-            }
-
-            DisplayFrame(frame);
+            UpdateSizing();
 
             currentFrameCache.Validate();
         }

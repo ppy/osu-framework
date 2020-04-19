@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Layout;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -17,14 +18,11 @@ namespace osu.Framework.Graphics.Shapes
     /// </summary>
     public class Box : Sprite
     {
-        /// <summary>
-        /// The screen space draw quad of this <see cref="Box"/> free from inflation due to edge smoothing.
-        /// </summary>
-        private Quad conservativeScreenSpaceDrawQuad;
-
         public Box()
         {
             base.Texture = Texture.WhitePixel;
+
+            AddLayout(conservativeScreenSpaceDrawQuadBacking);
         }
 
         public override Texture Texture
@@ -35,10 +33,19 @@ namespace osu.Framework.Graphics.Shapes
 
         protected override DrawNode CreateDrawNode() => new BoxDrawNode(this);
 
-        protected override Quad ComputeScreenSpaceDrawQuad()
+        // Matches the invalidation types of Drawable.screenSpaceDrawQuadBacking
+        private readonly LayoutValue<Quad> conservativeScreenSpaceDrawQuadBacking = new LayoutValue<Quad>(Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Presence);
+
+        private Quad conservativeScreenSpaceDrawQuad => conservativeScreenSpaceDrawQuadBacking.IsValid
+            ? conservativeScreenSpaceDrawQuadBacking
+            : conservativeScreenSpaceDrawQuadBacking.Value = ComputeConservativeScreenSpaceDrawQuad();
+
+        protected virtual Quad ComputeConservativeScreenSpaceDrawQuad()
         {
-            conservativeScreenSpaceDrawQuad = ToScreenSpace(DrawRectangle);
-            return base.ComputeScreenSpaceDrawQuad();
+            if (EdgeSmoothness == Vector2.Zero)
+                return ScreenSpaceDrawQuad;
+
+            return ToScreenSpace(DrawRectangle);
         }
 
         protected class BoxDrawNode : SpriteDrawNode

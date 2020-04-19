@@ -1,10 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
@@ -205,9 +207,218 @@ namespace osu.Framework.Tests.Layout
             AddAssert("not autosized", () => !autoSized);
         }
 
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentSizeNotInvalidatedWhenChildGeometryInvalidated(Axes axes)
+        {
+            Drawable child = null;
+
+            Invalidation invalidation = Invalidation.None;
+
+            AddStep("create test", () =>
+            {
+                Child = new TestContainer1
+                {
+                    Child = child = new Box { Size = new Vector2(200) }
+                }.With(c => c.Invalidated += i => invalidation = i);
+            });
+
+            AddStep("move child", () =>
+            {
+                invalidation = Invalidation.None;
+
+                if (axes == Axes.Both)
+                    child.Position = new Vector2(10);
+                else if (axes == Axes.X)
+                    child.X = 10;
+                else if (axes == Axes.Y)
+                    child.Y = 10;
+            });
+
+            AddAssert("parent only invalidated with geometry", () => invalidation == Invalidation.MiscGeometry);
+        }
+
+        [TestCase(Axes.X)]
+        [TestCase(Axes.Y)]
+        [TestCase(Axes.Both)]
+        public void TestParentGeometryNotInvalidatedWhenChildSizeInvalidated(Axes axes)
+        {
+            Drawable child = null;
+
+            Invalidation invalidation = Invalidation.None;
+
+            AddStep("create test", () =>
+            {
+                Child = new TestContainer1
+                {
+                    Child = child = new Box { Size = new Vector2(200) }
+                }.With(c => c.Invalidated += i => invalidation = i);
+            });
+
+            AddStep("move child", () =>
+            {
+                invalidation = Invalidation.None;
+
+                if (axes == Axes.Both)
+                    child.Size = new Vector2(10);
+                else if (axes == Axes.X)
+                    child.Width = 10;
+                else if (axes == Axes.Y)
+                    child.Height = 10;
+            });
+
+            AddAssert("parent only invalidated with size", () => invalidation == Invalidation.DrawSize);
+        }
+
+        /// <summary>
+        /// Tests that a child is not invalidated by its parent when not alive.
+        /// </summary>
+        [Test]
+        public void TestChildNotInvalidatedWhenNotAlive()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        LifetimeStart = double.MaxValue
+                    }
+                };
+
+                // Trigger a validation of draw size.
+                Assert.That(child.DrawSize, Is.EqualTo(new Vector2(200)));
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("resize parent", () => parent.Size = new Vector2(400));
+            AddAssert("child not invalidated", () => !invalidated);
+        }
+
+        /// <summary>
+        /// Tests that a loaded child is invalidated when it becomes alive.
+        /// </summary>
+        [Test]
+        public void TestChildInvalidatedWhenMadeAlive()
+        {
+            Container parent = null;
+            Drawable child = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box { RelativeSizeAxes = Axes.Both }
+                };
+            });
+
+            AddStep("make child dead", () =>
+            {
+                child.LifetimeStart = double.MaxValue;
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            // See above: won't cause an invalidation
+            AddStep("resize parent", () => parent.Size = new Vector2(400));
+
+            AddStep("make child alive", () => child.LifetimeStart = double.MinValue);
+            AddAssert("child invalidated", () => invalidated);
+
+            // Final check to make sure that the correct invalidation occurred
+            AddAssert("child size matches parent", () => child.DrawSize == parent.Size);
+        }
+
+        /// <summary>
+        /// Tests that non-alive children always receive Parent invalidations.
+        /// </summary>
+        [Test]
+        public void TestNonAliveChildReceivesParentInvalidations()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        LifetimeStart = double.MaxValue
+                    }
+                };
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("invalidate parent", () =>
+            {
+                invalidated = false;
+                parent.Invalidate(Invalidation.Parent);
+            });
+
+            AddAssert("child invalidated", () => invalidated);
+        }
+
+        /// <summary>
+        /// Tests that DrawNode invalidations never propagate.
+        /// </summary>
+        [Test]
+        public void TestDrawNodeInvalidationsNeverPropagate()
+        {
+            Container parent = null;
+            bool invalidated = false;
+
+            AddStep("create test", () =>
+            {
+                Drawable child;
+
+                Child = parent = new Container
+                {
+                    Size = new Vector2(200),
+                    Child = child = new Box { RelativeSizeAxes = Axes.Both }
+                };
+
+                child.Invalidated += _ => invalidated = true;
+            });
+
+            AddStep("invalidate parent", () =>
+            {
+                invalidated = false;
+                parent.Invalidate(Invalidation.DrawNode);
+            });
+
+            AddAssert("child not invalidated", () => !invalidated);
+        }
+
         private class TestBox1 : Box
         {
             public override bool RemoveWhenNotAlive => false;
+        }
+
+        private class TestContainer1 : Container
+        {
+            public new Action<Invalidation> Invalidated;
+
+            protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+            {
+                Invalidated?.Invoke(invalidation);
+                return base.OnInvalidate(invalidation, source);
+            }
         }
     }
 }
