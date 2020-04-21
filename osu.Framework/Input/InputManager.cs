@@ -491,7 +491,7 @@ namespace osu.Framework.Input
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
 
-                case MouseButtonStateChangeEvent mouseButtonStateChange:
+                case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
@@ -529,7 +529,7 @@ namespace osu.Framework.Input
             handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
-        protected virtual void HandleMouseButtonStateChange(MouseButtonStateChangeEvent e)
+        protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
                 manager.HandleButtonStateChange(e.State, e.Kind);

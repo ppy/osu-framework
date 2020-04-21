@@ -26,8 +26,5 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
-
-        protected override ButtonStateChangeEvent<MouseButton> CreateEvent(InputState state, MouseButton button, ButtonStateChangeKind kind)
-            => new MouseButtonStateChangeEvent(state, this, button, kind);
     }
 }

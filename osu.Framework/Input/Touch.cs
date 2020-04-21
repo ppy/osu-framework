@@ -3,7 +3,6 @@
 
 using System;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -15,18 +14,15 @@ namespace osu.Framework.Input
         /// <summary>
         /// The source of this touch.
         /// </summary>
-        public readonly MouseButton Source;
+        public readonly TouchSource Source;
 
         /// <summary>
         /// The current position of this touch.
         /// </summary>
         public readonly Vector2 Position;
 
-        public Touch(MouseButton source, Vector2 position)
+        public Touch(TouchSource source, Vector2 position)
         {
-            if (source < MouseButton.Touch1 || source > MouseButton.Touch10)
-                throw new ArgumentException($"Invalid touch source provided: {source}", nameof(source));
-
             Source = source;
             Position = position;
         }
