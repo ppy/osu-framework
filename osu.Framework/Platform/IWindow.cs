@@ -53,7 +53,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the vertical sync mode of the screen.
         /// </summary>
-        VSyncMode VSync { get; set; }
+        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.

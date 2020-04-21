@@ -8,10 +8,10 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Video
 {
-    public class VideoSpriteDrawNode : SpriteDrawNode
+    internal class VideoSpriteDrawNode : SpriteDrawNode
     {
-        public VideoSpriteDrawNode(VideoSprite source)
-            : base(source)
+        public VideoSpriteDrawNode(Video source)
+            : base(source.Sprite)
         {
             yuvCoeff = source.ConversionMatrix;
         }

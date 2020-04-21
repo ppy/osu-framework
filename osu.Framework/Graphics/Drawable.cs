@@ -318,7 +318,8 @@ namespace osu.Framework.Graphics
             // From a synchronous point of view, this is the first time the Drawable receives a parent.
             // If this Drawable calculated properties such as DrawInfo that depend on the parent state before this point, they must be re-validated in the now-correct state.
             // A "parent" source is faked since Child+Self states are always assumed valid if they only access local Drawable states (e.g. Colour but not DrawInfo).
-            Invalidate(invalidationList.Trim(Invalidation.All), InvalidationSource.Parent);
+            // Only layout flags are required, as non-layout flags are always propagated by the parent.
+            Invalidate(Invalidation.Layout, InvalidationSource.Parent);
 
             LoadComplete();
 
@@ -540,9 +541,17 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Position)} must be finite, but is {value}.");
 
+                Axes changedAxes = Axes.None;
+
+                if (position.X != value.X)
+                    changedAxes |= Axes.X;
+
+                if (position.Y != value.Y)
+                    changedAxes |= Axes.Y;
+
                 position = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, changedAxes);
             }
         }
 
@@ -563,7 +572,7 @@ namespace osu.Framework.Graphics
 
                 x = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, Axes.X);
             }
         }
 
@@ -581,7 +590,7 @@ namespace osu.Framework.Graphics
 
                 y = value;
 
-                Invalidate(Invalidation.MiscGeometry);
+                invalidateParentSizeDependencies(Invalidation.MiscGeometry, Axes.Y);
             }
         }
 
@@ -671,9 +680,17 @@ namespace osu.Framework.Graphics
 
                 if (!Validation.IsFinite(value)) throw new ArgumentException($@"{nameof(Size)} must be finite, but is {value}.");
 
+                Axes changedAxes = Axes.None;
+
+                if (size.X != value.X)
+                    changedAxes |= Axes.X;
+
+                if (size.Y != value.Y)
+                    changedAxes |= Axes.Y;
+
                 size = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, changedAxes);
             }
         }
 
@@ -694,7 +711,7 @@ namespace osu.Framework.Graphics
 
                 width = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, Axes.X);
             }
         }
 
@@ -712,7 +729,7 @@ namespace osu.Framework.Graphics
 
                 height = value;
 
-                Invalidate(Invalidation.DrawSize);
+                invalidateParentSizeDependencies(Invalidation.DrawSize, Axes.Y);
             }
         }
 
@@ -1606,7 +1623,7 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-                localBlending.CopyFromParent(Parent.Blending);
+                localBlending.CopyFromParent(ci.Blending);
 
             localBlending.ApplyDefaultToInherited();
 
@@ -1716,10 +1733,8 @@ namespace osu.Framework.Graphics
                 Parent?.ValidateSuperTree(validationType);
         }
 
-        private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        public long InvalidationID { get; private set; } = invalidation_counter.Increment();
+        public long InvalidationID { get; private set; } = 1;
 
         /// <summary>
         /// Invalidates the layout of this <see cref="Drawable"/>.
@@ -1775,7 +1790,7 @@ namespace osu.Framework.Graphics
             anyInvalidated |= OnInvalidate(invalidation, source);
 
             if (anyInvalidated)
-                InvalidationID = invalidation_counter.Increment();
+                InvalidationID++;
 
             Invalidated?.Invoke(this);
 
@@ -1808,6 +1823,20 @@ namespace osu.Framework.Graphics
                     result |= Invalidation.MiscGeometry;
                 return result;
             }
+        }
+
+        /// <summary>
+        /// A fast path for invalidating ourselves and our parent's children size dependencies whenever a size or position change occurs.
+        /// </summary>
+        /// <param name="invalidation">The <see cref="Invalidation"/> to invalidate with.</param>
+        /// <param name="changedAxes">The <see cref="Axes"/> that were affected.</param>
+        private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
+        {
+            // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
+            Invalidate(invalidation, InvalidationSource.Parent);
+
+            // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
+            Parent?.InvalidateChildrenSizeDependencies(invalidation, changedAxes, this);
         }
 
         #endregion
@@ -2531,6 +2560,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// <see cref="Graphics.DrawNode.ApplyState"/> has to be invoked on all old draw nodes.
+        /// This <see cref="Invalidation"/> flag never propagates to children.
         /// </summary>
         DrawNode = 1 << 4,
 
@@ -2558,6 +2588,11 @@ namespace osu.Framework.Graphics
         /// All possible things are affected.
         /// </summary>
         All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
+
+        /// <summary>
+        /// Only the layout flags.
+        /// </summary>
+        Layout = All & ~(DrawNode | Parent)
     }
 
     /// <summary>

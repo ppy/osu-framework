@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -220,7 +221,7 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>()
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
                                                                          .FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
@@ -403,6 +404,8 @@ namespace osu.Framework.Testing
                 CurrentTest.Dispose();
             }
 
+            var lastTest = CurrentTest;
+
             CurrentTest = null;
 
             if (testType == null && TestTypes.Count > 0)
@@ -415,13 +418,21 @@ namespace osu.Framework.Testing
 
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
+            Debug.Assert(newTest != null);
+
             const string dynamic_prefix = "dynamic";
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
+            {
+                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
                 toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
+            }
             else
+            {
                 TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+                newTest.DynamicCompilationOriginal = newTest;
+            }
 
             Assembly.Value = testType.Assembly;
 
@@ -498,7 +509,7 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.Checkpoint(CurrentTest);
+            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
@@ -509,7 +520,7 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStep
+                    CurrentTest.AddStep(new SetUpStepButton
                     {
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -526,15 +537,6 @@ namespace osu.Framework.Testing
             }
         }
 
-        private class SetUpStep : SingleStepButton
-        {
-            public SetUpStep()
-            {
-                Text = "[SetUp]";
-                LightColour = Color4.Teal;
-            }
-        }
-
         private void runTests(Action onCompletion)
         {
             int actualStepCount = 0;
@@ -547,7 +549,7 @@ namespace osu.Framework.Testing
                     // stop once one actual step has been run.
                     return true;
 
-                if (!(s is SetUpStep) && !(s is LabelStep))
+                if (!(s is SetUpStepButton) && !(s is LabelStep))
                     actualStepCount++;
 
                 return false;
@@ -599,7 +601,7 @@ namespace osu.Framework.Testing
 
         private class TestBrowserTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => TestSceneButton.LEFT_TEXT_PADDING;
+            protected override float LeftRightPadding => TestButtonBase.LEFT_TEXT_PADDING;
 
             public TestBrowserTextBox()
             {

@@ -40,7 +40,6 @@ using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
 using SixLabors.Memory;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
-using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Platform
 {
@@ -56,6 +55,14 @@ namespace osu.Framework.Platform
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
         public readonly IBindable<bool> IsActive = new Bindable<bool>(true);
+
+        /// <summary>
+        /// Disable any system level timers that might dim or turn off the screen.
+        /// </summary>
+        /// <remarks>
+        /// To preserve battery life on mobile devices, this should be left on whenever possible.
+        /// </remarks>
+        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
@@ -200,6 +207,8 @@ namespace osu.Framework.Platform
 
         private readonly ToolkitOptions toolkitOptions;
 
+        private bool suspended;
+
         protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
         {
             this.toolkitOptions = toolkitOptions;
@@ -239,6 +248,10 @@ namespace osu.Framework.Platform
 
                 //we want to throw this exception on the input thread to interrupt window and also headless execution.
                 InputThread.Scheduler.Add(() => { captured.Throw(); });
+
+                // schedule an exit to the input thread.
+                // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
+                PerformExit(false);
             }
 
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
@@ -295,7 +308,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != WindowState.Minimized)
+            else if (Window.WindowState != osuTK.WindowState.Minimized)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -376,7 +389,7 @@ namespace osu.Framework.Platform
         {
             Window.SwapBuffers();
 
-            if (Window.VSync == VSyncMode.On)
+            if (Window.VerticalSync)
                 // without glFinish, vsync is basically unplayable due to the extra latency introduced.
                 // we will likely want to give the user control over this in the future as an advanced setting.
                 GL.Finish();
@@ -470,7 +483,7 @@ namespace osu.Framework.Platform
             {
                 SetupToolkit();
 
-                threadRunner = new ThreadRunner(InputThread = new InputThread());
+                threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
                 TaskScheduler.UnobservedTaskException += unobservedExceptionHandler;
@@ -557,7 +570,7 @@ namespace osu.Framework.Platform
                     else
                     {
                         while (ExecutionState != ExecutionState.Stopped)
-                            InputThread.ProcessFrame();
+                            windowUpdate();
                     }
                 }
                 catch (OutOfMemoryException)
@@ -571,11 +584,33 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
+        /// </summary>
+        public void Suspend()
+        {
+            threadRunner.Suspend();
+            suspended = true;
+        }
+
+        /// <summary>
+        /// Resumes all of the current paused threads after <see cref="Suspend"/> was called.
+        /// </summary>
+        public void Resume()
+        {
+            threadRunner.Start();
+            suspended = false;
+        }
+
         private ThreadRunner threadRunner;
 
         private void windowUpdate()
         {
             inputPerformanceCollectionPeriod?.Dispose();
+            inputPerformanceCollectionPeriod = null;
+
+            if (suspended)
+                return;
 
             threadRunner.RunMainLoop();
 
@@ -749,7 +784,7 @@ namespace osu.Framework.Platform
                 if (restoreDefaults)
                 {
                     resetInputHandlers();
-                    ignoredInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
+                    ignoredInputHandlers.Value = string.Join(' ', AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
                 }
                 else
                 {
@@ -791,7 +826,7 @@ namespace osu.Framework.Platform
         {
             if (Window == null) return;
 
-            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode.Value == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+            DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
@@ -883,7 +918,9 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save)),
             new KeyBinding(InputKey.Home, new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move))
+            new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), new PlatformAction(PlatformActionType.Undo)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), new PlatformAction(PlatformActionType.Redo)),
         };
 
         /// <summary>
@@ -902,6 +939,13 @@ namespace osu.Framework.Platform
         /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
         public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+
+        /// <summary>
+        /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.
+        /// </summary>
+        /// <param name="mainThread">The main thread.</param>
+        /// <returns>The <see cref="ThreadRunner"/>.</returns>
+        protected virtual ThreadRunner CreateThreadRunner(InputThread mainThread) => new ThreadRunner(mainThread);
     }
 
     /// <summary>

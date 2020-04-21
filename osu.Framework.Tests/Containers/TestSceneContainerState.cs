@@ -219,6 +219,43 @@ namespace osu.Framework.Tests.Containers
             AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
         }
 
+        [Test]
+        public void TestExpireChildAfterLoad()
+        {
+            Container container = null;
+            Drawable child = null;
+
+            AddStep("add container and child", () =>
+            {
+                Add(container = new Container
+                {
+                    Child = child = new Box()
+                });
+            });
+
+            AddStep("expire child", () => child.Expire());
+
+            AddUntilStep("container has no children", () => container.Count == 0);
+        }
+
+        [Test]
+        public void TestExpireChildBeforeLoad()
+        {
+            Container container = null;
+
+            AddStep("add container", () => Add(container = new Container()));
+
+            AddStep("add expired child", () =>
+            {
+                var child = new Box();
+                child.Expire();
+
+                container.Add(child);
+            });
+
+            AddUntilStep("container has no children", () => container.Count == 0);
+        }
+
         private class DelayedLoadDrawable : CompositeDrawable
         {
             public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
