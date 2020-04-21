@@ -18,7 +18,6 @@ namespace osu.Framework.Input.StateChanges
 
         /// <summary>
         /// Whether to activate the provided <see cref="Touch"/>.
-        /// This can stay <code>true</code>
         /// </summary>
         public readonly bool Activate;
 

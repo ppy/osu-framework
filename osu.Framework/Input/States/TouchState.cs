@@ -24,7 +24,8 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// Retrieves the current touch position of a specified <paramref name="source"/>.
         /// </summary>
-        /// <param name="source">The touch source, null if provided <paramref name="source"/> is not currently active.</param>
+        /// <param name="source">The touch source.</param>
+        /// <returns>The touch position, or null if provided <paramref name="source"/> is not currently active.</returns>
         public Vector2? GetTouchPosition(TouchSource source) => IsActive(source) ? TouchPositions[(int)source] : (Vector2?)null;
 
         /// <summary>
