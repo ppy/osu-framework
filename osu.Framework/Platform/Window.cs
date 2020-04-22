@@ -318,7 +318,7 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(windowBackend);
 
             CurrentDisplay.Value = windowBackend.CurrentDisplay;
-            CurrentDisplay.ValueChanged += evt => this.windowBackend.CurrentDisplay = evt.NewValue;
+            CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
         }
 
         #endregion
