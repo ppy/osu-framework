@@ -27,7 +27,6 @@ namespace osu.Framework.Tests.Visual.Platform
         private IWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
-        private readonly IBindableList<Display> displays = new BindableList<Display>();
 
         public TestSceneFullscreen()
         {
@@ -43,11 +42,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     currentActualSize,
                     currentWindowMode,
                     supportedWindowModes,
-                    displaysDropdown = new BasicDropdown<Display>
-                    {
-                        ItemSource = displays,
-                        Width = 600,
-                    }
+                    displaysDropdown = new BasicDropdown<Display> { Width = 600 }
                 },
             };
 
@@ -71,8 +66,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null)
                 return;
 
-            displays.BindTo(window.Displays);
-            displaysDropdown.ItemSource = displays;
+            displaysDropdown.Items = window.Displays;
             displaysDropdown.Current.BindTo(window.CurrentDisplay);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";

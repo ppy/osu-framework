@@ -74,20 +74,9 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
-        private readonly BindableList<Display> displays = new BindableList<Display>();
+        public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
 
-        public virtual IBindableList<Display> Displays => displays;
-
-        private readonly Display[] availableDisplays;
-
-        /// <summary>
-        /// Provides an <see cref="IEnumerable{Display}"/> that will initialise the cached array
-        /// of available displays.
-        /// Defaults to an empty enumerable.
-        /// </summary>
-        protected virtual IEnumerable<Display> AvailableDisplays => Enumerable.Empty<Display>();
-
-        public virtual Display PrimaryDisplay => availableDisplays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
+        public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
 
         public virtual Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
@@ -114,8 +103,6 @@ namespace osu.Framework.Platform
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
 
-            availableDisplays = AvailableDisplays.ToArray();
-            displays.AddRange(availableDisplays);
             CurrentDisplay.Value = PrimaryDisplay;
 
             Move += (sender, e) => checkCurrentDisplay();
@@ -251,7 +238,7 @@ namespace osu.Framework.Platform
         {
             int index = (int)CurrentDisplayDevice.GetIndex();
             if (index != CurrentDisplay.Value?.Index)
-                CurrentDisplay.Value = AvailableDisplays.ElementAtOrDefault(index);
+                CurrentDisplay.Value = Displays.ElementAtOrDefault(index);
         }
 
         private string getVersionNumberSubstring(string version)

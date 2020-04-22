@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
@@ -59,6 +60,8 @@ namespace osu.Framework.Platform
         public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
 
         public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
+
+        public IEnumerable<Display> Displays => windowBackend.Displays;
 
         public WindowMode DefaultWindowMode => WindowMode.Windowed;
 
@@ -118,10 +121,6 @@ namespace osu.Framework.Platform
         public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>(Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>());
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        private readonly BindableList<Display> displays = new BindableList<Display>();
-
-        public IBindableList<Display> Displays => displays;
 
         #endregion
 
@@ -290,8 +289,6 @@ namespace osu.Framework.Platform
             };
 
             windowBackend.Create();
-
-            displays.AddRange(windowBackend.Displays);
 
             windowBackend.Resized += windowBackend_Resized;
             windowBackend.WindowStateChanged += () => WindowState.Value = windowBackend.WindowState;

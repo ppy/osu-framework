@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -76,10 +77,9 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
-        /// Exposes the physical displays as an <see cref="IBindableList{Display}"/>.
-        /// This is queried a single time on startup.
+        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
         /// </summary>
-        IBindableList<Display> Displays { get; }
+        IEnumerable<Display> Displays { get; }
 
         /// <summary>
         /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.

@@ -145,11 +145,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        private Display[] displays = Array.Empty<Display>();
+        public IEnumerable<Display> Displays => Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
 
-        public IEnumerable<Display> Displays => displays;
-
-        public Display PrimaryDisplay => displays.First();
+        public Display PrimaryDisplay => Displays.First();
 
         private int previousDisplayIndex = -1;
 
@@ -258,8 +256,6 @@ namespace osu.Framework.Platform
             scale.Invalidate();
             Size = size;
             Position = position;
-
-            displays = Enumerable.Range(0, Sdl2Functions.SDL_GetNumVideoDisplays()).Select(displayFromSDL).ToArray();
 
             implementation.MouseDown += implementation_OnMouseDown;
             implementation.MouseUp += implementation_OnMouseUp;
