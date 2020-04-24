@@ -71,8 +71,9 @@ namespace osu.Framework.Graphics.Animations
         {
             base.Update();
 
+            double consumedTime = consumeClockTime();
             if (IsPlaying)
-                manualClock.CurrentTime += consumeClockTime();
+                manualClock.CurrentTime += consumedTime;
         }
 
         /// <summary>
