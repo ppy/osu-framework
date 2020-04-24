@@ -81,6 +81,8 @@ namespace osu.Framework.Platform
             Resize += OnResize;
             Move += OnMove;
 
+            // Changing the CurrentDisplay bindable should update the position of the window accordingly.
+            // Note that this must be done on the windowing thread to avoid potential deadlocks or strange behaviour.
             CurrentDisplay.ValueChanged += evt =>
                 UpdateFrameScheduler.Add(() => CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)evt.NewValue.Index));
         }
@@ -202,9 +204,11 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        public void CentreToScreen(DisplayDevice display = null)
+        public void CentreToScreen(Display display = null)
         {
-            if (display != null) CurrentDisplayDevice = display;
+            if (display != null)
+                CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)display.Index);
+
             Position = new Vector2(0.5f);
         }
 

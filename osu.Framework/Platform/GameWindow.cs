@@ -105,6 +105,8 @@ namespace osu.Framework.Platform
 
             CurrentDisplay.Value = PrimaryDisplay;
 
+            // Moving or resizing the window needs to check to see if we've moved to a different display.
+            // This will update the CurrentDisplay bindable.
             Move += (sender, e) => checkCurrentDisplay();
             Resize += (sender, e) => checkCurrentDisplay();
 
