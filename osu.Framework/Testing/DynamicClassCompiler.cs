@@ -124,7 +124,7 @@ namespace osu.Framework.Testing
                                                    string fwWithoutExtension = Path.GetFileNameWithoutExtension(f);
 
                                                    // find whether this file is potentially one of the matching required types.
-                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith(fwWithoutExtension));
+                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith($".{fwWithoutExtension}"));
 
                                                    if (matchingType == null) return false;
 
