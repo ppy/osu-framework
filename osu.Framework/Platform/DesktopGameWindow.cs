@@ -38,7 +38,7 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice CurrentDisplayDevice
+        protected override DisplayDevice CurrentDisplayDevice
         {
             set
             {
