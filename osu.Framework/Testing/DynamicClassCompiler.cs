@@ -102,7 +102,8 @@ namespace osu.Framework.Testing
                     reqTypes.Add(removeGenerics(derivedType.FullName));
 
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().FullName)));
+                string testedTypeName = target.GetType().Name;
+                reqTypes.Add(removeGenerics(target.GetType().FullName?.Replace(testedTypeName, TestScene.RemovePrefix(testedTypeName))));
 
                 string changedFileWithoutExtension = Path.GetFileNameWithoutExtension(args.Name);
 
