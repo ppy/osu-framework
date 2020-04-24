@@ -94,7 +94,7 @@ namespace osu.Framework.Testing
                 var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.FullName)).ToList();
 
                 // add ourselves
-                reqTypes.Add(removeGenerics(targetType.Name));
+                reqTypes.Add(removeGenerics(targetType.FullName));
 
                 // add all parents
                 var derivedType = targetType;
