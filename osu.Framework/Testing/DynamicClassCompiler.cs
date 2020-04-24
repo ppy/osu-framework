@@ -91,8 +91,6 @@ namespace osu.Framework.Testing
                 if (target == null || isCompiling)
                     return;
 
-                requiredFiles.Clear();
-
                 var reqTypes = target.RequiredTypes.Append(target.GetType()).ToList();
 
                 var derivedType = target.GetType();
