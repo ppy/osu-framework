@@ -38,6 +38,8 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
+        private readonly bool topLevel;
+
         public Action<Drawable> RequestTarget;
         public Action<VisualisedDrawable> HighlightTarget;
 
@@ -50,14 +52,18 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityLayout;
         private VisualisedDrawableFlow flow;
 
+        private const float row_width = 10;
+        private const float row_height = 20;
+
         [Resolved]
         private DrawVisualiser visualiser { get; set; }
 
         [Resolved]
         private TreeContainer tree { get; set; }
 
-        public VisualisedDrawable(Drawable d)
+        public VisualisedDrawable(Drawable d, bool topLevel = false)
         {
+            this.topLevel = topLevel;
             Target = d;
         }
 
@@ -76,7 +82,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Position = new Vector2(10, 20)
+                    Position = new Vector2(row_width, row_height)
                 },
                 new Container
                 {
@@ -148,6 +154,30 @@ namespace osu.Framework.Graphics.Visualisation
                     }
                 },
             });
+
+            if (!topLevel)
+            {
+                const float line_width = 1;
+
+                AddRangeInternal(new[]
+                {
+                    new Box
+                    {
+                        Colour = FrameworkColour.Green,
+                        RelativeSizeAxes = Axes.Y,
+                        Width = line_width,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    },
+                    new Box
+                    {
+                        Colour = FrameworkColour.Green,
+                        X = line_width,
+                        Y = row_height / 2,
+                        Width = row_width / 2,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    }
+                });
+            }
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);

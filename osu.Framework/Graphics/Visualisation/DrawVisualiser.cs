@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 if (target != null)
                 {
-                    GetVisualiserFor(target).SetContainer(null);
+                    GetVisualiserFor(target, true).SetContainer(null);
                     targetVisualiser = null;
                 }
 
@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (target != null)
                 {
-                    targetVisualiser = GetVisualiserFor(target);
+                    targetVisualiser = GetVisualiserFor(target, true);
                     targetVisualiser.SetContainer(this);
                 }
             }
@@ -333,12 +333,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
 
-        public VisualisedDrawable GetVisualiserFor(Drawable drawable)
+        public VisualisedDrawable GetVisualiserFor(Drawable drawable, bool topLevel = false)
         {
             if (visCache.TryGetValue(drawable, out var existing))
                 return existing;
 
-            var vis = new VisualisedDrawable(drawable);
+            var vis = new VisualisedDrawable(drawable, topLevel);
             vis.OnDispose += () => visCache.Remove(vis.Target);
 
             return visCache[drawable] = vis;
