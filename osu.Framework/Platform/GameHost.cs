@@ -348,6 +348,7 @@ namespace osu.Framework.Platform
                     {
                         var depthValue = new DepthValue();
 
+                        GLWrapper.SetBlend(BlendingParameters.None);
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
                         // Front pass

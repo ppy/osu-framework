@@ -82,7 +82,7 @@ namespace osu.Framework.Testing
             }
         }
 
-        private void onChange(object sender, FileSystemEventArgs e)
+        private void onChange(object sender, FileSystemEventArgs args)
         {
             lock (compileLock)
             {
@@ -91,20 +91,22 @@ namespace osu.Framework.Testing
 
                 var targetType = target.GetType();
 
-                var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
+                var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.FullName)).ToList();
 
                 // add ourselves
-                reqTypes.Add(removeGenerics(targetType.Name));
+                reqTypes.Add(removeGenerics(targetType.FullName));
 
                 // add all parents
                 var derivedType = targetType;
                 while ((derivedType = derivedType.BaseType) != null && derivedType != typeof(TestScene))
-                    reqTypes.Add(removeGenerics(derivedType.Name));
+                    reqTypes.Add(removeGenerics(derivedType.FullName));
 
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().Name)));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().FullName)));
 
-                if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
+                string changedFileWithoutExtension = Path.GetFileNameWithoutExtension(args.Name);
+
+                if (!reqTypes.Any(t => t.EndsWith(changedFileWithoutExtension)))
                     return;
 
                 if (!reqTypes.SequenceEqual(requiredTypeNames))
@@ -113,15 +115,41 @@ namespace osu.Framework.Testing
 
                     requiredFiles.Clear();
 
-                    foreach (var d in validDirectories)
+                    foreach (string d in validDirectories)
                     {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
-                                               .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                                               .Where(f =>
+                                               {
+                                                   string fwWithoutExtension = Path.GetFileNameWithoutExtension(f);
+
+                                                   // find whether this file is potentially one of the matching required types.
+                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith($".{fwWithoutExtension}"));
+
+                                                   if (matchingType == null) return false;
+
+                                                   // if so, further check for matching namespace.
+                                                   // non-matching namespoace could signify a class of the same name but from a different namespace.
+                                                   string[] namespacePieces = matchingType.Split('.');
+                                                   string namespaceLine = $"namespace {string.Join('.', namespacePieces.Take(namespacePieces.Length - 1))}";
+
+                                                   using (var reader = File.OpenText(f))
+                                                   {
+                                                       string line;
+
+                                                       while ((line = reader.ReadLine()) != null)
+                                                       {
+                                                           if (line.Contains("namespace "))
+                                                               return line.Contains(namespaceLine);
+                                                       }
+                                                   }
+
+                                                   return false;
+                                               }));
                     }
                 }
 
-                lastTouchedFile = e.FullPath;
+                lastTouchedFile = args.FullPath;
 
                 isCompiling = true;
                 Task.Run(recompile)
