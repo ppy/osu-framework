@@ -104,15 +104,15 @@ namespace osu.Framework.Tests.Visual.Platform
             windowMode.TriggerChange();
         }
 
-        private Container createScreen(DisplayDevice device, string name) =>
+        private Container createScreen(Display display, string name) =>
             new Container
             {
-                X = device.Bounds.X,
-                Y = device.Bounds.Y,
-                Width = device.Bounds.Width,
-                Height = device.Bounds.Height,
+                X = display.Bounds.X,
+                Y = display.Bounds.Y,
+                Width = display.Bounds.Width,
+                Height = display.Bounds.Height,
 
-                BorderColour = device.IsPrimary ? active_stroke : screen_stroke,
+                BorderColour = display.Index == 0 ? active_stroke : screen_stroke,
                 BorderThickness = 20,
                 Masking = true,
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = device.IsPrimary ? active_fill : screen_fill
+                        Colour = display.Index == 0 ? active_fill : screen_fill
                     },
                     new SpriteText
                     {
@@ -146,32 +146,32 @@ namespace osu.Framework.Tests.Visual.Platform
             }
 
             refreshScreens();
+
             AddStep("set up screens", refreshScreens);
 
             const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
-            for (int i = 0; true; i++)
+            foreach (var display in window.Displays)
             {
-                var display = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (display == null) break;
+                AddLabel($"Steps for display {display.Index}");
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
-                AddStep("center window on screen " + i, () => window.CentreToScreen(display));
+                AddStep("center window on screen " + display.Index, () => window.CentreToScreen(display));
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
                 AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
                 AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplay == display);
+                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
                 AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
-                AddAssert("check current screen", () => window.CurrentDisplay == display);
+                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
             }
         }
 
@@ -181,13 +181,10 @@ namespace osu.Framework.Tests.Visual.Platform
             screenContainer.Clear();
             var bounds = new RectangleI();
 
-            for (int i = 0; true; i++)
+            foreach (var display in window.Displays)
             {
-                var device = DisplayDevice.GetDisplay((DisplayIndex)i);
-                if (device == null) break;
-
-                screenContainer.Add(createScreen(device, device.IsPrimary ? $"Screen {i} (Primary)" : $"Screen {i}"));
-                bounds = RectangleI.Union(bounds, new RectangleI(device.Bounds.X, device.Bounds.Y, device.Width, device.Height));
+                screenContainer.Add(createScreen(display, display.Name));
+                bounds = RectangleI.Union(bounds, new RectangleI(display.Bounds.X, display.Bounds.Y, display.Bounds.Width, display.Bounds.Height));
             }
 
             screenContainer.Add(windowContainer);
@@ -206,11 +203,12 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null) return;
 
             bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
+            var currentBounds = window.CurrentDisplay.Value.Bounds;
 
             windowContainer.X = window.X;
             windowContainer.Y = window.Y;
-            windowContainer.Width = fullscreen ? window.CurrentDisplay.Width : window.Width;
-            windowContainer.Height = fullscreen ? window.CurrentDisplay.Height : window.Height;
+            windowContainer.Width = fullscreen ? currentBounds.Width : window.Width;
+            windowContainer.Height = fullscreen ? currentBounds.Height : window.Height;
             windowContainer.Position -= screenContainerOffset;
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
         }
@@ -231,7 +229,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.Size}";
             currentClientSize.Text = $"Client size: {window?.ClientSize}";
-            currentDisplay.Text = $"Current Display: {window?.CurrentDisplay}";
+            currentDisplay.Text = $"Current Display: {window?.CurrentDisplay.Value.Name}";
         }
     }
 }

@@ -37,7 +37,7 @@ namespace osu.Framework.iOS
             set { }
         }
 
-        public override DisplayDevice CurrentDisplay
+        protected override DisplayDevice CurrentDisplayDevice
         {
             get => DisplayDevice.Default;
             set => throw new InvalidOperationException();
