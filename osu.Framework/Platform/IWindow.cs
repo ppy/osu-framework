@@ -28,6 +28,11 @@ namespace osu.Framework.Platform
         void SetupWindow(FrameworkConfigManager config);
 
         /// <summary>
+        /// Creates the concrete window implementation.
+        /// </summary>
+        void Create();
+
+        /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
         [CanBeNull]

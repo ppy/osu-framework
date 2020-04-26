@@ -528,6 +528,8 @@ namespace osu.Framework.Platform
                     Window.SetupWindow(Config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
 
+                    Window.Create();
+
                     IsActive.BindTo(Window.IsActive);
                 }
 

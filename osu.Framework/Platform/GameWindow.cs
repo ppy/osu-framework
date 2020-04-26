@@ -171,6 +171,13 @@ namespace osu.Framework.Platform
         {
         }
 
+        /// <summary>
+        /// Not applicable to osuTK.
+        /// </summary>
+        public void Create()
+        {
+        }
+
         private CursorState cursorState = CursorState.Default;
 
         /// <summary>

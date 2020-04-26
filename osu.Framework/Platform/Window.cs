@@ -289,7 +289,27 @@ namespace osu.Framework.Platform
                 else
                     OnMouseLeft();
             };
+        }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Starts the window's run loop.
+        /// </summary>
+        public void Run() => windowBackend.Run();
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        public void Close() => windowBackend.Close();
+
+        /// <summary>
+        /// Creates the concrete window implementation and initialises the graphics backend.
+        /// </summary>
+        public void Create()
+        {
             windowBackend.Create();
 
             windowBackend.Resized += windowBackend_Resized;
@@ -323,20 +343,6 @@ namespace osu.Framework.Platform
             CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
         }
 
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Starts the window's run loop.
-        /// </summary>
-        public void Run() => windowBackend.Run();
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void Close() => windowBackend.Close();
-
         /// <summary>
         /// Requests that the graphics backend perform a buffer swap.
         /// </summary>
@@ -348,14 +354,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
 
-        public void CycleMode()
+        public virtual void CycleMode()
         {
-            // TODO: CycleMode
         }
 
-        public void SetupWindow(FrameworkConfigManager config)
+        public virtual void SetupWindow(FrameworkConfigManager config)
         {
-            // TODO: SetupWindow
         }
 
         #endregion
