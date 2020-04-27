@@ -149,12 +149,16 @@ namespace osu.Framework.Graphics.Visualisation
             visualiser.Depth = 0;
 
             treeContainer.Target = targetVisualiser = visualiser;
+            targetVisualiser.TopLevel = true;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
+
+            targetVisualiser.TopLevel = false;
             targetVisualiser = null;
+
             treeContainer.Target = null;
 
             if (Target == null)
@@ -171,7 +175,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 if (target != null)
                 {
-                    GetVisualiserFor(target, true).SetContainer(null);
+                    GetVisualiserFor(target).SetContainer(null);
                     targetVisualiser = null;
                 }
 
@@ -179,7 +183,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (target != null)
                 {
-                    targetVisualiser = GetVisualiserFor(target, true);
+                    targetVisualiser = GetVisualiserFor(target);
                     targetVisualiser.SetContainer(this);
                 }
             }
@@ -333,12 +337,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         private readonly Dictionary<Drawable, VisualisedDrawable> visCache = new Dictionary<Drawable, VisualisedDrawable>();
 
-        public VisualisedDrawable GetVisualiserFor(Drawable drawable, bool topLevel = false)
+        public VisualisedDrawable GetVisualiserFor(Drawable drawable)
         {
             if (visCache.TryGetValue(drawable, out var existing))
                 return existing;
 
-            var vis = new VisualisedDrawable(drawable, topLevel);
+            var vis = new VisualisedDrawable(drawable);
             vis.OnDispose += () => visCache.Remove(vis.Target);
 
             return visCache[drawable] = vis;

@@ -38,8 +38,6 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        private readonly bool topLevel;
-
         public Action<Drawable> RequestTarget;
         public Action<VisualisedDrawable> HighlightTarget;
 
@@ -51,6 +49,7 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
         private VisualisedDrawableFlow flow;
+        private Container connectionContainer;
 
         private const float row_width = 10;
         private const float row_height = 20;
@@ -61,9 +60,8 @@ namespace osu.Framework.Graphics.Visualisation
         [Resolved]
         private TreeContainer tree { get; set; }
 
-        public VisualisedDrawable(Drawable d, bool topLevel = false)
+        public VisualisedDrawable(Drawable d)
         {
-            this.topLevel = topLevel;
             Target = d;
         }
 
@@ -155,29 +153,30 @@ namespace osu.Framework.Graphics.Visualisation
                 },
             });
 
-            if (!topLevel)
-            {
-                const float line_width = 1;
+            const float connection_width = 1;
 
-                AddRangeInternal(new[]
+            AddInternal(connectionContainer = new Container
+            {
+                Colour = FrameworkColour.Green,
+                RelativeSizeAxes = Axes.Y,
+                Width = connection_width,
+                Children = new Drawable[]
                 {
                     new Box
                     {
-                        Colour = FrameworkColour.Green,
-                        RelativeSizeAxes = Axes.Y,
-                        Width = line_width,
+                        RelativeSizeAxes = Axes.Both,
                         EdgeSmoothness = new Vector2(0.5f),
                     },
                     new Box
                     {
-                        Colour = FrameworkColour.Green,
-                        X = line_width,
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.CentreLeft,
                         Y = row_height / 2,
                         Width = row_width / 2,
                         EdgeSmoothness = new Vector2(0.5f),
                     }
-                });
-            }
+                }
+            });
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
@@ -194,6 +193,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             attachEvents();
             updateColours();
+        }
+
+        public bool TopLevel
+        {
+            set => connectionContainer.Alpha = value ? 0 : 1;
         }
 
         private void attachEvents()
