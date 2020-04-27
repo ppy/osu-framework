@@ -5,14 +5,6 @@ namespace osu.Framework.Input.States
 {
     public class MidiState
     {
-        public ButtonStates<MidiKey> Keys { get; private set; } = new ButtonStates<MidiKey>();
-
-        public MidiState Clone()
-        {
-            var clone = (MidiState)MemberwiseClone();
-            clone.Keys = Keys.Clone();
-
-            return clone;
-        }
+        public readonly ButtonStates<MidiKey> Keys = new ButtonStates<MidiKey>();
     }
 }
