@@ -7,7 +7,7 @@ using osu.Framework.Input.States;
 namespace osu.Framework.Input.StateChanges
 {
     /// <summary>
-    /// Denotes a change of the touch activity & position state.
+    /// Denotes a change of a touch input.
     /// </summary>
     public class TouchInput : IInput
     {
