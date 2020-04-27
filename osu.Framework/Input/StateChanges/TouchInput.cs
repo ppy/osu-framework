@@ -37,16 +37,11 @@ namespace osu.Framework.Input.StateChanges
             var touches = state.Touch;
 
             var lastPosition = touches.GetTouchPosition(Touch.Source);
-            if (lastPosition == Touch.Position)
-                // The provided touch position did not change,
-                // mark lastPosition as null to indicate that.
-                lastPosition = null;
-
             touches.TouchPositions[(int)Touch.Source] = Touch.Position;
 
             bool activityChanged = touches.ActiveSources.SetPressed(Touch.Source, Activate);
 
-            if (activityChanged || lastPosition != null)
+            if (activityChanged || Touch.Position != lastPosition)
                 handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, Touch, Activate, lastPosition));
         }
     }
