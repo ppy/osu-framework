@@ -16,10 +16,10 @@ namespace osu.Framework.Localisation
         /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableString"/>.
         /// </summary>
         internal readonly object? Data;
-        // it's somehow common to call default(LocalisableString), and we should return empty string then.
 
         private LocalisableString(object data) => Data = data;
 
+        // it's somehow common to call default(LocalisableString), and we should return empty string then.
         public override string ToString() => Data?.ToString() ?? string.Empty;
 
         public bool Equals(LocalisableString other) => Data == other.Data;

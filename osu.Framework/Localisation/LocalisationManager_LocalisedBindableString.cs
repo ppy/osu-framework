@@ -27,13 +27,24 @@ namespace osu.Framework.Localisation
 
             private void updateValue()
             {
-                Value = text.Data switch
+                switch (text.Data)
                 {
-                    string plain => plain,
-                    RomanisableString romanisable => romanisable.GetPreferred(preferUnicode.Value),
-                    TranslatableString translatable => translatable.Format(storage.Value),
-                    _ => string.Empty,
-                };
+                    case string plain:
+                        Value = plain;
+                        break;
+
+                    case RomanisableString romanisable:
+                        Value = romanisable.GetPreferred(preferUnicode.Value);
+                        break;
+
+                    case TranslatableString translatable:
+                        Value = translatable.Format(storage.Value);
+                        break;
+
+                    default:
+                        Value = string.Empty;
+                        break;
+                }
             }
 
             LocalisableString ILocalisedBindableString.Text
