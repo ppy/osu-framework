@@ -142,6 +142,23 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
         }
 
+        [Test]
+        public void TestSlowLoadModel()
+        {
+            TestDrawableModel drawableModel = null;
+
+            AddStep("setup", () =>
+            {
+                createModelBackedDrawable(false, true);
+                backedDrawable.Model = new TestModel(drawableModel = new TestDrawableModel(1));
+            });
+
+            AddUntilStep("null model visible", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
+
+            AddStep("allow model to load", () => drawableModel.AllowLoad.Set());
+            assertDrawableVisibility(1, () => drawableModel);
+        }
+
         private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
         {
             if (hasIntermediate)

@@ -88,7 +88,13 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateDrawable();
+
+            loadDrawable(() => CreateDrawable(default));
+
+            if (currentWrapper != null)
+                currentWrapper.DelayedLoadComplete += _ => updateDrawable();
+            else
+                updateDrawable();
         }
 
         private void updateDrawable()
