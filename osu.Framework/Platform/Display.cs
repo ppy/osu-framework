@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Drawing;
 
 namespace osu.Framework.Platform
@@ -8,7 +9,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents a physical display device on the current system.
     /// </summary>
-    public sealed class Display
+    public sealed class Display : IEquatable<Display>
     {
         /// <summary>
         /// The name of the display, if available. Usually the manufacturer.
@@ -41,5 +42,13 @@ namespace osu.Framework.Platform
         }
 
         public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}";
+
+        public bool Equals(Display other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return Index == other.Index;
+        }
     }
 }

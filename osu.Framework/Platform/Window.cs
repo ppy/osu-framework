@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -56,11 +57,13 @@ namespace osu.Framework.Platform
         /// </summary>
         public float Scale => windowBackend.Scale;
 
+        public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
+
+        public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
+
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
-        public Display Display => windowBackend.Display;
-
-        public DisplayMode DisplayMode => windowBackend.DisplayMode;
+        public WindowMode DefaultWindowMode => WindowMode.Windowed;
 
         #endregion
 
@@ -74,7 +77,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's unscaled internal size.
         /// </summary>
-        public Bindable<Size> Size { get; } = new Bindable<Size>();
+        public Bindable<Size> Size { get; } = new BindableSize();
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="WindowState"/>.
@@ -89,11 +92,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
         /// </summary>
-        public Bindable<bool> Visible { get; } = new Bindable<bool>();
+        public Bindable<bool> Visible { get; } = new BindableBool();
+
+        public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
         #endregion
 
         #region Immutable Bindables
+
+        private readonly BindableBool isActive = new BindableBool(true);
+
+        public IBindable<bool> IsActive => isActive;
 
         private readonly BindableBool focused = new BindableBool();
 
@@ -108,6 +117,10 @@ namespace osu.Framework.Platform
         /// Provides a read-only bindable that monitors the whether the cursor is in the window.
         /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
+
+        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>(Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>());
+
+        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         #endregion
 
@@ -300,7 +313,12 @@ namespace osu.Framework.Platform
             windowBackend.MouseWheel += OnMouseWheel;
             windowBackend.DragDrop += OnDragDrop;
 
+            windowBackend.DisplayChanged += d => CurrentDisplay.Value = d;
+
             graphicsBackend.Initialise(windowBackend);
+
+            CurrentDisplay.Value = windowBackend.CurrentDisplay;
+            CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
         }
 
         #endregion
@@ -327,6 +345,16 @@ namespace osu.Framework.Platform
         /// May be unrequired for some backends.
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
+
+        public void CycleMode()
+        {
+            // TODO: CycleMode
+        }
+
+        public void SetupWindow(FrameworkConfigManager config)
+        {
+            // TODO: SetupWindow
+        }
 
         #endregion
 
@@ -566,25 +594,6 @@ namespace osu.Framework.Platform
             set => CursorState.Value = value;
         }
 
-        public VSyncMode VSync
-        {
-            get => VerticalSync ? VSyncMode.On : VSyncMode.Off;
-            set => VerticalSync = value == VSyncMode.On;
-        }
-
-        public WindowMode DefaultWindowMode => WindowMode.Windowed;
-
-        public DisplayDevice CurrentDisplay { get; } = null;
-
-        private readonly BindableBool isActive = new BindableBool(true);
-        public IBindable<bool> IsActive => isActive;
-
-        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
-
-        public IEnumerable<DisplayResolution> AvailableResolutions => Array.Empty<DisplayResolution>();
-
         bool INativeWindow.Focused => Focused.Value;
 
         bool INativeWindow.Visible
@@ -594,16 +603,6 @@ namespace osu.Framework.Platform
         }
 
         bool INativeWindow.Exists => Exists;
-
-        public void CycleMode()
-        {
-            // TODO: CycleMode
-        }
-
-        public void SetupWindow(FrameworkConfigManager config)
-        {
-            // TODO: SetupWindow
-        }
 
         public void Run(double updateRate) => Run();
 

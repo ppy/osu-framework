@@ -84,7 +84,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Run any pending work tasks.
         /// </summary>
-        /// <returns>true if any tasks were run.</returns>
+        /// <returns>The number of tasks that were run.</returns>
         public virtual int Update()
         {
             lock (queueLock)
