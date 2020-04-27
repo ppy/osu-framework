@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 
@@ -12,14 +13,22 @@ namespace osu.Framework.Tests.Visual.Audio
     {
         private SampleChannel sampleChannel;
         private ISampleStore samples;
+        private AudioManager audioManager;
 
         [BackgroundDependencyLoader]
-        private void load(ISampleStore samples)
+        private void load(ISampleStore samples, AudioManager audioManager)
         {
             this.samples = samples;
+            this.audioManager = audioManager;
         }
 
-        [Test, Ignore("Needs no audio device support")]
+        [SetUp]
+        public void SetUp()
+        {
+            AddUntilStep("audio device ready", () => audioManager.IsLoaded);
+        }
+
+        [Test]
         public void TestLoopingToggle()
         {
             AddStep("create sample", createSample);
@@ -27,16 +36,16 @@ namespace osu.Framework.Tests.Visual.Audio
 
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
-            AddAssert("is playing", () => sampleChannel.Playing);
+            AddUntilStep("is playing", () => sampleChannel.Playing);
 
-            AddWaitStep("wait", 1);
+            AddWaitStep("wait", 10);
             AddAssert("is still playing", () => sampleChannel.Playing);
 
             AddStep("disable looping", () => sampleChannel.Looping = false);
             AddUntilStep("ensure stops", () => !sampleChannel.Playing);
         }
 
-        [Test, Ignore("Needs no audio device support")]
+        [Test]
         public void TestStopWhileLooping()
         {
             AddStep("create sample", createSample);
@@ -44,11 +53,11 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("enable looping", () => sampleChannel.Looping = true);
             AddStep("play sample", () => sampleChannel.Play());
 
-            AddWaitStep("wait", 1);
+            AddWaitStep("wait", 10);
             AddAssert("is playing", () => sampleChannel.Playing);
 
             AddStep("stop playing", () => sampleChannel.Stop());
-            AddAssert("not playing", () => !sampleChannel.Playing);
+            AddUntilStep("not playing", () => !sampleChannel.Playing);
         }
 
         private void createSample()

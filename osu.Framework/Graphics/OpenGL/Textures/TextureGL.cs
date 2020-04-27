@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
@@ -25,15 +24,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        internal int ReferenceCount;
+        internal virtual bool IsQueuedForUpload { get; set; }
 
-        public void Reference() => Interlocked.Increment(ref ReferenceCount);
-
-        public void Dereference()
-        {
-            if (Interlocked.Decrement(ref ReferenceCount) == 0)
-                Dispose();
-        }
+        /// <summary>
+        /// By default, texture uploads are queued for upload at the beginning of each frame, allowing loading them ahead of time.
+        /// When this is true, this will be bypassed and textures will only be uploaded on use. Should be set for every-frame texture uploads
+        /// to avoid overloading the global queue.
+        /// </summary>
+        public bool BypassTextureUploadQueueing;
 
         /// <summary>
         /// Whether this <see cref="TextureGL"/> can used for drawing.
@@ -78,7 +76,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                             Vector2? inflationPercentage = null);
 
@@ -89,8 +87,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
                                         Vector2? blendRangeOverride = null);
 

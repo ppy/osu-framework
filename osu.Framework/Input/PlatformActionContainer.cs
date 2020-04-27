@@ -56,7 +56,12 @@ namespace osu.Framework.Input
         LineStart,
         LineEnd,
         DocumentPrevious,
-        DocumentNext
+        DocumentNext,
+        ListStart,
+        ListEnd,
+        Save,
+        Undo,
+        Redo
     }
 
     public enum PlatformActionMethod

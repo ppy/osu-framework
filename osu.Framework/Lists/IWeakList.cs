@@ -54,11 +54,5 @@ namespace osu.Framework.Lists
         /// Clears all items from this list.
         /// </summary>
         void Clear();
-
-        /// <summary>
-        /// Performs an action for each alive reference in this list.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        void ForEachAlive(Action<T> action);
     }
 }

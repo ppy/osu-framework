@@ -11,8 +11,8 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils.Clipping;
 using osu.Framework.Threading;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics
@@ -132,7 +132,6 @@ namespace osu.Framework.Graphics
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
-            GLWrapper.SetBlend(DrawColourInfo.Blending);
             GLWrapper.SetDrawDepth(drawDepth);
         }
 
@@ -150,7 +149,7 @@ namespace osu.Framework.Graphics
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
@@ -164,7 +163,7 @@ namespace osu.Framework.Graphics
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                     Vector2? inflationPercentage = null)
@@ -178,8 +177,8 @@ namespace osu.Framework.Graphics
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
@@ -193,8 +192,8 @@ namespace osu.Framework.Graphics
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
-        /// <param name="blendRangeOverride">The range over which the edges of the <see cref="textureRect"/> should be blended.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                 Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
@@ -208,7 +207,7 @@ namespace osu.Framework.Graphics
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                       Vector2? inflationPercentage = null)
@@ -232,7 +231,7 @@ namespace osu.Framework.Graphics
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="drawColour">The vertex colour.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
-        /// <param name="inflationPercentage">The percentage amount that <see cref="textureRect"/> should be inflated.</param>
+        /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawClipped<T>(ref T polygon, TextureGL texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
                                       Vector2? inflationPercentage = null)
@@ -268,8 +267,8 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose"/> until the count reaches 0.
-        /// Invoke <see cref="Dispose"/> to remove the reference.
+        /// Increments the reference count of this <see cref="DrawNode"/>, blocking <see cref="Dispose()"/> until the count reaches 0.
+        /// Invoke <see cref="Dispose()"/> to remove the reference.
         /// </summary>
         /// <remarks>
         /// All <see cref="DrawNode"/>s start with a reference count of 1.

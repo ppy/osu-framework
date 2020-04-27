@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public readonly Bindable<Visibility> State = new Bindable<Visibility>();
 
+        private bool didInitialHide;
+
         /// <summary>
         /// Whether we should be in a hidden state when first displayed.
         /// Override this and set to true to *always* perform a <see cref="PopIn"/> animation even when the state is non-hidden at
@@ -22,16 +24,22 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool StartHidden => State.Value == Visibility.Hidden;
 
-        protected override void LoadComplete()
+        protected override void LoadAsyncComplete()
         {
+            base.LoadAsyncComplete();
+
             if (StartHidden)
             {
                 // do this without triggering the StateChanged event, since hidden is a default.
                 PopOut();
                 FinishTransforms(true);
+                didInitialHide = true;
             }
+        }
 
-            State.BindValueChanged(updateState, State.Value != Visibility.Hidden);
+        protected override void LoadComplete()
+        {
+            State.BindValueChanged(UpdateState, State.Value == Visibility.Visible || !didInitialHide);
 
             base.LoadComplete();
         }
@@ -65,9 +73,14 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected abstract void PopOut();
 
-        private void updateState(ValueChangedEvent<Visibility> e)
+        /// <summary>
+        /// Called whenever <see cref="VisibilityContainer.State"/> is changed.
+        /// Used to update this container's elements according to the new visibility state.
+        /// </summary>
+        /// <param name="state">The <see cref="ValueChangedEvent{T}"/> provided by <see cref="VisibilityContainer.State"/></param>
+        protected virtual void UpdateState(ValueChangedEvent<Visibility> state)
         {
-            switch (e.NewValue)
+            switch (state.NewValue)
             {
                 case Visibility.Hidden:
                     PopOut();

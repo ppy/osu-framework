@@ -15,9 +15,9 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class Sprite : Drawable, ITexturedShaderDrawable
     {
-        public IShader TextureShader { get; private set; }
+        public IShader TextureShader { get; protected set; }
 
-        public IShader RoundedTextureShader { get; private set; }
+        public IShader RoundedTextureShader { get; protected set; }
 
         /// <summary>
         /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
@@ -97,8 +97,10 @@ namespace osu.Framework.Graphics.Sprites
             }
 
             if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
+            {
                 throw new InvalidOperationException(
                     $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
+            }
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 

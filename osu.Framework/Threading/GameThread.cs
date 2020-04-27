@@ -6,7 +6,10 @@ using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using osu.Framework.Bindables;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -17,7 +20,7 @@ namespace osu.Framework.Threading
 
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
-        public Thread Thread { get; }
+        public Thread Thread { get; private set; }
         public Scheduler Scheduler { get; }
 
         /// <summary>
@@ -59,11 +62,28 @@ namespace osu.Framework.Threading
 
         public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
 
-        public bool Running => Thread.IsAlive;
+        public bool Running => Thread?.IsAlive == true;
+
+        public virtual bool IsCurrent => true;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
-        public Action OnThreadStart;
+        internal void Initialize(bool withThrottling)
+        {
+            MakeCurrent();
+
+            OnInitialize();
+
+            Clock.Throttling = withThrottling;
+
+            Monitor.MakeCurrent();
+
+            updateCulture();
+
+            initializedEvent.Set();
+        }
+
+        protected virtual void OnInitialize() { }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
 
@@ -73,19 +93,26 @@ namespace osu.Framework.Threading
         {
             OnNewFrame = onNewFrame;
 
-            Thread = new Thread(runWork)
-            {
-                Name = PrefixedThreadNameFor(name),
-                IsBackground = true,
-            };
-
             Name = name;
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
-                Monitor = new PerformanceMonitor(Clock, Thread, StatisticsCounters);
-            Scheduler = new Scheduler(null, Clock);
+                Monitor = new PerformanceMonitor(this, StatisticsCounters);
+            Scheduler = new GameThreadScheduler(this);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
+        }
+
+        private void createThread()
+        {
+            Debug.Assert(Thread == null);
+
+            Thread = new Thread(runWork)
+            {
+                Name = PrefixedThreadNameFor(Name),
+                IsBackground = true,
+            };
+
+            updateCulture();
         }
 
         public void WaitUntilInitialized()
@@ -97,50 +124,66 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
-            Scheduler.SetCurrentThread();
-
-            OnThreadStart?.Invoke();
-
-            initializedEvent.Set();
-
-            while (!exitCompleted)
+            try
             {
-                try
+                Initialize(true);
+
+                while (!exitCompleted && !paused)
                 {
                     ProcessFrame();
                 }
-                catch (Exception e)
-                {
-                    if (UnhandledException != null)
-                        UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
-                    else
-                        throw;
-                }
+            }
+            finally
+            {
+                Cleanup();
             }
         }
 
-        protected void ProcessFrame()
+        /// <summary>
+        /// Run when thread transitions into an active/processing state.
+        /// </summary>
+        internal virtual void MakeCurrent()
         {
-            if (exitCompleted)
-                return;
+            ThreadSafety.ResetAllForCurrentThread();
+        }
 
-            if (exitRequested)
+        internal void ProcessFrame()
+        {
+            try
             {
-                PerformExit();
-                exitCompleted = true;
-                return;
+                if (exitCompleted)
+                    return;
+
+                if (exitRequested)
+                {
+                    PerformExit();
+                    exitCompleted = true;
+                    return;
+                }
+
+                MakeCurrent();
+
+                Monitor?.NewFrame();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
+                    Scheduler.Update();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
+                    OnNewFrame?.Invoke();
+
+                using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
+                    Clock.ProcessFrame();
+
+                Monitor?.EndFrame();
             }
-
-            Monitor?.NewFrame();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
-                Scheduler.Update();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Work))
-                OnNewFrame?.Invoke();
-
-            using (Monitor?.BeginCollecting(PerformanceCollectionType.Sleep))
-                Clock.ProcessFrame();
+            catch (Exception e)
+            {
+                if (UnhandledException != null && !ThreadSafety.IsInputThread)
+                    // the handler schedules back to the input thread, so don't run it if we are already on the input thread
+                    UnhandledException.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+                else
+                    throw;
+            }
         }
 
         private volatile bool exitRequested;
@@ -148,13 +191,72 @@ namespace osu.Framework.Threading
 
         public bool Exited => exitCompleted;
 
+        private CultureInfo culture;
+
+        public CultureInfo CurrentCulture
+        {
+            get => culture;
+            set
+            {
+                culture = value;
+
+                updateCulture();
+            }
+        }
+
+        private void updateCulture()
+        {
+            if (Thread == null || culture == null) return;
+
+            Thread.CurrentCulture = culture;
+            Thread.CurrentUICulture = culture;
+        }
+
+        private bool paused;
+
+        public void Pause()
+        {
+            if (Thread != null)
+            {
+                paused = true;
+                while (Running)
+                    Thread.Sleep(1);
+            }
+            else
+            {
+                Cleanup();
+            }
+        }
+
+        protected virtual void Cleanup()
+        {
+            Thread = null;
+        }
+
         public void Exit() => exitRequested = true;
-        public virtual void Start() => Thread?.Start();
+
+        public virtual void Start()
+        {
+            paused = false;
+
+            if (Thread == null)
+                createThread();
+
+            Thread.Start();
+        }
 
         protected virtual void PerformExit()
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+        }
+
+        public class GameThreadScheduler : Scheduler
+        {
+            public GameThreadScheduler(GameThread thread)
+                : base(() => thread.IsCurrent, thread.Clock)
+            {
+            }
         }
     }
 }

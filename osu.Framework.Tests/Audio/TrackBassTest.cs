@@ -5,9 +5,11 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
+using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 #pragma warning disable 4014
@@ -24,12 +26,10 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            Architecture.SetIncludePath();
-
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Init(0);
 
-            resources = new DllResourceStore("osu.Framework.Tests.dll");
+            resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 
             track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
             updateTrack();
@@ -59,6 +59,8 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             track.StartAsync();
+            updateTrack();
+
             track.StopAsync();
             updateTrack();
 
@@ -99,7 +101,12 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekWhileRunning()
         {
             track.StartAsync();
+            updateTrack();
+
             track.SeekAsync(1000);
+            updateTrack();
+
+            Thread.Sleep(50);
             updateTrack();
 
             Assert.IsTrue(track.IsRunning);
@@ -243,15 +250,22 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSetTempoNegative()
         {
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = -1);
-            Assert.Throws<ArgumentException>(() => track.TempoAdjust = 0.04f);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = -1);
+            Assert.Throws<ArgumentException>(() => track.Tempo.Value = 0.04f);
 
             Assert.IsFalse(track.IsReversed);
 
-            track.TempoAdjust = 0.05f;
+            track.Tempo.Value = 0.05f;
 
             Assert.IsFalse(track.IsReversed);
             Assert.AreEqual(0.05f, track.Tempo.Value);
+        }
+
+        [Test]
+        public void TestRateWithAggregateAdjustments()
+        {
+            track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
+            Assert.AreEqual(1.5, track.Rate);
         }
 
         private void startPlaybackAt(double time)
@@ -283,6 +297,8 @@ namespace osu.Framework.Tests.Audio
 
             new Thread(() =>
             {
+                ThreadSafety.IsAudioThread = true;
+
                 action();
 
                 resetEvent.Set();

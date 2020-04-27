@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
     /// Track native memory allocations via <see cref="GlobalStatistics"/>.
     /// Also adds memory pressure automatically.
     /// </summary>
-    public class NativeMemoryTracker
+    public static class NativeMemoryTracker
     {
         /// <summary>
         /// Add new tracked native memory.
@@ -24,7 +24,7 @@ namespace osu.Framework.Platform
             getStatistic(source).Value += amount;
             GC.AddMemoryPressure(amount);
 
-            return new NativeMemoryLease(() => removeMemory(source, amount));
+            return new NativeMemoryLease((source, amount), sender => removeMemory(sender.source, sender.amount));
         }
 
         /// <summary>
@@ -43,10 +43,10 @@ namespace osu.Framework.Platform
         /// <summary>
         /// A leased on a native memory allocation. Should be disposed when the associated memory is freed.
         /// </summary>
-        public class NativeMemoryLease : InvokeOnDisposal
+        public class NativeMemoryLease : InvokeOnDisposal<(object source, long amount)>
         {
-            internal NativeMemoryLease(Action action)
-                : base(action)
+            internal NativeMemoryLease((object source, long amount) sender, Action<(object source, long amount)> action)
+                : base(sender, action)
             {
             }
 

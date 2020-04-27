@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -21,11 +22,18 @@ namespace osu.Framework.Threading
             StatisticsCounterType.MidiEvents,
         };
 
+        public override bool IsCurrent => ThreadSafety.IsInputThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsInputThread = true;
+        }
+
         public override void Start()
         {
             // InputThread does not get started. it is run manually by GameHost.
         }
-
-        public void RunUpdate() => ProcessFrame();
     }
 }

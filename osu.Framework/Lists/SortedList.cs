@@ -39,7 +39,7 @@ namespace osu.Framework.Lists
         /// </summary>
         /// <param name="comparer">The comparison function.</param>
         public SortedList(Func<T, T, int> comparer)
-            : this(new ComparisonComparer<T>(comparer))
+            : this(Comparer<T>.Create(new Comparison<T>(comparer)))
         {
         }
 
@@ -162,9 +162,9 @@ namespace osu.Framework.Lists
 
             public void Reset() => currentIndex = -1;
 
-            public T Current => list[currentIndex];
+            public readonly T Current => list[currentIndex];
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

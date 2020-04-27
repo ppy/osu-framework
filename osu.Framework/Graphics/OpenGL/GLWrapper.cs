@@ -14,11 +14,11 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Statistics;
-using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
+using osu.Framework.Timing;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -31,10 +31,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
 
-        public static MaskingInfo CurrentMaskingInfo { get; private set; }
+        public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
+        private static MaskingInfo currentMaskingInfo;
+
         public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
-        public static Matrix4 ProjectionMatrix { get; private set; }
+        public static RectangleI Scissor { get; private set; }
+        public static Vector2I ScissorOffset { get; private set; }
+        public static Matrix4 ProjectionMatrix { get; set; }
         public static DepthInfo CurrentDepthInfo { get; private set; }
 
         public static float BackbufferDrawDepth { get; private set; }
@@ -43,7 +47,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int DefaultFrameBuffer;
 
-        public static bool IsEmbedded { get; private set; }
+        public static bool IsEmbedded { get; internal set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -53,12 +57,26 @@ namespace osu.Framework.Graphics.OpenGL
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
         public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
+        /// <summary>
+        /// The maximum number of texture uploads to dequeue and upload per frame.
+        /// Defaults to 32.
+        /// </summary>
+        public static int MaxTexturesUploadedPerFrame { get; set; } = 32;
+
+        /// <summary>
+        /// The maximum number of pixels to upload per frame.
+        /// Defaults to 2 megapixels (8mb alloc).
+        /// </summary>
+        public static int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
+
+        private static readonly Scheduler reset_scheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
         /// </summary>
-        private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
+        private static readonly ConcurrentQueue<Action> expensive_operation_queue = new ConcurrentQueue<Action>();
+
+        private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
@@ -74,7 +92,6 @@ namespace osu.Framework.Graphics.OpenGL
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
-            reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
             MaxRenderBufferSize = GL.GetInteger(GetPName.MaxRenderbufferSize);
@@ -105,16 +122,52 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
+        private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture upload queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
 
-            if (expensive_operations_queue.TryDequeue(out Action action))
+            stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
+            if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
 
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int uploads = 0;
+            int uploadedPixels = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
+                    break;
+            }
+
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -130,16 +183,19 @@ namespace osu.Framework.Graphics.OpenGL
             frame_buffer_stack.Clear();
             depth_stack.Clear();
             scissor_state_stack.Clear();
+            scissor_offset_stack.Clear();
 
             BindFrameBuffer(DefaultFrameBuffer);
 
-            scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
-
+            Scissor = RectangleI.Empty;
+            ScissorOffset = Vector2I.Zero;
             Viewport = RectangleI.Empty;
             Ortho = RectangleF.Empty;
 
             PushScissorState(true);
             PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
+            PushScissor(new RectangleI(0, 0, (int)size.X, (int)size.Y));
+            PushScissorOffset(Vector2I.Zero);
             PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = new RectangleI(0, 0, (int)size.X, (int)size.Y),
@@ -147,6 +203,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
                 AlphaExponent = 1,
+                CornerExponent = 2.5f,
             }, true);
 
             PushDepthInfo(DepthInfo.Default);
@@ -227,8 +284,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
+            if (texture.IsQueuedForUpload)
+                return;
+
             if (host != null)
-                expensive_operations_queue.Enqueue(() => texture.Upload());
+            {
+                texture.IsQueuedForUpload = true;
+                texture_upload_queue.Enqueue(texture);
+            }
         }
 
         /// <summary>
@@ -238,7 +301,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void EnqueueShaderCompile(Shader shader)
         {
             if (host != null)
-                expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+                expensive_operation_queue.Enqueue(shader.EnsureLoaded);
         }
 
         private static readonly int[] last_bound_buffers = new int[2];
@@ -285,30 +348,49 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
+        private static readonly int[] last_bound_texture = new int[16];
+        private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
-        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
 
         /// <summary>
-        /// Binds a texture to darw with.
+        /// Binds a texture to draw with.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        {
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
+
+            return didBind;
+        }
+
+        /// <summary>
+        /// Binds a texture to draw with.
+        /// </summary>
+        /// <param name="textureId">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);
 
-            if (last_bound_texture[index] != texture)
-            {
-                FlushCurrentBatch();
+            if (last_bound_texture[index] == textureId)
+                return false;
 
-                GL.ActiveTexture(unit);
-                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                last_bound_texture[index] = texture;
+            FlushCurrentBatch();
 
-                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-            }
+            GL.ActiveTexture(unit);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+            last_bound_texture[index] = textureId;
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+
+            FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+            return true;
         }
 
         private static BlendingParameters lastBlendingParameters;
@@ -320,7 +402,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="blendingParameters">The info we should use to update the active state.</param>
         public static void SetBlend(BlendingParameters blendingParameters)
         {
-            if (lastBlendingParameters.Equals(blendingParameters))
+            if (lastBlendingParameters == blendingParameters)
                 return;
 
             FlushCurrentBatch();
@@ -379,8 +461,6 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -401,8 +481,93 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
+        }
 
-            UpdateScissorToCurrentViewportAndOrtho();
+        /// <summary>
+        /// Applies a new scissor rectangle.
+        /// </summary>
+        /// <param name="scissor">The scissor rectangle.</param>
+        public static void PushScissor(RectangleI scissor)
+        {
+            FlushCurrentBatch();
+
+            scissor_rect_stack.Push(scissor);
+            if (Scissor == scissor)
+                return;
+
+            Scissor = scissor;
+            setScissor(scissor);
+        }
+
+        /// <summary>
+        /// Applies the last scissor rectangle.
+        /// </summary>
+        public static void PopScissor()
+        {
+            Trace.Assert(scissor_rect_stack.Count > 1);
+
+            FlushCurrentBatch();
+
+            scissor_rect_stack.Pop();
+            RectangleI scissor = scissor_rect_stack.Peek();
+
+            if (Scissor == scissor)
+                return;
+
+            Scissor = scissor;
+            setScissor(scissor);
+        }
+
+        private static void setScissor(RectangleI scissor)
+        {
+            if (scissor.Width < 0)
+            {
+                scissor.X += scissor.Width;
+                scissor.Width = -scissor.Width;
+            }
+
+            if (scissor.Height < 0)
+            {
+                scissor.Y += scissor.Height;
+                scissor.Height = -scissor.Height;
+            }
+
+            GL.Scissor(scissor.X, Viewport.Height - scissor.Bottom, scissor.Width, scissor.Height);
+        }
+
+        private static readonly Stack<Vector2I> scissor_offset_stack = new Stack<Vector2I>();
+
+        /// <summary>
+        /// Applies an offset to the scissor rectangle.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        public static void PushScissorOffset(Vector2I offset)
+        {
+            FlushCurrentBatch();
+
+            scissor_offset_stack.Push(offset);
+            if (ScissorOffset == offset)
+                return;
+
+            ScissorOffset = offset;
+        }
+
+        /// <summary>
+        /// Applies the last scissor rectangle offset.
+        /// </summary>
+        public static void PopScissorOffset()
+        {
+            Trace.Assert(scissor_offset_stack.Count > 1);
+
+            FlushCurrentBatch();
+
+            scissor_offset_stack.Pop();
+            Vector2I offset = scissor_offset_stack.Peek();
+
+            if (ScissorOffset == offset)
+                return;
+
+            ScissorOffset = offset;
         }
 
         private static readonly Stack<RectangleF> ortho_stack = new Stack<RectangleF>();
@@ -423,8 +588,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -446,36 +609,12 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             GlobalPropertyManager.Set(GlobalProperty.ProjMatrix, ProjectionMatrix);
-
-            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
         private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
         private static readonly Stack<int> frame_buffer_stack = new Stack<int>();
         private static readonly Stack<DepthInfo> depth_stack = new Stack<DepthInfo>();
-
-        public static void UpdateScissorToCurrentViewportAndOrtho()
-        {
-            RectangleF viewportRect = Viewport;
-            Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
-
-            RectangleI currentScissorRect = scissor_rect_stack.Peek();
-
-            RectangleI scissorRect = new RectangleI(
-                currentScissorRect.X + (int)Math.Floor(offset.X),
-                Viewport.Height - currentScissorRect.Bottom - (int)Math.Ceiling(offset.Y),
-                currentScissorRect.Width,
-                currentScissorRect.Height);
-
-            if (!Precision.AlmostEquals(offset, Vector2.Zero))
-            {
-                ++scissorRect.Width;
-                ++scissorRect.Height;
-            }
-
-            GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
-        }
 
         private static void setMaskingInfo(MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
         {
@@ -488,7 +627,9 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.MaskingRect.Bottom));
 
             GlobalPropertyManager.Set(GlobalProperty.ToMaskingSpace, maskingInfo.ToMaskingSpace);
+
             GlobalPropertyManager.Set(GlobalProperty.CornerRadius, maskingInfo.CornerRadius);
+            GlobalPropertyManager.Set(GlobalProperty.CornerExponent, maskingInfo.CornerExponent);
 
             GlobalPropertyManager.Set(GlobalProperty.BorderThickness, maskingInfo.BorderThickness / maskingInfo.BlendRange);
 
@@ -510,34 +651,24 @@ namespace osu.Framework.Graphics.OpenGL
             if (maskingInfo.Hollow)
                 GlobalPropertyManager.Set(GlobalProperty.InnerCornerRadius, maskingInfo.HollowCornerRadius);
 
-            RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
-            actualRect.X += Viewport.X;
-            actualRect.Y += Viewport.Y;
-
-            // Ensure the rectangle only has positive width and height. (Required by OGL)
-            if (actualRect.Width < 0)
-            {
-                actualRect.X += actualRect.Width;
-                actualRect.Width = -actualRect.Width;
-            }
-
-            if (actualRect.Height < 0)
-            {
-                actualRect.Y += actualRect.Height;
-                actualRect.Height = -actualRect.Height;
-            }
-
             if (isPushing)
             {
-                scissor_rect_stack.Push(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
+                // When drawing to a viewport that doesn't match the projection size (e.g. via framebuffers), the resultant image will be scaled
+                Vector2 viewportScale = Vector2.Divide(Viewport.Size, Ortho.Size);
+
+                Vector2 location = (maskingInfo.ScreenSpaceAABB.Location - ScissorOffset) * viewportScale;
+                Vector2 size = maskingInfo.ScreenSpaceAABB.Size * viewportScale;
+
+                RectangleI actualRect = new RectangleI(
+                    (int)Math.Floor(location.X),
+                    (int)Math.Floor(location.Y),
+                    (int)Math.Ceiling(size.X),
+                    (int)Math.Ceiling(size.Y));
+
+                PushScissor(overwritePreviousScissor ? actualRect : RectangleI.Intersect(scissor_rect_stack.Peek(), actualRect));
             }
             else
-            {
-                Trace.Assert(scissor_rect_stack.Count > 1);
-                scissor_rect_stack.Pop();
-            }
-
-            UpdateScissorToCurrentViewportAndOrtho();
+                PopScissor();
         }
 
         internal static void FlushCurrentBatch()
@@ -552,13 +683,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
         /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
-        public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        public static void PushMaskingInfo(in MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             masking_stack.Push(maskingInfo);
-            if (CurrentMaskingInfo.Equals(maskingInfo))
+            if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, true, overwritePreviousScissor);
         }
 
@@ -572,10 +703,10 @@ namespace osu.Framework.Graphics.OpenGL
             masking_stack.Pop();
             MaskingInfo maskingInfo = masking_stack.Peek();
 
-            if (CurrentMaskingInfo.Equals(maskingInfo))
+            if (CurrentMaskingInfo == maskingInfo)
                 return;
 
-            CurrentMaskingInfo = maskingInfo;
+            currentMaskingInfo = maskingInfo;
             setMaskingInfo(CurrentMaskingInfo, false, true);
         }
 
@@ -723,7 +854,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         internal static void SetUniform<T>(IUniformWithValue<T> uniform)
-            where T : struct
+            where T : struct, IEquatable<T>
         {
             if (uniform.Owner == currentShader)
                 FlushCurrentBatch();
@@ -784,6 +915,7 @@ namespace osu.Framework.Graphics.OpenGL
         public Matrix3 ToMaskingSpace;
 
         public float CornerRadius;
+        public float CornerExponent;
 
         public float BorderThickness;
         public SRGBColour BorderColour;
@@ -796,17 +928,26 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Hollow;
         public float HollowCornerRadius;
 
-        public bool Equals(MaskingInfo other) =>
-            ScreenSpaceAABB == other.ScreenSpaceAABB &&
-            MaskingRect == other.MaskingRect &&
-            ToMaskingSpace == other.ToMaskingSpace &&
-            CornerRadius == other.CornerRadius &&
-            BorderThickness == other.BorderThickness &&
-            BorderColour.Equals(other.BorderColour) &&
-            BlendRange == other.BlendRange &&
-            AlphaExponent == other.AlphaExponent &&
-            EdgeOffset == other.EdgeOffset &&
-            Hollow == other.Hollow &&
-            HollowCornerRadius == other.HollowCornerRadius;
+        public readonly bool Equals(MaskingInfo other) => this == other;
+
+        public static bool operator ==(in MaskingInfo left, in MaskingInfo right) =>
+            left.ScreenSpaceAABB == right.ScreenSpaceAABB &&
+            left.MaskingRect == right.MaskingRect &&
+            left.ToMaskingSpace == right.ToMaskingSpace &&
+            left.CornerRadius == right.CornerRadius &&
+            left.CornerExponent == right.CornerExponent &&
+            left.BorderThickness == right.BorderThickness &&
+            left.BorderColour.Equals(right.BorderColour) &&
+            left.BlendRange == right.BlendRange &&
+            left.AlphaExponent == right.AlphaExponent &&
+            left.EdgeOffset == right.EdgeOffset &&
+            left.Hollow == right.Hollow &&
+            left.HollowCornerRadius == right.HollowCornerRadius;
+
+        public static bool operator !=(in MaskingInfo left, in MaskingInfo right) => !(left == right);
+
+        public override readonly bool Equals(object obj) => obj is MaskingInfo other && this == other;
+
+        public override readonly int GetHashCode() => 0; // Shouldn't be used; simplifying implementation here.
     }
 }

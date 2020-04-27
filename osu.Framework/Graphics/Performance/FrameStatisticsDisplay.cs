@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, thread)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -239,8 +239,10 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-            for (int k = 0; k < WIDTH; k++)
-                fullBackground[k, i] = column[0, i];
+            {
+                for (int k = 0; k < WIDTH; k++)
+                    fullBackground[k, i] = column[0, i];
+            }
 
             addArea(null, null, HEIGHT, column.GetPixelSpan(), amount_count_steps);
 
@@ -322,7 +324,7 @@ namespace osu.Framework.Graphics.Performance
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             switch (e.Key)
             {
@@ -335,7 +337,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
             }
 
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void applyFrameGC(FrameStatistics frame)
@@ -365,8 +367,10 @@ namespace osu.Framework.Graphics.Performance
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();
+            }
         }
 
         private void applyFrameCounts(FrameStatistics frame)
@@ -395,7 +399,8 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
-                    monitor.FramesHeap.FreeObject(frame);
+                    frameTimeDisplay.NewFrame(frame);
+                    monitor.FramesPool.Return(frame);
                 }
             }
         }
@@ -505,7 +510,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(WIDTH, HEIGHT) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 

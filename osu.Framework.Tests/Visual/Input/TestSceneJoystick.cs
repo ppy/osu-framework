@@ -90,13 +90,15 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button != button)
-                    return base.OnJoystickRelease(e);
+                {
+                    base.OnJoystickRelease(e);
+                    return;
+                }
 
                 background.FadeOut(100);
-                return true;
             }
         }
 
@@ -178,7 +180,7 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == JoystickButton.FirstHatUp + hatIndex)
                     upBox.FadeOut(100);
@@ -189,9 +191,7 @@ namespace osu.Framework.Tests.Visual.Input
                 else if (e.Button == JoystickButton.FirstHatRight + hatIndex)
                     rightBox.FadeOut(100);
                 else
-                    return base.OnJoystickRelease(e);
-
-                return true;
+                    base.OnJoystickRelease(e);
             }
         }
 
@@ -255,14 +255,12 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnJoystickRelease(JoystickReleaseEvent e)
+            protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == positiveAxisButton || e.Button == negativeAxisButton)
                     background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
-                    return base.OnJoystickRelease(e);
-
-                return true;
+                    base.OnJoystickRelease(e);
             }
         }
     }

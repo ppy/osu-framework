@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
@@ -26,5 +27,13 @@ namespace osu.Framework.Graphics
         /// A null value implies the <see cref="FrameBuffer"/>s should be drawn as they are.
         /// </summary>
         DrawColourInfo? FrameBufferDrawColour { get; }
+
+        /// <summary>
+        /// The scale of the <see cref="FrameBuffer"/>s drawn relative to the size of this <see cref="IBufferedDrawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// The contents of the <see cref="FrameBuffer"/>s are populated at this scale, however the scale of <see cref="Drawable"/>s remains unaffected.
+        /// </remarks>
+        Vector2 FrameBufferScale { get; }
     }
 }

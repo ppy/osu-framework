@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSClipboard : Clipboard
     {
-        private NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
+        private readonly NSPasteboard generalPasteboard = NSPasteboard.GeneralPasteboard();
 
         public override string GetText()
         {

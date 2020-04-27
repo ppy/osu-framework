@@ -18,7 +18,8 @@ namespace osu.Framework.Threading
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
-        private int mainThreadId;
+
+        private readonly Func<bool> isCurrentThread;
 
         private IClock clock;
         private double currentTime => clock?.CurrentTime ?? 0;
@@ -35,25 +36,18 @@ namespace osu.Framework.Threading
         /// </summary>
         public Scheduler()
         {
-            SetCurrentThread();
+            var currentThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == currentThread;
+
             clock = new StopwatchClock(true);
         }
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread)
+        public Scheduler(Func<bool> isCurrentThread, IClock clock)
         {
-            SetCurrentThread(mainThread);
-            clock = new StopwatchClock(true);
-        }
-
-        /// <summary>
-        /// The base thread is assumed to be the the thread on which the constructor is run.
-        /// </summary>
-        public Scheduler(Thread mainThread, IClock clock)
-        {
-            SetCurrentThread(mainThread);
+            this.isCurrentThread = isCurrentThread;
             this.clock = clock;
         }
 
@@ -82,7 +76,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        protected bool IsMainThread => isCurrentThread?.Invoke() ?? true;
 
         private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
@@ -90,60 +84,13 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Run any pending work tasks.
         /// </summary>
-        /// <returns>true if any tasks were run.</returns>
+        /// <returns>The number of tasks that were run.</returns>
         public virtual int Update()
         {
             lock (queueLock)
             {
-                double currentTimeLocal = currentTime;
-
-                if (timedTasks.Count > 0)
-                {
-                    foreach (var sd in timedTasks)
-                    {
-                        if (sd.ExecutionTime <= currentTimeLocal)
-                        {
-                            tasksToRemove.Add(sd);
-
-                            if (sd.Cancelled) continue;
-
-                            runQueue.Enqueue(sd);
-
-                            if (sd.RepeatInterval >= 0)
-                            {
-                                if (timedTasks.Count > 1000)
-                                    throw new ArgumentException("Too many timed tasks are in the queue!");
-
-                                sd.SetNextExecution(currentTimeLocal);
-
-                                tasksToSchedule.Add(sd);
-                            }
-                        }
-                    }
-
-                    foreach (var t in tasksToRemove)
-                        timedTasks.Remove(t);
-
-                    tasksToRemove.Clear();
-
-                    foreach (var t in tasksToSchedule)
-                        timedTasks.AddInPlace(t);
-
-                    tasksToSchedule.Clear();
-                }
-
-                for (int i = 0; i < perUpdateTasks.Count; i++)
-                {
-                    ScheduledDelegate task = perUpdateTasks[i];
-
-                    if (task.Cancelled)
-                    {
-                        perUpdateTasks.RemoveAt(i--);
-                        continue;
-                    }
-
-                    runQueue.Enqueue(task);
-                }
+                queueTimedTasks();
+                queuePerUpdateTasks();
             }
 
             int countToRun = runQueue.Count;
@@ -151,17 +98,73 @@ namespace osu.Framework.Threading
 
             while (getNextTask(out ScheduledDelegate sd))
             {
-                if (sd.Cancelled)
-                    continue;
-
                 //todo: error handling
-                sd.RunTask();
+                sd.RunTaskInternal();
 
                 if (++countRun == countToRun)
                     break;
             }
 
             return countRun;
+        }
+
+        private void queueTimedTasks()
+        {
+            double currentTimeLocal = currentTime;
+
+            if (timedTasks.Count > 0)
+            {
+                foreach (var sd in timedTasks)
+                {
+                    if (sd.ExecutionTime <= currentTimeLocal)
+                    {
+                        tasksToRemove.Add(sd);
+
+                        if (sd.Cancelled) continue;
+
+                        if (sd.RepeatInterval >= 0)
+                        {
+                            if (timedTasks.Count > 1000)
+                                throw new ArgumentException("Too many timed tasks are in the queue!");
+
+                            sd.SetNextExecution(currentTimeLocal);
+
+                            tasksToSchedule.Add(sd);
+                        }
+
+                        if (!sd.Completed)
+                            runQueue.Enqueue(sd);
+                    }
+                }
+
+                foreach (var t in tasksToRemove)
+                    timedTasks.Remove(t);
+
+                tasksToRemove.Clear();
+
+                foreach (var t in tasksToSchedule)
+                    timedTasks.AddInPlace(t);
+
+                tasksToSchedule.Clear();
+            }
+        }
+
+        private void queuePerUpdateTasks()
+        {
+            for (int i = 0; i < perUpdateTasks.Count; i++)
+            {
+                ScheduledDelegate task = perUpdateTasks[i];
+
+                task.SetNextExecution(null);
+
+                if (task.Cancelled)
+                {
+                    perUpdateTasks.RemoveAt(i--);
+                    continue;
+                }
+
+                runQueue.Enqueue(task);
+            }
         }
 
         private bool getNextTask(out ScheduledDelegate task)
@@ -192,16 +195,6 @@ namespace osu.Framework.Threading
             }
         }
 
-        internal void SetCurrentThread(Thread thread)
-        {
-            mainThreadId = thread?.ManagedThreadId ?? -1;
-        }
-
-        internal void SetCurrentThread()
-        {
-            mainThreadId = Thread.CurrentThread.ManagedThreadId;
-        }
-
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
@@ -223,8 +216,16 @@ namespace osu.Framework.Threading
             return false;
         }
 
+        /// <summary>
+        /// Add a task to be scheduled.
+        /// </summary>
+        /// <param name="task">The scheduled delegate to add.</param>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to add a scheduled delegate that has been already completed.</exception>
         public void Add(ScheduledDelegate task)
         {
+            if (task.Completed)
+                throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
+
             lock (queueLock)
             {
                 if (task.RepeatInterval == 0)
@@ -267,70 +268,6 @@ namespace osu.Framework.Threading
             }
 
             return true;
-        }
-    }
-
-    public class ScheduledDelegate : IComparable<ScheduledDelegate>
-    {
-        /// <summary>
-        /// The earliest ElapsedTime value at which we can be executed.
-        /// </summary>
-        public double ExecutionTime { get; internal set; }
-
-        /// <summary>
-        /// Time in milliseconds between repeats of this task. -1 means no repeats.
-        /// </summary>
-        public readonly double RepeatInterval;
-
-        /// <summary>
-        /// In the case of a repeating execution, setting this to true will allow the delegate to run more than once at already elapsed points in time in order to catch up to current.
-        /// This will ensure a consistent number of runs over real-time, even if the <see cref="Scheduler"/> running the delegate is suspended.
-        /// Setting to false will skip catch-up executions, ensuring a future time is used after each execution.
-        /// </summary>
-        public bool PerformRepeatCatchUpExecutions = true;
-
-        /// <summary>
-        /// Whether this task has finished running.
-        /// </summary>
-        public bool Completed { get; private set; }
-
-        /// <summary>
-        /// Whether this task has been cancelled.
-        /// </summary>
-        public bool Cancelled { get; private set; }
-
-        /// <summary>
-        /// The work task.
-        /// </summary>
-        internal readonly Action Task;
-
-        public ScheduledDelegate(Action task, double executionTime = 0, double repeatInterval = -1)
-        {
-            Task = task;
-
-            ExecutionTime = executionTime;
-            RepeatInterval = repeatInterval;
-        }
-
-        public void RunTask()
-        {
-            if (Cancelled)
-                throw new InvalidOperationException($"Can not run a {nameof(ScheduledDelegate)} that has been {nameof(Cancelled)}");
-
-            Task();
-            Completed = true;
-        }
-
-        public void Cancel() => Cancelled = true;
-
-        public int CompareTo(ScheduledDelegate other) => ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
-
-        internal void SetNextExecution(double currentTime)
-        {
-            ExecutionTime += RepeatInterval;
-
-            if (ExecutionTime < currentTime && !PerformRepeatCatchUpExecutions)
-                ExecutionTime = currentTime + RepeatInterval;
         }
     }
 }

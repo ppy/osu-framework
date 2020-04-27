@@ -22,6 +22,6 @@ namespace osu.Framework.Configuration
 
     public enum DebugSetting
     {
-        BypassFrontToBackPass
+        BypassFrontToBackPass,
     }
 }

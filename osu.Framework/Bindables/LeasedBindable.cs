@@ -73,6 +73,20 @@ namespace osu.Framework.Bindables
             }
         }
 
+        public override T Default
+        {
+            get => base.Default;
+            set
+            {
+                if (source != null)
+                    checkValid();
+
+                if (EqualityComparer<T>.Default.Equals(Default, value)) return;
+
+                SetDefaultValue(base.Default, value, true);
+            }
+        }
+
         public override bool Disabled
         {
             get => base.Disabled;

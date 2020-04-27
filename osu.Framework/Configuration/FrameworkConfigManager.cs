@@ -24,6 +24,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
             Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
+            Set(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
             Set(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
@@ -38,7 +39,6 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
             Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
             Set(FrameworkSetting.Locale, string.Empty);
-            Set(FrameworkSetting.PerformanceLogging, false);
         }
 
         public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
@@ -81,13 +81,12 @@ namespace osu.Framework.Configuration
         WindowMode,
         ConfineMouseMode,
         FrameSync,
+        ExecutionMode,
 
         ShowUnicode,
         Locale,
         IgnoredInputHandlers,
         CursorSensitivity,
         MapAbsoluteInputToWindow,
-
-        PerformanceLogging
     }
 }

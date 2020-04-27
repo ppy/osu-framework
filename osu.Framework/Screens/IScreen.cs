@@ -52,21 +52,35 @@ namespace osu.Framework.Screens
         /// <param name="screen">The <see cref="IScreen"/> to push to.</param>
         /// <param name="newScreen">The <see cref="IScreen"/> to push.</param>
         public static void Push(this IScreen screen, IScreen newScreen)
-            => runOnRoot(screen, stack => stack.Push(screen, newScreen), () => throw new InvalidOperationException($"Cannot {nameof(Push)} to a non-loaded {nameof(IScreen)} directly. Consider using {nameof(ScreenStack.Push)} instead."));
+        {
+            var stack = getStack(screen);
+
+            if (stack == null)
+                throw new InvalidOperationException($"Cannot {nameof(Push)} to a non-loaded {nameof(IScreen)} directly. Consider using {nameof(ScreenStack.Push)} instead.");
+
+            stack.Push(screen, newScreen);
+        }
 
         /// <summary>
         /// Exits from an <see cref="IScreen"/>.
         /// </summary>
         /// <param name="screen">The <see cref="IScreen"/> to exit from.</param>
         public static void Exit(this IScreen screen)
-            => runOnRoot(screen, stack => stack.Exit(screen), () => screen.ValidForPush = false);
+        {
+            var stack = getStack(screen);
+
+            if (stack == null)
+                screen.ValidForPush = false;
+            else
+                stack.Exit(screen);
+        }
 
         /// <summary>
         /// Makes an <see cref="IScreen"/> the current screen, exiting all child <see cref="IScreen"/>s along the way.
         /// </summary>
         /// <param name="screen">The <see cref="IScreen"/> to make current.</param>
         public static void MakeCurrent(this IScreen screen)
-            => runOnRoot(screen, stack => stack.MakeCurrent(screen));
+            => getStack(screen)?.MakeCurrent(screen);
 
         /// <summary>
         /// Retrieves whether an <see cref="IScreen"/> is the current screen.
@@ -75,52 +89,37 @@ namespace osu.Framework.Screens
         /// <param name="screen">The <see cref="IScreen"/> to check.</param>
         /// <returns>True if <paramref name="screen"/> is the current screen.</returns>
         public static bool IsCurrentScreen(this IScreen screen)
-            => runOnRoot(screen, stack => stack.IsCurrentScreen(screen), () => false);
+            => getStack(screen)?.IsCurrentScreen(screen) ?? false;
 
         /// <summary>
         /// Retrieves the child <see cref="IScreen"/> of an <see cref="IScreen"/>.
         /// </summary>
         /// <param name="screen">The <see cref="IScreen"/> to retrieve the child of.</param>
-        /// <returns>The child <see cref="IScreen"/> of <paramref name="screen"/>, or <paramref name="screen"/> has no child.</returns>
+        /// <returns>The child <see cref="IScreen"/> of <paramref name="screen"/>, or null if <paramref name="screen"/> has no child.</returns>
         public static IScreen GetChildScreen(this IScreen screen)
-            => runOnRoot(screen, stack => stack.GetChildScreen(screen), () => null);
+            => getStack(screen)?.GetChildScreen(screen);
+
+        /// <summary>
+        /// Retrieves the parent <see cref="IScreen"/> of an <see cref="IScreen"/>.
+        /// </summary>
+        /// <param name="screen">The <see cref="IScreen"/> to retrieve the parent of.</param>
+        /// <returns>The parent <see cref="IScreen"/> of <paramref name="screen"/>, or null if <paramref name="screen"/> has no parent.</returns>
+        public static IScreen GetParentScreen(this IScreen screen)
+            => getStack(screen)?.GetParentScreen(screen);
 
         internal static Drawable AsDrawable(this IScreen screen) => (Drawable)screen;
 
-        private static void runOnRoot(IDrawable current, Action<ScreenStack> onRoot, Action onFail = null)
+        private static ScreenStack getStack(IDrawable current)
         {
-            switch (current)
+            while (current != null)
             {
-                case null:
-                    onFail?.Invoke();
-                    return;
+                if (current is ScreenStack stack)
+                    return stack;
 
-                case ScreenStack stack:
-                    onRoot(stack);
-                    break;
-
-                default:
-                    runOnRoot(current.Parent, onRoot, onFail);
-                    break;
+                current = current.Parent;
             }
-        }
 
-        private static T runOnRoot<T>(IDrawable current, Func<ScreenStack, T> onRoot, Func<T> onFail = null)
-        {
-            switch (current)
-            {
-                case null:
-                    if (onFail != null)
-                        return onFail.Invoke();
-
-                    return default;
-
-                case ScreenStack stack:
-                    return onRoot(stack);
-
-                default:
-                    return runOnRoot(current.Parent, onRoot, onFail);
-            }
+            return null;
         }
     }
 }

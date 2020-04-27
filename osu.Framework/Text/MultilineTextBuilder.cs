@@ -14,7 +14,7 @@ namespace osu.Framework.Text
         /// </summary>
         /// <param name="store">The store from which glyphs are to be retrieved from.</param>
         /// <param name="font">The font to use for glyph lookups from <paramref name="store"/>.</param>
-        /// <param name="useFontSizeAsHeight">True to use the provided <see cref="font"/> size as the height for each line. False if the height of each individual glyph should be used.</param>
+        /// <param name="useFontSizeAsHeight">True to use the provided <paramref name="font"/> size as the height for each line. False if the height of each individual glyph should be used.</param>
         /// <param name="startOffset">The offset at which characters should begin being added at.</param>
         /// <param name="spacing">The spacing between characters.</param>
         /// <param name="maxWidth">The maximum width of the resulting text bounds.</param>

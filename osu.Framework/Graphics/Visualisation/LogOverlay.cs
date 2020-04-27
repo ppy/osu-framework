@@ -7,7 +7,6 @@ using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Timing;
@@ -22,8 +21,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly FillFlowContainer flow;
 
         protected override bool BlockPositionalInput => false;
-
-        private Bindable<bool> enabled;
 
         private StopwatchClock clock;
 
@@ -103,31 +100,27 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.ControlPressed)
                 setHoldState(false);
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void setHoldState(bool controlPressed)
         {
             box.Alpha = controlPressed ? 1 : background_alpha;
-            clock.Rate = controlPressed ? 0 : 1;
+            if (clock != null) clock.Rate = controlPressed ? 0 : 1;
         }
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
-            enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += e => State.Value = e.NewValue ? Visibility.Visible : Visibility.Hidden;
-            enabled.TriggerChange();
         }
 
         protected override void PopIn()
         {
             Logger.NewEntry += addEntry;
-            enabled.Value = true;
             this.FadeIn(100);
         }
 
@@ -135,7 +128,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Logger.NewEntry -= addEntry;
             setHoldState(false);
-            enabled.Value = false;
             this.FadeOut(100);
         }
 

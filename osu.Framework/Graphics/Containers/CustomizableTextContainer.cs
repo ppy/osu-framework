@@ -107,18 +107,18 @@ namespace osu.Framework.Graphics.Containers
 
                     if (placeholderEnd != -1)
                     {
-                        strPiece = str.Substring(index, nextPlaceholderIndex - index);
-                        string placeholderStr = str.Substring(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim();
+                        strPiece = str[index..nextPlaceholderIndex];
+                        string placeholderStr = str.AsSpan(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim().ToString();
                         string placeholderName = placeholderStr;
                         string paramStr = "";
                         int parensOpen = placeholderStr.IndexOf('(');
 
                         if (parensOpen != -1)
                         {
-                            placeholderName = placeholderStr.Substring(0, parensOpen).Trim();
+                            placeholderName = placeholderStr.AsSpan(0, parensOpen).Trim().ToString();
                             int parensClose = placeholderStr.IndexOf(')', parensOpen);
                             if (parensClose != -1)
-                                paramStr = placeholderStr.Substring(parensOpen + 1, parensClose - parensOpen - 1).Trim();
+                                paramStr = placeholderStr.AsSpan(parensOpen + 1, parensClose - parensOpen - 1).Trim().ToString();
                             else
                                 throw new ArgumentException($"Missing ) in placeholder {placeholderStr}.");
                         }

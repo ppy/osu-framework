@@ -27,7 +27,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Create a new aggregate bindable.
         /// </summary>
-        /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <see cref="T"/> values and returning one output.</param>
+        /// <param name="aggregateFunction">The function to be used for aggregation, taking two input <typeparamref name="T"/> values and returning one output.</param>
         /// <param name="resultBindable">An optional newly constructed bindable to use for <see cref="Result"/>. The initial value of this bindable is used as the initial value for the aggregate.</param>
         public AggregateBindable(Func<T, T, T> aggregateFunction, Bindable<T> resultBindable = null)
         {
@@ -36,7 +36,7 @@ namespace osu.Framework.Bindables
             initialValue = result.Value;
         }
 
-        private readonly Dictionary<WeakReference, IBindable<T>> sourceMapping = new Dictionary<WeakReference, IBindable<T>>();
+        private readonly Dictionary<WeakReference<IBindable<T>>, IBindable<T>> sourceMapping = new Dictionary<WeakReference<IBindable<T>>, IBindable<T>>();
 
         /// <summary>
         /// Add a new source to be included in aggregation.
@@ -50,7 +50,7 @@ namespace osu.Framework.Bindables
                     return;
 
                 var boundCopy = bindable.GetBoundCopy();
-                sourceMapping.Add(new WeakReference(bindable), boundCopy);
+                sourceMapping.Add(new WeakReference<IBindable<T>>(bindable), boundCopy);
                 boundCopy.BindValueChanged(recalculateAggregate, true);
             }
         }
@@ -75,7 +75,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private WeakReference findExistingWeak(IBindable<T> bindable) => sourceMapping.Keys.FirstOrDefault(k => k.Target == bindable);
+        private WeakReference<IBindable<T>> findExistingWeak(IBindable<T> bindable) => sourceMapping.Keys.FirstOrDefault(k => k.TryGetTarget(out var target) && target == bindable);
 
         private void recalculateAggregate(ValueChangedEvent<T> obj = null)
         {
@@ -83,7 +83,7 @@ namespace osu.Framework.Bindables
 
             lock (sourceMapping)
             {
-                foreach (var dead in sourceMapping.Keys.Where(k => !k.IsAlive).ToArray())
+                foreach (var dead in sourceMapping.Keys.Where(k => !k.TryGetTarget(out var _)).ToArray())
                     sourceMapping.Remove(dead);
 
                 foreach (var s in sourceMapping.Values)
@@ -91,6 +91,18 @@ namespace osu.Framework.Bindables
             }
 
             result.Value = calculated;
+        }
+
+        public void RemoveAllSources()
+        {
+            lock (sourceMapping)
+            {
+                foreach (var mapping in sourceMapping.ToList())
+                {
+                    if (mapping.Key.TryGetTarget(out var b))
+                        RemoveSource(b);
+                }
+            }
         }
     }
 }

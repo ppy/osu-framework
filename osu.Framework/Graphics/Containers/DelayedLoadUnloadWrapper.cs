@@ -4,7 +4,9 @@
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using osu.Framework.Layout;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -18,10 +20,11 @@ namespace osu.Framework.Graphics.Containers
         {
             this.createContentFunction = createContentFunction;
             this.timeBeforeUnload = timeBeforeUnload;
+
+            AddLayout(unloadClockBacking);
         }
 
-        private static readonly GlobalStatistic<int> loaded_optimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (optimised)");
-        private static readonly GlobalStatistic<int> loaded_unoptimised = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s (unoptimised)");
+        private static readonly GlobalStatistic<int> total_loaded = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s");
 
         private double timeHidden;
 
@@ -74,14 +77,10 @@ namespace osu.Framework.Graphics.Containers
 
                 contentLoaded = true;
 
-                if (OptimisingContainer != null)
-                {
-                    unloadSchedule = OptimisingContainer.ScheduleCheckAction(checkForUnload);
-                    Debug.Assert(unloadSchedule != null);
-                    loaded_optimised.Value++;
-                }
-                else
-                    loaded_unoptimised.Value++;
+                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
+                Debug.Assert(unloadSchedule != null);
+
+                total_loaded.Value++;
             });
         }
 
@@ -94,11 +93,13 @@ namespace osu.Framework.Graphics.Containers
                 unloadSchedule.Cancel();
                 unloadSchedule = null;
 
-                loaded_optimised.Value--;
+                total_loaded.Value--;
             }
-            else if (contentLoaded)
-                loaded_unoptimised.Value--;
         }
+
+        private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
+
+        private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
 
         private void checkForUnload()
         {
@@ -106,7 +107,7 @@ namespace osu.Framework.Graphics.Containers
             if (IsIntersecting)
                 timeHidden = 0;
             else
-                timeHidden += Time.Elapsed;
+                timeHidden += unloadClock.ElapsedFrameTime;
 
             if (ShouldUnloadContent)
             {

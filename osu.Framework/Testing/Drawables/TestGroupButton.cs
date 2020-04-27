@@ -23,7 +23,7 @@ namespace osu.Framework.Testing.Drawables
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
-        private readonly FillFlowContainer<TestSceneButton> buttonFlow;
+        private readonly FillFlowContainer<TestButtonBase> buttonFlow;
         private readonly TestButton headerButton;
 
         public readonly TestGroup Group;
@@ -32,12 +32,11 @@ namespace osu.Framework.Testing.Drawables
         {
             set
             {
-                var contains = Group.TestTypes.Contains(value);
+                bool contains = Group.TestTypes.Contains(value);
                 if (contains) Show();
 
                 buttonFlow.ForEach(btn => btn.Current = btn.TestType == value);
-                if (headerButton != null)
-                    headerButton.Current = contains;
+                headerButton.Current = contains;
             }
         }
 
@@ -46,31 +45,28 @@ namespace osu.Framework.Testing.Drawables
             var tests = group.TestTypes;
 
             if (tests.Length == 0)
-                throw new ArgumentOutOfRangeException(nameof(tests), tests.Length, "Type array must not be empty!");
+                throw new ArgumentOutOfRangeException(nameof(group), tests.Length, "Type array must not be empty!");
 
             Group = group;
 
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            Child = buttonFlow = new FillFlowContainer<TestSceneButton>
+            Child = buttonFlow = new FillFlowContainer<TestButtonBase>
             {
                 Direction = FillDirection.Vertical,
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X
             };
 
-            bool hasHeader = tests.Length > 1;
-
-            if (hasHeader)
-                buttonFlow.Add(headerButton = new TestButton(group.Name)
-                {
-                    Action = ToggleVisibility
-                });
+            buttonFlow.Add(headerButton = new TestButton(group.Name)
+            {
+                Action = ToggleVisibility
+            });
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestSceneSubButton(test, hasHeader ? 1 : 0)
+                buttonFlow.Add(new TestSubButton(test, 1)
                 {
                     Action = () => loadTest(test)
                 });
@@ -81,10 +77,6 @@ namespace osu.Framework.Testing.Drawables
 
         protected override void PopIn() => buttonFlow.ForEach(b => b.Collapsed = false);
 
-        protected override void PopOut()
-        {
-            if (headerButton != null)
-                buttonFlow.ForEach(b => b.Collapsed = true);
-        }
+        protected override void PopOut() => buttonFlow.ForEach(b => b.Collapsed = true);
     }
 }

@@ -4,7 +4,9 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using ManagedBass;
 using osu.Framework.Audio;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -14,6 +16,15 @@ namespace osu.Framework.Threading
             : base(name: "Audio")
         {
             OnNewFrame = onNewFrame;
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsAudioThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsAudioThread = true;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
@@ -27,8 +38,12 @@ namespace osu.Framework.Threading
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
 
+        private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
+
         private void onNewFrame()
         {
+            cpu_usage.Value = Bass.CPUUsage;
+
             lock (managers)
             {
                 for (var i = 0; i < managers.Count; i++)
@@ -59,7 +74,18 @@ namespace osu.Framework.Threading
         protected override void PerformExit()
         {
             base.PerformExit();
-            ManagedBass.Bass.Free();
+
+            lock (managers)
+            {
+                foreach (var manager in managers)
+                    manager.Dispose();
+                managers.Clear();
+            }
+
+            // Safety net to ensure we have freed all devices before exiting.
+            // This is mainly required for device-lost scenarios.
+            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+            while (Bass.Free()) { }
         }
     }
 }

@@ -27,12 +27,9 @@ namespace osu.Framework.Testing
 
         private string lastTouchedFile;
 
-        private T checkpointObject;
+        private T target;
 
-        public void Checkpoint(T obj)
-        {
-            checkpointObject = obj;
-        }
+        public void SetRecompilationTarget(T target) => this.target = target;
 
         private readonly List<string> requiredFiles = new List<string>();
         private List<string> requiredTypeNames = new List<string>();
@@ -76,7 +73,7 @@ namespace osu.Framework.Testing
                 }
             });
 
-            string getSolutionPath(DirectoryInfo d)
+            static string getSolutionPath(DirectoryInfo d)
             {
                 if (d == null)
                     return null;
@@ -85,23 +82,31 @@ namespace osu.Framework.Testing
             }
         }
 
-        private void onChange(object sender, FileSystemEventArgs e)
+        private void onChange(object sender, FileSystemEventArgs args)
         {
             lock (compileLock)
             {
-                if (checkpointObject == null || isCompiling)
+                if (target == null || isCompiling)
                     return;
 
-                var checkpointName = checkpointObject.GetType().Name;
+                var targetType = target.GetType();
 
-                var reqTypes = checkpointObject.RequiredTypes.Select(t => removeGenerics(t.Name)).ToList();
+                var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.FullName)).ToList();
 
-                // add ourselves as a required type.
-                reqTypes.Add(removeGenerics(checkpointName));
+                // add ourselves
+                reqTypes.Add(removeGenerics(targetType.FullName));
+
+                // add all parents
+                var derivedType = targetType;
+                while ((derivedType = derivedType.BaseType) != null && derivedType != typeof(TestScene))
+                    reqTypes.Add(removeGenerics(derivedType.FullName));
+
                 // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(checkpointName)));
+                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().FullName)));
 
-                if (!reqTypes.Contains(Path.GetFileNameWithoutExtension(e.Name)))
+                string changedFileWithoutExtension = Path.GetFileNameWithoutExtension(args.Name);
+
+                if (!reqTypes.Any(t => t.EndsWith(changedFileWithoutExtension)))
                     return;
 
                 if (!reqTypes.SequenceEqual(requiredTypeNames))
@@ -109,13 +114,42 @@ namespace osu.Framework.Testing
                     requiredTypeNames = reqTypes;
 
                     requiredFiles.Clear();
-                    foreach (var d in validDirectories)
+
+                    foreach (string d in validDirectories)
+                    {
                         requiredFiles.AddRange(Directory
                                                .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
-                                               .Where(fw => requiredTypeNames.Contains(Path.GetFileNameWithoutExtension(fw))));
+                                               .Where(f =>
+                                               {
+                                                   string fwWithoutExtension = Path.GetFileNameWithoutExtension(f);
+
+                                                   // find whether this file is potentially one of the matching required types.
+                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith($".{fwWithoutExtension}"));
+
+                                                   if (matchingType == null) return false;
+
+                                                   // if so, further check for matching namespace.
+                                                   // non-matching namespoace could signify a class of the same name but from a different namespace.
+                                                   string[] namespacePieces = matchingType.Split('.');
+                                                   string namespaceLine = $"namespace {string.Join('.', namespacePieces.Take(namespacePieces.Length - 1))}";
+
+                                                   using (var reader = File.OpenText(f))
+                                                   {
+                                                       string line;
+
+                                                       while ((line = reader.ReadLine()) != null)
+                                                       {
+                                                           if (line.Contains("namespace "))
+                                                               return line.Contains(namespaceLine);
+                                                       }
+                                                   }
+
+                                                   return false;
+                                               }));
+                    }
                 }
 
-                lastTouchedFile = e.FullPath;
+                lastTouchedFile = args.FullPath;
 
                 isCompiling = true;
                 Task.Run(recompile)
@@ -126,7 +160,7 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Removes the "`1[T]" generic specification from type name output.
         /// </summary>
-        private string removeGenerics(string checkpointName) => checkpointName.Split('`').First();
+        private string removeGenerics(string targetName) => targetName.Split('`').First();
 
         private int currentVersion;
 
@@ -158,18 +192,18 @@ namespace osu.Framework.Testing
 #if RELEASE
                 "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.CSharp7_3);
+            }, languageVersion: LanguageVersion.Latest);
             var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
 
             while (!checkFileReady(lastTouchedFile))
                 Thread.Sleep(10);
 
-            Logger.Log($@"Recompiling {Path.GetFileName(checkpointObject.GetType().Name)}...", LoggingTarget.Runtime, LogLevel.Important);
+            Logger.Log($@"Recompiling {Path.GetFileName(target.GetType().Name)}...", LoggingTarget.Runtime, LogLevel.Important);
 
             CompilationStarted?.Invoke();
 
             // ensure we don't duplicate the dynamic suffix.
-            string assemblyNamespace = checkpointObject.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
+            string assemblyNamespace = target.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
 
             string assemblyVersion = $"{++currentVersion}.0.*";
             string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
@@ -192,7 +226,7 @@ namespace osu.Framework.Testing
                 {
                     ms.Seek(0, SeekOrigin.Begin);
                     CompilationFinished?.Invoke(
-                        Assembly.Load(ms.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == checkpointObject.GetType().FullName)
+                        Assembly.Load(ms.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == target.GetType().FullName)
                     );
                 }
                 else
@@ -202,7 +236,7 @@ namespace osu.Framework.Testing
                         if (diagnostic.Severity < DiagnosticSeverity.Error)
                             continue;
 
-                        CompilationFailed?.Invoke(new Exception(diagnostic.ToString()));
+                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
                     }
                 }
             }

@@ -23,20 +23,24 @@ namespace osu.Framework.Android
         public new event Action<Keycode, KeyEvent> KeyUp;
         public event Action<Keycode, KeyEvent> KeyLongPress;
         public event Action<string> CommitText;
+        public event Action<AndroidGameHost> HostStarted;
 
-        public AndroidGameView(Context context, Game game) : base(context)
+        public AndroidGameView(Context context, Game game)
+            : base(context)
         {
             this.game = game;
 
             init();
         }
 
-        public AndroidGameView(Context context, IAttributeSet attrs) : base(context, attrs)
+        public AndroidGameView(Context context, IAttributeSet attrs)
+            : base(context, attrs)
         {
             init();
         }
 
-        public AndroidGameView(IntPtr handle, JniHandleOwnership transfer) : base(handle, transfer)
+        public AndroidGameView(IntPtr handle, JniHandleOwnership transfer)
+            : base(handle, transfer)
         {
             init();
         }
@@ -62,7 +66,7 @@ namespace osu.Framework.Android
             catch (Exception e)
             {
                 Log.Verbose("AndroidGameView", "{0}", e);
-                throw new Exception("Can't load egl, aborting", e);
+                throw new InvalidOperationException("Can't load egl, aborting", e);
             }
         }
 
@@ -111,7 +115,19 @@ namespace osu.Framework.Android
         public void RenderGame()
         {
             Host = new AndroidGameHost(this);
+            Host.ExceptionThrown += handleException;
             Host.Run(game);
+            HostStarted.Invoke(Host);
+        }
+
+        private bool handleException(Exception ex)
+        {
+            // suppress exceptions related to MobileAuthenticatedStream disposal
+            // (see: https://github.com/ppy/osu/issues/6264 and linked related mono/xamarin issues)
+            // to be removed when upstream fixes come in
+            return ex is AggregateException ae
+                && ae.InnerException is ObjectDisposedException ode
+                && ode.ObjectName == "MobileAuthenticatedStream";
         }
 
         public override bool OnCheckIsTextEditor() => true;

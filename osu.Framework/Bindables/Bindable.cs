@@ -8,6 +8,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
@@ -25,16 +26,18 @@ namespace osu.Framework.Bindables
         public event Action<ValueChangedEvent<T>> ValueChanged;
 
         /// <summary>
-        /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="TriggerDisabledChange"/>).
+        /// An event which is raised when <see cref="Disabled"/> has changed (or manually via <see cref="TriggerDisabledChange"/>).
         /// </summary>
         public event Action<bool> DisabledChanged;
 
+        /// <summary>
+        /// An event which is raised when <see cref="Default"/> has changed (or manually via <see cref="TriggerDefaultChange"/>).
+        /// </summary>
+        public event Action<ValueChangedEvent<T>> DefaultChanged;
+
         private T value;
 
-        /// <summary>
-        /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
-        /// </summary>
-        public T Default { get; set; }
+        private T defaultValue;
 
         private bool disabled;
 
@@ -67,7 +70,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Check whether the current <see cref="Value"/> is equal to <see cref="Default"/>.
         /// </summary>
-        public virtual bool IsDefault => Equals(value, Default);
+        public virtual bool IsDefault => EqualityComparer<T>.Default.Equals(value, Default);
 
         /// <summary>
         /// Revert the current <see cref="Value"/> to the defined <see cref="Default"/>.
@@ -100,6 +103,32 @@ namespace osu.Framework.Bindables
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
         }
 
+        /// <summary>
+        /// The default value of this bindable. Used when calling <see cref="SetDefault"/> or querying <see cref="IsDefault"/>.
+        /// </summary>
+        public virtual T Default
+        {
+            get => defaultValue;
+            set
+            {
+                // intentionally don't have throwIfLeased() here.
+                // if the leased bindable decides to disable exclusive access (by setting Disabled = false) then anything will be able to write to Default.
+
+                if (Disabled)
+                    throw new InvalidOperationException($"Can not set default value to \"{value.ToString()}\" as bindable is disabled.");
+
+                if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
+
+                SetDefaultValue(defaultValue, value);
+            }
+        }
+
+        internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
+        {
+            defaultValue = value;
+            TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
+        }
+
         private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
 
         private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
@@ -114,12 +143,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Creates a new bindable instance.
+        /// Creates a new bindable instance initialised with a default value.
         /// </summary>
-        /// <param name="value">The initial value.</param>
-        public Bindable(T value = default)
+        /// <param name="defaultValue">The initial and default value for this bindable.</param>
+        public Bindable(T defaultValue = default)
         {
-            this.value = value;
+            value = Default = defaultValue;
         }
 
         protected LockedWeakList<Bindable<T>> Bindings { get; private set; }
@@ -144,9 +173,9 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        public Bindable<T> BindTarget
+        public IBindable<T> BindTarget
         {
-            set => BindTo(value);
+            set => ((IBindable<T>)this).BindTo(value);
         }
 
         /// <summary>
@@ -154,11 +183,15 @@ namespace osu.Framework.Bindables
         /// This will adopt any values and value limitations of the bindable bound to.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager).</param>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to bind to an already bound object.</exception>
         public virtual void BindTo(Bindable<T> them)
         {
+            if (Bindings?.Contains(them) == true)
+                throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
+
             Value = them.Value;
-            Disabled = them.Disabled;
             Default = them.Default;
+            Disabled = them.Disabled;
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
@@ -168,7 +201,7 @@ namespace osu.Framework.Bindables
         /// Bind an action to <see cref="ValueChanged"/> with the option of running the bound action once immediately.
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Value"/> changes.</param>
-        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         public void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false)
         {
             ValueChanged += onChange;
@@ -180,7 +213,7 @@ namespace osu.Framework.Bindables
         /// Bind an action to <see cref="DisabledChanged"/> with the option of running the bound action once immediately.
         /// </summary>
         /// <param name="onChange">The action to perform when <see cref="Disabled"/> changes.</param>
-        /// <param name="runOnceImmediately">Whether the action provided in <see cref="onChange"/> should be run once immediately.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         public void BindDisabledChanged(Action<bool> onChange, bool runOnceImmediately = false)
         {
             DisabledChanged += onChange;
@@ -205,23 +238,21 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
+            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
+
             switch (input)
             {
                 case T t:
                     Value = t;
                     break;
 
-                case string s:
-                    var underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
-                    if (underlyingType.IsEnum)
-                        Value = (T)Enum.Parse(underlyingType, s);
-                    else
-                        Value = (T)Convert.ChangeType(s, underlyingType, CultureInfo.InvariantCulture);
+                case string s when underlyingType.IsEnum:
+                    Value = (T)Enum.Parse(underlyingType, s);
                     break;
 
                 default:
-                    throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(T)}.");
+                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                    break;
             }
         }
 
@@ -252,6 +283,25 @@ namespace osu.Framework.Bindables
 
             if (EqualityComparer<T>.Default.Equals(beforePropagation, value))
                 ValueChanged?.Invoke(new ValueChangedEvent<T>(previousValue, value));
+        }
+
+        protected void TriggerDefaultChange(T previousValue, Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)
+        {
+            // check a bound bindable hasn't changed the value again (it will fire its own event)
+            T beforePropagation = defaultValue;
+
+            if (propagateToBindings && Bindings != null)
+            {
+                foreach (var b in Bindings)
+                {
+                    if (b == source) continue;
+
+                    b.SetDefaultValue(previousValue, defaultValue, bypassChecks, this);
+                }
+            }
+
+            if (EqualityComparer<T>.Default.Equals(beforePropagation, defaultValue))
+                DefaultChanged?.Invoke(new ValueChangedEvent<T>(previousValue, defaultValue));
         }
 
         protected void TriggerDisabledChange(Bindable<T> source, bool propagateToBindings = true, bool bypassChecks = false)

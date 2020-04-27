@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
@@ -217,6 +217,74 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0) && Precision.AlmostEquals(box.Scale.X, 0.575f));
 
             AddAssert("check transform count", () => box.Transforms.Count == 3);
+        }
+
+        [Test]
+        public void RewindBetweenDisparateValues()
+        {
+            boxTest(box =>
+            {
+                box.Alpha = 0;
+            });
+
+            // move forward to future point in time before adding transforms.
+            checkAtTime(interval * 4, _ => true);
+
+            AddStep("add transforms", () =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.FadeOutFromOne(interval);
+                    box.Delay(interval * 3).FadeOutFromOne(interval);
+
+                    // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
+                    box.RemoveTransform(box.Transforms[2]);
+                    box.RemoveTransform(box.Transforms[0]);
+                }
+            });
+
+            checkAtTime(0, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 1, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 0));
+
+            // importantly, this should be 0 not 1, reading from the EndValue of the first FadeOutFromOne transform.
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+        }
+
+        [Test]
+        public void AddPastTransformFromFuture()
+        {
+            boxTest(box =>
+            {
+                box.Alpha = 0;
+            });
+
+            // move forward to future point in time before adding transforms.
+            checkAtTime(interval * 4, _ => true);
+
+            AddStep("add transforms", () =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.FadeOutFromOne(interval);
+                    box.Delay(interval * 3).FadeInFromZero(interval);
+
+                    // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
+                    box.RemoveTransform(box.Transforms[2]);
+                    box.RemoveTransform(box.Transforms[0]);
+                }
+            });
+
+            AddStep("add one more transform in the middle", () =>
+            {
+                using (box.BeginAbsoluteSequence(interval * 2))
+                    box.FadeIn(interval * 0.5);
+            });
+
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+            checkAtTime(interval * 2.5, box => Precision.AlmostEquals(box.Alpha, 1));
         }
 
         [Test]
@@ -504,6 +572,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 private readonly double startTime;
                 public double MinTime;
                 public double MaxTime = 1000;
+                private OffsetClock offsetClock;
                 private IFrameBasedClock trackingClock;
                 private bool reversed;
 
@@ -514,24 +583,24 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 public void SetSource(IFrameBasedClock trackingClock)
                 {
-                    this.trackingClock = new FramedOffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime + startTime };
+                    this.trackingClock = trackingClock;
+
+                    offsetClock = new OffsetClock(trackingClock) { Offset = -trackingClock.CurrentTime + startTime };
                 }
 
                 public double CurrentTime { get; private set; }
-                public double Rate => trackingClock.Rate;
-                public bool IsRunning => trackingClock.IsRunning;
+                public double Rate => offsetClock.Rate;
+                public bool IsRunning => offsetClock.IsRunning;
                 public double ElapsedFrameTime => (reversed ? -1 : 1) * trackingClock.ElapsedFrameTime;
                 public double FramesPerSecond => trackingClock.FramesPerSecond;
                 public FrameTimeInfo TimeInfo => new FrameTimeInfo { Current = CurrentTime, Elapsed = ElapsedFrameTime };
 
                 public void ProcessFrame()
                 {
-                    trackingClock.ProcessFrame();
-
                     // There are two iterations, when iteration % 2 == 0 : not reversed
-                    int iteration = (int)(trackingClock.CurrentTime / (MaxTime - MinTime));
+                    int iteration = (int)(offsetClock.CurrentTime / (MaxTime - MinTime));
                     reversed = iteration % 2 == 1;
-                    double iterationTime = trackingClock.CurrentTime % (MaxTime - MinTime);
+                    double iterationTime = offsetClock.CurrentTime % (MaxTime - MinTime);
                     if (reversed)
                         CurrentTime = MaxTime - iterationTime;
                     else

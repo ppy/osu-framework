@@ -7,8 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
-using osuTK;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
@@ -164,8 +163,8 @@ namespace osu.Framework.Audio.Track
             int startBin = (int)(fft_bins * 2 * startFrequency / info.Frequency);
             int endBin = (int)(fft_bins * 2 * endFrequency / info.Frequency);
 
-            startBin = MathHelper.Clamp(startBin, 0, bins.Length);
-            endBin = MathHelper.Clamp(endBin, 0, bins.Length);
+            startBin = Math.Clamp(startBin, 0, bins.Length);
+            endBin = Math.Clamp(endBin, 0, bins.Length);
 
             double value = 0;
             for (int i = startBin; i < endBin; i++)

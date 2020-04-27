@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Foundation;
 using ObjCRuntime;
@@ -35,17 +34,6 @@ namespace osu.Framework.iOS
 
         private int lastEventFlags;
 
-        /// <summary>
-        /// Is this required?
-        /// </summary>
-        private readonly HashSet<int> blockKeys = new HashSet<int>
-        {
-            79, // Right
-            80, // Left
-            81, // Down
-            82, // Up
-        };
-
         private unsafe bool decodeKeyEvent(NSObject eventMem)
         {
             if (eventMem == null) return false;
@@ -57,14 +45,22 @@ namespace osu.Framework.iOS
             int eventScanCode = (int)eventPtr[gsevent_keycode];
             int eventLastModifier = lastEventFlags;
 
+            static bool isBlockKey(int keyCode)
+                => keyCode == 79 || // Right
+                   keyCode == 80 || // Left
+                   keyCode == 81 || // Down
+                   keyCode == 82; // Up
+
             switch (eventType)
             {
                 case gsevent_type_keydown:
                 case gsevent_type_keyup:
                     KeyEvent?.Invoke(eventScanCode, eventType == gsevent_type_keydown);
-                    if (blockKeys.Contains(eventScanCode))
+                    if (isBlockKey(eventScanCode))
                         return true;
+
                     break;
+
                 case gsevent_type_modifier:
                     KeyEvent?.Invoke(eventScanCode, eventModifier != 0 && eventModifier > eventLastModifier);
                     lastEventFlags = eventModifier;

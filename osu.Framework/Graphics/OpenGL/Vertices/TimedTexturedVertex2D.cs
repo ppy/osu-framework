@@ -24,6 +24,6 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         [VertexMember(1, VertexAttribPointerType.Float)]
         public float Time;
 
-        public bool Equals(TimedTexturedVertex2D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time);
+        public readonly bool Equals(TimedTexturedVertex2D other) => Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time);
     }
 }

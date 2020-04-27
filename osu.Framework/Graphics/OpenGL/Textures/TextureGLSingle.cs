@@ -24,13 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static readonly Action<TexturedVertex2D> default_quad_action;
-
-        static TextureGLSingle()
-        {
-            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-            default_quad_action = quadBatch.AddAction;
-        }
+        private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
 
@@ -39,6 +33,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
+
+        /// <summary>
+        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// </summary>
+        public ulong BindCount { get; private set; }
 
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
@@ -75,9 +74,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             GL.DeleteTextures(1, new[] { disposableId });
 
-            textureId = 0;
-
             memoryLease?.Dispose();
+
+            textureId = 0;
         }
 
         #endregion
@@ -224,7 +223,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.Area);
         }
 
         public const int VERTICES_PER_QUAD = 4;
@@ -276,7 +275,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
         private void updateWrapMode()
@@ -307,7 +306,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
-                if (requireUpload)
+
+                if (requireUpload && !BypassTextureUploadQueueing)
                     GLWrapper.EnqueueTextureUpload(this);
             }
         }
@@ -325,7 +325,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(this, unit);
+            if (GLWrapper.BindTexture(this, unit))
+                BindCount++;
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();
@@ -346,13 +347,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             bool didUpload = false;
 
             while (tryGetNextUpload(out ITextureUpload upload))
+            {
                 using (upload)
                 {
-                    fixed (Rgba32* ptr = &MemoryMarshal.GetReference(upload.Data))
-                        doUpload(upload, (IntPtr)ptr);
+                    fixed (Rgba32* ptr = upload.Data)
+                        DoUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
                 }
+            }
 
             if (didUpload && !manualMipmaps)
             {
@@ -384,7 +387,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
+        protected virtual void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
             // Do we need to generate a new texture?
             if (textureId <= 0 || internalWidth != width || internalHeight != height)
@@ -458,11 +461,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private unsafe void initializeLevel(int level, int width, int height)
         {
             using (var image = new Image<Rgba32>(width, height))
+            {
                 fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
                 {
                     updateMemoryUsage(level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
                 }
+            }
         }
     }
 }

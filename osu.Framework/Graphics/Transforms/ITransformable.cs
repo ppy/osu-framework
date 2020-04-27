@@ -1,16 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Allocation;
+using System;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
     public interface ITransformable
     {
-        InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false);
+        IDisposable BeginDelayedSequence(double delay, bool recursive = false);
 
-        InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false);
+        IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false);
 
         /// <summary>
         /// The current frame's time as observed by this class's <see cref="Transform"/>s.
