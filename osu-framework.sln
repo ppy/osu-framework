@@ -41,6 +41,32 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Benchmarks", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Templates", "osu.Framework.Templates\osu.Framework.Templates.csproj", "{A95175BB-95D0-44B4-8B82-EABD166943DA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{454655D7-6244-47A2-A379-3D019FBD6DD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.Game", "osu.Framework.Templates\templates\template-empty\TemplateGame.Game\TemplateGame.Game.csproj", "{6BEB95A6-0673-4AF5-892E-9146FF8B0948}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.iOS", "osu.Framework.Templates\templates\template-empty\TemplateGame.iOS\TemplateGame.iOS.csproj", "{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.Game.Tests", "osu.Framework.Templates\templates\template-empty\TemplateGame.Game.Tests\TemplateGame.Game.Tests.csproj", "{FC0A9040-7BAF-4524-B398-8C7A1C7DDEE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.Resources", "osu.Framework.Templates\templates\template-empty\TemplateGame.Resources\TemplateGame.Resources.csproj", "{6E3EBF71-8664-49D7-BD0D-2B21B3EEC540}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.Desktop", "osu.Framework.Templates\templates\template-empty\TemplateGame.Desktop\TemplateGame.Desktop.csproj", "{55AB973D-ECA0-422B-B367-24BC47DA081B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Empty", "Empty", "{5307589D-87A1-459B-BBD2-1077AA25EB1E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FlappyDon", "FlappyDon", "{139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.iOS", "osu.Framework.Templates\templates\template-flappy\FlappyDon.iOS\FlappyDon.iOS.csproj", "{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Resources", "osu.Framework.Templates\templates\template-flappy\FlappyDon.Resources\FlappyDon.Resources.csproj", "{4C728441-4C3D-4AE4-9C0F-EA91E2C70965}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Game", "osu.Framework.Templates\templates\template-flappy\FlappyDon.Game\FlappyDon.Game.csproj", "{7809CB42-8FED-4BB7-8C68-7638357B94A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Game.Tests", "osu.Framework.Templates\templates\template-flappy\FlappyDon.Game.Tests\FlappyDon.Game.Tests.csproj", "{9E4B69EE-34E6-47CF-8346-2A66D1714FCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Desktop", "osu.Framework.Templates\templates\template-flappy\FlappyDon.Desktop\FlappyDon.Desktop.csproj", "{0309CF11-621A-4F23-8FBA-A583303A8531}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -201,5 +227,20 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27D12E10-E38E-4ECE-8DD1-77E8C387B2DD}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A95175BB-95D0-44B4-8B82-EABD166943DA} = {454655D7-6244-47A2-A379-3D019FBD6DD2}
+		{5307589D-87A1-459B-BBD2-1077AA25EB1E} = {454655D7-6244-47A2-A379-3D019FBD6DD2}
+		{55AB973D-ECA0-422B-B367-24BC47DA081B} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{6BEB95A6-0673-4AF5-892E-9146FF8B0948} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{FC0A9040-7BAF-4524-B398-8C7A1C7DDEE9} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{6E3EBF71-8664-49D7-BD0D-2B21B3EEC540} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E} = {454655D7-6244-47A2-A379-3D019FBD6DD2}
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{4C728441-4C3D-4AE4-9C0F-EA91E2C70965} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{7809CB42-8FED-4BB7-8C68-7638357B94A6} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{9E4B69EE-34E6-47CF-8346-2A66D1714FCD} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{0309CF11-621A-4F23-8FBA-A583303A8531} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
 	EndGlobalSection
 EndGlobal

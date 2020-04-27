@@ -318,7 +318,8 @@ namespace osu.Framework.Graphics
             // From a synchronous point of view, this is the first time the Drawable receives a parent.
             // If this Drawable calculated properties such as DrawInfo that depend on the parent state before this point, they must be re-validated in the now-correct state.
             // A "parent" source is faked since Child+Self states are always assumed valid if they only access local Drawable states (e.g. Colour but not DrawInfo).
-            Invalidate(invalidationList.Trim(Invalidation.All), InvalidationSource.Parent);
+            // Only layout flags are required, as non-layout flags are always propagated by the parent.
+            Invalidate(Invalidation.Layout, InvalidationSource.Parent);
 
             LoadComplete();
 
@@ -1622,7 +1623,7 @@ namespace osu.Framework.Graphics
             BlendingParameters localBlending = Blending;
 
             if (Parent != null)
-                localBlending.CopyFromParent(Parent.Blending);
+                localBlending.CopyFromParent(ci.Blending);
 
             localBlending.ApplyDefaultToInherited();
 
@@ -1732,10 +1733,8 @@ namespace osu.Framework.Graphics
                 Parent?.ValidateSuperTree(validationType);
         }
 
-        private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-
         // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
-        public long InvalidationID { get; private set; } = invalidation_counter.Increment();
+        public long InvalidationID { get; private set; } = 1;
 
         /// <summary>
         /// Invalidates the layout of this <see cref="Drawable"/>.
@@ -1791,7 +1790,7 @@ namespace osu.Framework.Graphics
             anyInvalidated |= OnInvalidate(invalidation, source);
 
             if (anyInvalidated)
-                InvalidationID = invalidation_counter.Increment();
+                InvalidationID++;
 
             Invalidated?.Invoke(this);
 
@@ -1834,10 +1833,10 @@ namespace osu.Framework.Graphics
         private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
         {
             // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
-            Invalidate(Invalidation.DrawSize, InvalidationSource.Parent);
+            Invalidate(invalidation, InvalidationSource.Parent);
 
             // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
-            Parent?.InvalidateChildrenSizeDependencies(Invalidation.DrawSize, changedAxes, this);
+            Parent?.InvalidateChildrenSizeDependencies(invalidation, changedAxes, this);
         }
 
         #endregion
@@ -2561,6 +2560,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// <see cref="Graphics.DrawNode.ApplyState"/> has to be invoked on all old draw nodes.
+        /// This <see cref="Invalidation"/> flag never propagates to children.
         /// </summary>
         DrawNode = 1 << 4,
 
@@ -2588,6 +2588,11 @@ namespace osu.Framework.Graphics
         /// All possible things are affected.
         /// </summary>
         All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo | Presence,
+
+        /// <summary>
+        /// Only the layout flags.
+        /// </summary>
+        Layout = All & ~(DrawNode | Parent)
     }
 
     /// <summary>

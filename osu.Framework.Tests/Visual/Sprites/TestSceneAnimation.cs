@@ -23,7 +23,8 @@ namespace osu.Framework.Tests.Visual.Sprites
         public override IReadOnlyList<Type> RequiredTypes => new[]
         {
             typeof(TextureAnimation),
-            typeof(Animation<>)
+            typeof(Animation<>),
+            typeof(AnimationClockComposite)
         };
 
         private ManualClock clock;
@@ -50,19 +51,6 @@ namespace osu.Framework.Tests.Visual.Sprites
             loadNewAnimation();
 
             AddStep("Reset clock", () => clock.CurrentTime = 0);
-        }
-
-        private void loadNewAnimation(bool startFromCurrent = true)
-        {
-            AddStep("load animation", () =>
-            {
-                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
-                {
-                    Repeat = false,
-                };
-            });
-
-            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
         }
 
         [Test]
@@ -99,6 +87,32 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestStoppedAnimationIsAtZero()
+        {
+            loadNewAnimation(postLoadAction: a => a.Stop());
+            AddAssert("Animation is at start", () => animation.PlaybackPosition == 0);
+        }
+
+        [Test]
+        public void TestStoppedAnimationIsAtSpecifiedFrame()
+        {
+            loadNewAnimation(postLoadAction: a => a.GotoAndStop(2));
+            AddAssert("Animation is at specific frame", () => animation.PlaybackPosition == 500);
+        }
+
+        [Test]
+        public void TestPauseThenResume()
+        {
+            loadNewAnimation(false, postLoadAction: a => a.Stop());
+
+            AddWaitStep("wait some", 10);
+
+            AddStep("play", () => animation.Play());
+
+            AddAssert("time is near start", () => animation.CurrentFrameIndex < 2);
+        }
+
+        [Test]
         public void TestStartFromOngoingTime()
         {
             AddWaitStep("Wait some", 20);
@@ -115,9 +129,13 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
 
+            double posBefore = 0;
+
+            AddStep("store position", () => posBefore = animation.PlaybackPosition);
+
             AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
 
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation continued playing at current position", () => animation.PlaybackPosition - posBefore < 1000);
         }
 
         [Test]
@@ -164,12 +182,54 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestAnimationLoopsIfEnabled()
         {
-            AddStep("Set looping", () => animation.Repeat = true);
+            AddStep("Set looping", () => animation.Loop = true);
             AddStep("Seek to end", () => clock.CurrentTime = animation.Duration - 2000);
             AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
 
             AddWaitStep("Wait for playback", 10);
             AddUntilStep("Looped", () => animation.PlaybackPosition < animation.Duration - 1000);
+        }
+
+        [Test]
+        public void TestTransformBeforeLoaded()
+        {
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
+
+            loadNewAnimation(postLoadAction: a =>
+            {
+                a.Alpha = 0;
+                a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
+            });
+
+            AddAssert("Is visible", () => animation.Alpha > 0);
+        }
+
+        [Test]
+        public void TestStartFromFutureTimeWithInitialSeek()
+        {
+            AddStep("set time to future", () => clock.CurrentTime = 10000);
+
+            loadNewAnimation(false, a =>
+            {
+                a.PlaybackPosition = -10000;
+            });
+
+            AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
+        }
+
+        private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
+        {
+            AddStep("load animation", () =>
+            {
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
+                {
+                    Loop = false,
+                };
+
+                postLoadAction?.Invoke(animation);
+            });
+
+            AddUntilStep("Wait for animation to load", () => animation.IsLoaded);
         }
 
         protected override void Update()

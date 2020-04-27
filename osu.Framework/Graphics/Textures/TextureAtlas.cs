@@ -27,6 +27,9 @@ namespace osu.Framework.Graphics.Textures
         private readonly int atlasWidth;
         private readonly int atlasHeight;
 
+        private int maxFittableWidth => atlasWidth - PADDING * 2;
+        private int maxFittableHeight => atlasHeight - PADDING * 2;
+
         private Vector2I currentPosition;
 
         internal TextureWhitePixel WhitePixel
@@ -61,13 +64,62 @@ namespace osu.Framework.Graphics.Textures
 
             AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
-            using (var whiteTex = Add(WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE))
+            RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
+            subTextureBounds.Add(bounds);
+
+            using (var whiteTex = new TextureGLSub(bounds, AtlasTexture))
                 whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
 
-            currentPosition = new Vector2I(Math.Max(currentPosition.X, PADDING), PADDING);
+            currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
         }
 
-        private Vector2I? findPosition(int width, int height)
+        /// <summary>
+        /// Add (allocate) a new texture in the atlas.
+        /// </summary>
+        /// <param name="width">The width of the requested texture.</param>
+        /// <param name="height">The height of the requested texture.</param>
+        /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
+        internal TextureGL Add(int width, int height)
+        {
+            if (!canFitEmptyTextureAtlas(width, height)) return null;
+
+            lock (textureRetrievalLock)
+            {
+                Vector2I position = findPosition(width, height);
+                RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
+                subTextureBounds.Add(bounds);
+
+                return new TextureGLSub(bounds, AtlasTexture);
+            }
+        }
+
+        /// <summary>
+        /// Whether or not a texture of the given width and height could be placed into a completely empty texture atlas
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <returns>True if the texture could fit an empty texture atlas, false if it could not</returns>
+        private bool canFitEmptyTextureAtlas(int width, int height)
+        {
+            // exceeds bounds in one direction
+            if (width > maxFittableWidth || height > maxFittableHeight)
+                return false;
+
+            // exceeds bounds in both directions (in this one, we have to account for the white pixel)
+            if (width + WHITE_PIXEL_SIZE > maxFittableWidth && height + WHITE_PIXEL_SIZE > maxFittableHeight)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Locates a position in the current texture atlas for a new texture of the given size, or
+        /// creates a new texture atlas if there is not enough space in the current one.
+        /// </summary>
+        /// <param name="width">The width of the requested texture.</param>
+        /// <param name="height">The height of the requested texture.</param>
+        /// <returns>The position within the texture atlas to place the new texture.</returns>
+        private Vector2I findPosition(int width, int height)
         {
             if (AtlasTexture == null)
             {
@@ -75,19 +127,13 @@ namespace osu.Framework.Graphics.Textures
                 Reset();
             }
 
-            if (currentPosition.Y + height > atlasHeight - PADDING)
+            if (currentPosition.Y + height + PADDING > atlasHeight)
             {
-                if (height > atlasHeight - PADDING - WHITE_PIXEL_SIZE
-                    && width > atlasWidth - PADDING - WHITE_PIXEL_SIZE)
-                {
-                    return null;
-                }
-
                 Logger.Log($"TextureAtlas size exceeded {++exceedCount} time(s); generating new texture ({atlasWidth}x{atlasHeight})", LoggingTarget.Performance);
                 Reset();
             }
 
-            if (currentPosition.X + width > atlasWidth - PADDING)
+            if (currentPosition.X + width + PADDING > atlasWidth)
             {
                 int maxY = 0;
 
@@ -104,31 +150,6 @@ namespace osu.Framework.Graphics.Textures
             currentPosition.X += width + PADDING;
 
             return result;
-        }
-
-        /// <summary>
-        /// Add (allocate) a new texture in the atlas.
-        /// </summary>
-        /// <param name="width">The width of the requested texture.</param>
-        /// <param name="height">The height of the requested texture.</param>
-        /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
-        internal TextureGL Add(int width, int height)
-        {
-            if (width > atlasWidth - PADDING || height > atlasHeight - PADDING)
-                return null;
-
-            lock (textureRetrievalLock)
-            {
-                var pos = findPosition(width, height);
-
-                if (pos == null) return null;
-
-                Vector2I position = pos.Value;
-                RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
-                subTextureBounds.Add(bounds);
-
-                return new TextureGLSub(bounds, AtlasTexture);
-            }
         }
     }
 }
