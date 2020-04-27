@@ -101,6 +101,18 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestPauseThenResume()
+        {
+            loadNewAnimation(false, postLoadAction: a => a.Stop());
+
+            AddWaitStep("wait some", 10);
+
+            AddStep("play", () => animation.Play());
+
+            AddAssert("time is near start", () => animation.CurrentFrameIndex < 2);
+        }
+
+        [Test]
         public void TestStartFromOngoingTime()
         {
             AddWaitStep("Wait some", 20);
