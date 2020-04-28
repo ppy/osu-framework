@@ -9,8 +9,12 @@ using System.Threading;
 using osu.Framework.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Text;
 
 namespace osu.Framework.Testing
 {
@@ -38,9 +42,17 @@ namespace osu.Framework.Testing
 
         private readonly List<string> validDirectories = new List<string>();
 
+        private EmitBaseline baseline;
+        private Solution solution;
+
         public void Start()
         {
+            MSBuildLocator.RegisterDefaults();
+
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+
+            solution = MSBuildWorkspace.Create().OpenSolutionAsync(Path.Combine(getSolutionPath(di), "osu-framework.sln")).Result;
+            emit();
 
             Task.Run(() =>
             {
@@ -72,14 +84,14 @@ namespace osu.Framework.Testing
                     watchers.Add(fsw);
                 }
             });
+        }
 
-            static string getSolutionPath(DirectoryInfo d)
-            {
-                if (d == null)
-                    return null;
+        private static string getSolutionPath(DirectoryInfo d)
+        {
+            if (d == null)
+                return null;
 
-                return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
-            }
+            return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
         }
 
         private void onChange(object sender, FileSystemEventArgs args)
@@ -89,71 +101,129 @@ namespace osu.Framework.Testing
                 if (target == null || isCompiling)
                     return;
 
+                solution = solution.WithDocumentText(solution.GetDocumentIdsWithFilePath(args.FullPath)[0], SourceText.From(File.ReadAllText(args.FullPath)));
+
                 var targetType = target.GetType();
 
-                var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.FullName)).ToList();
-
-                // add ourselves
-                reqTypes.Add(removeGenerics(targetType.FullName));
-
-                // add all parents
-                var derivedType = targetType;
-                while ((derivedType = derivedType.BaseType) != null && derivedType != typeof(TestScene))
-                    reqTypes.Add(removeGenerics(derivedType.FullName));
-
-                // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().FullName)));
-
-                string changedFileWithoutExtension = Path.GetFileNameWithoutExtension(args.Name);
-
-                if (!reqTypes.Any(t => t.EndsWith(changedFileWithoutExtension)))
-                    return;
-
-                if (!reqTypes.SequenceEqual(requiredTypeNames))
-                {
-                    requiredTypeNames = reqTypes;
-
-                    requiredFiles.Clear();
-
-                    foreach (string d in validDirectories)
-                    {
-                        requiredFiles.AddRange(Directory
-                                               .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
-                                               .Where(f =>
-                                               {
-                                                   string fwWithoutExtension = Path.GetFileNameWithoutExtension(f);
-
-                                                   // find whether this file is potentially one of the matching required types.
-                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith($".{fwWithoutExtension}"));
-
-                                                   if (matchingType == null) return false;
-
-                                                   // if so, further check for matching namespace.
-                                                   // non-matching namespoace could signify a class of the same name but from a different namespace.
-                                                   string[] namespacePieces = matchingType.Split('.');
-                                                   string namespaceLine = $"namespace {string.Join('.', namespacePieces.Take(namespacePieces.Length - 1))}";
-
-                                                   using (var reader = File.OpenText(f))
-                                                   {
-                                                       string line;
-
-                                                       while ((line = reader.ReadLine()) != null)
-                                                       {
-                                                           if (line.Contains("namespace "))
-                                                               return line.Contains(namespaceLine);
-                                                       }
-                                                   }
-
-                                                   return false;
-                                               }));
-                    }
-                }
+                emit();
 
                 lastTouchedFile = args.FullPath;
 
-                isCompiling = true;
-                Task.Run(recompile)
-                    .ContinueWith(_ => isCompiling = false);
+                // isCompiling = true;
+                // Task.Run(recompile)
+                //     .ContinueWith(_ => isCompiling = false);
+            }
+        }
+
+        private void emit()
+        {
+            var compilation = solution.Projects.ElementAt(0).GetCompilationAsync().Result;
+
+            var assemblyTypeVisitor = new AssemblyTypeVisitor();
+            compilation!.Assembly.Accept(assemblyTypeVisitor);
+
+            var typeReferenceVisitor = new TypeReferencesVisitor();
+            assemblyTypeVisitor.AllTypes[0].Accept(typeReferenceVisitor);
+        }
+
+        public class AssemblyTypeVisitor : SymbolVisitor
+        {
+            public readonly List<ITypeSymbol> AllTypes = new List<ITypeSymbol>();
+
+            public override void VisitAssembly(IAssemblySymbol symbol)
+            {
+                base.VisitAssembly(symbol);
+
+                symbol.GlobalNamespace.Accept(this);
+            }
+
+            public override void VisitNamespace(INamespaceSymbol symbol)
+            {
+                base.VisitNamespace(symbol);
+
+                foreach (var member in symbol.GetMembers())
+                    member.Accept(this);
+            }
+
+            public override void VisitNamedType(INamedTypeSymbol symbol)
+            {
+                base.VisitNamedType(symbol);
+
+                AllTypes.Add(symbol);
+
+                foreach (var member in symbol.GetTypeMembers())
+                    member.Accept(this);
+            }
+        }
+
+        public class TypeReferencesVisitor : SymbolVisitor
+        {
+            public readonly List<ITypeSymbol> TypeReferences = new List<ITypeSymbol>();
+
+            private bool firstType = true;
+
+            public override void VisitNamedType(INamedTypeSymbol symbol)
+            {
+                base.VisitNamedType(symbol);
+
+                if (!firstType)
+                    TypeReferences.Add(symbol);
+
+                if (firstType)
+                {
+                    firstType = false;
+
+                    foreach (var member in symbol.GetMembers())
+                        member.Accept(this);
+
+                    // Todo: Derived + implementing types?
+                }
+            }
+
+            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+            {
+                base.VisitTypeParameter(symbol);
+                TypeReferences.Add(symbol.DeclaringType);
+            }
+
+            public override void VisitParameter(IParameterSymbol symbol)
+            {
+                base.VisitParameter(symbol);
+                TypeReferences.Add(symbol.Type);
+            }
+
+            public override void VisitField(IFieldSymbol symbol)
+            {
+                base.VisitField(symbol);
+                TypeReferences.Add(symbol.Type);
+            }
+
+            public override void VisitProperty(IPropertySymbol symbol)
+            {
+                base.VisitProperty(symbol);
+                TypeReferences.Add(symbol.Type);
+            }
+
+            public override void VisitEvent(IEventSymbol symbol)
+            {
+                base.VisitEvent(symbol);
+                TypeReferences.Add(symbol.Type);
+            }
+
+            public override void VisitMethod(IMethodSymbol symbol)
+            {
+                base.VisitMethod(symbol);
+
+                TypeReferences.Add(symbol.ReturnType);
+
+                foreach (var typeParam in symbol.TypeParameters)
+                    TypeReferences.Add(typeParam.DeclaringType);
+
+                foreach (var typeArg in symbol.TypeArguments)
+                    TypeReferences.Add(typeArg.BaseType);
+
+                foreach (var param in symbol.Parameters)
+                    param.Accept(this);
             }
         }
 
