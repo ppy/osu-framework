@@ -149,7 +149,7 @@ namespace osu.Framework.Testing
                 //     foreach parent in node
                 //         add_required_files(parent)
                 //
-                // We're then left with the set of required files that need to be re-compilated.
+                // We're then left with the set of required files that need to be recompiled.
 
                 // 1. Build the disjoint graph of connections.
                 Logger.Log("Finding all referenced types...");
