@@ -19,6 +19,8 @@ namespace osu.Framework.Testing
 {
     public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
+        private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
+
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
 
@@ -38,18 +40,66 @@ namespace osu.Framework.Testing
             var compiledTestProject = await compileProjectAsync(findTestProject());
             var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
 
+            if (compiledTestType == null)
+            {
+                Logger.Log("Failed to retrieve the test type from the compilation.");
+                return Array.Empty<string>();
+            }
+
             Logger.Log("Finding all referenced types...");
-            var disjointGraph = await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType));
+
+            if (referenceMap.Count > 0)
+            {
+                Logger.Log("Attempting to use cache...");
+
+                // We already have some references, so we can do a partial re-process of the map for only the changed file.
+                var oldTypes = getTypesFromFile(changedFile).ToArray();
+                foreach (var t in oldTypes)
+                    referenceMap.Remove(t);
+
+                foreach (var t in oldTypes)
+                {
+                    // The type we have is on an old compilation, we need to re-retrieve it on the new one.
+                    var project = getProjectFromFile(t.Symbol.Locations.First().SourceTree?.FilePath);
+
+                    if (project == null)
+                    {
+                        Logger.Log("File has been renamed. Rebuilding map...");
+                        Reset();
+                        break;
+                    }
+
+                    var compilation = await compileProjectAsync(project);
+                    var newType = compilation.GetTypeByMetadataName(t.Symbol.ToString());
+
+                    if (newType == null)
+                    {
+                        Logger.Log("Class has been renamed. Rebuilding map...");
+                        Reset();
+                        break;
+                    }
+
+                    await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(newType), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                }
+            }
+
+            if (referenceMap.Count == 0)
+            {
+                // We have no cache available, so we must rebuild the whole map.
+                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), true);
+            }
 
             Logger.Log("Building type graph...");
-            var directedGraph = getDirectedGraph(disjointGraph);
+            var directedGraph = getDirectedGraph(referenceMap);
 
             Logger.Log("Retrieving required files...");
-            var changedType = directedGraph
-                              .Select(kvp => kvp.Key)
-                              .Where(t => t.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+            return getRequiredFiles(getTypesFromFile(changedFile), directedGraph);
+        }
 
-            return getRequiredFiles(changedType, directedGraph);
+        public void Reset()
+        {
+            clearCaches();
+            referenceMap.Clear();
         }
 
         private void clearCaches()
@@ -66,7 +116,7 @@ namespace osu.Framework.Testing
             solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(file)));
         }
 
-        private async Task<Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>> getReferencedTypesRecursiveAsync(TypeReference rootReference)
+        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool isRoot)
         {
             // There exists a graph of types from the root type symbol which we want to find.
             //
@@ -90,31 +140,29 @@ namespace osu.Framework.Testing
             // C5 -> { C6 }
             // C6 -> { C2 }
 
-            var result = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
-
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
 
             while (searchQueue.Count > 0)
             {
                 var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck, !toCheck.Equals(rootReference));
+                var referencedTypes = await getReferencedTypesAsync(toCheck, !isRoot);
 
-                result[toCheck] = referencedTypes;
+                referenceMap[toCheck] = referencedTypes;
 
                 foreach (var referenced in referencedTypes)
                 {
                     // We don't want to cycle over types that have already been explored.
-                    if (!result.ContainsKey(referenced))
+                    if (!referenceMap.ContainsKey(referenced))
                     {
                         // Used for de-duping, so it must be added to the dictionary immediately.
-                        result[referenced] = null;
+                        referenceMap[referenced] = null;
                         searchQueue.Enqueue(referenced);
                     }
                 }
-            }
 
-            return result;
+                isRoot = false;
+            }
         }
 
         private async Task<HashSet<TypeReference>> getReferencedTypesAsync(TypeReference typeReference, bool includeBaseType)
@@ -231,6 +279,10 @@ namespace osu.Framework.Testing
             return result;
         }
 
+        private IEnumerable<TypeReference> getTypesFromFile(string fileName) => referenceMap
+                                                                                .Select(kvp => kvp.Key)
+                                                                                .Where(t => t.Symbol.Locations.Any(l => l.SourceTree?.FilePath == fileName));
+
         private async Task<Compilation> compileProjectAsync(Project project)
         {
             if (compilationCache.TryGetValue(project, out var existing))
@@ -245,9 +297,10 @@ namespace osu.Framework.Testing
             if (semanticModelCache.TryGetValue(syntaxTree, out var existing))
                 return existing;
 
-            var project = solution.Projects.FirstOrDefault(p => p.Documents.Any(d => d.FilePath == syntaxTree.FilePath));
-            return semanticModelCache[syntaxTree] = (await compileProjectAsync(project)).GetSemanticModel(syntaxTree, true);
+            return semanticModelCache[syntaxTree] = (await compileProjectAsync(getProjectFromFile(syntaxTree.FilePath))).GetSemanticModel(syntaxTree, true);
         }
+
+        private Project getProjectFromFile(string fileName) => solution.Projects.FirstOrDefault(p => p.Documents.Any(d => d.FilePath == fileName));
 
         private Project findTestProject()
         {

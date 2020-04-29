@@ -12,5 +12,7 @@ namespace osu.Framework.Testing
         Task Initialise(string solutionFile);
 
         Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile);
+
+        void Reset();
     }
 }
