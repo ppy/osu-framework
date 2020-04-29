@@ -59,8 +59,10 @@ namespace osu.Framework.Testing
 
                 foreach (var t in oldTypes)
                 {
+                    string typePath = t.Symbol.Locations.First().SourceTree?.FilePath;
+
                     // The type we have is on an old compilation, we need to re-retrieve it on the new one.
-                    var project = getProjectFromFile(t.Symbol.Locations.First().SourceTree?.FilePath);
+                    var project = getProjectFromFile(typePath);
 
                     if (project == null)
                     {
@@ -70,16 +72,11 @@ namespace osu.Framework.Testing
                     }
 
                     var compilation = await compileProjectAsync(project);
-                    var newType = compilation.GetTypeByMetadataName(t.Symbol.ToString());
+                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
 
-                    if (newType == null)
-                    {
-                        Logger.Log("Class has been renamed. Rebuilding map...");
-                        Reset();
-                        break;
-                    }
-
-                    await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(newType), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                    foreach (var referenced in referencedTypes)
+                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
                 }
             }
 
@@ -171,45 +168,52 @@ namespace osu.Framework.Testing
 
             foreach (var reference in typeReference.Symbol.DeclaringSyntaxReferences)
             {
-                var syntaxTree = reference.SyntaxTree;
-                var semanticModel = await getSemanticModelAsync(reference.SyntaxTree);
-                var root = await syntaxTree.GetRootAsync();
+                foreach (var type in await getReferencedTypesAsync(await getSemanticModelAsync(reference.SyntaxTree), includeBaseType))
+                    result.Add(type);
+            }
 
-                var descendantNodes = root.DescendantNodes(n =>
+            return result;
+        }
+
+        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel, bool includeBaseType)
+        {
+            var result = new HashSet<TypeReference>();
+
+            var root = await semanticModel.SyntaxTree.GetRootAsync();
+            var descendantNodes = root.DescendantNodes(n =>
+            {
+                var kind = n.Kind();
+
+                return kind != SyntaxKind.UsingDirective
+                       && kind != SyntaxKind.NamespaceKeyword
+                       && (includeBaseType || kind != SyntaxKind.BaseList);
+            });
+
+            // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
+            foreach (var node in descendantNodes)
+            {
+                switch (node.Kind())
                 {
-                    var kind = n.Kind();
-
-                    return kind != SyntaxKind.UsingDirective
-                           && kind != SyntaxKind.NamespaceKeyword
-                           && (includeBaseType || kind != SyntaxKind.BaseList);
-                });
-
-                // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
-                foreach (var node in descendantNodes)
-                {
-                    switch (node.Kind())
+                    case SyntaxKind.GenericName:
+                    case SyntaxKind.IdentifierName:
                     {
-                        case SyntaxKind.GenericName:
-                        case SyntaxKind.IdentifierName:
-                        {
-                            if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
-                                result.Add(TypeReference.FromSymbol(t));
+                        if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
+                            result.Add(TypeReference.FromSymbol(t));
 
-                            break;
-                        }
+                        break;
+                    }
 
-                        case SyntaxKind.AsExpression:
-                        case SyntaxKind.IsExpression:
-                        case SyntaxKind.SizeOfExpression:
-                        case SyntaxKind.TypeOfExpression:
-                        case SyntaxKind.CastExpression:
-                        case SyntaxKind.ObjectCreationExpression:
-                        {
-                            if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
-                                result.Add(TypeReference.FromSymbol(t));
+                    case SyntaxKind.AsExpression:
+                    case SyntaxKind.IsExpression:
+                    case SyntaxKind.SizeOfExpression:
+                    case SyntaxKind.TypeOfExpression:
+                    case SyntaxKind.CastExpression:
+                    case SyntaxKind.ObjectCreationExpression:
+                    {
+                        if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
+                            result.Add(TypeReference.FromSymbol(t));
 
-                            break;
-                        }
+                        break;
                     }
                 }
             }
