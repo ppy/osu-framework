@@ -75,6 +75,8 @@ namespace osu.Framework.Testing
                     var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
 
                     var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
+
                     foreach (var referenced in referencedTypes)
                         await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
                 }
