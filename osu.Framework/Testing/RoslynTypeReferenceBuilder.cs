@@ -47,10 +47,7 @@ namespace osu.Framework.Testing
             Logger.Log("Retrieving required files...");
             var changedType = directedGraph
                               .Select(kvp => kvp.Key)
-                              .FirstOrDefault(t => t.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
-
-            if (changedType.Symbol == null)
-                return Array.Empty<string>();
+                              .Where(t => t.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
 
             return getRequiredFiles(changedType, directedGraph);
         }
@@ -201,13 +198,15 @@ namespace osu.Framework.Testing
             }
         }
 
-        private HashSet<string> getRequiredFiles(TypeReference start, IReadOnlyDictionary<TypeReference, TypeNode> directedGraph)
+        private HashSet<string> getRequiredFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, TypeNode> directedGraph)
         {
             var result = new HashSet<string>();
 
             var seenTypes = new HashSet<TypeNode>();
             var searchQueue = new Queue<TypeNode>();
-            searchQueue.Enqueue(directedGraph[start]);
+
+            foreach (var reference in sources)
+                searchQueue.Enqueue(directedGraph[reference]);
 
             while (searchQueue.Count > 0)
             {
