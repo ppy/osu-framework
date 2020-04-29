@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 
@@ -42,7 +40,6 @@ namespace osu.Framework.Testing
 
         private readonly List<string> validDirectories = new List<string>();
 
-        private EmitBaseline baseline;
         private Solution solution;
 
         public void Start()
@@ -338,127 +335,6 @@ namespace osu.Framework.Testing
 
             public bool Equals(TypeNode other) => TypeSymbol.Equals(other?.TypeSymbol);
         }
-
-        // private Compilation emit()
-        // {
-        //     var compilation = solution.Projects.ElementAt(0).GetCompilationAsync().Result;
-        //
-        //     // var assemblyTypeVisitor = new AssemblyTypeVisitor();
-        //     // compilation!.Assembly.Accept(assemblyTypeVisitor);
-        //     //
-        //     // var typeReferenceVisitor = new TypeReferencesVisitor();
-        //     // assemblyTypeVisitor.AllTypes[0].Accept(typeReferenceVisitor);
-        //
-        //     return compilation;
-        // }
-
-        public class AssemblyTypeVisitor : SymbolVisitor
-        {
-            public readonly List<ITypeSymbol> AllTypes = new List<ITypeSymbol>();
-
-            public override void VisitAssembly(IAssemblySymbol symbol)
-            {
-                base.VisitAssembly(symbol);
-
-                symbol.GlobalNamespace.Accept(this);
-            }
-
-            public override void VisitNamespace(INamespaceSymbol symbol)
-            {
-                base.VisitNamespace(symbol);
-
-                foreach (var member in symbol.GetMembers())
-                    member.Accept(this);
-            }
-
-            public override void VisitNamedType(INamedTypeSymbol symbol)
-            {
-                base.VisitNamedType(symbol);
-
-                AllTypes.Add(symbol);
-
-                foreach (var member in symbol.GetTypeMembers())
-                    member.Accept(this);
-            }
-        }
-
-        public class TypeReferencesVisitor : SymbolVisitor
-        {
-            public readonly List<ITypeSymbol> TypeReferences = new List<ITypeSymbol>();
-
-            private bool firstType = true;
-
-            public override void VisitNamedType(INamedTypeSymbol symbol)
-            {
-                base.VisitNamedType(symbol);
-
-                if (!firstType)
-                    TypeReferences.Add(symbol);
-
-                if (firstType)
-                {
-                    firstType = false;
-
-                    foreach (var member in symbol.GetMembers())
-                        member.Accept(this);
-
-                    // Todo: Derived + implementing types?
-                }
-            }
-
-            public override void VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                base.VisitTypeParameter(symbol);
-                TypeReferences.Add(symbol.DeclaringType);
-            }
-
-            public override void VisitParameter(IParameterSymbol symbol)
-            {
-                base.VisitParameter(symbol);
-                TypeReferences.Add(symbol.Type);
-            }
-
-            public override void VisitField(IFieldSymbol symbol)
-            {
-                base.VisitField(symbol);
-                TypeReferences.Add(symbol.Type);
-            }
-
-            public override void VisitProperty(IPropertySymbol symbol)
-            {
-                base.VisitProperty(symbol);
-                TypeReferences.Add(symbol.Type);
-            }
-
-            public override void VisitEvent(IEventSymbol symbol)
-            {
-                base.VisitEvent(symbol);
-                TypeReferences.Add(symbol.Type);
-            }
-
-            public override void VisitMethod(IMethodSymbol symbol)
-            {
-                base.VisitMethod(symbol);
-
-                TypeReferences.Add(symbol.ReturnType);
-
-                foreach (var typeParam in symbol.TypeParameters)
-                    TypeReferences.Add(typeParam.DeclaringType);
-
-                foreach (var typeArg in symbol.TypeArguments)
-                    TypeReferences.Add(typeArg.BaseType);
-
-                foreach (var param in symbol.Parameters)
-                    param.Accept(this);
-
-                // Todo: This doesn't catch static references inside methods.
-            }
-        }
-
-        /// <summary>
-        /// Removes the "`1[T]" generic specification from type name output.
-        /// </summary>
-        private string removeGenerics(string targetName) => targetName.Split('`').First();
 
         private int currentVersion;
 
