@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>netstandard2.1;netcoreapp3.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyTitle>osu!framework</AssemblyTitle>
@@ -28,11 +28,11 @@
     <PackageReference Include="SharpFNT" Version="1.1.1" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" Condition="'$(TargetFrameworks)' != 'netstandard2.1'" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.5.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.5.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.5.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.5.0" Condition="'$(TargetFrameworks)' != 'netstandard2.1'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.5.0" Condition="'$(TargetFrameworks)' != 'netstandard2.1'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.5.0" Condition="'$(TargetFrameworks)' != 'netstandard2.1'" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.122004" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
