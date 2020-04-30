@@ -122,22 +122,22 @@ namespace osu.Framework.Testing
                     var compilation = await compileProjectAsync(project);
                     var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
 
-                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), !compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
                     referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
 
                     foreach (var referenced in referencedTypes)
-                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                        await getReferencedTypesRecursiveAsync(referenced, !referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
                 }
             }
 
             if (referenceMap.Count == 0)
             {
                 // We have no cache available, so we must rebuild the whole map.
-                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), true);
+                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), false);
             }
         }
 
-        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool isRoot)
+        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool includeBaseType)
         {
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
@@ -145,7 +145,7 @@ namespace osu.Framework.Testing
             while (searchQueue.Count > 0)
             {
                 var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck, !isRoot);
+                var referencedTypes = await getReferencedTypesAsync(toCheck, includeBaseType);
 
                 referenceMap[toCheck] = referencedTypes;
 
@@ -160,7 +160,7 @@ namespace osu.Framework.Testing
                     }
                 }
 
-                isRoot = false;
+                includeBaseType = true;
             }
         }
 
