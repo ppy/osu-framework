@@ -69,16 +69,19 @@ namespace osu.Framework.Platform
         IEnumerable<Display> Displays { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
-        /// Can be null if running headless.
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
-        Display Display { get; }
+        Display PrimaryDisplay { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// </summary>
+        Display CurrentDisplay { get; set; }
 
         /// <summary>
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
-        /// Can be null if running headless.
         /// </summary>
-        DisplayMode DisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; }
 
         #endregion
 
@@ -183,6 +186,11 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         event Action<string> DragDrop;
+
+        /// <summary>
+        /// Invoked when the current display changes.
+        /// </summary>
+        event Action<Display> DisplayChanged;
 
         #endregion
 
