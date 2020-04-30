@@ -140,11 +140,11 @@ namespace osu.Framework.Platform.Sdl
 
         public bool CursorConfined
         {
-            get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_CAPTURE);
+            get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : SDL.SDL_GetWindowGrab(SdlWindowHandle) == SDL.SDL_bool.SDL_TRUE;
             set
             {
                 cursorConfined = value;
-                scheduler.Add(() => SDL.SDL_CaptureMouse(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+                scheduler.Add(() => SDL.SDL_SetWindowGrab(SdlWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
         }
 
