@@ -52,15 +52,14 @@ namespace osu.Framework.Testing
 #else
             referenceBuilder = new EmptyTypeReferenceBuilder();
 #endif
-
-            referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First());
-
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
                     return;
+
+                await referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First());
 
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
