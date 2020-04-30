@@ -33,6 +33,7 @@ namespace osu.Framework.Testing
             if (this.target?.GetType().Name != target?.GetType().Name)
             {
                 requiredFiles.Clear();
+                referenceBuilder.Reset();
             }
 
             this.target = target;
