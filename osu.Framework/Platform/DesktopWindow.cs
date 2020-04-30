@@ -3,6 +3,7 @@
 
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
 
 namespace osu.Framework.Platform
@@ -10,6 +11,8 @@ namespace osu.Framework.Platform
     public class DesktopWindow : Window
     {
         private readonly BindableSize sizeWindowed = new BindableSize();
+
+        public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
         /// <summary>
         /// Initialises a window for desktop platforms.
@@ -32,6 +35,9 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+
             Resized += onResized;
         }
 
@@ -39,6 +45,27 @@ namespace osu.Framework.Platform
         {
             if (!Size.Value.IsEmpty && WindowMode.Value == Configuration.WindowMode.Windowed)
                 sizeWindowed.Value = Size.Value;
+        }
+
+        private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
+        {
+            bool confine = false;
+
+            switch (args.NewValue)
+            {
+                case Input.ConfineMouseMode.Fullscreen:
+                    confine = WindowMode.Value != Configuration.WindowMode.Windowed;
+                    break;
+
+                case Input.ConfineMouseMode.Always:
+                    confine = true;
+                    break;
+            }
+
+            if (confine)
+                CursorState.Value |= Platform.CursorState.Confined;
+            else
+                CursorState.Value &= ~Platform.CursorState.Confined;
         }
     }
 }
