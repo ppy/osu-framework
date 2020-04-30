@@ -128,23 +128,20 @@ namespace osu.Framework.Testing
                     var compilation = await compileProjectAsync(project);
                     var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
                     var semanticModel = await getSemanticModelAsync(syntaxTree);
-                    var referencedTypes = await getReferencedTypesAsync(semanticModel, !isTestFileSource(changedFile));
+                    var referencedTypes = await getReferencedTypesAsync(semanticModel);
 
                     referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
 
                     foreach (var referenced in referencedTypes)
-                        await buildReferenceMapRecursiveAsync(referenced, referenced.Symbol.Locations.All(l => !isTestFileSource(l.SourceTree?.FilePath)));
+                        await buildReferenceMapRecursiveAsync(referenced);
                 }
             }
 
             if (referenceMap.Count == 0)
             {
                 // We have no cache available, so we must rebuild the whole map.
-                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType), false);
+                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType));
             }
-
-            // Checks whether a fileName refers to the file containing the test type.
-            bool isTestFileSource(string fileName) => compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == fileName);
         }
 
         /// <summary>
@@ -154,8 +151,7 @@ namespace osu.Framework.Testing
         /// This should not be used by itself. Use <see cref="buildReferenceMapAsync"/> instead.
         /// </remarks>
         /// <param name="rootReference">The root, where the map should start being build from.</param>
-        /// <param name="includeBaseType">Whether the base type of <paramref name="rootReference"/> should be included as a reference.</param>
-        private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference, bool includeBaseType)
+        private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference)
         {
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
@@ -163,7 +159,7 @@ namespace osu.Framework.Testing
             while (searchQueue.Count > 0)
             {
                 var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck, includeBaseType);
+                var referencedTypes = await getReferencedTypesAsync(toCheck);
 
                 referenceMap[toCheck] = referencedTypes;
 
@@ -177,8 +173,6 @@ namespace osu.Framework.Testing
                         searchQueue.Enqueue(referenced);
                     }
                 }
-
-                includeBaseType = true;
             }
         }
 
@@ -186,15 +180,14 @@ namespace osu.Framework.Testing
         /// Retrieves all <see cref="TypeReference"/>s referenced by a given <see cref="TypeReference"/>, across all symbol sources.
         /// </summary>
         /// <param name="typeReference">The target <see cref="TypeReference"/>.</param>
-        /// <param name="includeBaseType">Whether the base type of <paramref name="typeReference"/> should be included as a reference.</param>
         /// <returns>All <see cref="TypeReference"/>s referenced to across all symbol sources by <paramref name="typeReference"/>.</returns>
-        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(TypeReference typeReference, bool includeBaseType)
+        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(TypeReference typeReference)
         {
             var result = new HashSet<TypeReference>();
 
             foreach (var reference in typeReference.Symbol.DeclaringSyntaxReferences)
             {
-                foreach (var type in await getReferencedTypesAsync(await getSemanticModelAsync(reference.SyntaxTree), includeBaseType))
+                foreach (var type in await getReferencedTypesAsync(await getSemanticModelAsync(reference.SyntaxTree)))
                     result.Add(type);
             }
 
@@ -205,9 +198,8 @@ namespace osu.Framework.Testing
         /// Retrieves all <see cref="TypeReference"/>s referenced by a given <see cref="SemanticModel"/>.
         /// </summary>
         /// <param name="semanticModel">The target <see cref="SemanticModel"/>.</param>
-        /// <param name="includeBaseType">Whether any base types in <paramref name="semanticModel"/> should be included as references.</param>
         /// <returns>All <see cref="TypeReference"/>s referenced by <paramref name="semanticModel"/>.</returns>
-        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel, bool includeBaseType)
+        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel)
         {
             var result = new HashSet<TypeReference>();
 
@@ -217,8 +209,7 @@ namespace osu.Framework.Testing
                 var kind = n.Kind();
 
                 return kind != SyntaxKind.UsingDirective
-                       && kind != SyntaxKind.NamespaceKeyword
-                       && (includeBaseType || kind != SyntaxKind.BaseList);
+                       && kind != SyntaxKind.NamespaceKeyword;
             });
 
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
