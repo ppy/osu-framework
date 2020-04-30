@@ -121,12 +121,13 @@ namespace osu.Framework.Testing
 
                     var compilation = await compileProjectAsync(project);
                     var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
+                    var semanticModel = await getSemanticModelAsync(syntaxTree);
+                    var referencedTypes = await getReferencedTypesAsync(semanticModel, !isTestFileSource(changedFile));
 
-                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), !compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
                     referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
 
                     foreach (var referenced in referencedTypes)
-                        await getReferencedTypesRecursiveAsync(referenced, !referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.All(l => !isTestFileSource(l.SourceTree?.FilePath)));
                 }
             }
 
@@ -135,6 +136,9 @@ namespace osu.Framework.Testing
                 // We have no cache available, so we must rebuild the whole map.
                 await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), false);
             }
+
+            // Checks whether a fileName refers to the file containing the test type.
+            bool isTestFileSource(string fileName) => compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == fileName);
         }
 
         private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool includeBaseType)
