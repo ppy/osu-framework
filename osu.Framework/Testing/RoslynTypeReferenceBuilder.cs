@@ -221,8 +221,7 @@ namespace osu.Framework.Testing
                     case SyntaxKind.IdentifierName:
                     {
                         if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
-                            result.Add(TypeReference.FromSymbol(t));
-
+                            addTypeSymbol(t);
                         break;
                     }
 
@@ -234,14 +233,21 @@ namespace osu.Framework.Testing
                     case SyntaxKind.ObjectCreationExpression:
                     {
                         if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
-                            result.Add(TypeReference.FromSymbol(t));
-
+                            addTypeSymbol(t);
                         break;
                     }
                 }
             }
 
             return result;
+
+            void addTypeSymbol(INamedTypeSymbol typeSymbol)
+            {
+                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(nameof(ExcludeFromDynamicCompileAttribute))))
+                    return;
+
+                result.Add(TypeReference.FromSymbol(typeSymbol));
+            }
         }
 
         /// <summary>

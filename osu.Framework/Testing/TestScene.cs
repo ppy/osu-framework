@@ -23,6 +23,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
+    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract class TestScene : Container, IDynamicallyCompile
     {
