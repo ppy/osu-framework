@@ -350,7 +350,7 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Requests that the graphics backend become the current context.
-        /// May be unrequired for some backends.
+        /// May not be required for some backends.
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
 

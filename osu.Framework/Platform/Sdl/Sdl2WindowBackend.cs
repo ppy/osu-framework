@@ -457,10 +457,10 @@ namespace osu.Framework.Platform.Sdl
             switch (evtDrop.type)
             {
                 case SDL.SDL_EventType.SDL_DROPFILE:
-                    var str = Marshal.PtrToStringAnsi(evtDrop.file);
+                    var str = SDL.UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
                         OnDragDrop(str);
-                    // TODO: SDL wiki says the pointer should be freed with SDL_Free(), not sure if required with SDL2-CS
+
                     break;
             }
         }
