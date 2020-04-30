@@ -39,7 +39,7 @@ namespace osu.Framework.Testing
             await buildReferenceMapAsync(testType, changedFile);
 
             Logger.Log("Retrieving reference graph...");
-            var directedGraph = getDirectedGraph(referenceMap);
+            var directedGraph = getDirectedGraph();
 
             Logger.Log("Retrieving referenced files...");
             return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
@@ -64,9 +64,15 @@ namespace osu.Framework.Testing
             referenceMap.Clear();
         }
 
+        /// <summary>
+        /// Builds the reference map, connecting all types to their immediate references. Results are placed inside <see cref="referenceMap"/>.
+        /// </summary>
+        /// <param name="testType">The test target - the top-most level.</param>
+        /// <param name="changedFile">The file that was changed.</param>
+        /// <exception cref="InvalidOperationException">If <paramref name="testType"/> could not be retrieved from the solution.</exception>
         private async Task buildReferenceMapAsync(Type testType, string changedFile)
         {
-            // There exists a graph of types from the root type symbol which we want to find.
+            // We want to find a graph of types from the testType symbol (P) to all the types which it references recursively.
             //
             //                            P
             //                          /  \
@@ -78,7 +84,7 @@ namespace osu.Framework.Testing
             //                          \  /    /
             //                           C6 ---
             //
-            // We do this by constructing a disjoint graph between types and all their referenced types. This is done via a BFS, leading to the following:
+            // The reference map is a key-value pairing of all types to their immediate references. A directed graph can be built by traversing through types.
             //
             // P -> { C1, C2 }
             // C1 -> { C3, C4 }
@@ -127,21 +133,29 @@ namespace osu.Framework.Testing
                     referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
 
                     foreach (var referenced in referencedTypes)
-                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.All(l => !isTestFileSource(l.SourceTree?.FilePath)));
+                        await buildReferenceMapRecursiveAsync(referenced, referenced.Symbol.Locations.All(l => !isTestFileSource(l.SourceTree?.FilePath)));
                 }
             }
 
             if (referenceMap.Count == 0)
             {
                 // We have no cache available, so we must rebuild the whole map.
-                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), false);
+                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType), false);
             }
 
             // Checks whether a fileName refers to the file containing the test type.
             bool isTestFileSource(string fileName) => compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == fileName);
         }
 
-        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool includeBaseType)
+        /// <summary>
+        /// Builds the reference map starting from a root type reference, connecting all types to their immediate references. Results are placed inside <see cref="referenceMap"/>.
+        /// </summary>
+        /// <remarks>
+        /// This should not be used by itself. Use <see cref="buildReferenceMapAsync"/> instead.
+        /// </remarks>
+        /// <param name="rootReference">The root, where the map should start being build from.</param>
+        /// <param name="includeBaseType">Whether the base type of <paramref name="rootReference"/> should be included as a reference.</param>
+        private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference, bool includeBaseType)
         {
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
@@ -168,6 +182,12 @@ namespace osu.Framework.Testing
             }
         }
 
+        /// <summary>
+        /// Retrieves all <see cref="TypeReference"/>s referenced by a given <see cref="TypeReference"/>, across all symbol sources.
+        /// </summary>
+        /// <param name="typeReference">The target <see cref="TypeReference"/>.</param>
+        /// <param name="includeBaseType">Whether the base type of <paramref name="typeReference"/> should be included as a reference.</param>
+        /// <returns>All <see cref="TypeReference"/>s referenced to across all symbol sources by <paramref name="typeReference"/>.</returns>
         private async Task<HashSet<TypeReference>> getReferencedTypesAsync(TypeReference typeReference, bool includeBaseType)
         {
             var result = new HashSet<TypeReference>();
@@ -181,6 +201,12 @@ namespace osu.Framework.Testing
             return result;
         }
 
+        /// <summary>
+        /// Retrieves all <see cref="TypeReference"/>s referenced by a given <see cref="SemanticModel"/>.
+        /// </summary>
+        /// <param name="semanticModel">The target <see cref="SemanticModel"/>.</param>
+        /// <param name="includeBaseType">Whether any base types in <paramref name="semanticModel"/> should be included as references.</param>
+        /// <returns>All <see cref="TypeReference"/>s referenced by <paramref name="semanticModel"/>.</returns>
         private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel, bool includeBaseType)
         {
             var result = new HashSet<TypeReference>();
@@ -227,19 +253,38 @@ namespace osu.Framework.Testing
             return result;
         }
 
-        private Dictionary<TypeReference, TypeNode> getDirectedGraph(IReadOnlyDictionary<TypeReference, IReadOnlyCollection<TypeReference>> disjointGraph)
+        /// <summary>
+        /// Traverses <see cref="referenceMap"/> to build a directed graph of <see cref="DirectedTypeNode"/> joined by their parents.
+        /// </summary>
+        /// <returns>A dictionary containing the directed graph from each <see cref="TypeReference"/> in <see cref="referenceMap"/>.</returns>
+        private Dictionary<TypeReference, DirectedTypeNode> getDirectedGraph()
         {
-            // Build an upwards directed graph by assigning parents to all the connections.
+            // Given the reference map (from above):
             //
-            // foreach conn in dict
-            //     foreach ref in connection
-            //         node := get_existing_node_or_create_new(ref)
-            //         node.parent := conn.node
+            // P -> { C1, C2 }
+            // C1 -> { C3, C4 }
+            // C2 -> { C5, C6 }
+            // C3 -> { }
+            // C4 -> { C6 }
+            // C5 -> { C6 }
+            // C6 -> { C2 }
             //
+            // The respective directed graph is built by traversing upwards and finding all incoming references at each type, such that:
+            //
+            // P -> { }
+            // C1 -> { P }
+            // C2 -> { C6, P, C5, C4, C2, C1 }
+            // C3 -> { C1, P }
+            // C4 -> { C1, P }
+            // C5 -> { C2, P }
+            // C6 -> { C5, C4, C2, C1, C6, P }
+            //
+            // The directed graph may contain cycles where multiple paths lead to the same node (e.g. C2, C6).
 
-            var result = new Dictionary<TypeReference, TypeNode>();
+            var result = new Dictionary<TypeReference, DirectedTypeNode>();
 
-            foreach (var kvp in disjointGraph)
+            // Traverse through the reference map and assign parents to all children referenced types.
+            foreach (var kvp in referenceMap)
             {
                 var parentNode = getNode(kvp.Key);
                 foreach (var typeRef in kvp.Value)
@@ -248,20 +293,26 @@ namespace osu.Framework.Testing
 
             return result;
 
-            TypeNode getNode(TypeReference typeSymbol)
+            DirectedTypeNode getNode(TypeReference typeSymbol)
             {
                 if (!result.TryGetValue(typeSymbol, out var existing))
-                    result[typeSymbol] = existing = new TypeNode(typeSymbol);
+                    result[typeSymbol] = existing = new DirectedTypeNode(typeSymbol);
                 return existing;
             }
         }
 
-        private HashSet<string> getReferencedFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, TypeNode> directedGraph)
+        /// <summary>
+        /// Traverses a directed graph to find all direct and indirect references to a set of <see cref="TypeReference"/>s. References are returned as file names.
+        /// </summary>
+        /// <param name="sources">The <see cref="TypeReference"/>s to search from.</param>
+        /// <param name="directedGraph">The directed graph generated through <see cref="getDirectedGraph"/>.</param>
+        /// <returns>All files containing direct or indirect references to the given <paramref name="sources"/>.</returns>
+        private HashSet<string> getReferencedFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, DirectedTypeNode> directedGraph)
         {
             var result = new HashSet<string>();
 
-            var seenTypes = new HashSet<TypeNode>();
-            var searchQueue = new Queue<TypeNode>();
+            var seenTypes = new HashSet<DirectedTypeNode>();
+            var searchQueue = new Queue<DirectedTypeNode>();
 
             foreach (var reference in sources)
                 searchQueue.Enqueue(directedGraph[reference]);
@@ -272,6 +323,7 @@ namespace osu.Framework.Testing
 
                 seenTypes.Add(toCheck);
 
+                // Add all the current type's locations to the resulting set.
                 foreach (var location in toCheck.Reference.Symbol.Locations)
                 {
                     var syntaxTree = location.SourceTree;
@@ -279,6 +331,7 @@ namespace osu.Framework.Testing
                         result.Add(syntaxTree.FilePath);
                 }
 
+                // Go through all the parents.
                 foreach (var parent in toCheck.Parents)
                 {
                     if (!seenTypes.Contains(parent))
@@ -289,10 +342,20 @@ namespace osu.Framework.Testing
             return result;
         }
 
+        /// <summary>
+        /// Finds all the <see cref="TypeReference"/>s which list a given filename as any of their sources.
+        /// </summary>
+        /// <param name="fileName">The target filename.</param>
+        /// <returns>All <see cref="TypeReference"/>s with <paramref name="fileName"/> listed as one of their symbol locations.</returns>
         private IEnumerable<TypeReference> getTypesFromFile(string fileName) => referenceMap
                                                                                 .Select(kvp => kvp.Key)
                                                                                 .Where(t => t.Symbol.Locations.Any(l => l.SourceTree?.FilePath == fileName));
 
+        /// <summary>
+        /// Compiles a <see cref="Project"/>.
+        /// </summary>
+        /// <param name="project">The <see cref="Project"/> to compile.</param>
+        /// <returns>The resulting <see cref="Compilation"/>.</returns>
         private async Task<Compilation> compileProjectAsync(Project project)
         {
             if (compilationCache.TryGetValue(project, out var existing))
@@ -302,6 +365,11 @@ namespace osu.Framework.Testing
             return compilationCache[project] = await project.GetCompilationAsync();
         }
 
+        /// <summary>
+        /// Retrieves a <see cref="SemanticModel"/> from a given <see cref="SyntaxTree"/>.
+        /// </summary>
+        /// <param name="syntaxTree">The target <see cref="SyntaxTree"/>.</param>
+        /// <returns>The corresponding <see cref="SemanticModel"/>.</returns>
         private async Task<SemanticModel> getSemanticModelAsync(SyntaxTree syntaxTree)
         {
             if (semanticModelCache.TryGetValue(syntaxTree, out var existing))
@@ -310,8 +378,17 @@ namespace osu.Framework.Testing
             return semanticModelCache[syntaxTree] = (await compileProjectAsync(getProjectFromFile(syntaxTree.FilePath))).GetSemanticModel(syntaxTree, true);
         }
 
+        /// <summary>
+        /// Retrieves the <see cref="Project"/> which contains a given filename as a document.
+        /// </summary>
+        /// <param name="fileName">The target filename.</param>
+        /// <returns>The <see cref="Project"/> that contains <paramref name="fileName"/>.</returns>
         private Project getProjectFromFile(string fileName) => solution.Projects.FirstOrDefault(p => p.Documents.Any(d => d.FilePath == fileName));
 
+        /// <summary>
+        /// Retrieves the project which contains the currently-executing test.
+        /// </summary>
+        /// <returns>The <see cref="Project"/> containing the currently-executing test.</returns>
         private Project findTestProject()
         {
             var executingAssembly = Assembly.GetEntryAssembly()?.GetName().Name;
@@ -324,14 +401,21 @@ namespace osu.Framework.Testing
             semanticModelCache.Clear();
         }
 
-        private void updateFile(string file)
+        /// <summary>
+        /// Updates a file in the solution with its new on-disk contents.
+        /// </summary>
+        /// <param name="fileName">The file to update.</param>
+        private void updateFile(string fileName)
         {
-            Logger.Log($"Updating file {file} in solution...");
+            Logger.Log($"Updating file {fileName} in solution...");
 
-            var changedDoc = solution.GetDocumentIdsWithFilePath(file)[0];
-            solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(file)));
+            var changedDoc = solution.GetDocumentIdsWithFilePath(fileName)[0];
+            solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(fileName)));
         }
 
+        /// <summary>
+        /// Wraps a <see cref="INamedTypeSymbol"/> for stable inter-<see cref="Compilation"/> hashcode and equality comparisons.
+        /// </summary>
         private readonly struct TypeReference : IEquatable<TypeReference>
         {
             public readonly INamedTypeSymbol Symbol;
@@ -352,24 +436,31 @@ namespace osu.Framework.Testing
                 return hash.ToHashCode();
             }
 
+            public override string ToString() => Symbol.ToString();
+
             public static TypeReference FromSymbol(INamedTypeSymbol symbol) => new TypeReference(symbol);
         }
 
-        private class TypeNode : IEquatable<TypeNode>
+        /// <summary>
+        /// A single node in the directed graph of <see cref="TypeReference"/>s, linked upwards by its parenting <see cref="DirectedTypeNode"/>.
+        /// </summary>
+        private class DirectedTypeNode : IEquatable<DirectedTypeNode>
         {
             public readonly TypeReference Reference;
-            public readonly List<TypeNode> Parents = new List<TypeNode>();
+            public readonly List<DirectedTypeNode> Parents = new List<DirectedTypeNode>();
 
-            public TypeNode(TypeReference reference)
+            public DirectedTypeNode(TypeReference reference)
             {
                 Reference = reference;
             }
 
-            public bool Equals(TypeNode other)
+            public bool Equals(DirectedTypeNode other)
                 => other != null
                    && Reference.Equals(other.Reference);
 
             public override int GetHashCode() => Reference.GetHashCode();
+
+            public override string ToString() => Reference.ToString();
         }
     }
 }
