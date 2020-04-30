@@ -42,6 +42,8 @@ namespace osu.Framework.Testing
 #endif
             Task.Run(async () =>
             {
+                Logger.Log("Initialising dynamic compilation...");
+
                 var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
@@ -68,6 +70,8 @@ namespace osu.Framework.Testing
 
                     watchers.Add(fsw);
                 }
+
+                Logger.Log("Dynamic compilation is now available.");
             });
         }
 
