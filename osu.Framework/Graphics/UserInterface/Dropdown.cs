@@ -23,6 +23,11 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">Type of value to select.</typeparam>
     public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
+        /// <summary>
+        /// The index used to indicate selecting nothing for the dropdown.
+        /// </summary>
+        internal const int NULL_ITEM_INDEX = -1;
+
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
@@ -218,7 +223,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void preselectionConfirmed(int selectedIndex)
         {
-            SelectedItem = MenuItems.ElementAt(selectedIndex);
+            SelectedItem = selectedIndex == NULL_ITEM_INDEX ? null : MenuItems.ElementAt(selectedIndex);
             Menu.State = MenuState.Closed;
         }
 
@@ -356,8 +361,8 @@ namespace osu.Framework.Graphics.UserInterface
             protected internal IEnumerable<DrawableDropdownMenuItem> DrawableMenuItems => Children.OfType<DrawableDropdownMenuItem>();
             protected internal IEnumerable<DrawableDropdownMenuItem> VisibleMenuItems => DrawableMenuItems.Where(item => !item.IsMaskedAway);
 
-            public DrawableDropdownMenuItem PreselectedItem => Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsPreSelected)
-                                                               ?? Children.OfType<DrawableDropdownMenuItem>().FirstOrDefault(c => c.IsSelected);
+            public DrawableDropdownMenuItem PreselectedItem => DrawableMenuItems.FirstOrDefault(c => c.IsPreSelected)
+                                                               ?? DrawableMenuItems.FirstOrDefault(c => c.IsSelected);
 
             public event Action<int> PreselectionConfirmed;
 
@@ -525,9 +530,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!drawableMenuItemsList.Any())
                     return base.OnKeyDown(e);
 
-                var currentPreselected = drawableMenuItemsList.FirstOrDefault(i => i.IsPreSelected) ?? drawableMenuItemsList.First(i => i.IsSelected);
-
-                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                var currentPreselected = PreselectedItem;
+                var targetPreselectionIndex = currentPreselected == null ? NULL_ITEM_INDEX : drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
