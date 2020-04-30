@@ -24,10 +24,19 @@ namespace osu.Framework.Testing
         public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
+        private readonly HashSet<string> requiredFiles = new HashSet<string>();
 
         private T target;
 
-        public void SetRecompilationTarget(T target) => this.target = target;
+        public void SetRecompilationTarget(T target)
+        {
+            if (this.target?.GetType().Name != target?.GetType().Name)
+            {
+                requiredFiles.Clear();
+            }
+
+            this.target = target;
+        }
 
         private ITypeReferenceBuilder referenceBuilder;
 
@@ -102,7 +111,10 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                var requiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
+                var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
+                foreach (var f in newRequiredFiles)
+                    requiredFiles.Add(f);
+
                 var requiredAssemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
 
                 var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
