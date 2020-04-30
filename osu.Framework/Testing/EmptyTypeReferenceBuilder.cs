@@ -14,6 +14,9 @@ namespace osu.Framework.Testing
         public async Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile)
             => await Task.FromResult(Array.Empty<string>());
 
+        public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile)
+            => await Task.FromResult(Array.Empty<string>());
+
         public void Reset()
         {
         }

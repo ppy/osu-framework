@@ -95,6 +95,19 @@ namespace osu.Framework.Testing
             return getRequiredFiles(getTypesFromFile(changedFile), directedGraph);
         }
 
+        public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
+        {
+            // Todo: This is temporary, and is potentially missing assemblies.
+
+            var assemblies = new HashSet<string>();
+
+            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
+                assemblies.Add(ass.Location);
+            assemblies.Add(typeof(JetBrains.Annotations.NotNullAttribute).Assembly.Location);
+
+            return assemblies;
+        });
+
         public void Reset()
         {
             clearCaches();
