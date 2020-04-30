@@ -20,7 +20,6 @@ namespace osu.Framework.Testing
     public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
-
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
 
@@ -37,62 +36,13 @@ namespace osu.Framework.Testing
             clearCaches();
             updateFile(changedFile);
 
-            var compiledTestProject = await compileProjectAsync(findTestProject());
-            var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
+            await buildReferenceMapAsync(testType, changedFile);
 
-            if (compiledTestType == null)
-            {
-                Logger.Log("Failed to retrieve the test type from the compilation.");
-                return Array.Empty<string>();
-            }
-
-            Logger.Log("Finding all referenced types...");
-
-            if (referenceMap.Count > 0)
-            {
-                Logger.Log("Attempting to use cache...");
-
-                // We already have some references, so we can do a partial re-process of the map for only the changed file.
-                var oldTypes = getTypesFromFile(changedFile).ToArray();
-                foreach (var t in oldTypes)
-                    referenceMap.Remove(t);
-
-                foreach (var t in oldTypes)
-                {
-                    string typePath = t.Symbol.Locations.First().SourceTree?.FilePath;
-
-                    // The type we have is on an old compilation, we need to re-retrieve it on the new one.
-                    var project = getProjectFromFile(typePath);
-
-                    if (project == null)
-                    {
-                        Logger.Log("File has been renamed. Rebuilding map...");
-                        Reset();
-                        break;
-                    }
-
-                    var compilation = await compileProjectAsync(project);
-                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
-
-                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
-                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
-
-                    foreach (var referenced in referencedTypes)
-                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
-                }
-            }
-
-            if (referenceMap.Count == 0)
-            {
-                // We have no cache available, so we must rebuild the whole map.
-                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), true);
-            }
-
-            Logger.Log("Building type graph...");
+            Logger.Log("Retrieving reference graph...");
             var directedGraph = getDirectedGraph(referenceMap);
 
-            Logger.Log("Retrieving required files...");
-            return getRequiredFiles(getTypesFromFile(changedFile), directedGraph);
+            Logger.Log("Retrieving referenced files...");
+            return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
         }
 
         public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
@@ -114,21 +64,7 @@ namespace osu.Framework.Testing
             referenceMap.Clear();
         }
 
-        private void clearCaches()
-        {
-            compilationCache.Clear();
-            semanticModelCache.Clear();
-        }
-
-        private void updateFile(string file)
-        {
-            Logger.Log($"Updating file {file} in solution...");
-
-            var changedDoc = solution.GetDocumentIdsWithFilePath(file)[0];
-            solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(file)));
-        }
-
-        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool isRoot)
+        private async Task buildReferenceMapAsync(Type testType, string changedFile)
         {
             // There exists a graph of types from the root type symbol which we want to find.
             //
@@ -152,6 +88,57 @@ namespace osu.Framework.Testing
             // C5 -> { C6 }
             // C6 -> { C2 }
 
+            Logger.Log("Building reference map...");
+
+            var compiledTestProject = await compileProjectAsync(findTestProject());
+            var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
+
+            if (compiledTestType == null)
+                throw new InvalidOperationException("Failed to retrieve test type from the solution.");
+
+            if (referenceMap.Count > 0)
+            {
+                Logger.Log("Attempting to use cache...");
+
+                // We already have some references, so we can do a partial re-process of the map for only the changed file.
+                var oldTypes = getTypesFromFile(changedFile).ToArray();
+                foreach (var t in oldTypes)
+                    referenceMap.Remove(t);
+
+                foreach (var t in oldTypes)
+                {
+                    string typePath = t.Symbol.Locations.First().SourceTree?.FilePath;
+
+                    // The type we have is on an old compilation, we need to re-retrieve it on the new one.
+                    var project = getProjectFromFile(typePath);
+
+                    if (project == null)
+                    {
+                        Logger.Log("File has been renamed. Rebuilding reference map from scratch...");
+                        Reset();
+                        break;
+                    }
+
+                    var compilation = await compileProjectAsync(project);
+                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
+
+                    var referencedTypes = await getReferencedTypesAsync(await getSemanticModelAsync(syntaxTree), compiledTestType.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
+
+                    foreach (var referenced in referencedTypes)
+                        await getReferencedTypesRecursiveAsync(referenced, referenced.Symbol.Locations.Any(l => l.SourceTree?.FilePath == changedFile));
+                }
+            }
+
+            if (referenceMap.Count == 0)
+            {
+                // We have no cache available, so we must rebuild the whole map.
+                await getReferencedTypesRecursiveAsync(TypeReference.FromSymbol(compiledTestType), true);
+            }
+        }
+
+        private async Task getReferencedTypesRecursiveAsync(TypeReference rootReference, bool isRoot)
+        {
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
 
@@ -265,7 +252,7 @@ namespace osu.Framework.Testing
             }
         }
 
-        private HashSet<string> getRequiredFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, TypeNode> directedGraph)
+        private HashSet<string> getReferencedFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, TypeNode> directedGraph)
         {
             var result = new HashSet<string>();
 
@@ -327,6 +314,20 @@ namespace osu.Framework.Testing
             return solution.Projects.FirstOrDefault(p => p.AssemblyName == executingAssembly);
         }
 
+        private void clearCaches()
+        {
+            compilationCache.Clear();
+            semanticModelCache.Clear();
+        }
+
+        private void updateFile(string file)
+        {
+            Logger.Log($"Updating file {file} in solution...");
+
+            var changedDoc = solution.GetDocumentIdsWithFilePath(file)[0];
+            solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(file)));
+        }
+
         private readonly struct TypeReference : IEquatable<TypeReference>
         {
             public readonly INamedTypeSymbol Symbol;
@@ -368,5 +369,4 @@ namespace osu.Framework.Testing
         }
     }
 }
-
 #endif
