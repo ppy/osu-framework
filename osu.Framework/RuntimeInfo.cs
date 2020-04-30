@@ -14,17 +14,8 @@ namespace osu.Framework
         public static string GetFrameworkAssemblyPath() =>
             System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
 
-        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
-        public static bool Is32Bit => IntPtr.Size == 4;
-
-        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
-        public static bool Is64Bit => IntPtr.Size == 8;
-
         public static Platform OS { get; }
         public static bool IsUnix => OS != Platform.Windows;
-
-        [Obsolete("Wine is no longer detected.")] // can be removed 20200430
-        public static bool IsWine => false;
 
         public static bool SupportsJIT => OS != Platform.iOS;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
