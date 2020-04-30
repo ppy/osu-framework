@@ -27,13 +27,7 @@ namespace osu.Framework.Testing
 
         private T target;
 
-        public void SetRecompilationTarget(T target)
-        {
-            if (this.target?.GetType().FullName != target?.GetType().FullName)
-                referenceBuilder.Reset();
-
-            this.target = target;
-        }
+        public void SetRecompilationTarget(T target) => this.target = target;
 
         private ITypeReferenceBuilder referenceBuilder;
 
