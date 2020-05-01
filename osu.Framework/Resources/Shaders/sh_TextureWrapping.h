@@ -1,6 +1,7 @@
 // 0 -> None
-// 1 -> Clamp
-// 2 -> Repeat
+// 1 -> ClampToEdge
+// 2 -> ClampToBorder
+// 3 -> Repeat
 
 uniform int g_WrapModeS;
 uniform int g_WrapModeT;
@@ -11,7 +12,7 @@ float wrap(float coord, int mode, float rangeMin, float rangeMax)
     {
         return clamp(coord, rangeMin, rangeMax);
     }
-    else if (mode == 2)
+    else if (mode == 3)
     {
         return mod(coord - rangeMin, rangeMax - rangeMin) + rangeMin;
     }
@@ -22,4 +23,12 @@ float wrap(float coord, int mode, float rangeMin, float rangeMax)
 vec2 wrap(vec2 texCoord, vec4 texRect)
 {
     return vec2(wrap(texCoord.x, g_WrapModeS, texRect[0], texRect[2]), wrap(texCoord.y, g_WrapModeT, texRect[1], texRect[3]));
+}
+
+vec4 wrappedSampler(vec2 texCoord, vec4 texRect, sampler2D sampler, float lodBias)
+{
+    if (g_WrapModeS == 2 && (texCoord.x < texRect[0] || texCoord.x > texRect[2]) ||
+        g_WrapModeT == 2 && (texCoord.y < texRect[1] || texCoord.y > texRect[3]))
+        return vec4(0.0);
+    return texture2D(sampler, wrap(texCoord, texRect), lodBias);
 }

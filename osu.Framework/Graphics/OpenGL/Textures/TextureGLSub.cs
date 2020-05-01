@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGLSub : TextureGL
     {
-        private readonly TextureGLSingle parent;
+        private readonly TextureGL parent;
         private RectangleI bounds;
 
         public override TextureGL Native => parent.Native;
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set => parent.IsQueuedForUpload = value;
         }
 
-        public TextureGLSub(RectangleI bounds, TextureGLSingle parent)
+        public TextureGLSub(RectangleI bounds, TextureGL parent)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
@@ -59,8 +59,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 RectangleF localBounds = textureRect.Value;
                 actualBounds.X += localBounds.X;
                 actualBounds.Y += localBounds.Y;
-                actualBounds.Width = Math.Min(localBounds.Width, bounds.Width);
-                actualBounds.Height = Math.Min(localBounds.Height, bounds.Height);
+                actualBounds.Width = localBounds.Width;
+                actualBounds.Height = localBounds.Height;
             }
 
             return actualBounds;
@@ -69,15 +69,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null)
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage, boundsInParent(textureCoords));
         }
 
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null)
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
+            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, boundsInParent(textureCoords));
         }
 
         internal override bool Upload() => false;
@@ -86,14 +86,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind(unit);
+            return parent.Bind(unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT);
         }
 
         public override void SetData(ITextureUpload upload)

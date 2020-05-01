@@ -151,6 +151,10 @@ namespace osu.Framework.Graphics.Primitives
 
         public static RectangleF operator /(RectangleF left, float right) => new RectangleF(left.X / right, left.Y / right, left.Width / right, left.Height / right);
 
+        public static RectangleF operator *(RectangleF left, Vector2 right) => new RectangleF(left.X * right.X, left.Y * right.Y, left.Width * right.X, left.Height * right.Y);
+
+        public static RectangleF operator /(RectangleF left, Vector2 right) => new RectangleF(left.X / right.X, left.Y / right.Y, left.Width / right.X, left.Height / right.Y);
+
         /// <summary>Determines if the specified point is contained within this <see cref="RectangleF"/> structure.</summary>
         /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="RectangleF"/> structure; otherwise false.</returns>
         /// <param name="y">The y-coordinate of the point to test.</param>
@@ -358,6 +362,13 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="bottom">The bottom coordinate.</param>
         /// <returns>The <see cref="RectangleF"/>.</returns>
         public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
+
+        public RectangleF RelativeIn(RectangleF other)
+        {
+            float scaleX = Width / other.Width;
+            float scaleY = Height / other.Height;
+            return new RectangleF((X - other.X) / other.Width, (Y - other.Y) / other.Height, scaleX, scaleY);
+        }
 
         /// <summary>Converts the specified <see cref="RectangleI"/> structure to a <see cref="RectangleF"/> structure.</summary>
         /// <returns>The <see cref="RectangleF"/> structure that is converted from the specified <see cref="RectangleI"/> structure.</returns>

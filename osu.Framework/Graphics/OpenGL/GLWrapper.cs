@@ -360,9 +360,9 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
-            bool didBind = BindTexture(texture?.TextureId ?? 0, texture.WrapModeS, texture.WrapModeT, unit);
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit, wrapModeS, wrapModeT);
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
 
             return didBind;
@@ -377,7 +377,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(int textureId, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             var index = GetTextureUnitId(unit);
 

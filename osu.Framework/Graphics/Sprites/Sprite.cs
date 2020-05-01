@@ -20,9 +20,43 @@ namespace osu.Framework.Graphics.Sprites
         public IShader RoundedTextureShader { get; protected set; }
 
         /// <summary>
-        /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
+        /// Sub-rectangle of the sprite in which the texture is positioned.
+        /// Can be either relative coordinates (0 to 1) or absolute coordinates,
+        /// depending on <see cref="Sprite.TextureRelativeSizeAxes"/>.
         /// </summary>
-        public bool WrapTexture { get; set; }
+        /// <value></value>
+        public RectangleF TextureRectangle = new RectangleF(0, 0, 1, 1);
+
+        /// <summary>
+        /// Whether or not the <see cref="Sprite.TextureRectangle"/> is in relative coordinates
+        /// (0 to 1) or in absolute coordinates.
+        /// </summary>
+        public Axes TextureRelativeSizeAxes = Axes.Both;
+
+        public RectangleF DrawTextureRectangle
+        {
+            get
+            {
+                RectangleF result = TextureRectangle;
+                if (TextureRelativeSizeAxes != Axes.None)
+                {
+                    var drawSize = DrawSize;
+                    if ((TextureRelativeSizeAxes & Axes.X) > 0)
+                    {
+                        result.X *= drawSize.X;
+                        result.Width *= drawSize.X;
+                    }
+
+                    if ((TextureRelativeSizeAxes & Axes.Y) > 0)
+                    {
+                        result.Y *= drawSize.Y;
+                        result.Height *= drawSize.Y;
+                    }
+                }
+
+                return result;
+            }
+        }
 
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
@@ -78,7 +112,20 @@ namespace osu.Framework.Graphics.Sprites
                 texture?.Dispose();
                 texture = value;
 
-                FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);
+                float width;
+                float height;
+
+                if ((TextureRelativeSizeAxes & Axes.X) > 0)
+                    width = (texture?.Width ?? 1) / TextureRectangle.Width;
+                else
+                    width = TextureRectangle.Width;
+
+                if ((TextureRelativeSizeAxes & Axes.Y) > 0)
+                    height = (texture?.Height ?? 1) / TextureRectangle.Height;
+                else
+                    height = TextureRectangle.Height;
+
+                FillAspectRatio = width / height;
                 Invalidate(Invalidation.DrawNode);
 
                 if (Size == Vector2.Zero)

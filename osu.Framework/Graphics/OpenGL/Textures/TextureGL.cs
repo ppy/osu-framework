@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null);
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -93,14 +93,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null);
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Bind as active texture.
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
+        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.
@@ -119,7 +119,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     public enum WrapMode
     {
         None = 0,
-        Clamp = 1,
-        Repeat = 2
+        ClampToEdge = 1,
+        ClampToBorder = 2,
+        Repeat = 3,
     }
 }

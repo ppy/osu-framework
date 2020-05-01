@@ -1,0 +1,79 @@
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Testing;
+using osuTK;
+
+namespace osu.Framework.Tests.Visual.Sprites
+{
+    [System.ComponentModel.Description("texture wrap modes")]
+    public class TestSceneWrapModes : GridTestScene
+    {
+        public TestSceneWrapModes()
+            : base(4, 4)
+        {
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
+
+            for (int i = 0; i < Rows; ++i)
+            {
+                for (int j = 0; j < Cols; ++j)
+                {
+                    Texture wrappedTexture = new Texture(new TextureGLSub(new RectangleF(0, 0, texture.Width, texture.Height), texture.TextureGL));
+
+                    wrappedTexture.TextureGL.WrapModeS = wrapModes[i];
+                    wrappedTexture.TextureGL.WrapModeT = wrapModes[j];
+
+                    Cell(i, j).AddRange(new Drawable[]
+                    {
+                        new SpriteText
+                        {
+                            Text = $"S={wrapModes[i]},T={wrapModes[j]}",
+                            Font = new FontUsage(size: 20),
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new Sprite
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(1, 1),
+                                    Texture = wrappedTexture,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        private Texture texture;
+
+        [BackgroundDependencyLoader]
+        private void load(TextureStore store)
+        {
+            texture = store.Get(@"sample-texture");
+        }
+    }
+}

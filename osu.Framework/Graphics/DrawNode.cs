@@ -152,8 +152,8 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(Texture texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                    Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
+                                    Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
 
         /// <summary>
         /// Draws a triangle to the screen.
@@ -166,8 +166,8 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawTriangle(TextureGL texture, Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                    Vector2? inflationPercentage = null)
-            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage);
+                                    Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
+            => texture.DrawTriangle(vertexTriangle, drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -181,8 +181,8 @@ namespace osu.Framework.Graphics
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(Texture texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
+                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -196,8 +196,8 @@ namespace osu.Framework.Graphics
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawQuad(TextureGL texture, Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
-            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
+                                Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
+            => texture.DrawQuad(vertexQuad, drawColour, textureRect, vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, textureCoords: textureCoords);
 
         /// <summary>
         /// Clips a <see cref="IConvexPolygon"/> to the current masking area and draws the resulting triangles to the screen using the specified texture.
@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawClipped<T>(ref T polygon, Texture texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                      Vector2? inflationPercentage = null)
+                                      Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
             var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics
             Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
             for (int i = 2; i < clippedRegion.Length; i++)
-                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage);
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void DrawClipped<T>(ref T polygon, TextureGL texture, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                      Vector2? inflationPercentage = null)
+                                      Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
             where T : IConvexPolygon
         {
             var maskingQuad = GLWrapper.CurrentMaskingInfo.ConservativeScreenSpaceQuad;
@@ -244,7 +244,7 @@ namespace osu.Framework.Graphics
             Span<Vector2> clippedRegion = clipper.Clip(buffer);
 
             for (int i = 2; i < clippedRegion.Length; i++)
-                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage);
+                DrawTriangle(texture, new Triangle(clippedRegion[0], clippedRegion[i - 1], clippedRegion[i]), drawColour, textureRect, vertexAction, inflationPercentage, textureCoords);
         }
 
         /// <summary>
