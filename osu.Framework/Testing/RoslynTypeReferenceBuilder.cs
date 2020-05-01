@@ -19,11 +19,19 @@ namespace osu.Framework.Testing
 {
     public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
+        private readonly Logger logger;
+
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
 
         private Solution solution;
+
+        public RoslynTypeReferenceBuilder()
+        {
+            logger = Logger.GetLogger("dynamic-compilation");
+            logger.OutputToListeners = false;
+        }
 
         public async Task Initialise(string solutionFile)
         {
@@ -38,10 +46,8 @@ namespace osu.Framework.Testing
 
             await buildReferenceMapAsync(testType, changedFile);
 
-            Logger.Log("Retrieving reference graph...");
             var directedGraph = getDirectedGraph();
 
-            Logger.Log("Retrieving referenced files...");
             return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
         }
 
@@ -94,7 +100,7 @@ namespace osu.Framework.Testing
             // C5 -> { C6 }
             // C6 -> { C2 }
 
-            Logger.Log("Building reference map...");
+            logger.Add("Building reference map...");
 
             var compiledTestProject = await compileProjectAsync(findTestProject());
             var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
@@ -104,7 +110,7 @@ namespace osu.Framework.Testing
 
             if (referenceMap.Count > 0)
             {
-                Logger.Log("Attempting to use cache...");
+                logger.Add("Attempting to use cache...");
 
                 // We already have some references, so we can do a partial re-process of the map for only the changed file.
                 var oldTypes = getTypesFromFile(changedFile).ToArray();
@@ -120,7 +126,7 @@ namespace osu.Framework.Testing
 
                     if (project == null)
                     {
-                        Logger.Log("File has been renamed. Rebuilding reference map from scratch...");
+                        logger.Add("File has been renamed. Rebuilding reference map from scratch...");
                         Reset();
                         break;
                     }
@@ -243,8 +249,12 @@ namespace osu.Framework.Testing
 
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
+                // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
                 if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(nameof(ExcludeFromDynamicCompileAttribute))))
+                {
+                    logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
                     return;
+                }
 
                 result.Add(TypeReference.FromSymbol(typeSymbol));
             }
@@ -278,6 +288,8 @@ namespace osu.Framework.Testing
             //
             // The directed graph may contain cycles where multiple paths lead to the same node (e.g. C2, C6).
 
+            logger.Add("Retrieving reference graph...");
+
             var result = new Dictionary<TypeReference, DirectedTypeNode>();
 
             // Traverse through the reference map and assign parents to all children referenced types.
@@ -306,37 +318,38 @@ namespace osu.Framework.Testing
         /// <returns>All files containing direct or indirect references to the given <paramref name="sources"/>.</returns>
         private HashSet<string> getReferencedFiles(IEnumerable<TypeReference> sources, IReadOnlyDictionary<TypeReference, DirectedTypeNode> directedGraph)
         {
+            logger.Add("Retrieving referenced files...");
+
             var result = new HashSet<string>();
 
-            var seenTypes = new HashSet<DirectedTypeNode>();
-            var searchQueue = new Queue<DirectedTypeNode>();
-
-            foreach (var reference in sources)
-                searchQueue.Enqueue(directedGraph[reference]);
-
-            while (searchQueue.Count > 0)
-            {
-                var toCheck = searchQueue.Dequeue();
-
-                seenTypes.Add(toCheck);
-
-                // Add all the current type's locations to the resulting set.
-                foreach (var location in toCheck.Reference.Symbol.Locations)
-                {
-                    var syntaxTree = location.SourceTree;
-                    if (syntaxTree != null)
-                        result.Add(syntaxTree.FilePath);
-                }
-
-                // Go through all the parents.
-                foreach (var parent in toCheck.Parents)
-                {
-                    if (!seenTypes.Contains(parent))
-                        searchQueue.Enqueue(parent);
-                }
-            }
+            foreach (var s in sources)
+                getReferencedFilesRecursive(directedGraph[s], result);
 
             return result;
+        }
+
+        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, HashSet<DirectedTypeNode> seenTypes = null, int level = 0)
+        {
+            // A '.' is prepended since the logger trims lines.
+            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node}");
+
+            seenTypes ??= new HashSet<DirectedTypeNode>();
+            if (seenTypes.Contains(node))
+                return;
+
+            seenTypes.Add(node);
+
+            // Add all the current type's locations to the resulting set.
+            foreach (var location in node.Reference.Symbol.Locations)
+            {
+                var syntaxTree = location.SourceTree;
+                if (syntaxTree != null)
+                    result.Add(syntaxTree.FilePath);
+            }
+
+            // Follow through the process for all parents.
+            foreach (var p in node.Parents)
+                getReferencedFilesRecursive(p, result, seenTypes, level + 1);
         }
 
         /// <summary>
@@ -358,7 +371,7 @@ namespace osu.Framework.Testing
             if (compilationCache.TryGetValue(project, out var existing))
                 return existing;
 
-            Logger.Log($"Compiling project {project.Name}...");
+            logger.Add($"Compiling project {project.Name}...");
             return compilationCache[project] = await project.GetCompilationAsync();
         }
 
@@ -404,7 +417,7 @@ namespace osu.Framework.Testing
         /// <param name="fileName">The file to update.</param>
         private void updateFile(string fileName)
         {
-            Logger.Log($"Updating file {fileName} in solution...");
+            logger.Add($"Updating file {fileName} in solution...");
 
             var changedDoc = solution.GetDocumentIdsWithFilePath(fileName)[0];
             solution = solution.WithDocumentText(changedDoc, SourceText.From(File.ReadAllText(fileName)));
