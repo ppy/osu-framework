@@ -50,6 +50,13 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
+        /// Crop the texture.
+        /// </summary>
+        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
+        /// <returns>The cropped texture.</returns>
+        public Texture Crop(RectangleI cropRectangle) => new Texture(new TextureGLSub(cropRectangle, TextureGL));
+
+        /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
         /// <param name="stream">The data stream containing the texture data.</param>

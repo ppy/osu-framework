@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGLSub : TextureGL
     {
-        private readonly TextureGLSingle parent;
+        private readonly TextureGL parent;
         private RectangleI bounds;
 
         public override TextureGL Native => parent.Native;
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set => parent.IsQueuedForUpload = value;
         }
 
-        public TextureGLSub(RectangleI bounds, TextureGLSingle parent)
+        public TextureGLSub(RectangleI bounds, TextureGL parent)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
