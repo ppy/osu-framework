@@ -76,7 +76,6 @@ namespace osu.Framework.Graphics.Shapes
                 base.DrawOpaqueInterior(vertexAction);
 
                 TextureShader.Bind();
-                Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
                 if (GLWrapper.IsMaskingActive)
                     DrawClipped(ref conservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);

@@ -362,11 +362,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
         public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
         {
-            bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
+            bool didBind = BindTexture(texture?.TextureId ?? 0, texture.WrapModeS, texture.WrapModeT, unit);
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
 
             return didBind;
         }
+
+        private static WrapMode currentWrapModeS;
+        private static WrapMode currentWrapModeT;
 
         /// <summary>
         /// Binds a texture to draw with.
@@ -374,9 +377,21 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(int textureId, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);
+
+            if (wrapModeS != currentWrapModeS)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
+                currentWrapModeS = wrapModeS;
+            }
+
+            if (wrapModeT != currentWrapModeT)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
+                currentWrapModeT = wrapModeT;
+            }
 
             if (last_bound_texture[index] == textureId)
                 return false;

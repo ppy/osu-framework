@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Video
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i);
+                GLWrapper.BindTexture(textureIds[i], 0, 0, unit + i);
 
             return true;
         }

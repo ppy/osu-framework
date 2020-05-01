@@ -15,7 +15,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     public abstract class TextureGL : IDisposable
     {
         public bool IsTransparent;
-        public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
+
+        public WrapMode WrapModeS;
+
+        public WrapMode WrapModeT;
 
         #region Disposal
 
@@ -111,5 +114,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         internal abstract void FlushUploads();
 
         public abstract void SetData(ITextureUpload upload);
+    }
+
+    public enum WrapMode
+    {
+        None = 0,
+        Clamp = 1,
+        Repeat = 2
     }
 }
