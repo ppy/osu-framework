@@ -110,6 +110,8 @@ namespace osu.Framework.Testing
                 while (!checkFileReady(changedFile))
                     Thread.Sleep(10);
 
+                Logger.Log($@"Recompiling {Path.GetFileName(targetType.Name)}...", LoggingTarget.Runtime, LogLevel.Important);
+
                 CompilationStarted?.Invoke();
 
                 var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
@@ -136,8 +138,6 @@ namespace osu.Framework.Testing
 
                 var references = requiredAssemblies.Where(a => !string.IsNullOrEmpty(a))
                                                    .Select(a => MetadataReference.CreateFromFile(a));
-
-                Logger.Log($@"Recompiling {Path.GetFileName(targetType.Name)}...", LoggingTarget.Runtime, LogLevel.Important);
 
                 // ensure we don't duplicate the dynamic suffix.
                 string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
