@@ -24,6 +24,7 @@ namespace osu.Framework.Testing
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
+        private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
 
         private Solution solution;
 
@@ -114,8 +115,12 @@ namespace osu.Framework.Testing
 
                 // We already have some references, so we can do a partial re-process of the map for only the changed file.
                 var oldTypes = getTypesFromFile(changedFile).ToArray();
+
                 foreach (var t in oldTypes)
+                {
                     referenceMap.Remove(t);
+                    typeInheritsFromGameCache.Remove(t);
+                }
 
                 foreach (var t in oldTypes)
                 {
@@ -256,7 +261,15 @@ namespace osu.Framework.Testing
                     return;
                 }
 
-                result.Add(TypeReference.FromSymbol(typeSymbol));
+                var reference = TypeReference.FromSymbol(typeSymbol);
+
+                if (typeInheritsFromGame(reference))
+                {
+                    logger.Add($"Type {typeSymbol.Name} inherits from game and is marked for exclusion.");
+                    return;
+                }
+
+                result.Add(reference);
             }
         }
 
@@ -350,6 +363,20 @@ namespace osu.Framework.Testing
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
                 getReferencedFilesRecursive(p, result, seenTypes, level + 1);
+        }
+
+        private bool typeInheritsFromGame(TypeReference reference)
+        {
+            if (typeInheritsFromGameCache.TryGetValue(reference, out var existing))
+                return existing;
+
+            if (reference.ToString().Contains(typeof(Game).FullName))
+                return typeInheritsFromGameCache[reference] = true;
+
+            if (reference.Symbol.BaseType == null)
+                return typeInheritsFromGameCache[reference] = false;
+
+            return typeInheritsFromGameCache[reference] = typeInheritsFromGame(TypeReference.FromSymbol(reference.Symbol.BaseType));
         }
 
         /// <summary>
