@@ -367,8 +367,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
 
-            public int SelectedIndex => SelectedItem == null ? NULL_ITEM_INDEX : Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
-            public int PreselectedIndex => Menu.PreselectedItem == null ? NULL_ITEM_INDEX : Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
+            public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
+            public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
         }
     }
 }

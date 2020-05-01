@@ -23,11 +23,6 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">Type of value to select.</typeparam>
     public abstract class Dropdown<T> : CompositeDrawable, IHasCurrentValue<T>
     {
-        /// <summary>
-        /// The index used to indicate selecting nothing for the dropdown.
-        /// </summary>
-        internal const int NULL_ITEM_INDEX = -1;
-
         protected internal DropdownHeader Header;
         protected internal DropdownMenu Menu;
 
@@ -223,7 +218,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void preselectionConfirmed(int selectedIndex)
         {
-            SelectedItem = selectedIndex == NULL_ITEM_INDEX ? null : MenuItems.ElementAt(selectedIndex);
+            SelectedItem = MenuItems.ElementAtOrDefault(selectedIndex);
             Menu.State = MenuState.Closed;
         }
 
@@ -531,7 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                var targetPreselectionIndex = currentPreselected == null ? NULL_ITEM_INDEX : drawableMenuItemsList.IndexOf(currentPreselected);
+                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
