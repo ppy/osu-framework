@@ -163,19 +163,19 @@ namespace osu.Framework.Input.Handlers.Midi
 
         private void dispatchEvent(byte eventType, byte key, byte velocity)
         {
-            Logger.Log($"Event {eventType:X2}:{key:X2}:{velocity:X2}");
+            Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
 
             switch (eventType)
             {
                 case MidiEvent.NoteOn when velocity != 0:
-                    Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 64f:P}");
+                    Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, velocity, true));
                     FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
                     break;
 
                 case MidiEvent.NoteOff:
                 case MidiEvent.NoteOn when velocity == 0:
-                    Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 64f:P}");
+                    Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
                     FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
                     break;
