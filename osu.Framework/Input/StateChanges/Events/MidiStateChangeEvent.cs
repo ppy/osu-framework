@@ -7,12 +7,10 @@ namespace osu.Framework.Input.StateChanges.Events
 {
     public class MidiStateChangeEvent : ButtonStateChangeEvent<MidiKey>
     {
-        public readonly byte Velocity;
-
         public MidiStateChangeEvent(InputState state, IInput input, MidiKey button, ButtonStateChangeKind kind, byte velocity)
             : base(state, input, button, kind)
         {
-            Velocity = velocity;
+            state.Midi.Velocities[button] = kind == ButtonStateChangeKind.Pressed ? velocity : (byte)0;
         }
     }
 }

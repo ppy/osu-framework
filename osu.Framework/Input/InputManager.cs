@@ -118,6 +118,7 @@ namespace osu.Framework.Input
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
 
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
+        private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
         protected InputManager()
         {
@@ -163,7 +164,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="MouseButtonEventManager"/> responsible for a specified mouse button.
         /// </summary>
-        /// <param name="button">The button find the manager for.</param>
+        /// <param name="button">The button to find the manager for.</param>
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
             mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
@@ -178,7 +179,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="KeyEventManager"/> responsible for a specified key.
         /// </summary>
-        /// <param name="key">The key find the manager for.</param>
+        /// <param name="key">The key to find the manager for.</param>
         /// <returns>The <see cref="KeyEventManager"/>.</returns>
         public KeyEventManager GetButtonEventManagerFor(Key key)
         {
@@ -200,7 +201,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="JoystickButtonEventManager"/> responsible for a specified joystick button.
         /// </summary>
-        /// <param name="button">The button find the manager for.</param>
+        /// <param name="button">The button to find the manager for.</param>
         /// <returns>The <see cref="JoystickButtonEventManager"/>.</returns>
         public JoystickButtonEventManager GetButtonEventManagerFor(JoystickButton button)
         {
@@ -210,6 +211,28 @@ namespace osu.Framework.Input
             var manager = CreateButtonEventManagerFor(button);
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="MidiKeyEventManager"/> for a specified midi key.
+        /// </summary>
+        /// <param name="key">The key to be handled by the returned manager.</param>
+        /// <returns>The <see cref="MidiKeyEventManager"/>.</returns>
+        protected virtual MidiKeyEventManager CreateButtonEventManagerFor(MidiKey key) => new MidiKeyEventManager(key);
+
+        /// <summary>
+        /// Get the <see cref="MidiKeyEventManager"/> responsible for a specified midi key.
+        /// </summary>
+        /// <param name="key">The key to find the manager for.</param>
+        /// <returns>The <see cref="MidiKeyEventManager"/>.</returns>
+        public MidiKeyEventManager GetButtonEventManagerFor(MidiKey key)
+        {
+            if (midiKeyEventManagers.TryGetValue(key, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(key);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return midiKeyEventManagers[key] = manager;
         }
 
         /// <summary>
@@ -480,21 +503,7 @@ namespace osu.Framework.Input
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
         protected virtual void HandleMidiKeyStateChange(MidiStateChangeEvent midiKeyStateChange)
-        {
-            var state = midiKeyStateChange.State;
-            var key = midiKeyStateChange.Button;
-            var kind = midiKeyStateChange.Kind;
-            var velocity = midiKeyStateChange.Velocity;
-
-            if (kind == ButtonStateChangeKind.Pressed)
-            {
-                handleMidiKeyDown(state, key, velocity);
-            }
-            else
-            {
-                handleMidiKeyUp(state, key);
-            }
-        }
+            => GetButtonEventManagerFor(midiKeyStateChange.Button).HandleButtonStateChange(midiKeyStateChange.State, midiKeyStateChange.Kind);
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
@@ -559,10 +568,6 @@ namespace osu.Framework.Input
         private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
         private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
-
-        private bool handleMidiKeyDown(InputState state, MidiKey key, byte velocity) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiDownEvent(state, key, velocity));
-
-        private bool handleMidiKeyUp(InputState state, MidiKey key) => PropagateBlockableEvent(NonPositionalInputQueue, new MidiUpEvent(state, key));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
