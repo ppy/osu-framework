@@ -35,10 +35,10 @@ namespace osu.Framework.Tests.Visual.Input
             return base.OnMidiDown(e);
         }
 
-        protected override bool OnMidiUp(MidiUpEvent e)
+        protected override void OnMidiUp(MidiUpEvent e)
         {
             Console.WriteLine(e);
-            return base.OnMidiUp(e);
+            base.OnMidiUp(e);
         }
 
         protected override bool Handle(UIEvent e)
@@ -91,13 +91,12 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             }
 
-            protected override bool OnMidiUp(MidiUpEvent e)
+            protected override void OnMidiUp(MidiUpEvent e)
             {
                 if (e.Key != key)
-                    return base.OnMidiUp(e);
-
-                background.FadeOut(100);
-                return true;
+                    base.OnMidiUp(e);
+                else
+                    background.FadeOut(100);
             }
         }
     }
