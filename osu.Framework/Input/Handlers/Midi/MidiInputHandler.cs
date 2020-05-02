@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Commons.Music.Midi;
 using osu.Framework.Input.StateChanges;
@@ -103,10 +104,18 @@ namespace osu.Framework.Input.Handlers.Midi
             Debug.Assert(sender is IMidiInput);
             var senderId = ((IMidiInput)sender).Details.Id;
 
-            for (int i = e.Start; i < e.Length;)
+            try
             {
-                readEvent(e.Data, senderId, ref i, out byte eventType, out byte key, out byte velocity);
-                dispatchEvent(eventType, key, velocity);
+                for (int i = e.Start; i < e.Length;)
+                {
+                    readEvent(e.Data, senderId, ref i, out byte eventType, out byte key, out byte velocity);
+                    dispatchEvent(eventType, key, velocity);
+                }
+            }
+            catch (Exception exception)
+            {
+                var dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
+                Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
             }
         }
 
@@ -117,6 +126,9 @@ namespace osu.Framework.Input.Handlers.Midi
             if (statusType <= 0x7F)
             {
                 // This is a running status, re-use the event type from the previous message
+                if (!runningStatus.ContainsKey(senderId))
+                    throw new InvalidDataException($"Received running status of sender {senderId}, but no event type was stored");
+
                 eventType = runningStatus[senderId];
                 key = statusType;
                 velocity = data[i++];
