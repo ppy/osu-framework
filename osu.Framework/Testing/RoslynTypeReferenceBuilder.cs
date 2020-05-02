@@ -19,6 +19,9 @@ namespace osu.Framework.Testing
 {
     public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
+        // The "Attribute" suffix disappears when used via a nuget package, so it is trimmed here.
+        private static readonly string exclude_attribute_name = nameof(ExcludeFromDynamicCompileAttribute).Replace(nameof(Attribute), string.Empty);
+
         private readonly Logger logger;
 
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
@@ -255,7 +258,7 @@ namespace osu.Framework.Testing
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
                 // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
-                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(nameof(ExcludeFromDynamicCompileAttribute))))
+                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(exclude_attribute_name)))
                 {
                     logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
                     return;
@@ -370,7 +373,9 @@ namespace osu.Framework.Testing
             if (typeInheritsFromGameCache.TryGetValue(reference, out var existing))
                 return existing;
 
-            if (reference.ToString().Contains(typeof(Game).FullName))
+            // When used via a nuget package, the local type name seems to always be more qualified than the symbol's type name.
+            // E.g. Type name: osu.Framework.Game, symbol name: Framework.Game.
+            if (typeof(Game).FullName?.Contains(reference.Symbol.ToString()) == true)
                 return typeInheritsFromGameCache[reference] = true;
 
             if (reference.Symbol.BaseType == null)
