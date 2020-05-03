@@ -16,10 +16,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public bool IsTransparent;
 
-        public WrapMode WrapModeS;
-
-        public WrapMode WrapModeT;
-
         #region Disposal
 
         ~TextureGL()
@@ -117,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload);
+        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
     }
 
     public enum WrapMode

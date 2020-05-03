@@ -80,8 +80,10 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="width">The width of the requested texture.</param>
         /// <param name="height">The height of the requested texture.</param>
+        /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
+        /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>A texture, or null if the requested size exceeds the atlas' bounds.</returns>
-        internal TextureGL Add(int width, int height)
+        internal TextureGL Add(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (!canFitEmptyTextureAtlas(width, height)) return null;
 
@@ -91,7 +93,7 @@ namespace osu.Framework.Graphics.Textures
                 RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
-                return new TextureGLSub(bounds, AtlasTexture);
+                return new TextureGLSub(bounds, AtlasTexture, wrapModeS, wrapModeT);
             }
         }
 

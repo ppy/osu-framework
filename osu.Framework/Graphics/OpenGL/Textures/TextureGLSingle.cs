@@ -41,12 +41,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+        protected readonly WrapMode WrapModeS;
+        protected readonly WrapMode WrapModeT;
+
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
         }
 
         #region Disposal
@@ -279,7 +284,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        public override void SetData(ITextureUpload upload)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");

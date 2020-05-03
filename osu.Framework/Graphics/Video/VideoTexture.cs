@@ -20,14 +20,14 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool UploadComplete { get; private set; }
 
-        public VideoTexture(int width, int height)
-            : base(width, height, true, All.Linear)
+        public VideoTexture(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(width, height, true, All.Linear, wrapModeS, wrapModeT)
         {
         }
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
         {
             UploadComplete = false;
 
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Video
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT);
+                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeS);
 
             return true;
         }

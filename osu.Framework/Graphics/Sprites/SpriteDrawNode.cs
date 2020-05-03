@@ -38,7 +38,9 @@ namespace osu.Framework.Graphics.Sprites
             DrawRectangle = Source.DrawRectangle;
             InflationAmount = Source.InflationAmount;
 
-            TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle) * (Texture.Size / Texture.ScaleAdjust);
+            TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle);
+            if (Texture != null)
+                TextureCoords *= (Texture.Size / Texture.ScaleAdjust);
         }
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)

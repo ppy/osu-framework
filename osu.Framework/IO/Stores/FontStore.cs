@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.IO.Stores
 {
@@ -114,9 +115,9 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public override Texture Get(string name)
+        public new Texture Get(string name)
         {
-            var found = base.Get(name);
+            var found = base.Get(name, WrapMode.None, WrapMode.None);
 
             if (found == null)
             {

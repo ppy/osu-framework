@@ -47,11 +47,11 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
+        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name), wrapModeS, wrapModeT);
 
-        private Texture getTexture(string name) => loadRaw(base.Get(name));
+        private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
 
-        private Texture loadRaw(TextureUpload upload)
+        private Texture loadRaw(TextureUpload upload, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (upload == null) return null;
 
@@ -59,12 +59,12 @@ namespace osu.Framework.Graphics.Textures
 
             if (Atlas != null)
             {
-                if ((glTexture = Atlas.Add(upload.Width, upload.Height)) == null)
+                if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
                     Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
             }
 
             if (glTexture == null)
-                glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode);
+                glTexture = new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
 
             Texture tex = new Texture(glTexture) { ScaleAdjust = ScaleAdjust };
             tex.SetData(upload);
@@ -72,27 +72,31 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
+        /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
+        /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>The texture.</returns>
-        public new virtual Texture Get(string name)
+        public virtual Texture Get(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            this.LogIfNonBackgroundThread(name);
+            string key = $"{name}:wrap-{wrapModeS != WrapMode.None}-{wrapModeT != WrapMode.None}";
+
+            this.LogIfNonBackgroundThread(key);
 
             lock (textureCache)
             {
                 // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(name, out var tex))
+                if (!textureCache.TryGetValue(key, out var tex))
                 {
                     try
                     {
-                        textureCache[name] = tex = getTexture(name);
+                        textureCache[key] = tex = getTexture(name, wrapModeS, wrapModeT);
                     }
                     catch (TextureTooLargeForGLException)
                     {

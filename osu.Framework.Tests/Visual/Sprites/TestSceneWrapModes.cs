@@ -18,6 +18,8 @@ namespace osu.Framework.Tests.Visual.Sprites
     [System.ComponentModel.Description("texture wrap modes")]
     public class TestSceneWrapModes : GridTestScene
     {
+        private readonly WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
+
         public TestSceneWrapModes()
             : base(4, 4)
         {
@@ -27,17 +29,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             base.LoadComplete();
 
-            WrapMode[] wrapModes = { WrapMode.None, WrapMode.ClampToEdge, WrapMode.ClampToBorder, WrapMode.Repeat };
-
             for (int i = 0; i < Rows; ++i)
             {
                 for (int j = 0; j < Cols; ++j)
                 {
-                    Texture wrappedTexture = new Texture(new TextureGLSub(new RectangleF(0, 0, texture.Width, texture.Height), texture.TextureGL));
-
-                    wrappedTexture.TextureGL.WrapModeS = wrapModes[i];
-                    wrappedTexture.TextureGL.WrapModeT = wrapModes[j];
-
                     Cell(i, j).AddRange(new Drawable[]
                     {
                         new SpriteText
@@ -57,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(1, 1),
-                                    Texture = wrappedTexture,
+                                    Texture = textures[i * 4 + j],
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
@@ -84,12 +79,14 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private Texture texture;
+        private Texture[] textures = new Texture[4*4];
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
         {
-            texture = store.Get(@"sample-texture");
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    textures[i * 4 + j] = store.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
         }
     }
 }
