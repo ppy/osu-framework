@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         bool allTransparentBlack = true;
                         int index = sideIndices[i];
 
-                        var cornerUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+                        var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
 
                         int stride = middleBounds.Width;
                         for (int y = 0; y < sideBounds.Height; ++y)
@@ -145,13 +145,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             {
                                 Rgba32 pixel = upload.Data[index + y * stride];
                                 allTransparentBlack &= pixel == transparentBlack;
-                                cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
+                                sideUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
                         }
 
                         // Only upload padding if the border isn't completely transparent.
                         if (!allTransparentBlack)
-                            base.SetData(cornerUpload);
+                            base.SetData(sideUpload);
                     }
                 }
             }
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         bool allTransparentBlack = true;
                         int index = sideIndices[i];
 
-                        var cornerUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+                        var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
 
                         for (int y = 0; y < sideBounds.Height; ++y)
                         {
@@ -190,13 +190,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             {
                                 Rgba32 pixel = upload.Data[index + x];
                                 allTransparentBlack &= pixel == transparentBlack;
-                                cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
+                                sideUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
                         }
 
                         // Only upload padding if the border isn't completely transparent.
                         if (!allTransparentBlack)
-                            base.SetData(cornerUpload);
+                            base.SetData(sideUpload);
                     }
                 }
             }
