@@ -38,9 +38,11 @@ namespace osu.Framework.Graphics.Sprites
             get
             {
                 RectangleF result = TextureRectangle;
+
                 if (TextureRelativeSizeAxes != Axes.None)
                 {
                     var drawSize = DrawSize;
+
                     if ((TextureRelativeSizeAxes & Axes.X) > 0)
                     {
                         result.X *= drawSize.X;

@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override void SetData(ITextureUpload upload)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
-            var middleBounds = upload.Bounds;
+            RectangleI middleBounds = upload.Bounds;
 
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Rgba32 transparentBlack = new Rgba32(0, 0, 0, 0);
 
             // Upload padded corners
-            var cornerBoundsArray = new[]
+            RectangleI[] cornerBoundsArray =
             {
                 new RectangleI(middleBounds.X - actualPadding, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(bounds), // TopLeft
                 new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(bounds), // TopRight
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomRight
             };
 
-            int[] cornerIndices = new[]
+            int[] cornerIndices =
             {
                 0, // TopLeft
                 middleBounds.Width - 1, // TopRight
@@ -91,9 +91,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             for (int i = 0; i < 4; ++i)
             {
-                var cornerBounds = cornerBoundsArray[i];
+                RectangleI cornerBounds = cornerBoundsArray[i];
                 int nCornerPixels = cornerBounds.Width * cornerBounds.Height;
-                var cornerPixel = upload.Data[cornerIndices[i]];
+                Rgba32 cornerPixel = upload.Data[cornerIndices[i]];
 
                 // Only upload if we have a non-zero size and if the colour isn't already transparent black
                 if (nCornerPixels > 0 && cornerPixel != transparentBlack)
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             // Upload padded sides
-            var sideBoundsArray = new[]
+            RectangleI[] sideBoundsArray =
             {
                 new RectangleI(middleBounds.X - actualPadding, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(bounds), // Left
                 new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(bounds), // Right
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 new RectangleI(middleBounds.X, middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(bounds), // Bottom
             };
 
-            var sideIndices = new[]
+            int[] sideIndices =
             {
                 0, // Left
                 middleBounds.Width - 1, // Right
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 (middleBounds.Height - 1) * middleBounds.Width, // Bottom
             };
 
-            var sideStrides = new[]
+            int[] sideStrides =
             {
                 middleBounds.Width,
                 middleBounds.Width,
@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             for (int i = 0; i < 4; ++i)
             {
-                var sideBounds = sideBoundsArray[i];
+                RectangleI sideBounds = sideBoundsArray[i];
                 int nSidePixels = sideBounds.Width * sideBounds.Height;
 
                 if (nSidePixels > 0)
@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         {
                             for (int x = 0; x < sideBounds.Width; ++x)
                             {
-                                var pixel = upload.Data[index + y * stride];
+                                Rgba32 pixel = upload.Data[index + y * stride];
                                 allTransparentBlack &= pixel == transparentBlack;
                                 cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         {
                             for (int x = 0; x < sideBounds.Width; ++x)
                             {
-                                var pixel = upload.Data[index + x * stride];
+                                Rgba32 pixel = upload.Data[index + x * stride];
                                 allTransparentBlack &= pixel == transparentBlack;
                                 cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
