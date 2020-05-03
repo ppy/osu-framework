@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
 
             bool padTopBottom = wrapModeT != WrapMode.None;
-            
+
             if (padTopBottom)
             {
                 RectangleI[] sideBoundsArray =

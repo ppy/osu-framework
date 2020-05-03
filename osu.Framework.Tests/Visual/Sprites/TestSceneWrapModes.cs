@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private Texture[] textures = new Texture[4*4];
+        private Texture[] textures = new Texture[4 * 4];
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
