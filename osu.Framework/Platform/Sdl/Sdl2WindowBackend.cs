@@ -626,10 +626,10 @@ namespace osu.Framework.Platform.Sdl
                     return MouseButton.Middle;
 
                 case SDL.SDL_BUTTON_X1:
-                    return MouseButton.Button4;
+                    return MouseButton.Button1;
 
                 case SDL.SDL_BUTTON_X2:
-                    return MouseButton.Button5;
+                    return MouseButton.Button2;
             }
         }
 
