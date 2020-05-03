@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// The amount of padding around each texture in the atlas.
         /// </summary>
-        private int padding;
+        private readonly int padding;
 
         /// <summary>
         /// Invoked when a new <see cref="TextureGLAtlas"/> is created.
@@ -60,6 +60,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             // Can only perform padding when the bounds are a sub-part of the texture
             var middleBounds = upload.Bounds;
+
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
                 base.SetData(upload);
@@ -72,15 +73,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Rgba32 transparentBlack = new Rgba32(0, 0, 0, 0);
 
             // Upload padded corners
-            var cornerBoundsArray = new RectangleI[]
+            var cornerBoundsArray = new[]
             {
-                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y - actualPadding,       actualPadding, actualPadding).Intersect(bounds), // TopLeft
-                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding,       actualPadding, actualPadding).Intersect(bounds), // TopRight
-                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomLeft
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(bounds), // TopLeft
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(bounds), // TopRight
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomLeft
                 new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomRight
             };
 
-            int[] cornerIndices = new int[]
+            int[] cornerIndices = new[]
             {
                 0, // TopLeft
                 middleBounds.Width - 1, // TopRight
@@ -106,15 +107,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             // Upload padded sides
-            var sideBoundsArray = new RectangleI[]
+            var sideBoundsArray = new[]
             {
-                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y,                       actualPadding, middleBounds.Height).Intersect(bounds), // Left
-                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y,                       actualPadding, middleBounds.Height).Intersect(bounds), // Right
-                new RectangleI(middleBounds.X,                      middleBounds.Y - actualPadding,       middleBounds.Width, actualPadding).Intersect(bounds), // Top
-                new RectangleI(middleBounds.X,                      middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(bounds), // Bottom
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(bounds), // Left
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(bounds), // Right
+                new RectangleI(middleBounds.X, middleBounds.Y - actualPadding, middleBounds.Width, actualPadding).Intersect(bounds), // Top
+                new RectangleI(middleBounds.X, middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(bounds), // Bottom
             };
 
-            var sideIndices = new int[]
+            var sideIndices = new[]
             {
                 0, // Left
                 middleBounds.Width - 1, // Right
@@ -122,7 +123,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 (middleBounds.Height - 1) * middleBounds.Width, // Bottom
             };
 
-            var sideStrides = new int[]
+            var sideStrides = new[]
             {
                 middleBounds.Width,
                 middleBounds.Width,
@@ -147,23 +148,27 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     if (i < 2)
                     {
                         for (int y = 0; y < sideBounds.Height; ++y)
+                        {
                             for (int x = 0; x < sideBounds.Width; ++x)
                             {
                                 var pixel = upload.Data[index + y * stride];
                                 allTransparentBlack &= pixel == transparentBlack;
                                 cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
+                        }
                     }
                     // Top & bottom
                     else
                     {
                         for (int y = 0; y < sideBounds.Height; ++y)
+                        {
                             for (int x = 0; x < sideBounds.Width; ++x)
                             {
                                 var pixel = upload.Data[index + x * stride];
                                 allTransparentBlack &= pixel == transparentBlack;
                                 cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
                             }
+                        }
                     }
 
                     // Only upload padding if the border isn't completely transparent.

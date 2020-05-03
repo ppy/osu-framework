@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
 using osuTK;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
 {

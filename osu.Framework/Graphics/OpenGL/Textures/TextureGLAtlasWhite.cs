@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (GLWrapper.AtlasTextureIsBound(unit))
                 return true;
 
-            return base.Bind(unit);
+            return base.Bind(unit, wrapModeS, wrapModeT);
         }
     }
 }
