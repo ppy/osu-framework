@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Textures
         // mipmap blending in order to support smooth edges without antialiasing which requires
         // inflating texture rectangles.
         internal const int PADDING = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) * Sprite.MAX_EDGE_SMOOTHNESS;
-        internal const int WHITE_PIXEL_SIZE = 3 * (1 << TextureGLSingle.MAX_MIPMAP_LEVELS);
+        internal const int WHITE_PIXEL_SIZE = 1;
 
         private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
         internal TextureGLSingle AtlasTexture;
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly All filteringMode;
         private readonly object textureRetrievalLock = new object();
 
-        public TextureAtlas(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+        public TextureAtlas(int width, int height, bool manualMipmaps = true, All filteringMode = All.Linear)
         {
             atlasWidth = width;
             atlasHeight = height;
@@ -62,7 +62,9 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentPosition = Vector2I.Zero;
 
-            AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
+            // We pass PADDING/2 as opposed to PADDING such that the padded region of each individual texture
+            // occupies half of the padded space.
+            AtlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode, PADDING / 2);
 
             RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
             subTextureBounds.Add(bounds);
