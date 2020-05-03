@@ -2034,6 +2034,13 @@ namespace osu.Framework.Graphics
                     OnJoystickRelease(joystickRelease);
                     return false;
 
+                case MidiDownEvent midiDown:
+                    return OnMidiDown(midiDown);
+
+                case MidiUpEvent midiUp:
+                    OnMidiUp(midiUp);
+                    return false;
+
                 default:
                     return Handle(e);
             }
@@ -2193,6 +2200,22 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <param name="e">The <see cref="JoystickReleaseEvent"/> containing information about the input event.</param>
         protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MidiKey"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="MidiDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnMidiDown(MidiDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="MidiKey"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="MidiDownEvent"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="MidiUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnMidiUp(MidiUpEvent e) => Handle(e);
 
         #endregion
 
