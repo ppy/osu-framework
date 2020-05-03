@@ -4,12 +4,15 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -49,7 +52,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                             Size = new Vector2(0.5f),
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Masking = true,
                             Children = new Drawable[]
                             {
                                 new Sprite
@@ -60,6 +62,21 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Masking = true,
+                                    BorderColour = Color4.Red,
+                                    BorderThickness = 2,
+                                    Child = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = new Color4(0, 0, 0, 0),
+                                    }
                                 }
                             }
                         }
