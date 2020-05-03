@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </remarks>
         public static event Action<TextureGLAtlas> TextureCreated;
 
-        public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Nearest, int padding = 0)
+        public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear, int padding = 0)
             : base(width, height, manualMipmaps, filteringMode)
         {
             this.padding = padding;

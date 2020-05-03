@@ -25,10 +25,10 @@ vec2 wrap(vec2 texCoord, vec4 texRect)
     return vec2(wrap(texCoord.x, g_WrapModeS, texRect[0], texRect[2]), wrap(texCoord.y, g_WrapModeT, texRect[1], texRect[3]));
 }
 
-vec4 wrappedSampler(vec2 texCoord, vec4 texRect, sampler2D sampler, float lodBias)
+vec4 wrappedSampler(vec2 wrappedCoord, vec4 texRect, sampler2D sampler, float lodBias)
 {
-    if (g_WrapModeS == 2 && (texCoord.x < texRect[0] || texCoord.x > texRect[2]) ||
-        g_WrapModeT == 2 && (texCoord.y < texRect[1] || texCoord.y > texRect[3]))
+    if (g_WrapModeS == 2 && (wrappedCoord.x < texRect[0] || wrappedCoord.x > texRect[2]) ||
+        g_WrapModeT == 2 && (wrappedCoord.y < texRect[1] || wrappedCoord.y > texRect[3]))
         return vec4(0.0);
-    return texture2D(sampler, wrap(texCoord, texRect), lodBias);
+    return texture2D(sampler, wrappedCoord, lodBias);
 }

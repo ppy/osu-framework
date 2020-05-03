@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Textures
         private readonly All filteringMode;
         private readonly object textureRetrievalLock = new object();
 
-        public TextureAtlas(int width, int height, bool manualMipmaps = true, All filteringMode = All.Linear)
+        public TextureAtlas(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {
             atlasWidth = width;
             atlasHeight = height;

@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                 new Sprite
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(1, 1),
+                                    Size = Vector2.One,
                                     Texture = textures[i * 4 + j],
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,

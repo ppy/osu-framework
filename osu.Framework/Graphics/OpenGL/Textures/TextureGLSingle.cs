@@ -181,8 +181,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
-            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+
+            // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
+            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            {
+                Vector2 inflationVector = Vector2.Zero;
+                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                    inflationVector.X = TextureAtlas.PADDING / 4 / (float)width;
+                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                    inflationVector.Y = TextureAtlas.PADDING / 4 / (float)height;
+                texRect = texRect.Inflate(inflationVector);
+            }
+
+            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
@@ -240,8 +252,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
-            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+
+            // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
+            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            {
+                Vector2 inflationVector = Vector2.Zero;
+                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                    inflationVector.X = (1 << MAX_MIPMAP_LEVELS) / 2 / (float)width;
+                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                    inflationVector.Y = (1 << MAX_MIPMAP_LEVELS) / 2 / (float)height;
+                texRect = texRect.Inflate(inflationVector);
+            }
+
+            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 

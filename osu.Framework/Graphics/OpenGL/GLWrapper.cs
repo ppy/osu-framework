@@ -370,8 +370,8 @@ namespace osu.Framework.Graphics.OpenGL
             return didBind;
         }
 
-        private static WrapMode currentWrapModeS;
-        private static WrapMode currentWrapModeT;
+        internal static WrapMode CurrentWrapModeS;
+        internal static WrapMode CurrentWrapModeT;
 
         /// <summary>
         /// Binds a texture to draw with.
@@ -385,16 +385,16 @@ namespace osu.Framework.Graphics.OpenGL
         {
             var index = GetTextureUnitId(unit);
 
-            if (wrapModeS != currentWrapModeS)
+            if (wrapModeS != CurrentWrapModeS)
             {
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
-                currentWrapModeS = wrapModeS;
+                CurrentWrapModeS = wrapModeS;
             }
 
-            if (wrapModeT != currentWrapModeT)
+            if (wrapModeT != CurrentWrapModeT)
             {
                 GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
-                currentWrapModeT = wrapModeT;
+                CurrentWrapModeT = wrapModeT;
             }
 
             if (last_bound_texture[index] == textureId)

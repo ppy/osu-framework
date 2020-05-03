@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Textures
         {
             if (string.IsNullOrEmpty(name)) return null;
 
-            string key = $"{name}:wrap-{wrapModeS != WrapMode.None}-{wrapModeT != WrapMode.None}";
+            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
             this.LogIfNonBackgroundThread(key);
 
