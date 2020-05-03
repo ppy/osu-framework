@@ -59,7 +59,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override void SetData(ITextureUpload upload)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
-            if (upload.Bounds.IsEmpty || upload.Bounds.Width * upload.Bounds.Height > upload.Data.Length)
+            var middleBounds = upload.Bounds;
+            if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
                 base.SetData(upload);
                 return;
@@ -73,18 +74,18 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // Upload padded corners
             var cornerBoundsArray = new RectangleI[]
             {
-                new RectangleI(upload.Bounds.X - actualPadding,       upload.Bounds.Y - actualPadding,        actualPadding, actualPadding).Intersect(bounds), // TopLeft
-                new RectangleI(upload.Bounds.X + upload.Bounds.Width, upload.Bounds.Y - actualPadding,        actualPadding, actualPadding).Intersect(bounds), // TopRight
-                new RectangleI(upload.Bounds.X - actualPadding,       upload.Bounds.Y + upload.Bounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomLeft
-                new RectangleI(upload.Bounds.X + upload.Bounds.Width, upload.Bounds.Y + upload.Bounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomRight
+                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y - actualPadding,       actualPadding, actualPadding).Intersect(bounds), // TopLeft
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding,       actualPadding, actualPadding).Intersect(bounds), // TopRight
+                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomLeft
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(bounds), // BottomRight
             };
 
             int[] cornerIndices = new int[]
             {
                 0, // TopLeft
-                upload.Bounds.Width - 1, // TopRight
-                (upload.Bounds.Height - 1) * upload.Bounds.Width, // BottomLeft
-                (upload.Bounds.Height - 1) * upload.Bounds.Width + upload.Bounds.Width - 1, // BottomRight
+                middleBounds.Width - 1, // TopRight
+                (middleBounds.Height - 1) * middleBounds.Width, // BottomLeft
+                (middleBounds.Height - 1) * middleBounds.Width + middleBounds.Width - 1, // BottomRight
             };
 
             for (int i = 0; i < 4; ++i)
@@ -107,24 +108,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // Upload padded sides
             var sideBoundsArray = new RectangleI[]
             {
-                new RectangleI(upload.Bounds.X - actualPadding,       upload.Bounds.Y,                        actualPadding, upload.Bounds.Height).Intersect(bounds), // Left
-                new RectangleI(upload.Bounds.X + upload.Bounds.Width, upload.Bounds.Y,                        actualPadding, upload.Bounds.Height).Intersect(bounds), // Right
-                new RectangleI(upload.Bounds.X,                       upload.Bounds.Y - actualPadding,        upload.Bounds.Width, actualPadding).Intersect(bounds), // Top
-                new RectangleI(upload.Bounds.X,                       upload.Bounds.Y + upload.Bounds.Height, upload.Bounds.Width, actualPadding).Intersect(bounds), // Bottom
+                new RectangleI(middleBounds.X - actualPadding,      middleBounds.Y,                       actualPadding, middleBounds.Height).Intersect(bounds), // Left
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y,                       actualPadding, middleBounds.Height).Intersect(bounds), // Right
+                new RectangleI(middleBounds.X,                      middleBounds.Y - actualPadding,       middleBounds.Width, actualPadding).Intersect(bounds), // Top
+                new RectangleI(middleBounds.X,                      middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(bounds), // Bottom
             };
 
             var sideIndices = new int[]
             {
                 0, // Left
-                upload.Bounds.Width - 1, // Right
+                middleBounds.Width - 1, // Right
                 0, // Top
-                (upload.Bounds.Height - 1) * upload.Bounds.Width, // Bottom
+                (middleBounds.Height - 1) * middleBounds.Width, // Bottom
             };
 
             var sideStrides = new int[]
             {
-                upload.Bounds.Width,
-                upload.Bounds.Width,
+                middleBounds.Width,
+                middleBounds.Width,
                 1,
                 1,
             };
@@ -146,23 +147,23 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     if (i < 2)
                     {
                         for (int y = 0; y < sideBounds.Height; ++y)
-                        for (int x = 0; x < sideBounds.Width; ++x)
-                        {
-                            var pixel = upload.Data[index + y * stride];
-                            allTransparentBlack &= pixel == transparentBlack;
-                            cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
-                        }
+                            for (int x = 0; x < sideBounds.Width; ++x)
+                            {
+                                var pixel = upload.Data[index + y * stride];
+                                allTransparentBlack &= pixel == transparentBlack;
+                                cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
+                            }
                     }
                     // Top & bottom
                     else
                     {
                         for (int y = 0; y < sideBounds.Height; ++y)
-                        for (int x = 0; x < sideBounds.Width; ++x)
-                        {
-                            var pixel = upload.Data[index + x * stride];
-                            allTransparentBlack &= pixel == transparentBlack;
-                            cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
-                        }
+                            for (int x = 0; x < sideBounds.Width; ++x)
+                            {
+                                var pixel = upload.Data[index + x * stride];
+                                allTransparentBlack &= pixel == transparentBlack;
+                                cornerUpload.RawData[y * sideBounds.Width + x] = pixel;
+                            }
                     }
 
                     // Only upload padding if the border isn't completely transparent.
