@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                                 new Sprite
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Texture = texture.Crop(cropRectangle, relativeSizeAxes: Axes.Both),
+                                    Texture = texture?.Crop(cropRectangle, relativeSizeAxes: Axes.Both),
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                 }
