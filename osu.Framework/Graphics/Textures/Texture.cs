@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Textures
                 );
                 cropRectangle *= scale;
             }
-            
+
             return new Texture(new TextureGLSub(cropRectangle, TextureGL));
         }
 
