@@ -18,6 +18,8 @@ namespace osu.Framework.Tests
             }
         }
 
+        public void SetBasePath(string path) => BasePath = path;
+
         public void Dispose()
         {
             DeleteDirectory(string.Empty);

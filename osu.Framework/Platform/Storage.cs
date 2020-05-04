@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Platform
 {
@@ -11,7 +12,24 @@ namespace osu.Framework.Platform
     {
         protected string BaseName { get; set; }
 
-        protected string BasePath { get; set; }
+        private string basePath;
+
+        protected string BasePath
+        {
+            get => basePath;
+            set
+            {
+                basePath = value;
+
+                if (dependentStorages != null)
+                {
+                    foreach (var s in dependentStorages)
+                        s.BasePath = basePath;
+                }
+            }
+        }
+
+        private WeakList<Storage> dependentStorages;
 
         /// <summary>
         /// An optional path to be added after <see cref="BaseName"/>.
@@ -97,6 +115,8 @@ namespace osu.Framework.Platform
         /// <returns>A more specific storage.</returns>
         public Storage GetStorageForDirectory(string path)
         {
+            dependentStorages ??= new WeakList<Storage>();
+
             if (!path.EndsWith(Path.DirectorySeparatorChar))
                 path += Path.DirectorySeparatorChar;
 
@@ -104,7 +124,12 @@ namespace osu.Framework.Platform
             GetFullPath(path, true);
 
             var clone = (Storage)MemberwiseClone();
+
+            clone.dependentStorages = null;
             clone.SubDirectory = path;
+
+            dependentStorages.Add(new WeakReference<Storage>(clone));
+
             return clone;
         }
 
