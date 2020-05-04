@@ -10,6 +10,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
+using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 
@@ -90,6 +91,7 @@ namespace osu.Framework.Platform
                         new OsuTKMouseHandler(),
                         new OsuTKKeyboardHandler(),
                         new OsuTKJoystickHandler(),
+                        new MidiInputHandler(),
                     };
 
                     var defaultDisabled = new InputHandler[]
