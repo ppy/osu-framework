@@ -45,7 +45,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             var rawState = e.Keyboard;
 
-            if (lastRawState != null && rawState.Equals(lastRawState))
+            if (lastRawState != null && rawState.Equals(lastRawState.Value))
                 return;
 
             lastRawState = rawState;
