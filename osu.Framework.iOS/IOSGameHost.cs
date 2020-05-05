@@ -100,7 +100,9 @@ namespace osu.Framework.iOS
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[] { new IOSTouchHandler(gameView), keyboardHandler = new IOSKeyboardHandler(gameView), rawKeyboardHandler = new IOSRawKeyboardHandler(), new MidiInputHandler() };
 
-        protected override Storage GetStorage(string baseName) => new IOSStorage(baseName, this);
+        public override Storage GetStorage(string path) => new IOSStorage(path, this);
+
+        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
