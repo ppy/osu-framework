@@ -50,6 +50,33 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
+        /// Crop the texture.
+        /// </summary>
+        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
+        /// <returns>The cropped texture.</returns>
+        public Texture Crop(RectangleI cropRectangle) => new Texture(new TextureGLSub(cropRectangle, TextureGL));
+
+        /// <summary>
+        /// Crop the texture.
+        /// </summary>
+        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
+        /// <param name="relativeSizeAxes">Which axes have a relative size in [0,1] in relation to the texture size.</param>
+        /// <returns>The cropped texture.</returns>
+        public Texture Crop(RectangleF cropRectangle, Axes relativeSizeAxes = Axes.None)
+        {
+            if (relativeSizeAxes != Axes.None)
+            {
+                Vector2 scale = new Vector2(
+                    relativeSizeAxes.HasFlag(Axes.X) ? Width : 1,
+                    relativeSizeAxes.HasFlag(Axes.Y) ? Height : 1
+                );
+                cropRectangle *= scale;
+            }
+
+            return new Texture(new TextureGLSub(cropRectangle, TextureGL));
+        }
+
+        /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
         /// <param name="stream">The data stream containing the texture data.</param>
