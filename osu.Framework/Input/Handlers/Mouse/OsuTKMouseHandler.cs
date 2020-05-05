@@ -37,7 +37,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                         var cursorState = osuTK.Input.Mouse.GetCursorState();
 
-                        if (cursorState.Equals(lastCursorState)) return;
+                        if (lastCursorState != null && cursorState.Equals(lastCursorState.Value)) return;
 
                         lastCursorState = cursorState;
 

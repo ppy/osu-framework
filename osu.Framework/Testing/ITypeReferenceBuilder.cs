@@ -20,7 +20,7 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="testType">The <see cref="Type"/>.</param>
         /// <param name="changedFile">The file.</param>
-        /// <returns>The file names containing all types referenced between <paramref name="testType"/> and <see cref="changedFile"/>.</returns>
+        /// <returns>The file names containing all types referenced between <paramref name="testType"/> and <paramref name="changedFile"/>.</returns>
         Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="testType">The <see cref="Type"/>.</param>
         /// <param name="changedFile">The file.</param>
-        /// <returns>The file names containing all assemblies referenced between <see cref="testType"/> and <see cref="changedFile"/>.</returns>
+        /// <returns>The file names containing all assemblies referenced between <paramref name="testType"/> and <paramref name="changedFile"/>.</returns>
         Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile);
 
         /// <summary>
