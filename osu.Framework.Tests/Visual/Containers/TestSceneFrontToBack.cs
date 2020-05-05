@@ -16,6 +16,8 @@ using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
@@ -29,8 +31,6 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private const int cell_count = 4;
 
-        private Texture texture;
-
         protected override DrawNode CreateDrawNode() => drawNode = new QueryingCompositeDrawableDrawNode(this);
 
         public TestSceneFrontToBack()
@@ -41,10 +41,17 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager debugConfig, TextureStore store)
         {
-            texture = store.Get(@"sample-texture");
+            var texture = store.Get(@"sample-texture");
+            var repeatedTexture = store.Get(@"sample-texture", WrapMode.Repeat, WrapMode.Repeat);
+            var edgeClampedTexture = store.Get(@"sample-texture", WrapMode.ClampToEdge, WrapMode.ClampToEdge);
+            var borderClampedTexture = store.Get(@"sample-texture", WrapMode.ClampToBorder, WrapMode.ClampToBorder);
 
-            AddStep("add sprites", () => addMoreDrawables(texture));
-            AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel));
+            AddStep("add sprites", () => addMoreDrawables(texture, new RectangleF(0, 0, 1, 1)));
+            AddStep("add sprites with shrink", () => addMoreDrawables(texture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
+            AddStep("add sprites with repeat", () => addMoreDrawables(repeatedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
+            AddStep("add sprites with edge clamp", () => addMoreDrawables(edgeClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
+            AddStep("add sprites with border clamp", () => addMoreDrawables(borderClampedTexture, new RectangleF(0.25f, 0.25f, 0.5f, 0.5f)));
+            AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel, new RectangleF(0, 0, 1, 1)));
             AddToggleStep("disable front to back", val =>
             {
                 debugConfig.Set(DebugSetting.BypassFrontToBackPass, val);
@@ -94,7 +101,7 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private void addMoreDrawables(Texture texture)
+        private void addMoreDrawables(Texture texture, RectangleF textureRect)
         {
             for (int i = 0; i < 100; i++)
             {
@@ -106,6 +113,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     RelativeSizeAxes = Axes.Both,
                     Scale = new Vector2(currentScale),
                     Texture = texture,
+                    TextureRectangle = textureRect,
                 });
 
                 currentScale -= 0.001f;

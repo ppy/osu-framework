@@ -29,10 +29,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set => parent.IsQueuedForUpload = value;
         }
 
-        private readonly WrapMode wrapModeS;
-        private readonly WrapMode wrapModeT;
-
         public TextureGLSub(RectangleI bounds, TextureGL parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
@@ -41,8 +39,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             this.bounds = bounds;
             this.parent = parent;
-            this.wrapModeS = wrapModeS;
-            this.wrapModeT = wrapModeT;
         }
 
         public override int Height
@@ -100,7 +96,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             Upload();
 
-            return parent.Bind(unit, wrapModeS ?? this.wrapModeS, wrapModeT ?? this.wrapModeT);
+            return parent.Bind(unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT);
         }
 
         public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null)
@@ -125,7 +121,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             opacity = UpdateOpacity(upload, opacity);
-            parent?.SetData(upload, wrapModeS ?? this.wrapModeS, wrapModeT ?? this.wrapModeT, opacity);
+            parent?.SetData(upload, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT, opacity);
         }
     }
 }

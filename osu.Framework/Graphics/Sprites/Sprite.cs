@@ -62,33 +62,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public RectangleF RelativeDrawTextureRectangle
-        {
-            get
-            {
-                RectangleF result = TextureRectangle;
-
-                if (TextureRelativeSizeAxes != Axes.Both)
-                {
-                    var drawSize = DrawSize;
-
-                    if ((TextureRelativeSizeAxes & Axes.X) == 0)
-                    {
-                        result.X /= drawSize.X;
-                        result.Width /= drawSize.X;
-                    }
-
-                    if ((TextureRelativeSizeAxes & Axes.Y) == 0)
-                    {
-                        result.Y /= drawSize.Y;
-                        result.Height /= drawSize.Y;
-                    }
-                }
-
-                return result;
-            }
-        }
-
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
         /// </summary>
@@ -221,9 +194,26 @@ namespace osu.Framework.Graphics.Sprites
             // return ToScreenSpace(texRect * DrawSize);
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-            Vector2 shrinkageAmount = Vector2.ComponentMin(scale.Xy, DrawRectangle.Size / 2);
+            RectangleF rectangle = DrawTextureRectangle;
 
-            return ToScreenSpace(DrawRectangle.Inflate(-shrinkageAmount));
+            // If the texture wraps or is clamped to its edge in some direction, then the entire
+            // sprite is opaque in that direction, hence the texture's opaque rectangle can be
+            // expanded to the full draw dimension of the sprite.
+            if (Texture.WrapModeS == WrapMode.ClampToEdge || Texture.WrapModeS == WrapMode.Repeat)
+            {
+                rectangle.X = 0;
+                rectangle.Width = DrawWidth;
+            }
+
+            if (Texture.WrapModeT == WrapMode.ClampToEdge || Texture.WrapModeT == WrapMode.Repeat)
+            {
+                rectangle.Y = 0;
+                rectangle.Height = DrawHeight;
+            }
+
+            Vector2 shrinkageAmount = Vector2.ComponentMin(scale.Xy, rectangle.Size / 2);
+
+            return ToScreenSpace(rectangle.Inflate(-shrinkageAmount));
         }
 
         public override string ToString()

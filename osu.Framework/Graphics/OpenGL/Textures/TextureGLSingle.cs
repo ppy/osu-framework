@@ -41,19 +41,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
-        protected readonly WrapMode WrapModeS;
-        protected readonly WrapMode WrapModeT;
-
         public override RectangleI Bounds => new RectangleI(0, 0, Width, Height);
 
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
-            WrapModeS = wrapModeS;
-            WrapModeT = wrapModeT;
         }
 
         #region Disposal

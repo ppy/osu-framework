@@ -15,6 +15,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
+        public TextureGL(WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
+        }
+
         #region Disposal
 
         ~TextureGL()
@@ -68,6 +74,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public abstract RectangleI Bounds { get; }
 
         public Vector2 Size => new Vector2(Width, Height);
+
+        public readonly WrapMode WrapModeS;
+
+        public readonly WrapMode WrapModeT;
 
         public abstract RectangleF GetTextureRect(RectangleF? textureRect);
 
