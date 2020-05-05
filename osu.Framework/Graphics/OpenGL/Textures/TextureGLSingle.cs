@@ -188,9 +188,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 Vector2 inflationVector = Vector2.Zero;
                 if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
-                    inflationVector.X = TextureAtlas.PADDING / 4 / (float)width;
+                    inflationVector.X = TextureAtlas.PADDING / 4f / width;
                 if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
-                    inflationVector.Y = TextureAtlas.PADDING / 4 / (float)height;
+                    inflationVector.Y = TextureAtlas.PADDING / 4f / height;
                 texRect = texRect.Inflate(inflationVector);
             }
 
@@ -258,10 +258,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
             {
                 Vector2 inflationVector = Vector2.Zero;
+
+                const int mipmap_padding_requirement = (1 << MAX_MIPMAP_LEVELS) / 2;
+
                 if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
-                    inflationVector.X = (1 << MAX_MIPMAP_LEVELS) / 2 / (float)width;
+                    inflationVector.X = mipmap_padding_requirement / (float)width;
                 if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
-                    inflationVector.Y = (1 << MAX_MIPMAP_LEVELS) / 2 / (float)height;
+                    inflationVector.Y = mipmap_padding_requirement / (float)height;
                 texRect = texRect.Inflate(inflationVector);
             }
 

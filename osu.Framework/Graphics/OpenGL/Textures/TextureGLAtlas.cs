@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
-                base.SetData(upload);
+                base.SetData(upload, default, default);
                 return;
             }
 
@@ -105,11 +105,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         for (int j = 0; j < nCornerPixels; ++j)
                             cornerUpload.RawData[j] = cornerPixel;
 
-                        base.SetData(cornerUpload);
+                        base.SetData(cornerUpload, default, default);
                     }
                 }
             }
-
 
             bool padLeftRight = wrapModeS != WrapMode.None;
 
@@ -139,6 +138,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
 
                         int stride = middleBounds.Width;
+
                         for (int y = 0; y < sideBounds.Height; ++y)
                         {
                             for (int x = 0; x < sideBounds.Width; ++x)
@@ -151,11 +151,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         // Only upload padding if the border isn't completely transparent.
                         if (!allTransparentBlack)
-                            base.SetData(sideUpload);
+                            base.SetData(sideUpload, default, default);
                     }
                 }
             }
-
 
             bool padTopBottom = wrapModeT != WrapMode.None;
 
@@ -196,13 +195,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         // Only upload padding if the border isn't completely transparent.
                         if (!allTransparentBlack)
-                            base.SetData(sideUpload);
+                            base.SetData(sideUpload, default, default);
                     }
                 }
             }
 
             // Upload the middle part of the texture
-            base.SetData(upload);
+            base.SetData(upload, default, default);
         }
     }
 }

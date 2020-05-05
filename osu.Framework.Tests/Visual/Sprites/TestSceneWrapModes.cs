@@ -79,14 +79,16 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        private Texture[] textures = new Texture[4 * 4];
+        private readonly Texture[] textures = new Texture[4 * 4];
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
         {
             for (int i = 0; i < 4; ++i)
+            {
                 for (int j = 0; j < 4; ++j)
                     textures[i * 4 + j] = store.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
+            }
         }
     }
 }

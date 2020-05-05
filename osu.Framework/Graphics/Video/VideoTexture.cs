@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Video
         {
             UploadComplete = false;
 
-            base.SetData(upload);
+            base.SetData(upload, default, default);
         }
 
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
