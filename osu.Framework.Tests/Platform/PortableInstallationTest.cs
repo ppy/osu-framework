@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Platform
             using (var portable = new HeadlessGameHost(@"non-portable"))
             {
                 portable.Run(new TestGame());
-                Assert.AreEqual(Path.GetFullPath(Path.Combine(@"headless-non-portable", FrameworkConfigManager.FILENAME)), portable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
+                Assert.AreEqual(Path.GetFullPath(Path.Combine("headless", "non-portable", FrameworkConfigManager.FILENAME)), portable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
             }
 
             Assert.IsFalse(File.Exists(FrameworkConfigManager.FILENAME));

@@ -125,7 +125,14 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
-        protected abstract Storage GetStorage(string baseName);
+        /// <summary>
+        /// Retrieve a storage for the specified location.
+        /// </summary>
+        /// <param name="path">The absolute path to be used as a root for the storage.</param>
+        /// <returns></returns>
+        public abstract Storage GetStorage(string path);
+
+        public abstract string UserStoragePath { get; }
 
         public Storage Storage { get; protected set; }
 
@@ -513,7 +520,8 @@ namespace osu.Framework.Platform
                     Environment.CurrentDirectory = assemblyPath;
 
                 Dependencies.CacheAs(this);
-                Dependencies.CacheAs(Storage = GetStorage(Name));
+
+                Dependencies.CacheAs(Storage = CreateGameStorage());
 
                 SetupForRun();
 
@@ -584,6 +592,8 @@ namespace osu.Framework.Platform
                 PerformExit(true);
             }
         }
+
+        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
