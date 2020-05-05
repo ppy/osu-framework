@@ -34,10 +34,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </remarks>
         public static event Action<TextureGLAtlas> TextureCreated;
 
+        private readonly RectangleI atlasBounds;
+
+        private static readonly Rgba32 transparent_black = new Rgba32(0, 0, 0, 0);
+
         public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear, int padding = 0)
             : base(width, height, manualMipmaps, filteringMode)
         {
             this.padding = padding;
+
+            atlasBounds = new RectangleI(0, 0, Width, Height);
 
             all_atlases.Add(this);
 
@@ -69,139 +75,139 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             int actualPadding = padding / (1 << upload.Level);
 
-            RectangleI atlasBounds = new RectangleI(0, 0, Width, Height);
-            Rgba32 transparentBlack = new Rgba32(0, 0, 0, 0);
+            if (wrapModeS != WrapMode.None && wrapModeT != WrapMode.None)
+                uploadCornerPadding(upload, middleBounds, actualPadding);
 
-            bool padCorners = wrapModeS != WrapMode.None && wrapModeT != WrapMode.None;
+            if (wrapModeS != WrapMode.None)
+                uploadHorizontalPadding(upload, middleBounds, actualPadding);
 
-            if (padCorners)
-            {
-                RectangleI[] cornerBoundsArray =
-                {
-                    new RectangleI(middleBounds.X - actualPadding, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(atlasBounds), // TopLeft
-                    new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(atlasBounds), // TopRight
-                    new RectangleI(middleBounds.X - actualPadding, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(atlasBounds), // BottomLeft
-                    new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(atlasBounds), // BottomRight
-                };
-
-                int[] cornerIndices =
-                {
-                    0, // TopLeft
-                    middleBounds.Width - 1, // TopRight
-                    (middleBounds.Height - 1) * middleBounds.Width, // BottomLeft
-                    (middleBounds.Height - 1) * middleBounds.Width + middleBounds.Width - 1, // BottomRight
-                };
-
-                for (int i = 0; i < 4; ++i)
-                {
-                    RectangleI cornerBounds = cornerBoundsArray[i];
-                    int nCornerPixels = cornerBounds.Width * cornerBounds.Height;
-                    Rgba32 cornerPixel = upload.Data[cornerIndices[i]];
-
-                    // Only upload if we have a non-zero size and if the colour isn't already transparent black
-                    if (nCornerPixels > 0 && cornerPixel != transparentBlack)
-                    {
-                        var cornerUpload = new ArrayPoolTextureUpload(cornerBounds.Width, cornerBounds.Height) { Bounds = cornerBounds };
-                        for (int j = 0; j < nCornerPixels; ++j)
-                            cornerUpload.RawData[j] = cornerPixel;
-
-                        base.SetData(cornerUpload, default, default);
-                    }
-                }
-            }
-
-            bool padLeftRight = wrapModeS != WrapMode.None;
-
-            if (padLeftRight)
-            {
-                RectangleI[] sideBoundsArray =
-                {
-                    new RectangleI(middleBounds.X - actualPadding, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(atlasBounds), // Left
-                    new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(atlasBounds), // Right
-                };
-
-                int[] sideIndices =
-                {
-                    0, // Left
-                    middleBounds.Width - 1, // Right
-                };
-
-                for (int i = 0; i < 2; ++i)
-                {
-                    RectangleI sideBounds = sideBoundsArray[i];
-
-                    if (!sideBounds.IsEmpty)
-                    {
-                        bool allTransparentBlack = true;
-                        int index = sideIndices[i];
-
-                        var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
-
-                        int stride = middleBounds.Width;
-
-                        for (int y = 0; y < sideBounds.Height; ++y)
-                        {
-                            for (int x = 0; x < sideBounds.Width; ++x)
-                            {
-                                Rgba32 pixel = upload.Data[index + y * stride];
-                                allTransparentBlack &= pixel == transparentBlack;
-                                sideUpload.RawData[y * sideBounds.Width + x] = pixel;
-                            }
-                        }
-
-                        // Only upload padding if the border isn't completely transparent.
-                        if (!allTransparentBlack)
-                            base.SetData(sideUpload, default, default);
-                    }
-                }
-            }
-
-            bool padTopBottom = wrapModeT != WrapMode.None;
-
-            if (padTopBottom)
-            {
-                RectangleI[] sideBoundsArray =
-                {
-                    new RectangleI(middleBounds.X, middleBounds.Y - actualPadding, middleBounds.Width, actualPadding).Intersect(atlasBounds), // Top
-                    new RectangleI(middleBounds.X, middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(atlasBounds), // Bottom
-                };
-
-                int[] sideIndices =
-                {
-                    0, // Top
-                    (middleBounds.Height - 1) * middleBounds.Width, // Bottom
-                };
-
-                for (int i = 0; i < 2; ++i)
-                {
-                    RectangleI sideBounds = sideBoundsArray[i];
-
-                    if (!sideBounds.IsEmpty)
-                    {
-                        bool allTransparentBlack = true;
-                        int index = sideIndices[i];
-
-                        var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
-
-                        for (int y = 0; y < sideBounds.Height; ++y)
-                        {
-                            for (int x = 0; x < sideBounds.Width; ++x)
-                            {
-                                Rgba32 pixel = upload.Data[index + x];
-                                allTransparentBlack &= pixel == transparentBlack;
-                                sideUpload.RawData[y * sideBounds.Width + x] = pixel;
-                            }
-                        }
-
-                        // Only upload padding if the border isn't completely transparent.
-                        if (!allTransparentBlack)
-                            base.SetData(sideUpload, default, default);
-                    }
-                }
-            }
+            if (wrapModeT != WrapMode.None)
+                uploadVerticalPadding(upload, middleBounds, actualPadding);
 
             // Upload the middle part of the texture
             base.SetData(upload, default, default);
+        }
+
+        private void uploadVerticalPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)
+        {
+            RectangleI[] sideBoundsArray =
+            {
+                new RectangleI(middleBounds.X, middleBounds.Y - actualPadding, middleBounds.Width, actualPadding).Intersect(atlasBounds), // Top
+                new RectangleI(middleBounds.X, middleBounds.Y + middleBounds.Height, middleBounds.Width, actualPadding).Intersect(atlasBounds), // Bottom
+            };
+
+            int[] sideIndices =
+            {
+                0, // Top
+                (middleBounds.Height - 1) * middleBounds.Width, // Bottom
+            };
+
+            for (int i = 0; i < 2; ++i)
+            {
+                RectangleI sideBounds = sideBoundsArray[i];
+
+                if (!sideBounds.IsEmpty)
+                {
+                    bool allTransparentBlack = true;
+                    int index = sideIndices[i];
+
+                    var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+
+                    for (int y = 0; y < sideBounds.Height; ++y)
+                    {
+                        for (int x = 0; x < sideBounds.Width; ++x)
+                        {
+                            Rgba32 pixel = upload.Data[index + x];
+                            allTransparentBlack &= pixel == transparent_black;
+                            sideUpload.RawData[y * sideBounds.Width + x] = pixel;
+                        }
+                    }
+
+                    // Only upload padding if the border isn't completely transparent.
+                    if (!allTransparentBlack)
+                        base.SetData(sideUpload, default, default);
+                }
+            }
+        }
+
+        private void uploadHorizontalPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)
+        {
+            RectangleI[] sideBoundsArray =
+            {
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(atlasBounds), // Left
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y, actualPadding, middleBounds.Height).Intersect(atlasBounds), // Right
+            };
+
+            int[] sideIndices =
+            {
+                0, // Left
+                middleBounds.Width - 1, // Right
+            };
+
+            for (int i = 0; i < 2; ++i)
+            {
+                RectangleI sideBounds = sideBoundsArray[i];
+
+                if (!sideBounds.IsEmpty)
+                {
+                    bool allTransparentBlack = true;
+                    int index = sideIndices[i];
+
+                    var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+
+                    int stride = middleBounds.Width;
+
+                    for (int y = 0; y < sideBounds.Height; ++y)
+                    {
+                        for (int x = 0; x < sideBounds.Width; ++x)
+                        {
+                            Rgba32 pixel = upload.Data[index + y * stride];
+                            allTransparentBlack &= pixel == transparent_black;
+                            sideUpload.RawData[y * sideBounds.Width + x] = pixel;
+                        }
+                    }
+
+                    // Only upload padding if the border isn't completely transparent.
+                    if (!allTransparentBlack)
+                        base.SetData(sideUpload, default, default);
+                }
+            }
+        }
+
+        private void uploadCornerPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)
+        {
+            RectangleI[] cornerBoundsArray =
+            {
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(atlasBounds), // TopLeft
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y - actualPadding, actualPadding, actualPadding).Intersect(atlasBounds), // TopRight
+                new RectangleI(middleBounds.X - actualPadding, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(atlasBounds), // BottomLeft
+                new RectangleI(middleBounds.X + middleBounds.Width, middleBounds.Y + middleBounds.Height, actualPadding, actualPadding).Intersect(atlasBounds), // BottomRight
+            };
+
+            int[] cornerIndices =
+            {
+                0, // TopLeft
+                middleBounds.Width - 1, // TopRight
+                (middleBounds.Height - 1) * middleBounds.Width, // BottomLeft
+                (middleBounds.Height - 1) * middleBounds.Width + middleBounds.Width - 1, // BottomRight
+            };
+
+            for (int i = 0; i < 4; ++i)
+            {
+                RectangleI cornerBounds = cornerBoundsArray[i];
+                int nCornerPixels = cornerBounds.Width * cornerBounds.Height;
+                Rgba32 cornerPixel = upload.Data[cornerIndices[i]];
+
+                // Only upload if we have a non-zero size and if the colour isn't already transparent black
+                if (nCornerPixels > 0 && cornerPixel != transparent_black)
+                {
+                    var cornerUpload = new ArrayPoolTextureUpload(cornerBounds.Width, cornerBounds.Height) { Bounds = cornerBounds };
+                    for (int j = 0; j < nCornerPixels; ++j)
+                        cornerUpload.RawData[j] = cornerPixel;
+
+                    base.SetData(cornerUpload, default, default);
+                }
+            }
         }
     }
 }
