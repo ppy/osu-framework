@@ -44,6 +44,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         protected readonly WrapMode WrapModeS;
         protected readonly WrapMode WrapModeT;
 
+        public override RectangleI Bounds => new RectangleI(0, 0, Width, Height);
+
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             Width = width;
@@ -311,19 +313,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
-                upload.Bounds = new RectangleI(0, 0, width, height);
+                upload.Bounds = Bounds;
                 if (width * height > upload.Data.Length)
                     throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
-            IsTransparent = false;
+            opacity = UpdateOpacity(upload, opacity);
 
             lock (uploadQueue)
             {
@@ -343,9 +345,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Upload();
 
             if (textureId <= 0)
-                return false;
-
-            if (IsTransparent)
                 return false;
 
             if (GLWrapper.BindTexture(this, unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT))

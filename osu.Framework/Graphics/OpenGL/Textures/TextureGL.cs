@@ -9,13 +9,12 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public bool IsTransparent;
-
         #region Disposal
 
         ~TextureGL()
@@ -58,11 +57,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public abstract bool Loaded { get; }
 
+        public Opacity Opacity { get; protected set; } = Opacity.Mixed;
+
         public abstract int TextureId { get; }
 
         public abstract int Height { get; set; }
 
         public abstract int Width { get; set; }
+
+        public abstract RectangleI Bounds { get; }
 
         public Vector2 Size => new Vector2(Width, Height);
 
@@ -113,7 +116,42 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
+        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null);
+
+        protected static Opacity ComputeOpacity(ITextureUpload upload)
+        {
+            if (upload is VideoTextureUpload)
+                return Opacity.Opaque;
+
+            if (upload.Data.Length == 0)
+                return Opacity.Transparent;
+
+            bool isTransparent = true;
+            bool isOpaque = true;
+            for (int i = 0; i < upload.Data.Length; ++i)
+            {
+                isTransparent &= upload.Data[i].A == 0;
+                isOpaque &= upload.Data[i].A == 255;
+
+                if (!isTransparent && !isOpaque)
+                    return Opacity.Mixed;
+            }
+
+            if (isTransparent)
+                return Opacity.Transparent;
+            return Opacity.Opaque;
+        }
+
+        protected Opacity UpdateOpacity(ITextureUpload upload, Opacity? opacity)
+        {
+            // Compute opacity if it doesn't exist
+            Opacity localOpacity = opacity ?? ComputeOpacity(upload);
+            if (upload.Bounds == Bounds && upload.Level == 0)
+                Opacity = localOpacity;
+            else if (localOpacity != Opacity)
+                Opacity = Opacity.Mixed;
+            return localOpacity;
+        }
     }
 
     public enum WrapMode
@@ -122,5 +160,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         ClampToEdge = 1,
         ClampToBorder = 2,
         Repeat = 3,
+    }
+
+    public enum Opacity
+    {
+        Opaque,
+        Mixed,
+        Transparent,
     }
 }

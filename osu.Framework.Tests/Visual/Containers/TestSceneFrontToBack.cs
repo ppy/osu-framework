@@ -15,6 +15,7 @@ using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Tests.Visual.Containers
 {
@@ -28,6 +29,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private const int cell_count = 4;
 
+        private Texture texture;
+
         protected override DrawNode CreateDrawNode() => drawNode = new QueryingCompositeDrawableDrawNode(this);
 
         public TestSceneFrontToBack()
@@ -36,9 +39,12 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkDebugConfigManager debugConfig)
+        private void load(FrameworkDebugConfigManager debugConfig, TextureStore store)
         {
-            AddStep("add more drawables", addMoreDrawables);
+            texture = store.Get(@"sample-texture");
+
+            AddStep("add sprites", () => addMoreDrawables(texture));
+            AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel));
             AddToggleStep("disable front to back", val =>
             {
                 debugConfig.Set(DebugSetting.BypassFrontToBackPass, val);
@@ -58,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         Colour = Color4.Black,
                         RelativeSizeAxes = Axes.Both,
-                        Alpha = 0.8f
+                        Alpha = 0.8f,
                     },
                     new FillFlowContainer
                     {
@@ -88,17 +94,18 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
-        private void addMoreDrawables()
+        private void addMoreDrawables(Texture texture)
         {
             for (int i = 0; i < 100; i++)
             {
-                Cell(i % cell_count).Add(new Box
+                Cell(i % cell_count).Add(new Sprite
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
                     RelativeSizeAxes = Axes.Both,
-                    Scale = new Vector2(currentScale)
+                    Scale = new Vector2(currentScale),
+                    Texture = texture,
                 });
 
                 currentScale -= 0.001f;

@@ -116,15 +116,18 @@ namespace osu.Framework.Graphics
             // In the front-to-back pass, the inner conservative area is drawn at depth X
             // In the back-to-front pass, the full area is drawn at depth X, and the depth test function is set to GL_LESS, so the inner conservative area is not redrawn
             // Furthermore, a back-to-front-drawn object above the box will be visible since it will be drawn with a depth of (X - increment), satisfying the depth test
+            float previousDepthValue = depthValue;
             drawDepth = depthValue.Increment();
 
             DrawOpaqueInterior(vertexAction);
+
+            drawDepth = previousDepthValue;
         }
 
         /// <summary>
         /// Draws the opaque interior of this <see cref="DrawNode"/> to the screen.
         /// The opaque interior must be a fully-opaque, non-blended area of this <see cref="DrawNode"/>, clipped to the current masking area via <code>DrawClipped()</code>.
-        /// See <see cref="Shapes.Box.BoxDrawNode"/> for an example implementation.
+        /// See <see cref="Sprites.SpriteDrawNode"/> for an example implementation.
         /// </summary>
         /// <remarks>
         /// Subclasses must invoke <code>base.DrawOpaqueInterior()</code> prior to drawing vertices.
