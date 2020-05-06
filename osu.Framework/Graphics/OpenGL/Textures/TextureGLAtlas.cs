@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             all_atlases.Remove(this);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
             RectangleI middleBounds = upload.Bounds;

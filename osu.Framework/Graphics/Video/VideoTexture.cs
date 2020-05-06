@@ -27,13 +27,16 @@ namespace osu.Framework.Graphics.Video
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
         {
             UploadComplete = false;
 
-            // We do not support videos with transparency at this point.
-            opacity = Opacity = Opacity.Opaque;
-            base.SetData(upload, default, default, opacity);
+            // We do not support videos with transparency at this point,
+            // so the upload's opacity as well as the texture's opacity
+            // is always opaque.
+            uploadOpacity = Opacity = Opacity.Opaque;
+
+            base.SetData(upload, default, default, uploadOpacity);
         }
 
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)

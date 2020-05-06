@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null);
+        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null);
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
         {
@@ -138,6 +138,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             bool isTransparent = true;
             bool isOpaque = true;
+
             for (int i = 0; i < upload.Data.Length; ++i)
             {
                 isTransparent &= upload.Data[i].A == 0;
@@ -149,18 +150,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (isTransparent)
                 return Opacity.Transparent;
+
             return Opacity.Opaque;
         }
 
-        protected Opacity UpdateOpacity(ITextureUpload upload, Opacity? opacity)
+        protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
         {
-            // Compute opacity if it doesn't exist
-            Opacity localOpacity = opacity ?? ComputeOpacity(upload);
+            // Compute opacity if it doesn't have a value yet
+            uploadOpacity = uploadOpacity ?? ComputeOpacity(upload);
+
+            // Update the texture's opacity depending on the upload's opacity.
+            // If the upload covers the entire bounds of the texture, it fully
+            // determines the texture's opacity. Otherwise, it can only turn
+            // the texture's opacity into a mixed state (if it disagrees with
+            // the texture's existing opacity).
             if (upload.Bounds == Bounds && upload.Level == 0)
-                Opacity = localOpacity;
-            else if (localOpacity != Opacity)
+                Opacity = uploadOpacity.Value;
+            else if (uploadOpacity.Value != Opacity)
                 Opacity = Opacity.Mixed;
-            return localOpacity;
         }
     }
 

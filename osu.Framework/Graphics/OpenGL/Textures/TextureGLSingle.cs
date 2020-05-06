@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? opacity = null)
+        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
-            opacity = UpdateOpacity(upload, opacity);
+            UpdateOpacity(upload, ref uploadOpacity);
 
             lock (uploadQueue)
             {
