@@ -19,18 +19,44 @@ namespace osu.Framework.Graphics.Sprites
 
         public IShader RoundedTextureShader { get; protected set; }
 
+        private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
+
         /// <summary>
         /// Sub-rectangle of the sprite in which the texture is positioned.
         /// Can be either relative coordinates (0 to 1) or absolute coordinates,
         /// depending on <see cref="TextureRelativeSizeAxes"/>.
         /// </summary>
-        public RectangleF TextureRectangle = new RectangleF(0, 0, 1, 1);
+        public RectangleF TextureRectangle
+        {
+            get => textureRectangle;
+            set
+            {
+                if (textureRectangle == value)
+                    return;
+
+                textureRectangle = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Axes textureRelativeSizeAxes = Axes.Both;
 
         /// <summary>
         /// Whether or not the <see cref="TextureRectangle"/> is in relative coordinates
         /// (0 to 1) or in absolute coordinates.
         /// </summary>
-        public Axes TextureRelativeSizeAxes = Axes.Both;
+        public Axes TextureRelativeSizeAxes
+        {
+            get => textureRelativeSizeAxes;
+            set
+            {
+                if (textureRelativeSizeAxes == value)
+                    return;
+
+                textureRelativeSizeAxes = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         /// <summary>
         /// Absolutely sized sub-rectangle in which the texture is positioned in the coordinate space of this <see cref="Sprite"/>.
