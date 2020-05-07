@@ -12,13 +12,11 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public NativeStorage(string baseName, GameHost host = null)
-            : base(baseName)
+        public NativeStorage(string path, GameHost host = null)
+            : base(path)
         {
             this.host = host;
         }
-
-        protected override string LocateBasePath() => @"./"; //use current directory by default
 
         public override bool Exists(string path) => File.Exists(GetFullPath(path));
 
@@ -60,7 +58,7 @@ namespace osu.Framework.Platform
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-            var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory)).TrimEnd(Path.DirectorySeparatorChar);
+            var basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
             var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
             if (!resolvedPath.StartsWith(basePath)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
@@ -93,5 +91,16 @@ namespace osu.Framework.Platform
         public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
+
+        public override Storage GetStorageForDirectory(string path)
+        {
+            if (!path.EndsWith(Path.DirectorySeparatorChar))
+                path += Path.DirectorySeparatorChar;
+
+            // create non-existing path.
+            var fullPath = GetFullPath(path, true);
+
+            return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
+        }
     }
 }

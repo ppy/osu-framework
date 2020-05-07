@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK;
@@ -19,7 +21,27 @@ namespace osu.Framework.Platform.MacOS
         protected override IWindow CreateWindow() =>
             !UseSdl ? (IWindow)new MacOSGameWindow() : new SDLWindow();
 
-        protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
+        public override string UserStoragePath
+        {
+            get
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string[] paths =
+                {
+                    xdg ?? Path.Combine(home, ".local", "share"),
+                    Path.Combine(home)
+                };
+
+                foreach (string path in paths)
+                {
+                    if (Directory.Exists(path))
+                        return path;
+                }
+
+                return paths[0];
+            }
+        }
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
 
