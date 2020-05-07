@@ -363,6 +363,11 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>The <see cref="RectangleF"/>.</returns>
         public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
 
+        /// <summary>
+        /// Creates a new <see cref="RectangleF"/> in relative coordinate space to another <see cref="RectangleF"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="RectangleF"/>.</param>
+        /// <returns>The relative coordinate space representation of this <see cref="RectangleF"/> in <paramref name="other"/>.</returns>
         public RectangleF RelativeIn(RectangleF other)
         {
             float scaleX = Width / other.Width;

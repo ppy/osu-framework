@@ -41,9 +41,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
         protected readonly WrapMode WrapModeS;
+
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
         protected readonly WrapMode WrapModeT;
 
+        /// <summary>
+        /// Creates a new <see cref="TextureGLSingle"/>.
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             Width = width;

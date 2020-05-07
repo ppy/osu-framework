@@ -72,14 +72,21 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
+        /// <summary>
+        /// Retrieves a texture from the store and adds it to the atlas.
+        /// </summary>
+        /// <param name="name">The name of the texture.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>The texture.</returns>
         public Task<Texture> GetAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
-        /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
-        /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
         public virtual Texture Get(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {

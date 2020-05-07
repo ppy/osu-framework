@@ -22,17 +22,20 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Sub-rectangle of the sprite in which the texture is positioned.
         /// Can be either relative coordinates (0 to 1) or absolute coordinates,
-        /// depending on <see cref="Sprite.TextureRelativeSizeAxes"/>.
+        /// depending on <see cref="TextureRelativeSizeAxes"/>.
         /// </summary>
-        /// <value></value>
         public RectangleF TextureRectangle = new RectangleF(0, 0, 1, 1);
 
         /// <summary>
-        /// Whether or not the <see cref="Sprite.TextureRectangle"/> is in relative coordinates
+        /// Whether or not the <see cref="TextureRectangle"/> is in relative coordinates
         /// (0 to 1) or in absolute coordinates.
         /// </summary>
         public Axes TextureRelativeSizeAxes = Axes.Both;
 
+        /// <summary>
+        /// Absolutely sized sub-rectangle in which the texture is positioned in the coordinate space of this <see cref="Sprite"/>.
+        /// Based on <see cref="TextureRectangle"/>.
+        /// </summary>
         public RectangleF DrawTextureRectangle
         {
             get
