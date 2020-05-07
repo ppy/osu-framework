@@ -41,6 +41,8 @@ namespace osu.Framework.IO.Stores
 
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+
             texturePages.Dispose();
         }
     }

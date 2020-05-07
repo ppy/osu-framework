@@ -261,7 +261,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The backspace key (equivalent to BackSpace).
         /// </summary>
-        Back = 53,
+        Back = BackSpace,
 
         /// <summary>
         /// The insert key.
@@ -396,7 +396,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad minus key (equivalent to KeypadSubtract).
         /// </summary>
-        KeypadMinus = 79,
+        KeypadMinus = KeypadSubtract,
 
         /// <summary>
         /// The keypad add key.
@@ -406,7 +406,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad plus key (equivalent to KeypadAdd).
         /// </summary>
-        KeypadPlus = 80,
+        KeypadPlus = KeypadAdd,
 
         /// <summary>
         /// The keypad decimal key.
@@ -416,7 +416,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The keypad period key (equivalent to KeypadDecimal).
         /// </summary>
-        KeypadPeriod = 81,
+        KeypadPeriod = KeypadDecimal,
 
         /// <summary>
         /// The keypad enter key.
@@ -609,9 +609,9 @@ namespace osu.Framework.Input.Bindings
         Tilde = 119,
 
         /// <summary>
-        /// The grave key (equivaent to Tilde).
+        /// The grave key (equivalent to Tilde).
         /// </summary>
-        Grave = 119,
+        Grave = Tilde,
 
         /// <summary>
         /// The minus key.
@@ -631,7 +631,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The left bracket key (equivalent to BracketLeft).
         /// </summary>
-        LBracket = 122,
+        LBracket = BracketLeft,
 
         /// <summary>
         /// The right bracket key.
@@ -641,7 +641,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The right bracket key (equivalent to BracketRight).
         /// </summary>
-        RBracket = 123,
+        RBracket = BracketRight,
 
         /// <summary>
         /// The semicolon key.
@@ -688,7 +688,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The left mouse button.
         /// </summary>
-        MouseLeft = 132,
+        MouseLeft = FirstMouseButton,
 
         /// <summary>
         /// The middle mouse button.

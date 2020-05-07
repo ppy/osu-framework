@@ -151,6 +151,10 @@ namespace osu.Framework.Graphics.Primitives
 
         public static RectangleF operator /(RectangleF left, float right) => new RectangleF(left.X / right, left.Y / right, left.Width / right, left.Height / right);
 
+        public static RectangleF operator *(RectangleF rectangle, Vector2 scale) => new RectangleF(rectangle.X * scale.X, rectangle.Y * scale.Y, rectangle.Width * scale.X, rectangle.Height * scale.Y);
+
+        public static RectangleF operator /(RectangleF rectangle, Vector2 scale) => new RectangleF(rectangle.X / scale.X, rectangle.Y / scale.Y, rectangle.Width / scale.X, rectangle.Height / scale.Y);
+
         /// <summary>Determines if the specified point is contained within this <see cref="RectangleF"/> structure.</summary>
         /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="RectangleF"/> structure; otherwise false.</returns>
         /// <param name="y">The y-coordinate of the point to test.</param>
