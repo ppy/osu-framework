@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle);
             if (Texture != null)
-                TextureCoords *= (Texture.Size / Texture.ScaleAdjust);
+                TextureCoords *= new Vector2(Texture.DisplayWidth, Texture.DisplayHeight);
         }
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
