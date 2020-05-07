@@ -91,14 +91,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind(unit, wrapModeS ?? this.wrapModeS, wrapModeT ?? this.wrapModeT);
+            if (parent is TextureGLAtlas atlasParent)
+                return atlasParent.Bind(unit, wrapModeS, wrapModeT);
+
+            return parent.Bind(unit);
         }
 
         public override void SetData(ITextureUpload upload)

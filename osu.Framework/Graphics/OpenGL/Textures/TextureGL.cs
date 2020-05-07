@@ -97,10 +97,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Bind as active texture.
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
+        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.

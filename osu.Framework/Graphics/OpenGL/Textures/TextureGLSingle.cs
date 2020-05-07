@@ -335,7 +335,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+            => Bind(unit, WrapModeS, WrapModeT);
+
+        internal bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
@@ -348,7 +351,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            if (GLWrapper.BindTexture(this, unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT))
+            if (GLWrapper.BindTexture(this, unit, wrapModeS, wrapModeT))
                 BindCount++;
 
             return true;
