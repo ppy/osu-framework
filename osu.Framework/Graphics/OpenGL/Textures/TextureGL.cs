@@ -16,6 +16,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public bool IsTransparent;
 
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
+        public readonly WrapMode WrapModeS;
+
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
+        public readonly WrapMode WrapModeT;
+
+        protected TextureGL(WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
+        }
+
         #region Disposal
 
         ~TextureGL()
@@ -98,7 +114,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
+        public bool Bind(TextureUnit unit = TextureUnit.Texture0) => Bind(unit, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Bind as active texture.
+        /// </summary>
+        /// <param name="unit">The texture unit to bind to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>True if bind was successful.</returns>
+        internal abstract bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.
@@ -115,7 +140,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Sets the pixel data of this <see cref="TextureGL"/>.
         /// </summary>
         /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
-        public abstract void SetData(ITextureUpload upload);
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT);
     }
 
     public enum WrapMode

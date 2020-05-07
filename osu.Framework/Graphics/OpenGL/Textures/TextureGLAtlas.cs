@@ -62,23 +62,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             all_atlases.Remove(this);
         }
 
-        public override void SetData(ITextureUpload upload)
-            => SetData(upload, default, default);
-
-        /// <summary>
-        /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
-        /// </summary>
-        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction that will be used in the <see cref="TextureGLSub"/>.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction that will be used in the <see cref="TextureGLSub"/>.</param>
-        internal void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
             RectangleI middleBounds = upload.Bounds;
 
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
-                base.SetData(upload);
+                base.SetData(upload, wrapModeS, wrapModeT);
                 return;
             }
 
@@ -94,7 +85,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 uploadVerticalPadding(upload, middleBounds, actualPadding);
 
             // Upload the middle part of the texture
-            base.SetData(upload);
+            base.SetData(upload, wrapModeS, wrapModeT);
         }
 
         private void uploadVerticalPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)

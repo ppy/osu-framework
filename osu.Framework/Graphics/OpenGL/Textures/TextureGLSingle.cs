@@ -42,16 +42,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
         /// <summary>
-        /// The texture wrap mode in horizontal direction.
-        /// </summary>
-        protected readonly WrapMode WrapModeS;
-
-        /// <summary>
-        /// The texture wrap mode in vertical direction.
-        /// </summary>
-        protected readonly WrapMode WrapModeT;
-
-        /// <summary>
         /// Creates a new <see cref="TextureGLSingle"/>.
         /// </summary>
         /// <param name="width">The width of the texture.</param>
@@ -61,13 +51,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
-            WrapModeS = wrapModeS;
-            WrapModeT = wrapModeT;
         }
 
         #region Disposal
@@ -327,7 +316,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        public override void SetData(ITextureUpload upload)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -351,17 +340,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
-            => Bind(unit, WrapModeS, WrapModeT);
-
-        /// <summary>
-        /// Bind as active texture.
-        /// </summary>
-        /// <param name="unit">The texture unit to bind to.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        /// <returns>True if bind was successful.</returns>
-        internal bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");

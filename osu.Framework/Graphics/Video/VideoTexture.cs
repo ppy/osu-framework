@@ -27,20 +27,20 @@ namespace osu.Framework.Graphics.Video
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             UploadComplete = false;
 
-            base.SetData(upload);
+            base.SetData(upload, wrapModeS, wrapModeT);
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i, WrapModeS, WrapModeT);
+                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
 
             return true;
         }

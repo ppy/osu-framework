@@ -27,10 +27,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set => parent.IsQueuedForUpload = value;
         }
 
-        private readonly WrapMode wrapModeS;
-        private readonly WrapMode wrapModeT;
-
         public TextureGLSub(RectangleI bounds, TextureGL parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
@@ -39,8 +37,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             this.bounds = bounds;
             this.parent = parent;
-            this.wrapModeS = wrapModeS;
-            this.wrapModeT = wrapModeT;
         }
 
         public override int Height
@@ -85,26 +81,23 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, boundsInParent(textureCoords));
         }
 
-        internal override bool Upload() => false;
-
-        internal override void FlushUploads()
-        {
-        }
-
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            if (parent is TextureGLAtlas atlasParent)
-                return atlasParent.Bind(unit, wrapModeS, wrapModeT);
-
-            return parent.Bind(unit);
+            return parent.Bind(unit, wrapModeS, wrapModeT);
         }
 
-        public override void SetData(ITextureUpload upload)
+        internal override bool Upload() => false;
+
+        internal override void FlushUploads()
+        {
+        }
+
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -125,10 +118,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = adjustedBounds;
             }
 
-            if (parent is TextureGLAtlas atlasParent)
-                atlasParent.SetData(upload, wrapModeS, wrapModeT);
-            else
-                parent?.SetData(upload);
+            parent?.SetData(upload, wrapModeS, wrapModeT);
         }
     }
 }
