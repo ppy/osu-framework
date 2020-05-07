@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return parent.Bind(unit, wrapModeS ?? this.wrapModeS, wrapModeT ?? this.wrapModeT);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override void SetData(ITextureUpload upload)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -122,7 +122,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = adjustedBounds;
             }
 
-            parent?.SetData(upload, wrapModeS ?? this.wrapModeS, wrapModeT ?? this.wrapModeT);
+            if (parent is TextureGLAtlas atlasParent)
+                atlasParent.SetData(upload, wrapModeS, wrapModeT);
+            else
+                parent?.SetData(upload);
         }
     }
 }

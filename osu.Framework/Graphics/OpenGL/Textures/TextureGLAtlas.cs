@@ -62,14 +62,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             all_atlases.Remove(this);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override void SetData(ITextureUpload upload)
+            => SetData(upload, default, default);
+
+        internal void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
             RectangleI middleBounds = upload.Bounds;
 
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
-                base.SetData(upload, default, default);
+                base.SetData(upload);
                 return;
             }
 
@@ -85,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 uploadVerticalPadding(upload, middleBounds, actualPadding);
 
             // Upload the middle part of the texture
-            base.SetData(upload, default, default);
+            base.SetData(upload);
         }
 
         private void uploadVerticalPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)
@@ -125,7 +128,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload, default, default);
+                        base.SetData(sideUpload);
                 }
             }
         }
@@ -169,7 +172,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload, default, default);
+                        base.SetData(sideUpload);
                 }
             }
         }
@@ -205,7 +208,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     for (int j = 0; j < nCornerPixels; ++j)
                         cornerUpload.RawData[j] = cornerPixel;
 
-                    base.SetData(cornerUpload, default, default);
+                    base.SetData(cornerUpload);
                 }
             }
         }

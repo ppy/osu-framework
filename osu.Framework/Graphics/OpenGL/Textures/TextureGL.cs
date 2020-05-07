@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
+        public abstract void SetData(ITextureUpload upload);
     }
 
     public enum WrapMode

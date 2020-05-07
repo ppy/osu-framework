@@ -27,11 +27,11 @@ namespace osu.Framework.Graphics.Video
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        public override void SetData(ITextureUpload upload)
         {
             UploadComplete = false;
 
-            base.SetData(upload, default, default);
+            base.SetData(upload);
         }
 
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
