@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload);
+                        base.SetData(sideUpload, WrapMode.None, WrapMode.None);
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload);
+                        base.SetData(sideUpload, WrapMode.None, WrapMode.None);
                 }
             }
         }
@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     for (int j = 0; j < nCornerPixels; ++j)
                         cornerUpload.RawData[j] = cornerPixel;
 
-                    base.SetData(cornerUpload);
+                    base.SetData(cornerUpload, WrapMode.None, WrapMode.None);
                 }
             }
         }
