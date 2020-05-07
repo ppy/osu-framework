@@ -76,10 +76,8 @@ namespace osu.Framework.Graphics.Textures
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public new Task<Texture> GetAsync(string name) => GetAsync(name, default, default);
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -88,7 +86,23 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public virtual Texture Get(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+
+        /// <summary>
+        /// Retrieves a texture from the store and adds it to the atlas.
+        /// </summary>
+        /// <param name="name">The name of the texture.</param>
+        /// <returns>The texture.</returns>
+        public new Texture Get(string name) => Get(name, default, default);
+
+        /// <summary>
+        /// Retrieves a texture from the store and adds it to the atlas.
+        /// </summary>
+        /// <param name="name">The name of the texture.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>The texture.</returns>
+        public virtual Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (string.IsNullOrEmpty(name)) return null;
 
