@@ -111,6 +111,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGL"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
         public abstract void SetData(ITextureUpload upload);
     }
 

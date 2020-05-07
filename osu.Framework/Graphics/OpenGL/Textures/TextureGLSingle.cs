@@ -338,6 +338,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
             => Bind(unit, WrapModeS, WrapModeT);
 
+        /// <summary>
+        /// Bind as active texture.
+        /// </summary>
+        /// <param name="unit">The texture unit to bind to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>True if bind was successful.</returns>
         internal bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
