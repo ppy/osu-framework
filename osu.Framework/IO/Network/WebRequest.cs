@@ -402,13 +402,13 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
+                    int read = await responseStream.ReadAsync(buffer.AsMemory(0, buffer_size), cancellationToken);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
+                        await ResponseStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
