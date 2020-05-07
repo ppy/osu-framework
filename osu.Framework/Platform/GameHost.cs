@@ -129,7 +129,6 @@ namespace osu.Framework.Platform
         /// Retrieve a storage for the specified location.
         /// </summary>
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
-        /// <returns></returns>
         public abstract Storage GetStorage(string path);
 
         public abstract string UserStoragePath { get; }
