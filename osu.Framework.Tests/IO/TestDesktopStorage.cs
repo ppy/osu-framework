@@ -31,13 +31,24 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
-        public void TestGetDirectory()
+        public void TestGetSubDirectoryStorage()
         {
             var guid = new Guid().ToString();
 
             using (var storage = new TemporaryNativeStorage(guid))
             {
-                Assert.That(storage.GetStorageForDirectory(string.Empty).GetFullPath(string.Empty), Does.Contain(storage.GetFullPath(string.Empty)));
+                Assert.That(storage.GetStorageForDirectory("subdir").GetFullPath(string.Empty), Is.EqualTo(Path.Combine(storage.GetFullPath(string.Empty), "subdir")));
+            }
+        }
+
+        [Test]
+        public void TestGetEmptySubDirectoryStorage()
+        {
+            var guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.That(storage.GetStorageForDirectory(string.Empty).GetFullPath(string.Empty), Is.EqualTo(storage.GetFullPath(string.Empty)));
             }
         }
     }
