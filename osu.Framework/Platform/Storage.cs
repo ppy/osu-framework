@@ -9,16 +9,9 @@ namespace osu.Framework.Platform
 {
     public abstract class Storage
     {
-        protected string BaseName { get; set; }
+        protected string BasePath { get; }
 
-        protected string BasePath { get; set; }
-
-        /// <summary>
-        /// An optional path to be added after <see cref="BaseName"/>.
-        /// </summary>
-        protected string SubDirectory { get; set; } = string.Empty;
-
-        protected Storage(string baseName)
+        protected Storage(string path, string subfolder = null)
         {
             static string filenameStrip(string entry)
             {
@@ -27,18 +20,14 @@ namespace osu.Framework.Platform
                 return entry;
             }
 
-            BaseName = filenameStrip(baseName);
-            BasePath = LocateBasePath();
+            BasePath = path;
+
             if (BasePath == null)
                 throw new InvalidOperationException($"{nameof(BasePath)} not correctly initialized!");
-        }
 
-        /// <summary>
-        /// Find the location which will be used as a root for this storage.
-        /// This should usually be a platform-specific implementation.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string LocateBasePath();
+            if (!string.IsNullOrEmpty(subfolder))
+                BasePath = Path.Combine(BasePath, filenameStrip(subfolder));
+        }
 
         /// <summary>
         /// Get a usable filesystem path for the provided incomplete path.
@@ -95,17 +84,18 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="path">The subdirectory to use as a root.</param>
         /// <returns>A more specific storage.</returns>
-        public Storage GetStorageForDirectory(string path)
+        public virtual Storage GetStorageForDirectory(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Must be non-null and not empty string", nameof(path));
+
             if (!path.EndsWith(Path.DirectorySeparatorChar))
                 path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
-            GetFullPath(path, true);
+            var fullPath = GetFullPath(path, true);
 
-            var clone = (Storage)MemberwiseClone();
-            clone.SubDirectory = path;
-            return clone;
+            return (Storage)Activator.CreateInstance(GetType(), fullPath);
         }
 
         /// <summary>
