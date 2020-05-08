@@ -29,5 +29,16 @@ namespace osu.Framework.Tests.IO
                 Assert.AreEqual(Path.GetFullPath(Path.Combine(basePath, "sub", "test")), storage.GetFullPath("sub/test"));
             }
         }
+
+        [Test]
+        public void TestGetDirectory()
+        {
+            var guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.That(storage.GetStorageForDirectory(string.Empty).GetFullPath(string.Empty), Does.Contain(storage.GetFullPath(string.Empty)));
+            }
+        }
     }
 }
