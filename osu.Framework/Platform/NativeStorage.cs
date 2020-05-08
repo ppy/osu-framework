@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
@@ -92,9 +93,11 @@ namespace osu.Framework.Platform
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
 
-        public override Storage GetStorageForDirectory(string path)
+        public override Storage GetStorageForDirectory([NotNull] string path)
         {
-            if (!path.EndsWith(Path.DirectorySeparatorChar))
+            if (path == null) throw new ArgumentNullException(nameof(path));
+
+            if (path.Length > 0 && !path.EndsWith(Path.DirectorySeparatorChar))
                 path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
