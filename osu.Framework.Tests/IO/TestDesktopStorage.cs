@@ -31,6 +31,18 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test]
+        public void TestAttemptEscapeRoot()
+        {
+            var guid = new Guid().ToString();
+
+            using (var storage = new TemporaryNativeStorage(guid))
+            {
+                Assert.Throws<ArgumentException>(() => storage.GetStream("../test"));
+                Assert.Throws<ArgumentException>(() => storage.GetStorageForDirectory("../"));
+            }
+        }
+
+        [Test]
         public void TestGetSubDirectoryStorage()
         {
             var guid = new Guid().ToString();
