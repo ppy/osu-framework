@@ -26,7 +26,7 @@ namespace osu.Framework.iOS.Input
                 return;
 
             this.view = view;
-            view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate(view)));
+            view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
         }
 
@@ -45,14 +45,7 @@ namespace osu.Framework.iOS.Input
 
     public class IOSMouseDelegate: NSObject, IUIPointerInteractionDelegate
     {
-        private readonly IOSGameView view;
-
         public Action<CGPoint> LocationUpdated;
-
-        public IOSMouseDelegate(IOSGameView view)
-        {
-            this.view = view;
-        }
 
         [Export("pointerInteraction:regionForRequest:defaultRegion:")]
         public UIPointerRegion GetRegionForRequest(UIPointerInteraction interaction, UIPointerRegionRequest request, UIPointerRegion defaultRegion)
