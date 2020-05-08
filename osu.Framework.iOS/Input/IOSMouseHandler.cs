@@ -26,7 +26,7 @@ namespace osu.Framework.iOS.Input
                 return;
 
             this.view = view;
-            view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
+            view.Window.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
         }
 
