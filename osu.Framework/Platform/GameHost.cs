@@ -658,7 +658,7 @@ namespace osu.Framework.Platform
                 if (!handler.Initialize(this))
                 {
                     handler.Enabled.Value = false;
-                    break;
+                    continue;
                 }
 
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
