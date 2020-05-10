@@ -27,7 +27,10 @@ namespace osu.Framework.Platform.Windows
         public override void OpenFileExternally(string filename)
         {
             if (Directory.Exists(filename))
+            {
                 Process.Start("explorer.exe", filename);
+                return;
+            }
 
             base.OpenFileExternally(filename);
         }
