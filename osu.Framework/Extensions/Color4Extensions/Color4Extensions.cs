@@ -4,6 +4,7 @@
 using osuTK.Graphics;
 using System;
 using System.Globalization;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -259,5 +260,11 @@ namespace osu.Framework.Extensions.Color4Extensions
 
             return (h, s, v);
         }
+
+        public static Colour4 ToColour4(this Color4 colour) =>
+            new Colour4(colour.R, colour.G, colour.B, colour.A);
+
+        public static Color4 FromColour4(Colour4 colour) =>
+            new Color4(colour.R, colour.G, colour.B, colour.A);
     }
 }
