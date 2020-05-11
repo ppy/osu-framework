@@ -44,5 +44,20 @@ namespace osu.Framework.Graphics.Colour
         }
 
         #endregion
+
+        #region Operator Overloads
+
+        public static Colour4 operator *(Colour4 first, Colour4 second) =>
+            new Colour4(first.R * second.R, first.G * second.G, first.B * second.B, first.A * second.A);
+
+        public static Colour4 operator +(Colour4 first, Colour4 second) =>
+            new Colour4(first.R + second.R, first.G + second.G, first.B + second.B, first.A + second.A);
+
+        public static Colour4 operator *(Colour4 first, float second) =>
+            new Colour4(first.R * second, first.G * second, first.B * second, first.A * second);
+
+        public static Colour4 operator /(Colour4 first, float second) => first * (1 / second);
+
+        #endregion
     }
 }
