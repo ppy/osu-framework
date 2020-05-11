@@ -53,12 +53,31 @@ namespace osu.Framework.Graphics.Colour
             new Colour4(first.R * second.R, first.G * second.G, first.B * second.B, first.A * second.A);
 
         public static Colour4 operator +(Colour4 first, Colour4 second) =>
-            new Colour4(first.R + second.R, first.G + second.G, first.B + second.B, first.A + second.A);
+            new Colour4(
+                Math.Min(1f, first.R + second.R),
+                Math.Min(1f, first.G + second.G),
+                Math.Min(1f, first.B + second.B),
+                Math.Min(1f, first.A + second.A));
 
-        public static Colour4 operator *(Colour4 first, float second) =>
-            new Colour4(first.R * second, first.G * second, first.B * second, first.A * second);
+        public static Colour4 operator *(Colour4 first, float scalar)
+        {
+            if (scalar < 0)
+                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply colours by negative values.");
 
-        public static Colour4 operator /(Colour4 first, float second) => first * (1 / second);
+            return new Colour4(
+                Math.Min(1f, first.R * scalar),
+                Math.Min(1f, first.G * scalar),
+                Math.Min(1f, first.B * scalar),
+                Math.Min(1f, first.A * scalar));
+        }
+
+        public static Colour4 operator /(Colour4 first, float scalar)
+        {
+            if (scalar <= 0)
+                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot divide colours by non-positive values.");
+
+            return first * (1 / scalar);
+        }
 
         #endregion
 
