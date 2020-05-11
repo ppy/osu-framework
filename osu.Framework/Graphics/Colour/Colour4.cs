@@ -47,6 +47,55 @@ namespace osu.Framework.Graphics.Colour
 
         #endregion
 
+        #region Chaining Functions
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with the same RGB components, but multiplying the current alpha component by a scalar value.
+        /// The final alpha is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
+        /// <returns></returns>
+        public Colour4 MultiplyAlpha(float scalar)
+        {
+            if (scalar < 0)
+                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply alpha by a negative value.");
+
+            return new Colour4(R, G, B, Math.Min(1f, A * scalar));
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with the same RGB components and a specified alpha value.
+        /// The final alpha is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="alpha">The new alpha value for the returned colour, in the 0-1 range.</param>
+        public Colour4 Opacity(float alpha) => new Colour4(R, G, B, Math.Clamp(alpha, 0f, 1f));
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with the same RGB components and a specified alpha value.
+        /// The final alpha is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="alpha">The new alpha value for the returned colour, in the 0-255 range.</param>
+        public Colour4 Opacity(byte alpha) => new Colour4(R, G, B, Math.Clamp(alpha / (float)byte.MaxValue, 0f, 1f));
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with its individual components clamped to the 0-1 range.
+        /// </summary>
+        public Colour4 Clamped() => new Colour4(Math.Clamp(R, 0f, 1f), Math.Clamp(G, 0f, 1f), Math.Clamp(B, 0f, 1f), Math.Clamp(A, 0f, 1f));
+
+        /// <summary>
+        /// Returns a lightened version of the colour.
+        /// </summary>
+        /// <param name="amount">Percentage light addition</param>
+        public Colour4 Lighten(float amount) => this * (1 + amount);
+
+        /// <summary>
+        /// Returns a darkened version of the colour.
+        /// </summary>
+        /// <param name="amount">Percentage light reduction</param>
+        public Colour4 Darken(float amount) => this / (1 + amount);
+
+        #endregion
+
         #region Operator Overloads
 
         public static Colour4 operator *(Colour4 first, Colour4 second) =>
