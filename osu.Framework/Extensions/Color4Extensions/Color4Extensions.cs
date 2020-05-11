@@ -4,7 +4,6 @@
 using osuTK.Graphics;
 using System;
 using System.Globalization;
-using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
