@@ -3,7 +3,7 @@
 
 using System;
 
-namespace osu.Framework.Graphics.Colour
+namespace osu.Framework.Graphics
 {
     /// <summary>
     /// Represents an RGBA colour in the linear colour space, having colour components in the range 0-1.
