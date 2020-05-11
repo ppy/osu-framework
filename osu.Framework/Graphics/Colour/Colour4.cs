@@ -5,6 +5,9 @@ using System;
 
 namespace osu.Framework.Graphics.Colour
 {
+    /// <summary>
+    /// Represents an RGBA colour in the linear colour space, having colour components in the range 0-1.
+    /// </summary>
     public readonly struct Colour4 : IEquatable<Colour4>
     {
         /// <summary>
@@ -29,6 +32,13 @@ namespace osu.Framework.Graphics.Colour
 
         #region Constructors
 
+        /// <summary>
+        /// Creates a new <see cref="Colour4"/> with the specified RGBA components in the 0-1 range.
+        /// </summary>
+        /// <param name="r">The red component, in the 0-1 range.</param>
+        /// <param name="g">The green component, in the 0-1 range.</param>
+        /// <param name="b">The blue component, in the 0-1 range.</param>
+        /// <param name="a">The alpha component, in the 0-1 range.</param>
         public Colour4(float r, float g, float b, float a)
         {
             R = r;
@@ -37,6 +47,13 @@ namespace osu.Framework.Graphics.Colour
             A = a;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="Colour4"/> with the specified RGBA components in the 0-255 range.
+        /// </summary>
+        /// <param name="r">The red component, in the 0-255 range.</param>
+        /// <param name="g">The green component, in the 0-255 range.</param>
+        /// <param name="b">The blue component, in the 0-255 range.</param>
+        /// <param name="a">The alpha component, in the 0-255 range.</param>
         public Colour4(byte r, byte g, byte b, byte a)
         {
             R = r / (float)byte.MaxValue;
@@ -98,9 +115,19 @@ namespace osu.Framework.Graphics.Colour
 
         #region Operator Overloads
 
+        /// <summary>
+        /// Multiplies two colours in the linear colour space.
+        /// </summary>
+        /// <param name="first">The left hand side of the multiplication.</param>
+        /// <param name="second">The right hand side of the multiplication.</param>
         public static Colour4 operator *(Colour4 first, Colour4 second) =>
             new Colour4(first.R * second.R, first.G * second.G, first.B * second.B, first.A * second.A);
 
+        /// <summary>
+        /// Adds two colours in the linear colour space. The final value is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="first">The left hand side of the addition.</param>
+        /// <param name="second">The right hand side of the addition.</param>
         public static Colour4 operator +(Colour4 first, Colour4 second) =>
             new Colour4(
                 Math.Min(1f, first.R + second.R),
@@ -108,25 +135,51 @@ namespace osu.Framework.Graphics.Colour
                 Math.Min(1f, first.B + second.B),
                 Math.Min(1f, first.A + second.A));
 
-        public static Colour4 operator *(Colour4 first, float scalar)
+        /// <summary>
+        /// Linearly multiplies a colour by a scalar value. The final value is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="colour">The original colour.</param>
+        /// <param name="scalar">The scalar value to multiply by. Must not be negative.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is negative.</exception>
+        public static Colour4 operator *(Colour4 colour, float scalar)
         {
             if (scalar < 0)
                 throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply colours by negative values.");
 
             return new Colour4(
-                Math.Min(1f, first.R * scalar),
-                Math.Min(1f, first.G * scalar),
-                Math.Min(1f, first.B * scalar),
-                Math.Min(1f, first.A * scalar));
+                Math.Min(1f, colour.R * scalar),
+                Math.Min(1f, colour.G * scalar),
+                Math.Min(1f, colour.B * scalar),
+                Math.Min(1f, colour.A * scalar));
         }
 
-        public static Colour4 operator /(Colour4 first, float scalar)
+        /// <summary>
+        /// Linearly divides a colour by a scalar value. The final value is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="colour">The original colour.</param>
+        /// <param name="scalar">The scalar value to divide by. Must be positive.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is zero or negative.</exception>
+        public static Colour4 operator /(Colour4 colour, float scalar)
         {
             if (scalar <= 0)
                 throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot divide colours by non-positive values.");
 
-            return first * (1 / scalar);
+            return colour * (1 / scalar);
         }
+
+        /// <summary>
+        /// Performs a <see cref="Colour4"/> equality check using the <see cref="IEquatable{T}"/> implementation.
+        /// </summary>
+        /// <param name="first">The left hand side of the equation.</param>
+        /// <param name="second">The right hand side of the equation.</param>
+        public static bool operator ==(Colour4 first, Colour4 second) => first.Equals(second);
+
+        /// <summary>
+        /// Performs a <see cref="Colour4"/> inequality check using the <see cref="IEquatable{T}"/> implementation.
+        /// </summary>
+        /// <param name="first">The left hand side of the equation.</param>
+        /// <param name="second">The right hand side of the equation.</param>
+        public static bool operator !=(Colour4 first, Colour4 second) => !first.Equals(second);
 
         #endregion
 
