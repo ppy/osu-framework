@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
@@ -180,6 +181,22 @@ namespace osu.Framework.Graphics
         /// <param name="first">The left hand side of the equation.</param>
         /// <param name="second">The right hand side of the equation.</param>
         public static bool operator !=(Colour4 first, Colour4 second) => !first.Equals(second);
+
+        /// <summary>
+        /// Converts an osuTK <see cref="Color4"/> to an osu!framework <see cref="Colour4"/>.
+        /// </summary>
+        /// <param name="colour">The osuTK <see cref="Color4"/> to convert.</param>
+        [Obsolete("Will be removed in future alongside osuTK.")]
+        public static implicit operator Colour4(Color4 colour) =>
+            new Colour4(colour.R, colour.G, colour.B, colour.A);
+
+        /// <summary>
+        /// Converts an osu!framework <see cref="Colour4"/> to an osuTK <see cref="Color4"/>.
+        /// </summary>
+        /// <param name="colour">The osu!framework <see cref="Colour4"/> to convert.</param>
+        [Obsolete("Will be removed in future alongside osuTK.")]
+        public static implicit operator Color4(Colour4 colour) =>
+            new Color4(colour.R, colour.G, colour.B, colour.A);
 
         #endregion
 

@@ -260,19 +260,5 @@ namespace osu.Framework.Extensions.Color4Extensions
 
             return (h, s, v);
         }
-
-        /// <summary>
-        /// Converts an osuTK <see cref="Color4"/> to an osu!framework <see cref="Colour4"/>.
-        /// </summary>
-        /// <param name="colour">The osuTK <see cref="Color4"/> to convert.</param>
-        public static Colour4 ToColour4(this Color4 colour) =>
-            new Colour4(colour.R, colour.G, colour.B, colour.A);
-
-        /// <summary>
-        /// Converts an osu!framework <see cref="Colour4"/> to an osuTK <see cref="Color4"/>.
-        /// </summary>
-        /// <param name="colour">The osu!framework <see cref="Colour4"/> to convert.</param>
-        public static Color4 FromColour4(Colour4 colour) =>
-            new Color4(colour.R, colour.G, colour.B, colour.A);
     }
 }
