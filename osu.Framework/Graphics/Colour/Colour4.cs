@@ -1,9 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Graphics.Colour
 {
-    public readonly struct Colour4
+    public readonly struct Colour4 : IEquatable<Colour4>
     {
         /// <summary>
         /// Represents the red component of the linear RGBA colour in the 0-1 range.
@@ -59,5 +61,19 @@ namespace osu.Framework.Graphics.Colour
         public static Colour4 operator /(Colour4 first, float second) => first * (1 / second);
 
         #endregion
+
+        #region Equality
+
+        public bool Equals(Colour4 other) =>
+            R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
+
+        public override bool Equals(object obj) =>
+            obj is Colour4 other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(R, G, B, A);
+
+        #endregion
+
+        public override string ToString() => $"(R, G, B, A) = ({R:F}, {G:F}, {B:F}, {A:F})";
     }
 }
