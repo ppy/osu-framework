@@ -402,7 +402,7 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer.AsMemory(0, buffer_size), cancellationToken);
+                    int read = await responseStream.ReadAsync(buffer.AsMemory(), cancellationToken);
 
                     reportForwardProgress();
 
