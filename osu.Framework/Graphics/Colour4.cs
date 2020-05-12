@@ -200,6 +200,28 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        #region Conversion
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with an SRGB->Linear conversion applied
+        /// to each of its chromatic components. Alpha is unchanged.
+        /// </summary>
+        public Colour4 ToLinear() => new Colour4((float)toLinear(R), (float)toLinear(G), (float)toLinear(B), A);
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> with a Linear->SRGB conversion applied
+        /// to each of its chromatic components. Alpha is unchanged.
+        /// </summary>
+        public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
+
+        private const double gamma = 2.4;
+
+        private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
+
+        private static double toSRGB(double color) => color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / gamma) - 0.055;
+
+        #endregion
+
         #region Equality
 
         public bool Equals(Colour4 other) =>
