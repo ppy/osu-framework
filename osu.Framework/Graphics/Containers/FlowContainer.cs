@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
-using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,6 +17,12 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         internal event Action OnLayout;
+
+        protected FlowContainer()
+        {
+            AddLayout(layout);
+            AddLayout(childLayout);
+        }
 
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
@@ -54,7 +60,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Cached layout = new Cached();
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.DrawSize);
+        private readonly LayoutValue childLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -62,14 +69,6 @@ namespace osu.Framework.Graphics.Containers
         /// Invoked when layout should be invalidated.
         /// </summary>
         protected virtual void InvalidateLayout() => layout.Invalidate();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                InvalidateLayout();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
@@ -150,14 +149,6 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                InvalidateLayout();
-
-            base.InvalidateFromChild(invalidation, source);
-        }
-
         /// <summary>
         /// Gets the children that appear in the flow of this <see cref="FlowContainer{T}"/> in the order in which they are processed within the flowing layout.
         /// </summary>
@@ -213,6 +204,12 @@ namespace osu.Framework.Graphics.Containers
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if (!childLayout.IsValid)
+            {
+                layout.Invalidate();
+                childLayout.Validate();
+            }
 
             if (!layout.IsValid)
             {

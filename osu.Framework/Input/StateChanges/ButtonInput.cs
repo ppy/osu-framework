@@ -72,21 +72,8 @@ namespace osu.Framework.Input.StateChanges
                 {
                     var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
                     handler.HandleInputStateChange(buttonStateChange);
-
-                    OnButtonStateChanged(state, entry.Button, entry.IsPressed);
                 }
             }
-        }
-
-        /// <summary>
-        /// Invoked when a <paramref name="button"/>'s pressed state changed after it's handled on <see cref="IInputStateChangeHandler"/>.
-        /// Used to apply other changes than just setting <see cref="button"/>'s new state.
-        /// </summary>
-        /// <param name="state">The current <see cref="InputState"/>.</param>
-        /// <param name="button">The button that its state changed.</param>
-        /// <param name="isPressed">Whether the button is now pressed.</param>
-        protected virtual void OnButtonStateChanged(InputState state, TButton button, bool isPressed)
-        {
         }
     }
 }

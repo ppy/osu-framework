@@ -34,6 +34,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
+        /// <summary>
+        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// </summary>
+        public ulong BindCount { get; private set; }
+
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
@@ -69,9 +74,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             GL.DeleteTextures(1, new[] { disposableId });
 
-            textureId = 0;
-
             memoryLease?.Dispose();
+
+            textureId = 0;
         }
 
         #endregion
@@ -301,7 +306,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
-                if (requireUpload)
+
+                if (requireUpload && !BypassTextureUploadQueueing)
                     GLWrapper.EnqueueTextureUpload(this);
             }
         }
@@ -319,7 +325,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(this, unit);
+            if (GLWrapper.BindTexture(this, unit))
+                BindCount++;
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();
@@ -344,7 +351,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 using (upload)
                 {
                     fixed (Rgba32* ptr = upload.Data)
-                        doUpload(upload, (IntPtr)ptr);
+                        DoUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
                 }
@@ -380,7 +387,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
+        protected virtual void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
             // Do we need to generate a new texture?
             if (textureId <= 0 || internalWidth != width || internalHeight != height)

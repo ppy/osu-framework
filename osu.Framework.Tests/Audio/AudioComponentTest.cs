@@ -37,6 +37,8 @@ namespace osu.Framework.Tests.Audio
 
             thread.Exit();
 
+            manager?.Dispose();
+
             Thread.Sleep(500);
 
             Assert.IsTrue(thread.Exited);

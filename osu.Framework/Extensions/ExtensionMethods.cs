@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using osu.Framework.Platform;
 using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
@@ -255,5 +256,22 @@ namespace osu.Framework.Extensions
         /// <returns>The standardised path string.</returns>
         public static string ToStandardisedPath(this string path)
             => path.Replace('\\', '/');
+
+        /// <summary>
+        /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
+        /// </summary>
+        /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
+        /// <returns>A <see cref="Display"/> structure populated with the corresponding properties and <see cref="DisplayMode"/>s.</returns>
+        internal static Display ToDisplay(this DisplayDevice device) =>
+            new Display((int)device.GetIndex(), device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
+
+        /// <summary>
+        /// Converts an osuTK <see cref="DisplayResolution"/> to a <see cref="DisplayMode"/> structure.
+        /// It is not possible to retrieve the pixel format from <see cref="DisplayResolution"/>.
+        /// </summary>
+        /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
+        /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
+        internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate));
     }
 }

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osuTK;
 using osuTK.Platform;
 
 namespace osu.Framework.Platform
@@ -53,17 +52,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the vertical sync mode of the screen.
         /// </summary>
-        VSyncMode VSync { get; set; }
+        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
-
-        /// <summary>
-        /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
-        /// </summary>
-        DisplayDevice CurrentDisplay { get; }
 
         /// <summary>
         /// Whether this <see cref="IWindow"/> is active (in the foreground).
@@ -83,8 +77,23 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
-        /// Available resolutions for full-screen display.
+        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
         /// </summary>
-        IEnumerable<DisplayResolution> AvailableResolutions { get; }
+        IEnumerable<Display> Displays { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
+        /// </summary>
+        Display PrimaryDisplay { get; }
+
+        /// <summary>
+        /// Exposes the <see cref="Display"/> that this window is currently on as a <see cref="Bindable{Display}"/>.
+        /// </summary>
+        Bindable<Display> CurrentDisplay { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// </summary>
+        DisplayMode CurrentDisplayMode { get; }
     }
 }

@@ -30,7 +30,7 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (Window.VSync != VSyncMode.On)
+            if (!Window.VerticalSync)
                 GL.Finish();
         }
 
@@ -66,7 +66,9 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.S), new PlatformAction(PlatformActionType.Save)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Up), new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Down), new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move))
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Down), new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Z), new PlatformAction(PlatformActionType.Undo)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Z), new PlatformAction(PlatformActionType.Redo)),
         };
     }
 }

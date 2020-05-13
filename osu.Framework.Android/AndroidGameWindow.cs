@@ -52,7 +52,7 @@ namespace osu.Framework.Android
             View.Run(updateRate);
         }
 
-        public override DisplayDevice CurrentDisplay
+        protected override DisplayDevice CurrentDisplayDevice
         {
             get => DisplayDevice.Default;
             set => throw new InvalidOperationException();
