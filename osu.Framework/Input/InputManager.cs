@@ -529,10 +529,26 @@ namespace osu.Framework.Input
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
                     return;
 
+                case JoystickAxisChangeEvent joystickAxisChangeEvent:
+                    HandleJoystickAxisChange(joystickAxisChangeEvent);
+                    return;
+
                 case ButtonStateChangeEvent<MidiKey> midiKeyStateChange:
                     HandleMidiKeyStateChange(midiKeyStateChange);
                     return;
             }
+        }
+
+        protected virtual void HandleJoystickAxisChange(JoystickAxisChangeEvent e)
+        {
+            var currentAxes = CurrentState.Joystick.Axes;
+
+            if (currentAxes.Any(a => a.Axis == e.Axis))
+            {
+                currentAxes.Remove(currentAxes.First(a => a.Axis == e.Axis));
+            }
+
+            currentAxes.Add(new JoystickAxis(e.Axis, e.Value));
         }
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
