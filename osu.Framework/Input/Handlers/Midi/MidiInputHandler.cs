@@ -32,16 +32,15 @@ namespace osu.Framework.Input.Handlers.Midi
 
         public override bool Initialize(GameHost host)
         {
-            // Try to initialize. This can throw on Linux if asound cannot be found.
             try
             {
-                var unused = MidiAccessManager.Default.Inputs.ToList();
+                refreshDevices();
             }
             catch (Exception e)
             {
                 Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
-                    ? "Couldn't list input devices, is libasound2-dev installed?"
-                    : "Couldn't list input devices.");
+                    ? "Couldn't list input devices. Is libasound2-dev installed?"
+                    : "Couldn't list input devices. There may be another application already using MIDI.");
                 return false;
             }
 
