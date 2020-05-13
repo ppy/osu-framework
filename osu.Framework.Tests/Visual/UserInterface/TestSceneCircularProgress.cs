@@ -177,7 +177,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 128, 128, 255);
+                    clock.Colour = new Color4(255, 88, 88, 255);
                     break;
 
                 case 2:

@@ -51,7 +51,6 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
-        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/>, <see cref="InputState.Touch"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
         protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new TouchState(), new JoystickState());
 
@@ -491,7 +490,7 @@ namespace osu.Framework.Input
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
 
-                case MouseButtonStateChangeEvent mouseButtonStateChange:
+                case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
@@ -529,7 +528,7 @@ namespace osu.Framework.Input
             handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
-        protected virtual void HandleMouseButtonStateChange(MouseButtonStateChangeEvent e)
+        protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
                 manager.HandleButtonStateChange(e.State, e.Kind);

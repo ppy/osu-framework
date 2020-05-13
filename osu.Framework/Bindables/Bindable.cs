@@ -8,6 +8,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
@@ -237,7 +238,7 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            Type underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
 
             switch (input)
             {

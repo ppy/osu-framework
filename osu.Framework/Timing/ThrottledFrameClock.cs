@@ -18,6 +18,11 @@ namespace osu.Framework.Timing
         public double MaximumUpdateHz = 1000.0;
 
         /// <summary>
+        /// Whether throttling should be enabled. Defaults to true.
+        /// </summary>
+        public bool Throttling = true;
+
+        /// <summary>
         /// The time spent in a Thread.Sleep state during the last frame.
         /// </summary>
         public double TimeSlept { get; private set; }
@@ -28,15 +33,22 @@ namespace osu.Framework.Timing
 
             base.ProcessFrame();
 
-            if (MaximumUpdateHz > 0)
+            if (Throttling)
             {
-                throttle();
+                if (MaximumUpdateHz > 0)
+                {
+                    throttle();
+                }
+                else
+                {
+                    // Even when running at unlimited frame-rate, we should call the scheduler
+                    // to give lower-priority background processes a chance to do work.
+                    TimeSlept = sleepAndUpdateCurrent(0);
+                }
             }
             else
             {
-                // Even when running at unlimited frame-rate, we should call the scheduler
-                // to give lower-priority background processes a chance to do work.
-                TimeSlept = sleepAndUpdateCurrent(0);
+                TimeSlept = 0;
             }
 
             Debug.Assert(TimeSlept <= ElapsedFrameTime);

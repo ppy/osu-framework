@@ -3,7 +3,6 @@
 
 using System;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -15,14 +14,14 @@ namespace osu.Framework.Input
         /// <summary>
         /// The source of this touch.
         /// </summary>
-        public readonly MouseButton Source;
+        public readonly TouchSource Source;
 
         /// <summary>
         /// The current position of this touch.
         /// </summary>
         public readonly Vector2 Position;
 
-        public Touch(MouseButton source, Vector2 position)
+        public Touch(TouchSource source, Vector2 position)
         {
             Source = source;
             Position = position;

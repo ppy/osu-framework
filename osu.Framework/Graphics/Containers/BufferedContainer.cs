@@ -9,8 +9,8 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Utils;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -232,8 +232,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        protected override bool CanBeFlattened => false;
-
         public IShader TextureShader { get; private set; }
 
         public IShader RoundedTextureShader { get; private set; }
@@ -251,6 +249,8 @@ namespace osu.Framework.Graphics.Containers
         public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
         {
             sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
+
+            AddLayout(screenSpaceSizeBacking);
         }
 
         [BackgroundDependencyLoader]
@@ -266,18 +266,21 @@ namespace osu.Framework.Graphics.Containers
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
-        private readonly Cached screenSpaceSizeBacking = new Cached();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo
+        private readonly LayoutValue screenSpaceSizeBacking = new LayoutValue(Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo);
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
+            var result = base.OnInvalidate(invalidation, source);
+
             if ((invalidation & Invalidation.DrawNode) > 0)
+            {
                 ++updateVersion;
+                result = true;
+            }
 
-            // We actually only care about Invalidation.MiscGeometry | Invalidation.DrawInfo, but must match the blanket invalidation logic in Drawable.Invalidate
-            if ((invalidation & (Invalidation.Presence | Invalidation.RequiredParentSizeToFit | Invalidation.DrawInfo)) > 0)
-                screenSpaceSizeBacking.Invalidate();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
+            return result;
         }
 
         private long childrenUpdateVersion = -1;
@@ -342,7 +345,17 @@ namespace osu.Framework.Graphics.Containers
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
         // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
-        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+        public override DrawColourInfo DrawColourInfo
+        {
+            get
+            {
+                // Todo: This is incorrect.
+                var blending = Blending;
+                blending.ApplyDefaultToInherited();
+
+                return new DrawColourInfo(Color4.White, blending);
+            }
+        }
 
         protected override void Dispose(bool isDisposing)
         {
