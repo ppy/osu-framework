@@ -94,6 +94,8 @@ namespace osu.Framework.Input.Handlers.Midi
                 Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
                     ? "Couldn't list input devices. Is libasound2-dev installed?"
                     : "Couldn't list input devices. There may be another application already using MIDI.");
+
+                Enabled.Value = false;
                 return false;
             }
         }
