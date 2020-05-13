@@ -251,7 +251,7 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
-            if (!RuntimeInfo.IsMobile)
+            if (RuntimeInfo.IsDesktop)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestScene>();
                 backgroundCompiler.CompilationStarted += compileStarted;
