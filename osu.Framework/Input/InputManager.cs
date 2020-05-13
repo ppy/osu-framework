@@ -502,7 +502,7 @@ namespace osu.Framework.Input
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
-        protected virtual void HandleMidiKeyStateChange(MidiStateChangeEvent midiKeyStateChange)
+        protected virtual void HandleMidiKeyStateChange(ButtonStateChangeEvent<MidiKey> midiKeyStateChange)
             => GetButtonEventManagerFor(midiKeyStateChange.Button).HandleButtonStateChange(midiKeyStateChange.State, midiKeyStateChange.Kind);
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
@@ -529,7 +529,7 @@ namespace osu.Framework.Input
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
                     return;
 
-                case MidiStateChangeEvent midiKeyStateChange:
+                case ButtonStateChangeEvent<MidiKey> midiKeyStateChange:
                     HandleMidiKeyStateChange(midiKeyStateChange);
                     return;
             }
