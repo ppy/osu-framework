@@ -14,16 +14,16 @@ namespace osu.Framework.Input.StateChanges.Events
         public readonly Touch Touch;
 
         /// <summary>
-        /// Whether the <see cref="Touch"/> is currently active.
+        /// Whether the <see cref="Touch"/> became active, or null if no activity change occurred.
         /// </summary>
-        public readonly bool IsActive;
+        public readonly bool? IsActive;
 
         /// <summary>
         /// The last position of this <see cref="Touch"/>, or null if no position change occurred.
         /// </summary>
         public readonly Vector2? LastPosition;
 
-        public TouchStateChangeEvent(InputState state, IInput input, Touch touch, bool active, Vector2? lastPosition)
+        public TouchStateChangeEvent(InputState state, IInput input, Touch touch, bool? active, Vector2? lastPosition)
             : base(state, input)
         {
             Touch = touch;
