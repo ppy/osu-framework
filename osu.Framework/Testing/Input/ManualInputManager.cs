@@ -53,8 +53,7 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Drawable drawable, Vector2? offset = null) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre) + (offset ?? Vector2.Zero));
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
-        public void MoveTouchTo(Drawable drawable, MouseButton source) => MoveTouchTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre), source);
-        public void MoveTouchTo(Vector2 position, MouseButton source) => Input(new TouchPositionInput(source, position));
+        public void MoveTouchTo(Vector2 position, TouchSource source) => Input(new TouchInput(new Touch(source, position), CurrentState.Touch.IsActive(source)));
 
         public void Click(MouseButton button)
         {
@@ -68,17 +67,9 @@ namespace osu.Framework.Testing.Input
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
 
-        public void ActivateTouch(MouseButton source) => Input(new TouchActivityInput(source, true));
+        public void ActivateTouch(Touch touch) => Input(new TouchInput(touch, true));
 
-        public void ActivateTouchAt(Drawable drawable, MouseButton source) => ActivateTouchAt(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre), source);
-
-        public void ActivateTouchAt(Vector2 position, MouseButton source)
-        {
-            MoveTouchTo(position, source);
-            ActivateTouch(source);
-        }
-
-        public void DeactivateTouch(MouseButton source) => Input(new TouchActivityInput(source, false));
+        public void DeactivateTouch(Touch touch) => Input(new TouchInput(touch, false));
 
         private class ManualInputHandler : InputHandler
         {
