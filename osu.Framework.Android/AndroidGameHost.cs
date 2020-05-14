@@ -9,6 +9,7 @@ using Android.Content;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
@@ -33,6 +34,14 @@ namespace osu.Framework.Android
         {
             base.SetupForRun();
             AndroidGameWindow.View = gameView;
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
+                defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
+
+            base.SetupConfig(defaultOverrides);
         }
 
         protected override IWindow CreateWindow() => new AndroidGameWindow();

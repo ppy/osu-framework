@@ -159,8 +159,11 @@ namespace osu.Framework.Input.Bindings
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
             if (KeyCombination.IsModifierKey(newKey))
+            {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
+                // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
+            }
 
             // we want to always handle bindings with more keys before bindings with less.
             newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();

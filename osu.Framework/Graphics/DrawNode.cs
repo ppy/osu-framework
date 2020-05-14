@@ -132,7 +132,6 @@ namespace osu.Framework.Graphics
         /// <param name="vertexAction">The action to be performed on each vertex of the draw node in order to draw it if required. This is primarily used by textured sprites.</param>
         protected virtual void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
         {
-            GLWrapper.SetBlend(DrawColourInfo.Blending);
             GLWrapper.SetDrawDepth(drawDepth);
         }
 

@@ -38,11 +38,11 @@ namespace osu.Framework.Platform
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
-        public override DisplayDevice CurrentDisplay
+        protected override DisplayDevice CurrentDisplayDevice
         {
             set
             {
-                if (value == null || value == CurrentDisplay) return;
+                if (value == null || value == CurrentDisplayDevice) return;
 
                 var windowMode = WindowMode.Value;
                 WindowMode.Value = Configuration.WindowMode.Windowed;
@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplay.AvailableResolutions;
+        public override IEnumerable<DisplayResolution> AvailableResolutions => CurrentDisplayDevice.AvailableResolutions;
 
         protected override IEnumerable<WindowMode> DefaultSupportedWindowModes => new[]
         {
@@ -64,11 +64,27 @@ namespace osu.Framework.Platform
             Configuration.WindowMode.Fullscreen,
         };
 
+        /// <summary>
+        /// osuTK's list of available <see cref="DisplayDevice"/>s is private, but it assumes a maximum
+        /// of six devices. These are defined in the <see cref="DisplayIndex"/> enum, and a call to
+        /// <see cref="DisplayDevice.GetDisplay"/> with an invalid index will return null (which we skip).
+        /// </summary>
+        public override IEnumerable<Display> Displays =>
+            Enumerable.Range((int)DisplayIndex.First, 6)
+                      .Select(index => DisplayDevice.GetDisplay((DisplayIndex)index))
+                      .Where(x => x != null)
+                      .Select(ExtensionMethods.ToDisplay);
+
         protected DesktopGameWindow()
             : base(default_width, default_height)
         {
             Resize += OnResize;
             Move += OnMove;
+
+            // Changing the CurrentDisplay bindable should update the position of the window accordingly.
+            // Note that this must be done on the windowing thread to avoid potential deadlocks or strange behaviour.
+            CurrentDisplay.ValueChanged += evt =>
+                UpdateFrameScheduler.Add(() => CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)evt.NewValue.Index));
         }
 
         public virtual void SetIconFromStream(Stream stream)
@@ -81,13 +97,13 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += e =>
             {
-                if (WindowState == WindowState.Fullscreen)
-                    ChangeResolution(CurrentDisplay, e.NewValue);
+                if (WindowState == osuTK.WindowState.Fullscreen)
+                    ChangeResolution(CurrentDisplayDevice, e.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>
             {
-                if (WindowState == WindowState.Normal)
+                if (WindowState == osuTK.WindowState.Normal)
                     ClientSize = sizeWindowed.Value;
             };
 
@@ -162,10 +178,10 @@ namespace osu.Framework.Platform
                 windowPositionY.Value = Position.Y;
             }
 
-            windowDisplayIndex.Value = CurrentDisplay.GetIndex();
+            windowDisplayIndex.Value = CurrentDisplayDevice.GetIndex();
         }
 
-        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplay = DisplayDevice.GetDisplay(args.NewValue);
+        private void windowDisplayIndexChanged(ValueChangedEvent<DisplayIndex> args) => CurrentDisplayDevice = DisplayDevice.GetDisplay(args.NewValue);
 
         private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
         {
@@ -188,9 +204,11 @@ namespace osu.Framework.Platform
                 CursorState &= ~CursorState.Confined;
         }
 
-        public void CentreToScreen(DisplayDevice display = null)
+        public void CentreToScreen(Display display = null)
         {
-            if (display != null) CurrentDisplay = display;
+            if (display != null)
+                CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)display.Index);
+
             Position = new Vector2(0.5f);
         }
 
@@ -198,7 +216,7 @@ namespace osu.Framework.Platform
 
         protected virtual void UpdateWindowMode(WindowMode newMode)
         {
-            var currentDisplay = CurrentDisplay;
+            var currentDisplay = CurrentDisplayDevice;
 
             try
             {
@@ -210,7 +228,7 @@ namespace osu.Framework.Platform
                         ChangeResolution(currentDisplay, sizeFullscreen.Value);
                         lastFullscreenDisplay = currentDisplay;
 
-                        WindowState = WindowState.Fullscreen;
+                        WindowState = osuTK.WindowState.Fullscreen;
                         break;
 
                     case Configuration.WindowMode.Borderless:
@@ -218,7 +236,7 @@ namespace osu.Framework.Platform
                             RestoreResolution(lastFullscreenDisplay);
                         lastFullscreenDisplay = null;
 
-                        WindowState = WindowState.Maximized;
+                        WindowState = osuTK.WindowState.Maximized;
                         WindowBorder = WindowBorder.Hidden;
 
                         // must add 1 to enter borderless
@@ -233,7 +251,7 @@ namespace osu.Framework.Platform
 
                         var newSize = sizeWindowed.Value;
 
-                        WindowState = WindowState.Normal;
+                        WindowState = osuTK.WindowState.Normal;
                         WindowBorder = WindowBorder.Resizable;
 
                         ClientSize = newSize;
@@ -267,7 +285,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                var display = CurrentDisplay;
+                var display = CurrentDisplayDevice;
                 var relativeLocation = new Point(Location.X - display.Bounds.X, Location.Y - display.Bounds.Y);
 
                 return new Vector2(
@@ -276,7 +294,7 @@ namespace osu.Framework.Platform
             }
             set
             {
-                var display = CurrentDisplay;
+                var display = CurrentDisplayDevice;
 
                 var relativeLocation = new Point(
                     (int)Math.Round((display.Width - Size.Width) * value.X),

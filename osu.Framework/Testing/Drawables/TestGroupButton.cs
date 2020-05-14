@@ -23,7 +23,7 @@ namespace osu.Framework.Testing.Drawables
 
         public IEnumerable<IFilterable> FilterableChildren => buttonFlow.Children;
 
-        private readonly FillFlowContainer<TestSceneButton> buttonFlow;
+        private readonly FillFlowContainer<TestButtonBase> buttonFlow;
         private readonly TestButton headerButton;
 
         public readonly TestGroup Group;
@@ -52,7 +52,7 @@ namespace osu.Framework.Testing.Drawables
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            Child = buttonFlow = new FillFlowContainer<TestSceneButton>
+            Child = buttonFlow = new FillFlowContainer<TestButtonBase>
             {
                 Direction = FillDirection.Vertical,
                 AutoSizeAxes = Axes.Y,
@@ -66,7 +66,7 @@ namespace osu.Framework.Testing.Drawables
 
             foreach (var test in tests)
             {
-                buttonFlow.Add(new TestSceneSubButton(test, 1)
+                buttonFlow.Add(new TestSubButton(test, 1)
                 {
                     Action = () => loadTest(test)
                 });

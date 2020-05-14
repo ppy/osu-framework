@@ -36,6 +36,8 @@ namespace osu.Framework.Tests.Audio
 
             thread.Exit();
 
+            Manager?.Dispose();
+
             WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
         }
 

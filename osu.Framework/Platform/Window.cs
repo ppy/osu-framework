@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -12,8 +13,6 @@ using osu.Framework.Input.StateChanges;
 using osuTK;
 using osuTK.Input;
 using osuTK.Platform;
-using Vector2 = System.Numerics.Vector2;
-using WindowState = Veldrid.WindowState;
 
 namespace osu.Framework.Platform
 {
@@ -58,6 +57,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public float Scale => windowBackend.Scale;
 
+        public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
+
+        public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
+
+        public IEnumerable<Display> Displays => windowBackend.Displays;
+
+        public WindowMode DefaultWindowMode => WindowMode.Windowed;
+
         #endregion
 
         #region Mutable Bindables
@@ -65,12 +72,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's position.
         /// </summary>
-        public Bindable<Vector2> Position { get; } = new Bindable<Vector2>();
+        public Bindable<Point> Position { get; } = new Bindable<Point>();
 
         /// <summary>
         /// Provides a bindable that controls the window's unscaled internal size.
         /// </summary>
-        public Bindable<Vector2> Size { get; } = new Bindable<Vector2>();
+        public Bindable<Size> Size { get; } = new BindableSize();
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="WindowState"/>.
@@ -85,11 +92,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
         /// </summary>
-        public Bindable<bool> Visible { get; } = new Bindable<bool>();
+        public Bindable<bool> Visible { get; } = new BindableBool();
+
+        public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
         #endregion
 
         #region Immutable Bindables
+
+        private readonly BindableBool isActive = new BindableBool(true);
+
+        public IBindable<bool> IsActive => isActive;
 
         private readonly BindableBool focused = new BindableBool();
 
@@ -104,6 +117,10 @@ namespace osu.Framework.Platform
         /// Provides a read-only bindable that monitors the whether the cursor is in the window.
         /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
+
+        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>(Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>());
+
+        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
         #endregion
 
@@ -162,7 +179,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the window moves.
         /// </summary>
-        public event Action<Vector2> Moved;
+        public event Action<Point> Moved;
 
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
@@ -218,7 +235,7 @@ namespace osu.Framework.Platform
         protected virtual void OnHidden() => Hidden?.Invoke();
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Vector2 point) => Moved?.Invoke(point);
+        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
         protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
         protected virtual void OnMouseMove(MousePositionAbsoluteInput evt) => MouseMove?.Invoke(evt);
         protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
@@ -296,7 +313,12 @@ namespace osu.Framework.Platform
             windowBackend.MouseWheel += OnMouseWheel;
             windowBackend.DragDrop += OnDragDrop;
 
+            windowBackend.DisplayChanged += d => CurrentDisplay.Value = d;
+
             graphicsBackend.Initialise(windowBackend);
+
+            CurrentDisplay.Value = windowBackend.CurrentDisplay;
+            CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
         }
 
         #endregion
@@ -323,6 +345,16 @@ namespace osu.Framework.Platform
         /// May be unrequired for some backends.
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
+
+        public void CycleMode()
+        {
+            // TODO: CycleMode
+        }
+
+        public void SetupWindow(FrameworkConfigManager config)
+        {
+            // TODO: SetupWindow
+        }
 
         #endregion
 
@@ -353,7 +385,7 @@ namespace osu.Framework.Platform
             OnResized();
         }
 
-        private void windowBackend_Moved(Vector2 point)
+        private void windowBackend_Moved(Point point)
         {
             if (!boundsChanging)
             {
@@ -365,7 +397,7 @@ namespace osu.Framework.Platform
             OnMoved(point);
         }
 
-        private void position_ValueChanged(ValueChangedEvent<Vector2> evt)
+        private void position_ValueChanged(ValueChangedEvent<Point> evt)
         {
             if (boundsChanging)
                 return;
@@ -375,7 +407,7 @@ namespace osu.Framework.Platform
             boundsChanging = false;
         }
 
-        private void size_ValueChanged(ValueChangedEvent<Vector2> evt)
+        private void size_ValueChanged(ValueChangedEvent<Size> evt)
         {
             if (boundsChanging)
                 return;
@@ -394,7 +426,7 @@ namespace osu.Framework.Platform
         osuTK.WindowState INativeWindow.WindowState
         {
             get => WindowState.Value.ToOsuTK();
-            set => WindowState.Value = value.ToVeldrid();
+            set => WindowState.Value = value.ToFramework();
         }
 
         public WindowBorder WindowBorder { get; set; }
@@ -404,61 +436,61 @@ namespace osu.Framework.Platform
             get => new Rectangle(X, Y, Width, Height);
             set
             {
-                Position.Value = new Vector2(value.X, value.Y);
-                Size.Value = new Vector2(value.Width, value.Height);
+                Position.Value = value.Location;
+                Size.Value = value.Size;
             }
         }
 
         public Point Location
         {
-            get => Position.Value.ToSystemDrawingPoint();
-            set => Position.Value = value.ToSystemNumerics();
+            get => Position.Value;
+            set => Position.Value = value;
         }
 
         Size INativeWindow.Size
         {
-            get => Size.Value.ToSystemDrawingSize();
-            set => Size.Value = value.ToSystemNumerics();
+            get => Size.Value;
+            set => Size.Value = value;
         }
 
         public int X
         {
-            get => (int)Position.Value.X;
-            set => Position.Value = new Vector2(value, Position.Value.Y);
+            get => Position.Value.X;
+            set => Position.Value = new Point(value, Position.Value.Y);
         }
 
         public int Y
         {
-            get => (int)Position.Value.Y;
-            set => Position.Value = new Vector2(Position.Value.X, value);
+            get => Position.Value.Y;
+            set => Position.Value = new Point(Position.Value.X, value);
         }
 
         public int Width
         {
-            get => (int)Size.Value.X;
-            set => Size.Value = new Vector2(value, Size.Value.Y);
+            get => Size.Value.Width;
+            set => Size.Value = new Size(value, Size.Value.Height);
         }
 
         public int Height
         {
-            get => (int)Size.Value.Y;
-            set => Size.Value = new Vector2(Size.Value.X, value);
+            get => Size.Value.Height;
+            set => Size.Value = new Size(Size.Value.Width, value);
         }
 
         public Rectangle ClientRectangle
         {
-            get => new Rectangle(Position.Value.ToSystemDrawingPoint(), (Size.Value * Scale).ToSystemDrawingSize());
+            get => new Rectangle(Position.Value.X, Position.Value.Y, (int)(Size.Value.Width * Scale), (int)(Size.Value.Height * Scale));
             set
             {
-                Position.Value = new Vector2(value.X, value.Y);
-                Size.Value = new Vector2(value.Width / Scale, value.Height / Scale);
+                Position.Value = value.Location;
+                Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
             }
         }
 
         Size INativeWindow.ClientSize
         {
-            get => (Size.Value * Scale).ToSystemDrawingSize();
-            set => Size.Value = value.ToSystemNumerics() / Scale;
+            get => new Size((int)(Size.Value.Width * Scale), (int)(Size.Value.Height * Scale));
+            set => Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
         }
 
         public MouseCursor Cursor { get; set; }
@@ -562,25 +594,6 @@ namespace osu.Framework.Platform
             set => CursorState.Value = value;
         }
 
-        public VSyncMode VSync
-        {
-            get => VerticalSync ? VSyncMode.On : VSyncMode.Off;
-            set => VerticalSync = value == VSyncMode.On;
-        }
-
-        public WindowMode DefaultWindowMode => WindowMode.Windowed;
-
-        public DisplayDevice CurrentDisplay { get; } = null;
-
-        private readonly BindableBool isActive = new BindableBool(true);
-        public IBindable<bool> IsActive => isActive;
-
-        public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>();
-
-        public IEnumerable<DisplayResolution> AvailableResolutions => Array.Empty<DisplayResolution>();
-
         bool INativeWindow.Focused => Focused.Value;
 
         bool INativeWindow.Visible
@@ -590,16 +603,6 @@ namespace osu.Framework.Platform
         }
 
         bool INativeWindow.Exists => Exists;
-
-        public void CycleMode()
-        {
-            // TODO: CycleMode
-        }
-
-        public void SetupWindow(FrameworkConfigManager config)
-        {
-            // TODO: SetupWindow
-        }
 
         public void Run(double updateRate) => Run();
 

@@ -5,11 +5,15 @@ using UIKit;
 using Foundation;
 using System.Drawing;
 using SixLabors.ImageSharp.PixelFormats;
+using AVFoundation;
+using System;
 
 namespace osu.Framework.iOS
 {
     public abstract class GameAppDelegate : UIApplicationDelegate
     {
+        private const string output_volume = "outputVolume";
+
         public override UIWindow Window { get; set; }
 
         private IOSGameView gameView;
@@ -34,6 +38,10 @@ namespace osu.Framework.iOS
 
             host.Run(CreateGame());
 
+            // Watch for the volume button changing in order to change audio policy
+            AVAudioSession audioSession = AVAudioSession.SharedInstance();
+            audioSession.AddObserver(this, output_volume, NSKeyValueObservingOptions.New, IntPtr.Zero);
+
             return true;
         }
 
@@ -50,5 +58,19 @@ namespace osu.Framework.iOS
             {
             }
         }
+
+        public override void ObserveValue(NSString keyPath, NSObject ofObject, NSDictionary change, IntPtr context)
+        {
+            switch (keyPath)
+            {
+                case output_volume:
+                    AVAudioSession.SharedInstance().SetCategory(AVAudioSessionCategory.Playback);
+                    break;
+            }
+        }
+
+        public override void DidEnterBackground(UIApplication application) => host.Suspend();
+
+        public override void WillEnterForeground(UIApplication application) => host.Resume();
     }
 }

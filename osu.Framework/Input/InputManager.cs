@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
@@ -51,7 +52,6 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
-        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/>, <see cref="InputState.Touch"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
         protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new TouchState(), new JoystickState());
 
@@ -116,7 +116,7 @@ namespace osu.Framework.Input
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
-        private readonly Dictionary<MouseButton, TouchEventManager> touchEventManagers = new Dictionary<MouseButton, TouchEventManager>();
+        private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
 
         protected InputManager()
@@ -195,19 +195,19 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="source">The touch source to be handled by the returned manager.</param>
         /// <returns>The <see cref="TouchEventManager"/>.</returns>
-        protected virtual TouchEventManager CreateTouchEventManagerFor(MouseButton source) => new TouchEventManager(source);
+        protected virtual TouchEventManager CreateButtonEventManagerFor(TouchSource source) => new TouchEventManager(source);
 
         /// <summary>
         /// Get the <see cref="TouchEventManager"/> responsible for a specified touch source.
         /// </summary>
-        /// <param name="source">The touch source find the manager for.</param>
+        /// <param name="source">The touch source to find the manager for.</param>
         /// <returns>The <see cref="TouchEventManager"/>.</returns>
-        public TouchEventManager GetTouchEventManagerFor(MouseButton source)
+        public TouchEventManager GetButtonEventManagerFor(TouchSource source)
         {
             if (touchEventManagers.TryGetValue(source, out var existing))
                 return existing;
 
-            var manager = CreateTouchEventManagerFor(source);
+            var manager = CreateButtonEventManagerFor(source);
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState, CurrentState.Touch.GetTouchPosition(source));
             return touchEventManagers[source] = manager;
         }
@@ -498,6 +498,19 @@ namespace osu.Framework.Input
             }
         }
 
+        protected virtual void HandleTouchStateChange(TouchStateChangeEvent e)
+        {
+            Debug.Assert(e.LastPosition != null || e.IsActive != null, $"A {nameof(TouchStateChangeEvent)} provided with no changes information.");
+
+            var manager = GetButtonEventManagerFor(e.Touch.Source);
+
+            if (e.LastPosition is Vector2 lastPosition)
+                manager.HandlePositionChange(e.State, lastPosition);
+
+            if (e.IsActive is bool active)
+                manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -513,7 +526,7 @@ namespace osu.Framework.Input
                     HandleMouseScrollChange(mouseScrollChange);
                     return;
 
-                case MouseButtonStateChangeEvent mouseButtonStateChange:
+                case ButtonStateChangeEvent<MouseButton> mouseButtonStateChange:
                     HandleMouseButtonStateChange(mouseButtonStateChange);
                     return;
 
@@ -521,21 +534,15 @@ namespace osu.Framework.Input
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
 
-                case TouchPositionChangeEvent touchPositionChange:
-                    HandleTouchPositionChange(touchPositionChange);
+                case TouchStateChangeEvent touchChange:
+                    HandleTouchStateChange(touchChange);
 
                     // primary touch mapped to mouse.
-                    if (touchPositionChange.Source == MouseButton.Touch1)
-                        new MousePositionAbsoluteInput { Position = CurrentState.Touch.TouchPositions[touchPositionChange.Source] }.Apply(CurrentState, this);
-
-                    return;
-
-                case TouchActivityChangeEvent touchActivityChange:
-                    HandleTouchActivityStateChange(touchActivityChange);
-
-                    // primary touch mapped to mouse.
-                    if (touchActivityChange.Button == MouseButton.Touch1)
-                        new MouseButtonInput(MouseButton.Left, touchActivityChange.Kind == ButtonStateChangeKind.Pressed).Apply(CurrentState, this);
+                    if (touchChange.Touch.Source == TouchSource.Touch1)
+                    {
+                        new MousePositionAbsoluteInput { Position = touchChange.Touch.Position }.Apply(CurrentState, this);
+                        new MouseButtonInput(MouseButton.Left, touchChange.State.Touch.IsActive(touchChange.Touch.Source)).Apply(CurrentState, this);
+                    }
 
                     return;
 
@@ -564,18 +571,12 @@ namespace osu.Framework.Input
             updateHoverEvents(state);
         }
 
-        protected virtual void HandleTouchPositionChange(TouchPositionChangeEvent e)
-            => GetTouchEventManagerFor(e.Source).HandlePositionChange(e.State, e.LastPosition);
-
-        protected virtual void HandleTouchActivityStateChange(TouchActivityChangeEvent e)
-            => GetTouchEventManagerFor(e.Button).HandleButtonStateChange(e.State, e.Kind);
-
         protected virtual void HandleMouseScrollChange(MouseScrollChangeEvent e)
         {
             handleScroll(e.State, e.LastScroll, e.IsPrecise);
         }
 
-        protected virtual void HandleMouseButtonStateChange(MouseButtonStateChangeEvent e)
+        protected virtual void HandleMouseButtonStateChange(ButtonStateChangeEvent<MouseButton> e)
         {
             if (mouseButtonEventManagers.TryGetValue(e.Button, out var manager))
                 manager.HandleButtonStateChange(e.State, e.Kind);

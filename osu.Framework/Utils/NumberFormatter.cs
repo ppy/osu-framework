@@ -29,8 +29,8 @@ namespace osu.Framework.Utils
             int log1000 = (int)Math.Floor(Math.Log(number, 1000));
             int index = log1000 + 8;
 
-            if (index < 0 || index >= strs.Length)
-                return $"{number:E}";
+            if (index >= strs.Length)
+                return $"{(isNeg ? "-" : "")}{number:E}";
 
             return $"{(isNeg ? "-" : "")}{number / Math.Pow(1000, log1000):G3}{strs[index]}";
         }

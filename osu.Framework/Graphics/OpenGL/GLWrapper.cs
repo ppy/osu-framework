@@ -18,6 +18,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
+using osu.Framework.Timing;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
@@ -56,12 +57,26 @@ namespace osu.Framework.Graphics.OpenGL
         public static int MaxTextureSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
         public static int MaxRenderBufferSize { get; private set; } = 4096; // default value is to allow roughly normal flow in cases we don't have a GL context, like headless CI.
 
-        private static readonly Scheduler reset_scheduler = new Scheduler(null); // force no thread set until we are actually on the draw thread.
+        /// <summary>
+        /// The maximum number of texture uploads to dequeue and upload per frame.
+        /// Defaults to 32.
+        /// </summary>
+        public static int MaxTexturesUploadedPerFrame { get; set; } = 32;
+
+        /// <summary>
+        /// The maximum number of pixels to upload per frame.
+        /// Defaults to 2 megapixels (8mb alloc).
+        /// </summary>
+        public static int MaxPixelsUploadedPerFrame { get; set; } = 1024 * 1024 * 2;
+
+        private static readonly Scheduler reset_scheduler = new Scheduler(() => ThreadSafety.IsDrawThread, new StopwatchClock(true)); // force no thread set until we are actually on the draw thread.
 
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
         /// </summary>
-        private static readonly ConcurrentQueue<Action> expensive_operations_queue = new ConcurrentQueue<Action>();
+        private static readonly ConcurrentQueue<Action> expensive_operation_queue = new ConcurrentQueue<Action>();
+
+        private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
@@ -77,7 +92,6 @@ namespace osu.Framework.Graphics.OpenGL
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
-            reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = GL.GetInteger(GetPName.MaxTextureSize);
             MaxRenderBufferSize = GL.GetInteger(GetPName.MaxRenderbufferSize);
@@ -108,16 +122,52 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
+        private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture upload queue length");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_dequeued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads dequeued");
+        private static readonly GlobalStatistic<int> stat_texture_uploads_performed = GlobalStatistics.Get<int>(nameof(GLWrapper), "Texture uploads performed");
+
         internal static void Reset(Vector2 size)
         {
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
 
-            if (expensive_operations_queue.TryDequeue(out Action action))
+            stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
+            if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
 
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int uploads = 0;
+            int uploadedPixels = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
+                    break;
+            }
+
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -234,8 +284,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
+            if (texture.IsQueuedForUpload)
+                return;
+
             if (host != null)
-                expensive_operations_queue.Enqueue(() => texture.Upload());
+            {
+                texture.IsQueuedForUpload = true;
+                texture_upload_queue.Enqueue(texture);
+            }
         }
 
         /// <summary>
@@ -245,7 +301,7 @@ namespace osu.Framework.Graphics.OpenGL
         public static void EnqueueShaderCompile(Shader shader)
         {
             if (host != null)
-                expensive_operations_queue.Enqueue(shader.EnsureLoaded);
+                expensive_operation_queue.Enqueue(shader.EnsureLoaded);
         }
 
         private static readonly int[] last_bound_buffers = new int[2];
@@ -292,30 +348,49 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static readonly TextureGL[] last_bound_texture = new TextureGL[16];
+        private static readonly int[] last_bound_texture = new int[16];
+        private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
 
         internal static int GetTextureUnitId(TextureUnit unit) => (int)unit - (int)TextureUnit.Texture0;
-        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture[GetTextureUnitId(unit)] is TextureGLAtlas;
+        internal static bool AtlasTextureIsBound(TextureUnit unit) => last_bound_texture_is_atlas[GetTextureUnitId(unit)];
 
         /// <summary>
-        /// Binds a texture to darw with.
+        /// Binds a texture to draw with.
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        {
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
+
+            return didBind;
+        }
+
+        /// <summary>
+        /// Binds a texture to draw with.
+        /// </summary>
+        /// <param name="textureId">The texture to bind.</param>
+        /// <param name="unit">The texture unit to bind it to.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
         {
             var index = GetTextureUnitId(unit);
 
-            if (last_bound_texture[index] != texture)
-            {
-                FlushCurrentBatch();
+            if (last_bound_texture[index] == textureId)
+                return false;
 
-                GL.ActiveTexture(unit);
-                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
-                last_bound_texture[index] = texture;
+            FlushCurrentBatch();
 
-                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
-            }
+            GL.ActiveTexture(unit);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+            last_bound_texture[index] = textureId;
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+
+            FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+            return true;
         }
 
         private static BlendingParameters lastBlendingParameters;
