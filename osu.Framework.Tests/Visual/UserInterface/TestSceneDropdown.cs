@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -29,18 +28,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private int previousIndex;
         private int lastVisibleIndexOnTheCurrentPage, lastVisibleIndexOnTheNextPage;
         private int firstVisibleIndexOnTheCurrentPage, firstVisibleIndexOnThePreviousPage;
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Dropdown<>),
-            typeof(DropdownHeader),
-            typeof(DropdownMenuItem<>),
-            typeof(Dropdown<>),
-            typeof(BasicDropdown<>),
-            typeof(BasicDropdown<>.BasicDropdownHeader),
-            typeof(BasicDropdown<>.BasicDropdownMenu),
-            typeof(TestDropdown)
-        };
 
         public TestSceneDropdown()
         {
