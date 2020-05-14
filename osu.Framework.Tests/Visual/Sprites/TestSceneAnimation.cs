@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -19,13 +18,6 @@ namespace osu.Framework.Tests.Visual.Sprites
     public class TestSceneAnimation : FrameworkTestScene
     {
         private SpriteText timeText;
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(TextureAnimation),
-            typeof(Animation<>),
-            typeof(AnimationClockComposite)
-        };
 
         private ManualClock clock;
 

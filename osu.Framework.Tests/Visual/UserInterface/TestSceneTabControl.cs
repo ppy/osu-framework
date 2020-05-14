@@ -18,13 +18,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(TabControl<>),
-            typeof(TabItem),
-            typeof(BasicTabControl<>),
-        };
-
         private readonly TestEnum[] items;
 
         private StyledTabControl pinnedAndAutoSort;

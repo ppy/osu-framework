@@ -1,9 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
-
 namespace osu.Framework.Testing
 {
     /// <summary>
@@ -11,11 +8,6 @@ namespace osu.Framework.Testing
     /// </summary>
     public interface IDynamicallyCompile
     {
-        /// <summary>
-        /// A list of types which may be edited and should be included during recompilation.
-        /// </summary>
-        IReadOnlyList<Type> RequiredTypes { get; }
-
         /// <summary>
         /// A reference to the original instance which dynamic compilation was based on.
         /// Will reference self if already the original.
