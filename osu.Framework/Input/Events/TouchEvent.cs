@@ -13,27 +13,22 @@ namespace osu.Framework.Input.Events
     public class TouchEvent : UIEvent
     {
         /// <summary>
-        /// The touch that fired this event.
+        /// The touch of this event with the screen space position.
         /// </summary>
         public readonly Touch ScreenSpaceTouch;
 
         /// <summary>
-        /// The current touch position in the screen space.
+        /// The touch of this event with local space position.
         /// </summary>
-        public Vector2 ScreenSpaceTouchPosition => ScreenSpaceTouch.Position;
+        public Touch Touch => new Touch(ScreenSpaceTouch.Source, ToLocalSpace(ScreenSpaceTouch.Position));
 
         /// <summary>
-        /// The current touch position in local space.
-        /// </summary>
-        public Vector2 TouchPosition => ToLocalSpace(ScreenSpaceTouchPosition);
-
-        /// <summary>
-        /// The touch position at a <see cref="TouchDownEvent"/> in the screen space.
+        /// The touch position at the <see cref="TouchDownEvent"/> for this touch source in the screen space.
         /// </summary>
         public readonly Vector2 ScreenSpaceTouchDownPosition;
 
         /// <summary>
-        /// The touch position at a <see cref="TouchDownEvent"/> in local space.
+        /// The touch position at the <see cref="TouchDownEvent"/> for this touch source in local space.
         /// </summary>
         public Vector2 TouchDownPosition => ToLocalSpace(ScreenSpaceTouchDownPosition);
 
@@ -47,7 +42,7 @@ namespace osu.Framework.Input.Events
             : base(state)
         {
             ScreenSpaceTouch = touch;
-            ScreenSpaceTouchDownPosition = screenSpaceTouchDownPosition ?? ScreenSpaceTouchPosition;
+            ScreenSpaceTouchDownPosition = screenSpaceTouchDownPosition ?? ScreenSpaceTouch.Position;
         }
 
         public override string ToString() => $"{GetType().ReadableName()}({ScreenSpaceTouch.Source})";

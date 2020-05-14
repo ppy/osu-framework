@@ -24,7 +24,7 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// The difference of touch position from last position to current position in local space.
         /// </summary>
-        public Vector2 Delta => TouchPosition - LastTouchPosition;
+        public Vector2 Delta => Touch.Position - LastTouchPosition;
 
         public TouchMoveEvent(InputState state, Touch touch, Vector2? screenSpaceTouchDownPosition, Vector2 screenSpaceLastTouchPosition)
             : base(state, touch, screenSpaceTouchDownPosition)
