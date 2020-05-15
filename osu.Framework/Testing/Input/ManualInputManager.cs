@@ -53,7 +53,7 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Drawable drawable, Vector2? offset = null) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre) + (offset ?? Vector2.Zero));
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
-        public void MoveTouchTo(Vector2 position, TouchSource source) => Input(new TouchInput(new Touch(source, position), CurrentState.Touch.IsActive(source)));
+        public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
 
         public void Click(MouseButton button)
         {
