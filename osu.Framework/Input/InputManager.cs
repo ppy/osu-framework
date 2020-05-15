@@ -543,12 +543,12 @@ namespace osu.Framework.Input
         {
             var currentAxes = CurrentState.Joystick.Axes;
 
-            if (currentAxes.Any(a => a.Axis == e.Axis))
+            if (currentAxes.Any(a => a.Axis == e.Axis.Axis))
             {
-                currentAxes.Remove(currentAxes.First(a => a.Axis == e.Axis));
+                currentAxes.Remove(currentAxes.First(a => a.Axis == e.Axis.Axis));
             }
 
-            currentAxes.Add(new JoystickAxis(e.Axis, e.Value));
+            currentAxes.Add(e.Axis);
         }
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)

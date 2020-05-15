@@ -38,13 +38,13 @@ namespace osu.Framework.Input.StateChanges
 
         protected List<JoystickAxis> GetJoystickAxes(InputState state) => state.Joystick?.Axes;
 
-        protected JoystickAxisChangeEvent CreateEvent(InputState state, int axis, float value) => new JoystickAxisChangeEvent(state, this, axis, value);
+        protected JoystickAxisChangeEvent CreateEvent(InputState state, JoystickAxis axis) => new JoystickAxisChangeEvent(state, this, axis);
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            foreach (var axis in Axes)
+            foreach (var axis in axes)
             {
-                var axisChange = CreateEvent(state, axis.Axis, axis.Value);
+                var axisChange = CreateEvent(state, axis);
                 handler.HandleInputStateChange(axisChange);
             }
         }
