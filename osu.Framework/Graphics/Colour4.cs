@@ -2,34 +2,42 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Numerics;
 using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
     /// <summary>
     /// Represents an RGBA colour in the linear colour space, having colour components in the range 0-1.
+    /// Stored internally as a <see cref="Vector4"/> for performance.
     /// </summary>
     public readonly struct Colour4 : IEquatable<Colour4>
     {
         /// <summary>
+        /// <see cref="Vector4"/> representation of the colour, where XYZW maps to RGBA,
+        /// and each component is in the 0-1 range.
+        /// </summary>
+        public readonly Vector4 Vector;
+
+        /// <summary>
         /// Represents the red component of the linear RGBA colour in the 0-1 range.
         /// </summary>
-        public readonly float R;
+        public float R => Vector.X;
 
         /// <summary>
         /// Represents the green component of the linear RGBA colour in the 0-1 range.
         /// </summary>
-        public readonly float G;
+        public float G => Vector.Y;
 
         /// <summary>
         /// Represents the blue component of the linear RGBA colour in the 0-1 range.
         /// </summary>
-        public readonly float B;
+        public float B => Vector.Z;
 
         /// <summary>
         /// Represents the alpha component of the RGBA colour in the 0-1 range.
         /// </summary>
-        public readonly float A;
+        public float A => Vector.W;
 
         #region Constructors
 
@@ -42,10 +50,7 @@ namespace osu.Framework.Graphics
         /// <param name="a">The alpha component, in the 0-1 range.</param>
         public Colour4(float r, float g, float b, float a)
         {
-            R = r;
-            G = g;
-            B = b;
-            A = a;
+            Vector = new Vector4(r, g, b, a);
         }
 
         /// <summary>
@@ -57,10 +62,21 @@ namespace osu.Framework.Graphics
         /// <param name="a">The alpha component, in the 0-255 range.</param>
         public Colour4(byte r, byte g, byte b, byte a)
         {
-            R = r / (float)byte.MaxValue;
-            G = g / (float)byte.MaxValue;
-            B = b / (float)byte.MaxValue;
-            A = a / (float)byte.MaxValue;
+            Vector = new Vector4(
+                r / (float)byte.MaxValue,
+                g / (float)byte.MaxValue,
+                b / (float)byte.MaxValue,
+                a / (float)byte.MaxValue);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="Colour4"/> with the specified <see cref="Vector4"/>,
+        /// where XYZW maps to RGBA.
+        /// </summary>
+        /// <param name="vector">The source vector, whose components should be in the 0-1 range.</param>
+        public Colour4(Vector4 vector)
+        {
+            Vector = vector;
         }
 
         #endregion
@@ -98,7 +114,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Returns a new <see cref="Colour4"/> with its individual components clamped to the 0-1 range.
         /// </summary>
-        public Colour4 Clamped() => new Colour4(Math.Clamp(R, 0f, 1f), Math.Clamp(G, 0f, 1f), Math.Clamp(B, 0f, 1f), Math.Clamp(A, 0f, 1f));
+        public Colour4 Clamped() => new Colour4(Vector4.Clamp(Vector, Vector4.Zero, Vector4.One));
 
         /// <summary>
         /// Returns a lightened version of the colour.
@@ -122,7 +138,7 @@ namespace osu.Framework.Graphics
         /// <param name="first">The left hand side of the multiplication.</param>
         /// <param name="second">The right hand side of the multiplication.</param>
         public static Colour4 operator *(Colour4 first, Colour4 second) =>
-            new Colour4(first.R * second.R, first.G * second.G, first.B * second.B, first.A * second.A);
+            new Colour4(first.Vector * second.Vector);
 
         /// <summary>
         /// Adds two colours in the linear colour space. The final value is clamped to the 0-1 range.
@@ -130,11 +146,7 @@ namespace osu.Framework.Graphics
         /// <param name="first">The left hand side of the addition.</param>
         /// <param name="second">The right hand side of the addition.</param>
         public static Colour4 operator +(Colour4 first, Colour4 second) =>
-            new Colour4(
-                Math.Min(1f, first.R + second.R),
-                Math.Min(1f, first.G + second.G),
-                Math.Min(1f, first.B + second.B),
-                Math.Min(1f, first.A + second.A));
+            new Colour4(Vector4.Min(first.Vector + second.Vector, Vector4.One));
 
         /// <summary>
         /// Linearly multiplies a colour by a scalar value. The final value is clamped to the 0-1 range.
@@ -147,11 +159,7 @@ namespace osu.Framework.Graphics
             if (scalar < 0)
                 throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Cannot multiply colours by negative values.");
 
-            return new Colour4(
-                Math.Min(1f, colour.R * scalar),
-                Math.Min(1f, colour.G * scalar),
-                Math.Min(1f, colour.B * scalar),
-                Math.Min(1f, colour.A * scalar));
+            return new Colour4(Vector4.Min(colour.Vector * scalar, Vector4.One));
         }
 
         /// <summary>
@@ -224,13 +232,11 @@ namespace osu.Framework.Graphics
 
         #region Equality
 
-        public bool Equals(Colour4 other) =>
-            R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
+        public bool Equals(Colour4 other) => Vector.Equals(other.Vector);
 
-        public override bool Equals(object obj) =>
-            obj is Colour4 other && Equals(other);
+        public override bool Equals(object obj) => obj is Colour4 other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(R, G, B, A);
+        public override int GetHashCode() => Vector.GetHashCode();
 
         #endregion
 
