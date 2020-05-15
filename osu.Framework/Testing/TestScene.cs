@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
@@ -23,6 +22,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
+    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract class TestScene : Container, IDynamicallyCompile
     {
@@ -391,8 +391,6 @@ namespace osu.Framework.Testing
                 Assertion = assert,
             });
         });
-
-        public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {

@@ -49,6 +49,10 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
         private VisualisedDrawableFlow flow;
+        private Container connectionContainer;
+
+        private const float row_width = 10;
+        private const float row_height = 20;
 
         [Resolved]
         private DrawVisualiser visualiser { get; set; }
@@ -76,7 +80,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Position = new Vector2(10, 20)
+                    Position = new Vector2(row_width, row_height)
                 },
                 new Container
                 {
@@ -149,6 +153,31 @@ namespace osu.Framework.Graphics.Visualisation
                 },
             });
 
+            const float connection_width = 1;
+
+            AddInternal(connectionContainer = new Container
+            {
+                Colour = FrameworkColour.Green,
+                RelativeSizeAxes = Axes.Y,
+                Width = connection_width,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.CentreLeft,
+                        Y = row_height / 2,
+                        Width = row_width / 2,
+                        EdgeSmoothness = new Vector2(0.5f),
+                    }
+                }
+            });
+
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
 
@@ -164,6 +193,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             attachEvents();
             updateColours();
+        }
+
+        public bool TopLevel
+        {
+            set => connectionContainer.Alpha = value ? 0 : 1;
         }
 
         private void attachEvents()

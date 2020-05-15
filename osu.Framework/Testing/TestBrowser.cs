@@ -251,7 +251,7 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
-            if (RuntimeInfo.SupportsJIT)
+            if (RuntimeInfo.IsDesktop)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestScene>();
                 backgroundCompiler.CompilationStarted += compileStarted;
@@ -305,6 +305,9 @@ namespace osu.Framework.Testing
         {
             compilingNotice.FadeOut(800, Easing.InQuint);
             compilingNotice.FadeColour(Color4.YellowGreen, 100);
+
+            if (newType == null)
+                return;
 
             int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
 

@@ -16,13 +16,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneRearrangeableListContainer : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(BasicRearrangeableListContainer<>),
-            typeof(RearrangeableListContainer<>),
-            typeof(RearrangeableListItem<>)
-        };
-
         private TestRearrangeableList list;
 
         [SetUp]

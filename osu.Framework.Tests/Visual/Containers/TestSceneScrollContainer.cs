@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
@@ -20,13 +19,6 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneScrollContainer : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(ScrollContainer<Drawable>),
-            typeof(BasicScrollContainer),
-            typeof(BasicScrollContainer<Drawable>)
-        };
-
         private ScrollContainer<Drawable> scrollContainer;
 
         [SetUp]
