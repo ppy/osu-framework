@@ -111,21 +111,16 @@ namespace osu.Framework.Input.Handlers.Joystick
                     // do not allow a deadzone below float_epsilon
                     var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
 
-                    if (!Precision.AlmostEquals(value, 0, deadzone))
-                    {
-                        Axes.Add(new JoystickAxis(i, value));
+                    if (Precision.AlmostEquals(value, 0, deadzone))
+                        // Round values in the deadzone to zero.
+                        value = 0;
 
-                        // We're off the center, activate negative / positive button
-                        if (value > deadzone)
-                            Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
-                        else if (value < deadzone * -1)
-                            Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
-                    }
-                    else
-                    {
-                        // Recenter the axis value if centered
-                        Axes.Add(new JoystickAxis(i, 0));
-                    }
+                    Axes.Add(new JoystickAxis(i, value));
+
+                    if (value > deadzone)
+                        Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
+                    else if (value < -deadzone)
+                        Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
                 }
 
                 // Populate normal buttons
