@@ -208,7 +208,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
-            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState, CurrentState.Touch.GetTouchPosition(source));
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState, CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
 
