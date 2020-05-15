@@ -2187,18 +2187,21 @@ namespace osu.Framework.Graphics
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
 
         /// <summary>
-        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
-        /// </summary>
-        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
-        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
-        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
-
-        /// <summary>
         /// An event that occurs when a <see cref="Touch"/> is active.
         /// </summary>
         /// <param name="e">The <see cref="TouchDownEvent"/> containing information about the input event.</param>
         /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
         protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="Touch"/> is not active.
@@ -2285,8 +2288,8 @@ namespace osu.Framework.Graphics
                 nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnTouchMove),
                 nameof(OnTouchDown),
+                nameof(OnTouchMove),
                 nameof(OnTouchUp)
             };
 

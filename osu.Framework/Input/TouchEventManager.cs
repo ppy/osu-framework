@@ -24,15 +24,12 @@ namespace osu.Framework.Input
 
         public void HandlePositionChange(InputState state, Vector2 lastPosition)
         {
-            var position = state.Touch.TouchPositions[(int)Button];
-            Debug.Assert(lastPosition != position);
-
-            handleTouchMove(state, position, lastPosition);
+            handleTouchMove(state, state.Touch.TouchPositions[(int)Button], lastPosition);
         }
 
         private void handleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
         {
-            PropagateButtonEvent(InputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
+            PropagateButtonEvent(ButtonDownInputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
