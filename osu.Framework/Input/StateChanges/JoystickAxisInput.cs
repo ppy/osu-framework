@@ -36,8 +36,6 @@ namespace osu.Framework.Input.StateChanges
             }
         }
 
-        protected List<JoystickAxis> GetJoystickAxes(InputState state) => state.Joystick?.Axes;
-
         protected JoystickAxisChangeEvent CreateEvent(InputState state, JoystickAxis axis) => new JoystickAxisChangeEvent(state, this, axis);
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
