@@ -28,13 +28,11 @@ namespace osu.Framework.Input.StateChanges
             this.axes = axes;
         }
 
-        protected JoystickAxisChangeEvent CreateEvent(InputState state, JoystickAxis axis) => new JoystickAxisChangeEvent(state, this, axis);
-
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             for (var i = 0; i < axes.Length; i++)
             {
-                var axisChange = CreateEvent(state, new JoystickAxis(i, axes[i]));
+                var axisChange = new JoystickAxisChangeEvent(state, this, new JoystickAxis(i, axes[i]));
                 handler.HandleInputStateChange(axisChange);
             }
         }
