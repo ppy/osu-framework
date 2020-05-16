@@ -235,14 +235,6 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             }
 
-            protected override void Update()
-            {
-                base.Update();
-
-                // var joy = GetContainingInputManager().CurrentState.Joystick;
-                // rawValue.Text = joy.Axes[axisIndex].ToString("0.00");
-            }
-
             protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 if (e.Button == positiveAxisButton)
