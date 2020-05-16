@@ -259,7 +259,8 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 if (e.Axis.Axis == axisIndex)
                     rawValue.Text = e.Axis.Value.ToString("0.00");
-                return true;
+
+                return false;
             }
         }
     }
