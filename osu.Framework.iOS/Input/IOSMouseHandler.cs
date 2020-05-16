@@ -35,7 +35,7 @@ namespace osu.Framework.iOS.Input
             if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
                 return false;
 
-            view.Window.AddInteraction(new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
+            view.AddInteraction(new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
 
             mouseDelegate.LocationUpdated += locationUpdated;
             return true;
