@@ -2,47 +2,39 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
-using osu.Framework.Utils;
 
 namespace osu.Framework.Input.StateChanges
 {
     public class JoystickAxisInput : IInput
     {
-        private List<JoystickAxis> Axes;
+        private readonly float[] axes = new float[JoystickState.MAX_AXES];
 
-        public JoystickAxisInput(List<JoystickAxis> axes, List<JoystickAxis> previous)
+        public JoystickAxisInput(JoystickAxis axis)
+            : this(axis.Yield())
         {
-            if (previous == null)
-            {
-                Axes = axes;
-                return;
-            }
+        }
 
-            Axes = new List<JoystickAxis>();
+        public JoystickAxisInput(IEnumerable<JoystickAxis> axes)
+        {
+            foreach (var axis in axes)
+                this.axes[axis.Axis] = axis.Value;
+        }
 
-            for (var i = 0; i < axes.Count; i++)
-            {
-
-                if (previous.Any(a => a.Axis == axes[i].Axis))
-                {
-                    if (Precision.AlmostEquals(axes[i].Value, previous.First(a => a.Axis == axes[i].Axis).Value))
-                        continue;
-                }
-
-                Axes.Add(axes[i]);
-            }
+        public JoystickAxisInput(float[] axes)
+        {
+            this.axes = axes;
         }
 
         protected JoystickAxisChangeEvent CreateEvent(InputState state, JoystickAxis axis) => new JoystickAxisChangeEvent(state, this, axis);
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            foreach (var axis in axes)
+            for (var i = 0; i < axes.Length; i++)
             {
-                var axisChange = CreateEvent(state, axis);
+                var axisChange = CreateEvent(state, new JoystickAxis(i, axes[i]));
                 handler.HandleInputStateChange(axisChange);
             }
         }

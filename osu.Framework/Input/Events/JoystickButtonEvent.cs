@@ -28,7 +28,7 @@ namespace osu.Framework.Input.Events
         /// <summary>
         /// List of joystick axes. Axes which have zero value may be omitted.
         /// </summary>
-        public IEnumerable<JoystickAxis> Axes => CurrentState.Joystick.Axes;
+        public float[] Axes => CurrentState.Joystick.Axes;
 
         public override string ToString() => $"{GetType().ReadableName()}({Button})";
     }

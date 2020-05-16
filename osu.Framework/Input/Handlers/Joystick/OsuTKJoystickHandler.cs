@@ -63,7 +63,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void handleState(JoystickDevice device, JoystickState newState)
         {
             PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
-            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes, device.LastState?.Axes));
+            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes));
 
             device.LastState = newState;
         }
@@ -115,7 +115,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                         // Round values in the deadzone to zero.
                         value = 0;
 
-                    Axes.Add(new JoystickAxis(i, value));
+                    Axes[i] = value;
 
                     if (value > deadzone)
                         Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);

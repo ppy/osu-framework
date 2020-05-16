@@ -239,8 +239,8 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 base.Update();
 
-                var joy = GetContainingInputManager().CurrentState.Joystick;
-                rawValue.Text = joy.Axes.Find(a => a.Axis == axisIndex).Value.ToString("0.00");
+                // var joy = GetContainingInputManager().CurrentState.Joystick;
+                // rawValue.Text = joy.Axes[axisIndex].ToString("0.00");
             }
 
             protected override bool OnJoystickPress(JoystickPressEvent e)
@@ -261,6 +261,13 @@ namespace osu.Framework.Tests.Visual.Input
                     background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
                     base.OnJoystickRelease(e);
+            }
+
+            protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
+            {
+                if (e.Axis.Axis == axisIndex)
+                    rawValue.Text = e.Axis.Value.ToString("0.00");
+                return true;
             }
         }
     }
