@@ -263,11 +263,8 @@ namespace osu.Framework.Audio
                 InitBass(deviceIndex);
             }
 
-            if (Bass.LastError != Errors.OK)
-            {
-                Logger.Log($@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.", LoggingTarget.Runtime, LogLevel.Important);
+            if (BassUtils.CheckFaulted(false))
                 return false;
-            }
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
