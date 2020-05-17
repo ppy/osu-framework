@@ -250,8 +250,7 @@ namespace osu.Framework.Audio
                 return true;
 
             // initialize new device
-            if (!InitBass(deviceIndex) && Bass.LastError != Errors.Already)
-                return false;
+            bool initSuccess = InitBass(deviceIndex);
 
             if (Bass.LastError == Errors.Already)
             {
@@ -260,11 +259,17 @@ namespace osu.Framework.Audio
                 // other fuzz.
                 Bass.CurrentDevice = deviceIndex;
                 FreeBass();
-                InitBass(deviceIndex);
+                initSuccess = InitBass(deviceIndex);
             }
 
             if (BassUtils.CheckFaulted(false))
                 return false;
+
+            if (!initSuccess)
+            {
+                Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
+                return false;
+            }
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
