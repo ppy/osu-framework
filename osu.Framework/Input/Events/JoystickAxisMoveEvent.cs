@@ -20,6 +20,11 @@ namespace osu.Framework.Input.Events
             Axis = axis;
         }
 
+        /// <summary>
+        /// List of joystick axes.
+        /// </summary>
+        public IReadOnlyList<float> Axes => CurrentState.Joystick.Axes;
+
         public override string ToString() => $"{GetType().ReadableName()}({Axis})";
     }
 }
