@@ -120,7 +120,6 @@ namespace osu.Framework.Input
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
-        // private readonly JoystickAxisEventManager[] joystickAxisEventManagers = new JoystickAxisEventManager[JoystickState.MAX_AXES];
         private readonly Dictionary<InputAxis, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<InputAxis, JoystickAxisEventManager>();
 
         protected InputManager()
@@ -257,7 +256,7 @@ namespace osu.Framework.Input
 
             var manager = CreateJoystickAxisEventManagerFor(axis);
             manager.GetInputQueue = () => NonPositionalInputQueue;
-            return manager;
+            return joystickAxisEventManagers[axis] = manager;
         }
 
         /// <summary>
