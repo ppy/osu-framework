@@ -9,8 +9,6 @@ namespace osu.Framework.Audio
 {
     internal static class BassUtils
     {
-        private static string getFailString() => $@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.";
-
         /// <summary>
         /// Checks whether <see cref="Bass"/> faulted by checking its <see cref="Bass.LastError"/>.
         /// </summary>
@@ -21,10 +19,12 @@ namespace osu.Framework.Audio
             if (Bass.LastError == Errors.OK)
                 return false;
 
-            if (throwException)
-                throw new InvalidOperationException(getFailString());
+            var failMessage = $@"BASS failed to initialize with error code {Bass.LastError:D}: {Bass.LastError}.";
 
-            Logger.Log(getFailString(), LoggingTarget.Runtime, LogLevel.Important);
+            if (throwException)
+                throw new InvalidOperationException(failMessage);
+
+            Logger.Log(failMessage, LoggingTarget.Runtime, LogLevel.Important);
             return true;
         }
     }
