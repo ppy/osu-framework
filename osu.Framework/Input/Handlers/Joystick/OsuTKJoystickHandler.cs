@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Utils;
@@ -63,7 +64,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void handleState(JoystickDevice device, JoystickState newState)
         {
             PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
-            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes));
+            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes.Select((v, i) => new JoystickAxis(i, v))));
 
             device.LastState = newState;
         }

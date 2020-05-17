@@ -572,8 +572,6 @@ namespace osu.Framework.Input
             var axis = e.Axis.Axis;
             var value = e.Axis.Value;
 
-            CurrentState.Joystick.Axes[axis] = value;
-
             GetJoystickAxisEventManagerFor(axis).HandleAxisChange(state, value);
         }
 

@@ -2,15 +2,17 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Input.StateChanges
 {
     public class JoystickAxisInput : IInput
     {
-        private readonly float[] axes = new float[JoystickState.MAX_AXES];
+        private readonly IEnumerable<float> axes;
 
         public JoystickAxisInput(JoystickAxis axis)
             : this(axis.Yield())
@@ -19,21 +21,26 @@ namespace osu.Framework.Input.StateChanges
 
         public JoystickAxisInput(IEnumerable<JoystickAxis> axes)
         {
-            foreach (var axis in axes)
-                this.axes[axis.Axis] = axis.Value;
-        }
+            var array = new float[JoystickState.MAX_AXES];
 
-        public JoystickAxisInput(float[] axes)
-        {
-            this.axes = axes;
+            foreach (var axis in axes)
+            {
+                array[axis.Axis] = axis.Value;
+            }
+
+            this.axes = array;
         }
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            for (var i = 0; i < axes.Length; i++)
+            foreach (var a in axes.Select((v, i) => new JoystickAxis(i, v)))
             {
-                var axisChange = new JoystickAxisChangeEvent(state, this, new JoystickAxis(i, axes[i]));
-                handler.HandleInputStateChange(axisChange);
+                // Not enough movement, don't fire event
+                if (Precision.AlmostEquals(state.Joystick.Axes[a.Axis], a.Value))
+                    continue;
+
+                state.Joystick.Axes[a.Axis] = a.Value;
+                handler.HandleInputStateChange(new JoystickAxisChangeEvent(state, this, a));
             }
         }
     }

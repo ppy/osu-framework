@@ -9,14 +9,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
-using osu.Framework.Utils;
 
 namespace osu.Framework.Input
 {
     public class JoystickAxisEventManager
     {
-        private readonly int axis;
-        private float value;
+        // TODO: make JoystickAxis enum with 16 axes
+        private readonly int source;
 
         /// <summary>
         /// The input queue.
@@ -31,8 +30,7 @@ namespace osu.Framework.Input
 
         public JoystickAxisEventManager(int axis)
         {
-            this.axis = axis;
-            value = 0;
+            source = axis;
         }
 
         /// <summary>
@@ -42,12 +40,7 @@ namespace osu.Framework.Input
         /// <param name="newValue">The new value for this axis.</param>
         public void HandleAxisChange(InputState state, float newValue)
         {
-            // Not enough movement, drop event.
-            if (Precision.AlmostEquals(value, newValue)) return;
-
-            value = newValue;
-
-            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(axis, value)));
+            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(source, newValue), state.Joystick.Axes[source]));
         }
 
         /// <summary>
