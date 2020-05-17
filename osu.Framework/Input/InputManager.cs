@@ -120,7 +120,8 @@ namespace osu.Framework.Input
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
-        private readonly JoystickAxisEventManager[] joystickAxisEventManagers = new JoystickAxisEventManager[JoystickState.MAX_AXES];
+        // private readonly JoystickAxisEventManager[] joystickAxisEventManagers = new JoystickAxisEventManager[JoystickState.MAX_AXES];
+        private readonly Dictionary<InputAxis, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<InputAxis, JoystickAxisEventManager>();
 
         protected InputManager()
         {
@@ -242,22 +243,19 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="axis">The axis to be handled by the returned manager.</param>
         /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
-        protected virtual JoystickAxisEventManager CreateJoystickAxisEventManagerFor(int axis) => new JoystickAxisEventManager(axis);
+        protected virtual JoystickAxisEventManager CreateJoystickAxisEventManagerFor(InputAxis axis) => new JoystickAxisEventManager(axis);
 
         /// <summary>
         /// Get the <see cref="JoystickAxisEventManager"/> responsible for a specified joystick axis.
         /// </summary>
         /// <param name="axis">The axis to find the the manager for.</param>
         /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
-        public JoystickAxisEventManager GetJoystickAxisEventManagerFor(int axis)
+        public JoystickAxisEventManager GetJoystickAxisEventManagerFor(InputAxis axis)
         {
-            if (axis >= JoystickState.MAX_AXES || axis < 0)
-                throw new ArgumentOutOfRangeException(nameof(axis));
+            if (joystickAxisEventManagers.TryGetValue(axis, out var existing))
+                return existing;
 
-            if (joystickAxisEventManagers[axis] != null)
-                return joystickAxisEventManagers[axis];
-
-            var manager = joystickAxisEventManagers[axis] = CreateJoystickAxisEventManagerFor(axis);
+            var manager = CreateJoystickAxisEventManagerFor(axis);
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return manager;
         }
@@ -567,13 +565,7 @@ namespace osu.Framework.Input
         }
 
         protected virtual void HandleJoystickAxisChange(JoystickAxisChangeEvent e)
-        {
-            var state = e.State;
-            var axis = e.Axis.Axis;
-            var value = e.Axis.Value;
-
-            GetJoystickAxisEventManagerFor(axis).HandleAxisChange(state, value);
-        }
+            => GetJoystickAxisEventManagerFor(e.Axis.Axis).HandleAxisChange(e.State, e.Axis.Value);
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
         {

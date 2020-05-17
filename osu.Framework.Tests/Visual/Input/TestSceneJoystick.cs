@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < 4; i++)
                 hatFlow.Add(new JoystickHatHandler(i));
 
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < 16; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -197,18 +197,18 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
-            private readonly int axisIndex;
+            private readonly InputAxis trackedAxis;
             private readonly Drawable background;
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
             private readonly SpriteText rawValue;
 
-            public JoystickAxisButtonHandler(int axisIndex)
+            public JoystickAxisButtonHandler(int trackedAxis)
             {
-                this.axisIndex = axisIndex;
-                positiveAxisButton = JoystickButton.FirstAxisPositive + axisIndex;
-                negativeAxisButton = JoystickButton.FirstAxisNegative + axisIndex;
+                this.trackedAxis = InputAxis.FirstJoystickAxis + trackedAxis;
+                positiveAxisButton = JoystickButton.FirstAxisPositive + trackedAxis;
+                negativeAxisButton = JoystickButton.FirstAxisNegative + trackedAxis;
 
                 Size = new Vector2(50);
 
@@ -224,7 +224,7 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"AX{axisIndex + 1}"
+                        Text = $"AX{trackedAxis + 1}"
                     },
                     rawValue = new SpriteText
                     {
@@ -257,7 +257,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
             {
-                if (e.Axis.Axis == axisIndex)
+                if (e.Axis.Axis == trackedAxis)
                     rawValue.Text = e.Axis.Value.ToString("0.00");
 
                 return false;

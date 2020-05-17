@@ -161,7 +161,7 @@ namespace osu.Framework.Input
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
 
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
-            new JoystickAxisInput(parentState?.Joystick?.Axes.Select((v, i) => new JoystickAxis(i, v))).Apply(CurrentState, this);
+            new JoystickAxisInput(parentState?.Joystick?.Axes.Select((v, i) => new JoystickAxis(InputAxis.FirstJoystickAxis + i, v))).Apply(CurrentState, this);
         }
     }
 }

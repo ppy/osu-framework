@@ -14,8 +14,7 @@ namespace osu.Framework.Input
 {
     public class JoystickAxisEventManager
     {
-        // TODO: make JoystickAxis enum with 16 axes
-        private readonly int source;
+        private readonly InputAxis source;
 
         /// <summary>
         /// The input queue.
@@ -28,7 +27,7 @@ namespace osu.Framework.Input
         /// </summary>
         internal Func<IEnumerable<Drawable>> GetInputQueue;
 
-        public JoystickAxisEventManager(int axis)
+        public JoystickAxisEventManager(InputAxis axis)
         {
             source = axis;
         }
@@ -40,7 +39,7 @@ namespace osu.Framework.Input
         /// <param name="newValue">The new value for this axis.</param>
         public void HandleAxisChange(InputState state, float newValue)
         {
-            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(source, newValue), state.Joystick.Axes[source]));
+            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(source, newValue), state.Joystick.Axes[source - InputAxis.FirstJoystickAxis]));
         }
 
         /// <summary>

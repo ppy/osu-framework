@@ -25,7 +25,7 @@ namespace osu.Framework.Input.StateChanges
 
             foreach (var axis in axes)
             {
-                array[axis.Axis] = axis.Value;
+                array[axis.Axis - InputAxis.FirstJoystickAxis] = axis.Value;
             }
 
             this.axes = array;
@@ -33,13 +33,13 @@ namespace osu.Framework.Input.StateChanges
 
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
-            foreach (var a in axes.Select((v, i) => new JoystickAxis(i, v)))
+            foreach (var a in axes.Select((v, i) => new JoystickAxis(i + InputAxis.FirstJoystickAxis, v)))
             {
                 // Not enough movement, don't fire event
-                if (Precision.AlmostEquals(state.Joystick.Axes[a.Axis], a.Value))
+                if (Precision.AlmostEquals(state.Joystick.Axes[a.Axis - InputAxis.FirstJoystickAxis], a.Value))
                     continue;
 
-                state.Joystick.Axes[a.Axis] = a.Value;
+                state.Joystick.Axes[a.Axis - InputAxis.FirstJoystickAxis] = a.Value;
                 handler.HandleInputStateChange(new JoystickAxisChangeEvent(state, this, a));
             }
         }

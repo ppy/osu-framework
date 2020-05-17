@@ -64,7 +64,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void handleState(JoystickDevice device, JoystickState newState)
         {
             PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
-            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes.Select((v, i) => new JoystickAxis(i, v))));
+            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes.Select((v, i) => new JoystickAxis(i + InputAxis.FirstJoystickAxis, v))));
 
             device.LastState = newState;
         }
@@ -160,7 +160,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of axes supported by osuTK.
             /// </summary>
-            public const int MAX_AXES = 64;
+            public const int MAX_AXES = JoystickState.MAX_AXES;
 
             /// <summary>
             /// Amount of buttons supported by osuTK.

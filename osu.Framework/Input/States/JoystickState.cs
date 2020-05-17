@@ -5,7 +5,7 @@ namespace osu.Framework.Input.States
 {
     public class JoystickState
     {
-        public const int MAX_AXES = 64;
+        public const int MAX_AXES = 16;
 
         public readonly ButtonStates<JoystickButton> Buttons = new ButtonStates<JoystickButton>();
         public readonly float[] Axes = new float[MAX_AXES];
