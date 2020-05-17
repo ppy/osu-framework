@@ -7,7 +7,6 @@ using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
 
