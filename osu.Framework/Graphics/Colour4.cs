@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to multiply by. Must not be negative.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is negative.</exception>
         public static Colour4 operator *(Colour4 colour, float scalar)
         {
             if (scalar < 0)
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to divide by. Must be positive.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is zero or negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is zero or negative.</exception>
         public static Colour4 operator /(Colour4 colour, float scalar)
         {
             if (scalar <= 0)

@@ -21,8 +21,10 @@ namespace osu.Framework.Graphics.Colour
         public static implicit operator SRGBColour(Color4 value) => new SRGBColour { Linear = value.ToLinear() };
         public static implicit operator Color4(SRGBColour value) => value.Linear.ToSRGB();
 
+#pragma warning disable 618 // can be removed alongside osuTK (Color4/Colour4 implicit conversions)
         public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { Linear = value.ToLinear() };
         public static implicit operator Colour4(SRGBColour value) => value.Linear.ToSRGB();
+#pragma warning restore 618
 
         /// <summary>
         /// Multiplies 2 colours in linear colour space.
