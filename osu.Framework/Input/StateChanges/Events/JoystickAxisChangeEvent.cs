@@ -8,7 +8,7 @@ namespace osu.Framework.Input.StateChanges.Events
     public class JoystickAxisChangeEvent : InputStateChangeEvent
     {
         /// <summary>
-        /// The current joystick axis data
+        /// The current joystick axis data.
         /// </summary>
         public readonly JoystickAxis Axis;
 
