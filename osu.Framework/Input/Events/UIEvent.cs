@@ -69,6 +69,11 @@ namespace osu.Framework.Input.Events
         /// </summary>
         public bool SuperPressed => CurrentState.Keyboard.SuperPressed;
 
+        /// <summary>
+        /// Whether the event is allowed when <see cref="InputManager"/>.DraggedDrawable is not null
+        /// </summary>
+        public virtual bool AllowedWhenDragging => true;
+
         protected UIEvent([NotNull] InputState state)
         {
             CurrentState = state ?? throw new ArgumentNullException(nameof(state));
