@@ -7,7 +7,14 @@ namespace osu.Framework.Input.StateChanges.Events
 {
     public class JoystickAxisChangeEvent : InputStateChangeEvent
     {
+        /// <summary>
+        /// The current joystick axis data
+        /// </summary>
         public readonly JoystickAxis Axis;
+
+        /// <summary>
+        /// The last value of this joystick axis.
+        /// </summary>
         public readonly float LastValue;
 
         public JoystickAxisChangeEvent(InputState state, IInput input, JoystickAxis axis, float lastValue)

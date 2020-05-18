@@ -13,6 +13,9 @@ namespace osu.Framework.Input.StateChanges
 {
     public class JoystickAxisInput : IInput
     {
+        /// <summary>
+        /// List of joystick axes.
+        /// </summary>
         public readonly IEnumerable<JoystickAxis> Axes;
 
         public JoystickAxisInput(JoystickAxis axis)
