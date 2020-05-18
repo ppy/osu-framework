@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
 using osu.Framework.Utils;
@@ -64,7 +63,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void handleState(JoystickDevice device, JoystickState newState)
         {
             PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
-            PendingInputs.Enqueue(new JoystickAxisInput(newState.Axes.Select((v, i) => new JoystickAxis(i + InputAxis.FirstJoystickAxis, v))));
+            PendingInputs.Enqueue(new JoystickAxisInput(newState.GetAxes()));
 
             device.LastState = newState;
         }
@@ -116,7 +115,7 @@ namespace osu.Framework.Input.Handlers.Joystick
                         // Round values in the deadzone to zero.
                         value = 0;
 
-                    Axes[i] = value;
+                    AxesValues[i] = value;
 
                     if (value > deadzone)
                         Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
@@ -175,7 +174,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of movement around the "centre" of the axis that counts as moving within the deadzone.
             /// </summary>
-            private const float deadzone_threshold = 0.05f;
+            private const float deadzone_threshold = 0.075f;
 
             /// <summary>
             /// The last state of this <see cref="JoystickDevice"/>.

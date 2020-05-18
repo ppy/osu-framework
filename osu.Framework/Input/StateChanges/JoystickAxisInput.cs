@@ -33,11 +33,12 @@ namespace osu.Framework.Input.StateChanges
             foreach (var a in Axes)
             {
                 // Not enough movement, don't fire event
-                if (Precision.AlmostEquals(state.Joystick.Axes[a.Axis - InputAxis.FirstJoystickAxis], a.Value))
+                if (Precision.AlmostEquals(state.Joystick.AxesValues[(int)a.Source], a.Value))
                     continue;
 
-                state.Joystick.Axes[a.Axis - InputAxis.FirstJoystickAxis] = a.Value;
-                handler.HandleInputStateChange(new JoystickAxisChangeEvent(state, this, a));
+                var lastValue = state.Joystick.AxesValues[(int)a.Source];
+                state.Joystick.AxesValues[(int)a.Source] = a.Value;
+                handler.HandleInputStateChange(new JoystickAxisChangeEvent(state, this, a, lastValue));
             }
         }
     }

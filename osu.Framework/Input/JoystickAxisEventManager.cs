@@ -14,7 +14,7 @@ namespace osu.Framework.Input
 {
     public class JoystickAxisEventManager
     {
-        private readonly InputAxis source;
+        private readonly JoystickAxisSource source;
 
         /// <summary>
         /// The input queue.
@@ -27,9 +27,9 @@ namespace osu.Framework.Input
         /// </summary>
         internal Func<IEnumerable<Drawable>> GetInputQueue;
 
-        public JoystickAxisEventManager(InputAxis axis)
+        public JoystickAxisEventManager(JoystickAxisSource source)
         {
-            source = axis;
+            this.source = source;
         }
 
         /// <summary>
@@ -37,9 +37,10 @@ namespace osu.Framework.Input
         /// </summary>
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="newValue">The new value for this axis.</param>
-        public void HandleAxisChange(InputState state, float newValue)
+        /// <param name="lastValue">The last value for this axis.</param>
+        public void HandleAxisChange(InputState state, float newValue, float lastValue)
         {
-            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(source, newValue), state.Joystick.Axes[source - InputAxis.FirstJoystickAxis]));
+            PropagateEvent(InputQueue, new JoystickAxisMoveEvent(state, new JoystickAxis(source, newValue), lastValue));
         }
 
         /// <summary>

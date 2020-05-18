@@ -5,12 +5,12 @@ namespace osu.Framework.Input
 {
     public readonly struct JoystickAxis
     {
-        public readonly InputAxis Axis;
+        public readonly JoystickAxisSource Source;
         public readonly float Value;
 
-        public JoystickAxis(InputAxis axis, float value)
+        public JoystickAxis(JoystickAxisSource source, float value)
         {
-            Axis = axis;
+            Source = source;
             Value = value;
         }
     }

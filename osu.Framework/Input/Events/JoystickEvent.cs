@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Input.States;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Input.Events
 {
@@ -20,8 +22,9 @@ namespace osu.Framework.Input.Events
         public IEnumerable<JoystickButton> PressedButtons => CurrentState.Joystick.Buttons;
 
         /// <summary>
-        /// List of joystick axes.
+        /// List of joystick axes. Axes which have zero value may be omitted.
         /// </summary>
-        public IReadOnlyList<float> Axes => CurrentState.Joystick.Axes;
+        public IEnumerable<JoystickAxis> Axes =>
+            CurrentState.Joystick.GetAxes().Where(j => !Precision.AlmostEquals(0, j.Value));
     }
 }

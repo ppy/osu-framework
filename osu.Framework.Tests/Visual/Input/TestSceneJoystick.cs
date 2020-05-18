@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
+using JoystickState = osu.Framework.Input.States.JoystickState;
 
 namespace osu.Framework.Tests.Visual.Input
 {
@@ -40,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < 4; i++)
                 hatFlow.Add(new JoystickHatHandler(i));
 
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < JoystickState.MAX_AXES; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -197,7 +198,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
-            private readonly InputAxis trackedAxis;
+            private readonly JoystickAxisSource trackedAxis;
             private readonly Drawable background;
 
             private readonly JoystickButton positiveAxisButton;
@@ -206,7 +207,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             public JoystickAxisButtonHandler(int trackedAxis)
             {
-                this.trackedAxis = InputAxis.FirstJoystickAxis + trackedAxis;
+                this.trackedAxis = (JoystickAxisSource)trackedAxis;
                 positiveAxisButton = JoystickButton.FirstAxisPositive + trackedAxis;
                 negativeAxisButton = JoystickButton.FirstAxisNegative + trackedAxis;
 
@@ -257,7 +258,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
             {
-                if (e.Axis.Axis == trackedAxis)
+                if (e.Axis.Source == trackedAxis)
                     rawValue.Text = e.Axis.Value.ToString("0.00");
 
                 return false;

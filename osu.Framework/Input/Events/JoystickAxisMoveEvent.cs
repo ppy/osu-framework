@@ -8,7 +8,7 @@ using osu.Framework.Input.States;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// Events of a joystick axis.
+    /// An event representing a movement of a specific joystick axis.
     /// </summary>
     public class JoystickAxisMoveEvent : JoystickEvent
     {
@@ -34,6 +34,6 @@ namespace osu.Framework.Input.Events
             Axis = axis;
         }
 
-        public override string ToString() => $"{GetType().ReadableName()}({Axis})";
+        public override string ToString() => $"{GetType().ReadableName()}({Axis.Source})";
     }
 }
