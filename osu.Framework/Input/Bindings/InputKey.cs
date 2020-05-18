@@ -1875,7 +1875,7 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// A0 key on a MIDI input device.
         /// </summary>
-        MidiA0,
+        MidiA0 = 8192 + 1,
 
         /// <summary>
         /// A#0 key on a MIDI input device.
