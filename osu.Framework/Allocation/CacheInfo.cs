@@ -43,15 +43,6 @@ namespace osu.Framework.Allocation
 
         public bool Equals(CacheInfo other) => Name == other.Name && Parent == other.Parent && Type == other.Type;
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Parent != null ? Parent.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (Type != null ? Type.GetHashCode() : 0);
-                return hashCode;
-            }
-        }
+        public override int GetHashCode() => HashCode.Combine(Name, Parent, Type);
     }
 }
