@@ -25,6 +25,6 @@ namespace osu.Framework.Input.Events
         /// List of joystick axes. Axes which have zero value may be omitted.
         /// </summary>
         public IEnumerable<JoystickAxis> Axes =>
-            CurrentState.Joystick.GetAxes().Where(j => j.Value != 0));
+            CurrentState.Joystick.GetAxes().Where(j => j.Value != 0);
     }
 }
