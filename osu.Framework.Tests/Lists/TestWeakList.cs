@@ -256,36 +256,44 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestDeadObjectsAreSkippedBeforeEnumeration()
         {
-            var objects = new List<object>
-            {
-                new object(),
-                new object(),
-                new object(),
-                new object(),
-                new object(),
-                new object(),
-            };
+            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
 
-            var list = new WeakList<object>();
-            foreach (var o in objects)
-                list.Add(o);
+            var (list, aliveObjects) = generateWeakList();
 
-            objects.RemoveAt(5);
-            objects.RemoveAt(3);
-            objects.RemoveAt(0);
-
+            GC.EndNoGCRegion();
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
             foreach (var obj in list)
             {
-                if (!objects.Contains(obj))
+                if (!aliveObjects.Contains(obj))
                     Assert.Fail("Dead objects were iterated over.");
             }
         }
 
         [Test]
         public void TestDeadObjectsAreSkippedDuringEnumeration()
+        {
+            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
+
+            var (list, aliveObjects) = generateWeakList();
+
+            using (var enumerator = list.GetEnumerator())
+            {
+                GC.EndNoGCRegion();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                while (enumerator.MoveNext())
+                {
+                    if (!aliveObjects.Contains(enumerator.Current))
+                        Assert.Fail("Dead objects were iterated over.");
+                }
+            }
+        }
+
+        // This method is required for references to be released in DEBUG builds.
+        private (WeakList<object> list, object[] aliveObjects) generateWeakList()
         {
             var objects = new List<object>
             {
@@ -301,21 +309,7 @@ namespace osu.Framework.Tests.Lists
             foreach (var o in objects)
                 list.Add(o);
 
-            using (var enumerator = list.GetEnumerator())
-            {
-                objects.RemoveAt(5);
-                objects.RemoveAt(3);
-                objects.RemoveAt(0);
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                while (enumerator.MoveNext())
-                {
-                    if (!objects.Contains(enumerator.Current))
-                        Assert.Fail("Dead objects were iterated over.");
-                }
-            }
+            return (list, new[] { objects[1], objects[2], objects[4] });
         }
     }
 }
