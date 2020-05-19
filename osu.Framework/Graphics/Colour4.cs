@@ -222,6 +222,22 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
 
+        /// <summary>
+        /// Returns the colour as a 32-bit unsigned integer in the format RGBA.
+        /// </summary>
+        public uint ToRGBA() => ((uint)(Math.Min(1f, R) * byte.MaxValue) << 24) |
+                                ((uint)(Math.Min(1f, G) * byte.MaxValue) << 16) |
+                                ((uint)(Math.Min(1f, B) * byte.MaxValue) << 8) |
+                                (uint)(Math.Min(1f, A) * byte.MaxValue);
+
+        /// <summary>
+        /// Returns the colour as a 32-bit unsigned integer in the format ARGB.
+        /// </summary>
+        public uint ToARGB() => ((uint)(Math.Min(1f, A) * byte.MaxValue) << 24) |
+                                ((uint)(Math.Min(1f, R) * byte.MaxValue) << 16) |
+                                ((uint)(Math.Min(1f, G) * byte.MaxValue) << 8) |
+                                (uint)(Math.Min(1f, B) * byte.MaxValue);
+
         private const double gamma = 2.4;
 
         private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
