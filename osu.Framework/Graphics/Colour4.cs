@@ -243,7 +243,7 @@ namespace osu.Framework.Graphics
         /// Returns a new <see cref="Colour4"/> from the passed 32-bit unsigned integer in the format RGBA.
         /// </summary>
         /// <param name="rgba">The source colour in Rgba32 format.</param>
-        public static Colour4 FromRGBA(uint rgba) => new Colour4((rgba >> 24) & 0xff, (rgba >> 16) & 0xff, (rgba >> 8) & 0xff, rgba & 0xff);
+        public static Colour4 FromRGBA(uint rgba) => new Colour4((byte)((rgba >> 24) & 0xff), (byte)((rgba >> 16) & 0xff), (byte)((rgba >> 8) & 0xff), (byte)(rgba & 0xff));
 
         /// <summary>
         /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format ARGB.
@@ -257,7 +257,7 @@ namespace osu.Framework.Graphics
         /// Returns a new <see cref="Colour4"/> from the passed 32-bit unsigned integer in the format ARGB.
         /// </summary>
         /// <param name="argb">The source colour in Argb32 format.</param>
-        public static Colour4 FromARGB(uint argb) => new Colour4((argb >> 16) & 0xff, (argb >> 8) & 0xff, argb & 0xff, (argb >> 24) & 0xff);
+        public static Colour4 FromARGB(uint argb) => new Colour4((byte)((argb >> 16) & 0xff), (byte)((argb >> 8) & 0xff), (byte)(argb & 0xff), (byte)((argb >> 24) & 0xff));
 
         /// <summary>
         /// Converts an RGB or RGBA-formatted hex colour code into a <see cref="Colour4"/>.
