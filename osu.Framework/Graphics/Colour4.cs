@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using System.Numerics;
 using osuTK.Graphics;
 
@@ -249,6 +250,81 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="argb">The source colour in Argb32 format.</param>
         public static Colour4 FromARGB(uint argb) => new Colour4((argb >> 16) & 0xff, (argb >> 8) & 0xff, argb & 0xff, (argb >> 24) & 0xff);
+
+        /// <summary>
+        /// Converts an RGB or RGBA-formatted hex colour code into a <see cref="Colour4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <returns>The <see cref="Colour4"/> representing the colour.</returns>
+        /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
+        public static Colour4 FromHex(string hex)
+        {
+            var hexSpan = hex[0] == '#' ? hex.AsSpan().Slice(1) : hex.AsSpan();
+
+            switch (hexSpan.Length)
+            {
+                default:
+                    throw new ArgumentException(@"Invalid hex string length!");
+
+                case 3:
+                    return new Colour4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
+                        255);
+
+                case 6:
+                    return new Colour4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        255);
+
+                case 4:
+                    return new Colour4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+
+                case 8:
+                    return new Colour4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> into a hex colour code.
+        /// </summary>
+        /// <param name="alwaysOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if this colour is translucent.</param>
+        /// <returns>The hex code representing the colour.</returns>
+        public string ToHex(bool alwaysOutputAlpha = false)
+        {
+            var argb = ToARGB();
+            byte a = (byte)(argb >> 24);
+            byte r = (byte)(argb >> 16);
+            byte g = (byte)(argb >> 8);
+            byte b = (byte)argb;
+
+            if (!alwaysOutputAlpha && a == 255)
+                return $"#{r:X2}{g:X2}{b:X2}";
+
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
+        }
         private const double gamma = 2.4;
 
         private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
