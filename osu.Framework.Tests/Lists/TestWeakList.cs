@@ -65,6 +65,22 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestCountIsZeroAfterClear()
+        {
+            var obj = new object();
+            var weakRef = new WeakReference<object>(obj);
+            var list = new WeakList<object> { obj, weakRef };
+
+            list.Clear();
+
+            Assert.That(list.Count(), Is.Zero);
+            Assert.That(list, Does.Not.Contain(obj));
+            Assert.That(list.Contains(weakRef), Is.False);
+
+            GC.KeepAlive(obj);
+        }
+
+        [Test]
         public void TestIterateWithRemove()
         {
             var obj = new object();
@@ -122,20 +138,38 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
-        public void TestDeadObjectsAreSkipped()
+        public void TestDeadObjectsAreSkippedBeforeEnumeration()
         {
             var (list, alive) = generateWeakObjects();
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-            int index = 0;
-
             foreach (var obj in list)
             {
-                if (alive[index] != obj)
+                if (!alive.Contains(obj))
                     Assert.Fail("Dead objects were iterated over.");
-                index++;
+            }
+        }
+
+        [Test]
+        public void TestDeadObjectsAreSkippedDuringEnumeration()
+        {
+            var (list, alive) = generateWeakObjects();
+
+            GC.TryStartNoGCRegion(10000);
+
+            using (var enumerator = list.GetEnumerator())
+            {
+                GC.EndNoGCRegion();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                while (enumerator.MoveNext())
+                {
+                    if (!alive.Contains(enumerator.Current))
+                        Assert.Fail("Dead objects were iterated over.");
+                }
             }
         }
 
