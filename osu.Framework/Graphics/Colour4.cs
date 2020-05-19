@@ -327,18 +327,14 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Converts an HSV colour to a <see cref="Colour4"/>.
+        /// Converts an HSV colour to a <see cref="Colour4"/>. All components should be in the range 0-1.
         /// </summary>
-        /// <param name="hue">The hue, between 0 and 360.</param>
+        /// <param name="hue">The hue, between 0 and 1.</param>
         /// <param name="saturation">The saturation, between 0 and 1.</param>
         /// <param name="value">The value, between 0 and 1.</param>
         /// <param name="alpha">The alpha, between 0 and 1.</param>
-        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="hue"/> is outside the range of 0-360.</exception>
         public static Colour4 FromHSV(float hue, float saturation, float value, float alpha = 1f)
         {
-            if (hue < 0 || hue > 360)
-                throw new ArgumentOutOfRangeException(nameof(hue), "Hue must be between 0 and 360.");
-
             int hi = (int)(hue / 60.0f) % 6;
             float f = hue / 60.0f - (int)(hue / 60.0);
             float p = value * (1 - saturation);
@@ -372,9 +368,10 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Converts a <see cref="Colour4"/> to the HSV colour space, represented in the XYZ components of a <see cref="Vector4"/>.
-        /// The hue is in the range 0-360, while the other components are in the range 0-1.
         /// The returned vector's W component represents the alpha channel of the colour.
+        /// The angular hue is compressed to the 0-1 range in line with the other components.
         /// </summary>
+        /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
         public Vector4 ToHSV()
         {
             var red = R;
