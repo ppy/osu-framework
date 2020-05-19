@@ -335,14 +335,15 @@ namespace osu.Framework.Graphics
         /// <param name="alpha">The alpha, between 0 and 1.</param>
         public static Colour4 FromHSV(float hue, float saturation, float value, float alpha = 1f)
         {
-            int hi = (int)(hue / 60.0f) % 6;
-            float f = hue / 60.0f - (int)(hue / 60.0);
+            int hi = (int)(hue * 6);
+            float f = hue * 6f - hi;
             float p = value * (1 - saturation);
             float q = value * (1 - f * saturation);
             float t = value * (1 - (1 - f) * saturation);
 
             switch (hi)
             {
+                default:
                 case 0:
                     return new Colour4(value, t, p, alpha);
 
@@ -360,9 +361,6 @@ namespace osu.Framework.Graphics
 
                 case 5:
                     return new Colour4(value, p, q, alpha);
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(hue), "Hue is out of range.");
             }
         }
 
@@ -386,15 +384,16 @@ namespace osu.Framework.Graphics
             if (max == min)
                 hue = 0;
             else if (max == red)
-                hue = (60 * (green - blue) / (max - min) + 360) % 360;
+                hue = (6f + (green - blue) / (max - min)) % 6f;
             else if (max == green)
-                hue = 60 * (blue - red) / (max - min) + 120;
+                hue = (blue - red) / (max - min) + 2;
             else
-                hue = 60 * (red - green) / (max - min) + 240;
+                hue = (red - green) / (max - min) + 4;
 
             var saturation = max == 0 ? 0 : (max - min) / max;
+            hue = Math.Clamp(hue / 6f, 0f, 1f);
 
-            return new Vector4(hue, saturation, max, A);
+            return new Vector4(hue == 1f ? 0f : hue, saturation, max, A);
         }
 
         /// <summary>
