@@ -121,13 +121,21 @@ namespace osu.Framework.Graphics
         /// Returns a lightened version of the colour.
         /// </summary>
         /// <param name="amount">Percentage light addition</param>
-        public Colour4 Lighten(float amount) => this * (1 + amount);
+        public Colour4 Lighten(float amount)
+        {
+            float scalar = Math.Max(1f, 1f + amount);
+            return new Colour4(R * scalar, G * scalar, B * scalar, A).Clamped();
+        }
 
         /// <summary>
         /// Returns a darkened version of the colour.
         /// </summary>
         /// <param name="amount">Percentage light reduction</param>
-        public Colour4 Darken(float amount) => this / (1 + amount);
+        public Colour4 Darken(float amount)
+        {
+            float scalar = Math.Max(1f, 1f + amount);
+            return new Colour4(R / scalar, G / scalar, B / scalar, A).Clamped();
+        }
 
         #endregion
 
