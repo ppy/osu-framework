@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
@@ -16,48 +17,72 @@ namespace osu.Framework.Lists
         where T : class
     {
         private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
+        private int listStart;
+        private int listEnd;
 
-        public void Add(T obj) => list.Add(new InvalidatableWeakReference(obj));
+        public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference(weakReference));
+        public void Add(WeakReference<T> weakReference) => add(new InvalidatableWeakReference(weakReference));
 
-        public void Remove(T item)
+        private void add(in InvalidatableWeakReference item)
         {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].Reference == null)
-                    continue;
+            if (listEnd < list.Count)
+                list[listEnd] = item;
+            else
+                list.Add(item);
 
-                if (!list[i].Reference.TryGetTarget(out var obj) || obj != item)
-                    continue;
-
-                list[i] = default;
-                break;
-            }
+            listEnd++;
         }
 
-        public bool Remove(WeakReference<T> weakReference)
+        public bool Remove(T item)
         {
-            for (int i = 0; i < list.Count; i++)
+            var enumerator = GetEnumeratorNoTrim();
+
+            while (enumerator.MoveNext())
             {
-                if (list[i].Reference != weakReference)
+                if (enumerator.Current != item)
                     continue;
 
-                list[i] = default;
+                RemoveAt(enumerator.CurrentIndex);
                 return true;
             }
 
             return false;
         }
 
-        public bool Contains(T item)
+        public bool Remove(WeakReference<T> weakReference)
         {
-            foreach (var t in list)
+            var enumerator = GetEnumeratorNoTrim();
+
+            while (enumerator.MoveNext())
             {
-                if (t.Reference == null)
+                if (enumerator.CurrentReference != weakReference)
                     continue;
 
-                if (t.Reference.TryGetTarget(out var obj) && obj == item)
+                RemoveAt(enumerator.CurrentIndex);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            list[index] = default;
+
+            if (index == listStart)
+                listStart++;
+            else if (index == listEnd)
+                listEnd--;
+        }
+
+        public bool Contains(T item)
+        {
+            var enumerator = GetEnumeratorNoTrim();
+
+            while (enumerator.MoveNext())
+            {
+                if (enumerator.Current == item)
                     return true;
             }
 
@@ -66,27 +91,37 @@ namespace osu.Framework.Lists
 
         public bool Contains(WeakReference<T> weakReference)
         {
-            foreach (var t in list)
+            var enumerator = GetEnumeratorNoTrim();
+
+            while (enumerator.MoveNext())
             {
-                if (t.Reference != null && t.Reference == weakReference)
+                if (enumerator.CurrentReference == weakReference)
                     return true;
             }
 
             return false;
         }
 
-        public void Clear()
-        {
-            for (int i = 0; i < list.Count; i++)
-                list[i] = default;
-        }
+        public void Clear() => listStart = listEnd = 0;
 
         public Enumerator GetEnumerator()
         {
+            // Trim from the sides - items that have been removed.
+            list.RemoveRange(listEnd, list.Count - listEnd);
+            list.RemoveRange(0, listStart);
+
+            // Trim all items whose references are no longer alive.
             list.RemoveAll(item => item.Reference == null || !item.Reference.TryGetTarget(out _));
 
-            return new Enumerator(list);
+            // After the trim, the valid range represents the full list.
+            listStart = 0;
+            listEnd = list.Count;
+
+            return GetEnumeratorNoTrim();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Enumerator GetEnumeratorNoTrim() => new Enumerator(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
@@ -94,26 +129,34 @@ namespace osu.Framework.Lists
 
         public struct Enumerator : IEnumerator<T>
         {
-            private List<InvalidatableWeakReference> list;
+            private WeakList<T> weakList;
 
-            private int currentIndex;
             private T currentObject;
 
-            internal Enumerator(List<InvalidatableWeakReference> list)
+            internal Enumerator(WeakList<T> weakList)
             {
-                this.list = list;
+                this.weakList = weakList;
 
-                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
+                CurrentIndex = weakList.listStart - 1; // The first MoveNext() should bring the iterator to the start
+                CurrentReference = null;
                 currentObject = null;
             }
 
             public bool MoveNext()
             {
-                while (++currentIndex < list.Count)
+                while (++CurrentIndex < weakList.listEnd)
                 {
-                    if (list[currentIndex].Reference == null || !list[currentIndex].Reference.TryGetTarget(out currentObject))
-                        continue;
+                    var weakReference = weakList.list[CurrentIndex].Reference;
 
+                    // Check to make sure the object can be retrieved.
+                    if (weakReference == null || !weakReference.TryGetTarget(out currentObject))
+                    {
+                        // If it can't be retrieved, mark for removal. This will occur on the _next_ enumeration (see: GetEnumerator()).
+                        weakList.RemoveAt(CurrentIndex);
+                        continue;
+                    }
+
+                    CurrentReference = weakReference;
                     return true;
                 }
 
@@ -122,18 +165,24 @@ namespace osu.Framework.Lists
 
             public void Reset()
             {
-                currentIndex = -1;
+                CurrentIndex = weakList.listStart - 1;
+                CurrentReference = null;
                 currentObject = null;
             }
 
             public readonly T Current => currentObject;
 
+            internal WeakReference<T> CurrentReference { get; private set; }
+
+            internal int CurrentIndex { get; private set; }
+
             readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                list = null;
+                weakList = null;
                 currentObject = null;
+                CurrentReference = null;
             }
         }
 
