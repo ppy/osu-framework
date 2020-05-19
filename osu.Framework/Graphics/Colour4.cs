@@ -397,6 +397,103 @@ namespace osu.Framework.Graphics
             return new Vector4(hue, saturation, max, A);
         }
 
+        /// <summary>
+        /// Converts an HSL colour to a <see cref="Colour4"/>. All components should be in the range 0-1.
+        /// </summary>
+        /// <param name="hue">The hue, between 0 and 1.</param>
+        /// <param name="saturation">The saturation, between 0 and 1.</param>
+        /// <param name="lightness">The value, between 0 and 1.</param>
+        /// <param name="alpha">The alpha, between 0 and 1.</param>
+        public static Colour4 FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
+        {
+            var c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
+            var h = hue * 6f;
+            var x = c * (1f - Math.Abs(h % 2f - 1f));
+
+            float r, g, b;
+
+            if (0f <= h && h < 1f)
+            {
+                r = c;
+                g = x;
+                b = 0f;
+            }
+            else if (1f <= h && h < 2f)
+            {
+                r = x;
+                g = c;
+                b = 0f;
+            }
+            else if (2f <= h && h < 3f)
+            {
+                r = 0f;
+                g = c;
+                b = x;
+            }
+            else if (3f <= h && h < 4f)
+            {
+                r = 0f;
+                g = x;
+                b = c;
+            }
+            else if (4f <= h && h < 5f)
+            {
+                r = x;
+                g = 0f;
+                b = c;
+            }
+            else if (5f <= h && h < 6f)
+            {
+                r = c;
+                g = 0f;
+                b = x;
+            }
+            else
+                r = g = b = 0f;
+
+            var m = lightness - c * 0.5f;
+            return new Colour4(r + m, g + m, b + m, alpha);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> to the HSL colour space, represented in the XYZ components of a <see cref="Vector4"/>.
+        /// The returned vector's W component represents the alpha channel of the colour.
+        /// The angular hue is compressed to the 0-1 range in line with the other components.
+        /// </summary>
+        /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
+        public Vector4 ToHSL()
+        {
+            var red = R;
+            var green = G;
+            var blue = B;
+
+            var max = Math.Max(red, Math.Max(green, blue));
+            var min = Math.Min(red, Math.Min(green, blue));
+
+            var c = max - min;
+
+            float h = 0f;
+
+            if (max == red)
+                h = (green - blue) / c;
+            else if (max == green)
+                h = (blue - red) / c + 2f;
+            else if (max == blue)
+                h = (red - green) / c + 4f;
+
+            var hue = h / 6f;
+            if (hue < 0f)
+                hue += 1f;
+
+            var lightness = (max + min) / 2f;
+
+            var saturation = 0.0f;
+            if (lightness != 0f && lightness != 1f)
+                saturation = c / (1f - Math.Abs(2f * lightness - 1f));
+
+            return new Vector4(hue, saturation, lightness, A);
+        }
+
         private const double gamma = 2.4;
 
         private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
