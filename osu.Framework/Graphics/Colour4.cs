@@ -325,6 +325,81 @@ namespace osu.Framework.Graphics
 
             return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
         }
+
+        /// <summary>
+        /// Converts an HSV colour to a <see cref="Colour4"/>.
+        /// </summary>
+        /// <param name="hue">The hue, between 0 and 360.</param>
+        /// <param name="saturation">The saturation, between 0 and 1.</param>
+        /// <param name="value">The value, between 0 and 1.</param>
+        /// <param name="alpha">The alpha, between 0 and 1.</param>
+        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="hue"/> is outside the range of 0-360.</exception>
+        public static Colour4 FromHSV(float hue, float saturation, float value, float alpha = 1f)
+        {
+            if (hue < 0 || hue > 360)
+                throw new ArgumentOutOfRangeException(nameof(hue), "Hue must be between 0 and 360.");
+
+            int hi = (int)(hue / 60.0f) % 6;
+            float f = hue / 60.0f - (int)(hue / 60.0);
+            float p = value * (1 - saturation);
+            float q = value * (1 - f * saturation);
+            float t = value * (1 - (1 - f) * saturation);
+
+            switch (hi)
+            {
+                case 0:
+                    return new Colour4(value, t, p, alpha);
+
+                case 1:
+                    return new Colour4(q, value, p, alpha);
+
+                case 2:
+                    return new Colour4(p, value, t, alpha);
+
+                case 3:
+                    return new Colour4(p, q, value, alpha);
+
+                case 4:
+                    return new Colour4(t, p, value, alpha);
+
+                case 5:
+                    return new Colour4(value, p, q, alpha);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(hue), "Hue is out of range.");
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> to the HSV colour space, represented in the XYZ components of a <see cref="Vector4"/>.
+        /// The hue is in the range 0-360, while the other components are in the range 0-1.
+        /// The returned vector's W component represents the alpha channel of the colour.
+        /// </summary>
+        public Vector4 ToHSV()
+        {
+            var red = R;
+            var green = G;
+            var blue = B;
+
+            var max = Math.Max(red, Math.Max(green, blue));
+            var min = Math.Min(red, Math.Min(green, blue));
+
+            float hue;
+
+            if (max == min)
+                hue = 0;
+            else if (max == red)
+                hue = (60 * (green - blue) / (max - min) + 360) % 360;
+            else if (max == green)
+                hue = 60 * (blue - red) / (max - min) + 120;
+            else
+                hue = 60 * (red - green) / (max - min) + 240;
+
+            var saturation = max == 0 ? 0 : (max - min) / max;
+
+            return new Vector4(hue, saturation, max, A);
+        }
+
         private const double gamma = 2.4;
 
         private static double toLinear(double color) => color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, gamma);
