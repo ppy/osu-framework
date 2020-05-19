@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Colour4 FromHex(string hex)
         {
-            var hexSpan = hex[0] == '#' ? hex.AsSpan().Slice(1) : hex.AsSpan();
+            var hexSpan = hex.StartsWith("#") ? hex.AsSpan(1) : hex.AsSpan();
 
             switch (hexSpan.Length)
             {
