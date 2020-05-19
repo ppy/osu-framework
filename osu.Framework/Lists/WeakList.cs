@@ -127,7 +127,7 @@ namespace osu.Framework.Lists
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator GetEnumeratorNoTrim() => new Enumerator(this);
+        internal Enumerator GetEnumeratorNoTrim() => new Enumerator(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
