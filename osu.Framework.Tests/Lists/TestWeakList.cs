@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Lists;
 
@@ -16,11 +17,22 @@ namespace osu.Framework.Tests.Lists
             var obj = new object();
             var list = new WeakList<object> { obj };
 
-            int count = 0;
-            foreach (var unused in list)
-                count++;
+            Assert.That(list.Count(), Is.EqualTo(1));
+            Assert.That(list, Does.Contain(obj));
 
-            Assert.That(count, Is.EqualTo(1));
+            GC.KeepAlive(obj);
+        }
+
+        [Test]
+        public void TestAddWeakReference()
+        {
+            var obj = new object();
+            var weakRef = new WeakReference<object>(obj);
+            var list = new WeakList<object> { weakRef };
+
+            Assert.That(list.Contains(weakRef), Is.True);
+
+            GC.KeepAlive(obj);
         }
 
         [Test]
@@ -31,11 +43,25 @@ namespace osu.Framework.Tests.Lists
 
             list.Remove(obj);
 
-            int count = 0;
-            foreach (var unused in list)
-                count++;
+            Assert.That(list.Count(), Is.Zero);
+            Assert.That(list, Does.Not.Contain(obj));
 
-            Assert.That(count, Is.Zero);
+            GC.KeepAlive(obj);
+        }
+
+        [Test]
+        public void TestRemoveWeakReference()
+        {
+            var obj = new object();
+            var weakRef = new WeakReference<object>(obj);
+            var list = new WeakList<object> { weakRef };
+
+            list.Remove(weakRef);
+
+            Assert.That(list.Count(), Is.Zero);
+            Assert.That(list.Contains(weakRef), Is.False);
+
+            GC.KeepAlive(obj);
         }
 
         [Test]
@@ -56,7 +82,15 @@ namespace osu.Framework.Tests.Lists
                 count++;
             }
 
-            Assert.AreEqual(3, count);
+            Assert.That(count, Is.EqualTo(3));
+
+            Assert.That(list, Does.Contain(obj));
+            Assert.That(list, Does.Not.Contain(obj2));
+            Assert.That(list, Does.Contain(obj3));
+
+            GC.KeepAlive(obj);
+            GC.KeepAlive(obj2);
+            GC.KeepAlive(obj3);
         }
 
         [Test]
@@ -75,12 +109,16 @@ namespace osu.Framework.Tests.Lists
                 if (count == 0)
                     list.Remove(obj2);
 
-                Assert.AreNotEqual(obj2, item);
+                Assert.That(item, Is.Not.EqualTo(obj2));
 
                 count++;
             }
 
-            Assert.AreEqual(2, count);
+            Assert.That(count, Is.EqualTo(2));
+
+            GC.KeepAlive(obj);
+            GC.KeepAlive(obj2);
+            GC.KeepAlive(obj3);
         }
 
         [Test]
@@ -98,76 +136,6 @@ namespace osu.Framework.Tests.Lists
                 if (alive[index] != obj)
                     Assert.Fail("Dead objects were iterated over.");
                 index++;
-            }
-        }
-
-        [Test]
-        public void TestAddedObjectIsContained()
-        {
-            var obj = new object();
-            var list = new WeakList<object> { obj };
-
-            Assert.That(list, Contains.Item(obj));
-        }
-
-        [Test]
-        public void TestAddedWeakReferenceIsContained()
-        {
-            var obj = new object();
-            var weakRef = new WeakReference<object>(obj);
-            var list = new WeakList<object> { weakRef };
-
-            Assert.That(list.Contains(weakRef), Is.True);
-        }
-
-        [Test]
-        public void TestRemovedObjectsAreNotContained()
-        {
-            var obj = new object();
-            var list = new WeakList<object> { obj };
-
-            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
-
-            try
-            {
-                list.Remove(obj);
-                Assert.That(list, Does.Not.Contain(obj));
-            }
-            finally
-            {
-                try
-                {
-                    GC.EndNoGCRegion();
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        [Test]
-        public void TestRemovedWeakReferencesAreNotContained()
-        {
-            var obj = new object();
-            var weakRef = new WeakReference<object>(obj);
-            var list = new WeakList<object> { weakRef };
-
-            GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
-
-            try
-            {
-                list.Remove(weakRef);
-                Assert.That(list, Does.Not.Contain(weakRef));
-            }
-            finally
-            {
-                try
-                {
-                    GC.EndNoGCRegion();
-                }
-                catch
-                {
-                }
             }
         }
 
