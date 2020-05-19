@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics
                 g = 0f;
                 b = c;
             }
-            else if (5f <= h && h < 6f)
+            else if (5f <= h && h <= 6f)
             {
                 r = c;
                 g = 0f;
@@ -470,26 +470,29 @@ namespace osu.Framework.Graphics
             var max = Math.Max(red, Math.Max(green, blue));
             var min = Math.Min(red, Math.Min(green, blue));
 
-            var c = max - min;
+            var lightness = (max + min) / 2f;
+            if (lightness <= 0)
+                return new Vector4(0f, 0f, 0f, A);
 
-            float h = 0f;
+            var diff = max - min;
+            var saturation = diff;
+            if (saturation <= 0)
+                return new Vector4(0f, 0f, lightness, A);
+
+            saturation = lightness <= 0.5f ? saturation / (min + max) : saturation / (2f - max - min);
+
+            float hue = 0f;
 
             if (max == red)
-                h = (green - blue) / c;
+                hue = (green - blue) / diff;
             else if (max == green)
-                h = (blue - red) / c + 2f;
+                hue = (blue - red) / diff + 2f;
             else if (max == blue)
-                h = (red - green) / c + 4f;
+                hue = (red - green) / diff + 4f;
 
-            var hue = h / 6f;
+            hue /= 6f;
             if (hue < 0f)
                 hue += 1f;
-
-            var lightness = (max + min) / 2f;
-
-            var saturation = 0.0f;
-            if (lightness != 0f && lightness != 1f)
-                saturation = c / (1f - Math.Abs(2f * lightness - 1f));
 
             return new Vector4(hue, saturation, lightness, A);
         }
