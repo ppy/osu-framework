@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to multiply by. Must not be negative.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is negative.</exception>
         public static Colour4 operator *(Colour4 colour, float scalar)
         {
             if (scalar < 0)
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to divide by. Must be positive.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is zero or negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is zero or negative.</exception>
         public static Colour4 operator /(Colour4 colour, float scalar)
         {
             if (scalar <= 0)
@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics
         public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
 
         /// <summary>
-        /// Returns the colour as a 32-bit unsigned integer in the format RGBA.
+        /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format RGBA.
         /// </summary>
         public uint ToRGBA() => ((uint)(Math.Min(1f, R) * byte.MaxValue) << 24) |
                                 ((uint)(Math.Min(1f, G) * byte.MaxValue) << 16) |
@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics
                                 (uint)(Math.Min(1f, A) * byte.MaxValue);
 
         /// <summary>
-        /// Returns the colour as a 32-bit unsigned integer in the format ARGB.
+        /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format ARGB.
         /// </summary>
         public uint ToARGB() => ((uint)(Math.Min(1f, A) * byte.MaxValue) << 24) |
                                 ((uint)(Math.Min(1f, R) * byte.MaxValue) << 16) |
