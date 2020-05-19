@@ -34,7 +34,7 @@ namespace osu.Framework.Lists
             listEnd++;
         }
 
-        public void Remove(T item)
+        public bool Remove(T item)
         {
             var enumerator = GetEnumeratorNoTrim();
 
@@ -44,8 +44,10 @@ namespace osu.Framework.Lists
                     continue;
 
                 RemoveAt(enumerator.CurrentIndex);
-                break;
+                return true;
             }
+
+            return false;
         }
 
         public bool Remove(WeakReference<T> weakReference)
