@@ -151,12 +151,8 @@ namespace osu.Framework.Lists
                     // Check to make sure the object can be retrieved.
                     if (weakReference == null || !weakReference.TryGetTarget(out currentObject))
                     {
-                        // If the object can't be retrieved and we're at the start or the end of the list, increment the pointers to optimise for future enumerations.
-                        if (CurrentIndex == weakList.listStart)
-                            weakList.listStart++;
-                        else if (CurrentIndex == weakList.listEnd)
-                            weakList.listEnd--;
-
+                        // If it can't be retrieved, mark for removal. This will occur on the _next_ enumeration (see: GetEnumerator()).
+                        weakList.RemoveAt(CurrentIndex);
                         continue;
                     }
 
