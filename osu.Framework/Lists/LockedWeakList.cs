@@ -40,6 +40,12 @@ namespace osu.Framework.Lists
                 return list.Remove(weakReference);
         }
 
+        public void RemoveAt(int index)
+        {
+            lock (list)
+                list.RemoveAt(index);
+        }
+
         public bool Contains(T item)
         {
             lock (list)

@@ -37,6 +37,12 @@ namespace osu.Framework.Lists
         bool Remove(WeakReference<T> weakReference);
 
         /// <summary>
+        /// Removes an item at an index from this list.
+        /// </summary>
+        /// <param name="index">The index of the item to remove.</param>
+        void RemoveAt(int index);
+
+        /// <summary>
         /// Searches for an item in the list.
         /// </summary>
         /// <param name="item">The item to search for.</param>

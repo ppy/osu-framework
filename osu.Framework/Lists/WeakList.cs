@@ -20,22 +20,16 @@ namespace osu.Framework.Lists
         private int listStart;
         private int listEnd;
 
-        public void Add(T obj)
+        public void Add(T obj) => add(new InvalidatableWeakReference(obj));
+
+        public void Add(WeakReference<T> weakReference) => add(new InvalidatableWeakReference(weakReference));
+
+        private void add(in InvalidatableWeakReference item)
         {
             if (listEnd < list.Count)
-                list[listEnd] = new InvalidatableWeakReference(obj);
+                list[listEnd] = item;
             else
-                list.Add(new InvalidatableWeakReference(obj));
-
-            listEnd++;
-        }
-
-        public void Add(WeakReference<T> weakReference)
-        {
-            if (listEnd < list.Count)
-                list[listEnd] = new InvalidatableWeakReference(weakReference);
-            else
-                list.Add(new InvalidatableWeakReference(weakReference));
+                list.Add(item);
 
             listEnd++;
         }
@@ -49,13 +43,7 @@ namespace osu.Framework.Lists
                 if (enumerator.Current != item)
                     continue;
 
-                if (enumerator.CurrentIndex == listStart)
-                    listStart++;
-                else if (enumerator.CurrentIndex == listEnd)
-                    listEnd--;
-
-                list[enumerator.CurrentIndex] = default;
-
+                RemoveAt(enumerator.CurrentIndex);
                 break;
             }
         }
@@ -69,17 +57,21 @@ namespace osu.Framework.Lists
                 if (enumerator.CurrentReference != weakReference)
                     continue;
 
-                if (enumerator.CurrentIndex == listStart)
-                    listStart++;
-                else if (enumerator.CurrentIndex == listEnd)
-                    listEnd--;
-
-                list[enumerator.CurrentIndex] = default;
-
+                RemoveAt(enumerator.CurrentIndex);
                 return true;
             }
 
             return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            list[index] = default;
+
+            if (index == listStart)
+                listStart++;
+            else if (index == listEnd)
+                listEnd--;
         }
 
         public bool Contains(T item)
