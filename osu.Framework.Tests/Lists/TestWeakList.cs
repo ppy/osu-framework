@@ -37,6 +37,18 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestEnumerate()
+        {
+            var obj = new object();
+            var list = new WeakList<object> { obj };
+
+            Assert.That(list.Count(), Is.EqualTo(1));
+            Assert.That(list, Does.Contain(obj));
+
+            GC.KeepAlive(obj);
+        }
+
+        [Test]
         public void TestRemove()
         {
             var obj = new object();
