@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Lists;
@@ -140,43 +141,9 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestDeadObjectsAreSkippedBeforeEnumeration()
         {
-            var (list, alive) = generateWeakObjects();
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            foreach (var obj in list)
+            var objects = new List<object>
             {
-                if (!alive.Contains(obj))
-                    Assert.Fail("Dead objects were iterated over.");
-            }
-        }
-
-        [Test]
-        public void TestDeadObjectsAreSkippedDuringEnumeration()
-        {
-            var (list, alive) = generateWeakObjects();
-
-            GC.TryStartNoGCRegion(10000);
-
-            using (var enumerator = list.GetEnumerator())
-            {
-                GC.EndNoGCRegion();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                while (enumerator.MoveNext())
-                {
-                    if (!alive.Contains(enumerator.Current))
-                        Assert.Fail("Dead objects were iterated over.");
-                }
-            }
-        }
-
-        private (WeakList<object> list, object[] alive) generateWeakObjects()
-        {
-            var allObjects = new[]
-            {
+                new object(),
                 new object(),
                 new object(),
                 new object(),
@@ -185,11 +152,55 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
 
-            foreach (var obj in allObjects)
-                list.Add(obj);
+            objects.RemoveAt(5);
+            objects.RemoveAt(3);
+            objects.RemoveAt(0);
 
-            return (list, new[] { allObjects[1], allObjects[2], allObjects[4] });
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            foreach (var obj in list)
+            {
+                if (!objects.Contains(obj))
+                    Assert.Fail("Dead objects were iterated over.");
+            }
+        }
+
+        [Test]
+        public void TestDeadObjectsAreSkippedDuringEnumeration()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            using (var enumerator = list.GetEnumerator())
+            {
+                objects.RemoveAt(5);
+                objects.RemoveAt(3);
+                objects.RemoveAt(0);
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                while (enumerator.MoveNext())
+                {
+                    if (!objects.Contains(enumerator.Current))
+                        Assert.Fail("Dead objects were iterated over.");
+                }
+            }
         }
     }
 }
