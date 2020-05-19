@@ -66,6 +66,86 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestRemoveObjectsAtSides()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            list.Remove(objects[0]);
+            list.Remove(objects[1]);
+            list.Remove(objects[4]);
+            list.Remove(objects[5]);
+
+            Assert.That(list.Count(), Is.EqualTo(2));
+            Assert.That(list, Does.Contain(objects[2]));
+            Assert.That(list, Does.Contain(objects[3]));
+        }
+
+        [Test]
+        public void TestRemoveObjectsAtCentre()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            list.Remove(objects[2]);
+            list.Remove(objects[3]);
+
+            Assert.That(list.Count(), Is.EqualTo(4));
+            Assert.That(list, Does.Contain(objects[0]));
+            Assert.That(list, Does.Contain(objects[1]));
+            Assert.That(list, Does.Contain(objects[4]));
+            Assert.That(list, Does.Contain(objects[5]));
+        }
+
+        [Test]
+        public void TestAddAfterRemoveFromEnd()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var newLastObject = new object();
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            list.Remove(objects[2]);
+            list.Add(newLastObject);
+
+            Assert.That(list.Count(), Is.EqualTo(3));
+            Assert.That(list, Does.Contain(objects[0]));
+            Assert.That(list, Does.Contain(objects[0]));
+            Assert.That(list, Does.Not.Contain(objects[2]));
+            Assert.That(list, Does.Contain(newLastObject));
+        }
+
+        [Test]
         public void TestCountIsZeroAfterClear()
         {
             var obj = new object();
@@ -79,6 +159,29 @@ namespace osu.Framework.Tests.Lists
             Assert.That(list.Contains(weakRef), Is.False);
 
             GC.KeepAlive(obj);
+        }
+
+        [Test]
+        public void TestAddAfterClear()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var newObject = new object();
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            list.Clear();
+            list.Add(newObject);
+
+            Assert.That(list.Count(), Is.EqualTo(1));
+            Assert.That(list, Does.Contain(newObject));
         }
 
         [Test]
