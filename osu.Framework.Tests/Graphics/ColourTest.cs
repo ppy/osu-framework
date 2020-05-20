@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Numerics;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -145,8 +146,11 @@ namespace osu.Framework.Tests.Graphics
 
             Assert.AreEqual(Colour4.White, Colour4.FromHex("#fff"));
             Assert.AreEqual(Colour4.Red, Colour4.FromHex("#ff0000"));
-            Assert.AreEqual(Colour4.Yellow.Opacity(half_alpha), Colour4.FromHex("#ffff0080"));
-            Assert.AreEqual(Colour4.Lime.Opacity(half_alpha), Colour4.FromHex("#00ff0080"));
+            Assert.AreEqual(Colour4.Yellow.Opacity(half_alpha), Colour4.FromHex("ffff0080"));
+            Assert.AreEqual(Colour4.Lime.Opacity(half_alpha), Colour4.FromHex("00ff0080"));
+            Assert.Throws<ArgumentException>(() => Colour4.FromHex("#1"));
+            Assert.Throws<ArgumentException>(() => Colour4.FromHex("#12"));
+            Assert.Throws<ArgumentException>(() => Colour4.FromHex("12345"));
         }
 
         [Test]
@@ -160,6 +164,7 @@ namespace osu.Framework.Tests.Graphics
             // test that MultiplyAlpha multiplies existing alpha channel
             var expected2 = new Colour4(1f, 0f, 0f, 0.25f);
             Assert.AreEqual(expected2, expected1.MultiplyAlpha(0.5f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Colour4.White.MultiplyAlpha(-1f));
 
             // test clamping all channels in either direction
             Assert.AreEqual(Colour4.White, new Colour4(1.1f, 1.1f, 1.1f, 1.1f).Clamped());
@@ -168,6 +173,20 @@ namespace osu.Framework.Tests.Graphics
             // test lighten and darken
             assertAlmostEqual(new Colour4(0.431f, 0.642f, 1f, 1f).Vector, Colour4.CornflowerBlue.Lighten(0.1f).Vector);
             assertAlmostEqual(new Colour4(0.356f, 0.531f, 0.845f, 1f).Vector, Colour4.CornflowerBlue.Darken(0.1f).Vector);
+        }
+
+        [Test]
+        public void TestOperators()
+        {
+            var colour = new Colour4(0.5f, 0.5f, 0.5f, 0.5f);
+            assertAlmostEqual(new Vector4(0.6f, 0.7f, 0.8f, 0.9f), (colour + new Colour4(0.1f, 0.2f, 0.3f, 0.4f)).Vector);
+            assertAlmostEqual(new Vector4(0.4f, 0.3f, 0.2f, 0.1f), (colour - new Colour4(0.1f, 0.2f, 0.3f, 0.4f)).Vector);
+            assertAlmostEqual(new Vector4(0.25f, 0.25f, 0.25f, 0.25f), (colour * colour).Vector);
+            assertAlmostEqual(new Vector4(0.25f, 0.25f, 0.25f, 0.25f), (colour / 2f).Vector);
+            assertAlmostEqual(Colour4.White.Vector, (colour * 2f).Vector);
+            Assert.Throws<ArgumentOutOfRangeException>(() => _ = colour * -1f);
+            Assert.Throws<ArgumentOutOfRangeException>(() => _ = colour / -1f);
+            Assert.Throws<ArgumentOutOfRangeException>(() => _ = colour / 0f);
         }
 
         [Test]
