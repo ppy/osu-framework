@@ -278,12 +278,12 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Colour4 FromHex(string hex)
         {
-            var hexSpan = hex.StartsWith("#") ? hex.AsSpan(1) : hex.AsSpan();
+            var hexSpan = hex.StartsWith('#') ? hex.AsSpan(1) : hex.AsSpan();
 
             switch (hexSpan.Length)
             {
                 default:
-                    throw new ArgumentException(@"Invalid hex string length!");
+                    throw new ArgumentException($"Invalid hex string length {hex.Length}, expected 3, 4, 6, or 8.", nameof(hex));
 
                 case 3:
                     return new Colour4(
