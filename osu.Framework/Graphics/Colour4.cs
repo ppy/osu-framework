@@ -158,6 +158,14 @@ namespace osu.Framework.Graphics
             new Colour4(Vector4.Min(first.Vector + second.Vector, Vector4.One));
 
         /// <summary>
+        /// Subtracts two colours in the linear colour space. The final value is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="first">The left hand side of the subtraction.</param>
+        /// <param name="second">The right hand side of the subtraction.</param>
+        public static Colour4 operator -(Colour4 first, Colour4 second) =>
+            new Colour4(Vector4.Max(first.Vector - second.Vector, Vector4.Zero));
+
+        /// <summary>
         /// Linearly multiplies a colour by a scalar value. The final value is clamped to the 0-1 range.
         /// </summary>
         /// <param name="colour">The original colour.</param>
