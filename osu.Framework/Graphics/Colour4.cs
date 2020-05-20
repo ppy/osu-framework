@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Globalization;
 using System.Numerics;
 using osuTK.Graphics;
 
@@ -120,13 +121,21 @@ namespace osu.Framework.Graphics
         /// Returns a lightened version of the colour.
         /// </summary>
         /// <param name="amount">Percentage light addition</param>
-        public Colour4 Lighten(float amount) => this * (1 + amount);
+        public Colour4 Lighten(float amount)
+        {
+            float scalar = Math.Max(1f, 1f + amount);
+            return new Colour4(R * scalar, G * scalar, B * scalar, A).Clamped();
+        }
 
         /// <summary>
         /// Returns a darkened version of the colour.
         /// </summary>
         /// <param name="amount">Percentage light reduction</param>
-        public Colour4 Darken(float amount) => this / (1 + amount);
+        public Colour4 Darken(float amount)
+        {
+            float scalar = Math.Max(1f, 1f + amount);
+            return new Colour4(R / scalar, G / scalar, B / scalar, A).Clamped();
+        }
 
         #endregion
 
@@ -149,11 +158,19 @@ namespace osu.Framework.Graphics
             new Colour4(Vector4.Min(first.Vector + second.Vector, Vector4.One));
 
         /// <summary>
+        /// Subtracts two colours in the linear colour space. The final value is clamped to the 0-1 range.
+        /// </summary>
+        /// <param name="first">The left hand side of the subtraction.</param>
+        /// <param name="second">The right hand side of the subtraction.</param>
+        public static Colour4 operator -(Colour4 first, Colour4 second) =>
+            new Colour4(Vector4.Max(first.Vector - second.Vector, Vector4.Zero));
+
+        /// <summary>
         /// Linearly multiplies a colour by a scalar value. The final value is clamped to the 0-1 range.
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to multiply by. Must not be negative.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is negative.</exception>
         public static Colour4 operator *(Colour4 colour, float scalar)
         {
             if (scalar < 0)
@@ -167,7 +184,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="colour">The original colour.</param>
         /// <param name="scalar">The scalar value to divide by. Must be positive.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if <see cref="scalar"/> is zero or negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="scalar"/> is zero or negative.</exception>
         public static Colour4 operator /(Colour4 colour, float scalar)
         {
             if (scalar <= 0)
@@ -221,6 +238,279 @@ namespace osu.Framework.Graphics
         /// to each of its chromatic components. Alpha is unchanged.
         /// </summary>
         public Colour4 ToSRGB() => new Colour4((float)toSRGB(R), (float)toSRGB(G), (float)toSRGB(B), A);
+
+        /// <summary>
+        /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format RGBA.
+        /// </summary>
+        public uint ToRGBA() => ((uint)(Math.Min(1f, R) * byte.MaxValue) << 24) |
+                                ((uint)(Math.Min(1f, G) * byte.MaxValue) << 16) |
+                                ((uint)(Math.Min(1f, B) * byte.MaxValue) << 8) |
+                                (uint)(Math.Min(1f, A) * byte.MaxValue);
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> from the passed 32-bit unsigned integer in the format RGBA.
+        /// </summary>
+        /// <param name="rgba">The source colour in Rgba32 format.</param>
+        public static Colour4 FromRGBA(uint rgba) => new Colour4((byte)((rgba >> 24) & 0xff), (byte)((rgba >> 16) & 0xff), (byte)((rgba >> 8) & 0xff), (byte)(rgba & 0xff));
+
+        /// <summary>
+        /// Returns the <see cref="Colour4"/> as a 32-bit unsigned integer in the format ARGB.
+        /// </summary>
+        public uint ToARGB() => ((uint)(Math.Min(1f, A) * byte.MaxValue) << 24) |
+                                ((uint)(Math.Min(1f, R) * byte.MaxValue) << 16) |
+                                ((uint)(Math.Min(1f, G) * byte.MaxValue) << 8) |
+                                (uint)(Math.Min(1f, B) * byte.MaxValue);
+
+        /// <summary>
+        /// Returns a new <see cref="Colour4"/> from the passed 32-bit unsigned integer in the format ARGB.
+        /// </summary>
+        /// <param name="argb">The source colour in Argb32 format.</param>
+        public static Colour4 FromARGB(uint argb) => new Colour4((byte)((argb >> 16) & 0xff), (byte)((argb >> 8) & 0xff), (byte)(argb & 0xff), (byte)((argb >> 24) & 0xff));
+
+        /// <summary>
+        /// Converts an RGB or RGBA-formatted hex colour code into a <see cref="Colour4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <returns>The <see cref="Colour4"/> representing the colour.</returns>
+        /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
+        public static Colour4 FromHex(string hex)
+        {
+            var hexSpan = hex.StartsWith('#') ? hex.AsSpan(1) : hex.AsSpan();
+
+            switch (hexSpan.Length)
+            {
+                default:
+                    throw new ArgumentException($"Invalid hex string length {hex.Length}, expected 3, 4, 6, or 8.", nameof(hex));
+
+                case 3:
+                    return new Colour4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
+                        255);
+
+                case 6:
+                    return new Colour4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        255);
+
+                case 4:
+                    return new Colour4(
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+
+                case 8:
+                    return new Colour4(
+                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
+                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> into a hex colour code.
+        /// </summary>
+        /// <param name="alwaysOutputAlpha">Whether the alpha channel should always be output. If <c>false</c>, the alpha channel is only output if this colour is translucent.</param>
+        /// <returns>The hex code representing the colour.</returns>
+        public string ToHex(bool alwaysOutputAlpha = false)
+        {
+            var argb = ToARGB();
+            byte a = (byte)(argb >> 24);
+            byte r = (byte)(argb >> 16);
+            byte g = (byte)(argb >> 8);
+            byte b = (byte)argb;
+
+            if (!alwaysOutputAlpha && a == 255)
+                return $"#{r:X2}{g:X2}{b:X2}";
+
+            return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
+        }
+
+        /// <summary>
+        /// Converts an HSV colour to a <see cref="Colour4"/>. All components should be in the range 0-1.
+        /// </summary>
+        /// <param name="hue">The hue, between 0 and 1.</param>
+        /// <param name="saturation">The saturation, between 0 and 1.</param>
+        /// <param name="value">The value, between 0 and 1.</param>
+        /// <param name="alpha">The alpha, between 0 and 1.</param>
+        public static Colour4 FromHSV(float hue, float saturation, float value, float alpha = 1f)
+        {
+            int hi = (int)(hue * 6);
+            float f = hue * 6f - hi;
+            float p = value * (1 - saturation);
+            float q = value * (1 - f * saturation);
+            float t = value * (1 - (1 - f) * saturation);
+
+            switch (hi)
+            {
+                default:
+                case 0:
+                    return new Colour4(value, t, p, alpha);
+
+                case 1:
+                    return new Colour4(q, value, p, alpha);
+
+                case 2:
+                    return new Colour4(p, value, t, alpha);
+
+                case 3:
+                    return new Colour4(p, q, value, alpha);
+
+                case 4:
+                    return new Colour4(t, p, value, alpha);
+
+                case 5:
+                    return new Colour4(value, p, q, alpha);
+            }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> to the HSV colour space, represented in the XYZ components of a <see cref="Vector4"/>.
+        /// The returned vector's W component represents the alpha channel of the colour.
+        /// The angular hue is compressed to the 0-1 range in line with the other components.
+        /// </summary>
+        /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
+        public Vector4 ToHSV()
+        {
+            var red = R;
+            var green = G;
+            var blue = B;
+
+            var max = Math.Max(red, Math.Max(green, blue));
+            var min = Math.Min(red, Math.Min(green, blue));
+
+            float hue;
+
+            if (max == min)
+                hue = 0;
+            else if (max == red)
+                hue = (6f + (green - blue) / (max - min)) % 6f;
+            else if (max == green)
+                hue = (blue - red) / (max - min) + 2;
+            else
+                hue = (red - green) / (max - min) + 4;
+
+            var saturation = max == 0 ? 0 : (max - min) / max;
+            hue = Math.Clamp(hue / 6f, 0f, 1f);
+
+            return new Vector4(hue == 1f ? 0f : hue, saturation, max, A);
+        }
+
+        /// <summary>
+        /// Converts an HSL colour to a <see cref="Colour4"/>. All components should be in the range 0-1.
+        /// </summary>
+        /// <param name="hue">The hue, between 0 and 1.</param>
+        /// <param name="saturation">The saturation, between 0 and 1.</param>
+        /// <param name="lightness">The value, between 0 and 1.</param>
+        /// <param name="alpha">The alpha, between 0 and 1.</param>
+        public static Colour4 FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
+        {
+            var c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
+            var h = hue * 6f;
+            var x = c * (1f - Math.Abs(h % 2f - 1f));
+
+            float r, g, b;
+
+            if (0f <= h && h < 1f)
+            {
+                r = c;
+                g = x;
+                b = 0f;
+            }
+            else if (1f <= h && h < 2f)
+            {
+                r = x;
+                g = c;
+                b = 0f;
+            }
+            else if (2f <= h && h < 3f)
+            {
+                r = 0f;
+                g = c;
+                b = x;
+            }
+            else if (3f <= h && h < 4f)
+            {
+                r = 0f;
+                g = x;
+                b = c;
+            }
+            else if (4f <= h && h < 5f)
+            {
+                r = x;
+                g = 0f;
+                b = c;
+            }
+            else if (5f <= h && h <= 6f)
+            {
+                r = c;
+                g = 0f;
+                b = x;
+            }
+            else
+                r = g = b = 0f;
+
+            var m = lightness - c * 0.5f;
+            return new Colour4(r + m, g + m, b + m, alpha);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Colour4"/> to the HSL colour space, represented in the XYZ components of a <see cref="Vector4"/>.
+        /// The returned vector's W component represents the alpha channel of the colour.
+        /// The angular hue is compressed to the 0-1 range in line with the other components.
+        /// </summary>
+        /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
+        public Vector4 ToHSL()
+        {
+            var red = R;
+            var green = G;
+            var blue = B;
+
+            var max = Math.Max(red, Math.Max(green, blue));
+            var min = Math.Min(red, Math.Min(green, blue));
+
+            var lightness = (max + min) / 2f;
+            if (lightness <= 0)
+                return new Vector4(0f, 0f, 0f, A);
+
+            var diff = max - min;
+            var saturation = diff;
+            if (saturation <= 0)
+                return new Vector4(0f, 0f, lightness, A);
+
+            saturation = lightness <= 0.5f ? saturation / (min + max) : saturation / (2f - max - min);
+
+            float hue = 0f;
+
+            if (max == red)
+                hue = (green - blue) / diff;
+            else if (max == green)
+                hue = (blue - red) / diff + 2f;
+            else if (max == blue)
+                hue = (red - green) / diff + 4f;
+
+            hue /= 6f;
+            if (hue < 0f)
+                hue += 1f;
+
+            return new Vector4(hue, saturation, lightness, A);
+        }
 
         private const double gamma = 2.4;
 
