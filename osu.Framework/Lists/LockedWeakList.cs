@@ -28,16 +28,22 @@ namespace osu.Framework.Lists
                 list.Add(weakReference);
         }
 
-        public void Remove(T item)
+        public bool Remove(T item)
         {
             lock (list)
-                list.Remove(item);
+                return list.Remove(item);
         }
 
         public bool Remove(WeakReference<T> weakReference)
         {
             lock (list)
                 return list.Remove(weakReference);
+        }
+
+        public void RemoveAt(int index)
+        {
+            lock (list)
+                list.RemoveAt(index);
         }
 
         public bool Contains(T item)
