@@ -239,6 +239,10 @@ namespace osu.Framework.Audio
 
         private bool setAudioDevice(int deviceIndex)
         {
+            // synchronise audio devices before attempting to
+            // set the requested device, our current list may became stale.
+            syncAudioDevices();
+
             var device = audioDevices.ElementAtOrDefault(deviceIndex);
 
             // device is invalid
@@ -326,37 +330,42 @@ namespace osu.Framework.Audio
             didInitialise = false;
         }
 
+        private readonly object syncDevicesLock = new object();
+
         private void syncAudioDevices()
         {
-            // audioDevices are updated if:
-            // - A new device is added
-            // - An existing device is Enabled/Disabled or set as Default
-            var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
-            if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
-                return;
-
-            audioDevices = updatedAudioDevices;
-
-            // Bass should always be providing "No sound" device
-            Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
-
-            onDevicesChanged();
-
-            var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
-
-            var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
-            var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
-
-            if (newDevices.Count > 0 || lostDevices.Count > 0)
+            lock (syncDevicesLock)
             {
-                eventScheduler.Add(delegate
+                // audioDevices are updated if:
+                // - A new device is added / A stale device is removed
+                // - An existing device is Enabled/Disabled or set as Default
+                var updatedAudioDevices = EnumerateAllDevices().ToImmutableList();
+                if (audioDevices.SequenceEqual(updatedAudioDevices, updateComparer))
+                    return;
+
+                audioDevices = updatedAudioDevices;
+
+                // Bass should always be providing "No sound" device
+                Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+
+                onDevicesChanged();
+
+                var oldDeviceNames = audioDeviceNames;
+                var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+
+                var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
+                var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
+
+                if (newDevices.Count > 0 || lostDevices.Count > 0)
                 {
-                    foreach (var d in newDevices)
-                        OnNewDevice?.Invoke(d);
-                    foreach (var d in lostDevices)
-                        OnLostDevice?.Invoke(d);
-                });
+                    eventScheduler.Add(delegate
+                    {
+                        foreach (var d in newDevices)
+                            OnNewDevice?.Invoke(d);
+                        foreach (var d in lostDevices)
+                            OnLostDevice?.Invoke(d);
+                    });
+                }
             }
         }
 
