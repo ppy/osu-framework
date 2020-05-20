@@ -246,7 +246,7 @@ namespace osu.Framework.Audio
                 return false;
 
             // same device
-            if (device.IsInitialized && deviceIndex == Bass.CurrentDevice)
+            if (deviceIndex == Bass.CurrentDevice)
                 return true;
 
             // initialize new device
