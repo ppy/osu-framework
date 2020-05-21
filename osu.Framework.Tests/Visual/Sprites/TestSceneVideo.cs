@@ -111,7 +111,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestShader()
         {
-            AddStep("Set colour", () => video.Colour = Color4Extensions.FromHex("#ea7948").Opacity(0.75f));
+            AddStep("Set colour", () => video.Colour = Colour4.FromHex("#ea7948").Opacity(0.75f));
             AddStep("Use normal shader", () => video.UseRoundedShader = false);
             AddStep("Use rounded shader", () => video.UseRoundedShader = true);
         }
