@@ -177,12 +177,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Color4 shadowColour = new Color4(0, 0, 0, 0.2f);
+        private Colour4 shadowColour = new Colour4(0, 0, 0, 0.2f);
 
         /// <summary>
         /// The colour of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
         /// </summary>
-        public Color4 ShadowColour
+        public Colour4 ShadowColour
         {
             get => shadowColour;
             set

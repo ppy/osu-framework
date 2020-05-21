@@ -137,11 +137,11 @@ namespace osu.Framework.Tests.Visual.Containers
                         RelativeSizeAxes = Axes.Both,
                         Origin = Anchor.Centre,
                         Anchor = Anchor.Centre,
-                        Colour = Color4.NavajoWhite,
+                        Colour = Colour4.NavajoWhite,
                     },
                     count = new SpriteText
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Origin = Anchor.Centre,
                         Anchor = Anchor.Centre,
                         Font = new FontUsage(size: 80),

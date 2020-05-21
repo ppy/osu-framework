@@ -79,6 +79,6 @@ namespace osu.Framework.Graphics.Lines
         /// </summary>
         /// <param name="position">The position within the texture. 0 indicates the outermost-point of the path, 1 indicates the centre of the path.</param>
         /// <returns></returns>
-        protected virtual Color4 ColourAt(float position) => Color4.White;
+        protected virtual Colour4 ColourAt(float position) => Colour4.White;
     }
 }

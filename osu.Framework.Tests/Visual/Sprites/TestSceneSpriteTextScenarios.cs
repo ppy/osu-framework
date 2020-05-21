@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             Cell(2, 0).Child = new SpriteText
             {
                 Text = "Colour = green",
-                Colour = Color4.Green
+                Colour = Colour4.Green
             };
 
             Cell(3, 0).Child = new SpriteText
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     new Box { RelativeSizeAxes = Axes.Both },
                     new SpriteText
                     {
-                        Colour = Color4.Red,
+                        Colour = Colour4.Red,
                         Text = "||MASKED||"
                     }
                 }
@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     new SpriteText
                     {
@@ -172,7 +172,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.SlateGray
+                        Colour = Colour4.SlateGray
                     },
                     new SpriteText
                     {
@@ -195,8 +195,8 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         Text = "Red text + pink shadow",
                         Shadow = true,
-                        Colour = Color4.Red,
-                        ShadowColour = Color4.Pink.Opacity(0.5f)
+                        Colour = Colour4.Red,
+                        ShadowColour = Colour4.Pink.Opacity(0.5f)
                     }
                 }
             };

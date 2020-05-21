@@ -30,12 +30,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(50),
-                    Colour = Color4.Red
+                    Colour = Colour4.Red
                 }
             };
 
             var sender = new HookableContainer();
-            var greenBox = new TestBox { Colour = Color4.Green };
+            var greenBox = new TestBox { Colour = Colour4.Green };
 
             AddStep("add children", () =>
             {

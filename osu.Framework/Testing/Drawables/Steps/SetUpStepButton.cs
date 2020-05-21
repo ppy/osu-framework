@@ -13,7 +13,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         public SetUpStepButton()
         {
             Text = "[SetUp]";
-            LightColour = Color4.Teal;
+            LightColour = Colour4.Teal;
         }
     }
 }

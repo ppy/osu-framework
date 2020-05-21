@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Lines
 
             private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, drawSize);
 
-            private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+            private Colour4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
                 ? ((SRGBColour)DrawColourInfo.Colour).Linear
                 : DrawColourInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
@@ -76,11 +76,11 @@ namespace osu.Framework.Graphics.Lines
                     theta += MathF.PI;
 
                 Vector2 current = origin + pointOnCircle(theta) * radius;
-                Color4 currentColour = colourAt(current);
+                Colour4 currentColour = colourAt(current);
                 current = Vector2Extensions.Transform(current, DrawInfo.Matrix);
 
                 Vector2 screenOrigin = Vector2Extensions.Transform(origin, DrawInfo.Matrix);
-                Color4 originColour = colourAt(origin);
+                Colour4 originColour = colourAt(origin);
 
                 for (int i = 1; i <= amountPoints; i++)
                 {
@@ -143,8 +143,8 @@ namespace osu.Framework.Graphics.Lines
                 // Thus the middle vertices need to be added twice (once for each quad).
                 Vector3 firstMiddlePoint = new Vector3(screenLine.StartPoint.X, screenLine.StartPoint.Y, 1);
                 Vector3 secondMiddlePoint = new Vector3(screenLine.EndPoint.X, screenLine.EndPoint.Y, 1);
-                Color4 firstMiddleColour = colourAt(line.StartPoint);
-                Color4 secondMiddleColour = colourAt(line.EndPoint);
+                Colour4 firstMiddleColour = colourAt(line.StartPoint);
+                Colour4 secondMiddleColour = colourAt(line.EndPoint);
 
                 for (int i = 0; i < 2; ++i)
                 {

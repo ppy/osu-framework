@@ -487,13 +487,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     RelativeSizeAxes = Axes.Y;
 
                     Masking = true;
-                    BorderColour = Color4.White;
+                    BorderColour = Colour4.White;
                     BorderThickness = 3;
 
                     InternalChild = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent
+                        Colour = Colour4.Transparent
                     };
                 }
 

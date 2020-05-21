@@ -406,7 +406,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.DarkGray,
+                                    Colour = Colour4.DarkGray,
                                 },
                                 content = new Container
                                 {
@@ -471,8 +471,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 currentTimeText.Text = time.ToString("n0");
                 seekingTick.X = currentTimeText.X = (float)(time / (wrapping.MaxTime - wrapping.MinTime));
                 maxTimeText.Text = wrapping.MaxTime.ToString("n0");
-                maxTimeText.Colour = time > wrapping.MaxTime ? Color4.Gray : wrapping.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
-                minTimeText.Colour = time < wrapping.MinTime ? Color4.Gray : content.Time.Elapsed > 0 ? Color4.Blue : Color4.Red;
+                maxTimeText.Colour = time > wrapping.MaxTime ? Colour4.Gray : wrapping.Time.Elapsed > 0 ? Colour4.Blue : Colour4.Red;
+                minTimeText.Colour = time < wrapping.MinTime ? Colour4.Gray : content.Time.Elapsed > 0 ? Colour4.Blue : Colour4.Red;
 
                 if (displayedTransforms == null || !ExaminableDrawable.Transforms.SequenceEqual(displayedTransforms))
                 {
@@ -507,8 +507,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 protected override void Update()
                 {
                     base.Update();
-                    applied.Colour = transform.Applied ? Color4.Green : Color4.Red;
-                    appliedToEnd.Colour = transform.AppliedToEnd ? Color4.Green : Color4.Red;
+                    applied.Colour = transform.Applied ? Colour4.Green : Colour4.Red;
+                    appliedToEnd.Colour = transform.AppliedToEnd ? Colour4.Green : Colour4.Red;
                     text.Text = transform.ToString();
                 }
             }
@@ -525,7 +525,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Anchor = Anchor.BottomLeft;
                     Origin = Anchor.BottomCentre;
                     Size = new Vector2(1, 10);
-                    Colour = Color4.White;
+                    Colour = Colour4.White;
                     RelativePositionAxes = Axes.X;
                     X = (float)tick / interval_count;
                 }
@@ -534,7 +534,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     base.Update();
                     if (colouring)
-                        Colour = Time.Current > tick * interval ? Color4.Yellow : Color4.White;
+                        Colour = Time.Current > tick * interval ? Colour4.Yellow : Colour4.White;
                 }
             }
         }

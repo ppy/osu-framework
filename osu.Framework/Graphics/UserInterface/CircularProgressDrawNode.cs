@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
         private float angleToUnitInterval(float angle) => angle / two_pi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
-        private Color4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
+        private Colour4 colourAt(Vector2 localPos) => DrawColourInfo.Colour.HasSingleColour
             ? DrawColourInfo.Colour.TopLeft.Linear
             : DrawColourInfo.Colour.Interpolate(localPos).Linear;
 
@@ -78,11 +78,11 @@ namespace osu.Framework.Graphics.UserInterface
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, drawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
-            Color4 currentColour = colourAt(current);
+            Colour4 currentColour = colourAt(current);
             current = Vector2Extensions.Transform(current, transformationMatrix);
 
             Vector2 screenOrigin = Vector2Extensions.Transform(origin, transformationMatrix);
-            Color4 originColour = colourAt(origin);
+            Colour4 originColour = colourAt(origin);
 
             // Offset by 0.5 pixels inwards to ensure we never sample texels outside the bounds
             RectangleF texRect = texture.GetTextureRect(new RectangleF(0.5f, 0.5f, texture.Width - 1, texture.Height - 1));

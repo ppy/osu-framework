@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Input
                     background = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
                     },

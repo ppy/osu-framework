@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public virtual SpriteText CreateSpriteText()
         {
             var spriteText = parentTextComponent.CreateSpriteText();
-            spriteText.Colour = Color4.DodgerBlue;
+            spriteText.Colour = Colour4.DodgerBlue;
             return spriteText;
         }
     }

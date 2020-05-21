@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Performance
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = 0.75f
                 },
                 counter = new CounterText

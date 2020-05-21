@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White.Opacity(0.1f)
+                        Colour = Colour4.White.Opacity(0.1f)
                     },
                     textContainer = new TextFlowContainer
                     {

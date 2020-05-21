@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 {
                     new Box
                     {
-                        Colour = Color4.Teal,
+                        Colour = Colour4.Teal,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new BasicScrollContainer

@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Colour = Color4.SlateGray,
+                        Colour = Colour4.SlateGray,
                         Size = new Vector2(300),
                     },
                 };
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Colour = Color4.SlateGray,
+                        Colour = Colour4.SlateGray,
                         Size = new Vector2(300),
                     },
                     new TestBufferedContainer(false)
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Orange
+                        Colour = Colour4.Orange
                     },
                     new SpriteText
                     {

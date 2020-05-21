@@ -36,14 +36,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     RelativeSizeAxes = Axes.Both,
                     Width = 0.5f,
-                    Colour = Color4.Blue
+                    Colour = Colour4.Blue
                 },
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     X = 0.5f,
                     Width = 0.5f,
-                    Colour = Color4.Blue
+                    Colour = Colour4.Blue
                 },
             }
         });
@@ -61,14 +61,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     RelativeSizeAxes = Axes.Both,
                     Width = 0.5f,
-                    Colour = Color4.Blue
+                    Colour = Colour4.Blue
                 },
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     X = 0.5f,
                     Width = 0.5f,
-                    Colour = Color4.Blue
+                    Colour = Colour4.Blue
                 },
             }
         });

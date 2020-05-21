@@ -108,7 +108,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     new Box
                     {
-                        Colour = Color4.Cyan,
+                        Colour = Colour4.Cyan,
                         RelativeSizeAxes = Axes.Both,
                     },
                 };

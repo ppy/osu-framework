@@ -16,7 +16,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         public AssertButton()
         {
             Action += checkAssert;
-            LightColour = Color4.OrangeRed;
+            LightColour = Colour4.OrangeRed;
         }
 
         private void checkAssert()

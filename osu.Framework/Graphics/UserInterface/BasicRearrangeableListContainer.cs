@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.DarkSlateGray,
+                                    Colour = Colour4.DarkSlateGray,
                                 },
                                 new SpriteText
                                 {
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             RelativeSizeAxes = Axes.Y,
                             Width = removable ? 25 : 0, // https://github.com/ppy/osu-framework/issues/3214
-                            Colour = Color4.DarkRed,
+                            Colour = Colour4.DarkRed,
                             Alpha = removable ? 1 : 0,
                             Action = () => RequestRemoval?.Invoke(this),
                         },

@@ -461,7 +461,7 @@ namespace osu.Framework.Tests.Visual.Input
                 Action = action;
                 Concurrency = concurrency;
 
-                BackgroundColour = Color4.SkyBlue;
+                BackgroundColour = Colour4.SkyBlue;
                 SpriteText.Font = SpriteText.Font.With(size: SpriteText.Font.Size * .8f);
                 actionText = action.ToString().Replace('_', ' ');
 

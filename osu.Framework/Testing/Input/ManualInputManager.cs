@@ -108,10 +108,10 @@ namespace osu.Framework.Testing.Input
                                 Size = new Vector2(30),
                                 Masking = true,
                                 BorderThickness = 5,
-                                BorderColour = Color4.Cyan,
+                                BorderColour = Colour4.Cyan,
                                 Child = new Box
                                 {
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     Alpha = 0.1f,
                                     RelativeSizeAxes = Axes.Both,
                                 },
@@ -131,10 +131,10 @@ namespace osu.Framework.Testing.Input
                                 X = -15,
                                 Masking = true,
                                 BorderThickness = 5,
-                                BorderColour = Color4.Cyan,
+                                BorderColour = Colour4.Cyan,
                                 Child = new Box
                                 {
-                                    Colour = Color4.Black,
+                                    Colour = Colour4.Black,
                                     Alpha = 0.1f,
                                     RelativeSizeAxes = Axes.Both,
                                 },
@@ -145,10 +145,10 @@ namespace osu.Framework.Testing.Input
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,
                             BorderThickness = 2,
-                            BorderColour = Color4.Cyan,
+                            BorderColour = Colour4.Cyan,
                             Child = new Box
                             {
-                                Colour = Color4.Black,
+                                Colour = Colour4.Black,
                                 Alpha = 0.1f,
                                 RelativeSizeAxes = Axes.Both,
                             },
@@ -160,10 +160,10 @@ namespace osu.Framework.Testing.Input
                             Origin = Anchor.Centre,
                             Masking = true,
                             BorderThickness = 2,
-                            BorderColour = Color4.White,
+                            BorderColour = Colour4.White,
                             Child = new Box
                             {
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 RelativeSizeAxes = Axes.Both,
                             },
                         },
@@ -212,7 +212,7 @@ namespace osu.Framework.Testing.Input
 
                 private void updateBorder(MouseButtonEvent e)
                 {
-                    border.BorderColour = e.CurrentState.Mouse.Buttons.Any() ? Color4.Red : Color4.Cyan;
+                    border.BorderColour = e.CurrentState.Mouse.Buttons.Any() ? Colour4.Red : Colour4.Cyan;
                 }
             }
         }

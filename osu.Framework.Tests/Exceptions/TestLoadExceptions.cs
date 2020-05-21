@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Exceptions
             {
                 this.throws = throws;
                 Size = new Vector2(50);
-                Colour = Color4.Green;
+                Colour = Colour4.Green;
             }
 
             [BackgroundDependencyLoader]

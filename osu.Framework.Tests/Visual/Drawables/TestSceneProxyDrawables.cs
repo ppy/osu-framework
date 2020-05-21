@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Origin = Anchor.Centre,
                 Size = new Vector2(50),
                 Masking = true,
-                BorderColour = Color4.Yellow,
+                BorderColour = Colour4.Yellow,
                 BorderThickness = 2,
                 Children = new Drawable[]
                 {
@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 Origin = Anchor.Centre,
                 Size = new Vector2(50),
                 Masking = true,
-                BorderColour = Color4.Yellow,
+                BorderColour = Colour4.Yellow,
                 BorderThickness = 2,
                 Children = new Drawable[]
                 {
@@ -296,7 +296,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         CornerRadius = 20,
                         Children = new Drawable[]
                         {
-                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Yellow.Opacity(0.2f) },
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Colour4.Yellow.Opacity(0.2f) },
                             new ProxyVisualiser(proxy, true)
                         }
                     }
@@ -331,7 +331,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         CornerRadius = 20,
                         Children = new Drawable[]
                         {
-                            new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Yellow.Opacity(0.2f) },
+                            new Box { RelativeSizeAxes = Axes.Both, Colour = Colour4.Yellow.Opacity(0.2f) },
                             new ProxyVisualiser(proxy, false)
                         }
                     },
@@ -403,7 +403,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.Both,
                         Masking = true,
-                        BorderColour = Color4.Gray,
+                        BorderColour = Colour4.Gray,
                         BorderThickness = 2,
                         Child = new Box
                         {
@@ -443,7 +443,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 AddInternal(overlay = new Container
                 {
-                    Colour = proxyIsBelow ? Color4.Red : Color4.Green,
+                    Colour = proxyIsBelow ? Colour4.Red : Colour4.Green,
                     Children = new Drawable[]
                     {
                         new Box
@@ -455,7 +455,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             Anchor = Anchor.BottomCentre,
                             Origin = Anchor.BottomCentre,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             Text = "proxy"
                         }
                     }

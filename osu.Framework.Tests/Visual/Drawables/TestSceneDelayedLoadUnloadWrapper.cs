@@ -394,7 +394,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 Child = new SpriteText
                 {
-                    Colour = Color4.Yellow,
+                    Colour = Colour4.Yellow,
                     Text = @"loaded",
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,

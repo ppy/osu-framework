@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Text = text,
             Font = new FontUsage(size: 20),
-            Colour = Color4.White,
+            Colour = Colour4.White,
         };
 
         private class ApproximatedPathTest : SmoothPath
@@ -67,7 +67,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 RelativeSizeAxes = Axes.Both;
                 PathRadius = 2;
                 Vertices = approximator(points);
-                Colour = Color4.White;
+                Colour = Colour4.White;
             }
         }
     }

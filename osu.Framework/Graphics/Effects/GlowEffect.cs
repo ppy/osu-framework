@@ -24,9 +24,9 @@ namespace osu.Framework.Graphics.Effects
         public Vector2 BlurSigma = new Vector2(5);
 
         /// <summary>
-        /// The color of the outline. Default is <see cref="Color4.White"/>.
+        /// The color of the outline. Default is <see cref="Colour4.White"/>.
         /// </summary>
-        public ColourInfo Colour = Color4.White;
+        public ColourInfo Colour = Colour4.White;
 
         /// <summary>
         /// The blending mode of the glow. Default is additive.

@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 Shader.Bind();
 
-                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
+                var avgColour = (Colour4)DrawColourInfo.Colour.AverageColour;
                 float shadowAlpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.

@@ -274,9 +274,9 @@ namespace osu.Framework.Graphics.Lines
         public Vector2 FrameBufferScale { get; } = Vector2.One;
 
         // The path should not receive the true colour to avoid colour doubling when the frame-buffer is rendered to the back-buffer.
-        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Colour4.White, base.DrawColourInfo.Blending);
 
-        public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
+        public Colour4 BackgroundColour => new Colour4(0, 0, 0, 0);
 
         private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
 

@@ -16,7 +16,7 @@ namespace TemplateGame.Game
             {
                 new Box
                 {
-                    Colour = Color4.Violet,
+                    Colour = Colour4.Violet,
                     RelativeSizeAxes = Axes.Both,
                 },
                 new SpriteText

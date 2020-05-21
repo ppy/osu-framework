@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Icon = FontAwesome.Solid.Circle,
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 Size = new Vector2(20),
                             },
                             currentFrame = new SpriteText

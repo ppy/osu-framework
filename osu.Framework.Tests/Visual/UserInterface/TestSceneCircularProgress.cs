@@ -169,40 +169,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             switch (colourMode)
             {
                 case 0:
-                    clock.Colour = new Color4(255, 255, 255, 255);
+                    clock.Colour = new Colour4(255, 255, 255, 255);
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 88, 88, 255);
+                    clock.Colour = new Colour4(255, 88, 88, 255);
                     break;
 
                 case 2:
                     clock.Colour = new ColourInfo
                     {
-                        TopLeft = new Color4(255, 128, 128, 255),
-                        TopRight = new Color4(128, 255, 128, 255),
-                        BottomLeft = new Color4(255, 128, 128, 255),
-                        BottomRight = new Color4(128, 255, 128, 255),
+                        TopLeft = new Colour4(255, 128, 128, 255),
+                        TopRight = new Colour4(128, 255, 128, 255),
+                        BottomLeft = new Colour4(255, 128, 128, 255),
+                        BottomRight = new Colour4(128, 255, 128, 255),
                     };
                     break;
 
                 case 3:
                     clock.Colour = new ColourInfo
                     {
-                        TopLeft = new Color4(255, 128, 128, 255),
-                        TopRight = new Color4(255, 128, 128, 255),
-                        BottomLeft = new Color4(128, 255, 128, 255),
-                        BottomRight = new Color4(128, 255, 128, 255),
+                        TopLeft = new Colour4(255, 128, 128, 255),
+                        TopRight = new Colour4(255, 128, 128, 255),
+                        BottomLeft = new Colour4(128, 255, 128, 255),
+                        BottomRight = new Colour4(128, 255, 128, 255),
                     };
                     break;
 
                 case 4:
                     clock.Colour = new ColourInfo
                     {
-                        TopLeft = new Color4(255, 128, 128, 255),
-                        TopRight = new Color4(128, 255, 128, 255),
-                        BottomLeft = new Color4(128, 128, 255, 255),
-                        BottomRight = new Color4(255, 255, 255, 255),
+                        TopLeft = new Colour4(255, 128, 128, 255),
+                        TopRight = new Colour4(128, 255, 128, 255),
+                        BottomLeft = new Colour4(128, 128, 255, 255),
+                        BottomRight = new Colour4(255, 255, 255, 255),
                     };
                     break;
             }

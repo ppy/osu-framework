@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Visualisation
                 box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
+                    Colour = Colour4.Black,
                     Alpha = background_alpha,
                 },
                 flow = new FillFlowContainer
@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Visualisation
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            Color4 col = getColourForEntry(entry);
+            Colour4 col = getColourForEntry(entry);
 
             Children = new Drawable[]
             {
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Shadow = true,
-                            ShadowColour = Color4.Black,
+                            ShadowColour = Colour4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
                             Font = new FontUsage(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
@@ -198,24 +198,24 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
-        private Color4 getColourForEntry(LogEntry entry)
+        private Colour4 getColourForEntry(LogEntry entry)
         {
             switch (entry.Target)
             {
                 case LoggingTarget.Runtime:
-                    return Color4.YellowGreen;
+                    return Colour4.YellowGreen;
 
                 case LoggingTarget.Network:
-                    return Color4.BlueViolet;
+                    return Colour4.BlueViolet;
 
                 case LoggingTarget.Performance:
-                    return Color4.HotPink;
+                    return Colour4.HotPink;
 
                 case LoggingTarget.Information:
-                    return Color4.CadetBlue;
+                    return Colour4.CadetBlue;
 
                 default:
-                    return Color4.Cyan;
+                    return Colour4.Cyan;
             }
         }
     }

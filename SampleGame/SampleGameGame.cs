@@ -22,7 +22,7 @@ namespace SampleGame
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(150, 150),
-                Colour = Color4.Tomato
+                Colour = Colour4.Tomato
             });
         }
 

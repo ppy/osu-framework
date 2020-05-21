@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 box1 = b.With(d =>
                 {
                     d.X = -100;
-                    d.Colour = Color4.Green;
+                    d.Colour = Colour4.Green;
                 });
             }, 1);
             addBoxStep(b =>
@@ -73,7 +73,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 box2 = b.With(d =>
                 {
                     d.X = 100;
-                    d.Colour = Color4.Red;
+                    d.Colour = Colour4.Red;
                 });
             }, 1);
 

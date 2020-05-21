@@ -207,7 +207,7 @@ namespace osu.Framework.Graphics.OpenGL
             }, true);
 
             PushDepthInfo(DepthInfo.Default);
-            Clear(new ClearInfo(Color4.Black));
+            Clear(new ClearInfo(Colour4.Black));
         }
 
         private static ClearInfo currentClearInfo;

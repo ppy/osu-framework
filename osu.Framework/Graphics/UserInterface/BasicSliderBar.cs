@@ -11,13 +11,13 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicSliderBar<T> : SliderBar<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
             get => Box.Colour;
             set => Box.Colour = value;
         }
 
-        public Color4 SelectionColour
+        public Colour4 SelectionColour
         {
             get => SelectionBox.Colour;
             set => SelectionBox.Colour = value;

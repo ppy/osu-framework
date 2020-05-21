@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 {
                     new Box
                     {
-                        Colour = Color4.DarkMagenta,
+                        Colour = Colour4.DarkMagenta,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new CustomEllipsisSpriteText(ellipsisString, runtimeChange)

@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Sprites
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Red.Opacity(0.3f)
+                            Colour = Colour4.Red.Opacity(0.3f)
                         },
                         text = new SpriteText
                         {
@@ -77,7 +77,7 @@ namespace osu.Framework.Tests.Sprites
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Red.Opacity(0.3f)
+                            Colour = Colour4.Red.Opacity(0.3f)
                         },
                         text = new AlwaysPresentSpriteText
                         {

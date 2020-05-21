@@ -28,7 +28,7 @@ namespace osu.Framework.Benchmarks
                     var box = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black
+                        Colour = Colour4.Black
                     };
 
                     Add(box);

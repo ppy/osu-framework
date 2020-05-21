@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,
-                            BorderColour = Color4.OrangeRed,
+                            BorderColour = Colour4.OrangeRed,
                             BorderThickness = 2,
                             Children = new[]
                             {

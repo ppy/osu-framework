@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 CornerRadius = 3f,
                 Parameters = new EdgeEffectParameters
                 {
-                    Colour = Color4.LightBlue,
+                    Colour = Colour4.LightBlue,
                     Hollow = true,
                     Radius = 5f,
                     Type = EdgeEffectType.Glow
@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         CornerRadius = 3f,
                         Parameters = new EdgeEffectParameters
                         {
-                            Colour = Color4.Yellow,
+                            Colour = Colour4.Yellow,
                             Hollow = true,
                             Radius = 5f,
                             Type = EdgeEffectType.Shadow
@@ -90,7 +90,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         CornerRadius = 3f,
                         Parameters = new EdgeEffectParameters
                         {
-                            Colour = Color4.Yellow,
+                            Colour = Colour4.Yellow,
                             Hollow = true,
                             Radius = 5f,
                             Type = EdgeEffectType.Shadow
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             new Box
                             {
-                                Colour = Color4.CornflowerBlue,
+                                Colour = Colour4.CornflowerBlue,
                                 RelativeSizeAxes = Axes.Both,
                             },
                             new SpriteText
@@ -114,7 +114,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 PadExtent = true,
                             })
                         }
@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             new Box
                             {
-                                Colour = Color4.CornflowerBlue,
+                                Colour = Colour4.CornflowerBlue,
                                 RelativeSizeAxes = Axes.Both,
                             },
                             new SpriteText
@@ -137,7 +137,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
+                                Colour = ColourInfo.GradientHorizontal(new Colour4(1.2f, 0, 0, 1f), new Colour4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
                         }
@@ -151,13 +151,13 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 Size = new Vector2(150, 40),
                             }.WithEffect(new GlowEffect
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
+                                Colour = ColourInfo.GradientHorizontal(new Colour4(1.2f, 0, 0, 1f), new Colour4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
                             changeColourText = new SpriteText
@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 Origin = Anchor.Centre,
                                 Text = "Absolute Size",
                                 Font = new FontUsage(size: 32),
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 Shadow = true,
                             }
                         }
@@ -180,14 +180,14 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(1.1f, 1.1f),
                             }.WithEffect(new GlowEffect
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
+                                Colour = ColourInfo.GradientHorizontal(new Colour4(1.2f, 0, 0, 1f), new Colour4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
                             new SpriteText
@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 Origin = Anchor.Centre,
                                 Text = "Relative Size",
                                 Font = new FontUsage(size: 32),
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 Shadow = true,
                             },
                         }
@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(1.1f, 1.1f),
                                 Rotation = 10,
@@ -218,7 +218,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
+                                Colour = ColourInfo.GradientHorizontal(new Colour4(1.2f, 0, 0, 1f), new Colour4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
                             new SpriteText
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 Origin = Anchor.Centre,
                                 Text = "Rotation",
                                 Font = new FontUsage(size: 32),
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 Shadow = true,
                             },
                         }
@@ -239,7 +239,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            changeColourText.FadeColour(Color4.Black, 1000).Then().FadeColour(Color4.Red, 1000).Loop();
+            changeColourText.FadeColour(Colour4.Black, 1000).Then().FadeColour(Colour4.Red, 1000).Loop();
         }
     }
 }

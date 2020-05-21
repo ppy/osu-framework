@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.Layout
                     {
                         RelativeSizeAxes = Axes.Both,
                         Masking = true,
-                        BorderColour = Color4.White,
+                        BorderColour = Colour4.White,
                         BorderThickness = 2,
                         Child = new Box
                         {

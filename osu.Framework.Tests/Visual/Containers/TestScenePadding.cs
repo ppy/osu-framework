@@ -31,9 +31,9 @@ namespace osu.Framework.Tests.Visual.Containers
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
-                        new PaddedBox(Color4.Blue)
+                        new PaddedBox(Colour4.Blue)
                         {
                             Padding = new MarginPadding(20),
                             Size = new Vector2(200),
@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             Masking = true,
                             Children = new Drawable[]
                             {
-                                new PaddedBox(Color4.DarkSeaGreen)
+                                new PaddedBox(Colour4.DarkSeaGreen)
                                 {
                                     Padding = new MarginPadding(40),
                                     RelativeSizeAxes = Axes.Both,
@@ -68,9 +68,9 @@ namespace osu.Framework.Tests.Visual.Containers
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
-                        new PaddedBox(Color4.Blue)
+                        new PaddedBox(Colour4.Blue)
                         {
                             Padding = new MarginPadding
                             {
@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             Masking = true,
                             Children = new Drawable[]
                             {
-                                new PaddedBox(Color4.DarkSeaGreen)
+                                new PaddedBox(Colour4.DarkSeaGreen)
                                 {
                                     Padding = new MarginPadding(40),
                                     RelativeSizeAxes = Axes.Both,
@@ -109,9 +109,9 @@ namespace osu.Framework.Tests.Visual.Containers
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
-                        new PaddedBox(Color4.Blue)
+                        new PaddedBox(Colour4.Blue)
                         {
                             Margin = new MarginPadding(20),
                             Size = new Vector2(200),
@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             Masking = true,
                             Children = new Drawable[]
                             {
-                                new PaddedBox(Color4.DarkSeaGreen)
+                                new PaddedBox(Colour4.DarkSeaGreen)
                                 {
                                     Padding = new MarginPadding(20),
                                     RelativeSizeAxes = Axes.Both,
@@ -146,9 +146,9 @@ namespace osu.Framework.Tests.Visual.Containers
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
+                            Colour = Colour4.White,
                         },
-                        new PaddedBox(Color4.Blue)
+                        new PaddedBox(Colour4.Blue)
                         {
                             Margin = new MarginPadding
                             {
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             Masking = true,
                             Children = new Drawable[]
                             {
-                                new PaddedBox(Color4.DarkSeaGreen)
+                                new PaddedBox(Colour4.DarkSeaGreen)
                                 {
                                     Padding = new MarginPadding(40),
                                     RelativeSizeAxes = Axes.Both,
@@ -186,7 +186,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             protected override Container<Drawable> Content => content;
 
-            public PaddedBox(Color4 colour)
+            public PaddedBox(Colour4 colour)
             {
                 AddRangeInternal(new Drawable[]
                 {

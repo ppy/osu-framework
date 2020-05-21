@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Size = new Vector2(0.2f),
                 Anchor = anchor,
                 Origin = anchor,
-                Colour = Color4.Blue,
+                Colour = Colour4.Blue,
                 TooltipText = $"{anchor}",
             };
 
@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             new TooltipBox
                             {
                                 TooltipText = "Outer Tooltip",
-                                Colour = Color4.CornflowerBlue,
+                                Colour = Colour4.CornflowerBlue,
                                 Size = new Vector2(300, 300),
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre
@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         new Box
                         {
                             Anchor = Anchor.BottomLeft,
-                            Colour = Color4.Black,
+                            Colour = Colour4.Black,
                             RelativeSizeAxes = Axes.X,
                             Height = 12,
                         },
@@ -193,7 +193,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             Anchor = Anchor.BottomLeft,
                             Font = FontUsage.Default.With(size: 12),
-                            Colour = Color4.Yellow,
+                            Colour = Colour4.Yellow,
                             Text = $"Custom tooltip instance {i++}"
                         }
                     });

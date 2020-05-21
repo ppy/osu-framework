@@ -39,25 +39,25 @@ namespace osu.Framework.Tests.Layout
                             boxes[0] = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Beige,
+                                Colour = Colour4.Beige,
                                 Width = 0.2f,
                             },
                             boxes[1] = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Bisque,
+                                Colour = Colour4.Bisque,
                                 Width = 0.2f,
                             },
                             boxes[2] = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Aquamarine,
+                                Colour = Colour4.Aquamarine,
                                 Width = 0.2f,
                             },
                             boxes[3] = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Cornsilk,
+                                Colour = Colour4.Cornsilk,
                                 Width = 0.2f,
                             },
                         }

@@ -17,63 +17,63 @@ namespace osu.Framework.Tests.Visual.Drawables
         public TestSceneColourGradient()
             : base(4, 2)
         {
-            Color4 transparentBlack = new Color4(0, 0, 0, 0);
+            Colour4 transparentBlack = new Colour4(0, 0, 0, 0);
 
             ColourInfo[] colours =
             {
                 new ColourInfo
                 {
-                    TopLeft = Color4.Pink.ToLinear(),
-                    BottomLeft = Color4.Pink.ToLinear(),
-                    TopRight = Color4.SkyBlue.ToLinear(),
-                    BottomRight = Color4.SkyBlue.ToLinear(),
+                    TopLeft = Colour4.Pink.ToLinear(),
+                    BottomLeft = Colour4.Pink.ToLinear(),
+                    TopRight = Colour4.SkyBlue.ToLinear(),
+                    BottomRight = Colour4.SkyBlue.ToLinear(),
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.Pink,
-                    BottomLeft = Color4.Pink,
-                    TopRight = Color4.SkyBlue,
-                    BottomRight = Color4.SkyBlue,
+                    TopLeft = Colour4.Pink,
+                    BottomLeft = Colour4.Pink,
+                    TopRight = Colour4.SkyBlue,
+                    BottomRight = Colour4.SkyBlue,
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
-                    TopRight = Color4.Black.ToLinear(),
-                    BottomRight = Color4.Black.ToLinear(),
+                    TopLeft = Colour4.White.ToLinear(),
+                    BottomLeft = Colour4.White.ToLinear(),
+                    TopRight = Colour4.Black.ToLinear(),
+                    BottomRight = Colour4.Black.ToLinear(),
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White,
-                    BottomLeft = Color4.White,
-                    TopRight = Color4.Black,
-                    BottomRight = Color4.Black,
+                    TopLeft = Colour4.White,
+                    BottomLeft = Colour4.White,
+                    TopRight = Colour4.Black,
+                    BottomRight = Colour4.Black,
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
-                    TopRight = Color4.Transparent.ToLinear(),
-                    BottomRight = Color4.Transparent.ToLinear(),
+                    TopLeft = Colour4.White.ToLinear(),
+                    BottomLeft = Colour4.White.ToLinear(),
+                    TopRight = Colour4.Transparent.ToLinear(),
+                    BottomRight = Colour4.Transparent.ToLinear(),
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White,
-                    BottomLeft = Color4.White,
-                    TopRight = Color4.Transparent,
-                    BottomRight = Color4.Transparent,
+                    TopLeft = Colour4.White,
+                    BottomLeft = Colour4.White,
+                    TopRight = Colour4.Transparent,
+                    BottomRight = Colour4.Transparent,
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White.ToLinear(),
-                    BottomLeft = Color4.White.ToLinear(),
+                    TopLeft = Colour4.White.ToLinear(),
+                    BottomLeft = Colour4.White.ToLinear(),
                     TopRight = transparentBlack.ToLinear(),
                     BottomRight = transparentBlack.ToLinear(),
                 },
                 new ColourInfo
                 {
-                    TopLeft = Color4.White,
-                    BottomLeft = Color4.White,
+                    TopLeft = Colour4.White,
+                    BottomLeft = Colour4.White,
                     TopRight = transparentBlack,
                     BottomRight = transparentBlack,
                 },

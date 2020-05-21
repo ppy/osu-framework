@@ -17,16 +17,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         private const float caret_move_time = 60;
 
-        protected virtual Color4 SelectionColour => FrameworkColour.YellowGreen;
+        protected virtual Colour4 SelectionColour => FrameworkColour.YellowGreen;
 
-        protected Color4 BackgroundCommit { get; set; } = FrameworkColour.Green;
+        protected Colour4 BackgroundCommit { get; set; } = FrameworkColour.Green;
 
-        private Color4 backgroundFocused = new Color4(100, 100, 100, 255);
-        private Color4 backgroundUnfocused = new Color4(100, 100, 100, 120);
+        private Colour4 backgroundFocused = new Colour4(100, 100, 100, 255);
+        private Colour4 backgroundUnfocused = new Colour4(100, 100, 100, 120);
 
         private readonly Box background;
 
-        protected Color4 BackgroundFocused
+        protected Colour4 BackgroundFocused
         {
             get => backgroundFocused;
             set
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected Color4 BackgroundUnfocused
+        protected Colour4 BackgroundUnfocused
         {
             get => backgroundUnfocused;
             set
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected virtual Color4 InputErrorColour => Color4.Red;
+        protected virtual Colour4 InputErrorColour => Colour4.Red;
 
         public BasicTextBox()
         {
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public override void Show()
             {
-                var col = (Color4)Colour;
+                var col = (Colour4)Colour;
                 this.FadeColour(col.Opacity(0)).FadeColour(col, caret_move_time * 2, Easing.Out);
             }
 
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.UserInterface
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(1, 0.9f);
 
-                Colour = Color4.Transparent;
+                Colour = Colour4.Transparent;
                 Anchor = Anchor.CentreLeft;
                 Origin = Anchor.CentreLeft;
 
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
                 InternalChild = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
+                    Colour = Colour4.White,
                 };
             }
 
@@ -161,7 +161,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             public float CaretWidth { get; set; }
 
-            public Color4 SelectionColour { get; set; }
+            public Colour4 SelectionColour { get; set; }
 
             public override void DisplayAt(Vector2 position, float? selectionWidth)
             {
@@ -178,7 +178,7 @@ namespace osu.Framework.Graphics.UserInterface
                     this.MoveTo(new Vector2(position.X - CaretWidth / 2, position.Y), 60, Easing.Out);
                     this.ResizeWidthTo(CaretWidth, caret_move_time, Easing.Out);
                     this
-                        .FadeColour(Color4.White, 200, Easing.Out)
+                        .FadeColour(Colour4.White, 200, Easing.Out)
                         .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
                 }
             }

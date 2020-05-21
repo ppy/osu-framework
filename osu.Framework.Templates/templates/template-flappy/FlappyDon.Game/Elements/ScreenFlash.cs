@@ -11,7 +11,7 @@ namespace FlappyDon.Game.Elements
     {
         public ScreenFlash()
         {
-            Colour = Color4.White;
+            Colour = Colour4.White;
             RelativeSizeAxes = Axes.Both;
             Alpha = 0.0f;
         }

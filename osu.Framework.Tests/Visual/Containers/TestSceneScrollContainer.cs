@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 {
                     fill.Add(new Box
                     {
-                        Colour = new Color4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
+                        Colour = new Colour4(RNG.NextSingle(1), RNG.NextSingle(1), RNG.NextSingle(1), 1),
                         RelativeSizeAxes = Axes.X,
                         Height = item_height,
                     });

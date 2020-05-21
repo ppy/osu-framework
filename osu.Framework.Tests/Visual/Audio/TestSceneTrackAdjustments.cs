@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 {
                     new Box
                     {
-                        Colour = Color4.Yellow,
+                        Colour = Colour4.Yellow,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new SpriteIcon
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Audio
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Icon = FontAwesome.Solid.VolumeUp,
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Size = new Vector2(40)
                     },
                     drawableTrack = new DrawableTrack(track)
@@ -102,7 +102,7 @@ namespace osu.Framework.Tests.Visual.Audio
                         {
                             new Box
                             {
-                                Colour = Color4.DarkGray,
+                                Colour = Colour4.DarkGray,
                                 Alpha = 0.5f,
                                 RelativeSizeAxes = Axes.Both,
                             },
@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Visual.Audio
                             {
                                 Anchor = Anchor.BottomLeft,
                                 Origin = Anchor.BottomLeft,
-                                Colour = Color4.DarkViolet,
+                                Colour = Colour4.DarkViolet,
                                 Alpha = 0.2f,
                                 RelativeSizeAxes = Axes.Both,
                             },
@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Visual.Audio
                                 Origin = Anchor.Centre,
                                 Icon = FontAwesome.Solid.CircleNotch,
                                 Blending = BlendingParameters.Additive,
-                                Colour = Color4.White,
+                                Colour = Colour4.White,
                                 Alpha = 0.2f,
                                 Scale = new Vector2(20),
                                 Position = new Vector2(20, -20)

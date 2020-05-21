@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             Origin = Anchor.CentreLeft,
             RelativeSizeAxes = Axes.Y,
             Width = 5,
-            Colour = Color4.Gray
+            Colour = Colour4.Gray
         };
 
         public virtual MarkdownTextFlowContainer CreateTextFlow()

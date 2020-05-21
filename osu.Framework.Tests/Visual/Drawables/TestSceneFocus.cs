@@ -204,7 +204,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Gray.Opacity(0.5f),
+                        Colour = Colour4.Gray.Opacity(0.5f),
                     },
                     box = new Box
                     {
@@ -212,7 +212,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Size = new Vector2(0.4f),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Colour = Color4.Blue,
+                        Colour = Colour4.Blue,
                     },
                     new SpriteText
                     {
@@ -275,7 +275,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public RequestingFocusBox()
             {
-                Box.Colour = Color4.Green;
+                Box.Colour = Colour4.Green;
 
                 AddInternal(new SpriteText
                 {
@@ -297,7 +297,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     RelativeSizeAxes = Axes.Both,
                     Alpha = 0.5f,
-                    Colour = Color4.Red
+                    Colour = Colour4.Red
                 });
 
                 RelativeSizeAxes = Axes.Both;

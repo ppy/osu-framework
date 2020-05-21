@@ -30,12 +30,12 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly Container windowContainer;
         private Vector2 screenContainerOffset;
 
-        private static readonly Color4 active_fill = new Color4(255, 138, 104, 255);
-        private static readonly Color4 active_stroke = new Color4(244, 74, 25, 255);
-        private static readonly Color4 screen_fill = new Color4(255, 181, 104, 255);
-        private static readonly Color4 screen_stroke = new Color4(244, 137, 25, 255);
-        private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
-        private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
+        private static readonly Colour4 active_fill = new Colour4(255, 138, 104, 255);
+        private static readonly Colour4 active_stroke = new Colour4(244, 74, 25, 255);
+        private static readonly Colour4 screen_fill = new Colour4(255, 181, 104, 255);
+        private static readonly Colour4 screen_stroke = new Colour4(244, 137, 25, 255);
+        private static readonly Colour4 window_fill = new Colour4(95, 113, 197, 255);
+        private static readonly Colour4 window_stroke = new Colour4(36, 59, 166, 255);
 
         private DesktopGameWindow window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
@@ -74,12 +74,12 @@ namespace osu.Framework.Tests.Visual.Platform
                                         windowCaption = new TextFlowContainer(sprite =>
                                         {
                                             sprite.Font = sprite.Font.With(size: 150);
-                                            sprite.Colour = Color4.White;
+                                            sprite.Colour = Colour4.White;
                                         })
                                         {
                                             RelativeSizeAxes = Axes.Both,
                                             Padding = new MarginPadding(50),
-                                            Colour = Color4.White
+                                            Colour = Colour4.White
                                         }
                                     }
                                 }
@@ -128,7 +128,7 @@ namespace osu.Framework.Tests.Visual.Platform
                         Padding = new MarginPadding(50),
                         Text = name,
                         Font = new FontUsage(size: 200),
-                        Colour = Color4.Black
+                        Colour = Colour4.Black
                     }
                 }
             };

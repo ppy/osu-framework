@@ -73,13 +73,13 @@ namespace osu.Framework.Graphics.Cursor
                 Origin = Anchor.Centre;
 
                 BorderThickness = 2;
-                BorderColour = new Color4(247, 99, 164, 255);
+                BorderColour = new Colour4(247, 99, 164, 255);
 
                 Masking = true;
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
-                    Colour = new Color4(247, 99, 164, 6),
+                    Colour = new Colour4(247, 99, 164, 6),
                     Radius = 50
                 };
 

@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             RelativeSizeAxes = Axes.Both;
 
             BorderThickness = 1.8f;
-            BorderColour = Color4.White;
+            BorderColour = Colour4.White;
             Masking = true;
         }
 

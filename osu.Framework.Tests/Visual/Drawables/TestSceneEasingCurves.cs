@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             new Box
                             {
-                                Colour = Color4.DimGray,
+                                Colour = Colour4.DimGray,
                                 RelativeSizeAxes = Axes.Both
                             },
                             dot = new CircularContainer
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 Child = new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.White
+                                    Colour = Colour4.White
                                 }
                             }
                         }

@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Red,
+                        Colour = Colour4.Red,
                     },
                     new Container
                     {
@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Black,
+                                Colour = Colour4.Black,
                             },
                             fillContainer = new DrawSizePreservingFillContainer
                             {

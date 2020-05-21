@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Orange
+                            Colour = Colour4.Orange
                         },
                         blended = new Box
                         {
@@ -59,7 +59,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Orange
+                            Colour = Colour4.Orange
                         },
                         new Container
                         {

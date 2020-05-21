@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Platform
                             {
                                 new Box
                                 {
-                                    Colour = Color4.Navy,
+                                    Colour = Colour4.Navy,
                                     RelativeSizeAxes = Axes.Both,
                                 },
                                 createDisplay(resource),

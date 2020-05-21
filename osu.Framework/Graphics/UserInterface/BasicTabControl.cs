@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             protected override void OnActivated()
-                => text.Colour = Color4.MediumPurple;
+                => text.Colour = Colour4.MediumPurple;
 
             protected override void OnDeactivated()
-                => text.Colour = Color4.White;
+                => text.Colour = Colour4.White;
         }
 
         public class BasicTabControlDropdown : BasicDropdown<T>

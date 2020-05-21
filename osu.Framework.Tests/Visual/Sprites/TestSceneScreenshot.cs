@@ -31,14 +31,14 @@ namespace osu.Framework.Tests.Visual.Sprites
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.5f),
                 Masking = true,
-                BorderColour = Color4.Green,
+                BorderColour = Colour4.Green,
                 BorderThickness = 2,
                 Children = new[]
                 {
                     background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Red,
+                        Colour = Colour4.Red,
                         Alpha = 0
                     },
                     display = new Sprite { RelativeSizeAxes = Axes.Both }

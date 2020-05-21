@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                 new Box
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Blue,
+                                    Colour = Colour4.Blue,
                                 },
                                 new Sprite
                                 {

@@ -183,8 +183,8 @@ namespace osu.Framework.Graphics.Visualisation
                     drawColour = DrawColourInfo.Colour;
                     drawColour.ApplyChild(
                         Precision.AlmostBigger(Source.AverageUsagesPerFrame, 1)
-                            ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Color4.DarkGray, Color4.Red, 0, 200)
-                            : Color4.Transparent);
+                            ? Interpolation.ValueAt(Source.AverageUsagesPerFrame, Colour4.DarkGray, Colour4.Red, 0, 200)
+                            : Colour4.Transparent);
 
                     base.Draw(vertexAction);
 
@@ -205,11 +205,11 @@ namespace osu.Framework.Graphics.Visualisation
                     var shrunkenQuad = ScreenSpaceDrawQuad.AABBFloat.Shrink(border_width);
 
                     // background
-                    DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
+                    DrawQuad(Texture, shrunkenQuad, Colour4.Black, null, vertexAction);
 
                     // atlas texture
                     texture.Bind();
-                    DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
+                    DrawQuad(texture, shrunkenQuad, Colour4.White, null, vertexAction);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;

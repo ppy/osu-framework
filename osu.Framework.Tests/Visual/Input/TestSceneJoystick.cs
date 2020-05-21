@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Visual.Input
                     background = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
                     },
@@ -122,7 +122,7 @@ namespace osu.Framework.Tests.Visual.Input
                     upBox = new Container
                     {
                         RelativeSizeAxes = Axes.X,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Height = 10,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.Input
                         Anchor = Anchor.BottomLeft,
                         Origin = Anchor.BottomLeft,
                         RelativeSizeAxes = Axes.X,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Height = 10,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual.Input
                     leftBox = new Container
                     {
                         RelativeSizeAxes = Axes.Y,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Width = 10,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
@@ -150,7 +150,7 @@ namespace osu.Framework.Tests.Visual.Input
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
                         RelativeSizeAxes = Axes.Y,
-                        Colour = Color4.DarkGreen,
+                        Colour = Colour4.DarkGreen,
                         Width = 10,
                         Alpha = 0,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual.Input
                     background = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent,
+                        Colour = Colour4.Transparent,
                         Child = new Box { RelativeSizeAxes = Axes.Both }
                     },
                     new SpriteText
@@ -246,9 +246,9 @@ namespace osu.Framework.Tests.Visual.Input
             protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 if (e.Button == positiveAxisButton)
-                    background.FadeColour(Color4.DarkGreen, 100, Easing.OutQuint);
+                    background.FadeColour(Colour4.DarkGreen, 100, Easing.OutQuint);
                 else if (e.Button == negativeAxisButton)
-                    background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
+                    background.FadeColour(Colour4.DarkRed, 100, Easing.OutQuint);
                 else
                     return base.OnJoystickPress(e);
 
@@ -258,7 +258,7 @@ namespace osu.Framework.Tests.Visual.Input
             protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == positiveAxisButton || e.Button == negativeAxisButton)
-                    background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
+                    background.FadeColour(new Colour4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
                     base.OnJoystickRelease(e);
             }

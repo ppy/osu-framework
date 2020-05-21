@@ -873,7 +873,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 foreach (Drawable d in imeDrawables)
                 {
-                    d.Colour = Color4.White;
+                    d.Colour = Colour4.White;
                     d.FadeTo(1, 200, Easing.Out);
                 }
             }
@@ -929,7 +929,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (dr != null)
                 {
-                    dr.Colour = Color4.Aqua;
+                    dr.Colour = Colour4.Aqua;
                     dr.Alpha = 0.6f;
                     imeDrawables.Add(dr);
                 }

@@ -37,12 +37,12 @@ namespace osu.Framework.Testing.Drawables.Steps
                 background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.RoyalBlue.Darken(0.75f),
+                    Colour = Colour4.RoyalBlue.Darken(0.75f),
                 },
                 selection = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.RoyalBlue,
+                    Colour = Colour4.RoyalBlue,
                 },
                 spriteText = new SpriteText
                 {
@@ -71,7 +71,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             var flash = new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Colour = Color4.RoyalBlue,
+                Colour = Colour4.RoyalBlue,
                 Blending = BlendingParameters.Additive,
                 Alpha = 0.6f,
             };

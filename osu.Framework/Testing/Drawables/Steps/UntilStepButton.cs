@@ -33,7 +33,7 @@ namespace osu.Framework.Testing.Drawables.Steps
         public UntilStepButton(Func<bool> waitUntilTrueDelegate)
         {
             updateText();
-            LightColour = Color4.Sienna;
+            LightColour = Colour4.Sienna;
 
             base.Action = () =>
             {
@@ -69,13 +69,13 @@ namespace osu.Framework.Testing.Drawables.Steps
         protected override void Success()
         {
             base.Success();
-            Light.FadeColour(Color4.YellowGreen);
+            Light.FadeColour(Colour4.YellowGreen);
         }
 
         protected override void Failure()
         {
             base.Failure();
-            Light.FadeColour(Color4.Red);
+            Light.FadeColour(Colour4.Red);
         }
 
         private void updateText() => base.Text = $@"{Text} ({invocations} tries)";

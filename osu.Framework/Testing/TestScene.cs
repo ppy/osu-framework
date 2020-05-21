@@ -165,7 +165,7 @@ namespace osu.Framework.Testing
                 {
                     new Box
                     {
-                        Colour = new Color4(25, 25, 25, 255),
+                        Colour = new Colour4(25, 25, 25, 255),
                         RelativeSizeAxes = Axes.Y,
                         Width = steps_width,
                     },

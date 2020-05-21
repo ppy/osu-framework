@@ -51,8 +51,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     sliderBar = new BasicSliderBar<double>
                     {
                         Size = new Vector2(200, 50),
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
+                        BackgroundColour = Colour4.White,
+                        SelectionColour = Colour4.Pink,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -64,8 +64,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Size = new Vector2(200, 10),
                         RangePadding = 20,
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
+                        BackgroundColour = Colour4.White,
+                        SelectionColour = Colour4.Pink,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },
@@ -77,8 +77,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         TransferValueOnCommit = true,
                         Size = new Vector2(200, 10),
-                        BackgroundColour = Color4.White,
-                        SelectionColour = Color4.Pink,
+                        BackgroundColour = Colour4.White,
+                        SelectionColour = Colour4.Pink,
                         KeyboardStep = 1,
                         Current = sliderBarValue
                     },

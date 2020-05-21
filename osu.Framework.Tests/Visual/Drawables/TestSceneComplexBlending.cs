@@ -109,11 +109,11 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Masking = true,
                     Children = new Drawable[]
                     {
-                        new GradientPart(0, Color4.Orange, Color4.Yellow),
-                        new GradientPart(1, Color4.Yellow, Color4.Green),
-                        new GradientPart(2, Color4.Green, Color4.Cyan),
-                        new GradientPart(3, Color4.Cyan, Color4.Blue),
-                        new GradientPart(4, Color4.Blue, Color4.Violet),
+                        new GradientPart(0, Colour4.Orange, Colour4.Yellow),
+                        new GradientPart(1, Colour4.Yellow, Colour4.Green),
+                        new GradientPart(2, Colour4.Green, Colour4.Cyan),
+                        new GradientPart(3, Colour4.Cyan, Colour4.Blue),
+                        new GradientPart(4, Colour4.Blue, Colour4.Violet),
                         foregroundContainer = new BufferedContainer
                         {
                             Name = "Foreground",
@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.45f),
                                     Y = -0.15f,
-                                    Colour = Color4.Cyan
+                                    Colour = Colour4.Cyan
                                 },
                                 new Circle
                                 {
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.45f),
                                     X = -0.15f,
-                                    Colour = Color4.Magenta
+                                    Colour = Colour4.Magenta
                                 },
                                 new Circle
                                 {
@@ -151,7 +151,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.45f),
                                     X = 0.15f,
-                                    Colour = Color4.Yellow
+                                    Colour = Colour4.Yellow
                                 },
                             }
                         },
@@ -293,7 +293,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class GradientPart : Box
         {
-            public GradientPart(int index, Color4 start, Color4 end)
+            public GradientPart(int index, Colour4 start, Colour4 end)
             {
                 RelativeSizeAxes = Axes.Both;
                 RelativePositionAxes = Axes.Both;

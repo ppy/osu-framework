@@ -145,7 +145,7 @@ namespace osu.Framework.Tests.Visual.Bindables
                 {
                     new Box
                     {
-                        Colour = badActor ? Color4.Red : Color4.Green,
+                        Colour = badActor ? Colour4.Red : Colour4.Green,
                         RelativeSizeAxes = Axes.Both,
                     },
                     spriteText = new SpriteText

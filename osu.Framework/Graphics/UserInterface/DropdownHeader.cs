@@ -19,9 +19,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected Container Background;
         protected Container Foreground;
 
-        private Color4 backgroundColour = Color4.DarkGray;
+        private Colour4 backgroundColour = Colour4.DarkGray;
 
-        protected Color4 BackgroundColour
+        protected Colour4 BackgroundColour
         {
             get => backgroundColour;
             set
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected Color4 BackgroundColourHover { get; set; } = Color4.Gray;
+        protected Colour4 BackgroundColourHover { get; set; } = Colour4.Gray;
 
         protected override Container<Drawable> Content => Foreground;
 
@@ -50,11 +50,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.DarkGray,
+                    Colour = Colour4.DarkGray,
                     Child = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                     },
                 },
                 Foreground = new Container

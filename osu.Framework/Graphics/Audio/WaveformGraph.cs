@@ -80,13 +80,13 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Color4? lowColour;
+        private Colour4? lowColour;
 
         /// <summary>
         /// The colour which low-range frequencies should be colourised with.
         /// May be null for this frequency range to not be colourised.
         /// </summary>
-        public Color4? LowColour
+        public Colour4? LowColour
         {
             get => lowColour;
             set
@@ -100,13 +100,13 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Color4? midColour;
+        private Colour4? midColour;
 
         /// <summary>
         /// The colour which mid-range frequencies should be colourised with.
         /// May be null for this frequency range to not be colourised.
         /// </summary>
-        public Color4? MidColour
+        public Colour4? MidColour
         {
             get => midColour;
             set
@@ -120,13 +120,13 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        private Color4? highColour;
+        private Colour4? highColour;
 
         /// <summary>
         /// The colour which high-range frequencies should be colourised with.
         /// May be null for this frequency range to not be colourised.
         /// </summary>
-        public Color4? HighColour
+        public Colour4? HighColour
         {
             get => highColour;
             set
@@ -204,9 +204,9 @@ namespace osu.Framework.Graphics.Audio
             private Vector2 drawSize;
             private int channels;
 
-            private Color4 lowColour;
-            private Color4 midColour;
-            private Color4 highColour;
+            private Colour4 lowColour;
+            private Colour4 midColour;
+            private Colour4 highColour;
 
             private double highMax;
             private double midMax;
@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    Color4 colour = DrawColourInfo.Colour;
+                    Colour4 colour = DrawColourInfo.Colour;
 
                     // colouring is applied in the order of interest to a viewer.
                     colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, midColour, 0, 1);

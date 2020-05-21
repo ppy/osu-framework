@@ -18,9 +18,9 @@ namespace osu.Framework.Tests.Visual.Input
         {
             TestContainerNoHandling notHandleInput;
             TestContainer handlePositionalInput, handleNonPositionalInput;
-            Add(notHandleInput = new TestContainerNoHandling { Colour = Color4.Red });
-            Add(handlePositionalInput = new TestContainerHandlePositionalInput { X = 300, Colour = Color4.Blue });
-            Add(handleNonPositionalInput = new TestContainerHandleNonPositionalInput { X = 600, Colour = Color4.Green });
+            Add(notHandleInput = new TestContainerNoHandling { Colour = Colour4.Red });
+            Add(handlePositionalInput = new TestContainerHandlePositionalInput { X = 300, Colour = Colour4.Blue });
+            Add(handleNonPositionalInput = new TestContainerHandleNonPositionalInput { X = 600, Colour = Colour4.Green });
             Add(new TestSceneMouseStates.StateTracker.BoundedCursorContainer(0));
 
             AddStep($"enable {notHandleInput}", () => { InputManager.MoveMouseTo(notHandleInput); });
@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Visual.Input
             protected readonly Box DisabledOverlay;
             private readonly SpriteText text1, text2;
 
-            public new Color4 Colour
+            public new Colour4 Colour
             {
                 get => Box.Colour;
                 set => Box.Colour = value;
@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.Input
                 Add(new SpriteText { Text = GetType().Name });
                 Add(text1 = new SpriteText { Y = 20 });
                 Add(text2 = new SpriteText { Y = 40 });
-                Add(DisabledOverlay = new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Gray.Opacity(.5f) });
+                Add(DisabledOverlay = new Box { RelativeSizeAxes = Axes.Both, Colour = Colour4.Gray.Opacity(.5f) });
             }
 
             protected override void Update()

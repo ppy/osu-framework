@@ -456,7 +456,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, Easing easing = Easing.None)
+        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, Colour4 newColour, double duration = 0, Easing easing = Easing.None)
             where T : class, IContainer
             => container.FadeEdgeEffectTo(newColour, duration, new DefaultEasingFunction(easing));
 
@@ -710,7 +710,7 @@ namespace osu.Framework.Graphics
             where T : class, IContainer
             where TEasing : IEasingFunction
         {
-            Color4 targetColour = container.EdgeEffect.Colour;
+            Colour4 targetColour = container.EdgeEffect.Colour;
             targetColour.A = newAlpha;
             return container.FadeEdgeEffectTo(targetColour, duration, easing);
         }
@@ -719,7 +719,7 @@ namespace osu.Framework.Graphics
         /// Smoothly adjusts the colour of <see cref="IContainer.EdgeEffect"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, Color4 newColour, double duration, in TEasing easing)
+        public static TransformSequence<T> FadeEdgeEffectTo<T, TEasing>(this T container, Colour4 newColour, double duration, in TEasing easing)
             where T : class, IContainer
             where TEasing : IEasingFunction
         {

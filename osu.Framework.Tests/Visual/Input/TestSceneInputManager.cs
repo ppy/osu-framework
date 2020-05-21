@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.Input
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(1, 1, 1, 0.2f),
+                        Colour = new Colour4(1, 1, 1, 0.2f),
                     },
                     new FillFlowContainer
                     {

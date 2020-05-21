@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Visual.Input
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
 
-                BorderColour = Color4.BlueViolet;
+                BorderColour = Colour4.BlueViolet;
                 BorderThickness = 3;
                 Masking = true;
 
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Input
                     new Box { RelativeSizeAxes = Axes.Both },
                     new SpriteText
                     {
-                        Colour = Color4.Black,
+                        Colour = Colour4.Black,
                         Text = index.ToString(),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,

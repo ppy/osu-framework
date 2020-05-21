@@ -1260,12 +1260,12 @@ namespace osu.Framework.Graphics
 
         #region Colour / Alpha / Blending
 
-        private ColourInfo colour = Color4.White;
+        private ColourInfo colour = Colour4.White;
 
         /// <summary>
         /// Colour of this <see cref="Drawable"/> in sRGB space. Can contain individual colours for all four
         /// corners of this <see cref="Drawable"/>, which are then interpolated, but can also be assigned
-        /// just a single colour. Implicit casts from <see cref="SRGBColour"/> and from <see cref="Color4"/> exist.
+        /// just a single colour. Implicit casts from <see cref="SRGBColour"/> and from <see cref="Colour4"/> exist.
         /// </summary>
         public ColourInfo Colour
         {

@@ -100,10 +100,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private ColourInfo effectColour = Color4.White;
+        private ColourInfo effectColour = Colour4.White;
 
         /// <summary>
-        /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Color4.White"/>.
+        /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Colour4.White"/>.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
         public ColourInfo EffectColour
@@ -158,12 +158,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+        private Colour4 backgroundColour = new Colour4(0, 0, 0, 0);
 
         /// <summary>
         /// The background colour of the framebuffer. Transparent black by default.
         /// </summary>
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
             get => backgroundColour;
             set
@@ -355,7 +355,7 @@ namespace osu.Framework.Graphics.Containers
                 var blending = Blending;
                 blending.ApplyDefaultToInherited();
 
-                return new DrawColourInfo(Color4.White, blending);
+                return new DrawColourInfo(Colour4.White, blending);
             }
         }
 

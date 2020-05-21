@@ -40,7 +40,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 Child = new Box
                 {
                     Name = "Overriding Background",
-                    Colour = Color4.Blue,
+                    Colour = Colour4.Blue,
                     RelativeSizeAxes = Axes.Both
                 },
             };
@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             new Box
                             {
                                 Name = "Safe Area Target Background",
-                                Colour = Color4.Red,
+                                Colour = Colour4.Red,
                                 RelativeSizeAxes = Axes.Both,
                             },
                             new Container
@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Origin = Anchor.CentreLeft,
                                 Width = 0,
                                 RelativeSizeAxes = Axes.Y,
-                                Colour = Color4.Green,
+                                Colour = Colour4.Green,
                                 Alpha = 0.2f
                             },
                             safeAreaRightOverlay = new Box
@@ -94,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Origin = Anchor.CentreRight,
                                 Width = 0,
                                 RelativeSizeAxes = Axes.Y,
-                                Colour = Color4.Green,
+                                Colour = Colour4.Green,
                                 Alpha = 0.2f
                             },
                             safeAreaTopOverlay = new Box
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Origin = Anchor.TopCentre,
                                 Height = 0,
                                 RelativeSizeAxes = Axes.X,
-                                Colour = Color4.Green,
+                                Colour = Colour4.Green,
                                 Alpha = 0.2f
                             },
                             safeAreaBottomOverlay = new Box
@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 Origin = Anchor.BottomCentre,
                                 Height = 0,
                                 RelativeSizeAxes = Axes.X,
-                                Colour = Color4.Green,
+                                Colour = Colour4.Green,
                                 Alpha = 0.2f
                             }
                         }
@@ -127,7 +127,7 @@ namespace osu.Framework.Tests.Visual.Containers
         {
             Drawable[][] boxes = Enumerable.Range(1, rows).Select(row => Enumerable.Range(1, columns).Select(column => new Box
             {
-                Colour = new Color4(1f, 0.2f + (row * 0.8f) / rows, 0.2f + (column * 0.8f) / columns, 1f),
+                Colour = new Colour4(1f, 0.2f + (row * 0.8f) / rows, 0.2f + (column * 0.8f) / columns, 1f),
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.7f),
                 Anchor = Anchor.Centre,

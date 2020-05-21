@@ -107,7 +107,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                     {
                         RelativeSizeAxes = Axes.Both,
                         Alpha = 0.2f,
-                        Colour = Color4.Pink
+                        Colour = Colour4.Pink
                     },
                     Text = new SpriteText { AllowMultiline = false }
                 };

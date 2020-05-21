@@ -322,7 +322,7 @@ namespace osu.Framework.Graphics.Cursor
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Gray,
+                        Colour = Colour4.Gray,
                     },
                     text = new SpriteText
                     {

@@ -67,14 +67,14 @@ namespace osu.Framework.Tests.Visual.Clocks
                 CornerRadius = width / 2;
                 Masking = true;
 
-                BorderColour = Color4.White;
+                BorderColour = Colour4.White;
                 BorderThickness = 5;
 
                 InternalChildren = new Drawable[]
                 {
                     bg = new Box
                     {
-                        Colour = clock is IAdjustableClock ? Color4.Tomato : Color4.Navy,
+                        Colour = clock is IAdjustableClock ? Colour4.Tomato : Colour4.Navy,
                         RelativeSizeAxes = Axes.Both,
                     },
                     new SpriteText
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual.Clocks
                     },
                     hand = new Box
                     {
-                        Colour = Color4.White,
+                        Colour = Colour4.White,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.BottomCentre,
                         Size = new Vector2(2, width / 2)
@@ -141,9 +141,9 @@ namespace osu.Framework.Tests.Visual.Clocks
                 rate.Text = $"{clock.Rate:N2}x";
 
                 if (clock.CurrentTime != lastTime)
-                    BorderColour = clock.CurrentTime >= lastTime ? Color4.White : Color4.Red;
+                    BorderColour = clock.CurrentTime >= lastTime ? Colour4.White : Colour4.Red;
 
-                Colour = clock.IsRunning ? Color4.White : Color4.Gray;
+                Colour = clock.IsRunning ? Colour4.White : Colour4.Gray;
 
                 hand.Rotation = (float)(clock.CurrentTime / 1000) * 360 % 360;
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Tests.Visual.Clocks
                     if (!zeroed)
                     {
                         zeroed = true;
-                        bg.FlashColour(Color4.White, 500, Easing.OutQuint);
+                        bg.FlashColour(Colour4.White, 500, Easing.OutQuint);
                     }
                 }
                 else

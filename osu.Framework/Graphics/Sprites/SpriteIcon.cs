@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Sprites
                         RelativeSizeAxes = Axes.Both,
                         FillMode = FillMode.Fit,
                         Y = 2,
-                        Colour = new Color4(0f, 0f, 0f, 0.2f),
+                        Colour = new Colour4(0f, 0f, 0f, 0.2f),
                     },
                     Alpha = shadow ? 1 : 0,
                 },
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
                 //squared result for quadratic fall-off seems to give the best result.
-                var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
+                var avgColour = (Colour4)DrawColourInfo.Colour.AverageColour;
 
                 spriteShadow.Alpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 

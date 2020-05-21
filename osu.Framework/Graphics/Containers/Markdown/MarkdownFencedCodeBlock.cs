@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         protected virtual Drawable CreateBackground() => new Box
         {
             RelativeSizeAxes = Axes.Both,
-            Colour = Color4.Gray,
+            Colour = Colour4.Gray,
             Alpha = 0.5f
         };
 

@@ -22,18 +22,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public Color4 BackgroundColour
+        public Colour4 BackgroundColour
         {
             get => Background.Colour;
             set => Background.FadeColour(value);
         }
 
-        private Color4? flashColour;
+        private Colour4? flashColour;
 
         /// <summary>
         /// The colour the background will flash with when this button is clicked.
         /// </summary>
-        public Color4 FlashColour
+        public Colour4 FlashColour
         {
             get => flashColour ?? BackgroundColour;
             set => flashColour = value;
@@ -42,18 +42,18 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The additive colour that is applied to the background when hovered.
         /// </summary>
-        public Color4 HoverColour
+        public Colour4 HoverColour
         {
             get => Hover.Colour;
             set => Hover.FadeColour(value);
         }
 
-        private Color4 disabledColour = Color4.Gray;
+        private Colour4 disabledColour = Colour4.Gray;
 
         /// <summary>
         /// The additive colour that is applied to this button when disabled.
         /// </summary>
-        public Color4 DisabledColour
+        public Colour4 DisabledColour
         {
             get => disabledColour;
             set
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White.Opacity(.1f),
+                    Colour = Colour4.White.Opacity(.1f),
                     Blending = BlendingParameters.Additive
                 },
                 SpriteText = CreateText()
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void enabledChanged(ValueChangedEvent<bool> e)
         {
-            this.FadeColour(e.NewValue ? Color4.White : DisabledColour, DisabledFadeDuration, Easing.OutQuint);
+            this.FadeColour(e.NewValue ? Colour4.White : DisabledColour, DisabledFadeDuration, Easing.OutQuint);
         }
     }
 }

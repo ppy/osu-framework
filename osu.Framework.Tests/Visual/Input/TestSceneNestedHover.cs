@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Input
         public TestSceneNestedHover()
         {
             HoverBox box1;
-            Add(box1 = new HoverBox(Color4.Gray, Color4.White)
+            Add(box1 = new HoverBox(Colour4.Gray, Colour4.White)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -26,7 +26,7 @@ namespace osu.Framework.Tests.Visual.Input
             });
 
             HoverBox box2;
-            box1.Add(box2 = new HoverBox(Color4.Pink, Color4.Red)
+            box1.Add(box2 = new HoverBox(Colour4.Pink, Colour4.Red)
             {
                 RelativePositionAxes = Axes.Both,
                 RelativeSizeAxes = Axes.Both,
@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Input
                 Size = new Vector2(0.6f, 0.6f)
             });
 
-            box2.Add(new HoverBox(Color4.LightBlue, Color4.Blue, false)
+            box2.Add(new HoverBox(Colour4.LightBlue, Colour4.Blue, false)
             {
                 RelativePositionAxes = Axes.Both,
                 RelativeSizeAxes = Axes.Both,
@@ -45,13 +45,13 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class HoverBox : Container
         {
-            private readonly Color4 normalColour;
-            private readonly Color4 hoveredColour;
+            private readonly Colour4 normalColour;
+            private readonly Colour4 hoveredColour;
 
             private readonly Box box;
             private readonly bool propagateHover;
 
-            public HoverBox(Color4 normalColour, Color4 hoveredColour, bool propagateHover = true)
+            public HoverBox(Colour4 normalColour, Colour4 hoveredColour, bool propagateHover = true)
             {
                 this.normalColour = normalColour;
                 this.hoveredColour = hoveredColour;
