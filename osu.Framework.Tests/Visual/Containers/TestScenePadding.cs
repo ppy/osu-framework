@@ -9,7 +9,6 @@ using osu.Framework.Input.Events;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Containers
 {

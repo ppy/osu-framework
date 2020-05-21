@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {

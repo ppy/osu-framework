@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using osuTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {

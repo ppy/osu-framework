@@ -13,7 +13,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Tests.Visual.Containers

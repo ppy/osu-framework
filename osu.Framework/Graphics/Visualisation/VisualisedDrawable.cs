@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;

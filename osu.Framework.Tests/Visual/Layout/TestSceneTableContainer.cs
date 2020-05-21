@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {

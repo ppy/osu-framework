@@ -3,7 +3,6 @@
 
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
 {

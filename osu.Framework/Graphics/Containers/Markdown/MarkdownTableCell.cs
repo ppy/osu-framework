@@ -5,7 +5,6 @@ using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shapes;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

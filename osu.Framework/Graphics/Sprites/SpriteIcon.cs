@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
 using osu.Framework.Layout;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {

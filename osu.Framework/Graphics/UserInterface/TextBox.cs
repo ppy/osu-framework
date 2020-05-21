@@ -11,7 +11,6 @@ using osu.Framework.Input;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;

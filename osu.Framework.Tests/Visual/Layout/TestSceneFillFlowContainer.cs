@@ -12,7 +12,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Layout
 {

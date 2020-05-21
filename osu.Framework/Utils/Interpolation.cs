@@ -11,7 +11,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transforms;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Utils
 {

@@ -17,7 +17,6 @@ using osu.Framework.Utils;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Input;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface

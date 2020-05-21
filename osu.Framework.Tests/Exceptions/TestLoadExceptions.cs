@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Exceptions
 {

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.Sprites;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {

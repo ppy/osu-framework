@@ -17,7 +17,6 @@ using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Framework.Text;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {

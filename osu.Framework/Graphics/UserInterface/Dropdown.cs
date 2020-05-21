@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface

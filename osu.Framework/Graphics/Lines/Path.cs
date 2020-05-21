@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using osu.Framework.Caching;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Lines

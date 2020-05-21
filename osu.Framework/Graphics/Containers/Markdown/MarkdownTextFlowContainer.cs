@@ -8,7 +8,6 @@ using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

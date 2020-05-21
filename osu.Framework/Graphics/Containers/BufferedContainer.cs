@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Colour;

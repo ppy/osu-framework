@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;

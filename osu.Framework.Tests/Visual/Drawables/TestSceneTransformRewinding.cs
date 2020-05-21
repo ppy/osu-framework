@@ -14,7 +14,6 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 using osu.Framework.Timing;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {

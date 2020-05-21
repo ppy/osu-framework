@@ -7,7 +7,6 @@ using osuTK;
 using System;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
 using osu.Framework.Graphics.OpenGL.Vertices;
 

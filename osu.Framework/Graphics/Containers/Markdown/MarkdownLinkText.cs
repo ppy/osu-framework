@@ -6,7 +6,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {

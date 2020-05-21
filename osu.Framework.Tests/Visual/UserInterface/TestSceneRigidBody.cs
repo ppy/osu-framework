@@ -8,7 +8,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osu.Framework.Physics;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {

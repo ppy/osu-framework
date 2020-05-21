@@ -9,7 +9,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {

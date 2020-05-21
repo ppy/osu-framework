@@ -10,7 +10,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface

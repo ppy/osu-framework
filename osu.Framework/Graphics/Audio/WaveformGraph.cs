@@ -17,7 +17,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
-using osuTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Audio

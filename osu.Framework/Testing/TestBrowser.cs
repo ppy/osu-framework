@@ -28,7 +28,6 @@ using osu.Framework.Testing.Drawables;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Timing;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 using Logger = osu.Framework.Logging.Logger;
 

@@ -9,7 +9,6 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Statistics;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
