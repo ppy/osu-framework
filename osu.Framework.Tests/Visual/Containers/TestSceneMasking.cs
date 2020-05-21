@@ -190,8 +190,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 case 3:
                 {
-                    Colour4 glowColour = Colour4.Aquamarine;
-                    glowColour.A = 0.5f;
+                    Colour4 glowColour = Colour4.Aquamarine.Opacity(0.5f);
 
                     Container box1;
                     Container box2;
