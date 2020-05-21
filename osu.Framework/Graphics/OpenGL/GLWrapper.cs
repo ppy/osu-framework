@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics.OpenGL
             PushDepthInfo(new DepthInfo(writeDepth: true));
             PushScissorState(false);
             if (clearInfo.Colour != currentClearInfo.Colour)
-                GL.ClearColor(clearInfo.Colour);
+                GL.ClearColor(clearInfo.Colour.R, clearInfo.Colour.G, clearInfo.Colour.B, clearInfo.Colour.A);
 
             if (clearInfo.Depth != currentClearInfo.Depth)
             {
