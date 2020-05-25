@@ -155,18 +155,18 @@ namespace osu.Framework.Testing
                     options
                 );
 
-                using (var symbols = new MemoryStream())
-                using (var ms = new MemoryStream())
+                using (var pdbStream = new MemoryStream())
+                using (var peStream = new MemoryStream())
                 {
-                    var compilationResult = compilation.Emit(ms, symbols);
+                    var compilationResult = compilation.Emit(peStream, pdbStream);
 
                     if (compilationResult.Success)
                     {
-                        ms.Seek(0, SeekOrigin.Begin);
-                        symbols.Seek(0, SeekOrigin.Begin);
+                        peStream.Seek(0, SeekOrigin.Begin);
+                        pdbStream.Seek(0, SeekOrigin.Begin);
 
                         CompilationFinished?.Invoke(
-                            Assembly.Load(ms.ToArray(), symbols.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == targetType.FullName)
+                            Assembly.Load(peStream.ToArray(), pdbStream.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == targetType.FullName)
                         );
                     }
                     else
