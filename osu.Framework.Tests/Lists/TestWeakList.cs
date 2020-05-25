@@ -158,6 +158,83 @@ namespace osu.Framework.Tests.Lists
         }
 
         [Test]
+        public void TestRemoveAllUsingRemoveAtFromStart()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            for (int i = 0; i < objects.Count; i++)
+                list.RemoveAt(0);
+
+            Assert.That(list.Count(), Is.Zero);
+        }
+
+        [Test]
+        public void TestRemoveAllUsingRemoveAtFromEnd()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            for (int i = 0; i < objects.Count; i++)
+                list.RemoveAt(list.Count() - 1);
+
+            Assert.That(list.Count(), Is.Zero);
+        }
+
+        [Test]
+        public void TestRemoveAllUsingRemoveAtFromBothSides()
+        {
+            var objects = new List<object>
+            {
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+                new object(),
+            };
+
+            var list = new WeakList<object>();
+            foreach (var o in objects)
+                list.Add(o);
+
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (i % 2 == 0)
+                    list.RemoveAt(0);
+                else
+                    list.RemoveAt(list.Count() - 1);
+            }
+
+            Assert.That(list.Count(), Is.Zero);
+        }
+
+        [Test]
         public void TestCountIsZeroAfterClear()
         {
             var obj = new object();

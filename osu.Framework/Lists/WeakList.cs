@@ -17,8 +17,8 @@ namespace osu.Framework.Lists
         where T : class
     {
         private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
-        private int listStart;
-        private int listEnd;
+        private int listStart; // The inclusive starting index in the list.
+        private int listEnd; // The exclusive ending index in the list.
 
         public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
@@ -72,7 +72,7 @@ namespace osu.Framework.Lists
 
             if (index == listStart)
                 listStart++;
-            else if (index == listEnd)
+            else if (index == listEnd - 1)
                 listEnd--;
         }
 
