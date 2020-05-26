@@ -349,7 +349,7 @@ namespace osu.Framework.Testing
                 var node = directedGraph[s];
 
                 // This shouldn't be super tight (e.g. log_2), but tight enough that a significant number of nodes do get excluded.
-                double range = Math.Log(node.ExpansionFactor, 1.25d);
+                double range = Math.Log(Math.Max(1, node.ExpansionFactor), 1.25d);
 
                 var exclusionRange = (
                     min: range,
