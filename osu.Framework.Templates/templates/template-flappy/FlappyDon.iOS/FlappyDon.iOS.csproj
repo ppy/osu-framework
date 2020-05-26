@@ -165,7 +165,7 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2020.519.0" />
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2020.525.0" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
     <PackageReference Include="ppy.osu.Framework" Version="2020.525.0" />
