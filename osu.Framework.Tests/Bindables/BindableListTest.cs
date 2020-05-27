@@ -751,6 +751,23 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestRemoveDoesntNotifySubscribersOnNoOp()
+        {
+            const string item = "item";
+            bindableStringList.Add(item);
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+
+            bindableStringList.Remove(item);
+
+            bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.Remove(item);
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
+        [Test]
         public void TestRemoveNotifiesSubscribers()
         {
             const string item = "item";
