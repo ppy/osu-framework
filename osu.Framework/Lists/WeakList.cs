@@ -17,8 +17,8 @@ namespace osu.Framework.Lists
         where T : class
     {
         private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
-        private int listStart;
-        private int listEnd;
+        private int listStart; // The inclusive starting index in the list.
+        private int listEnd; // The exclusive ending index in the list.
 
         public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Lists
                 if (enumerator.Current != item)
                     continue;
 
-                RemoveAt(enumerator.CurrentIndex);
+                RemoveAt(enumerator.CurrentOffset);
                 return true;
             }
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Lists
                 if (enumerator.CurrentReference != weakReference)
                     continue;
 
-                RemoveAt(enumerator.CurrentIndex);
+                RemoveAt(enumerator.CurrentOffset);
                 return true;
             }
 
@@ -68,11 +68,17 @@ namespace osu.Framework.Lists
 
         public void RemoveAt(int index)
         {
+            // Move the index to the valid range of the list.
+            index += listStart;
+
+            if (index < listStart || index >= listEnd)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
             list[index] = default;
 
             if (index == listStart)
                 listStart++;
-            else if (index == listEnd)
+            else if (index == listEnd - 1)
                 listEnd--;
         }
 
@@ -130,42 +136,55 @@ namespace osu.Framework.Lists
         public struct Enumerator : IEnumerator<T>
         {
             private WeakList<T> weakList;
-
             private T currentObject;
 
             internal Enumerator(WeakList<T> weakList)
             {
                 this.weakList = weakList;
 
-                CurrentIndex = weakList.listStart - 1; // The first MoveNext() should bring the iterator to the start
+                CurrentOffset = -1; // The first MoveNext() should bring the iterator to the start
                 CurrentReference = null;
                 currentObject = null;
             }
 
             public bool MoveNext()
             {
-                while (++CurrentIndex < weakList.listEnd)
+                while (true)
                 {
-                    var weakReference = weakList.list[CurrentIndex].Reference;
+                    ++CurrentOffset;
 
-                    // Check to make sure the object can be retrieved.
-                    if (weakReference == null || !weakReference.TryGetTarget(out currentObject))
+                    int index = weakList.listStart + CurrentOffset;
+
+                    // Check whether we're still within the valid range of the list.
+                    if (index >= weakList.listEnd)
+                        return false;
+
+                    var weakReference = weakList.list[index].Reference;
+
+                    // Check whether the reference exists.
+                    if (weakReference == null)
                     {
-                        // If it can't be retrieved, mark for removal. This will occur on the _next_ enumeration (see: GetEnumerator()).
-                        weakList.RemoveAt(CurrentIndex);
+                        // If the reference doesn't exist, it must have previously been removed and can be skipped.
+                        continue;
+                    }
+
+                    // Check whether the object can be retrieved.
+                    if (!weakReference.TryGetTarget(out currentObject))
+                    {
+                        // If the object can't be retrieved, mark the reference for removal.
+                        // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
+                        weakList.RemoveAt(CurrentOffset);
                         continue;
                     }
 
                     CurrentReference = weakReference;
                     return true;
                 }
-
-                return false;
             }
 
             public void Reset()
             {
-                CurrentIndex = weakList.listStart - 1;
+                CurrentOffset = -1;
                 CurrentReference = null;
                 currentObject = null;
             }
@@ -174,7 +193,7 @@ namespace osu.Framework.Lists
 
             internal WeakReference<T> CurrentReference { get; private set; }
 
-            internal int CurrentIndex { get; private set; }
+            internal int CurrentOffset { get; private set; }
 
             readonly object IEnumerator.Current => Current;
 
