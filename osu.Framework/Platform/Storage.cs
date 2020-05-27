@@ -123,6 +123,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public abstract void OpenInNativeExplorer();
+        public void OpenInNativeExplorer() => OpenPathInNativeExplorer(string.Empty);
+
+        /// <summary>
+        /// Opens a native file browser window to the specified relative path.
+        /// </summary>
+        public abstract void OpenPathInNativeExplorer(string path);
     }
 }
