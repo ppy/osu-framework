@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace osu.Framework.IO.Stores
@@ -12,6 +13,8 @@ namespace osu.Framework.IO.Stores
     public class ResourceStore<T> : IResourceStore<T>
         where T : class
     {
+        private readonly ReaderWriterLockSlim storesLock = new ReaderWriterLockSlim();
+
         private readonly Dictionary<string, Action> actionList = new Dictionary<string, Action>();
 
         private readonly List<IResourceStore<T>> stores = new List<IResourceStore<T>>();
@@ -63,8 +66,15 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to add.</param>
         public virtual void AddStore(IResourceStore<T> store)
         {
-            lock (stores)
+            try
+            {
+                storesLock.EnterWriteLock();
                 stores.Add(store);
+            }
+            finally
+            {
+                storesLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -73,8 +83,15 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The store to remove.</param>
         public virtual void RemoveStore(IResourceStore<T> store)
         {
-            lock (stores)
+            try
+            {
+                storesLock.EnterWriteLock();
                 stores.Remove(store);
+            }
+            finally
+            {
+                storesLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -92,8 +109,15 @@ namespace osu.Framework.IO.Stores
             // required for locking
             IResourceStore<T>[] localStores;
 
-            lock (stores)
+            try
+            {
+                storesLock.EnterReadLock();
                 localStores = stores.ToArray();
+            }
+            finally
+            {
+                storesLock.ExitReadLock();
+            }
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in localStores)
@@ -122,8 +146,10 @@ namespace osu.Framework.IO.Stores
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            lock (stores)
+            try
             {
+                storesLock.EnterReadLock();
+
                 foreach (IResourceStore<T> store in stores)
                 {
                     foreach (string f in filenames)
@@ -133,6 +159,10 @@ namespace osu.Framework.IO.Stores
                             return result;
                     }
                 }
+            }
+            finally
+            {
+                storesLock.ExitReadLock();
             }
 
             return default;
@@ -146,8 +176,10 @@ namespace osu.Framework.IO.Stores
             var filenames = GetFilenames(name);
 
             // Cache miss - get the resource
-            lock (stores)
+            try
             {
+                storesLock.EnterReadLock();
+
                 foreach (IResourceStore<T> store in stores)
                 {
                     foreach (string f in filenames)
@@ -157,6 +189,10 @@ namespace osu.Framework.IO.Stores
                             return result;
                     }
                 }
+            }
+            finally
+            {
+                storesLock.ExitReadLock();
             }
 
             return null;
@@ -201,7 +237,15 @@ namespace osu.Framework.IO.Stores
 
         public virtual IEnumerable<string> GetAvailableResources()
         {
-            lock (stores) return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
+            try
+            {
+                storesLock.EnterReadLock();
+                return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
+            }
+            finally
+            {
+                storesLock.ExitReadLock();
+            }
         }
 
         #region IDisposable Support
@@ -213,7 +257,19 @@ namespace osu.Framework.IO.Stores
             if (!isDisposed)
             {
                 isDisposed = true;
-                lock (stores) stores.ForEach(s => s.Dispose());
+
+                try
+                {
+                    storesLock.EnterWriteLock();
+                    stores.ForEach(s => s.Dispose());
+                    stores.Clear();
+                }
+                finally
+                {
+                    storesLock.ExitWriteLock();
+                }
+
+                storesLock.Dispose();
             }
         }
 

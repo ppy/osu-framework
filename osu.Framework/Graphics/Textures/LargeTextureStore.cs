@@ -1,9 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
+using System.Collections.Concurrent;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -14,8 +12,7 @@ namespace osu.Framework.Graphics.Textures
     /// </summary>
     public class LargeTextureStore : TextureStore
     {
-        private readonly object referenceCountLock = new object();
-        private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
+        private readonly ConcurrentDictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new ConcurrentDictionary<string, TextureWithRefCount.ReferenceCount>();
 
         public LargeTextureStore(IResourceStore<TextureUpload> store = null)
             : base(store, false, All.Linear, true)
@@ -31,25 +28,19 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public override Texture Get(string name)
         {
-            lock (referenceCountLock)
-            {
-                var tex = base.Get(name);
+            var tex = base.Get(name);
 
-                if (tex?.TextureGL == null)
-                    return null;
+            if (tex?.TextureGL == null)
+                return null;
 
-                if (!referenceCounts.TryGetValue(name, out TextureWithRefCount.ReferenceCount count))
-                    referenceCounts[name] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(name));
+            var count = referenceCounts.GetOrAdd(name, n => new TextureWithRefCount.ReferenceCount(() => onAllReferencesLost(n)));
 
-                return new TextureWithRefCount(tex.TextureGL, count);
-            }
+            return new TextureWithRefCount(tex.TextureGL, count);
         }
 
         private void onAllReferencesLost(string name)
         {
-            Debug.Assert(Monitor.IsEntered(referenceCountLock));
-
-            referenceCounts.Remove(name);
+            referenceCounts.TryRemove(name, out _);
             Purge(name);
         }
     }

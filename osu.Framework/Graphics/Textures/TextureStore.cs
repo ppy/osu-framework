@@ -2,11 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -14,7 +15,8 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<TextureUpload>
     {
-        private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        private readonly ConcurrentDictionary<string, Lazy<Texture>> textureCache
+            = new ConcurrentDictionary<string, Lazy<Texture>>();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -47,9 +49,31 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name) => loadRaw(await base.GetAsync(name));
+        private async Task<Texture> getTextureAsync(string name)
+        {
+            try
+            {
+                return loadRaw(await base.GetAsync(name));
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                return null;
+            }
+        }
 
-        private Texture getTexture(string name) => loadRaw(base.Get(name));
+        private Texture getTexture(string name)
+        {
+            try
+            {
+                return loadRaw(base.Get(name));
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                return null;
+            }
+        }
 
         private Texture loadRaw(TextureUpload upload)
         {
@@ -72,7 +96,7 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public new Task<Texture> GetAsync(string name) => Task.Run(() => Get(name)); // add async path after reconsidering threading model
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -85,23 +109,12 @@ namespace osu.Framework.Graphics.Textures
 
             this.LogIfNonBackgroundThread(name);
 
-            lock (textureCache)
-            {
-                // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(name, out var tex))
-                {
-                    try
-                    {
-                        textureCache[name] = tex = getTexture(name);
-                    }
-                    catch (TextureTooLargeForGLException)
-                    {
-                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                    }
-                }
-
-                return tex;
-            }
+            return textureCache.GetOrAdd(
+                name,
+                n => new Lazy<Texture>(
+                    () => getTexture(n),
+                    LazyThreadSafetyMode.ExecutionAndPublication)
+            ).Value;
         }
 
         /// <summary>
@@ -110,12 +123,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture to purge from the cache.</param>
         protected void Purge(string name)
         {
-            lock (textureCache)
-            {
-                if (textureCache.TryGetValue(name, out var tex))
-                    tex.Dispose();
-                textureCache.Remove(name);
-            }
+            if (textureCache.TryRemove(name, out var tex))
+                tex.Value?.Dispose();
         }
     }
 }

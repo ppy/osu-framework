@@ -59,7 +59,6 @@ namespace osu.Framework.Graphics.Textures
 
         public class ReferenceCount
         {
-            private readonly object lockObject;
             private readonly Action onAllReferencesLost;
 
             private int referenceCount;
@@ -67,34 +66,26 @@ namespace osu.Framework.Graphics.Textures
             /// <summary>
             /// Creates a new <see cref="ReferenceCount"/>.
             /// </summary>
-            /// <param name="lockObject">The <see cref="object"/> which locks will be taken out on.</param>
-            /// <param name="onAllReferencesLost">A delegate to invoke after all references have been lost.</param>
-            public ReferenceCount(object lockObject, Action onAllReferencesLost)
+            /// <param name="onAllReferencesLost">A delegate to invoke after all references have been lost.
+            /// Should be THREAD SAFE itself.</param>
+            public ReferenceCount(Action onAllReferencesLost)
             {
-                this.lockObject = lockObject;
                 this.onAllReferencesLost = onAllReferencesLost;
             }
 
             /// <summary>
             /// Increments the reference count.
             /// </summary>
-            public void Increment()
-            {
-                lock (lockObject)
-                    Interlocked.Increment(ref referenceCount);
-            }
+            public void Increment() => Interlocked.Increment(ref referenceCount);
 
             /// <summary>
             /// Decrements the reference count, invoking <see cref="onAllReferencesLost"/> if there are no remaining references.
-            /// The delegate is invoked while a lock on the provided <see cref="lockObject"/> is held.
+            /// The delegate <see cref="onAllReferencesLost"/> shoud be THREAD SAFE itself.
             /// </summary>
             public void Decrement()
             {
-                lock (lockObject)
-                {
-                    if (Interlocked.Decrement(ref referenceCount) == 0)
-                        onAllReferencesLost?.Invoke();
-                }
+                if (Interlocked.Decrement(ref referenceCount) == 0)
+                    onAllReferencesLost?.Invoke();
             }
         }
     }
