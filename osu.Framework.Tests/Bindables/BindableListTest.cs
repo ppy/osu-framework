@@ -751,6 +751,21 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestRemoveNotifiesSubscriberWithCorrectReference()
+        {
+            var item = new TestAlwaysEqualModel();
+
+            var bindableObjectList = new BindableList<TestAlwaysEqualModel> { item };
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            bindableObjectList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableObjectList.Remove(new TestAlwaysEqualModel());
+
+            Assert.That(triggeredArgs.OldItems[0] == item, Is.True);
+        }
+
+        [Test]
         public void TestRemoveDoesntNotifySubscribersOnNoOp()
         {
             const string item = "item";
@@ -1645,5 +1660,10 @@ namespace osu.Framework.Tests.Bindables
         }
 
         #endregion
+
+        private class TestAlwaysEqualModel : IEquatable<TestAlwaysEqualModel>
+        {
+            public bool Equals(TestAlwaysEqualModel other) => true;
+        }
     }
 }
