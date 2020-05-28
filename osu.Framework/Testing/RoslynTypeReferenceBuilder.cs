@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using osu.Framework.Logging;
@@ -222,8 +223,14 @@ namespace osu.Framework.Testing
             {
                 var kind = n.Kind();
 
+                // Ignored:
+                // - Entire using lines.
+                // - Namespace names (not entire namespaces).
+                // - Entire static classes.
+
                 return kind != SyntaxKind.UsingDirective
-                       && kind != SyntaxKind.NamespaceKeyword;
+                       && kind != SyntaxKind.NamespaceKeyword
+                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
             });
 
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
