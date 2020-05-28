@@ -634,7 +634,7 @@ namespace osu.Framework.Bindables
         /// <returns>The created instance.</returns>
         public BindableList<T> GetBoundCopy()
         {
-            var copy = (BindableList<T>)Activator.CreateInstance(GetType(), new object[] { null });
+            var copy = new BindableList<T>();
             copy.BindTo(this);
             return copy;
         }
