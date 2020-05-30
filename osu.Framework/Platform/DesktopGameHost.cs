@@ -1,10 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,8 +35,8 @@ namespace osu.Framework.Platform
 
         protected sealed override Storage CreateGameStorage()
         {
-            if (IsPortableInstallation || File.Exists(FrameworkConfigManager.FILENAME))
-                return GetStorage(Environment.CurrentDirectory);
+            if (IsPortableInstallation || RuntimeInfo.StartupStorage.Exists(FrameworkConfigManager.FILENAME))
+                return GetStorage(RuntimeInfo.StartupDirectory);
 
             return base.CreateGameStorage();
         }
