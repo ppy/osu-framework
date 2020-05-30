@@ -27,7 +27,7 @@ namespace osu.Framework.Development
             {
                 Debug.Assert(IsNUnitRunning);
 
-                var testName = TestContext.CurrentContext.Test.FullName;
+                var testName = TestContext.CurrentContext.Test.ClassName;
                 return AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(testName) != null);
             }
         );
