@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace osu.Framework.Platform
 
         protected sealed override Storage CreateGameStorage()
         {
-            if (IsPortableInstallation || RuntimeInfo.StartupStorage.Exists(FrameworkConfigManager.FILENAME))
+            if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
                 return GetStorage(RuntimeInfo.StartupDirectory);
 
             return base.CreateGameStorage();

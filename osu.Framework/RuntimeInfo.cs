@@ -4,7 +4,6 @@
 using System;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
-using osu.Framework.Platform;
 
 namespace osu.Framework
 {
@@ -14,13 +13,6 @@ namespace osu.Framework
         /// The absolute path to the startup directory of this game.
         /// </summary>
         public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
-
-        /// <summary>
-        /// A storage pointing at the <see cref="StartupDirectory"/> path.
-        /// </summary>
-        public static Storage StartupStorage => startup_storage.Value;
-
-        private static readonly Lazy<Storage> startup_storage = new Lazy<Storage>(() => new NativeStorage(StartupDirectory));
 
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.

@@ -11,7 +11,7 @@ namespace osu.Framework.Tests.Platform
     [TestFixture]
     public class PortableInstallationTest
     {
-        private Storage startupStorage => RuntimeInfo.StartupStorage;
+        private readonly Storage startupStorage = new NativeStorage(RuntimeInfo.StartupDirectory);
 
         [Test]
         public void TestPortableInstall()
