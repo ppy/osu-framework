@@ -62,10 +62,8 @@ namespace osu.Framework.Development
 
         /// <summary>
         /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
-        /// When running under NUnit, the directory containing the current test assembly will be returned instead.
         /// </summary>
-        /// <returns>The entry assembly (usually obtained via the entry assembly's <see cref="Assembly.Location"/>.</returns>
-        public static string GetEntryPath() =>
-            IsNUnitRunning ? TestContext.CurrentContext.TestDirectory : Path.GetDirectoryName(GetEntryAssembly().Location);
+        /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
+        public static string GetEntryPath() => Path.GetDirectoryName(GetEntryAssembly().Location);
     }
 }
