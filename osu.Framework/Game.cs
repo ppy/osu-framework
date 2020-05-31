@@ -345,6 +345,12 @@ namespace osu.Framework
             Audio?.Dispose();
             Audio = null;
 
+            Fonts?.Dispose();
+            Fonts = null;
+
+            localFonts?.Dispose();
+            localFonts = null;
+
             base.Dispose(isDisposing);
         }
     }

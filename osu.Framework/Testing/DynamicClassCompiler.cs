@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Text;
 
 namespace osu.Framework.Testing
 {
@@ -24,39 +25,48 @@ namespace osu.Framework.Testing
         public event Action<Exception> CompilationFailed;
 
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
-
-        private string lastTouchedFile;
+        private readonly HashSet<string> requiredFiles = new HashSet<string>();
 
         private T target;
 
-        public void SetRecompilationTarget(T target) => this.target = target;
+        public void SetRecompilationTarget(T target)
+        {
+            if (this.target?.GetType().Name != target?.GetType().Name)
+            {
+                requiredFiles.Clear();
+                referenceBuilder.Reset();
+            }
 
-        private readonly List<string> requiredFiles = new List<string>();
-        private List<string> requiredTypeNames = new List<string>();
+            this.target = target;
+        }
 
-        private HashSet<string> assemblies;
-
-        private readonly List<string> validDirectories = new List<string>();
+        private ITypeReferenceBuilder referenceBuilder;
 
         public void Start()
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
-            Task.Run(() =>
+#if NETCOREAPP
+            referenceBuilder = new RoslynTypeReferenceBuilder();
+#else
+            referenceBuilder = new EmptyTypeReferenceBuilder();
+#endif
+            Task.Run(async () =>
             {
+                Logger.Log("Initialising dynamic compilation...");
+
                 var basePath = getSolutionPath(di);
 
                 if (!Directory.Exists(basePath))
                     return;
+
+                await referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First());
 
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
                     // only watch directories which house a csproj. this avoids submodules and directories like .git which can contain many files.
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
                         continue;
-
-                    lock (compileLock) // enumeration over this list occurs during compilation
-                        validDirectories.Add(dir);
 
                     var fsw = new FileSystemWatcher(dir, @"*.cs")
                     {
@@ -71,174 +81,117 @@ namespace osu.Framework.Testing
 
                     watchers.Add(fsw);
                 }
+
+                Logger.Log("Dynamic compilation is now available.");
             });
-
-            static string getSolutionPath(DirectoryInfo d)
-            {
-                if (d == null)
-                    return null;
-
-                return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
-            }
         }
 
-        private void onChange(object sender, FileSystemEventArgs args)
+        private static string getSolutionPath(DirectoryInfo d)
         {
-            lock (compileLock)
-            {
-                if (target == null || isCompiling)
-                    return;
+            if (d == null)
+                return null;
 
-                var targetType = target.GetType();
-
-                var reqTypes = target.RequiredTypes.Select(t => removeGenerics(t.FullName)).ToList();
-
-                // add ourselves
-                reqTypes.Add(removeGenerics(targetType.FullName));
-
-                // add all parents
-                var derivedType = targetType;
-                while ((derivedType = derivedType.BaseType) != null && derivedType != typeof(TestScene))
-                    reqTypes.Add(removeGenerics(derivedType.FullName));
-
-                // if we are a TestCase, add the class we are testing automatically.
-                reqTypes.Add(TestScene.RemovePrefix(removeGenerics(target.GetType().FullName)));
-
-                string changedFileWithoutExtension = Path.GetFileNameWithoutExtension(args.Name);
-
-                if (!reqTypes.Any(t => t.EndsWith(changedFileWithoutExtension)))
-                    return;
-
-                if (!reqTypes.SequenceEqual(requiredTypeNames))
-                {
-                    requiredTypeNames = reqTypes;
-
-                    requiredFiles.Clear();
-
-                    foreach (string d in validDirectories)
-                    {
-                        requiredFiles.AddRange(Directory
-                                               .EnumerateFiles(d, "*.cs", SearchOption.AllDirectories)
-                                               .Where(f =>
-                                               {
-                                                   string fwWithoutExtension = Path.GetFileNameWithoutExtension(f);
-
-                                                   // find whether this file is potentially one of the matching required types.
-                                                   var matchingType = requiredTypeNames.FirstOrDefault(t => t.EndsWith($".{fwWithoutExtension}"));
-
-                                                   if (matchingType == null) return false;
-
-                                                   // if so, further check for matching namespace.
-                                                   // non-matching namespoace could signify a class of the same name but from a different namespace.
-                                                   string[] namespacePieces = matchingType.Split('.');
-                                                   string namespaceLine = $"namespace {string.Join('.', namespacePieces.Take(namespacePieces.Length - 1))}";
-
-                                                   using (var reader = File.OpenText(f))
-                                                   {
-                                                       string line;
-
-                                                       while ((line = reader.ReadLine()) != null)
-                                                       {
-                                                           if (line.Contains("namespace "))
-                                                               return line.Contains(namespaceLine);
-                                                       }
-                                                   }
-
-                                                   return false;
-                                               }));
-                    }
-                }
-
-                lastTouchedFile = args.FullPath;
-
-                isCompiling = true;
-                Task.Run(recompile)
-                    .ContinueWith(_ => isCompiling = false);
-            }
+            return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
         }
 
-        /// <summary>
-        /// Removes the "`1[T]" generic specification from type name output.
-        /// </summary>
-        private string removeGenerics(string targetName) => targetName.Split('`').First();
+        private void onChange(object sender, FileSystemEventArgs args) => Task.Run(async () => await recompileAsync(target?.GetType(), args.FullPath));
 
         private int currentVersion;
-
         private bool isCompiling;
-        private readonly object compileLock = new object();
 
-        private void recompile()
+        private async Task recompileAsync(Type targetType, string changedFile)
         {
-            if (assemblies == null)
+            if (targetType == null || isCompiling)
+                return;
+
+            isCompiling = true;
+
+            try
             {
-                assemblies = new HashSet<string>();
-                foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
-                    assemblies.Add(ass.Location);
-            }
+                while (!checkFileReady(changedFile))
+                    Thread.Sleep(10);
 
-            assemblies.Add(typeof(JetBrains.Annotations.NotNullAttribute).Assembly.Location);
+                Logger.Log($@"Recompiling {Path.GetFileName(targetType.Name)}...", LoggingTarget.Runtime, LogLevel.Important);
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+                CompilationStarted?.Invoke();
 
-            // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
-            {
+                var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
+                foreach (var f in newRequiredFiles)
+                    requiredFiles.Add(f);
+
+                var requiredAssemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
+
+                var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+                // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
+                var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+                {
 #if DEBUG
-                "DEBUG",
+                    "DEBUG",
 #endif
 #if TRACE
-                "TRACE",
+                    "TRACE",
 #endif
 #if RELEASE
-                "RELEASE",
+                    "RELEASE",
 #endif
-            }, languageVersion: LanguageVersion.Latest);
-            var references = assemblies.Select(a => MetadataReference.CreateFromFile(a));
+                }, languageVersion: LanguageVersion.Latest);
 
-            while (!checkFileReady(lastTouchedFile))
-                Thread.Sleep(10);
+                var references = requiredAssemblies.Where(a => !string.IsNullOrEmpty(a))
+                                                   .Select(a => MetadataReference.CreateFromFile(a));
 
-            Logger.Log($@"Recompiling {Path.GetFileName(target.GetType().Name)}...", LoggingTarget.Runtime, LogLevel.Important);
+                // ensure we don't duplicate the dynamic suffix.
+                string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
 
-            CompilationStarted?.Invoke();
+                string assemblyVersion = $"{++currentVersion}.0.*";
+                string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
 
-            // ensure we don't duplicate the dynamic suffix.
-            string assemblyNamespace = target.GetType().Assembly.GetName().Name.Replace(".Dynamic", "");
+                var compilation = CSharpCompilation.Create(
+                    dynamicNamespace,
+                    requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file, Encoding.UTF8), parseOptions, file, encoding: Encoding.UTF8))
+                                 // Compile the assembly with a new version so that it replaces the existing one
+                                 .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions)),
+                    references,
+                    options
+                );
 
-            string assemblyVersion = $"{++currentVersion}.0.*";
-            string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
-
-            var compilation = CSharpCompilation.Create(
-                dynamicNamespace,
-                requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file), parseOptions, file))
-                             // Compile the assembly with a new version so that it replaces the existing one
-                             .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions))
-                ,
-                references,
-                options
-            );
-
-            using (var ms = new MemoryStream())
-            {
-                var compilationResult = compilation.Emit(ms);
-
-                if (compilationResult.Success)
+                using (var pdbStream = new MemoryStream())
+                using (var peStream = new MemoryStream())
                 {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    CompilationFinished?.Invoke(
-                        Assembly.Load(ms.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == target.GetType().FullName)
-                    );
-                }
-                else
-                {
-                    foreach (var diagnostic in compilationResult.Diagnostics)
+                    var compilationResult = compilation.Emit(peStream, pdbStream);
+
+                    if (compilationResult.Success)
                     {
-                        if (diagnostic.Severity < DiagnosticSeverity.Error)
-                            continue;
+                        peStream.Seek(0, SeekOrigin.Begin);
+                        pdbStream.Seek(0, SeekOrigin.Begin);
 
-                        CompilationFailed?.Invoke(new InvalidOperationException(diagnostic.ToString()));
+                        CompilationFinished?.Invoke(
+                            Assembly.Load(peStream.ToArray(), pdbStream.ToArray()).GetModules()[0].GetTypes().LastOrDefault(t => t.FullName == targetType.FullName)
+                        );
+                    }
+                    else
+                    {
+                        var exceptions = new List<Exception>();
+
+                        foreach (var diagnostic in compilationResult.Diagnostics)
+                        {
+                            if (diagnostic.Severity < DiagnosticSeverity.Error)
+                                continue;
+
+                            exceptions.Add(new InvalidOperationException(diagnostic.ToString()));
+                        }
+
+                        throw new AggregateException(exceptions.ToArray());
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                CompilationFailed?.Invoke(ex);
+            }
+            finally
+            {
+                isCompiling = false;
             }
         }
 

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -29,18 +28,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private int previousIndex;
         private int lastVisibleIndexOnTheCurrentPage, lastVisibleIndexOnTheNextPage;
         private int firstVisibleIndexOnTheCurrentPage, firstVisibleIndexOnThePreviousPage;
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Dropdown<>),
-            typeof(DropdownHeader),
-            typeof(DropdownMenuItem<>),
-            typeof(Dropdown<>),
-            typeof(BasicDropdown<>),
-            typeof(BasicDropdown<>.BasicDropdownHeader),
-            typeof(BasicDropdown<>.BasicDropdownMenu),
-            typeof(TestDropdown)
-        };
 
         public TestSceneDropdown()
         {
@@ -88,7 +75,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void Basic()
+        public void TestBasic()
         {
             var i = items_to_add;
 
@@ -166,9 +153,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             drawable.HasFocus = tempHasFocus;
         }
 
-        [Test]
-        public void KeyboardSelection()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestKeyboardSelection(bool cleanSelection)
         {
+            if (cleanSelection)
+                AddStep("Clean selection", () => testDropdown.Current.Value = null);
+
             AddStep("Select next item", () =>
             {
                 previousIndex = testDropdown.SelectedIndex;
@@ -183,7 +174,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdown.Header, Key.Up);
             });
 
-            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == previousIndex - 1);
+            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("Select last item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
@@ -204,9 +195,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
         }
 
-        [Test]
-        public void KeyboardPreselection()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestKeyboardPreselection(bool cleanSelection)
         {
+            if (cleanSelection)
+                AddStep("Clean selection", () => testDropdownMenu.Current.Value = null);
+
             clickKeyboardPreselectionDropdown();
             assertDropdownIsOpen();
 
@@ -224,7 +219,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.Up);
             });
 
-            AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex == previousIndex - 1);
+            AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("Preselect last visible item", () =>
             {
@@ -327,7 +322,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void SelectNull()
+        public void TestSelectNull()
         {
             AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1));
             AddAssert("item 1 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(1));

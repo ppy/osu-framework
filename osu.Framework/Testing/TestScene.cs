@@ -23,6 +23,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
+    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract class TestScene : Container, IDynamicallyCompile
     {
@@ -392,6 +393,7 @@ namespace osu.Framework.Testing
             });
         });
 
+        [Obsolete("Required types are now determined automatically.")] // can be removed 20201115
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()

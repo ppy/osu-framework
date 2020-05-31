@@ -22,7 +22,7 @@ namespace osu.Framework.Benchmarks
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
 
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
-            sharedTemp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true);
+            sharedTemp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid());
         }
 
         [Params(1, 10, 100, 1000, 10000)]
@@ -40,7 +40,7 @@ namespace osu.Framework.Benchmarks
         [Benchmark(Baseline = true)]
         public void BenchmarkRawCaching()
         {
-            using (var temp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid(), createIfEmpty: true))
+            using (var temp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid()))
             using (var store = new RawCachingGlyphStore(baseResources, font_name) { CacheStorage = temp })
                 runFor(store);
         }

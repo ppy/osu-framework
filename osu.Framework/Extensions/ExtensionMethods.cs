@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -170,14 +169,6 @@ namespace osu.Framework.Extensions
         public static string GetDescription(this object value)
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
-
-        [Obsolete("Use GetAwaiter().GetResult() if you know it's completed.")] // can be removed 20200516
-        public static void ThrowIfFaulted(this Task task)
-        {
-            if (!task.IsFaulted) return;
-
-            throw task.Exception ?? (Exception)new InvalidOperationException("Task failed.");
-        }
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.

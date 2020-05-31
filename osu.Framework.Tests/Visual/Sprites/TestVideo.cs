@@ -42,7 +42,20 @@ namespace osu.Framework.Tests.Visual.Sprites
             }
         }
 
-        protected override DrawNode CreateDrawNode() => new TestVideoSpriteDrawNode(this);
+        public override Drawable CreateContent() => Sprite = new TestVideoSprite(this) { RelativeSizeAxes = Axes.Both };
+
+        private class TestVideoSprite : VideoSprite
+        {
+            private readonly TestVideo video;
+
+            public TestVideoSprite(TestVideo video)
+                : base(video)
+            {
+                this.video = video;
+            }
+
+            protected override DrawNode CreateDrawNode() => new TestVideoSpriteDrawNode(video);
+        }
 
         private class TestVideoSpriteDrawNode : VideoSpriteDrawNode
         {
