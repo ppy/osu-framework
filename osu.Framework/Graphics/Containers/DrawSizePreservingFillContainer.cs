@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = Axes.Both,
             });
 
-            RelativeSizeAxes = Axes.Both;
+            base.RelativeSizeAxes = Axes.Both;
         }
 
         protected override void Update()
@@ -67,6 +67,40 @@ namespace osu.Framework.Graphics.Containers
 
             content.Size = Vector2.Divide(Vector2.One, content.Scale);
         }
+
+        #region Size modification guards
+
+        public new Axes RelativeSizeAxes
+        {
+            get => base.RelativeSizeAxes;
+            set => throw new MustFillToParentException();
+        }
+
+        public new Axes AutoSizeAxes
+        {
+            get => base.AutoSizeAxes;
+            set => throw new MustFillToParentException();
+        }
+
+        public new Vector2 Size
+        {
+            get => base.Size;
+            set => throw new MustFillToParentException();
+        }
+
+        public new float Width
+        {
+            get => base.Width;
+            set => throw new MustFillToParentException();
+        }
+
+        public new float Height
+        {
+            get => base.Height;
+            set => throw new MustFillToParentException();
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -101,5 +135,14 @@ namespace osu.Framework.Graphics.Containers
         /// matched while aspect ratio of children is disregarded.
         /// </summary>
         Separate,
+    }
+
+    public class MustFillToParentException : InvalidOperationException
+    {
+        public MustFillToParentException()
+            : base($"This must fill up to the parent's determined {nameof(CompositeDrawable.ChildSize)}, "
+                   + "please modify the size of the parenting container instead.")
+        {
+        }
     }
 }
