@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = Axes.Both,
             });
 
-            base.RelativeSizeAxes = Axes.Both;
+            RelativeSizeAxes = Axes.Both;
         }
 
         protected override void Update()
@@ -70,34 +70,92 @@ namespace osu.Framework.Graphics.Containers
 
         #region Size modification guards
 
-        public new Axes RelativeSizeAxes
+        public override Axes RelativeSizeAxes
         {
             get => base.RelativeSizeAxes;
-            set => throw new MustFillToParentException();
+            set
+            {
+                if (RelativeSizeAxes == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Axes.Both)
+                {
+                    base.RelativeSizeAxes = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
         }
 
-        public new Axes AutoSizeAxes
+        public override Axes AutoSizeAxes
         {
             get => base.AutoSizeAxes;
-            set => throw new MustFillToParentException();
+            set
+            {
+                if (AutoSizeAxes == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Axes.None)
+                {
+                    base.AutoSizeAxes = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
         }
 
-        public new Vector2 Size
+        public override Vector2 Size
         {
             get => base.Size;
-            set => throw new MustFillToParentException();
+            set
+            {
+                if (Size == value) return;
+
+                // Allow filling-to-parent values.
+                if (value == Vector2.One)
+                {
+                    base.Size = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
         }
 
-        public new float Width
+        public override float Width
         {
             get => base.Width;
-            set => throw new MustFillToParentException();
+            set
+            {
+                if (Width == value) return;
+
+                if (value == 1f)
+                {
+                    base.Width = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
         }
 
-        public new float Height
+        public override float Height
         {
             get => base.Height;
-            set => throw new MustFillToParentException();
+            set
+            {
+                if (Height == value) return;
+
+                if (value == 1f)
+                {
+                    base.Height = value;
+                    return;
+                }
+
+                throw new MustFillToParentException();
+            }
         }
 
         #endregion

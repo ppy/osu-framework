@@ -429,7 +429,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Drawable.Size"/> (or <see cref="Drawable.Width"/> / <see cref="Drawable.Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public new Axes AutoSizeAxes
+        public new virtual Axes AutoSizeAxes
         {
             get => base.AutoSizeAxes;
             set => base.AutoSizeAxes = value;
