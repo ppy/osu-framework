@@ -195,11 +195,11 @@ namespace osu.Framework.Graphics.Containers
         Separate,
     }
 
-    public class MustFillToParentException : InvalidOperationException
+    public class MustFillToParentException : NotSupportedException
     {
         public MustFillToParentException()
-            : base($"This must fill up to the parent's determined {nameof(CompositeDrawable.ChildSize)}, "
-                   + "please modify the size of the parenting container instead.")
+            : base($"A {nameof(DrawSizePreservingFillContainer)} will automatically fill up to its parent's determined {nameof(CompositeDrawable.ChildSize)}). "
+                   + "Modifying its dimensions is not supported.")
         {
         }
     }
