@@ -248,6 +248,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void ClearInternal(bool disposeChildren = true)
         {
+            foreach (var child in InternalChildren)
+                child.LifetimeChanged -= childLifetimeChanged;
+
             childStateMap.Clear();
             newChildren.Clear();
             futureChildren.Clear();

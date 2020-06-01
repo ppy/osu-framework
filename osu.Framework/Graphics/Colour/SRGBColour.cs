@@ -21,6 +21,9 @@ namespace osu.Framework.Graphics.Colour
         public static implicit operator SRGBColour(Color4 value) => new SRGBColour { Linear = value.ToLinear() };
         public static implicit operator Color4(SRGBColour value) => value.Linear.ToSRGB();
 
+        public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { Linear = value.ToLinear() };
+        public static implicit operator Colour4(SRGBColour value) => value.Linear.ToSRGB();
+
         /// <summary>
         /// Multiplies 2 colours in linear colour space.
         /// </summary>

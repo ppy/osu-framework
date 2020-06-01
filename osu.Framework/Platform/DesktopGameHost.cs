@@ -3,9 +3,11 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -31,6 +33,16 @@ namespace osu.Framework.Platform
             IsPortableInstallation = portableInstallation;
             UseSdl = useSdl;
         }
+
+        protected sealed override Storage CreateGameStorage()
+        {
+            if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
+                return GetStorage(RuntimeInfo.StartupDirectory);
+
+            return base.CreateGameStorage();
+        }
+
+        public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
 
         protected override void SetupForRun()
         {

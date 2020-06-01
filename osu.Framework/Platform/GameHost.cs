@@ -125,7 +125,13 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
-        protected abstract Storage GetStorage(string baseName);
+        /// <summary>
+        /// Retrieve a storage for the specified location.
+        /// </summary>
+        /// <param name="path">The absolute path to be used as a root for the storage.</param>
+        public abstract Storage GetStorage(string path);
+
+        public abstract string UserStoragePath { get; }
 
         public Storage Storage { get; protected set; }
 
@@ -504,16 +510,13 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
                 var assembly = DebugUtils.GetEntryAssembly();
-                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
                 Logger.VersionIdentifier = assembly.GetName().Version.ToString();
 
-                if (assemblyPath != null)
-                    Environment.CurrentDirectory = assemblyPath;
-
                 Dependencies.CacheAs(this);
-                Dependencies.CacheAs(Storage = GetStorage(Name));
+
+                Dependencies.CacheAs(Storage = CreateGameStorage());
 
                 SetupForRun();
 
@@ -585,6 +588,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
         /// </summary>
@@ -649,7 +654,7 @@ namespace osu.Framework.Platform
                 if (!handler.Initialize(this))
                 {
                     handler.Enabled.Value = false;
-                    break;
+                    continue;
                 }
 
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);

@@ -59,8 +59,9 @@ namespace osu.Framework.Android
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
             => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
 
-        protected override Storage GetStorage(string baseName)
-            => new AndroidStorage(baseName, this);
+        public override Storage GetStorage(string path) => new AndroidStorage(path, this);
+
+        public override string UserStoragePath => Application.Context.GetExternalFilesDir(string.Empty).ToString();
 
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
