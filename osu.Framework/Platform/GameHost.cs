@@ -510,13 +510,9 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
                 var assembly = DebugUtils.GetEntryAssembly();
-                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
                 Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-                if (assemblyPath != null)
-                    Environment.CurrentDirectory = assemblyPath;
 
                 Dependencies.CacheAs(this);
 
