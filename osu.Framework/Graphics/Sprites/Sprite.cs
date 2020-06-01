@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
         /// </summary>
-        public const int MAX_EDGE_SMOOTHNESS = 3;
+        public const int MAX_EDGE_SMOOTHNESS = 3; // See https://github.com/ppy/osu-framework/pull/3511#discussion_r421665156 for relevant discussion.
 
         /// <summary>
         /// Determines over how many pixels of width the border of the sprite is smoothed
