@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set => parent.IsQueuedForUpload = value;
         }
 
-        public TextureGLSub(RectangleI bounds, TextureGL parent)
+        public TextureGLSub(RectangleI bounds, TextureGL parent, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
@@ -59,8 +60,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 RectangleF localBounds = textureRect.Value;
                 actualBounds.X += localBounds.X;
                 actualBounds.Y += localBounds.Y;
-                actualBounds.Width = Math.Min(localBounds.Width, bounds.Width);
-                actualBounds.Height = Math.Min(localBounds.Height, bounds.Height);
+                actualBounds.Width = localBounds.Width;
+                actualBounds.Height = localBounds.Height;
             }
 
             return actualBounds;
@@ -69,15 +70,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override RectangleF GetTextureRect(RectangleF? textureRect) => parent.GetTextureRect(boundsInParent(textureRect));
 
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null)
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
-            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage, boundsInParent(textureCoords));
         }
 
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null)
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
-            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride);
+            parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, boundsInParent(textureCoords));
+        }
+
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            if (!Available)
+                throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
+
+            Upload();
+
+            return parent.Bind(unit, wrapModeS, wrapModeT);
         }
 
         internal override bool Upload() => false;
@@ -86,17 +97,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
-
-            Upload();
-
-            return parent.Bind(unit);
-        }
-
-        public override void SetData(ITextureUpload upload)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -117,7 +118,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = adjustedBounds;
             }
 
-            parent?.SetData(upload);
+            parent?.SetData(upload, wrapModeS, wrapModeT);
         }
     }
 }

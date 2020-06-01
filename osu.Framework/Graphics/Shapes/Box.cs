@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Layout;
 using osuTK;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shapes
 {
@@ -76,7 +75,6 @@ namespace osu.Framework.Graphics.Shapes
                 base.DrawOpaqueInterior(vertexAction);
 
                 TextureShader.Bind();
-                Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
                 if (GLWrapper.IsMaskingActive)
                     DrawClipped(ref conservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
