@@ -12,8 +12,6 @@ namespace osu.Framework.Development
 {
     public static class DebugUtils
     {
-        internal static Assembly HostAssembly { get; set; }
-
         public static bool IsNUnitRunning => is_nunit_running.Value;
 
         private static readonly Lazy<bool> is_nunit_running = new Lazy<bool>(() =>
@@ -22,6 +20,15 @@ namespace osu.Framework.Development
 
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
                 return entry == null || entry.Location.Contains("testhost");
+            }
+        );
+
+        private static readonly Lazy<Assembly> nunit_test_assembly = new Lazy<Assembly>(() =>
+            {
+                Debug.Assert(IsNUnitRunning);
+
+                var testName = TestContext.CurrentContext.Test.ClassName;
+                return AppDomain.CurrentDomain.GetAssemblies().First(asm => asm.GetType(testName) != null);
             }
         );
 
@@ -41,23 +48,22 @@ namespace osu.Framework.Development
         private static bool isDebugAssembly(Assembly assembly) => assembly?.GetCustomAttributes(false).OfType<DebuggableAttribute>().Any(da => da.IsJITTrackingEnabled) ?? false;
 
         /// <summary>
-        /// Get the entry assembly, even when running under nUnit.
-        /// Will fall back to calling assembly if there is no Entry assembly.
+        /// Gets the entry assembly, or calling assembly otherwise.
+        /// When running under NUnit, the assembly of the current test will be returned instead.
         /// </summary>
         /// <returns>The entry assembly (usually obtained via <see cref="Assembly.GetEntryAssembly()"/>.</returns>
         public static Assembly GetEntryAssembly()
         {
-            if (IsNUnitRunning && HostAssembly != null)
-                return HostAssembly;
+            if (IsNUnitRunning)
+                return nunit_test_assembly.Value;
 
-            return Assembly.GetEntryAssembly() ?? HostAssembly ?? Assembly.GetCallingAssembly();
+            return Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
         }
 
         /// <summary>
-        /// Get the entry path, even when running under nUnit.
+        /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
         /// </summary>
-        /// <returns>The entry assembly (usually obtained via the entry assembly's <see cref="Assembly.Location"/>.</returns>
-        public static string GetEntryPath() =>
-            IsNUnitRunning ? TestContext.CurrentContext.TestDirectory : Path.GetDirectoryName(GetEntryAssembly().Location);
+        /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
+        public static string GetEntryPath() => Path.GetDirectoryName(GetEntryAssembly().Location);
     }
 }
