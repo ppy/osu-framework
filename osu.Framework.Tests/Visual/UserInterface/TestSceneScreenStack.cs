@@ -27,12 +27,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TestScreen baseScreen;
         private ScreenStack stack;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Screen),
-            typeof(IScreen)
-        };
-
         [SetUp]
         public void SetupTest() => Schedule(() =>
         {

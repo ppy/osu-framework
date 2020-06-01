@@ -74,15 +74,6 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool Equals(object obj) => obj is IconUsage other && Equals(other);
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = Family != null ? Family.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ Icon.GetHashCode();
-                hashCode = (hashCode * 397) ^ (Weight != null ? Weight.GetHashCode() : 0);
-                return hashCode;
-            }
-        }
+        public override int GetHashCode() => HashCode.Combine(Family, Icon, Weight);
     }
 }

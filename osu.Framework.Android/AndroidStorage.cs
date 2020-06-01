@@ -14,7 +14,7 @@ namespace osu.Framework.Android
         {
         }
 
-        public override void OpenInNativeExplorer()
+        public override void OpenPathInNativeExplorer(string path)
         {
             //Not needed now.
             throw new NotImplementedException();

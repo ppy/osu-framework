@@ -158,9 +158,6 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
-        [Obsolete("Use GetResponseString method instead")] // can be removed 20200521
-        public string ResponseString => GetResponseString();
-
         /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
@@ -178,9 +175,6 @@ namespace osu.Framework.IO.Network
                 return null;
             }
         }
-
-        [Obsolete("Use GetResponseData method instead")] // can be removed 20200521
-        public byte[] ResponseData => GetResponseData();
 
         /// <summary>
         /// Retrieve the full response body as an array of bytes.
@@ -402,13 +396,13 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
+                    int read = await responseStream.ReadAsync(buffer.AsMemory(), cancellationToken);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
+                        await ResponseStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
