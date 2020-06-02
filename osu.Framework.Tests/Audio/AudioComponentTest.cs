@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
@@ -22,10 +22,8 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void SetUp()
         {
-            Architecture.SetIncludePath();
-
             thread = new AudioThread();
-            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(new AssemblyName("osu.Framework")), @"Resources");
 
             manager = new AudioManager(thread, store, store);
 
@@ -38,6 +36,8 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(thread.Exited);
 
             thread.Exit();
+
+            manager?.Dispose();
 
             Thread.Sleep(500);
 
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Audio
 
         private void checkAggregateVolume(ISampleStore store, double expected)
         {
-            Assert.AreEqual(expected, ((IAggregateAudioAdjustment)store).AggregateVolume.Value);
+            Assert.AreEqual(expected, store.AggregateVolume.Value);
         }
 
         [Test]

@@ -11,10 +11,8 @@ namespace osu.Framework.Testing.Dependencies
     public class CachedNullableProvider
     {
         [Cached]
-        private int? cachedObject = 5;
+        public int? CachedObject { get; private set; } = 5;
 
-        public int? CachedObject => cachedObject;
-
-        public void SetValue(int? value) => cachedObject = value;
+        public void SetValue(int? value) => CachedObject = value;
     }
 }

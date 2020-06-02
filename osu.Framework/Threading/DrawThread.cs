@@ -4,14 +4,53 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using osu.Framework.Development;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Platform;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Threading
 {
     public class DrawThread : GameThread
     {
-        public DrawThread(Action onNewFrame)
+        private readonly GameHost host;
+
+        public DrawThread(Action onNewFrame, GameHost host)
             : base(onNewFrame, "Draw")
         {
+            this.host = host;
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsDrawThread;
+
+        protected sealed override void OnInitialize()
+        {
+            var window = host.Window;
+
+            if (window != null)
+            {
+                window.MakeCurrent();
+
+                GLWrapper.Initialize(host);
+                GLWrapper.Reset(new Vector2(window.ClientSize.Width, window.ClientSize.Height));
+            }
+        }
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsDrawThread = true;
+        }
+
+        protected sealed override void Cleanup()
+        {
+            base.Cleanup();
+
+            // specifically for mobile platforms so SDL does not need to be considered yet
+            if (GraphicsContext.CurrentContext != null)
+                GraphicsContext.CurrentContext.MakeCurrent(null);
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]

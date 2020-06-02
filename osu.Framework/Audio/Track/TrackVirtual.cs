@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Timing;
-using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
@@ -31,13 +31,16 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            seekOffset = MathHelper.Clamp(seekOffset, 0, Length);
+            seekOffset = Math.Clamp(seekOffset, 0, Length);
 
             return current != seekOffset;
         }
 
         public override void Start()
         {
+            if (Length == 0)
+                return;
+
             lock (clock) clock.Start();
         }
 
@@ -66,7 +69,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return seekOffset + clock.CurrentTime;
+                lock (clock) return Math.Min(Length, seekOffset + clock.CurrentTime);
             }
         }
 

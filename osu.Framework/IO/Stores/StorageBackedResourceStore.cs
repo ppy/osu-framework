@@ -45,7 +45,7 @@ namespace osu.Framework.IO.Stores
                 if (stream == null) return null;
 
                 byte[] buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer, 0, buffer.Length);
+                await stream.ReadAsync(buffer.AsMemory());
                 return buffer;
             }
         }
@@ -58,7 +58,7 @@ namespace osu.Framework.IO.Stores
         }
 
         public IEnumerable<string> GetAvailableResources() =>
-            storage.GetDirectories(string.Empty).SelectMany(d => storage.GetFiles(d));
+            storage.GetDirectories(string.Empty).SelectMany(d => storage.GetFiles(d)).ExcludeSystemFileNames();
 
         #region IDisposable Support
 

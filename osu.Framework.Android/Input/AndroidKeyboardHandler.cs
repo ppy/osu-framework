@@ -46,87 +46,108 @@ namespace osu.Framework.Android.Input
         /// <summary>
         /// This method maps the <see cref="Xamarin.Android"/> <see cref="Keycode"/> to <see cref="Key"/> from opentk.
         /// </summary>
-        /// <param name="code">The <see cref="Keycode"/> to be converted into a <see cref="Key"/>.</param>
+        /// <param name="keyCode">The <see cref="Keycode"/> to be converted into a <see cref="Key"/>.</param>
         /// <returns>The <see cref="Key"/> that was converted from <see cref="Keycode"/>.</returns>
         public static Key GetKeyCodeAsKey(Keycode keyCode)
         {
             int code = (int)keyCode;
 
             // number keys
-            int firstNumKey = (int)Keycode.Num0;
-            int lastNumKey = (int)Keycode.Num9;
-            if (code >= firstNumKey && code <= lastNumKey)
-                return Key.Number0 + code - firstNumKey;
+            const int first_num_key = (int)Keycode.Num0;
+            const int last_num_key = (int)Keycode.Num9;
+            if (code >= first_num_key && code <= last_num_key)
+                return Key.Number0 + code - first_num_key;
 
             // letters
-            int firstLetterKey = (int)Keycode.A;
-            int lastLetterKey = (int)Keycode.Z;
-            if (code >= firstLetterKey && code <= lastLetterKey)
-                return Key.A + code - firstLetterKey;
+            const int first_letter_key = (int)Keycode.A;
+            const int last_letter_key = (int)Keycode.Z;
+            if (code >= first_letter_key && code <= last_letter_key)
+                return Key.A + code - first_letter_key;
 
             // function keys
-            int firstFuntionKey = (int)Keycode.F1;
-            int lastFunctionKey = (int)Keycode.F12;
-            if (code >= firstFuntionKey && code <= lastFunctionKey)
-                return Key.F1 + code - firstFuntionKey;
+            const int first_funtion_key = (int)Keycode.F1;
+            const int last_function_key = (int)Keycode.F12;
+            if (code >= first_funtion_key && code <= last_function_key)
+                return Key.F1 + code - first_funtion_key;
 
             // keypad keys
-            int firstKeypadKey = (int)Keycode.Numpad0;
-            int lastKeyPadKey = (int)Keycode.NumpadDot;
-            if (code >= firstKeypadKey && code <= lastKeyPadKey)
-                return Key.Keypad0 + code - firstKeypadKey;
+            const int first_keypad_key = (int)Keycode.Numpad0;
+            const int last_key_pad_key = (int)Keycode.NumpadDot;
+            if (code >= first_keypad_key && code <= last_key_pad_key)
+                return Key.Keypad0 + code - first_keypad_key;
 
             // direction keys
-            int firstDirectionKey = (int)Keycode.DpadUp;
-            int lastDirectionKey = (int)Keycode.DpadRight;
-            if (code >= firstDirectionKey && code <= lastDirectionKey)
-                return Key.Up + code - firstDirectionKey;
+            const int first_direction_key = (int)Keycode.DpadUp;
+            const int last_direction_key = (int)Keycode.DpadRight;
+            if (code >= first_direction_key && code <= last_direction_key)
+                return Key.Up + code - first_direction_key;
 
             // one to one mappings
             switch (keyCode)
             {
                 case Keycode.Back:
                     return Key.Escape;
+
                 case Keycode.MediaPlayPause:
                     return Key.PlayPause;
+
                 case Keycode.SoftLeft:
                     return Key.Left;
+
                 case Keycode.SoftRight:
                     return Key.Right;
+
                 case Keycode.Star:
                     return Key.KeypadMultiply;
+
                 case Keycode.Pound:
                     return Key.BackSlash; // english keyboard layout
+
                 case Keycode.Del:
                     return Key.BackSpace;
+
                 case Keycode.ForwardDel:
                     return Key.Delete;
+
                 case Keycode.Power:
                     return Key.Sleep;
+
                 case Keycode.MoveEnd:
                     return Key.End;
+
                 case Keycode.MediaPause:
                     return Key.Pause;
+
                 case Keycode.MediaClose:
                     return Key.Stop;
+
                 case Keycode.LeftBracket:
                     return Key.BracketLeft;
+
                 case Keycode.RightBracket:
                     return Key.BracketRight;
+
                 case Keycode.MediaPrevious:
                     return Key.TrackPrevious;
+
                 case Keycode.MediaNext:
                     return Key.TrackNext;
+
                 case Keycode.CtrlLeft:
                     return Key.ControlLeft;
+
                 case Keycode.CtrlRight:
                     return Key.ControlRight;
+
                 case Keycode.MetaLeft:
                     return Key.WinLeft;
+
                 case Keycode.MetaRight:
                     return Key.WinRight;
+
                 case Keycode.Equals:
                     return Key.Plus;
+
                 case Keycode.At:
                 case Keycode.Apostrophe:
                     return Key.Quote;

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using osuTK;
 using System.Linq;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable c = children[i];
 
-                Axes toAxes(FillDirection direction)
+                static Axes toAxes(FillDirection direction)
                 {
                     switch (direction)
                     {
@@ -159,9 +159,11 @@ namespace osu.Framework.Graphics.Containers
                 // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
                 if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                {
                     throw new InvalidOperationException(
                         "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+                }
 
                 // Populate running variables with sane initial values.
                 if (i == 0)
@@ -191,7 +193,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Compute offset to the middle of the row, to be applied in case of centre anchor
                     // in a second pass.
-                    rowOffsetsToMiddle[rowOffsetsToMiddle.Count - 1] = rowBeginOffset - rowWidth / 2;
+                    rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
                 }
 
                 rowIndices[i] = rowOffsetsToMiddle.Count - 1;
@@ -231,25 +233,31 @@ namespace osu.Framework.Graphics.Containers
                 {
                     case FillDirection.Vertical:
                         if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
 
                     case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
 
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
                 }

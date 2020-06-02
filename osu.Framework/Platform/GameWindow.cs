@@ -15,6 +15,8 @@ using System.ComponentModel;
 using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
+using osu.Framework.Threading;
 using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
@@ -51,6 +53,8 @@ namespace osu.Framework.Platform
 
         protected readonly IGameWindow Implementation;
 
+        protected readonly Scheduler UpdateFrameScheduler = new Scheduler();
+
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
@@ -70,6 +74,27 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
+        public virtual IEnumerable<Display> Displays => new[] { DisplayDevice.GetDisplay(DisplayIndex.Primary).ToDisplay() };
+
+        public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
+
+        public virtual Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
+
+        /// <summary>
+        /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
+        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplay"/>,
+        /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
+        /// report refresh rates such as 59.992863 where SDL2 will report 60.
+        /// </summary>
+        public virtual DisplayMode CurrentDisplayMode
+        {
+            get
+            {
+                var display = CurrentDisplayDevice;
+                return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate));
+            }
+        }
+
         /// <summary>
         /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
@@ -77,6 +102,13 @@ namespace osu.Framework.Platform
         {
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
+
+            CurrentDisplay.Value = PrimaryDisplay;
+
+            // Moving or resizing the window needs to check to see if we've moved to a different display.
+            // This will update the CurrentDisplay bindable.
+            Move += (sender, e) => checkCurrentDisplay();
+            Resize += (sender, e) => checkCurrentDisplay();
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
@@ -88,17 +120,10 @@ namespace osu.Framework.Platform
 
             supportedWindowModes.AddRange(DefaultSupportedWindowModes);
 
-            bool firstUpdate = true;
-            UpdateFrame += (o, e) =>
-            {
-                if (firstUpdate)
-                {
-                    isActive.Value = Focused;
-                    firstUpdate = false;
-                }
-            };
+            UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
+            UpdateFrameScheduler.Add(() => isActive.Value = Focused);
 
-            WindowStateChanged += (o, e) => isActive.Value = WindowState != WindowState.Minimized;
+            WindowStateChanged += (o, e) => isActive.Value = WindowState != osuTK.WindowState.Minimized;
 
             MakeCurrent();
 
@@ -204,11 +229,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
         /// </summary>
-        /// <returns></returns>
-        public virtual DisplayDevice CurrentDisplay
+        protected virtual DisplayDevice CurrentDisplayDevice
         {
             get => DisplayDevice.FromRectangle(Bounds) ?? DisplayDevice.Default;
-            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplay)} cannot be set.");
+            set => throw new InvalidOperationException($@"{GetType().Name}.{nameof(CurrentDisplayDevice)} cannot be set.");
+        }
+
+        private void checkCurrentDisplay()
+        {
+            int index = (int)CurrentDisplayDevice.GetIndex();
+            if (index != CurrentDisplay.Value?.Index)
+                CurrentDisplay.Value = Displays.ElementAtOrDefault(index);
         }
 
         private string getVersionNumberSubstring(string version)
@@ -216,7 +247,7 @@ namespace osu.Framework.Platform
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
 
-            throw new ArgumentException(nameof(version));
+            throw new ArgumentException($"Cannot get version number from {version}!", nameof(version));
         }
 
         public abstract void SetupWindow(FrameworkConfigManager config);
@@ -239,6 +270,12 @@ namespace osu.Framework.Platform
         protected abstract IEnumerable<WindowMode> DefaultSupportedWindowModes { get; }
 
         public virtual VSyncMode VSync { get; set; }
+
+        public bool VerticalSync
+        {
+            get => VSync == VSyncMode.On;
+            set => VSync = value ? VSyncMode.On : VSyncMode.Off;
+        }
 
         public virtual void CycleMode()
         {
@@ -295,7 +332,7 @@ namespace osu.Framework.Platform
         public bool Exists => Implementation.Exists;
         public IWindowInfo WindowInfo => Implementation.WindowInfo;
 
-        public virtual WindowState WindowState
+        public virtual osuTK.WindowState WindowState
         {
             get => Implementation.WindowState;
             set => Implementation.WindowState = value;

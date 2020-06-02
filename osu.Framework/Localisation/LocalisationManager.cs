@@ -50,7 +50,7 @@ namespace osu.Framework.Localisation
             {
                 var culture = string.IsNullOrEmpty(args.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(args.NewValue);
 
-                for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
+                for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
                     validLocale = locales.Find(l => l.Name == c.Name);
                     if (validLocale != null)
@@ -64,14 +64,7 @@ namespace osu.Framework.Localisation
             if (validLocale.Name != args.NewValue)
                 configLocale.Value = validLocale.Name;
             else
-            {
-                var culture = new CultureInfo(validLocale.Name);
-
-                CultureInfo.DefaultThreadCurrentCulture = culture;
-                CultureInfo.DefaultThreadCurrentUICulture = culture;
-
                 currentStorage.Value = validLocale.Storage;
-            }
         }
 
         private class LocaleMapping

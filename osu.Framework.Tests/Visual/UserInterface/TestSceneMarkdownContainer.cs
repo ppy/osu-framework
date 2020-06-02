@@ -159,7 +159,7 @@ The greedy mode using the character - (e.g {{- or -}}), removes any whitespace, 
             AddStep("MarkdownFromInternet", () =>
             {
                 req = new WebRequest("https://raw.githubusercontent.com/ppy/osu-wiki/master/wiki/Skinning/skin.ini/en.md");
-                req.Finished += () => Schedule(() => markdownContainer.Text = req.ResponseString);
+                req.Finished += () => Schedule(() => markdownContainer.Text = req.GetResponseString());
 
                 Task.Run(() => req.PerformAsync());
             });

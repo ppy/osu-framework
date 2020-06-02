@@ -8,7 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -56,9 +56,12 @@ namespace osu.Framework.Graphics.Transforms
             {
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.EndTime > max)
                         max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                }
 
                 return max;
             }
@@ -86,9 +89,11 @@ namespace osu.Framework.Graphics.Transforms
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms(double time)
+        /// <param name="time">The point in time to update transforms to.</param>
+        /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
+        private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
-            bool rewinding = lastUpdateTransformsTime > time;
+            bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
             if (!transformsLazy.IsValueCreated)
@@ -124,6 +129,9 @@ namespace osu.Framework.Graphics.Transforms
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
+                            else
+                                t.Apply(t.EndTime);
+
                             appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
@@ -350,7 +358,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
-        public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
+        public IDisposable BeginDelayedSequence(double delay, bool recursive = false)
         {
             if (delay == 0)
                 return null;
@@ -358,14 +366,16 @@ namespace osu.Framework.Graphics.Transforms
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<(Transformable transformable, double delay, bool recursive, double newTransformDelay)>((this, delay, recursive, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                {
                     throw new InvalidOperationException(
-                        $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformDelay} end={TransformDelay})");
+                        $"{nameof(sender.transformable.TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.newTransformDelay} end={sender.transformable.TransformDelay})");
+                }
 
-                AddDelay(-delay, recursive);
+                AddDelay(-sender.delay, sender.recursive);
             });
         }
 
@@ -376,19 +386,21 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public virtual InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
+        public virtual IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<(Transformable transformable, double oldTransformDelay, double newTransformDelay)>((this, oldTransformDelay, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                {
                     throw new InvalidOperationException(
-                        $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformDelay} end={TransformDelay})");
+                        $"{nameof(sender.transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.newTransformDelay} end={sender.transformable.TransformDelay})");
+                }
 
-                TransformDelay = oldTransformDelay;
+                sender.transformable.TransformDelay = sender.oldTransformDelay;
             });
         }
 
@@ -400,7 +412,7 @@ namespace osu.Framework.Graphics.Transforms
 
         /// <summary>
         /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
-        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TThis}(TThis, Transform{TValue, TThis}, TValue, double, Easing)"/>.
+        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TEasing, TThis}"/>.
         /// Added <see cref="Transform"/>s are immediately applied, and therefore have an immediate effect on this object if the current time of this
         /// object falls within <see cref="Transform.StartTime"/> and <see cref="Transform.EndTime"/>.
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
@@ -413,9 +425,11 @@ namespace osu.Framework.Graphics.Transforms
                 throw new ArgumentNullException(nameof(transform));
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
                     "using this object prior to being added.");
+            }
 
             if (Clock == null)
             {
@@ -453,7 +467,7 @@ namespace osu.Framework.Graphics.Transforms
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms(Time.Current);
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
     }
 }

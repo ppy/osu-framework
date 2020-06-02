@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Input
 {
-    public struct JoystickAxis
+    public readonly struct JoystickAxis
     {
         public readonly int Axis;
         public readonly float Value;

@@ -53,6 +53,8 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
+            base.Play(restart);
+
             EnqueueAction(() =>
             {
                 if (!IsLoaded)
@@ -67,6 +69,7 @@ namespace osu.Framework.Audio.Sample
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 setLoopFlag(Looping);
             });
@@ -82,8 +85,6 @@ namespace osu.Framework.Audio.Sample
             // Needs to happen on the main thread such that
             // Played does not become true for a short moment.
             playing = true;
-
-            base.Play(restart);
         }
 
         protected override void UpdateState()

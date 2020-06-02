@@ -60,7 +60,13 @@ namespace osu.Framework.Logging
         public static Storage Storage
         {
             private get => storage;
-            set => storage = value ?? throw new ArgumentNullException(nameof(value));
+            set
+            {
+                storage = value ?? throw new ArgumentNullException(nameof(value));
+
+                // clear static loggers so they are correctly purged at the new storage location.
+                static_loggers.Clear();
+            }
         }
 
         /// <summary>
@@ -299,7 +305,7 @@ namespace osu.Framework.Logging
             IEnumerable<string> lines = logOutput
                                         .Replace(@"\r\n", @"\n")
                                         .Split('\n')
-                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture)}: {s.Trim()}");
+                                        .Select(s => $@"{DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)} [{level.ToString().ToLower()}]: {s.Trim()}");
 
             if (outputToListeners)
             {
@@ -314,7 +320,7 @@ namespace osu.Framework.Logging
 
                 if (DebugUtils.IsDebugBuild)
                 {
-                    void consoleLog(string msg)
+                    static void consoleLog(string msg)
                     {
                         // fire to all debug listeners (like visual studio's output window)
                         System.Diagnostics.Debug.Print(msg);
@@ -328,7 +334,7 @@ namespace osu.Framework.Logging
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
-                            consoleLog($"[{Name}:{level.ToString().ToLower()}] {line}");
+                            consoleLog($"[{Name.ToLower()}] {line}");
 
                             if (!bypassRateLimit && debugOutputRollingTime.IsAtLimit)
                                 consoleLog($"Console output is being limited. Please check {Filename} for full logs.");
@@ -355,8 +361,10 @@ namespace osu.Framework.Logging
                     {
                         using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
+                        {
                             foreach (var line in lines)
                                 writer.WriteLine(line);
+                        }
                     }
                     catch
                     {

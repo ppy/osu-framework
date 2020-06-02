@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Input;
 using osuTK;
@@ -26,12 +26,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private TestScreen baseScreen;
         private ScreenStack stack;
-
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Screen),
-            typeof(IScreen)
-        };
 
         [SetUp]
         public void SetupTest() => Schedule(() =>
@@ -125,7 +119,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo == screen2);
             AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom == screen1);
 
-            AddAssert("ensure child", () => screen1.GetChildScreen() != null);
+            AddAssert("ensure child", () => screen1.GetChildScreen() == screen2);
+            AddAssert("ensure parent 1", () => screen1.GetParentScreen() == baseScreen);
+            AddAssert("ensure parent 2", () => screen2.GetParentScreen() == screen1);
 
             AddStep("pop", () => screen2.Exit());
 
@@ -134,6 +130,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd != double.MaxValue);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen() == null);
+            AddAssert("ensure parent gone", () => screen2.GetParentScreen() == null);
             AddAssert("ensure not current", () => !screen2.IsCurrentScreen());
 
             AddStep("pop", () => screen1.Exit());
@@ -215,6 +212,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestScreenPushedAfterExiting()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push", () => stack.Push(screen1 = new TestScreen()));
+
+            AddUntilStep("wait for current", () => screen1.IsCurrentScreen());
+            AddStep("exit screen1", () => screen1.Exit());
+            AddUntilStep("ensure exited", () => !screen1.IsCurrentScreen());
+
+            AddStep("push again", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+        }
+
+        [Test]
         public void TestPushToNonLoadedScreenFails()
         {
             TestScreenSlow screen1 = null;
@@ -286,7 +297,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     // we can't use the [SetUp] screen stack as we need to change the ctor parameters.
                     Clear();
-                    Add(stack = new ScreenStack(baseScreen = new TestScreen())
+                    Add(stack = new ScreenStack(baseScreen = new TestScreen(id: 0))
                     {
                         RelativeSizeAxes = Axes.Both
                     });
@@ -296,13 +307,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Perform setup", () =>
             {
                 order = new List<int>();
-                screen1 = new TestScreenSlow
+                screen1 = new TestScreenSlow(1)
                 {
                     Entered = () => order.Add(1),
                     Suspended = () => order.Add(2),
                     Resumed = () => order.Add(5),
                 };
-                screen2 = new TestScreenSlow
+                screen2 = new TestScreenSlow(2)
                 {
                     Entered = () => order.Add(3),
                     Exited = () => order.Add(4),
@@ -345,6 +356,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
+        }
+
+        [Test]
+        public void TestEventsNotFiredBeforeScreenLoad()
+        {
+            Screen screen1 = null;
+            bool wasLoaded = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen
+            {
+                // ReSharper disable once AccessToModifiedClosure
+                Entered = () => wasLoaded &= screen1?.IsLoaded == true,
+                // ReSharper disable once AccessToModifiedClosure
+                Suspended = () => wasLoaded &= screen1?.IsLoaded == true,
+            });
+
+            pushAndEnsureCurrent(() => new TestScreen(), () => screen1);
+
+            AddAssert("was loaded before events", () => wasLoaded);
         }
 
         [Test]
@@ -663,6 +693,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPushOnExiting()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return true;
+                };
+                return screen1;
+            });
+
+            AddStep("Exit screen 1", () => screen1.Exit());
+            AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
+        }
+
+        [Test]
         public void TestInvalidPushBlocksNonImmediateSuspend()
         {
             TestScreen screen1 = null;
@@ -799,7 +850,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public IScreen ResumedFrom;
 
             public static int Sequence;
-            private Button popButton;
+            private BasicButton popButton;
 
             private const int transition_time = 500;
 
@@ -851,7 +902,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Origin = Anchor.Centre,
                         Font = new FontUsage(size: 50)
                     },
-                    popButton = new Button
+                    popButton = new BasicButton
                     {
                         Text = @"Pop",
                         RelativeSizeAxes = Axes.Both,
@@ -862,7 +913,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Alpha = 0,
                         Action = this.Exit
                     },
-                    new Button
+                    new BasicButton
                     {
                         Text = @"Push",
                         RelativeSizeAxes = Axes.Both,

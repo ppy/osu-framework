@@ -28,16 +28,22 @@ namespace osu.Framework.Lists
                 list.Add(weakReference);
         }
 
-        public void Remove(T item)
+        public bool Remove(T item)
         {
             lock (list)
-                list.Remove(item);
+                return list.Remove(item);
         }
 
         public bool Remove(WeakReference<T> weakReference)
         {
             lock (list)
                 return list.Remove(weakReference);
+        }
+
+        public void RemoveAt(int index)
+        {
+            lock (list)
+                list.RemoveAt(index);
         }
 
         public bool Contains(T item)
@@ -58,13 +64,6 @@ namespace osu.Framework.Lists
                 list.Clear();
         }
 
-        [Obsolete("Use foreach() / GetEnumerator() (see: https://github.com/ppy/osu-framework/pull/2412)")] // can be removed 20191118
-        public void ForEachAlive(Action<T> action)
-        {
-            foreach (var item in this)
-                action(item);
-        }
-
         public Enumerator GetEnumerator() => new Enumerator(list);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
@@ -83,19 +82,19 @@ namespace osu.Framework.Lists
             {
                 this.list = list;
 
-                listEnumerator = list.GetEnumerator();
-
                 lockTaken = false;
                 Monitor.Enter(list, ref lockTaken);
+
+                listEnumerator = list.GetEnumerator();
             }
 
             public bool MoveNext() => listEnumerator.MoveNext();
 
             public void Reset() => listEnumerator.Reset();
 
-            public T Current => listEnumerator.Current;
+            public readonly T Current => listEnumerator.Current;
 
-            object IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {

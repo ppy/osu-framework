@@ -2,16 +2,18 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.MacOS.Native
 {
     internal static class Cocoa
     {
+        internal const string LIB_DL = "libSystem.dylib";
+        internal const string LIB_APPKIT = "/System/Library/Frameworks/AppKit.framework/AppKit";
         internal const string LIB_OBJ_C = "/usr/lib/libobjc.dylib";
         internal const string LIB_CORE_GRAPHICS = "/System/Library/Frameworks/CoreGraphics.framework/Versions/Current/CoreGraphics";
+
+        internal const int RTLD_NOW = 2;
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector);
@@ -20,7 +22,13 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, int arg);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, ulong ulong1);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr intPtr1, int int1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern IntPtr SendIntPtr(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
@@ -61,13 +69,7 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
-        private static readonly Type type_cocoa = typeof(osuTK.NativeWindow).Assembly.GetTypes().Single(x => x.Name == "Cocoa");
-        private static readonly MethodInfo method_cocoa_from_ns_string = type_cocoa.GetMethod("FromNSString");
-        private static readonly MethodInfo method_cocoa_to_ns_string = type_cocoa.GetMethod("ToNSString");
-        private static readonly MethodInfo method_cocoa_get_string_constant = type_cocoa.GetMethod("GetStringConstant");
-
         public static IntPtr AppKitLibrary;
-        public static IntPtr FoundationLibrary;
 
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
         public static extern bool CGCursorIsVisible();
@@ -75,16 +77,37 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGEventSourceFlagsState")]
         public static extern ulong CGEventSourceFlagsState(int stateID);
 
+        [DllImport(LIB_DL)]
+        private static extern IntPtr dlsym(IntPtr handle, string name);
+
+        [DllImport(LIB_DL)]
+        private static extern IntPtr dlopen(string fileName, int flags);
+
         static Cocoa()
         {
-            AppKitLibrary = (IntPtr)type_cocoa.GetField("AppKitLibrary").GetValue(null);
-            FoundationLibrary = (IntPtr)type_cocoa.GetField("FoundationLibrary").GetValue(null);
+            AppKitLibrary = dlopen(LIB_APPKIT, RTLD_NOW);
         }
 
-        public static string FromNSString(IntPtr handle) => (string)method_cocoa_from_ns_string.Invoke(null, new object[] { handle });
+        private static readonly IntPtr sel_c_string_using_encoding = Selector.Get("cStringUsingEncoding:");
 
-        public static IntPtr ToNSString(string str) => (IntPtr)method_cocoa_to_ns_string.Invoke(null, new object[] { str });
+        public static string FromNSString(IntPtr handle) => Marshal.PtrToStringUni(SendIntPtr(handle, sel_c_string_using_encoding, (uint)NSStringEncoding.Unicode));
 
-        public static IntPtr GetStringConstant(IntPtr handle, string symbol) => (IntPtr)method_cocoa_get_string_constant.Invoke(null, new object[] { handle, symbol });
+        public static unsafe IntPtr ToNSString(string str)
+        {
+            if (str == null)
+                return IntPtr.Zero;
+
+            fixed (char* ptrFirstChar = str)
+            {
+                var handle = SendIntPtr(Class.Get("NSString"), Selector.Get("alloc"));
+                return SendIntPtr(handle, Selector.Get("initWithCharacters:length:"), (IntPtr)ptrFirstChar, str.Length);
+            }
+        }
+
+        public static IntPtr GetStringConstant(IntPtr handle, string symbol)
+        {
+            IntPtr ptr = dlsym(handle, symbol);
+            return ptr == IntPtr.Zero ? IntPtr.Zero : Marshal.ReadIntPtr(ptr);
+        }
     }
 }

@@ -10,9 +10,9 @@ namespace osu.Framework.Audio.Track
         public float LeftChannel;
         public float RightChannel;
 
-        public float Maximum => Math.Max(LeftChannel, RightChannel);
+        public readonly float Maximum => Math.Max(LeftChannel, RightChannel);
 
-        public float Average => (LeftChannel + RightChannel) / 2;
+        public readonly float Average => (LeftChannel + RightChannel) / 2;
 
         /// <summary>
         /// 256 length array of bins containing the average frequency of both channels at every ~78Hz step of the audible spectrum (0Hz - 20,000Hz).

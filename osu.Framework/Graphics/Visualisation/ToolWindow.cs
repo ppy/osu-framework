@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected void AddButton(string text, Action action)
         {
-            ToolbarContent.Add(new Button
+            ToolbarContent.Add(new BasicButton
             {
                 Size = new Vector2(button_width, button_height),
                 Text = text,

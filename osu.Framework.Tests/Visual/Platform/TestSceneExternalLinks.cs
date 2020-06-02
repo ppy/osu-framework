@@ -25,13 +25,13 @@ namespace osu.Framework.Tests.Visual.Platform
                 Padding = new MarginPadding(10),
                 Children = new Drawable[]
                 {
-                    new Button
+                    new BasicButton
                     {
                         Action = () => host.OpenUrlExternally("https://osu.ppy.sh"),
                         Size = new Vector2(150, 30),
                         Text = "Open osu! site",
                     },
-                    new Button
+                    new BasicButton
                     {
                         Action = () => host.OpenUrlExternally("this is a bad link that shouldn't crash the app"),
                         Size = new Vector2(150, 30),

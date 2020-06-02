@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Caching;
 using osu.Framework.Development;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.IO.Stores;
+using osu.Framework.Layout;
 using osu.Framework.Localisation;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
@@ -42,6 +43,11 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText()
         {
             current.BindValueChanged(text => Text = text.NewValue);
+
+            AddLayout(charactersCache);
+            AddLayout(parentScreenSpaceCache);
+            AddLayout(localScreenSpaceCache);
+            AddLayout(shadowOffsetCache);
         }
 
         [BackgroundDependencyLoader]
@@ -94,21 +100,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>(string.Empty);
-
-        private Bindable<string> currentBound;
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
 
         public Bindable<string> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         private string displayedText => localisedText?.Value ?? text.Text.Original;
@@ -418,7 +415,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Characters
 
-        private readonly Cached charactersCache = new Cached();
+        private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence, InvalidationSource.Parent);
         private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
@@ -478,7 +475,9 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private readonly Cached screenSpaceCharactersCache = new Cached();
+        private readonly LayoutValue parentScreenSpaceCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence | Invalidation.DrawInfo, InvalidationSource.Parent);
+        private readonly LayoutValue localScreenSpaceCache = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
+
         private readonly List<ScreenSpaceCharacterPart> screenSpaceCharactersBacking = new List<ScreenSpaceCharacterPart>();
 
         /// <summary>
@@ -495,7 +494,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private void computeScreenSpaceCharacters()
         {
-            if (screenSpaceCharactersCache.IsValid)
+            if (!parentScreenSpaceCache.IsValid)
+            {
+                localScreenSpaceCache.Invalidate();
+                parentScreenSpaceCache.Validate();
+            }
+
+            if (localScreenSpaceCache.IsValid)
                 return;
 
             screenSpaceCharactersBacking.Clear();
@@ -512,10 +517,10 @@ namespace osu.Framework.Graphics.Sprites
                 });
             }
 
-            screenSpaceCharactersCache.Validate();
+            localScreenSpaceCache.Validate();
         }
 
-        private readonly Cached<Vector2> shadowOffsetCache = new Cached<Vector2>();
+        private readonly LayoutValue<Vector2> shadowOffsetCache = new LayoutValue<Vector2>(Invalidation.DrawInfo, InvalidationSource.Parent);
 
         private Vector2 premultipliedShadowOffset =>
             shadowOffsetCache.IsValid ? shadowOffsetCache.Value : shadowOffsetCache.Value = ToScreenSpace(shadowOffset * Font.Size) - ToScreenSpace(Vector2.Zero);
@@ -528,31 +533,10 @@ namespace osu.Framework.Graphics.Sprites
         {
             if (layout)
                 charactersCache.Invalidate();
-            screenSpaceCharactersCache.Invalidate();
+            parentScreenSpaceCache.Invalidate();
+            localScreenSpaceCache.Invalidate();
 
-            Invalidate(Invalidation.DrawNode, shallPropagate: false);
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            base.Invalidate(invalidation, source, shallPropagate);
-
-            if (source == Parent)
-            {
-                // Colour captures presence changes
-                if ((invalidation & (Invalidation.DrawSize | Invalidation.Presence)) > 0)
-                    invalidate(true);
-
-                if ((invalidation & Invalidation.DrawInfo) > 0)
-                {
-                    invalidate();
-                    shadowOffsetCache.Invalidate();
-                }
-            }
-            else if ((invalidation & Invalidation.MiscGeometry) > 0)
-                invalidate();
-
-            return true;
+            Invalidate(Invalidation.DrawNode);
         }
 
         #endregion
@@ -622,9 +606,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public IEnumerable<string> FilterTerms
-        {
-            get { yield return displayedText; }
-        }
+        public IEnumerable<string> FilterTerms => displayedText.Yield();
     }
 }

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Logging;
 using osu.Framework.Timing;
@@ -24,12 +26,19 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
+        public override string UserStoragePath => "./headless/";
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation: portableInstallation)
+        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
         {
             this.realtime = realtime;
+        }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
         }
 
         protected override void SetupForRun()
@@ -39,11 +48,7 @@ namespace osu.Framework.Platform
             if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
         }
 
-        protected override void UpdateInitialize()
-        {
-        }
-
-        protected override void DrawInitialize()
+        protected override void SetupToolkit()
         {
         }
 
@@ -59,7 +64,7 @@ namespace osu.Framework.Platform
             base.UpdateFrame();
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => Array.Empty<InputHandler>();
 
         private class FastClock : IClock
         {
@@ -77,7 +82,7 @@ namespace osu.Framework.Platform
             }
 
             public double CurrentTime => time += increment;
-            public double Rate => CLOCK_RATE;
+            public double Rate => 1;
             public bool IsRunning => true;
         }
     }

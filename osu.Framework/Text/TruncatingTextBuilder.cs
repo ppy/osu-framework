@@ -82,10 +82,10 @@ namespace osu.Framework.Text
                     if (Characters.Count == 0)
                         break;
 
-                    if (Characters[Characters.Count - 1].IsWhiteSpace())
+                    if (Characters[^1].IsWhiteSpace())
                         continue;
 
-                    if (base.HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[Characters.Count - 1]) + spacing.X + ellipsisWidth))
+                    if (base.HasAvailableSpace(firstEllipsisGlyph.GetKerning(Characters[^1]) + spacing.X + ellipsisWidth))
                         break;
                 }
 

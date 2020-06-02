@@ -18,24 +18,23 @@ namespace osu.Framework.Tests.IO
         public void OneTimeSetUp()
         {
             storage = new TemporaryNativeStorage("fontstore-test");
-            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly.Location), "Resources.Fonts.OpenSans");
-
-            storage.GetFullPath("./", true);
+            fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources.Fonts.OpenSans");
         }
 
         [Test]
         public void TestNestedScaleAdjust()
         {
-            var fontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100);
-            var nestedFontStore = new FontStore(new GlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10);
+            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100))
+            using (var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10))
+            {
+                fontStore.AddStore(nestedFontStore);
 
-            fontStore.AddStore(nestedFontStore);
+                var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans", 'a');
+                var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Bold", 'a');
 
-            var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans", 'a');
-            var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Bold", 'a');
-
-            Assert.That(normalGlyph.Scale, Is.EqualTo(1f / 100));
-            Assert.That(boldGlyph.Scale, Is.EqualTo(1f / 10));
+                Assert.That(normalGlyph.Scale, Is.EqualTo(1f / 100));
+                Assert.That(boldGlyph.Scale, Is.EqualTo(1f / 10));
+            }
         }
 
         [OneTimeTearDown]

@@ -3,16 +3,16 @@
 
 using System;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 
 namespace osu.Framework
 {
     public static class RuntimeInfo
     {
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
+        /// <summary>
+        /// The absolute path to the startup directory of this game.
+        /// </summary>
+        public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
 
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
@@ -20,11 +20,9 @@ namespace osu.Framework
         public static string GetFrameworkAssemblyPath() =>
             System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
 
-        public static bool Is32Bit { get; }
-        public static bool Is64Bit { get; }
         public static Platform OS { get; }
-        public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
-        public static bool IsWine { get; }
+        public static bool IsUnix => OS != Platform.Windows;
+
         public static bool SupportsJIT => OS != Platform.iOS;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
@@ -44,22 +42,6 @@ namespace osu.Framework
 
             if (OS == 0)
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
-
-            Is32Bit = IntPtr.Size == 4;
-            Is64Bit = IntPtr.Size == 8;
-
-            if (OS == Platform.Windows)
-            {
-                IntPtr hModule = GetModuleHandle(@"ntdll.dll");
-
-                if (hModule == IntPtr.Zero)
-                    IsWine = false;
-                else
-                {
-                    IntPtr fptr = GetProcAddress(hModule, @"wine_get_version");
-                    IsWine = fptr != IntPtr.Zero;
-                }
-            }
         }
 
         public enum Platform

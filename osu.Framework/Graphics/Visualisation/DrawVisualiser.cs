@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -149,12 +149,16 @@ namespace osu.Framework.Graphics.Visualisation
             visualiser.Depth = 0;
 
             treeContainer.Target = targetVisualiser = visualiser;
+            targetVisualiser.TopLevel = true;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
+
+            targetVisualiser.TopLevel = false;
             targetVisualiser = null;
+
             treeContainer.Target = null;
 
             if (Target == null)

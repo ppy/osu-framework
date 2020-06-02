@@ -9,10 +9,12 @@ using Android.Content;
 using osu.Framework.Android.Graphics.Textures;
 using osu.Framework.Android.Graphics.Video;
 using osu.Framework.Android.Input;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -33,8 +35,17 @@ namespace osu.Framework.Android
         {
             base.SetupForRun();
             AndroidGameWindow.View = gameView;
-            Window = new AndroidGameWindow();
         }
+
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+        {
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
+                defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
+
+            base.SetupConfig(defaultOverrides);
+        }
+
+        protected override IWindow CreateWindow() => new AndroidGameWindow();
 
         protected override bool LimitedMemoryEnvironment => true;
 
@@ -46,10 +57,11 @@ namespace osu.Framework.Android
             => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
+            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
 
-        protected override Storage GetStorage(string baseName)
-            => new AndroidStorage(baseName, this);
+        public override Storage GetStorage(string path) => new AndroidStorage(path, this);
+
+        public override string UserStoragePath => Application.Context.GetExternalFilesDir(string.Empty).ToString();
 
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();

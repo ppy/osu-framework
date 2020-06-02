@@ -14,7 +14,8 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.MathUtils;
+using osu.Framework.Layout;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -43,7 +44,7 @@ namespace osu.Framework.Graphics.Audio
         private float resolution = 1;
 
         /// <summary>
-        /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="WaveformGraph.DrawWidth"/>.
+        /// Gets or sets the amount of <see cref="Framework.Audio.Track.Waveform.Point"/>'s displayed relative to <see cref="Drawable.DrawWidth">DrawWidth</see>.
         /// </summary>
         public float Resolution
         {
@@ -139,12 +140,15 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.Invalidate(invalidation, source, shallPropagate);
+            var result = base.OnInvalidate(invalidation, source);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+            {
                 generate();
+                result = true;
+            }
 
             return result;
         }
@@ -291,8 +295,8 @@ namespace osu.Framework.Graphics.Audio
                                 new Vector2(leftX, height + points[i].Amplitude[1] * height),
                                 new Vector2(rightX, height + points[i + 1].Amplitude[1] * height)
                             );
-                        }
                             break;
+                        }
 
                         case 1:
                         {

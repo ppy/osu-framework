@@ -12,10 +12,19 @@ namespace osu.Framework.Input
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
             new KeyBinding(new[] { InputKey.Control, InputKey.F2 }, FrameworkAction.ToggleGlobalStatistics),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F3 }, FrameworkAction.ToggleAtlasVisualiser),
+            new KeyBinding(new[] { InputKey.Control, InputKey.F7 }, FrameworkAction.CycleFrameSync),
+            new KeyBinding(new[] { InputKey.Control, InputKey.Alt, InputKey.F7 }, FrameworkAction.CycleExecutionMode),
             new KeyBinding(new[] { InputKey.Control, InputKey.F11 }, FrameworkAction.CycleFrameStatistics),
             new KeyBinding(new[] { InputKey.Control, InputKey.F10 }, FrameworkAction.ToggleLogOverlay),
             new KeyBinding(new[] { InputKey.Alt, InputKey.Enter }, FrameworkAction.ToggleFullscreen),
+            new KeyBinding(new[] { InputKey.F11 }, FrameworkAction.ToggleFullscreen)
         };
+
+        public FrameworkActionContainer()
+            : base(matchingMode: KeyCombinationMatchingMode.Exact)
+        {
+        }
 
         protected override bool Prioritised => true;
     }
@@ -25,7 +34,10 @@ namespace osu.Framework.Input
         CycleFrameStatistics,
         ToggleDrawVisualiser,
         ToggleGlobalStatistics,
+        ToggleAtlasVisualiser,
         ToggleLogOverlay,
-        ToggleFullscreen
+        ToggleFullscreen,
+        CycleFrameSync,
+        CycleExecutionMode
     }
 }

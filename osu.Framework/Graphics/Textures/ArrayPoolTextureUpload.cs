@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// The texture format for this upload.
         /// </summary>
-        public PixelFormat Format => PixelFormat.Rgba;
+        public virtual PixelFormat Format => PixelFormat.Rgba;
 
         /// <summary>
         /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
@@ -42,11 +42,14 @@ namespace osu.Framework.Graphics.Textures
             memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
         }
 
+        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
         public bool HasBeenUploaded => disposed;
 
         #region IDisposable Support
 
+#pragma warning disable IDE0032 // Use auto property
         private bool disposed;
+#pragma warning restore IDE0032 // Use auto property
 
         protected virtual void Dispose(bool disposing)
         {
