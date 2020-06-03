@@ -71,7 +71,7 @@ namespace osu.Framework.Platform
                             var json = JToken.Parse(str);
 
                             var type = Type.GetType(json["Type"].Value<string>());
-                            var value = json["Value"].Value<string>();
+                            var value = json["Value"];
 
                             Trace.Assert(type != null);
                             Trace.Assert(value != null);
@@ -79,7 +79,7 @@ namespace osu.Framework.Platform
                             var msg = new IpcMessage
                             {
                                 Type = type.AssemblyQualifiedName,
-                                Value = JsonConvert.DeserializeObject(value, type),
+                                Value = JsonConvert.DeserializeObject(value.ToString(), type),
                             };
 
                             MessageReceived?.Invoke(msg);
