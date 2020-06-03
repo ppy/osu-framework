@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 });
 
                 foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
-                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)p.GetValue(null)));
+                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)p.GetValue(null)!));
             }
 
             AddStep("toggle shadows", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));

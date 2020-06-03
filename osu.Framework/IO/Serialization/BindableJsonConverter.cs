@@ -19,7 +19,7 @@ namespace osu.Framework.IO.Serialization
         {
             var bindable = existingValue ?? (ISerializableBindable)Activator.CreateInstance(objectType, true);
 
-            bindable.DeserializeFrom(reader, serializer);
+            bindable!.DeserializeFrom(reader, serializer);
 
             return bindable;
         }

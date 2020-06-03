@@ -83,7 +83,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    var icon = (IconUsage)p.GetValue(null);
+                    var icon = (IconUsage)p.GetValue(null)!;
                     using (var upload = store.Get(icon.Icon.ToString()))
                         Trace.Assert(upload.Data != null);
 

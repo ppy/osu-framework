@@ -23,6 +23,7 @@ namespace osu.Framework.Platform.Linux
             Debug.Assert(implementationField != null, "Reflection is broken!");
 
             var windowImpl = implementationField.GetValue(Implementation);
+            Debug.Assert(windowImpl != null);
 
             IsSdl = windowImpl.GetType().Name == "Sdl2NativeWindow";
         }

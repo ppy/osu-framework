@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Exceptions
         }
 
         private void assertCorrectStack(Func<Exception> exception)
-            => AddAssert("exception has correct callstack", () => exception().StackTrace.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}"));
+            => AddAssert("exception has correct callstack", () => exception().StackTrace!.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}"));
 
         private class AsyncThrower : CompositeDrawable
         {
@@ -118,6 +118,7 @@ namespace osu.Framework.Tests.Exceptions
                 {
                     try
                     {
+                        // ReSharper disable once PossibleNullReferenceException
                         throw (Exception)Activator.CreateInstance(exceptionType);
                     }
                     catch (Exception ex)
@@ -126,6 +127,7 @@ namespace osu.Framework.Tests.Exceptions
                     }
                 }
 
+                // ReSharper disable once PossibleNullReferenceException
                 throw (Exception)Activator.CreateInstance(exceptionType);
             }
         }

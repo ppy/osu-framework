@@ -433,7 +433,12 @@ namespace osu.Framework.Testing
             }
             else
             {
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+                TestTypes.RemoveAll(t =>
+                {
+                    Debug.Assert(t.Assembly.FullName != null);
+                    return t.Assembly.FullName.Contains(dynamic_prefix);
+                });
+
                 newTest.DynamicCompilationOriginal = newTest;
             }
 
@@ -484,7 +489,12 @@ namespace osu.Framework.Testing
                 int runCount = 1;
 
                 if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
-                    runCount += (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                {
+                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    Debug.Assert(count != null);
+
+                    runCount += (int)count;
+                }
 
                 for (int i = 0; i < runCount; i++)
                 {

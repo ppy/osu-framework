@@ -19,7 +19,7 @@ namespace osu.Framework.IO.Serialization
         {
             var iList = existingValue ?? (ISerializableSortedList)Activator.CreateInstance(objectType);
 
-            iList.DeserializeFrom(reader, serializer);
+            iList!.DeserializeFrom(reader, serializer);
 
             return iList;
         }

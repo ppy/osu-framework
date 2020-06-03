@@ -22,12 +22,12 @@ namespace osu.Framework.Statistics
         {
             switch ((EventType)data.EventId)
             {
-                case EventType.GCStart_V1:
+                case EventType.GCStart_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
                     GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
                     break;
 
-                case EventType.GCHeapStats_V1:
+                case EventType.GCHeapStats_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
                         GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i];

@@ -393,7 +393,7 @@ namespace osu.Framework.Bindables
         public Bindable<T> GetBoundCopy()
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            copy.BindTo(this);
+            copy!.BindTo(this);
             return copy;
         }
 
