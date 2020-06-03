@@ -393,7 +393,7 @@ namespace osu.Framework.Tests.Text
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
         }
 
-        private struct TestFontUsage
+        private readonly struct TestFontUsage
         {
             private readonly string family;
             private readonly string weight;
@@ -432,7 +432,7 @@ namespace osu.Framework.Tests.Text
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new System.NotImplementedException();
         }
 
-        private struct TestGlyph : ITexturedCharacterGlyph
+        private readonly struct TestGlyph : ITexturedCharacterGlyph
         {
             public Texture Texture => new Texture(1, 1);
             public float XOffset { get; }

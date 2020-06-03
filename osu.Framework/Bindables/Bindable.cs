@@ -223,9 +223,7 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
-
+            Bindings ??= new LockedWeakList<Bindable<T>>();
             Bindings.Add(weakReference);
         }
 

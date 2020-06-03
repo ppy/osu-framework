@@ -242,8 +242,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!validForTarget(composite))
                         return;
 
-                    if (compositeTarget == null)
-                        compositeTarget = composite;
+                    compositeTarget ??= composite;
 
                     // Allow targeting composites that don't have any content but display a border/glow
 

@@ -48,14 +48,9 @@ namespace osu.Framework.IO.Stores
             switch (store)
             {
                 case FontStore fs:
-                    if (fs.Atlas == null)
-                    {
-                        // share the main store's atlas.
-                        fs.Atlas = Atlas;
-                    }
-
-                    if (fs.cacheStorage == null)
-                        fs.cacheStorage = cacheStorage;
+                    // if null, share the main store's atlas.
+                    fs.Atlas ??= Atlas;
+                    fs.cacheStorage ??= cacheStorage;
 
                     nestedFontStores.Add(fs);
                     return;
