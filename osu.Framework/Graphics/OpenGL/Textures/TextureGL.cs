@@ -15,7 +15,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     public abstract class TextureGL : IDisposable
     {
         public bool IsTransparent;
-        public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
+
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
+        public readonly WrapMode WrapModeS;
+
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
+        public readonly WrapMode WrapModeT;
+
+        protected TextureGL(WrapMode wrapModeS, WrapMode wrapModeT)
+        {
+            WrapModeS = wrapModeS;
+            WrapModeT = wrapModeT;
+        }
 
         #region Disposal
 
@@ -77,8 +92,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="textureRect">The texture rectangle.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         internal abstract void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null);
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Draws a quad to the screen.
@@ -89,15 +105,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         internal abstract void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null);
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null);
 
         /// <summary>
         /// Bind as active texture.
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0);
+        public bool Bind(TextureUnit unit = TextureUnit.Texture0) => Bind(unit, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Bind as active texture.
+        /// </summary>
+        /// <param name="unit">The texture unit to bind to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>True if bind was successful.</returns>
+        internal abstract bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.
@@ -110,6 +136,41 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload);
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGL"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT);
+    }
+
+    public enum WrapMode
+    {
+        /// <summary>
+        /// No wrapping. If the texture is part of an atlas, this may read outside the texture's bounds.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Clamps to the edge of the texture, repeating the edge to fill the remainder of the draw area.
+        /// </summary>
+        ClampToEdge = 1,
+
+        /// <summary>
+        /// Clamps to a transparent-black border around the texture, repeating the border to fill the remainder of the draw area.
+        /// </summary>
+        ClampToBorder = 2,
+
+        /// <summary>
+        /// Repeats the texture.
+        /// </summary>
+        Repeat = 3,
     }
 }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using osu.Framework.Logging;
@@ -222,8 +223,14 @@ namespace osu.Framework.Testing
             {
                 var kind = n.Kind();
 
+                // Ignored:
+                // - Entire using lines.
+                // - Namespace names (not entire namespaces).
+                // - Entire static classes.
+
                 return kind != SyntaxKind.UsingDirective
-                       && kind != SyntaxKind.NamespaceKeyword;
+                       && kind != SyntaxKind.NamespaceKeyword
+                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
             });
 
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
@@ -336,19 +343,65 @@ namespace osu.Framework.Testing
         {
             logger.Add("Retrieving referenced files...");
 
+            // Iterate through the graph and find the "expansion factor" at each node. The expansion factor is a count of how many nodes it or any of its parents have opened up.
+            // As a node opens up more nodes, a successful re-compilation becomes increasingly improbable as integral parts of the game may start getting touched,
+            // so the maximal expansion factor must be constrained to increase the probability of a successful re-compilation.
+            foreach (var s in sources)
+                computeExpansionFactors(directedGraph[s]);
+
             var result = new HashSet<string>();
 
             foreach (var s in sources)
-                getReferencedFilesRecursive(directedGraph[s], result);
+            {
+                var node = directedGraph[s];
+
+                // This shouldn't be super tight (e.g. log_2), but tight enough that a significant number of nodes do get excluded.
+                double range = Math.Log(Math.Max(1, node.ExpansionFactor), 1.25d);
+
+                var exclusionRange = (
+                    min: range,
+                    max: node.ExpansionFactor - range);
+
+                // This covers for two cases: max < min, and relaxes the expansion for small hierarchies (100 intermediate nodes).
+                if (Math.Abs(exclusionRange.max - exclusionRange.min) < 100)
+                    exclusionRange = (double.MaxValue, double.MaxValue);
+
+                getReferencedFilesRecursive(directedGraph[s], result, exclusionRange);
+            }
 
             return result;
         }
 
-        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, HashSet<DirectedTypeNode> seenTypes = null, int level = 0)
+        private bool computeExpansionFactors(DirectedTypeNode node, HashSet<DirectedTypeNode> seenTypes = null)
         {
-            // A '.' is prepended since the logger trims lines.
-            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node}");
+            seenTypes ??= new HashSet<DirectedTypeNode>();
+            if (seenTypes.Contains(node))
+                return false;
 
+            seenTypes.Add(node);
+
+            node.ExpansionFactor = (ulong)node.Parents.Count;
+
+            foreach (var p in node.Parents)
+            {
+                if (computeExpansionFactors(p, seenTypes))
+                    node.ExpansionFactor += p.ExpansionFactor;
+            }
+
+            return true;
+        }
+
+        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, (double min, double max) exclusionRange, HashSet<DirectedTypeNode> seenTypes = null,
+                                                 int level = 0)
+        {
+            // Expansion is allowed on either side of the non-expansion range, i.e. all values satisfying the condition (min < X < max) are discarded.
+            if (node.ExpansionFactor > exclusionRange.min && node.ExpansionFactor < exclusionRange.max)
+                return;
+
+            // A '.' is prepended since the logger trims lines.
+            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor}: {node}");
+
+            // Don't go through duplicate nodes (multiple references from different types).
             seenTypes ??= new HashSet<DirectedTypeNode>();
             if (seenTypes.Contains(node))
                 return;
@@ -365,7 +418,7 @@ namespace osu.Framework.Testing
 
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
-                getReferencedFilesRecursive(p, result, seenTypes, level + 1);
+                getReferencedFilesRecursive(p, result, exclusionRange, seenTypes, level + 1);
         }
 
         private bool typeInheritsFromGame(TypeReference reference)
@@ -490,6 +543,11 @@ namespace osu.Framework.Testing
         {
             public readonly TypeReference Reference;
             public readonly List<DirectedTypeNode> Parents = new List<DirectedTypeNode>();
+
+            /// <summary>
+            /// The number of nodes expanded by this <see cref="DirectedTypeNode"/> and all parents recursively.
+            /// </summary>
+            public ulong ExpansionFactor;
 
             public DirectedTypeNode(TypeReference reference)
             {

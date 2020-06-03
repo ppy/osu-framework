@@ -32,24 +32,11 @@ namespace osu.Framework.Input.Handlers.Midi
 
         public override bool Initialize(GameHost host)
         {
-            // Try to initialize. This can throw on Linux if asound cannot be found.
-            try
-            {
-                var unused = MidiAccessManager.Default.Inputs.ToList();
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
-                    ? "Couldn't list input devices, is libasound2-dev installed?"
-                    : "Couldn't list input devices.");
-                return false;
-            }
-
             Enabled.BindValueChanged(e =>
             {
                 if (e.NewValue)
                 {
-                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(refreshDevices, 0, 500));
+                    host.InputThread.Scheduler.Add(scheduledRefreshDevices = new ScheduledDelegate(() => refreshDevices(), 0, 500));
                 }
                 else
                 {
@@ -64,38 +51,52 @@ namespace osu.Framework.Input.Handlers.Midi
                 }
             }, true);
 
-            return true;
+            return refreshDevices();
         }
 
-        private void refreshDevices()
+        private bool refreshDevices()
         {
-            var inputs = MidiAccessManager.Default.Inputs.ToList();
-
-            // check removed devices
-            foreach (string key in openedDevices.Keys.ToArray())
+            try
             {
-                var value = openedDevices[key];
+                var inputs = MidiAccessManager.Default.Inputs.ToList();
 
-                if (inputs.All(i => i.Id != key))
+                // check removed devices
+                foreach (string key in openedDevices.Keys.ToArray())
                 {
-                    value.MessageReceived -= onMidiMessageReceived;
-                    openedDevices.Remove(key);
+                    var value = openedDevices[key];
 
-                    Logger.Log($"Disconnected MIDI device: {value.Details.Name}");
+                    if (inputs.All(i => i.Id != key))
+                    {
+                        value.MessageReceived -= onMidiMessageReceived;
+                        openedDevices.Remove(key);
+
+                        Logger.Log($"Disconnected MIDI device: {value.Details.Name}");
+                    }
                 }
+
+                // check added devices
+                foreach (IMidiPortDetails input in inputs)
+                {
+                    if (openedDevices.All(x => x.Key != input.Id))
+                    {
+                        var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
+                        newInput.MessageReceived += onMidiMessageReceived;
+                        openedDevices[input.Id] = newInput;
+
+                        Logger.Log($"Connected MIDI device: {newInput.Details.Name}");
+                    }
+                }
+
+                return true;
             }
-
-            // check added devices
-            foreach (IMidiPortDetails input in inputs)
+            catch (Exception e)
             {
-                if (openedDevices.All(x => x.Key != input.Id))
-                {
-                    var newInput = MidiAccessManager.Default.OpenInputAsync(input.Id).Result;
-                    newInput.MessageReceived += onMidiMessageReceived;
-                    openedDevices[input.Id] = newInput;
+                Logger.Error(e, RuntimeInfo.OS == RuntimeInfo.Platform.Linux
+                    ? "Couldn't list input devices. Is libasound2-dev installed?"
+                    : "Couldn't list input devices. There may be another application already using MIDI.");
 
-                    Logger.Log($"Connected MIDI device: {newInput.Details.Name}");
-                }
+                Enabled.Value = false;
+                return false;
             }
         }
 
@@ -176,7 +177,7 @@ namespace osu.Framework.Input.Handlers.Midi
                 case MidiEvent.NoteOff:
                 case MidiEvent.NoteOn when velocity == 0:
                     Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
-                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, false));
+                    PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                     FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
                     break;
             }

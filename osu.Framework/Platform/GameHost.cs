@@ -481,8 +481,6 @@ namespace osu.Framework.Platform
                 SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
             }
 
-            DebugUtils.HostAssembly = game.GetType().Assembly;
-
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
@@ -510,13 +508,9 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
                 var assembly = DebugUtils.GetEntryAssembly();
-                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
                 Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-                if (assemblyPath != null)
-                    Environment.CurrentDirectory = assemblyPath;
 
                 Dependencies.CacheAs(this);
 
@@ -660,7 +654,7 @@ namespace osu.Framework.Platform
                 if (!handler.Initialize(this))
                 {
                     handler.Enabled.Value = false;
-                    break;
+                    continue;
                 }
 
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
