@@ -211,7 +211,6 @@ namespace osu.Framework.Graphics
         /// Converts an osuTK <see cref="Color4"/> to an osu!framework <see cref="Colour4"/>.
         /// </summary>
         /// <param name="colour">The osuTK <see cref="Color4"/> to convert.</param>
-        [Obsolete("Will be removed in future alongside osuTK.")]
         public static implicit operator Colour4(Color4 colour) =>
             new Colour4(colour.R, colour.G, colour.B, colour.A);
 
@@ -219,7 +218,6 @@ namespace osu.Framework.Graphics
         /// Converts an osu!framework <see cref="Colour4"/> to an osuTK <see cref="Color4"/>.
         /// </summary>
         /// <param name="colour">The osu!framework <see cref="Colour4"/> to convert.</param>
-        [Obsolete("Will be removed in future alongside osuTK.")]
         public static implicit operator Color4(Colour4 colour) =>
             new Color4(colour.R, colour.G, colour.B, colour.A);
 
