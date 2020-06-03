@@ -240,7 +240,7 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            args.Exception.Data["unhandled"] = "unobserved";
+            args.Exception!.Data["unhandled"] = "unobserved";
             handleException(args.Exception);
         }
 
@@ -510,7 +510,7 @@ namespace osu.Framework.Platform
                 var assembly = DebugUtils.GetEntryAssembly();
 
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version.ToString();
+                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
 

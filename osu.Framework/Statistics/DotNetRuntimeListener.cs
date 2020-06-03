@@ -30,10 +30,10 @@ namespace osu.Framework.Statistics
                 case EventType.GCHeapStats_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
-                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i];
+                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i]!;
 
-                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload[9];
-                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload[10];
+                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload[9]!;
+                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload[10]!;
                     break;
             }
         }
