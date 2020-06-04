@@ -571,6 +571,14 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Invoked whenever a text string has been committed to the textbox.
+        /// </summary>
+        /// <param name="textChanged">Whether the current text string is different than the last committed.</param>
+        protected virtual void OnTextCommitted(bool textChanged)
+        {
+        }
+
+        /// <summary>
         /// Invoked whenever the caret has moved from its position.
         /// </summary>
         /// <param name="selecting">Whether the caret is selecting text while moving.</param>
@@ -735,21 +743,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Commits current text on this <see cref="TextBox"/> and releases focus if <see cref="ReleaseFocusOnCommit"/> is set.
         /// </summary>
-        /// <returns>Whether current text has been commited.</returns>
-        protected virtual bool Commit()
+        protected void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
                 killFocus();
                 if (CommitOnFocusLost)
                     // the commit will happen as a result of the focus loss.
-                    return false;
+                    return;
             }
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
+
+            OnTextCommitted(hasNewComittableText);
             OnCommit?.Invoke(this, hasNewComittableText);
+
             lastCommitText = text;
-            return true;
         }
 
         protected override void OnKeyUp(KeyUpEvent e)
