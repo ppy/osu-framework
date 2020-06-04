@@ -419,7 +419,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// Removes the selected text if there's a selection,
-        /// or an amount of characters right-side of the current caret position otherwise.
+        /// or a specified amount of characters left side of the current caret position otherwise.
         /// </summary>
         private void removeCharactersOrSelection(int amount = 1)
         {
@@ -737,7 +737,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Commits current text on this <see cref="TextBox"/> and releases focus if <see cref="ReleaseFocusOnCommit"/> is set.
         /// </summary>
-        protected void Commit()
+        protected virtual void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
             {
