@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
@@ -96,8 +97,12 @@ namespace osu.Framework.IO.Stores
         protected string GetFilenameForPage(int page)
             => $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
 
+        [CanBeNull]
         public CharacterGlyph Get(char character)
         {
+            if (Font == null)
+                return null;
+
             var bmCharacter = Font.GetCharacter(character);
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, this);
         }
