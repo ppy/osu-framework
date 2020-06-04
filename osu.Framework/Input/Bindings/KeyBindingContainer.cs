@@ -128,6 +128,13 @@ namespace osu.Framework.Input.Bindings
                     handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
                     return false;
 
+                case MidiDownEvent midiDown:
+                    return handleNewPressed(state, KeyCombination.FromMidiKey(midiDown.Key), false);
+
+                case MidiUpEvent midiUp:
+                    handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
+                    return false;
+
                 case ScrollEvent scroll:
                 {
                     var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
@@ -159,8 +166,11 @@ namespace osu.Framework.Input.Bindings
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
             if (KeyCombination.IsModifierKey(newKey))
+            {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
+                // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
+            }
 
             // we want to always handle bindings with more keys before bindings with less.
             newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();

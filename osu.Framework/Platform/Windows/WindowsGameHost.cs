@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.IO;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -13,13 +15,24 @@ namespace osu.Framework.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        protected override Storage GetStorage(string baseName) => new WindowsStorage(baseName, this);
+        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
             : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
         {
+        }
+
+        public override void OpenFileExternally(string filename)
+        {
+            if (Directory.Exists(filename))
+            {
+                Process.Start("explorer.exe", filename);
+                return;
+            }
+
+            base.OpenFileExternally(filename);
         }
 
         protected override void SetupForRun()

@@ -18,13 +18,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(TabControl<>),
-            typeof(TabItem),
-            typeof(BasicTabControl<>),
-        };
-
         private readonly TestEnum[] items;
 
         private StyledTabControl pinnedAndAutoSort;
@@ -137,18 +130,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 if (pinned.Count > 0) pinnedAndAutoSort.UnpinItem(pinned.Pop());
             });
 
-            AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.VisibleItems.First());
+            AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.Items.First());
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.ElementAt(1));
+            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.ElementAt(1));
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.Last());
+            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.Last());
 
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
             AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);

@@ -23,6 +23,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
+    [ExcludeFromDynamicCompile]
     [TestFixture]
     public abstract class TestScene : Container, IDynamicallyCompile
     {
@@ -36,6 +37,8 @@ namespace osu.Framework.Testing
         private GameHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
+
+        public object DynamicCompilationOriginal { get; internal set; }
 
         [OneTimeSetUp]
         public void SetupGameHost()
@@ -148,6 +151,8 @@ namespace osu.Framework.Testing
 
         protected TestScene()
         {
+            DynamicCompilationOriginal = this;
+
             Name = RemovePrefix(GetType().ReadableName());
 
             RelativeSizeAxes = Axes.Both;
@@ -287,8 +292,26 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
+        public StepButton AddSetupStep(string description, Action action)
+        {
+            var step = new SetUpStepButton
+            {
+                Text = description,
+                Action = action
+            };
+
+            AddStep(step);
+
+            return step;
+        }
+
+        private bool addStepsAsSetupSteps;
+
         public StepButton AddStep(string description, Action action)
         {
+            if (addStepsAsSetupSteps)
+                return AddSetupStep(description, action);
+
             var step = new SingleStepButton
             {
                 Text = description,
@@ -370,12 +393,15 @@ namespace osu.Framework.Testing
             });
         });
 
+        [Obsolete("Required types are now determined automatically.")] // can be removed 20201115
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {
+            addStepsAsSetupSteps = true;
             foreach (var method in Reflect.GetMethodsWithAttribute(GetType(), typeof(SetUpStepsAttribute), true))
                 method.Invoke(this, null);
+            addStepsAsSetupSteps = false;
         }
 
         internal void RunTearDownSteps()

@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Statistics;
 using System.Diagnostics;
-using osu.Framework.Caching;
+using osu.Framework.Layout;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 
@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Containers
         {
             this.createContentFunction = createContentFunction;
             this.timeBeforeUnload = timeBeforeUnload;
+
+            AddLayout(unloadClockBacking);
         }
 
         private static readonly GlobalStatistic<int> total_loaded = GlobalStatistics.Get<int>("Drawable", $"{nameof(DelayedLoadUnloadWrapper)}s");
@@ -95,17 +97,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            bool result = base.Invalidate(invalidation, source, shallPropagate);
-
-            if ((invalidation & Invalidation.Parent) > 0)
-                result &= !unloadClockBacking.Invalidate();
-
-            return result;
-        }
-
-        private readonly Cached<IFrameBasedClock> unloadClockBacking = new Cached<IFrameBasedClock>();
+        private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
 
         private IFrameBasedClock unloadClock => unloadClockBacking.IsValid ? unloadClockBacking.Value : (unloadClockBacking.Value = FindClosestParent<Game>() == null ? Game.Clock : Clock);
 

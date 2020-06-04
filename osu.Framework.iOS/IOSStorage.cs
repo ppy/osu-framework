@@ -8,10 +8,8 @@ namespace osu.Framework.iOS
 {
     public class IOSStorage : NativeStorage
     {
-        protected override string LocateBasePath() => Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-
-        public IOSStorage(string baseName, IOSGameHost host = null)
-            : base(baseName, host)
+        public IOSStorage(string path, IOSGameHost host = null)
+            : base(path, host)
         {
         }
     }

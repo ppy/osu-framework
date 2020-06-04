@@ -211,6 +211,10 @@ namespace osu.Framework.Bindables
             if (index < 0)
                 return false;
 
+            // Removal may have come from an equality comparison.
+            // Always return the original reference from the list to other bindings and events.
+            var listItem = collection[index];
+
             collection.RemoveAt(index);
 
             if (bindings != null)
@@ -220,11 +224,11 @@ namespace osu.Framework.Bindables
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
-                        b.remove(item, this);
+                        b.remove(listItem, this);
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
 
             return true;
         }
@@ -456,7 +460,7 @@ namespace osu.Framework.Bindables
 
         public void UnbindEvents()
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             ItemsAdded = null;
             ItemsRemoved = null;
 #pragma warning restore 618
@@ -630,7 +634,7 @@ namespace osu.Framework.Bindables
         /// <returns>The created instance.</returns>
         public BindableList<T> GetBoundCopy()
         {
-            var copy = (BindableList<T>)Activator.CreateInstance(GetType(), new object[] { null });
+            var copy = new BindableList<T>();
             copy.BindTo(this);
             return copy;
         }
@@ -649,7 +653,7 @@ namespace osu.Framework.Bindables
 
         private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args)
         {
-#pragma warning disable 618 can be removed 20200817
+#pragma warning disable 618 // can be removed 20200817
             switch (args.Action)
             {
                 case NotifyCollectionChangedAction.Add:

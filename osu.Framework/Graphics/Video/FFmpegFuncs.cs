@@ -15,13 +15,19 @@ namespace osu.Framework.Graphics.Video
 
         public delegate void AvFrameFreeDelegate(AVFrame** frame);
 
-        public delegate int AvImageFillArraysDelegate(ref byte_ptrArray4 dst_data, ref int_array4 dst_linesize, byte* src, AVPixelFormat pix_fmt, int width, int height, int align);
+        public delegate void AvFrameUnrefDelegate(AVFrame* frame);
 
-        public delegate int AvImageGetBufferSizeDelegate(AVPixelFormat pix_fmt, int width, int height, int align);
+        public delegate int AvFrameGetBufferDelegate(AVFrame* frame, int align);
+
+        public delegate byte* AvStrDupDelegate(string s);
+
+        public delegate int AvStrErrorDelegate(int errnum, byte* buffer, ulong bufSize);
 
         public delegate void* AvMallocDelegate(ulong size);
 
         public delegate AVPacket* AvPacketAllocDelegate();
+
+        public delegate void AvPacketUnrefDelegate(AVPacket* pkt);
 
         public delegate void AvPacketFreeDelegate(AVPacket** pkt);
 
@@ -57,10 +63,13 @@ namespace osu.Framework.Graphics.Video
 
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
-        public AvImageFillArraysDelegate av_image_fill_arrays;
-        public AvImageGetBufferSizeDelegate av_image_get_buffer_size;
+        public AvFrameUnrefDelegate av_frame_unref;
+        public AvFrameGetBufferDelegate av_frame_get_buffer;
+        public AvStrDupDelegate av_strdup;
+        public AvStrErrorDelegate av_strerror;
         public AvMallocDelegate av_malloc;
         public AvPacketAllocDelegate av_packet_alloc;
+        public AvPacketUnrefDelegate av_packet_unref;
         public AvPacketFreeDelegate av_packet_free;
         public AvReadFrameDelegate av_read_frame;
         public AvSeekFrameDelegate av_seek_frame;

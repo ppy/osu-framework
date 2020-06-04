@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.ApplyState();
 
-                if (!Source.Masking && (Source.BorderThickness != 0.0f || edgeEffect.Type != EdgeEffectType.None))
+                if (!Source.Masking && (Source.BorderThickness != 0.0f || Source.EdgeEffect.Type != EdgeEffectType.None))
                     throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
                 Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();

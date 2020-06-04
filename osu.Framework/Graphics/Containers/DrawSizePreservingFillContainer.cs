@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
-            Vector2 drawSizeRatio = Vector2.Divide(Parent.DrawSize, TargetDrawSize);
+            Vector2 drawSizeRatio = Vector2.Divide(Parent.ChildSize, TargetDrawSize);
 
             switch (Strategy)
             {
