@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -14,17 +13,18 @@ namespace osu.Framework.Tests.Threading
     {
         private Scheduler scheduler;
 
+        private bool fromMainThread;
+
         [SetUp]
         public void Setup()
         {
-            scheduler = new Scheduler(new Thread(() => { }));
+            scheduler = new Scheduler(() => fromMainThread, new StopwatchClock(true));
         }
 
         [Test]
         public void TestScheduleOnce([Values(false, true)] bool fromMainThread, [Values(false, true)] bool forceScheduled)
         {
-            if (fromMainThread)
-                scheduler.SetCurrentThread();
+            this.fromMainThread = fromMainThread;
 
             int invocations = 0;
 
@@ -302,8 +302,7 @@ namespace osu.Framework.Tests.Threading
         {
             const int max_reschedules = 3;
 
-            if (!forceScheduled)
-                scheduler.SetCurrentThread();
+            fromMainThread = !forceScheduled;
 
             int reschedules = 0;
 

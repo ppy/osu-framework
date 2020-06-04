@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -20,13 +18,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTextBox : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(BasicTextBox),
-            typeof(TextBox),
-            typeof(BasicPasswordTextBox)
-        };
-
         private FillFlowContainer textBoxes;
 
         [SetUp]
@@ -401,7 +392,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             /// </summary>
             public string FlowingText => string.Concat(TextFlow.FlowingChildren.OfType<FallingDownContainer>().Select(c => c.OfType<SpriteText>().Single().Text.ToString()[0]));
 
-            public new void InsertString(string text) => base.InsertString(text);
+            public void InsertString(string text) => base.InsertString(text);
 
             public void PrependString(string text)
             {

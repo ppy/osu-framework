@@ -50,6 +50,28 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
+        /// Crop the texture.
+        /// </summary>
+        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
+        /// <param name="relativeSizeAxes">Which axes have a relative size in [0,1] in relation to the texture size.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>The cropped texture.</returns>
+        public Texture Crop(RectangleF cropRectangle, Axes relativeSizeAxes = Axes.None, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        {
+            if (relativeSizeAxes != Axes.None)
+            {
+                Vector2 scale = new Vector2(
+                    relativeSizeAxes.HasFlag(Axes.X) ? Width : 1,
+                    relativeSizeAxes.HasFlag(Axes.Y) ? Height : 1
+                );
+                cropRectangle *= scale;
+            }
+
+            return new Texture(new TextureGLSub(cropRectangle, TextureGL, wrapModeS, wrapModeT));
+        }
+
+        /// <summary>
         /// Creates a texture from a data stream representing a bitmap.
         /// </summary>
         /// <param name="stream">The data stream containing the texture data.</param>
@@ -119,15 +141,16 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="vertexTriangle">The triangle to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="textureRect">The texture rectangle in texture space.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
+        /// <param name="textureCoords">The texture coordinates of the triangle's vertices (translated from the corresponding quad's rectangle).</param>
         internal void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                   Vector2? inflationPercentage = null)
+                                   Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, TextureBounds(textureCoords));
         }
 
         /// <summary>
@@ -135,16 +158,17 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="vertexQuad">The quad to draw.</param>
         /// <param name="drawColour">The vertex colour.</param>
-        /// <param name="textureRect">The texture rectangle.</param>
+        /// <param name="textureRect">The texture rectangle in texture space.</param>
         /// <param name="vertexAction">An action that adds vertices to a <see cref="VertexBatch{T}"/>.</param>
         /// <param name="inflationPercentage">The percentage amount that <paramref name="textureRect"/> should be inflated.</param>
         /// <param name="blendRangeOverride">The range over which the edges of the <paramref name="textureRect"/> should be blended.</param>
+        /// <param name="textureCoords">The texture coordinates of the quad's vertices.</param>
         internal void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                               Vector2? blendRangeOverride = null)
+                               Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride);
+            TextureGL.DrawQuad(vertexQuad, drawColour, TextureBounds(textureRect), vertexAction, inflationPercentage, blendRangeOverride, TextureBounds(textureCoords));
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";

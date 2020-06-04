@@ -6,7 +6,6 @@ using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         protected RectangleF DrawRectangle { get; private set; }
         protected Vector2 InflationAmount { get; private set; }
 
-        protected bool WrapTexture { get; private set; }
+        protected RectangleF TextureCoords { get; private set; }
 
         protected new Sprite Source => (Sprite)base.Source;
 
@@ -38,13 +37,17 @@ namespace osu.Framework.Graphics.Sprites
             ScreenSpaceDrawQuad = Source.ScreenSpaceDrawQuad;
             DrawRectangle = Source.DrawRectangle;
             InflationAmount = Source.InflationAmount;
-            WrapTexture = Source.WrapTexture;
+
+            TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle);
+            if (Texture != null)
+                TextureCoords *= new Vector2(Texture.DisplayWidth, Texture.DisplayHeight);
         }
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
             DrawQuad(Texture, ScreenSpaceDrawQuad, DrawColourInfo.Colour, null, vertexAction,
-                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
+                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height),
+                null, TextureCoords);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
@@ -53,8 +56,6 @@ namespace osu.Framework.Graphics.Sprites
 
             if (Texture?.Available != true)
                 return;
-
-            Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
             Shader.Bind();
 

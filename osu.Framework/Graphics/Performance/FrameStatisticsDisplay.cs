@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Performance
                                     new TimeBar(),
                                 },
                             },
-                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, monitor.Thread)
+                            frameTimeDisplay = new FrameTimeDisplay(monitor.Clock, thread)
                             {
                                 Anchor = Anchor.BottomRight,
                                 Origin = Anchor.BottomRight,
@@ -399,6 +399,7 @@ namespace osu.Framework.Graphics.Performance
                 while (monitor.PendingFrames.TryDequeue(out FrameStatistics frame))
                 {
                     applyFrame(frame);
+                    frameTimeDisplay.NewFrame(frame);
                     monitor.FramesPool.Return(frame);
                 }
             }
@@ -509,7 +510,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT);
+                Sprite.Texture = new Texture(WIDTH, HEIGHT) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 

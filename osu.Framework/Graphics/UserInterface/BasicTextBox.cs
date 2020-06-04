@@ -66,13 +66,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void NotifyInputError() => background.FlashColour(InputErrorColour, 200);
 
-        protected override bool Commit()
+        protected override void OnTextCommitted(bool textChanged)
         {
+            base.OnTextCommitted(textChanged);
+
             background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
             background.ClearTransforms();
             background.FlashColour(BackgroundCommit, 400);
-
-            return base.Commit();
         }
 
         protected override void OnFocusLost(FocusLostEvent e)

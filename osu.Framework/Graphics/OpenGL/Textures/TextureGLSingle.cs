@@ -32,12 +32,26 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalHeight;
 
         private readonly All filteringMode;
-        private TextureWrapMode internalWrapMode;
+
+        /// <summary>
+        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// </summary>
+        public ulong BindCount { get; private set; }
 
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+        /// <summary>
+        /// Creates a new <see cref="TextureGLSingle"/>.
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(wrapModeS, wrapModeT)
         {
             Width = width;
             Height = height;
@@ -69,9 +83,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             GL.DeleteTextures(1, new[] { disposableId });
 
-            textureId = 0;
-
             memoryLease?.Dispose();
+
+            textureId = 0;
         }
 
         #endregion
@@ -166,14 +180,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public const int VERTICES_PER_TRIANGLE = 4;
 
         internal override void DrawTriangle(Triangle vertexTriangle, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null,
-                                            Vector2? inflationPercentage = null)
+                                            Vector2? inflationPercentage = null, RectangleF? textureCoords = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
-            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
+
+            // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
+            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            {
+                Vector2 inflationVector = Vector2.Zero;
+
+                const int mipmap_padding_requirement = (1 << MAX_MIPMAP_LEVELS) / 2;
+
+                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                    inflationVector.X = mipmap_padding_requirement / (float)width;
+                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                    inflationVector.Y = mipmap_padding_requirement / (float)height;
+                texRect = texRect.Inflate(inflationVector);
+            }
+
+            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
+            RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
                 vertexAction = default_quad_action;
@@ -188,7 +218,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
+                TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = topColour.Linear,
@@ -196,7 +226,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P1,
-                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
@@ -204,7 +234,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                TexturePosition = new Vector2((inflatedCoordRect.Left + inflatedCoordRect.Right) / 2, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = bottomColour.Linear,
@@ -212,7 +242,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
-                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomRight.Linear,
@@ -224,14 +254,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public const int VERTICES_PER_QUAD = 4;
 
         internal override void DrawQuad(Quad vertexQuad, ColourInfo drawColour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null,
-                                        Vector2? blendRangeOverride = null)
+                                        Vector2? blendRangeOverride = null, RectangleF? textureCoords = null)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
-            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
+
+            // If clamp to edge is active, allow the texture coordinates to penetrate by half the repeated atlas margin width
+            if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+            {
+                Vector2 inflationVector = Vector2.Zero;
+
+                const int mipmap_padding_requirement = (1 << MAX_MIPMAP_LEVELS) / 2;
+
+                if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
+                    inflationVector.X = mipmap_padding_requirement / (float)width;
+                if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
+                    inflationVector.Y = mipmap_padding_requirement / (float)height;
+                texRect = texRect.Inflate(inflationVector);
+            }
+
+            RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
+            RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
             if (vertexAction == null)
@@ -240,7 +286,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
-                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
                 Colour = drawColour.BottomLeft.Linear,
@@ -248,7 +294,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
-                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Bottom),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
                 Colour = drawColour.BottomRight.Linear,
@@ -256,7 +302,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
-                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                TexturePosition = new Vector2(inflatedCoordRect.Right, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
                 Colour = drawColour.TopRight.Linear,
@@ -264,7 +310,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
-                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                TexturePosition = new Vector2(inflatedCoordRect.Left, inflatedCoordRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = blendRange,
                 Colour = drawColour.TopLeft.Linear,
@@ -273,17 +319,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        private void updateWrapMode()
-        {
-            if (!Available)
-                throw new ObjectDisposedException(ToString(), "Can not update wrap mode of a disposed texture.");
-
-            internalWrapMode = WrapMode;
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)internalWrapMode);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)internalWrapMode);
-        }
-
-        public override void SetData(ITextureUpload upload)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -301,12 +337,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 bool requireUpload = uploadQueue.Count == 0;
                 uploadQueue.Enqueue(upload);
-                if (requireUpload)
+
+                if (requireUpload && !BypassTextureUploadQueueing)
                     GLWrapper.EnqueueTextureUpload(this);
             }
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
@@ -319,10 +356,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(this, unit);
-
-            if (internalWrapMode != WrapMode)
-                updateWrapMode();
+            if (GLWrapper.BindTexture(this, unit, wrapModeS, wrapModeT))
+                BindCount++;
 
             return true;
         }
@@ -344,7 +379,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 using (upload)
                 {
                     fixed (Rgba32* ptr = upload.Data)
-                        doUpload(upload, (IntPtr)ptr);
+                        DoUpload(upload, (IntPtr)ptr);
 
                     didUpload = true;
                 }
@@ -380,7 +415,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void doUpload(ITextureUpload upload, IntPtr dataPointer)
+        protected virtual void DoUpload(ITextureUpload upload, IntPtr dataPointer)
         {
             // Do we need to generate a new texture?
             if (textureId <= 0 || internalWidth != width || internalHeight != height)
@@ -405,7 +440,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     // It controls the amount of mipmap levels generated by GL.GenerateMipmap later on.
                     GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)33085, MAX_MIPMAP_LEVELS);
 
-                    updateWrapMode();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
                 }
                 else
                     GLWrapper.BindTexture(this);

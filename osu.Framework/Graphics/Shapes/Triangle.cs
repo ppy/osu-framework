@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Shapes
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
             {
                 DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
-                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
+                    new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
         }
     }

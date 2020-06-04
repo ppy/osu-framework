@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Layout;
 using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private readonly Cached sizeCache = new Cached();
+        private readonly LayoutValue sizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
 
         private readonly Container<Menu> submenuContainer;
 
@@ -122,6 +122,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             // The menu will provide a valid size for the items container based on our own size
             ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+
+            AddLayout(sizeCache);
         }
 
         protected override void LoadComplete()
@@ -328,13 +330,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Animates the closing of this <see cref="Menu"/>.
         /// </summary>
         protected virtual void AnimateClose() => Hide();
-
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                sizeCache.Invalidate();
-            base.InvalidateFromChild(invalidation, source);
-        }
 
         protected override void UpdateAfterChildren()
         {
