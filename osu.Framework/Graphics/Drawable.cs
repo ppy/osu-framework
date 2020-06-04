@@ -298,8 +298,10 @@ namespace osu.Framework.Graphics
                 double allowedDuration = blocking ? 16 : 100;
 
                 if (loadDuration > allowedDuration)
+                {
                     Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance,
                         blocking ? LogLevel.Important : LogLevel.Verbose);
+                }
             }
         }
 
