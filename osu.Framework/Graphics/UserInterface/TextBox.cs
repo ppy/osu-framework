@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -168,7 +167,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     clipboard?.SetText(SelectedText);
                     if (action.ActionType == PlatformActionType.Cut)
-                        removeCharacterOrSelection();
+                        removeCharactersOrSelection();
                     return true;
 
                 case PlatformActionType.Paste:
@@ -250,7 +249,7 @@ namespace osu.Framework.Graphics.UserInterface
                         if (selectionLength == 0)
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
                         if (selectionLength > 0)
-                            removeCharacterOrSelection();
+                            removeCharactersOrSelection();
                         break;
                 }
 
@@ -418,21 +417,24 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private bool removeCharacterOrSelection(bool sound = true)
+        /// <summary>
+        /// Removes the selected text if there's a selection,
+        /// or an amount of characters right-side of the current caret position otherwise.
+        /// </summary>
+        private void removeCharactersOrSelection(int amount = 1)
         {
             if (Current.Disabled)
-                return false;
+                return;
 
-            if (text.Length == 0) return false;
-            if (selectionLength == 0 && selectionLeft == 0) return false;
+            if (text.Length == 0) return;
+            if (selectionLength == 0 && selectionLeft == 0) return;
 
-            int count = Math.Clamp(selectionLength, 1, text.Length);
-            int start = Math.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
+            int count = selectionLength > 0 ? selectionLength : amount;
+            int start = Math.Clamp(selectionRight - count, 0, text.Length);
 
-            if (count == 0) return false;
+            if (count == 0) return;
 
-            if (sound)
-                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
+            audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -461,7 +463,6 @@ namespace osu.Framework.Graphics.UserInterface
                 selectionStart = selectionEnd = selectionLeft - 1;
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         /// <summary>
@@ -502,51 +503,45 @@ namespace osu.Framework.Graphics.UserInterface
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
-        /// Insert an arbitrary string into the text at the current position.
+        /// Insert an arbitrary string into this <see cref="TextBox"/> at the current position.
         /// </summary>
-        /// <param name="text">The new text to insert.</param>
-        protected void InsertString(string text)
+        /// <param name="value">The string of text to insert.</param>
+        /// <param name="onDrawableCreated">An action invoked whenever a new character drawable is created.</param>
+        protected void InsertString(string value, Action<char, Drawable> onDrawableCreated = null)
         {
             if (string.IsNullOrEmpty(text)) return;
 
+            if (Current.Disabled)
+                return;
+
+            if (selectionLength > 0)
+                removeCharactersOrSelection();
+
             foreach (char c in text)
             {
-                var ch = addCharacter(c);
-
-                if (ch == null)
+                if (char.IsControl(c) || !CanAddCharacter(c))
                 {
                     NotifyInputError();
                     continue;
                 }
 
+                if (Text.Length + 1 > LengthLimit)
+                {
+                    NotifyInputError();
+                    break;
+                }
+
+                Drawable ch = AddCharacterToFlow(c);
                 ch.Show();
+
+                onDrawableCreated?.Invoke(c, ch);
             }
 
-            OnTextAdded(text);
-        }
-
-        private Drawable addCharacter(char c)
-        {
-            if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
-                return null;
-
-            if (selectionLength > 0)
-                removeCharacterOrSelection();
-
-            if (text.Length + 1 > LengthLimit)
-            {
-                NotifyInputError();
-                return null;
-            }
-
-            Drawable ch = AddCharacterToFlow(c);
-
-            text = text.Insert(selectionLeft, c.ToString());
+            text = text.Insert(selectionLeft, value);
             selectionStart = selectionEnd = selectionLeft + 1;
+            OnTextAdded(value);
 
             cursorAndLayout.Invalidate();
-
-            return ch;
         }
 
         /// <summary>
@@ -640,8 +635,7 @@ namespace osu.Framework.Graphics.UserInterface
                     TextFlow?.Clear();
 
                     text = string.Empty;
-                    foreach (char c in value)
-                        addCharacter(c);
+                    InsertString(value);
 
                     selectionStart = Math.Clamp(startBefore, 0, text.Length);
                 });
@@ -916,31 +910,30 @@ namespace osu.Framework.Graphics.UserInterface
         private void onImeResult()
         {
             //we only succeeded if there is pending data in the textbox
-            if (imeChars.Count > 0)
+            if (imeDrawables.Count > 0)
             {
-                foreach ((char _, Drawable d) in imeChars)
+                foreach (var d in imeDrawables)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
                 }
             }
 
-            imeChars.Clear();
+            imeDrawables.Clear();
         }
 
-        private readonly List<(char character, Drawable drawableChar)> imeChars = new List<(char, Drawable)>();
+        private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {
             //search for unchanged characters..
             int matchCount = 0;
             bool matching = true;
-            var deletedString = new StringBuilder();
 
-            int searchStart = text.Length - imeChars.Count;
+            int searchStart = text.Length - imeDrawables.Count;
 
             //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeChars.Count, s.Length);
+            int maxLength = Math.Max(imeDrawables.Count, s.Length);
 
             for (int i = 0; i < maxLength; i++)
             {
@@ -951,44 +944,24 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 matching = false;
-
-                if (matchCount < imeChars.Count)
-                {
-                    //if we are no longer matching, we want to remove all further characters.
-                    removeCharacterOrSelection(false);
-                    deletedString.Append(imeChars[matchCount].character);
-                    imeChars.RemoveAt(matchCount);
-                }
             }
 
             if (matchCount == s.Length)
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
-                if (deletedString.Length > 0)
-                {
-                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
-                    OnTextRemoved(deletedString.ToString());
-                }
-
+                var unmatchingCount = imeDrawables.Count - matchCount;
+                removeCharactersOrSelection(unmatchingCount);
+                imeDrawables.RemoveRange(matchCount, unmatchingCount);
                 return;
             }
 
-            //add any new or changed characters
-            for (int i = matchCount; i < s.Length; i++)
+            // Add the rest of the new / modified characters.
+            InsertString(s.Substring(matchCount), (_, dr) =>
             {
-                char c = s[i];
-                Drawable dr = addCharacter(c);
-
-                if (dr != null)
-                {
-                    dr.Colour = Color4.Aqua;
-                    dr.Alpha = 0.6f;
-                    imeChars.Add((c, dr));
-                }
-            }
-
-            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-            OnTextAdded(s.Substring(matchCount));
+                dr.Colour = Color4.Aqua;
+                dr.Alpha = 0.6f;
+                imeDrawables.Add(dr);
+            });
         }
 
         #endregion
