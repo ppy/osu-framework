@@ -72,7 +72,7 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+        public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
 
         public int GetBaseHeight() => Font.Common.Base;
 

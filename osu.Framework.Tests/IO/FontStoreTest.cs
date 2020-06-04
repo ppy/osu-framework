@@ -37,6 +37,16 @@ namespace osu.Framework.Tests.IO
             }
         }
 
+        [Test]
+        public void TestNoCrashOnMissingResources()
+        {
+            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage }, 100))
+            {
+                Assert.That(fontStore.Get("DoesntExist", 'a'), Is.Null);
+                Assert.That(fontStore.Get("OtherAttempt", 'a'), Is.Null);
+            }
+        }
+
         [OneTimeTearDown]
         public void TearDown()
         {
