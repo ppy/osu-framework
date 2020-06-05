@@ -501,7 +501,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="onDrawableCreated">An action invoked whenever a new character drawable is created.</param>
         protected void InsertString(string value, Action<char, Drawable> onDrawableCreated = null)
         {
-            if (string.IsNullOrEmpty(text)) return;
+            if (string.IsNullOrEmpty(value)) return;
 
             if (Current.Disabled)
                 return;
@@ -509,7 +509,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength > 0)
                 removeCharactersOrSelection();
 
-            foreach (char c in text)
+            foreach (char c in value)
             {
                 if (char.IsControl(c) || !CanAddCharacter(c))
                 {
@@ -517,7 +517,7 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
-                if (Text.Length + 1 > LengthLimit)
+                if (text.Length + 1 > LengthLimit)
                 {
                     NotifyInputError();
                     break;
@@ -527,10 +527,11 @@ namespace osu.Framework.Graphics.UserInterface
                 ch.Show();
 
                 onDrawableCreated?.Invoke(c, ch);
+
+                text = text.Insert(selectionLeft, c.ToString());
+                selectionStart = selectionEnd = selectionLeft + 1;
             }
 
-            text = text.Insert(selectionLeft, value);
-            selectionStart = selectionEnd = selectionLeft + 1;
             OnTextAdded(value);
 
             cursorAndLayout.Invalidate();
