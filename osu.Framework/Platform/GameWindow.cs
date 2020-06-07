@@ -65,7 +65,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual IEnumerable<DisplayResolution> AvailableResolutions => Enumerable.Empty<DisplayResolution>();
 
-        public readonly Bindable<WindowMode> WindowMode = new Bindable<WindowMode>();
+        public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
@@ -168,6 +168,13 @@ namespace osu.Framework.Platform
         /// </summary>
         protected GameWindow(int width, int height)
             : this(new osuTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+        {
+        }
+
+        /// <summary>
+        /// Not applicable to osuTK.
+        /// </summary>
+        public void Create()
         {
         }
 

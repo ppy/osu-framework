@@ -9,9 +9,9 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using Veldrid.Sdl2;
+using SDL2;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Platform.Sdl
 {
     /// <summary>
     /// Implementation of <see cref="IGraphicsBackend"/> that force-loads OpenGL
@@ -32,8 +32,8 @@ namespace osu.Framework.Platform
 
         public bool VerticalSync
         {
-            get => Sdl2Functions.SDL_GL_GetSwapInterval() != 0;
-            set => Sdl2Native.SDL_GL_SetSwapInterval(value ? 1 : 0);
+            get => SDL.SDL_GL_GetSwapInterval() != 0;
+            set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
         }
 
         public void Initialise(IWindowBackend windowBackend)
@@ -43,11 +43,12 @@ namespace osu.Framework.Platform
 
             initialised = true;
 
-            if (!(windowBackend is Sdl2WindowBackend sdlWindowBackend))
-                return;
+            if (windowBackend is Sdl2WindowBackend sdlWindowBackend)
+                SdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
+            else
+                throw new ArgumentException("Unsupported window backend.", nameof(windowBackend));
 
-            SdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
-            Context = Sdl2Native.SDL_GL_CreateContext(SdlWindowHandle);
+            Context = SDL.SDL_GL_CreateContext(SdlWindowHandle);
 
             MakeCurrent();
 
@@ -88,12 +89,12 @@ namespace osu.Framework.Platform
 
             // We need to release the context in this thread, since Windows locks it and prevents
             // the draw thread from taking it. macOS seems to gracefully ignore this.
-            Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, IntPtr.Zero);
+            SDL.SDL_GL_MakeCurrent(SdlWindowHandle, IntPtr.Zero);
         }
 
-        public void MakeCurrent() => Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, Context);
+        public void MakeCurrent() => SDL.SDL_GL_MakeCurrent(SdlWindowHandle, Context);
 
-        public void SwapBuffers() => Sdl2Native.SDL_GL_SwapWindow(SdlWindowHandle);
+        public void SwapBuffers() => SDL.SDL_GL_SwapWindow(SdlWindowHandle);
 
         private void loadTKBindings()
         {
@@ -121,7 +122,7 @@ namespace osu.Framework.Platform
                 {
                     var ptr = name + entryPointNameOffsetsInstance[i];
                     var str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
-                    entryPointsInstance[i] = Sdl2Native.SDL_GL_GetProcAddress(str);
+                    entryPointsInstance[i] = SDL.SDL_GL_GetProcAddress(str);
                 }
             }
 
