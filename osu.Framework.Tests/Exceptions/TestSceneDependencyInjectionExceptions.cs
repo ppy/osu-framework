@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -65,8 +66,13 @@ namespace osu.Framework.Tests.Exceptions
             assertCorrectStack(() => thrower.ThrownException);
         }
 
-        private void assertCorrectStack(Func<Exception> exception)
-            => AddAssert("exception has correct callstack", () => exception().StackTrace!.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}"));
+        private void assertCorrectStack(Func<Exception> exception) => AddAssert("exception has correct callstack", () =>
+        {
+            var stackTrace = exception().StackTrace;
+            Debug.Assert(stackTrace != null);
+
+            return stackTrace.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}");
+        });
 
         private class AsyncThrower : CompositeDrawable
         {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -393,7 +394,9 @@ namespace osu.Framework.Bindables
         public Bindable<T> GetBoundCopy()
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            copy!.BindTo(this);
+            Debug.Assert(copy != null);
+
+            copy.BindTo(this);
             return copy;
         }
 
