@@ -30,7 +30,7 @@ namespace osu.Framework.Statistics
                 case EventType.GCHeapStats_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
-                        addStatistic<ulong>("Size Gen{i / 2}", data.Payload[i]);
+                        addStatistic<ulong>($"Size Gen{i / 2}", data.Payload[i]);
 
                     addStatistic<ulong>("Finalization queue length", data.Payload[9]);
                     addStatistic<uint>("Pinned objects", data.Payload[10]);
