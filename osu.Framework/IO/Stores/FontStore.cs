@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -126,6 +127,7 @@ namespace osu.Framework.IO.Stores
             return found;
         }
 
+        [CanBeNull]
         public ITexturedCharacterGlyph Get(string fontName, char character)
         {
             var key = (fontName, character);

@@ -30,10 +30,26 @@ namespace osu.Framework.Tests.IO
                 fontStore.AddStore(nestedFontStore);
 
                 var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans", 'a');
+                Assert.That(normalGlyph, Is.Not.Null);
+
                 var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Bold", 'a');
+                Assert.That(boldGlyph, Is.Not.Null);
 
                 Assert.That(normalGlyph.Scale, Is.EqualTo(1f / 100));
                 Assert.That(boldGlyph.Scale, Is.EqualTo(1f / 10));
+            }
+        }
+
+        [Test]
+        public void TestNoCrashOnMissingResources()
+        {
+            using (var glyphStore = new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage })
+            using (var fontStore = new FontStore(glyphStore, 100))
+            {
+                Assert.That(glyphStore.Get('a'), Is.Null);
+
+                Assert.That(fontStore.Get("DoesntExist", 'a'), Is.Null);
+                Assert.That(fontStore.Get("OtherAttempt", 'a'), Is.Null);
             }
         }
 

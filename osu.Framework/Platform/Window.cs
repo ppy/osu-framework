@@ -63,7 +63,7 @@ namespace osu.Framework.Platform
 
         public IEnumerable<Display> Displays => windowBackend.Displays;
 
-        public WindowMode DefaultWindowMode => WindowMode.Windowed;
+        public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
         #endregion
 
@@ -95,6 +95,8 @@ namespace osu.Framework.Platform
         public Bindable<bool> Visible { get; } = new BindableBool();
 
         public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
+
+        public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
         #endregion
 
@@ -287,7 +289,27 @@ namespace osu.Framework.Platform
                 else
                     OnMouseLeft();
             };
+        }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Starts the window's run loop.
+        /// </summary>
+        public void Run() => windowBackend.Run();
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        public void Close() => windowBackend.Close();
+
+        /// <summary>
+        /// Creates the concrete window implementation and initialises the graphics backend.
+        /// </summary>
+        public void Create()
+        {
             windowBackend.Create();
 
             windowBackend.Resized += windowBackend_Resized;
@@ -321,20 +343,6 @@ namespace osu.Framework.Platform
             CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
         }
 
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Starts the window's run loop.
-        /// </summary>
-        public void Run() => windowBackend.Run();
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void Close() => windowBackend.Close();
-
         /// <summary>
         /// Requests that the graphics backend perform a buffer swap.
         /// </summary>
@@ -342,18 +350,16 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Requests that the graphics backend become the current context.
-        /// May be unrequired for some backends.
+        /// May not be required for some backends.
         /// </summary>
         public void MakeCurrent() => graphicsBackend.MakeCurrent();
 
-        public void CycleMode()
+        public virtual void CycleMode()
         {
-            // TODO: CycleMode
         }
 
-        public void SetupWindow(FrameworkConfigManager config)
+        public virtual void SetupWindow(FrameworkConfigManager config)
         {
-            // TODO: SetupWindow
         }
 
         #endregion
