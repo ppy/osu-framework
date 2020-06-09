@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -83,12 +83,7 @@ namespace osu.Framework.Configuration
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)
-                    {
-                        var stringValue = p.Value.ToString();
-                        Debug.Assert(stringValue != null);
-
-                        w.WriteLine(@"{0} = {1}", p.Key, stringValue.Replace("\n", "").Replace("\r", ""));
-                    }
+                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().AsNonNull().Replace("\n", "").Replace("\r", ""));
                 }
             }
             catch
