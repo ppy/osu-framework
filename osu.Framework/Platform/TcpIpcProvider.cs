@@ -69,15 +69,19 @@ namespace osu.Framework.Platform
                             await stream.ReadAsync(data.AsMemory(), token);
                             var str = Encoding.UTF8.GetString(data);
                             var json = JToken.Parse(str);
+
                             var type = Type.GetType(json["Type"].Value<string>());
+                            var value = json["Value"];
+
                             Trace.Assert(type != null);
+                            Trace.Assert(value != null);
+
                             var msg = new IpcMessage
                             {
-                                // ReSharper disable once PossibleNullReferenceException
                                 Type = type.AssemblyQualifiedName,
-                                Value = JsonConvert.DeserializeObject(
-                                    json["Value"].ToString(), type),
+                                Value = JsonConvert.DeserializeObject(value.ToString(), type),
                             };
+
                             MessageReceived?.Invoke(msg);
                         }
                     }

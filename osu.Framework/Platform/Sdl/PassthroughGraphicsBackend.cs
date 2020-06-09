@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -115,6 +116,9 @@ namespace osu.Framework.Platform.Sdl
             var entryPointsInstance = (IntPtr[])pointsInfo.GetValue(bindings);
             var entryPointNamesInstance = (byte[])namesInfo.GetValue(bindings);
             var entryPointNameOffsetsInstance = (int[])offsetsInfo.GetValue(bindings);
+
+            Debug.Assert(entryPointsInstance != null);
+            Debug.Assert(entryPointNameOffsetsInstance != null);
 
             fixed (byte* name = entryPointNamesInstance)
             {

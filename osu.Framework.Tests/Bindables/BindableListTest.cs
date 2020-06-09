@@ -1603,13 +1603,11 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.ItemsAdded += items =>
             {
                 addedItems = items;
-                if (itemsWereFirstCleaned == null)
-                    itemsWereFirstCleaned = false;
+                itemsWereFirstCleaned ??= false;
             };
             bindableStringList.ItemsRemoved += items =>
             {
-                if (itemsWereFirstCleaned == null)
-                    itemsWereFirstCleaned = true;
+                itemsWereFirstCleaned ??= true;
             };
 #pragma warning restore 618
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();

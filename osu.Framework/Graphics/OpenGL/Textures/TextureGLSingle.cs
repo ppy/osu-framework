@@ -98,8 +98,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateMemoryUsage(int level, long newUsage)
         {
-            if (levelMemoryUsage == null)
-                levelMemoryUsage = new List<long>();
+            levelMemoryUsage ??= new List<long>();
 
             while (level >= levelMemoryUsage.Count)
                 levelMemoryUsage.Add(0);
@@ -205,8 +204,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
-            if (vertexAction == null)
-                vertexAction = default_quad_action;
+            vertexAction ??= default_quad_action;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -280,8 +278,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            if (vertexAction == null)
-                vertexAction = default_quad_action;
+            vertexAction ??= default_quad_action;
 
             vertexAction(new TexturedVertex2D
             {
