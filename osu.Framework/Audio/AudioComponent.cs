@@ -139,6 +139,8 @@ namespace osu.Framework.Audio
         {
             acceptingActions = false;
             PendingActions.Enqueue(new Task(() => Dispose(true)));
+
+            GC.SuppressFinalize(this);
         }
 
         #endregion
