@@ -4,9 +4,11 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
+using osu.Framework.Logging;
 using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Threading
@@ -44,6 +46,7 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
+        private readonly Dictionary<int, int> deviceReferences = new Dictionary<int, int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -54,14 +57,11 @@ namespace osu.Framework.Threading
             lock (managers)
             {
                 for (var i = 0; i < managers.Count; i++)
-                {
-                    var m = managers[i];
-                    m.Update();
-                }
+                    managers[i].Update();
             }
         }
 
-        public void RegisterManager(AudioManager manager)
+        internal void RegisterManager(AudioManager manager)
         {
             lock (managers)
             {
@@ -72,27 +72,61 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void UnregisterManager(AudioManager manager)
+        internal void UnregisterManager(AudioManager manager)
         {
             lock (managers)
                 managers.Remove(manager);
         }
 
+        internal bool InitDevice(int deviceIndex)
+        {
+            Debug.Assert(IsCurrent);
+
+            if (Bass.Init(deviceIndex) || Bass.LastError == Errors.Already)
+            {
+                // If the default (-1) device was initialised, we need to re-query for the device id that BASS mapped it to. For all other cases, this is a no-op.
+                deviceIndex = Bass.CurrentDevice;
+                deviceReferences[deviceIndex] = deviceReferences.GetValueOrDefault(deviceIndex) + 1;
+
+                var err = Bass.LastError;
+                return true;
+            }
+
+            if (BassUtils.CheckFaulted(false))
+                return false;
+
+            Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
+            return false;
+        }
+
+        internal void FreeDevice()
+        {
+            Debug.Assert(IsCurrent);
+
+            if (Bass.CurrentDevice == -1)
+                return;
+
+            Debug.Assert(deviceReferences[Bass.CurrentDevice] > 0, $"{nameof(FreeDevice)} was called before {nameof(InitDevice)}.");
+
+            if (--deviceReferences[Bass.CurrentDevice] == 0)
+            {
+                // Since all references to the device have been removed, it is now safe to free the device.
+                Bass.Free();
+            }
+        }
+
         protected override void PerformExit()
         {
-            base.PerformExit();
-
             lock (managers)
             {
                 foreach (var manager in managers)
                     manager.Dispose();
-                managers.Clear();
             }
 
-            // Safety net to ensure we have freed all devices before exiting.
-            // This is mainly required for device-lost scenarios.
-            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            while (Bass.Free()) { }
+            // The AudioManager disposal is scheduled, so we need to continue execution one last time.
+            RunFrame();
+
+            base.PerformExit();
         }
     }
 }

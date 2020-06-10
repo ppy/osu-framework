@@ -128,7 +128,7 @@ namespace osu.Framework.Audio
             Dispose(false);
         }
 
-        protected volatile bool IsDisposed;
+        protected internal bool IsDisposed { get; private set; }
 
         protected virtual void Dispose(bool disposing)
         {

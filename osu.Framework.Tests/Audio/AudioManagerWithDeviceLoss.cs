@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
@@ -21,44 +21,33 @@ namespace osu.Framework.Tests.Audio
         {
         }
 
-        public volatile int CurrentDevice = Bass.DefaultDevice;
-
+        public volatile int CurrentDevice = -1;
         private volatile bool simulateLoss;
 
         protected override bool InitBass(int device)
         {
-            if (simulateLoss)
+            try
             {
-                if (device != Bass.NoSoundDevice || !base.InitBass(device))
-                    return false;
+                if (simulateLoss)
+                    return device == Bass.NoSoundDevice && base.InitBass(device);
 
-                CurrentDevice = device;
-                return true;
+                return base.InitBass(device);
             }
-
-            if (!base.InitBass(device))
-                return false;
-
-            CurrentDevice = device;
-            return true;
+            finally
+            {
+                CurrentDevice = Bass.CurrentDevice;
+            }
         }
 
-        protected override IEnumerable<DeviceInfo> EnumerateAllDevices()
-        {
-            var devices = base.EnumerateAllDevices();
-
-            if (simulateLoss)
-                devices = devices.Take(1);
-
-            return devices;
-        }
+        protected override IEnumerable<DeviceInfo> EnumerateAllDevices() => simulateLoss ? Bass.GetDeviceInfo(Bass.NoSoundDevice).Yield() : base.EnumerateAllDevices();
 
         protected override bool IsCurrentDeviceValid()
         {
-            if (simulateLoss)
-                return CurrentDevice == Bass.NoSoundDevice && base.IsCurrentDeviceValid();
+            bool hasCorrectDevice = simulateLoss
+                ? Bass.CurrentDevice == Bass.NoSoundDevice
+                : Bass.CurrentDevice != Bass.NoSoundDevice;
 
-            return CurrentDevice != Bass.NoSoundDevice && base.IsCurrentDeviceValid();
+            return hasCorrectDevice && base.IsCurrentDeviceValid();
         }
 
         public void SimulateDeviceLoss()
