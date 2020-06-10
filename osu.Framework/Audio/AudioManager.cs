@@ -165,7 +165,7 @@ namespace osu.Framework.Audio
             cancelSource.Cancel();
             thread.UnregisterManager(this);
 
-            thread.FreeDevice();
+            thread.FreeDevice(Bass.CurrentDevice);
         }
 
         private void onDeviceChanged(ValueChangedEvent<string> args)
@@ -239,15 +239,17 @@ namespace osu.Framework.Audio
         {
             var device = audioDevices.ElementAtOrDefault(deviceIndex);
 
-            // device is invalid
+            // device is invalid.
             if (!device.IsEnabled)
                 return false;
 
-            // same device
+            // same device.
             if (device.IsInitialized && deviceIndex == Bass.CurrentDevice)
                 return true;
 
-            // initialize new device
+            // initialize new device.
+            int lastDevice = Bass.CurrentDevice;
+
             if (!InitBass(deviceIndex))
                 return false;
 
@@ -257,8 +259,11 @@ namespace osu.Framework.Audio
                           Device:                     {device.Name}
                           Drive:                      {device.Driver}");
 
-            //we have successfully initialised a new device.
+            // we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
+
+            // free the old device.
+            thread.FreeDevice(lastDevice);
 
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
@@ -272,8 +277,6 @@ namespace osu.Framework.Audio
         /// </summary>
         protected virtual bool InitBass(int device)
         {
-            thread.FreeDevice();
-
             // reduce latency to a known sane minimum.
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
 

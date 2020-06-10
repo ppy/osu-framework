@@ -87,8 +87,6 @@ namespace osu.Framework.Threading
                 // If the default (-1) device was initialised, we need to re-query for the device id that BASS mapped it to. For all other cases, this is a no-op.
                 deviceIndex = Bass.CurrentDevice;
                 deviceReferences[deviceIndex] = deviceReferences.GetValueOrDefault(deviceIndex) + 1;
-
-                var err = Bass.LastError;
                 return true;
             }
 
@@ -99,16 +97,16 @@ namespace osu.Framework.Threading
             return false;
         }
 
-        internal void FreeDevice()
+        internal void FreeDevice(int deviceIndex)
         {
             Debug.Assert(IsCurrent);
 
-            if (Bass.CurrentDevice == -1)
+            if (deviceIndex == -1)
                 return;
 
-            Debug.Assert(deviceReferences[Bass.CurrentDevice] > 0, $"{nameof(FreeDevice)} was called before {nameof(InitDevice)}.");
+            Debug.Assert(deviceReferences[deviceIndex] > 0, $"{nameof(FreeDevice)} was called before {nameof(InitDevice)}.");
 
-            if (--deviceReferences[Bass.CurrentDevice] == 0)
+            if (--deviceReferences[deviceIndex] == 0)
             {
                 // Since all references to the device have been removed, it is now safe to free the device.
                 Bass.Free();
