@@ -46,7 +46,7 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
-        private readonly Dictionary<int, int> deviceReferences = new Dictionary<int, int>();
+        private readonly HashSet<int> initialisedDevices = new HashSet<int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -80,13 +80,21 @@ namespace osu.Framework.Threading
 
         internal bool InitDevice(int deviceIndex)
         {
-            Debug.Assert(IsCurrent);
+            Debug.Assert(deviceIndex != -1, "Must not initialise with the default (-1) device.");
+            Debug.Assert(IsCurrent, "Cannot initialise BASS when not on the audio thread.");
 
-            if (Bass.Init(deviceIndex) || Bass.LastError == Errors.Already)
+            if (Bass.Init(deviceIndex))
             {
-                // If the default (-1) device was initialised, we need to re-query for the device id that BASS mapped it to. For all other cases, this is a no-op.
-                deviceIndex = Bass.CurrentDevice;
-                deviceReferences[deviceIndex] = deviceReferences.GetValueOrDefault(deviceIndex) + 1;
+                // BASS will switch the current device to the newly-initialised device when BASS_Init() succeeds.
+                // Mark the device as having been initialised.
+                initialisedDevices.Add(deviceIndex);
+                return true;
+            }
+
+            if (Bass.LastError == Errors.Already)
+            {
+                // If the device has already been initialised, we can still use it, but we need to switch to the device first.
+                Bass.CurrentDevice = deviceIndex;
                 return true;
             }
 
@@ -95,22 +103,6 @@ namespace osu.Framework.Threading
 
             Logger.Log("BASS failed to initialize but did not provide an error code", level: LogLevel.Error);
             return false;
-        }
-
-        internal void FreeDevice(int deviceIndex)
-        {
-            Debug.Assert(IsCurrent);
-
-            if (deviceIndex == -1)
-                return;
-
-            Debug.Assert(deviceReferences[deviceIndex] > 0, $"{nameof(FreeDevice)} was called before {nameof(InitDevice)}.");
-
-            if (--deviceReferences[deviceIndex] == 0)
-            {
-                // Since all references to the device have been removed, it is now safe to free the device.
-                Bass.Free();
-            }
         }
 
         protected override void PerformExit()
@@ -122,7 +114,17 @@ namespace osu.Framework.Threading
             }
 
             // The AudioManager disposal is scheduled, so we need to continue execution one last time.
+            // This will let any final actions execute before the disposal is finalised and the devices can be cleaned up.
             RunFrame();
+
+            // Clean up all previously-initialised devices in turn.
+            foreach (var d in initialisedDevices)
+            {
+                Bass.CurrentDevice = d;
+                Bass.Free();
+            }
+
+            initialisedDevices.Clear();
 
             base.PerformExit();
         }

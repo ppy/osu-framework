@@ -164,8 +164,6 @@ namespace osu.Framework.Audio
 
             cancelSource.Cancel();
             thread.UnregisterManager(this);
-
-            thread.FreeDevice(Bass.CurrentDevice);
         }
 
         private void onDeviceChanged(ValueChangedEvent<string> args)
@@ -261,9 +259,6 @@ namespace osu.Framework.Audio
 
             // we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
-
-            // free the old device.
-            thread.FreeDevice(lastDevice);
 
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
