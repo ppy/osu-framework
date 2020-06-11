@@ -254,8 +254,6 @@ namespace osu.Framework.Platform.Sdl
 
         private SDL.SDL_WindowFlags windowFlags => SdlWindowHandle == IntPtr.Zero ? 0 : (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle);
 
-        public bool EnableMousePolling { get; set; } = true;
-
         #endregion
 
         #region IWindowBackend.Events
@@ -339,7 +337,7 @@ namespace osu.Framework.Platform.Sdl
 
                 processEvents();
 
-                if (EnableMousePolling && !mouseInWindow)
+                if (!mouseInWindow)
                     pollMouse();
 
                 OnUpdate();

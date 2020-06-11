@@ -83,12 +83,6 @@ namespace osu.Framework.Platform
         /// </summary>
         DisplayMode CurrentDisplayMode { get; }
 
-        /// <summary>
-        /// If enabled, <see cref="MouseMove"/> events will be fired while the mouse cursor is outside the window.
-        /// Coordinates are relative to the top left corner of the window.
-        /// </summary>
-        bool EnableMousePolling { get; set; }
-
         #endregion
 
         #region Events
@@ -160,8 +154,6 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
-        /// If <see cref="EnableMousePolling"/> is true, it will also be invoked when
-        /// the mouse cursor is outside the window.
         /// </summary>
         event Action<MousePositionAbsoluteInput> MouseMove;
 
