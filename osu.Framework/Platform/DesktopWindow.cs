@@ -10,6 +10,7 @@ namespace osu.Framework.Platform
 {
     public class DesktopWindow : Window
     {
+        private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly BindableSize sizeWindowed = new BindableSize();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
@@ -26,6 +27,14 @@ namespace osu.Framework.Platform
         public override void SetupWindow(FrameworkConfigManager config)
         {
             base.SetupWindow(config);
+
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
+
+            sizeFullscreen.ValueChanged += evt =>
+            {
+                if (!evt.NewValue.IsEmpty && WindowState.Value == Platform.WindowState.Fullscreen)
+                    Size.Value = evt.NewValue;
+            };
 
             sizeWindowed.ValueChanged += evt =>
             {
