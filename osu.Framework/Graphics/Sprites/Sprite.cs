@@ -167,7 +167,9 @@ namespace osu.Framework.Graphics.Sprites
                     height = TextureRectangle.Height;
 
                 FillAspectRatio = width / height;
+
                 Invalidate(Invalidation.DrawNode);
+                conservativeScreenSpaceDrawQuadBacking.Invalidate();
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
