@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Opacity = Opacity.Opaque;
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             //we can use the special white space from any atlas texture.
             if (GLWrapper.AtlasTextureIsBound(unit))

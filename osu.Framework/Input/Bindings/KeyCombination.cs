@@ -125,10 +125,10 @@ namespace osu.Framework.Input.Bindings
 
         public override int GetHashCode()
         {
-            int hash = 0;
+            var hash = new HashCode();
             foreach (var key in Keys)
-                hash = hash * 17 + (int)key;
-            return hash;
+                hash.Add(key);
+            return hash.ToHashCode();
         }
 
         public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(ImmutableArray.Create(singleKey));

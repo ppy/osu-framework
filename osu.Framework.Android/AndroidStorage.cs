@@ -9,17 +9,12 @@ namespace osu.Framework.Android
 {
     public class AndroidStorage : NativeStorage
     {
-        public AndroidStorage(string baseName, GameHost host)
-            : base(baseName, host)
+        public AndroidStorage(string path, GameHost host)
+            : base(path, host)
         {
         }
 
-        protected override string LocateBasePath()
-        {
-            return Application.Context.GetExternalFilesDir(string.Empty).ToString();
-        }
-
-        public override void OpenInNativeExplorer()
+        public override void OpenPathInNativeExplorer(string path)
         {
             //Not needed now.
             throw new NotImplementedException();

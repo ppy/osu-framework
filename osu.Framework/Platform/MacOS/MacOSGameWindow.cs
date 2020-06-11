@@ -91,7 +91,10 @@ namespace osu.Framework.Platform.MacOS
                 var fieldWindowClass = typeCocoaNativeWindow.GetField("windowClass", instance_member);
                 Debug.Assert(fieldWindowClass != null, "Reflection is broken!");
 
-                var windowClass = (IntPtr)fieldWindowClass.GetValue(nativeWindow);
+                var windowClassValue = fieldWindowClass.GetValue(nativeWindow);
+                Debug.Assert(windowClassValue != null);
+
+                var windowClass = (IntPtr)windowClassValue;
 
                 // register new methods
                 Class.RegisterMethod(windowClass, flagsChangedHandler, "flagsChanged:", "v@:@");

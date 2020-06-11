@@ -28,6 +28,11 @@ namespace osu.Framework.Platform
         void SetupWindow(FrameworkConfigManager config);
 
         /// <summary>
+        /// Creates the concrete window implementation.
+        /// </summary>
+        void Create();
+
+        /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
         [CanBeNull]
@@ -75,6 +80,12 @@ namespace osu.Framework.Platform
         /// The <see cref="WindowMode"/>s supported by this <see cref="IWindow"/> implementation.
         /// </summary>
         IBindableList<WindowMode> SupportedWindowModes { get; }
+
+        /// <summary>
+        /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
+        /// Supported window modes for the current platform can be retrieved via <see cref="SupportedWindowModes"/>.
+        /// </summary>
+        Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
         /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.

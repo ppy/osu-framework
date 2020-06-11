@@ -5,6 +5,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
@@ -84,12 +85,79 @@ namespace osu.Framework.Tests.Layout
             });
         }
 
+        [Test]
+        public void TestChangePositionInvalidatesMiscGeometryOnSelf()
+        {
+            TestBox1 box = null;
+
+            AddStep("create test", () =>
+            {
+                Child = box = new TestBox1
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre
+                };
+            });
+
+            AddUntilStep("wait for validation", () => box.MiscGeometryLayoutValue.IsValid);
+
+            AddAssert("change position and ensure MiscGeometry invalidated on self", () =>
+            {
+                box.Position = new Vector2(50);
+                return !box.MiscGeometryLayoutValue.IsValid;
+            });
+        }
+
+        [Test]
+        public void TestChangeSizeInvalidatesDrawSizeOnSelf()
+        {
+            TestBox1 box = null;
+
+            AddStep("create test", () =>
+            {
+                Child = box = new TestBox1
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(50)
+                };
+            });
+
+            AddUntilStep("wait for validation", () => box.DrawSizeLayoutValue.IsValid);
+
+            AddAssert("change size and ensure DrawSize invalidated on self", () =>
+            {
+                box.Size = new Vector2(100);
+                return !box.DrawSizeLayoutValue.IsValid;
+            });
+        }
+
         private class TestContainer1 : Container<Drawable>
         {
             public void AdjustScale(float scale = 1.0f)
             {
                 this.ScaleTo(new Vector2(scale));
                 this.ResizeTo(new Vector2(1 / scale));
+            }
+        }
+
+        private class TestBox1 : Box
+        {
+            public readonly LayoutValue MiscGeometryLayoutValue = new LayoutValue(Invalidation.MiscGeometry, InvalidationSource.Self);
+            public readonly LayoutValue DrawSizeLayoutValue = new LayoutValue(Invalidation.DrawSize, InvalidationSource.Self);
+
+            public TestBox1()
+            {
+                AddLayout(MiscGeometryLayoutValue);
+                AddLayout(DrawSizeLayoutValue);
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                MiscGeometryLayoutValue.Validate();
+                DrawSizeLayoutValue.Validate();
             }
         }
     }

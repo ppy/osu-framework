@@ -120,8 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
                 RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
 
-                if (!screenSpaceMaskingQuad.HasValue)
-                    screenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
+                screenSpaceMaskingQuad ??= Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
                 MaskingInfo edgeEffectMaskingInfo = maskingInfo.Value;
                 edgeEffectMaskingInfo.MaskingRect = effectRect;

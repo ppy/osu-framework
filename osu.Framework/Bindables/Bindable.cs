@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -223,9 +224,7 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
-
+            Bindings ??= new LockedWeakList<Bindable<T>>();
             Bindings.Add(weakReference);
         }
 
@@ -395,6 +394,8 @@ namespace osu.Framework.Bindables
         public Bindable<T> GetBoundCopy()
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
+            Debug.Assert(copy != null);
+
             copy.BindTo(this);
             return copy;
         }

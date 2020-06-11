@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
@@ -12,13 +13,11 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public NativeStorage(string baseName, GameHost host = null)
-            : base(baseName)
+        public NativeStorage(string path, GameHost host = null)
+            : base(path)
         {
             this.host = host;
         }
-
-        protected override string LocateBasePath() => @"./"; //use current directory by default
 
         public override bool Exists(string path) => File.Exists(GetFullPath(path));
 
@@ -60,7 +59,7 @@ namespace osu.Framework.Platform
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-            var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory)).TrimEnd(Path.DirectorySeparatorChar);
+            var basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
             var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
             if (!resolvedPath.StartsWith(basePath)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
@@ -69,7 +68,8 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenInNativeExplorer() => host?.OpenFileExternally(GetFullPath(string.Empty));
+        public override void OpenPathInNativeExplorer(string path) =>
+            host?.OpenFileExternally(GetFullPath(path));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
@@ -93,5 +93,18 @@ namespace osu.Framework.Platform
         public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
+
+        public override Storage GetStorageForDirectory([NotNull] string path)
+        {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+
+            if (path.Length > 0 && !path.EndsWith(Path.DirectorySeparatorChar))
+                path += Path.DirectorySeparatorChar;
+
+            // create non-existing path.
+            var fullPath = GetFullPath(path, true);
+
+            return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
+        }
     }
 }

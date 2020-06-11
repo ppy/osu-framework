@@ -21,20 +21,52 @@ namespace osu.Framework.Graphics.Sprites
 
         public IShader RoundedTextureShader { get; protected set; }
 
+        [Obsolete("Has no effect. Use TextureRectangle instead.")] // can be removed 20201201
+        public bool WrapTexture { get; set; }
+
+        private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
+
         /// <summary>
         /// Sub-rectangle of the sprite in which the texture is positioned.
         /// Can be either relative coordinates (0 to 1) or absolute coordinates,
-        /// depending on <see cref="Sprite.TextureRelativeSizeAxes"/>.
+        /// depending on <see cref="TextureRelativeSizeAxes"/>.
         /// </summary>
-        /// <value></value>
-        public RectangleF TextureRectangle = new RectangleF(0, 0, 1, 1);
+        public RectangleF TextureRectangle
+        {
+            get => textureRectangle;
+            set
+            {
+                if (textureRectangle == value)
+                    return;
+
+                textureRectangle = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Axes textureRelativeSizeAxes = Axes.Both;
 
         /// <summary>
-        /// Whether or not the <see cref="Sprite.TextureRectangle"/> is in relative coordinates
+        /// Whether or not the <see cref="TextureRectangle"/> is in relative coordinates
         /// (0 to 1) or in absolute coordinates.
         /// </summary>
-        public Axes TextureRelativeSizeAxes = Axes.Both;
+        public Axes TextureRelativeSizeAxes
+        {
+            get => textureRelativeSizeAxes;
+            set
+            {
+                if (textureRelativeSizeAxes == value)
+                    return;
 
+                textureRelativeSizeAxes = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        /// <summary>
+        /// Absolutely sized sub-rectangle in which the texture is positioned in the coordinate space of this <see cref="Sprite"/>.
+        /// Based on <see cref="TextureRectangle"/>.
+        /// </summary>
         public RectangleF DrawTextureRectangle
         {
             get
@@ -65,7 +97,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
         /// </summary>
-        public const int MAX_EDGE_SMOOTHNESS = 3;
+        public const int MAX_EDGE_SMOOTHNESS = 3; // See https://github.com/ppy/osu-framework/pull/3511#discussion_r421665156 for relevant discussion.
 
         /// <summary>
         /// Determines over how many pixels of width the border of the sprite is smoothed

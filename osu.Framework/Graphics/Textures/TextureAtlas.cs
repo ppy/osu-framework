@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.Textures
             RectangleI bounds = new RectangleI(0, 0, WHITE_PIXEL_SIZE, WHITE_PIXEL_SIZE);
             subTextureBounds.Add(bounds);
 
-            using (var whiteTex = new TextureGLSub(bounds, AtlasTexture))
+            using (var whiteTex = new TextureGLSub(bounds, AtlasTexture, WrapMode.Repeat, WrapMode.Repeat))
                 // Generate white padding as if WhitePixel was wrapped, even though it isn't
-                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)), WrapMode.Repeat, WrapMode.Repeat);
+                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
 
             currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
         }

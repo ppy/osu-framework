@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -25,15 +27,42 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
+        private readonly Texture[] textures = new Texture[4 * 4];
 
+        [BackgroundDependencyLoader]
+        private void load(TextureStore store)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                    textures[i * 4 + j] = store.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
+            }
+        }
+
+        [Test]
+        public void TestSprites() => createTest(tex => new Sprite
+        {
+            Texture = tex,
+            TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
+        });
+
+        [Test]
+        public void TestTriangles() => createTest(tex => new EquilateralTriangle
+        {
+            Texture = tex,
+            TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
+        });
+
+        [Test, Ignore("not implemented yet")]
+        public void TestVideos() => createTest(_ => new TestVideo());
+
+        private void createTest(Func<Texture, Drawable> creatorFunc) => AddStep("create test", () =>
+        {
             for (int i = 0; i < Rows; ++i)
             {
                 for (int j = 0; j < Cols; ++j)
                 {
-                    Cell(i, j).AddRange(new Drawable[]
+                    Cell(i, j).Children = new Drawable[]
                     {
                         new SpriteText
                         {
@@ -46,17 +75,15 @@ namespace osu.Framework.Tests.Visual.Sprites
                             Size = new Vector2(0.5f),
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            Children = new Drawable[]
+                            Children = new[]
                             {
-                                new Sprite
+                                creatorFunc(textures[i * 4 + j]).With(d =>
                                 {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = Vector2.One,
-                                    Texture = textures[i * 4 + j],
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    TextureRectangle = new RectangleF(0.25f, 0.25f, 0.5f, 0.5f),
-                                },
+                                    d.RelativeSizeAxes = Axes.Both;
+                                    d.Size = Vector2.One;
+                                    d.Anchor = Anchor.Centre;
+                                    d.Origin = Anchor.Centre;
+                                }),
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
@@ -74,21 +101,9 @@ namespace osu.Framework.Tests.Visual.Sprites
                                 }
                             }
                         }
-                    });
+                    };
                 }
             }
-        }
-
-        private readonly Texture[] textures = new Texture[4 * 4];
-
-        [BackgroundDependencyLoader]
-        private void load(TextureStore store)
-        {
-            for (int i = 0; i < 4; ++i)
-            {
-                for (int j = 0; j < 4; ++j)
-                    textures[i * 4 + j] = store.Get(@"sample-texture", wrapModes[i], wrapModes[j]);
-            }
-        }
+        });
     }
 }

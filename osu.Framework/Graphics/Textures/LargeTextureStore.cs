@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
         /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>The texture.</returns>
-        public override Texture Get(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        public override Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             lock (referenceCountLock)
             {

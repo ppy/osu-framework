@@ -15,7 +15,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public TextureGL(WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+        /// <summary>
+        /// The texture wrap mode in horizontal direction.
+        /// </summary>
+        public readonly WrapMode WrapModeS;
+
+        /// <summary>
+        /// The texture wrap mode in vertical direction.
+        /// </summary>
+        public readonly WrapMode WrapModeT;
+
+        protected TextureGL(WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             WrapModeS = wrapModeS;
             WrapModeT = wrapModeT;
@@ -75,10 +85,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public Vector2 Size => new Vector2(Width, Height);
 
-        public readonly WrapMode WrapModeS;
-
-        public readonly WrapMode WrapModeT;
-
         public abstract RectangleF GetTextureRect(RectangleF? textureRect);
 
         /// <summary>
@@ -110,10 +116,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Bind as active texture.
         /// </summary>
         /// <param name="unit">The texture unit to bind to. Defaults to Texture0.</param>
+        /// <returns>True if bind was successful.</returns>
+        public bool Bind(TextureUnit unit = TextureUnit.Texture0) => Bind(unit, WrapModeS, WrapModeT);
+
+        /// <summary>
+        /// Bind as active texture.
+        /// </summary>
+        /// <param name="unit">The texture unit to bind to.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>True if bind was successful.</returns>
-        public abstract bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null);
+        internal abstract bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT);
 
         /// <summary>
         /// Uploads pending texture data to the GPU if it exists.
@@ -126,7 +139,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         internal abstract void FlushUploads();
 
-        public abstract void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null);
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGL"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
+
+        /// <summary>
+        /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
+        /// </summary>
+        /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity);
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
         {
@@ -173,9 +198,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
     public enum WrapMode
     {
+        /// <summary>
+        /// No wrapping. If the texture is part of an atlas, this may read outside the texture's bounds.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Clamps to the edge of the texture, repeating the edge to fill the remainder of the draw area.
+        /// </summary>
         ClampToEdge = 1,
+
+        /// <summary>
+        /// Clamps to a transparent-black border around the texture, repeating the border to fill the remainder of the draw area.
+        /// </summary>
         ClampToBorder = 2,
+
+        /// <summary>
+        /// Repeats the texture.
+        /// </summary>
         Repeat = 3,
     }
 

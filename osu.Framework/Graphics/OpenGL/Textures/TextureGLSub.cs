@@ -83,23 +83,23 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawQuad(vertexQuad, drawColour, boundsInParent(textureRect), vertexAction, inflationPercentage: inflationPercentage, blendRangeOverride: blendRangeOverride, boundsInParent(textureCoords));
         }
 
-        internal override bool Upload() => false;
-
-        internal override void FlushUploads()
-        {
-        }
-
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
-            return parent.Bind(unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT);
+            return parent.Bind(unit, wrapModeS, wrapModeT);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
+        internal override bool Upload() => false;
+
+        internal override void FlushUploads()
+        {
+        }
+
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             UpdateOpacity(upload, ref uploadOpacity);
-            parent?.SetData(upload, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT, uploadOpacity);
+            parent?.SetData(upload, wrapModeS, wrapModeT, uploadOpacity);
         }
     }
 }

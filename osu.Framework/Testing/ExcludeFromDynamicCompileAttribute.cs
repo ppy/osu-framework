@@ -11,7 +11,7 @@ namespace osu.Framework.Testing
     /// <remarks>
     /// This should be used as sparingly as possible for cases where compiling a type changes fundamental testing components (e.g. <see cref="TestBrowser"/>).
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum, Inherited = false)]
     public class ExcludeFromDynamicCompileAttribute : Attribute
     {
     }

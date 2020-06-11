@@ -43,6 +43,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleI Bounds => new RectangleI(0, 0, Width, Height);
 
+        /// <summary>
+        /// Creates a new <see cref="TextureGLSingle"/>.
+        /// </summary>
+        /// <param name="width">The width of the texture.</param>
+        /// <param name="height">The height of the texture.</param>
+        /// <param name="manualMipmaps">Whether manual mipmaps will be uploaded to the texture. If false, the texture will compute mipmaps automatically.</param>
+        /// <param name="filteringMode">The filtering mode.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
             : base(wrapModeS, wrapModeT)
         {
@@ -91,8 +100,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateMemoryUsage(int level, long newUsage)
         {
-            if (levelMemoryUsage == null)
-                levelMemoryUsage = new List<long>();
+            levelMemoryUsage ??= new List<long>();
 
             while (level >= levelMemoryUsage.Count)
                 levelMemoryUsage.Add(0);
@@ -185,18 +193,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge || GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
             {
                 Vector2 inflationVector = Vector2.Zero;
+
+                const int mipmap_padding_requirement = (1 << MAX_MIPMAP_LEVELS) / 2;
+
                 if (GLWrapper.CurrentWrapModeS == WrapMode.ClampToEdge)
-                    inflationVector.X = TextureAtlas.PADDING / 4f / width;
+                    inflationVector.X = mipmap_padding_requirement / (float)width;
                 if (GLWrapper.CurrentWrapModeT == WrapMode.ClampToEdge)
-                    inflationVector.Y = TextureAtlas.PADDING / 4f / height;
+                    inflationVector.Y = mipmap_padding_requirement / (float)height;
                 texRect = texRect.Inflate(inflationVector);
             }
 
             RectangleF coordRect = GetTextureRect(textureCoords ?? textureRect);
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
 
-            if (vertexAction == null)
-                vertexAction = default_quad_action;
+            vertexAction ??= default_quad_action;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -270,8 +280,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedCoordRect = coordRect.Inflate(inflationAmount);
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
-            if (vertexAction == null)
-                vertexAction = default_quad_action;
+            vertexAction ??= default_quad_action;
 
             vertexAction(new TexturedVertex2D
             {
@@ -309,7 +318,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
@@ -333,7 +342,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
@@ -343,7 +352,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (textureId <= 0)
                 return false;
 
-            if (GLWrapper.BindTexture(this, unit, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeT))
+            if (GLWrapper.BindTexture(this, unit, wrapModeS, wrapModeT))
                 BindCount++;
 
             return true;

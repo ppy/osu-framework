@@ -59,16 +59,6 @@ namespace osu.Framework.Graphics.Textures
         /// Crop the texture.
         /// </summary>
         /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
-        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
-        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        /// <returns>The cropped texture.</returns>
-        public Texture Crop(RectangleI cropRectangle, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
-            => new Texture(new TextureGLSub(cropRectangle, TextureGL, wrapModeS, wrapModeT));
-
-        /// <summary>
-        /// Crop the texture.
-        /// </summary>
-        /// <param name="cropRectangle">The rectangle the cropped texture should reference.</param>
         /// <param name="relativeSizeAxes">Which axes have a relative size in [0,1] in relation to the texture size.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>

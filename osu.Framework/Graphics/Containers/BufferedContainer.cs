@@ -263,6 +263,15 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
 
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            var result = base.UpdateSubTreeMasking(source, maskingBounds);
+
+            childrenUpdateVersion = updateVersion;
+
+            return result;
+        }
+
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
         private Vector2 lastScreenSpaceSize;
@@ -311,13 +320,6 @@ namespace osu.Framework.Graphics.Containers
 
                 screenSpaceSizeBacking.Validate();
             }
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            childrenUpdateVersion = updateVersion;
         }
 
         /// <summary>

@@ -39,8 +39,7 @@ namespace osu.Framework.Testing.Drawables.Steps
             {
                 invocations++;
 
-                if (elapsedTime == null)
-                    elapsedTime = Stopwatch.StartNew();
+                elapsedTime ??= Stopwatch.StartNew();
 
                 updateText();
 

@@ -151,9 +151,8 @@ namespace osu.Framework.Platform
             if (ExecutionMode == activeExecutionMode)
                 return;
 
-            if (activeExecutionMode == null)
-                // in the case we have not yet got an execution mode, set this early to allow usage in GameThread.Initialize overrides.
-                activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
+            // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
+            activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
 
             pauseAllThreads();
 

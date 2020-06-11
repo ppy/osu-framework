@@ -27,25 +27,23 @@ namespace osu.Framework.Graphics.Video
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null, Opacity? uploadOpacity = null)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             UploadComplete = false;
 
             // We do not support videos with transparency at this point,
             // so the upload's opacity as well as the texture's opacity
             // is always opaque.
-            uploadOpacity = Opacity = Opacity.Opaque;
-
-            base.SetData(upload, default, default, uploadOpacity);
+            base.SetData(upload, wrapModeS, wrapModeT, Opacity = Opacity.Opaque);
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0, WrapMode? wrapModeS = null, WrapMode? wrapModeT = null)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS ?? WrapModeS, wrapModeT ?? WrapModeS);
+                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
 
             return true;
         }

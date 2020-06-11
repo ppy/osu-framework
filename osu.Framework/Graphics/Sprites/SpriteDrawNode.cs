@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Sprites
 
             TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle);
             if (Texture != null)
-                TextureCoords *= (Texture.Size / Texture.ScaleAdjust);
+                TextureCoords *= new Vector2(Texture.DisplayWidth, Texture.DisplayHeight);
 
             hasOpaqueInterior = DrawColourInfo.Colour.MinAlpha == 1
                                 && DrawColourInfo.Blending == BlendingParameters.Mixture
