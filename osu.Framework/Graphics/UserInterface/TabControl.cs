@@ -231,7 +231,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
-        /// If the tab to be removed is currently selected, then the next one is selected, otherwise the previous one is selected
+        /// If this <see cref="TabItem{T}"/> is currently selected and is not the only one then 
+        /// switches tab to the next or previous one according to the tabs order, otherwise clears <see cref="SelectedTab"/>.
         /// </summary>
         /// <param name="tab">The tab to remove.</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
@@ -244,7 +245,8 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (Items.Count == 1)
                     SelectedTab = null;
-                else {
+                else
+                {
                     tabMap.TryGetValue(Items.LastOrDefault(), out TabItem<T> lastTab);
                     SwitchTab(tab == lastTab ? -1 : 1);
                 }

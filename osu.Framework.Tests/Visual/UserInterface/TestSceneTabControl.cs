@@ -252,8 +252,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
             AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
 
-            AddStep("Remove all tabs", () => {
-                var itemsForDelete = new List<TestEnum?> (simpleTabcontrol.Items);
+            AddStep("Remove all tabs", () =>
+            {
+                var itemsForDelete = new List<TestEnum?>(simpleTabcontrol.Items);
                 itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
             });
             AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
