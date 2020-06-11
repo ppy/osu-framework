@@ -247,7 +247,7 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectedTab = null;
                 else
                 {
-                    tabMap.TryGetValue(Items.LastOrDefault(), out TabItem<T> lastTab);
+                    tabMap.TryGetValue(Items.Last(), out TabItem<T> lastTab);
                     SwitchTab(tab == lastTab ? -1 : 1);
                 }
             }
