@@ -24,6 +24,9 @@ namespace osu.Framework.Platform.Sdl
 
         private readonly Scheduler scheduler = new Scheduler();
 
+        private bool mouseInWindow;
+        private Point previousPolledPoint = Point.Empty;
+
         #region Internal Properties
 
         internal IntPtr SdlWindowHandle { get; private set; } = IntPtr.Zero;
@@ -251,6 +254,8 @@ namespace osu.Framework.Platform.Sdl
 
         private SDL.SDL_WindowFlags windowFlags => SdlWindowHandle == IntPtr.Zero ? 0 : (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle);
 
+        public bool EnableMousePolling { get; set; } = true;
+
         #endregion
 
         #region IWindowBackend.Events
@@ -334,6 +339,9 @@ namespace osu.Framework.Platform.Sdl
 
                 processEvents();
 
+                if (EnableMousePolling && !mouseInWindow)
+                    pollMouse();
+
                 OnUpdate();
             }
 
@@ -346,6 +354,19 @@ namespace osu.Framework.Platform.Sdl
         }
 
         public void Close() => scheduler.Add(() => Exists = false);
+
+        private void pollMouse()
+        {
+            SDL.SDL_GetGlobalMouseState(out var x, out var y);
+            if (previousPolledPoint.X == x && previousPolledPoint.Y == y)
+                return;
+
+            previousPolledPoint = new Point(x, y);
+
+            var rx = x - Position.X;
+            var ry = y - Position.Y;
+            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * Scale, ry * Scale) });
+        }
 
         #endregion
 
@@ -590,10 +611,12 @@ namespace osu.Framework.Platform.Sdl
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
+                    mouseInWindow = true;
                     OnMouseEntered();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
+                    mouseInWindow = false;
                     OnMouseLeft();
                     break;
 

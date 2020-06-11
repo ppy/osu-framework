@@ -98,6 +98,12 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
+        /// <summary>
+        /// Provides a bindable that controls whether <see cref="MouseMove"/> events will
+        /// be fired while the mouse cursor is outside the window.
+        /// </summary>
+        public Bindable<bool> EnableMousePolling { get; } = new BindableBool(true);
+
         #endregion
 
         #region Immutable Bindables
@@ -289,6 +295,8 @@ namespace osu.Framework.Platform
                 else
                     OnMouseLeft();
             };
+
+            EnableMousePolling.ValueChanged += evt => this.windowBackend.EnableMousePolling = evt.NewValue;
         }
 
         #endregion
