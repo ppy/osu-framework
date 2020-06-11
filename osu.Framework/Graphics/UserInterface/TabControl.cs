@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
-        /// If this <see cref="TabItem{T}"/> is currently selected and is not the only one then 
+        /// If this <see cref="TabItem{T}"/> is currently selected and is not the only one then
         /// switches tab to the next or previous one according to the tabs order, otherwise clears <see cref="SelectedTab"/>.
         /// </summary>
         /// <param name="tab">The tab to remove.</param>
