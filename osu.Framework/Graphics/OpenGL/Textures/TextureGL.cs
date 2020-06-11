@@ -151,6 +151,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <param name="uploadOpacity">Whether the upload is opaque, transparent, or a mix of both..</param>
         internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity);
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
@@ -182,7 +183,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
         {
             // Compute opacity if it doesn't have a value yet
-            uploadOpacity = uploadOpacity ?? ComputeOpacity(upload);
+            uploadOpacity ??= ComputeOpacity(upload);
 
             // Update the texture's opacity depending on the upload's opacity.
             // If the upload covers the entire bounds of the texture, it fully
