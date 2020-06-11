@@ -231,6 +231,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <summary>
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
+        /// If the tab to be removed is currently selected, then the next one is selected, otherwise the previous one is selected
         /// </summary>
         /// <param name="tab">The tab to remove.</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
@@ -240,7 +241,10 @@ namespace osu.Framework.Graphics.UserInterface
                 throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
             if (tab == SelectedTab)
-                SelectedTab = null;
+            {
+                tabMap.TryGetValue(Items.LastOrDefault(), out TabItem<T> lastTab);
+                SwitchTab(tab == lastTab ? -1 : 1);
+            }
 
             items.Remove(tab.Value);
             tabMap.Remove(tab.Value);
