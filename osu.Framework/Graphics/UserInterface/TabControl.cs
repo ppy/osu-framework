@@ -242,8 +242,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tab == SelectedTab)
             {
-                tabMap.TryGetValue(Items.LastOrDefault(), out TabItem<T> lastTab);
-                SwitchTab(tab == lastTab ? -1 : 1);
+                if (Items.Count == 1)
+                    SelectedTab = null;
+                else {
+                    tabMap.TryGetValue(Items.LastOrDefault(), out TabItem<T> lastTab);
+                    SwitchTab(tab == lastTab ? -1 : 1);
+                }
             }
 
             items.Remove(tab.Value);
