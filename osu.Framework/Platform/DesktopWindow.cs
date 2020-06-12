@@ -120,6 +120,8 @@ namespace osu.Framework.Platform
 
                     break;
             }
+
+            ConfineMouseMode.TriggerChange();
         }
 
         private void onResized()
