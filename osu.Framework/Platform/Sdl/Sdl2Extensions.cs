@@ -438,7 +438,8 @@ namespace osu.Framework.Platform.Sdl
         public static WindowState ToWindowState(this SDL.SDL_WindowFlags windowFlags)
         {
             if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
-                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) && windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
+                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) && windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) ||
+                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) && RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx)
                 return WindowState.FullscreenBorderless;
 
             if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
@@ -464,7 +465,9 @@ namespace osu.Framework.Platform.Sdl
                     return SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
                 case WindowState.Maximised:
-                    return SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+                    return RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx
+                        ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP
+                        : SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
 
                 case WindowState.Minimised:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED;
