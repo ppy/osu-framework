@@ -313,7 +313,7 @@ namespace osu.Framework.Platform
             windowBackend.Create();
 
             windowBackend.Resized += windowBackend_Resized;
-            windowBackend.WindowStateChanged += () => WindowState.Value = windowBackend.WindowState;
+            windowBackend.WindowStateChanged += windowBackend_WindowStateChanged;
             windowBackend.Moved += windowBackend_Moved;
             windowBackend.Hidden += () => Visible.Value = false;
             windowBackend.Shown += () => Visible.Value = true;
@@ -421,6 +421,26 @@ namespace osu.Framework.Platform
             boundsChanging = true;
             windowBackend.Size = evt.NewValue;
             boundsChanging = false;
+        }
+
+        private void windowBackend_WindowStateChanged()
+        {
+            WindowState.Value = windowBackend.WindowState;
+
+            switch (windowBackend.WindowState)
+            {
+                case Platform.WindowState.Fullscreen:
+                    WindowMode.Value = Configuration.WindowMode.Fullscreen;
+                    break;
+
+                case Platform.WindowState.FullscreenBorderless:
+                    WindowMode.Value = Configuration.WindowMode.Borderless;
+                    break;
+
+                case Platform.WindowState.Normal:
+                    WindowMode.Value = Configuration.WindowMode.Windowed;
+                    break;
+            }
         }
 
         #endregion

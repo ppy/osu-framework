@@ -311,6 +311,15 @@ namespace osu.Framework.Platform.Sdl
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
 
+        private void triggerWindowStateChanged()
+        {
+            if (windowState == WindowState)
+                return;
+
+            windowState = WindowState;
+            OnWindowStateChanged();
+        }
+
         #endregion
 
         #region IWindowBackend.Methods
@@ -583,13 +592,16 @@ namespace osu.Framework.Platform.Sdl
             {
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
                     OnShown();
+                    triggerWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
                     OnHidden();
+                    triggerWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
+                    triggerWindowStateChanged();
                     checkCurrentDisplay();
                     validateScale(true);
                     OnMoved(new Point(evtWindow.data1, evtWindow.data2));
@@ -597,6 +609,7 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
+                    triggerWindowStateChanged();
                     checkCurrentDisplay();
                     validateScale(true);
                     OnResized();
@@ -605,7 +618,7 @@ namespace osu.Framework.Platform.Sdl
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                    OnWindowStateChanged();
+                    triggerWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
