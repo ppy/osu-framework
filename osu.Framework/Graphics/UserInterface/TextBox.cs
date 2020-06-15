@@ -933,10 +933,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             int searchStart = text.Length - imeDrawables.Count;
 
-            //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeDrawables.Count, s.Length);
-
-            for (int i = 0; i < maxLength; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
                 {
@@ -947,12 +944,17 @@ namespace osu.Framework.Graphics.UserInterface
                 matching = false;
             }
 
+            var unmatchingCount = imeDrawables.Count - matchCount;
+
+            if (unmatchingCount > 0)
+            {
+                removeCharacters(unmatchingCount);
+                imeDrawables.RemoveRange(matchCount, unmatchingCount);
+            }
+
             if (matchCount == s.Length)
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
-                var unmatchingCount = imeDrawables.Count - matchCount;
-                removeCharactersOrSelection(unmatchingCount);
-                imeDrawables.RemoveRange(matchCount, unmatchingCount);
                 return;
             }
 
