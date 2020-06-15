@@ -112,7 +112,7 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState);
+        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
@@ -215,7 +215,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
-            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState, CurrentState.Touch.TouchPositions[(int)source]);
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
 
@@ -426,7 +426,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state, Vector2? screenSpacePos = null)
+        private IEnumerable<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
@@ -435,7 +435,7 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(screenSpacePos ?? state.Mouse.Position, positionalInputQueue);
+                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
