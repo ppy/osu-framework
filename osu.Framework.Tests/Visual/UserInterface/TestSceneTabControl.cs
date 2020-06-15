@@ -242,6 +242,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestRemovingSelectedTabSwitchesSelection()
+        {
+            AddStep("Select tab 2", () => simpleTabcontrol.Current.Value = TestEnum.Test2);
+            AddStep("Remove tab 2", () => simpleTabcontrol.RemoveItem(TestEnum.Test2));
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test3);
+
+            AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
+            AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
+
+            AddStep("Remove all tabs", () =>
+            {
+                var itemsForDelete = new List<TestEnum?>(simpleTabcontrol.Items);
+                itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
+            });
+            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+        }
+
+        [Test]
         public void TestItemsImmediatelyUpdatedAfterAdd()
         {
             TabControlWithNoDropdown tabControl = null;

@@ -26,6 +26,6 @@ namespace osu.Framework.IO.Stores
 
         public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources()
                                                                            .Where(x => x.StartsWith($"{Namespace}/"))
-                                                                           .Select(x => x.Remove(0, $"{Namespace}/".Length));
+                                                                           .Select(x => x[(Namespace.Length + 1)..]);
     }
 }

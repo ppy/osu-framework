@@ -61,7 +61,7 @@ namespace osu.Framework.IO.Stores
                     return null;
 
                 byte[] buffer = new byte[input.Length];
-                await input.ReadAsync(buffer, 0, buffer.Length);
+                await input.ReadAsync(buffer.AsMemory());
                 return buffer;
             }
         }

@@ -8,6 +8,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 
@@ -129,7 +130,7 @@ namespace osu.Framework.Tests.Visual.Containers
             internal override DrawNode GenerateDrawNodeSubtree(ulong frame, int treeIndex, bool forceNewDrawNode)
                 => currentDrawNode = base.GenerateDrawNodeSubtree(frame, treeIndex, forceNewDrawNode);
 
-            private class TestBoxDrawNode : BoxDrawNode
+            private class TestBoxDrawNode : SpriteDrawNode
             {
                 public TestBoxDrawNode(Box source)
                     : base(source)

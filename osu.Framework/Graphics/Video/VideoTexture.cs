@@ -20,27 +20,33 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public bool UploadComplete { get; private set; }
 
-        public VideoTexture(int width, int height)
-            : base(width, height, true, All.Linear)
+        public VideoTexture(int width, int height, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
+            : base(width, height, true, All.Linear, wrapModeS, wrapModeT)
         {
         }
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        public override void SetData(ITextureUpload upload)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
+            if (uploadOpacity != null && uploadOpacity != Opacity.Opaque)
+                throw new InvalidOperationException("Video texture uploads must always be opaque");
+
             UploadComplete = false;
 
-            base.SetData(upload);
+            // We do not support videos with transparency at this point,
+            // so the upload's opacity as well as the texture's opacity
+            // is always opaque.
+            base.SetData(upload, wrapModeS, wrapModeT, Opacity = Opacity.Opaque);
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i);
+                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
 
             return true;
         }

@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Platform.Linux.Sdl;
 using osuTK;
 
@@ -16,16 +15,8 @@ namespace osu.Framework.Platform.Linux
         {
         }
 
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-
-            // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
-            Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-        }
-
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new LinuxGameWindow() : new SDLWindow();
+            !UseSdl ? (IWindow)new LinuxGameWindow() : new DesktopWindow();
 
         public override string UserStoragePath
         {
@@ -50,6 +41,6 @@ namespace osu.Framework.Platform.Linux
         }
 
         public override Clipboard GetClipboard() =>
-            Window is SDLWindow || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
+            Window is DesktopWindow || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
     }
 }

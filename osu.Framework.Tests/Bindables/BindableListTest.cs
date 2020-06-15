@@ -751,6 +751,38 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestRemoveNotifiesSubscriberWithCorrectReference()
+        {
+            var item = new TestAlwaysEqualModel();
+
+            var bindableObjectList = new BindableList<TestAlwaysEqualModel> { item };
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            bindableObjectList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableObjectList.Remove(new TestAlwaysEqualModel());
+
+            Assert.That(triggeredArgs.OldItems[0] == item, Is.True);
+        }
+
+        [Test]
+        public void TestRemoveDoesntNotifySubscribersOnNoOp()
+        {
+            const string item = "item";
+            bindableStringList.Add(item);
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+
+            bindableStringList.Remove(item);
+
+            bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.Remove(item);
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
+        [Test]
         public void TestRemoveNotifiesSubscribers()
         {
             const string item = "item";
@@ -1571,13 +1603,11 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.ItemsAdded += items =>
             {
                 addedItems = items;
-                if (itemsWereFirstCleaned == null)
-                    itemsWereFirstCleaned = false;
+                itemsWereFirstCleaned ??= false;
             };
             bindableStringList.ItemsRemoved += items =>
             {
-                if (itemsWereFirstCleaned == null)
-                    itemsWereFirstCleaned = true;
+                itemsWereFirstCleaned ??= true;
             };
 #pragma warning restore 618
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
@@ -1628,5 +1658,10 @@ namespace osu.Framework.Tests.Bindables
         }
 
         #endregion
+
+        private class TestAlwaysEqualModel : IEquatable<TestAlwaysEqualModel>
+        {
+            public bool Equals(TestAlwaysEqualModel other) => true;
+        }
     }
 }

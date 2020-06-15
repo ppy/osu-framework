@@ -15,15 +15,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureGLAtlasWhite(TextureGLSingle parent)
             : base(new RectangleI(0, 0, 1, 1), parent)
         {
+            Opacity = Opacity.Opaque;
         }
 
-        public override bool Bind(TextureUnit unit = TextureUnit.Texture0)
+        internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             //we can use the special white space from any atlas texture.
             if (GLWrapper.AtlasTextureIsBound(unit))
                 return true;
 
-            return base.Bind(unit);
+            return base.Bind(unit, wrapModeS, wrapModeT);
         }
     }
 }

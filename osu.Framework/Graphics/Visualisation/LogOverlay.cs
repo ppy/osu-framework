@@ -1,6 +1,7 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
@@ -73,10 +74,14 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
+        private int logPosition;
+
         private void addEntry(LogEntry entry)
         {
             if (!DebugUtils.IsDebugBuild && entry.Level <= LogLevel.Verbose)
                 return;
+
+            int pos = Interlocked.Increment(ref logPosition);
 
             Schedule(() =>
             {
@@ -84,7 +89,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 LoadComponentAsync(new DrawableLogEntry(entry), drawEntry =>
                 {
-                    flow.Add(drawEntry);
+                    flow.Insert(pos, drawEntry);
 
                     drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
                     drawEntry.Expire();
