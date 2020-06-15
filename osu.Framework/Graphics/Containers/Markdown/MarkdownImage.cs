@@ -59,8 +59,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     texture = textures.Get(url);
 
                 // Use a default texture
-                if (texture == null)
-                    texture = GetNotFoundTexture(textures);
+                texture ??= GetNotFoundTexture(textures);
 
                 image.Texture = texture;
             }

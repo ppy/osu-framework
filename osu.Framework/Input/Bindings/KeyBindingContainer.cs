@@ -222,8 +222,7 @@ namespace osu.Framework.Input.Bindings
                 pressedActions.Add(pressed);
                 if (scrollAmount != 0)
                     handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
-                if (handled == null)
-                    handled = (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                handled ??= (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
             if (handled != null)

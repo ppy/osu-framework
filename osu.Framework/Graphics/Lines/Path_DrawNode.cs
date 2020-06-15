@@ -215,7 +215,6 @@ namespace osu.Framework.Graphics.Lines
 
                 pathShader.Bind();
 
-                texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
                 texture.TextureGL.Bind();
 
                 updateVertexBuffer();

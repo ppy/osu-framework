@@ -359,24 +359,43 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
-            bool didBind = BindTexture(texture?.TextureId ?? 0, unit);
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit, wrapModeS, wrapModeT);
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
 
             return didBind;
         }
+
+        internal static WrapMode CurrentWrapModeS;
+        internal static WrapMode CurrentWrapModeT;
 
         /// <summary>
         /// Binds a texture to draw with.
         /// </summary>
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
-        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             var index = GetTextureUnitId(unit);
+
+            if (wrapModeS != CurrentWrapModeS)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
+                CurrentWrapModeS = wrapModeS;
+            }
+
+            if (wrapModeT != CurrentWrapModeT)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
+                CurrentWrapModeT = wrapModeT;
+            }
 
             if (last_bound_texture[index] == textureId)
                 return false;

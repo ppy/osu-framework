@@ -179,18 +179,11 @@ namespace osu.Framework.Graphics.Primitives
 
         public RectangleI Shrink(int left, int right, int top, int bottom) => Inflate(-left, -right, -top, -bottom);
 
-        /// <summary>Replaces this <see cref="RectangleI"/> structure with the intersection of itself and the specified <see cref="RectangleI"/> structure.</summary>
-        /// <returns>This method does not return a value.</returns>
+        /// <summary>Intersects this <see cref="RectangleI"/> structure with the specified <see cref="RectangleI"/> structure.</summary>
+        /// <returns>The intersected rectangle.</returns>
         /// <param name="rect">The rectangle to intersect. </param>
         /// <filterpriority>1</filterpriority>
-        public void Intersect(RectangleI rect)
-        {
-            RectangleI ef = Intersect(rect, this);
-            X = ef.X;
-            Y = ef.Y;
-            Width = ef.Width;
-            Height = ef.Height;
-        }
+        public RectangleI Intersect(RectangleI rect) => Intersect(rect, this);
 
         /// <summary>Returns a <see cref="RectangleI"/> structure that represents the intersection of two rectangles. If there is no intersection, and empty <see cref="RectangleI"/> is returned.</summary>
         /// <returns>A third <see cref="RectangleI"/> structure the size of which represents the overlapped area of the two specified rectangles.</returns>

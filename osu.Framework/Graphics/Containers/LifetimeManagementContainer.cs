@@ -374,7 +374,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Represents that the clock is crossed <see cref="LifetimeManagementContainer"/>'s child lifetime boundary i.e. <see cref="Drawable.LifetimeStart"/> or <see cref="Drawable.LifetimeEnd"/>,
     /// </summary>
-    public struct LifetimeBoundaryCrossedEvent
+    public readonly struct LifetimeBoundaryCrossedEvent
     {
         /// <summary>
         /// The drawable.
@@ -398,6 +398,6 @@ namespace osu.Framework.Graphics.Containers
             Direction = direction;
         }
 
-        public override readonly string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
+        public override string ToString() => $"({Child.ChildID}, {Kind}, {Direction})";
     }
 }

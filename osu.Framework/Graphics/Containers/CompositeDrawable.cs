@@ -144,16 +144,14 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            if (disposalCancellationSource == null)
-                disposalCancellationSource = new CancellationTokenSource();
+            disposalCancellationSource ??= new CancellationTokenSource();
 
             var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(disposalCancellationSource.Token, cancellation);
 
             var deps = new DependencyContainer(Dependencies);
             deps.CacheValueAs(linkedSource.Token);
 
-            if (loadingComponents == null)
-                loadingComponents = new WeakList<Drawable>();
+            loadingComponents ??= new WeakList<Drawable>();
 
             foreach (var d in components)
             {
@@ -232,8 +230,7 @@ namespace osu.Framework.Graphics.Containers
         {
             hasCustomDrawNode = GetType().GetMethod(nameof(CreateDrawNode))?.DeclaringType != typeof(CompositeDrawable);
 
-            if (Shader == null)
-                Shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            Shader ??= shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // We are in a potentially async context, so let's aggressively load all our children
             // regardless of their alive state. this also gives children a clock so they can be checked
@@ -1135,8 +1132,7 @@ namespace osu.Framework.Graphics.Containers
             if (!(node is ICompositeDrawNode cNode))
                 return null;
 
-            if (cNode.Children == null)
-                cNode.Children = new List<DrawNode>(aliveInternalChildren.Count);
+            cNode.Children ??= new List<DrawNode>(aliveInternalChildren.Count);
 
             if (cNode.AddChildDrawNodes)
             {
