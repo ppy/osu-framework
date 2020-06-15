@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.Video
 
         internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
+            if (uploadOpacity != null && uploadOpacity != Opacity.Opaque)
+                throw new InvalidOperationException("Video texture uploads must always be opaque");
+
             UploadComplete = false;
 
             // We do not support videos with transparency at this point,
