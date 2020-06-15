@@ -512,7 +512,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (string.IsNullOrEmpty(value)) return;
 
             if (Current.Disabled)
+            {
+                NotifyInputError();
                 return;
+            }
 
             if (selectionLength > 0)
                 removeCharactersOrSelection();
