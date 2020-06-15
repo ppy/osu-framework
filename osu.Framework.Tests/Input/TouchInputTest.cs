@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Input
             AddStep("activate touches", () =>
             {
                 foreach (var r in receptors)
-                    InputManager.ActivateTouch(new Touch(r.AssociatedSource, getDownPos(r)));
+                    InputManager.BeginTouch(new Touch(r.AssociatedSource, getDownPos(r)));
             });
 
             AddAssert("received correct touch-down event", () =>
@@ -98,7 +98,7 @@ namespace osu.Framework.Tests.Input
             AddStep("deactivate touches out of receptors", () =>
             {
                 foreach (var r in receptors)
-                    InputManager.DeactivateTouch(new Touch(r.AssociatedSource, getUpPos(r)));
+                    InputManager.EndTouch(new Touch(r.AssociatedSource, getUpPos(r)));
             });
 
             AddAssert("received correct touch events", () =>
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Input
             AddStep("activate touches", () =>
             {
                 foreach (var r in receptors)
-                    InputManager.ActivateTouch(new Touch(r.AssociatedSource, getDownPos(r)));
+                    InputManager.BeginTouch(new Touch(r.AssociatedSource, getDownPos(r)));
             });
 
             AddAssert("received correct mouse-down event", () =>
@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Input
             AddStep("deactivate touches", () =>
             {
                 foreach (var r in receptors)
-                    InputManager.DeactivateTouch(new Touch(r.AssociatedSource, getUpPos(r)));
+                    InputManager.EndTouch(new Touch(r.AssociatedSource, getUpPos(r)));
             });
 
             AddAssert("received correct mouse events", () =>

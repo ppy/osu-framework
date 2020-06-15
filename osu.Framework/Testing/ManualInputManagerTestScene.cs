@@ -132,7 +132,7 @@ namespace osu.Framework.Testing
             keyboard.Keys.ForEach(InputManager.ReleaseKey);
 
             var touch = currentState.Touch;
-            touch.ActiveSources.ForEach(s => InputManager.DeactivateTouch(new Touch(s, Vector2.Zero)));
+            touch.ActiveSources.ForEach(s => InputManager.EndTouch(new Touch(s, Vector2.Zero)));
 
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);

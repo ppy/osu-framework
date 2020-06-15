@@ -67,9 +67,9 @@ namespace osu.Framework.Testing.Input
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
 
-        public void ActivateTouch(Touch touch) => Input(new TouchInput(touch, true));
+        public void BeginTouch(Touch touch) => Input(new TouchInput(touch, true));
 
-        public void DeactivateTouch(Touch touch) => Input(new TouchInput(touch, false));
+        public void EndTouch(Touch touch) => Input(new TouchInput(touch, false));
 
         private class ManualInputHandler : InputHandler
         {
