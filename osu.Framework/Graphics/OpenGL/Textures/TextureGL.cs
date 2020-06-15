@@ -156,9 +156,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
         {
-            if (upload is VideoTextureUpload)
-                return Opacity.Opaque;
-
             if (upload.Data.Length == 0)
                 return Opacity.Transparent;
 
