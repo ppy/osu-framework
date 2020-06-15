@@ -167,7 +167,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     clipboard?.SetText(SelectedText);
                     if (action.ActionType == PlatformActionType.Cut)
-                        removeCharactersOrSelection();
+                        removeSelection();
+
                     return true;
 
                 case PlatformActionType.Paste:
@@ -248,8 +249,10 @@ namespace osu.Framework.Graphics.UserInterface
                     case PlatformActionMethod.Delete:
                         if (selectionLength == 0)
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
+
                         if (selectionLength > 0)
-                            removeCharactersOrSelection();
+                            removeSelection();
+
                         break;
                 }
 
@@ -418,25 +421,27 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Removes the selected text if there's a selection,
-        /// or a specified amount of characters left side of the current caret position otherwise.
+        /// Removes the selected text if a selection persists.
         /// </summary>
-        private void removeCharactersOrSelection(int amount = 1)
+        private void removeSelection() => removeCharacters(selectionLength);
+
+        /// <summary>
+        /// Removes a specified amount of characters left side of the current position.
+        /// </summary>
+        private void removeCharacters(int amount = 1)
         {
-            if (Current.Disabled)
+            if (Current.Disabled || text.Length == 0)
                 return;
 
-            if (text.Length == 0) return;
-            if (selectionLength == 0 && selectionLeft == 0) return;
+            int removeStart = Math.Clamp(selectionRight - amount, 0, selectionRight);
+            int removeCount = selectionRight - removeStart;
 
-            int count = selectionLength > 0 ? selectionLength : amount;
-            int start = Math.Clamp(selectionRight - count, 0, text.Length);
-
-            if (count == 0) return;
+            if (removeCount == 0)
+                return;
 
             audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
-            foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
+            foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 TextFlow.Remove(d);
 
@@ -449,18 +454,21 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            var removedText = text.Substring(start, count);
-            text = text.Remove(start, count);
+            var removedText = text.Substring(removeStart, removeCount);
+            text = text.Remove(removeStart, removeCount);
             OnTextRemoved(removedText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
-            for (int i = start; i < TextFlow.Count; i++)
+            for (int i = removeStart; i < TextFlow.Count; i++)
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
-            if (selectionLength > 0)
-                selectionStart = selectionEnd = selectionLeft;
+            if (removeCount >= selectionLength)
+                selectionStart = selectionEnd = removeStart;
             else
-                selectionStart = selectionEnd = selectionLeft - 1;
+            {
+                selectionStart = selectionLeft;
+                selectionEnd = removeStart;
+            }
 
             cursorAndLayout.Invalidate();
         }
@@ -518,7 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             if (selectionLength > 0)
-                removeCharactersOrSelection();
+                removeSelection();
 
             foreach (char c in value)
             {
