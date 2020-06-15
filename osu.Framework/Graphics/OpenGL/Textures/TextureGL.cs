@@ -9,7 +9,6 @@ using osuTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
