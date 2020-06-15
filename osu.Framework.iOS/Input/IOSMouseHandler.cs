@@ -16,6 +16,10 @@ namespace osu.Framework.iOS.Input
     public class IOSMouseHandler : InputHandler
     {
         private readonly IOSGameView view;
+        private UIPointerInteraction pointerInteraction;
+
+        [UsedImplicitly]
+        private IOSMouseDelegate mouseDelegate;
 
         public IOSMouseHandler(IOSGameView view)
         {
@@ -23,11 +27,7 @@ namespace osu.Framework.iOS.Input
         }
 
         public override bool IsActive => true;
-
         public override int Priority => 1; // Touches always take priority
-
-        [UsedImplicitly]
-        private IOSMouseDelegate mouseDelegate;
 
         public override bool Initialize(GameHost host)
         {
@@ -35,10 +35,18 @@ namespace osu.Framework.iOS.Input
             if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
                 return false;
 
-            view.AddInteraction(new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
-
+            pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate());
             mouseDelegate.LocationUpdated += locationUpdated;
+
+            view.AddInteraction(pointerInteraction);
+
             return true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            view.RemoveInteraction(pointerInteraction);
+            base.Dispose(disposing);
         }
 
         private void locationUpdated(CGPoint location)
