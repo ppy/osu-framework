@@ -1613,7 +1613,7 @@ namespace osu.Framework.Graphics
                 if ((i & Invalidation.Colour) > 0)
                     return true;
 
-                return !s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour;
+                return !s.Colour.HasSingleColour || (s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour);
             });
 
         /// <summary>
