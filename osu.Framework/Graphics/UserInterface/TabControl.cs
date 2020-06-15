@@ -251,7 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tab == SelectedTab)
             {
-                if (Items.Count == 1)
+                if (TabMap.Values.Count(t => t.IsSwitchable) == 1)
                     SelectedTab = null;
                 else
                 {
