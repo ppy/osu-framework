@@ -511,7 +511,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
-        /// Insert an arbitrary string into this <see cref="TextBox"/> at the current position.
+        /// Insert an arbitrary string at the current position.
         /// </summary>
         /// <param name="value">The string of text to insert.</param>
         /// <param name="onDrawableCreated">An action invoked whenever a new character drawable is created.</param>
