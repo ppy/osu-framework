@@ -976,6 +976,8 @@ namespace osu.Framework.Graphics.UserInterface
                 dr.Alpha = 0.6f;
                 imeDrawables.Add(dr);
             });
+
+            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion
