@@ -6,6 +6,8 @@ using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -24,6 +26,10 @@ namespace osu.Framework.Graphics.Sprites
 
         protected new Sprite Source => (Sprite)base.Source;
 
+        protected Quad ConservativeScreenSpaceDrawQuad;
+
+        private bool hasOpaqueInterior;
+
         public SpriteDrawNode(Sprite source)
             : base(source)
         {
@@ -41,6 +47,13 @@ namespace osu.Framework.Graphics.Sprites
             TextureCoords = Source.DrawRectangle.RelativeIn(Source.DrawTextureRectangle);
             if (Texture != null)
                 TextureCoords *= new Vector2(Texture.DisplayWidth, Texture.DisplayHeight);
+
+            hasOpaqueInterior = DrawColourInfo.Colour.MinAlpha == 1
+                                && DrawColourInfo.Blending == BlendingParameters.Mixture
+                                && DrawColourInfo.Colour.HasSingleColour;
+
+            if (CanDrawOpaqueInterior)
+                ConservativeScreenSpaceDrawQuad = Source.ConservativeScreenSpaceDrawQuad;
         }
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
@@ -65,5 +78,21 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         protected override bool RequiresRoundedShader => base.RequiresRoundedShader || InflationAmount != Vector2.Zero;
+
+        protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        {
+            base.DrawOpaqueInterior(vertexAction);
+
+            TextureShader.Bind();
+
+            if (GLWrapper.IsMaskingActive)
+                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+            else
+                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
+
+            TextureShader.Unbind();
+        }
+
+        protected internal override bool CanDrawOpaqueInterior => Texture?.Available == true && Texture.Opacity == Opacity.Opaque && hasOpaqueInterior;
     }
 }

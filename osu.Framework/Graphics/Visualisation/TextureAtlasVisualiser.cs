@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
 
-            private class UsageBackgroundDrawNode : BoxDrawNode
+            private class UsageBackgroundDrawNode : SpriteDrawNode
             {
                 protected new UsageBackground Source => (UsageBackground)base.Source;
 

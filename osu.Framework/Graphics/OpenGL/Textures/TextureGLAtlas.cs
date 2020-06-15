@@ -62,14 +62,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             all_atlases.Remove(this);
         }
 
-        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             // Can only perform padding when the bounds are a sub-part of the texture
             RectangleI middleBounds = upload.Bounds;
 
             if (middleBounds.IsEmpty || middleBounds.Width * middleBounds.Height > upload.Data.Length)
             {
-                base.SetData(upload, wrapModeS, wrapModeT);
+                // For a texture atlas, we don't care about opacity, so we avoid
+                // any computations related to it by assuming it to be mixed.
+                base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
                 return;
             }
 
@@ -85,7 +87,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 uploadVerticalPadding(upload, middleBounds, actualPadding);
 
             // Upload the middle part of the texture
-            base.SetData(upload, wrapModeS, wrapModeT);
+            // For a texture atlas, we don't care about opacity, so we avoid
+            // any computations related to it by assuming it to be mixed.
+            base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
         }
 
         private void uploadVerticalPadding(ITextureUpload upload, RectangleI middleBounds, int actualPadding)
@@ -125,7 +129,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload, WrapMode.None, WrapMode.None);
+                    {
+                        // For a texture atlas, we don't care about opacity, so we avoid
+                        // any computations related to it by assuming it to be mixed.
+                        base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
+                    }
                 }
             }
         }
@@ -169,7 +177,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                     // Only upload padding if the border isn't completely transparent.
                     if (!allTransparentBlack)
-                        base.SetData(sideUpload, WrapMode.None, WrapMode.None);
+                    {
+                        // For a texture atlas, we don't care about opacity, so we avoid
+                        // any computations related to it by assuming it to be mixed.
+                        base.SetData(sideUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
+                    }
                 }
             }
         }
@@ -205,7 +217,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     for (int j = 0; j < nCornerPixels; ++j)
                         cornerUpload.RawData[j] = cornerPixel;
 
-                    base.SetData(cornerUpload, WrapMode.None, WrapMode.None);
+                    // For a texture atlas, we don't care about opacity, so we avoid
+                    // any computations related to it by assuming it to be mixed.
+                    base.SetData(cornerUpload, WrapMode.None, WrapMode.None, Opacity.Mixed);
                 }
             }
         }

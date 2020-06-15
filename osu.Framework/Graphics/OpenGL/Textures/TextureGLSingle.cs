@@ -41,6 +41,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
+        public override RectangleI Bounds => new RectangleI(0, 0, Width, Height);
+
         /// <summary>
         /// Creates a new <see cref="TextureGLSingle"/>.
         /// </summary>
@@ -316,19 +318,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.Area);
         }
 
-        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
             if (upload.Bounds.IsEmpty && upload.Data.Length > 0)
             {
-                upload.Bounds = new RectangleI(0, 0, width, height);
+                upload.Bounds = Bounds;
                 if (width * height > upload.Data.Length)
                     throw new InvalidOperationException($"Size of texture upload ({width}x{height}) does not contain enough data ({upload.Data.Length} < {width * height})");
             }
 
-            IsTransparent = false;
+            UpdateOpacity(upload, ref uploadOpacity);
 
             lock (uploadQueue)
             {
@@ -348,9 +350,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Upload();
 
             if (textureId <= 0)
-                return false;
-
-            if (IsTransparent)
                 return false;
 
             if (GLWrapper.BindTexture(this, unit, wrapModeS, wrapModeT))

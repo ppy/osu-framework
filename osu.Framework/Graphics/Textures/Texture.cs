@@ -35,6 +35,12 @@ namespace osu.Framework.Graphics.Textures
         public float DisplayWidth => Width / ScaleAdjust;
         public float DisplayHeight => Height / ScaleAdjust;
 
+        public Opacity Opacity => TextureGL.Opacity;
+
+        public WrapMode WrapModeS => TextureGL.WrapModeS;
+
+        public WrapMode WrapModeT => TextureGL.WrapModeT;
+
         /// <summary>
         /// Create a new texture.
         /// </summary>
