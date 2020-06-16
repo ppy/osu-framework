@@ -35,6 +35,11 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
+        /// <summary>
+        /// A collection of all tabs which are valid switch targets.
+        /// </summary>
+        public TabItem<T>[] SwitchableTabs => TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
+
         private readonly List<T> items = new List<T>();
 
         /// <summary>
@@ -251,7 +256,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tab == SelectedTab)
             {
-                if (TabMap.Values.Count(t => t.IsSwitchable) == 1)
+                if (SwitchableTabs.Length == 1)
                     SelectedTab = null;
                 else
                 {
@@ -312,7 +317,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (Math.Abs(direction) != 1)
                 throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
-            TabItem<T>[] switchableTabs = TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
+            TabItem<T>[] switchableTabs = SwitchableTabs;
             int tabCount = switchableTabs.Length;
 
             if (tabCount == 0)
