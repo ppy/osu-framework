@@ -38,7 +38,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A collection of all tabs which are valid switch targets.
         /// </summary>
-        public TabItem<T>[] SwitchableTabs => TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
+        protected internal IEnumerable<TabItem<T>> SwitchableTabs => AllTabs.Where(tab => tab.IsSwitchable);
+
+        protected internal IEnumerable<TabItem<T>> AllTabs => TabContainer.AllTabItems;
+
+        /// <summary>
+        /// All items which are currently present and visible in the tab control.
+        /// </summary>
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         private readonly List<T> items = new List<T>();
 
@@ -58,8 +65,6 @@ namespace osu.Framework.Graphics.UserInterface
                     AddItem(item);
             }
         }
-
-        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -98,6 +103,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A mapping of tabs to their items.
         /// </summary>
+        /// <remarks>
+        /// There is no guaranteed order. To retrieve ordered tabs, use <see cref="SwitchableTabs"/> or <see cref="AllTabs"/> instead.
+        /// </remarks>
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         private readonly Dictionary<T, TabItem<T>> tabMap = new Dictionary<T, TabItem<T>>();
@@ -256,12 +264,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tab == SelectedTab)
             {
-                if (SwitchableTabs.Length < 2)
+                if (SwitchableTabs.Count() < 2)
                     SelectedTab = null;
                 else
                 {
                     // check all tabs as to include self (in correct iteration order)
-                    bool anySwitchableTabsToRight = TabContainer.AllTabItems.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
+                    bool anySwitchableTabsToRight = AllTabs.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
                     SwitchTab(anySwitchableTabsToRight ? 1 : -1);
                 }
             }
