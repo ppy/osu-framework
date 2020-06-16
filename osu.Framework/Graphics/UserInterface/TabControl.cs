@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A collection of all tabs which are valid switch targets.
         /// </summary>
-        public TabItem<T>[] SwitchableTabs => tabMap.Values.Where(tab => tab.IsSwitchable).ToArray();
+        public TabItem<T>[] SwitchableTabs => TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
 
         private readonly List<T> items = new List<T>();
 
@@ -261,7 +261,7 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                 {
                     // check all tabs as to include self (in correct iteration order)
-                    bool anySwitchableTabsToRight = tabMap.Values.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
+                    bool anySwitchableTabsToRight = TabContainer.AllTabItems.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
                     SwitchTab(anySwitchableTabsToRight ? 1 : -1);
                 }
             }
@@ -315,12 +315,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
         public virtual void SwitchTab(int direction, bool wrap = true)
         {
-            if (Math.Abs(direction) != 1)
-                throw new ArgumentException("value must be -1 or 1", nameof(direction));
+            if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
             // the current selected tab may be an non-switchable tab, so search all tabs for a candidate.
             // this is done to ensure ordering (ie. if an non-switchable tab is in the middle).
-            var allTabs = tabMap.Values.Where(t => t.IsSwitchable || t == SelectedTab);
+            var allTabs = TabContainer.AllTabItems.Where(t => t.IsSwitchable || t == SelectedTab);
 
             if (direction < 0)
                 allTabs = allTabs.Reverse();
