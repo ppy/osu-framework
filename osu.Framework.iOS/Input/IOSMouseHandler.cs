@@ -47,7 +47,7 @@ namespace osu.Framework.iOS.Input
                 MaximumNumberOfTouches = 0 // Only enables this for 2 finger swipe, disabling clicking and dragging.
             };
             view.AddGestureRecognizer(panGestureRecognizer);
-            
+
             return true;
         }
 
@@ -75,9 +75,9 @@ namespace osu.Framework.iOS.Input
                 previousPanTranslation = translation;
 
             CGPoint delta = new CGPoint(
-                    translation.X - previousPanTranslation.X,
-                    translation.Y - previousPanTranslation.Y
-                );
+                translation.X - previousPanTranslation.X,
+                translation.Y - previousPanTranslation.Y
+            );
 
             PendingInputs.Enqueue(new MouseScrollRelativeInput
             {
