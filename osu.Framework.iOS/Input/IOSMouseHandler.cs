@@ -17,6 +17,8 @@ namespace osu.Framework.iOS.Input
     {
         private readonly IOSGameView view;
         private UIPointerInteraction pointerInteraction;
+        private UIPanGestureRecognizer panGestureRecognizer;
+        private CGPoint previousPanTranslation;
 
         [UsedImplicitly]
         private IOSMouseDelegate mouseDelegate;
@@ -37,15 +39,21 @@ namespace osu.Framework.iOS.Input
 
             pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate());
             mouseDelegate.LocationUpdated += locationUpdated;
-
             view.AddInteraction(pointerInteraction);
 
+            panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
+            {
+                AllowedScrollTypesMask = UIScrollTypeMask.Continuous
+            };
+            view.AddGestureRecognizer(panGestureRecognizer);
+            
             return true;
         }
 
         protected override void Dispose(bool disposing)
         {
             view.RemoveInteraction(pointerInteraction);
+            view.RemoveGestureRecognizer(panGestureRecognizer);
             base.Dispose(disposing);
         }
 
@@ -57,6 +65,26 @@ namespace osu.Framework.iOS.Input
                     (float)location.X * view.Scale,
                     (float)location.Y * view.Scale)
             });
+        }
+
+        private void panOffsetUpdated()
+        {
+            CGPoint translation = panGestureRecognizer.TranslationInView(view);
+            if (panGestureRecognizer.State == UIGestureRecognizerState.Began)
+                previousPanTranslation = translation;
+
+            CGPoint delta = new CGPoint(
+                    translation.X - previousPanTranslation.X,
+                    translation.Y - previousPanTranslation.Y
+                );
+
+            PendingInputs.Enqueue(new MouseScrollRelativeInput
+            {
+                IsPrecise = true,
+                Delta = new Vector2((float)delta.X, (float)delta.Y)
+            });
+
+            previousPanTranslation = translation;
         }
     }
 
