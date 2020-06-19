@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             // TODO: Investigate performance issues and remove this once we are certain there's no overhead.
             if (RuntimeInfo.IsMobile)
-                return Opacity.Transparent;
+                return Opacity.Mixed;
 
             if (upload.Data.Length == 0)
                 return Opacity.Transparent;
