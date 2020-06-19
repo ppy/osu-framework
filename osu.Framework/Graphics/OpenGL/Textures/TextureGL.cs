@@ -155,6 +155,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
         {
+            // TODO: Investigate performance issues and remove this once we are certain there's no overhead.
+            if (RuntimeInfo.IsMobile)
+                return Opacity.Transparent;
+
             if (upload.Data.Length == 0)
                 return Opacity.Transparent;
 
