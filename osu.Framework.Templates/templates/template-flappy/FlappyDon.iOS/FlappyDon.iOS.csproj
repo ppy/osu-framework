@@ -6,14 +6,14 @@
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <RootNamespace>FlappyDon.iOS</RootNamespace>

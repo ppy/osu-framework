@@ -63,7 +63,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Game.Tests", "osu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.Desktop", "osu.Framework.Templates\templates\template-flappy\FlappyDon.Desktop\FlappyDon.Desktop.csproj", "{0309CF11-621A-4F23-8FBA-A583303A8531}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.iOS", "osu.Framework.Templates\templates\template-flappy\FlappyDon.iOS\FlappyDon.iOS.csproj", "{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemplateGame.iOS", "osu.Framework.Templates\templates\template-empty\TemplateGame.iOS\TemplateGame.iOS.csproj", "{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlappyDon.iOS", "osu.Framework.Templates\templates\template-flappy\FlappyDon.iOS\FlappyDon.iOS.csproj", "{48783186-230D-4048-A97A-E4F1DF43BF5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -219,6 +221,12 @@ Global
 		{A95175BB-95D0-44B4-8B82-EABD166943DA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A95175BB-95D0-44B4-8B82-EABD166943DA}.Release|iPhone.ActiveCfg = Release|Any CPU
 		{A95175BB-95D0-44B4-8B82-EABD166943DA}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Debug|Any CPU.ActiveCfg = Debug|iPhoneSimulator
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Debug|iPhone.ActiveCfg = Debug|iPhone
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Debug|iPhoneSimulator.ActiveCfg = Debug|iPhoneSimulator
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Release|iPhone.ActiveCfg = Release|iPhone
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}.Release|iPhoneSimulator.ActiveCfg = Release|iPhoneSimulator
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -238,6 +246,7 @@ Global
 		{7809CB42-8FED-4BB7-8C68-7638357B94A6} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
 		{9E4B69EE-34E6-47CF-8346-2A66D1714FCD} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
 		{0309CF11-621A-4F23-8FBA-A583303A8531} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
-		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
+		{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB} = {5307589D-87A1-459B-BBD2-1077AA25EB1E}
+		{48783186-230D-4048-A97A-E4F1DF43BF5C} = {139F6FAA-EF59-4ADC-A69B-33CA7D1C1D4E}
 	EndGlobalSection
 EndGlobal
