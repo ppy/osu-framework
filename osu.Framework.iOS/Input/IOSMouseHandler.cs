@@ -18,7 +18,7 @@ namespace osu.Framework.iOS.Input
         private readonly IOSGameView view;
         private UIPointerInteraction pointerInteraction;
         private UIPanGestureRecognizer panGestureRecognizer;
-        private CGPoint previousPanTranslation;
+        private CGPoint lastScrollTranslation;
 
         [UsedImplicitly]
         private IOSMouseDelegate mouseDelegate;
@@ -71,21 +71,27 @@ namespace osu.Framework.iOS.Input
         private void panOffsetUpdated()
         {
             CGPoint translation = panGestureRecognizer.TranslationInView(view);
-            if (panGestureRecognizer.State == UIGestureRecognizerState.Began)
-                previousPanTranslation = translation;
 
-            CGPoint delta = new CGPoint(
-                translation.X - previousPanTranslation.X,
-                translation.Y - previousPanTranslation.Y
-            );
+            Vector2 delta;
+
+            if (panGestureRecognizer.State == UIGestureRecognizerState.Began)
+            {
+                // consume initial value.
+                delta = new Vector2((float)translation.X, (float)translation.Y);
+            }
+            else
+            {
+                // only consider relative change from previous value.
+                delta = new Vector2((float)(translation.X - lastScrollTranslation.X), (float)(translation.Y - lastScrollTranslation.Y));
+            }
+
+            lastScrollTranslation = translation;
 
             PendingInputs.Enqueue(new MouseScrollRelativeInput
             {
                 IsPrecise = true,
-                Delta = new Vector2((float)delta.X, (float)delta.Y)
+                Delta = delta
             });
-
-            previousPanTranslation = translation;
         }
     }
 
