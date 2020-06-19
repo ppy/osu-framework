@@ -67,6 +67,8 @@ namespace osu.Framework.iOS.Input
             });
         }
 
+        private const float scroll_rate_adjust = 0.1f;
+
         private void panOffsetUpdated()
         {
             CGPoint translation = panGestureRecognizer.TranslationInView(view);
@@ -89,7 +91,7 @@ namespace osu.Framework.iOS.Input
             PendingInputs.Enqueue(new MouseScrollRelativeInput
             {
                 IsPrecise = true,
-                Delta = delta
+                Delta = delta * scroll_rate_adjust
             });
         }
     }
