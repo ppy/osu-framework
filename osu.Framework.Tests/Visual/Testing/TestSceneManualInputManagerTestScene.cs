@@ -1,7 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 using osuTK;
@@ -30,15 +33,16 @@ namespace osu.Framework.Tests.Visual.Testing
                 !InputManager.CurrentState.Joystick.Buttons.HasAnyButtonPressed);
         }
 
-        /// <summary>
-        /// Added to allow manual testing of the test cursor visuals.
-        /// </summary>
         [Test]
-        public void TestHoldLeftFromMaskedPosition()
+        public void TestCursorReceivesEventsWhenMaskedAway()
         {
+            Drawable cursor = null;
+
+            AddStep("retrieve cursor", () => cursor = InputManager.ChildrenOfType<CursorContainer>().Single().ActiveCursor);
+
             AddStep("move mouse to screen zero", () => InputManager.MoveMouseTo(Vector2.Zero));
-            AddStep("hold mouse left", () => InputManager.PressButton(MouseButton.Left));
-            AddStep("move mouse to content center", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
+            AddAssert("ensure cursor masked away", () => cursor.IsMaskedAway);
+            AddAssert("cursor allows event propagation", () => cursor.PropagatePositionalInputSubTree);
         }
 
         [Test]
