@@ -89,6 +89,8 @@ namespace osu.Framework.Testing.Input
                 private readonly Container left;
                 private readonly Container right;
 
+                public override bool PropagatePositionalInputSubTree => true;
+
                 public TestCursor()
                 {
                     Size = new Vector2(30);
