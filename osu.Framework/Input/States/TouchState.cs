@@ -1,12 +1,18 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osuTK;
 
 namespace osu.Framework.Input.States
 {
     public class TouchState
     {
+        /// <summary>
+        /// The maximum amount of touches this can handle.
+        /// </summary>
+        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues(typeof(TouchSource)).Length;
+
         /// <summary>
         /// The list of currently active touch sources.
         /// </summary>
@@ -19,7 +25,7 @@ namespace osu.Framework.Input.States
         /// Using <see cref="GetTouchPosition"/> is recommended for retrieving
         /// logically correct values, as this may contain already stale values.
         /// </remarks>
-        public readonly Vector2[] TouchPositions = new Vector2[10];
+        public readonly Vector2[] TouchPositions = new Vector2[MAX_TOUCH_COUNT];
 
         /// <summary>
         /// Retrieves the current touch position of a specified <paramref name="source"/>.
