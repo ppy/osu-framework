@@ -155,25 +155,29 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         protected static Opacity ComputeOpacity(ITextureUpload upload)
         {
-            if (upload.Data.Length == 0)
-                return Opacity.Transparent;
+            // TODO: Investigate performance issues and revert functionality once we are sure there is no overhead.
+            // see https://github.com/ppy/osu/issues/9307
+            return Opacity.Mixed;
 
-            bool isTransparent = true;
-            bool isOpaque = true;
-
-            for (int i = 0; i < upload.Data.Length; ++i)
-            {
-                isTransparent &= upload.Data[i].A == 0;
-                isOpaque &= upload.Data[i].A == 255;
-
-                if (!isTransparent && !isOpaque)
-                    return Opacity.Mixed;
-            }
-
-            if (isTransparent)
-                return Opacity.Transparent;
-
-            return Opacity.Opaque;
+            // if (upload.Data.Length == 0)
+            //     return Opacity.Transparent;
+            //
+            // bool isTransparent = true;
+            // bool isOpaque = true;
+            //
+            // for (int i = 0; i < upload.Data.Length; ++i)
+            // {
+            //     isTransparent &= upload.Data[i].A == 0;
+            //     isOpaque &= upload.Data[i].A == 255;
+            //
+            //     if (!isTransparent && !isOpaque)
+            //         return Opacity.Mixed;
+            // }
+            //
+            // if (isTransparent)
+            //     return Opacity.Transparent;
+            //
+            // return Opacity.Opaque;
         }
 
         protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
