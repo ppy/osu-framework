@@ -46,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 var circle = new Circle
                 {
+                    Alpha = 0.5f,
                     Origin = Anchor.Centre,
                     Size = new Vector2(20),
                     Position = e.Touch.Position,
