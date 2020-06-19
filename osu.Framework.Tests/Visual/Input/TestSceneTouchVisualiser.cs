@@ -5,7 +5,9 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -31,19 +33,6 @@ namespace osu.Framework.Tests.Visual.Input
 
         public class TouchVisualiser : CompositeDrawable
         {
-            private static readonly Color4[] colours =
-            {
-                Color4.Red,
-                Color4.Orange,
-                Color4.Yellow,
-                Color4.Lime,
-                Color4.Green,
-                Color4.Cyan,
-                Color4.Blue,
-                Color4.Purple,
-                Color4.Magenta,
-            };
-
             private readonly Drawable[] drawableTouches = new Drawable[10];
 
             public TouchVisualiser()
@@ -60,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Input
                     Origin = Anchor.Centre,
                     Size = new Vector2(20),
                     Position = e.Touch.Position,
-                    Colour = colours[(int)e.Touch.Source]
+                    Colour = colourFor(e.Touch.Source),
                 };
 
                 AddInternal(circle);
@@ -81,6 +70,11 @@ namespace osu.Framework.Tests.Visual.Input
                 var circle = drawableTouches[(int)e.Touch.Source];
                 circle.FadeOut(200, Easing.OutQuint).Expire();
                 drawableTouches[(int)e.Touch.Source] = null;
+            }
+
+            private Color4 colourFor(TouchSource source)
+            {
+                return Color4.FromHsv(new Vector4((float)source / TouchState.MAX_TOUCH_COUNT, 1f, 1f, 1f));
             }
 
             private class FadingCircle : Circle
