@@ -44,6 +44,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnTouchDown(TouchDownEvent e)
             {
+                if (IsDisposed)
+                    return false;
+
                 var circle = new Circle
                 {
                     Alpha = 0.5f,
@@ -60,6 +63,9 @@ namespace osu.Framework.Tests.Visual.Input
 
             protected override bool OnTouchMove(TouchMoveEvent e)
             {
+                if (IsDisposed)
+                    return false;
+
                 var circle = drawableTouches[(int)e.Touch.Source];
                 AddInternal(new FadingCircle(circle));
                 circle.Position = e.Touch.Position;
