@@ -44,7 +44,7 @@ namespace osu.Framework.iOS.Input
             panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
             {
                 AllowedScrollTypesMask = UIScrollTypeMask.Continuous,
-                MaximumNumberOfTouches = 0 // Only enables this for 2 finger swipe, disabling clicking and dragging.
+                MaximumNumberOfTouches = 0 // Only handle drags when no "touches" are active (ie. no buttons are in a pressed state)
             };
             view.AddGestureRecognizer(panGestureRecognizer);
 
