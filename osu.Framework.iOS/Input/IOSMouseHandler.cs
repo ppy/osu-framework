@@ -37,25 +37,24 @@ namespace osu.Framework.iOS.Input
             if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
                 return false;
 
-            pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate());
+            view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
-            view.AddInteraction(pointerInteraction);
 
-            panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
+            view.AddGestureRecognizer(panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
             {
                 AllowedScrollTypesMask = UIScrollTypeMask.Continuous,
                 MaximumNumberOfTouches = 0 // Only handle drags when no "touches" are active (ie. no buttons are in a pressed state)
-            };
-            view.AddGestureRecognizer(panGestureRecognizer);
+            });
 
             return true;
         }
 
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+
             view.RemoveInteraction(pointerInteraction);
             view.RemoveGestureRecognizer(panGestureRecognizer);
-            base.Dispose(disposing);
         }
 
         private void locationUpdated(CGPoint location)
