@@ -30,6 +30,17 @@ namespace osu.Framework.Tests.Visual.Testing
                 !InputManager.CurrentState.Joystick.Buttons.HasAnyButtonPressed);
         }
 
+        /// <summary>
+        /// Added to allow manual testing of the test cursor visuals.
+        /// </summary>
+        [Test]
+        public void TestHoldLeftFromMaskedPosition()
+        {
+            AddStep("move mouse to screen zero", () => InputManager.MoveMouseTo(Vector2.Zero));
+            AddStep("hold mouse left", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("move mouse to content center", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
+        }
+
         [Test]
         public void TestMousePositionSetToInitial() => AddAssert("mouse position set to initial", () => InputManager.CurrentState.Mouse.Position == InitialMousePosition);
     }
