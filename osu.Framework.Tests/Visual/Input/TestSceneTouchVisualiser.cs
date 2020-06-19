@@ -18,7 +18,6 @@ namespace osu.Framework.Tests.Visual.Input
         {
             Children = new Drawable[]
             {
-                new TouchVisualiser(),
                 new SpriteText
                 {
                     Anchor = Anchor.Centre,
@@ -26,6 +25,7 @@ namespace osu.Framework.Tests.Visual.Input
                     Text = "Touch on the screen.",
                     Font = FontUsage.Default.With(size: 20),
                 },
+                new TouchVisualiser(),
             };
         }
 
@@ -48,7 +48,6 @@ namespace osu.Framework.Tests.Visual.Input
 
             public TouchVisualiser()
             {
-                Depth = float.NegativeInfinity;
                 RelativeSizeAxes = Axes.Both;
             }
 
