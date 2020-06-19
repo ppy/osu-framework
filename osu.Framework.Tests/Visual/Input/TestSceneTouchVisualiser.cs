@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.Input
             };
         }
 
-        private class TouchVisualiser : CompositeDrawable
+        public class TouchVisualiser : CompositeDrawable
         {
             private static readonly Color4[] colours =
             {
