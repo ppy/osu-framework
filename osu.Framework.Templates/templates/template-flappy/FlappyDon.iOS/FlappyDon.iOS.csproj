@@ -134,7 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj">
-      <Project>{1ADACD09-7BE3-46A1-AEAB-C41E78E8700F}</Project>
+      <Project>{7809CB42-8FED-4BB7-8C68-7638357B94A6}</Project>
       <Name>FlappyDon.Game</Name>
     </ProjectReference>
   </ItemGroup>
