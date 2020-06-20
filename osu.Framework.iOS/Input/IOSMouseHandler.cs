@@ -17,6 +17,8 @@ namespace osu.Framework.iOS.Input
     {
         private readonly IOSGameView view;
         private UIPointerInteraction pointerInteraction;
+        private UIPanGestureRecognizer panGestureRecognizer;
+        private CGPoint lastScrollTranslation;
 
         [UsedImplicitly]
         private IOSMouseDelegate mouseDelegate;
@@ -35,18 +37,24 @@ namespace osu.Framework.iOS.Input
             if (!UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
                 return false;
 
-            pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate());
+            view.AddInteraction(pointerInteraction = new UIPointerInteraction(mouseDelegate = new IOSMouseDelegate()));
             mouseDelegate.LocationUpdated += locationUpdated;
 
-            view.AddInteraction(pointerInteraction);
+            view.AddGestureRecognizer(panGestureRecognizer = new UIPanGestureRecognizer(panOffsetUpdated)
+            {
+                AllowedScrollTypesMask = UIScrollTypeMask.Continuous,
+                MaximumNumberOfTouches = 0 // Only handle drags when no "touches" are active (ie. no buttons are in a pressed state)
+            });
 
             return true;
         }
 
         protected override void Dispose(bool disposing)
         {
-            view.RemoveInteraction(pointerInteraction);
             base.Dispose(disposing);
+
+            view.RemoveInteraction(pointerInteraction);
+            view.RemoveGestureRecognizer(panGestureRecognizer);
         }
 
         private void locationUpdated(CGPoint location)
@@ -56,6 +64,34 @@ namespace osu.Framework.iOS.Input
                 Position = new Vector2(
                     (float)location.X * view.Scale,
                     (float)location.Y * view.Scale)
+            });
+        }
+
+        private const float scroll_rate_adjust = 0.1f;
+
+        private void panOffsetUpdated()
+        {
+            CGPoint translation = panGestureRecognizer.TranslationInView(view);
+
+            Vector2 delta;
+
+            if (panGestureRecognizer.State == UIGestureRecognizerState.Began)
+            {
+                // consume initial value.
+                delta = new Vector2((float)translation.X, (float)translation.Y);
+            }
+            else
+            {
+                // only consider relative change from previous value.
+                delta = new Vector2((float)(translation.X - lastScrollTranslation.X), (float)(translation.Y - lastScrollTranslation.Y));
+            }
+
+            lastScrollTranslation = translation;
+
+            PendingInputs.Enqueue(new MouseScrollRelativeInput
+            {
+                IsPrecise = true,
+                Delta = delta * scroll_rate_adjust
             });
         }
     }

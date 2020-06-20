@@ -60,10 +60,13 @@ namespace osu.Framework.Android
             {
                 host.AllowScreenSuspension.BindValueChanged(allow =>
                 {
-                    if (allow.NewValue)
-                        Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    else
-                        Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    RunOnUiThread(() =>
+                    {
+                        if (allow.NewValue)
+                            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        else
+                            Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    });
                 }, true);
             };
         }
