@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         public Sprite()
         {
             AddLayout(conservativeScreenSpaceDrawQuadBacking);
+            AddLayout(inflationAmountBacking);
         }
 
         [BackgroundDependencyLoader]
@@ -111,6 +112,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public const int MAX_EDGE_SMOOTHNESS = 3; // See https://github.com/ppy/osu-framework/pull/3511#discussion_r421665156 for relevant discussion.
 
+        private Vector2 edgeSmoothness;
+
         /// <summary>
         /// Determines over how many pixels of width the border of the sprite is smoothed
         /// in X and Y direction respectively.
@@ -118,7 +121,18 @@ namespace osu.Framework.Graphics.Sprites
         /// may be masked away. This should be counteracted by setting the MaskingSmoothness
         /// of the masking container to a slightly larger value than EdgeSmoothness.
         /// </summary>
-        public Vector2 EdgeSmoothness = Vector2.Zero;
+        public Vector2 EdgeSmoothness
+        {
+            get => edgeSmoothness;
+            set
+            {
+                if (edgeSmoothness == value)
+                    return;
+
+                edgeSmoothness = value;
+                Invalidate(Invalidation.DrawInfo);
+            }
+        }
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode(this);
 
@@ -164,15 +178,14 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        internal Vector2 InflationAmount { get; private set; }
+        public Vector2 InflationAmount => inflationAmountBacking.IsValid ? inflationAmountBacking.Value : (inflationAmountBacking.Value = computeInflationAmount());
 
-        protected override Quad ComputeScreenSpaceDrawQuad()
+        private readonly LayoutValue<Vector2> inflationAmountBacking = new LayoutValue<Vector2>(Invalidation.DrawInfo);
+
+        private Vector2 computeInflationAmount()
         {
             if (EdgeSmoothness == Vector2.Zero)
-            {
-                InflationAmount = Vector2.Zero;
-                return base.ComputeScreenSpaceDrawQuad();
-            }
+                return Vector2.Zero;
 
             if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
             {
@@ -180,9 +193,14 @@ namespace osu.Framework.Graphics.Sprites
                     $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
             }
 
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+            return DrawInfo.MatrixInverse.ExtractScale().Xy * EdgeSmoothness;
+        }
 
-            InflationAmount = scale.Xy * EdgeSmoothness;
+        protected override Quad ComputeScreenSpaceDrawQuad()
+        {
+            if (EdgeSmoothness == Vector2.Zero)
+                return base.ComputeScreenSpaceDrawQuad();
+
             return ToScreenSpace(DrawRectangle.Inflate(InflationAmount));
         }
 
