@@ -17,6 +17,18 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class Sprite : Drawable, ITexturedShaderDrawable
     {
+        public Sprite()
+        {
+            AddLayout(conservativeScreenSpaceDrawQuadBacking);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
+        {
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+        }
+
         public IShader TextureShader { get; protected set; }
 
         public IShader RoundedTextureShader { get; protected set; }
@@ -108,31 +120,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Vector2 EdgeSmoothness = Vector2.Zero;
 
-        public Sprite()
-        {
-            AddLayout(conservativeScreenSpaceDrawQuadBacking);
-        }
-
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            texture?.Dispose();
-            texture = null;
-
-            base.Dispose(isDisposing);
-        }
-
-        #endregion
-
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode(this);
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
-        {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-        }
 
         private Texture texture;
 
@@ -176,7 +164,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public Vector2 InflationAmount { get; private set; }
+        internal Vector2 InflationAmount { get; private set; }
 
         protected override Quad ComputeScreenSpaceDrawQuad()
         {
@@ -258,5 +246,17 @@ namespace osu.Framework.Graphics.Sprites
                 result += $" tex: {texture.AssetName}";
             return result;
         }
+
+        #region Disposal
+
+        protected override void Dispose(bool isDisposing)
+        {
+            texture?.Dispose();
+            texture = null;
+
+            base.Dispose(isDisposing);
+        }
+
+        #endregion
     }
 }
