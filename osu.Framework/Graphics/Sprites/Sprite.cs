@@ -129,7 +129,14 @@ namespace osu.Framework.Graphics.Sprites
                 if (edgeSmoothness == value)
                     return;
 
+                if (value.X > MAX_EDGE_SMOOTHNESS || value.Y > MAX_EDGE_SMOOTHNESS)
+                {
+                    throw new InvalidOperationException(
+                        $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
+                }
+
                 edgeSmoothness = value;
+
                 Invalidate(Invalidation.DrawInfo);
             }
         }
@@ -186,12 +193,6 @@ namespace osu.Framework.Graphics.Sprites
         {
             if (EdgeSmoothness == Vector2.Zero)
                 return Vector2.Zero;
-
-            if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
-            {
-                throw new InvalidOperationException(
-                    $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
-            }
 
             return DrawInfo.MatrixInverse.ExtractScale().Xy * EdgeSmoothness;
         }
