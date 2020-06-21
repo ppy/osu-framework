@@ -194,7 +194,8 @@ namespace osu.Framework.Graphics.Sprites
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            return ToScreenSpace(DrawRectangle.Inflate(scale.Xy * EdgeSmoothness));
+            InflationAmount = scale.Xy * EdgeSmoothness;
+            return ToScreenSpace(DrawRectangle.Inflate(InflationAmount));
         }
 
         // Matches the invalidation types of Drawable.screenSpaceDrawQuadBacking
