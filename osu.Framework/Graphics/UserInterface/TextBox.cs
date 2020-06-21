@@ -500,47 +500,39 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
-        /// <param name="text">The new text to insert.</param>
-        protected void InsertString(string text)
+        /// <param name="value">The string of text to insert.</param>
+        /// <param name="onDrawableCreated">An action invoked whenever a new character drawable has been created.</param>
+        protected void InsertString(string value, Action<char, Drawable> onDrawableCreated = null)
         {
-            if (string.IsNullOrEmpty(text)) return;
+            if (string.IsNullOrEmpty(value)) return;
 
-            foreach (char c in text)
+            if (Current.Disabled)
             {
-                var ch = addCharacter(c);
+                NotifyInputError();
+                return;
+            }
 
-                if (ch == null)
+            foreach (char c in value)
+            {
+                if (char.IsControl(c) || !CanAddCharacter(c) || text.Length + 1 > LengthLimit)
                 {
                     NotifyInputError();
                     continue;
                 }
 
-                ch.Show();
+                if (selectionLength > 0)
+                    removeCharacterOrSelection();
+
+                Drawable dc = AddCharacterToFlow(c);
+                dc.Show();
+
+                onDrawableCreated?.Invoke(c, dc);
+
+                text = text.Insert(selectionLeft, c.ToString());
+                selectionStart = selectionEnd = selectionLeft + 1;
+
+                cursorAndLayout.Invalidate();
             }
-        }
-
-        private Drawable addCharacter(char c)
-        {
-            if (Current.Disabled || char.IsControl(c) || !CanAddCharacter(c))
-                return null;
-
-            if (selectionLength > 0)
-                removeCharacterOrSelection();
-
-            if (text.Length + 1 > LengthLimit)
-            {
-                NotifyInputError();
-                return null;
-            }
-
-            Drawable ch = AddCharacterToFlow(c);
-
-            text = text.Insert(selectionLeft, c.ToString());
-            selectionStart = selectionEnd = selectionLeft + 1;
-
-            cursorAndLayout.Invalidate();
-
-            return ch;
         }
 
         /// <summary>
@@ -602,8 +594,7 @@ namespace osu.Framework.Graphics.UserInterface
                     TextFlow?.Clear();
                     text = string.Empty;
 
-                    foreach (char c in value)
-                        addCharacter(c);
+                    InsertString(value);
 
                     selectionStart = Math.Clamp(startBefore, 0, text.Length);
                 });
@@ -922,18 +913,12 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            //add any new or changed characters
-            for (int i = matchCount; i < s.Length; i++)
+            InsertString(s.Substring(matchCount), (_, dc) =>
             {
-                Drawable dr = addCharacter(s[i]);
-
-                if (dr != null)
-                {
-                    dr.Colour = Color4.Aqua;
-                    dr.Alpha = 0.6f;
-                    imeDrawables.Add(dr);
-                }
-            }
+                dc.Colour = Color4.Aqua;
+                dc.Alpha = 0.6f;
+                imeDrawables.Add(dc);
+            });
 
             audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
