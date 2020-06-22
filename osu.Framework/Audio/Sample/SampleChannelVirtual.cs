@@ -16,11 +16,6 @@ namespace osu.Framework.Audio.Sample
 
         public override bool Playing => false;
 
-        protected override void UpdateState()
-        {
-            // empty override to avoid affecting sample channel count in frame statistics
-        }
-
         private class SampleVirtual : Sample
         {
         }
