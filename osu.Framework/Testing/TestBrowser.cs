@@ -504,12 +504,43 @@ namespace osu.Framework.Testing
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
-                    {
-                        hadTestAttributeTest = true;
-                        CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                    var methodWrapper = new MethodWrapper(m.GetType(), m);
 
-                        handleTestMethod(m);
+                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).FirstOrDefault() != null)
+                    {
+                        var parameters = m.GetParameters();
+
+                        if (parameters.Length > 0)
+                        {
+                            var valueMatrix = new List<List<object>>();
+
+                            foreach (var p in methodWrapper.GetParameters())
+                            {
+                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).FirstOrDefault();
+                                if (valueAttrib == null)
+                                    throw new ArgumentException($"Parameter is present on a {nameof(TestAttribute)} method without values specification.", p.ParameterInfo.Name);
+
+                                List<object> choices = new List<object>();
+
+                                foreach (var choice in valueAttrib.GetData(p))
+                                    choices.Add(choice);
+
+                                valueMatrix.Add(choices);
+                            }
+
+                            foreach (var combination in valueMatrix.CartesianProduct())
+                            {
+                                hadTestAttributeTest = true;
+                                CurrentTest.AddLabel($"{name}({string.Join(", ", combination)}){repeatSuffix}");
+                                handleTestMethod(m, combination.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                            handleTestMethod(m);
+                        }
                     }
 
                     foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
@@ -650,5 +681,54 @@ namespace osu.Framework.Testing
         ToggleTestList,
         Reload,
         Search
+    }
+
+    public class CartesianProduct<T>
+    {
+        private readonly int[] lengths;
+        private readonly T[][] arrays;
+
+        public CartesianProduct(params T[][] arrays)
+        {
+            lengths = arrays.Select(k => k.Length).ToArray();
+            if (lengths.Any(l => l == 0))
+                throw new ArgumentException("Zero lenght array unhandled.");
+
+            this.arrays = arrays;
+        }
+
+        public IEnumerable<T[]> Get()
+        {
+            int[] walk = new int[arrays.Length];
+            int x = 0;
+            yield return walk.Select(k => arrays[x++][k]).ToArray();
+
+            while (next(walk))
+            {
+                x = 0;
+                yield return walk.Select(k => arrays[x++][k]).ToArray();
+            }
+        }
+
+        private bool next(int[] walk)
+        {
+            int whoIncrement = 0;
+
+            while (whoIncrement < walk.Length)
+            {
+                if (walk[whoIncrement] < lengths[whoIncrement] - 1)
+                {
+                    walk[whoIncrement]++;
+                    return true;
+                }
+                else
+                {
+                    walk[whoIncrement] = 0;
+                    whoIncrement++;
+                }
+            }
+
+            return false;
+        }
     }
 }
