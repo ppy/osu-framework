@@ -167,7 +167,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     clipboard?.SetText(SelectedText);
                     if (action.ActionType == PlatformActionType.Cut)
-                        removeCharacterOrSelection();
+                        removeSelection();
+
                     return true;
 
                 case PlatformActionType.Paste:
@@ -249,7 +250,8 @@ namespace osu.Framework.Graphics.UserInterface
                         if (selectionLength == 0)
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
                         if (selectionLength > 0)
-                            removeCharacterOrSelection();
+                            removeSelection();
+
                         break;
                 }
 
@@ -416,23 +418,28 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private bool removeCharacterOrSelection(bool sound = true)
+        /// <summary>
+        /// Removes the selected text if a selection persists.
+        /// </summary>
+        private void removeSelection() => removeCharacters(selectionLength);
+
+        /// <summary>
+        /// Removes a specified <paramref name="number"/> of characters left side of the current position.
+        /// </summary>
+        private void removeCharacters(int number = 1)
         {
-            if (Current.Disabled)
-                return false;
+            if (Current.Disabled || text.Length == 0)
+                return;
 
-            if (text.Length == 0) return false;
-            if (selectionLength == 0 && selectionLeft == 0) return false;
+            int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
+            int removeCount = selectionRight - removeStart;
 
-            int count = Math.Clamp(selectionLength, 1, text.Length);
-            int start = Math.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
+            if (removeCount == 0)
+                return;
 
-            if (count == 0) return false;
+            audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
-            if (sound)
-                audio.Samples.Get(@"Keyboard/key-delete")?.Play();
-
-            foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
+            foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 TextFlow.Remove(d);
 
@@ -445,19 +452,21 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            text = text.Remove(start, count);
+            text = text.Remove(removeStart, removeCount);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
-            for (int i = start; i < TextFlow.Count; i++)
+            for (int i = removeStart; i < TextFlow.Count; i++)
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
-            if (selectionLength > 0)
-                selectionStart = selectionEnd = selectionLeft;
+            if (removeCount >= selectionLength)
+                selectionStart = selectionEnd = removeStart;
             else
-                selectionStart = selectionEnd = selectionLeft - 1;
+            {
+                selectionStart = selectionLeft;
+                selectionEnd = removeStart;
+            }
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         /// <summary>
@@ -525,7 +534,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return null;
 
             if (selectionLength > 0)
-                removeCharacterOrSelection();
+                removeSelection();
 
             if (text.Length + 1 > LengthLimit)
             {
@@ -888,14 +897,10 @@ namespace osu.Framework.Graphics.UserInterface
             //search for unchanged characters..
             int matchCount = 0;
             bool matching = true;
-            bool didDelete = false;
 
             int searchStart = text.Length - imeDrawables.Count;
 
-            //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeDrawables.Count, s.Length);
-
-            for (int i = 0; i < maxLength; i++)
+            for (int i = 0; i < s.Length; i++)
             {
                 if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
                 {
@@ -904,23 +909,19 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 matching = false;
+            }
 
-                if (matchCount < imeDrawables.Count)
-                {
-                    //if we are no longer matching, we want to remove all further characters.
-                    removeCharacterOrSelection(false);
-                    imeDrawables.RemoveAt(matchCount);
-                    didDelete = true;
-                }
+            var unmatchingCount = imeDrawables.Count - matchCount;
+
+            if (unmatchingCount > 0)
+            {
+                removeCharacters(unmatchingCount);
+                imeDrawables.RemoveRange(matchCount, unmatchingCount);
             }
 
             if (matchCount == s.Length)
-            {
                 //in the case of backspacing (or a NOP), we can exit early here.
-                if (didDelete)
-                    audio.Samples.Get(@"Keyboard/key-delete")?.Play();
                 return;
-            }
 
             //add any new or changed characters
             for (int i = matchCount; i < s.Length; i++)
