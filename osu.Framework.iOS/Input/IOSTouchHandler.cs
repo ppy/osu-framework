@@ -15,25 +15,38 @@ namespace osu.Framework.iOS.Input
     {
         private readonly IOSGameView view;
 
+        private bool rightClickPressed;
+
         public IOSTouchHandler(IOSGameView view)
         {
             this.view = view;
             view.HandleTouches += handleTouches;
         }
 
-        private void handleTouches(NSSet obj)
+        private void handleTouches(NSSet obj, UIEvent evt)
         {
             if (obj.Count == 1)
-                handleUITouch((UITouch)obj.AnyObject);
+                handleUITouch((UITouch)obj.AnyObject, evt);
             else
             {
                 foreach (var t in obj)
-                    handleUITouch((UITouch)t);
+                    handleUITouch((UITouch)t, evt);
             }
         }
 
-        private void handleUITouch(UITouch touch)
+        private void handleUITouch(UITouch touch, UIEvent evt)
         {
+            // Right-click on iOS 13.4 and up
+            MouseButton buttonValue = MouseButton.Left;
+            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
+            {
+                if (evt.ButtonMask == UIEventButtonMask.Secondary)
+                {
+                    buttonValue = MouseButton.Right;
+                    rightClickPressed = true;
+                }
+            }
+
             var location = touch.LocationInView(null);
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
@@ -42,11 +55,14 @@ namespace osu.Framework.iOS.Input
             {
                 case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                    PendingInputs.Enqueue(new MouseButtonInput(buttonValue, true));
                     break;
 
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
+                    if (rightClickPressed)
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
+
                     PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
                     break;
             }
