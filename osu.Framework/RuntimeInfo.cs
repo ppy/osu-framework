@@ -2,17 +2,30 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 
 namespace osu.Framework
 {
     public static class RuntimeInfo
     {
         /// <summary>
+        /// The absolute path to the startup directory of this game.
+        /// </summary>
+        public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
+
+        /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
         /// </summary>
-        public static string GetFrameworkAssemblyPath() =>
-            System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
+        public static string GetFrameworkAssemblyPath()
+        {
+            var assembly = Assembly.GetAssembly(typeof(RuntimeInfo));
+            Debug.Assert(assembly != null);
+
+            return assembly.Location;
+        }
 
         public static Platform OS { get; }
         public static bool IsUnix => OS != Platform.Windows;

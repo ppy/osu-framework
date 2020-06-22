@@ -298,7 +298,10 @@ namespace osu.Framework.Graphics
                 double allowedDuration = blocking ? 16 : 100;
 
                 if (loadDuration > allowedDuration)
-                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance, blocking ? LogLevel.Important : LogLevel.Verbose);
+                {
+                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance,
+                        blocking ? LogLevel.Important : LogLevel.Verbose);
+                }
             }
         }
 
@@ -1744,7 +1747,17 @@ namespace osu.Framework.Graphics
         /// <param name="invalidation">The flags to invalidate with.</param>
         /// <param name="source">The source that triggered the invalidation.</param>
         /// <returns>If any layout was invalidated.</returns>
-        public bool Invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self)
+        public bool Invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self) => invalidate(invalidation, source);
+
+        /// <summary>
+        /// Invalidates the layout of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="invalidation">The flags to invalidate with.</param>
+        /// <param name="source">The source that triggered the invalidation.</param>
+        /// <param name="propagateToParent">Whether to propagate the invalidation to the parent of this <see cref="Drawable"/>.
+        /// Only has an effect if <paramref name="source"/> is <see cref="InvalidationSource.Self"/>.</param>
+        /// <returns>If any layout was invalidated.</returns>
+        private bool invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self, bool propagateToParent = true)
         {
             if (source != InvalidationSource.Child && source != InvalidationSource.Parent && source != InvalidationSource.Self)
                 throw new InvalidOperationException($"A {nameof(Drawable)} can only be invalidated with a singular {nameof(source)} (child, parent, or self).");
@@ -1762,7 +1775,7 @@ namespace osu.Framework.Graphics
             // If the invalidation originated locally, propagate to the immediate parent.
             // Note: This is done _before_ invalidation is blocked below, since the parent always needs to be aware of changes even if the Drawable's invalidation state hasn't changed.
             // This is for only propagating once, otherwise it would propagate all the way to the root Drawable.
-            if (source == InvalidationSource.Self)
+            if (propagateToParent && source == InvalidationSource.Self)
                 Parent?.Invalidate(invalidation, InvalidationSource.Child);
 
             // Perform the invalidation.
@@ -1834,8 +1847,8 @@ namespace osu.Framework.Graphics
         /// <param name="changedAxes">The <see cref="Axes"/> that were affected.</param>
         private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
         {
-            // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
-            Invalidate(invalidation, InvalidationSource.Parent);
+            // We're invalidating the parent manually, so we should not propagate it upwards.
+            invalidate(invalidation, InvalidationSource.Self, false);
 
             // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
             Parent?.InvalidateChildrenSizeDependencies(invalidation, changedAxes, this);

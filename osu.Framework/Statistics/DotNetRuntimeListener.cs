@@ -22,21 +22,24 @@ namespace osu.Framework.Statistics
         {
             switch ((EventType)data.EventId)
             {
-                case EventType.GCStart_V1:
+                case EventType.GCStart_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
                     GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
                     break;
 
-                case EventType.GCHeapStats_V1:
+                case EventType.GCHeapStats_V1 when data.Payload != null:
                     // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
                     for (int i = 0; i <= 6; i += 2)
-                        GlobalStatistics.Get<ulong>(statistics_grouping, $"Size Gen{i / 2}").Value = (ulong)data.Payload[i];
+                        addStatistic<ulong>($"Size Gen{i / 2}", data.Payload[i]);
 
-                    GlobalStatistics.Get<ulong>(statistics_grouping, "Finalization queue length").Value = (ulong)data.Payload[9];
-                    GlobalStatistics.Get<uint>(statistics_grouping, "Pinned objects").Value = (uint)data.Payload[10];
+                    addStatistic<ulong>("Finalization queue length", data.Payload[9]);
+                    addStatistic<uint>("Pinned objects", data.Payload[10]);
                     break;
             }
         }
+
+        private void addStatistic<T>(string name, object data)
+            => GlobalStatistics.Get<T>(statistics_grouping, name).Value = (T)data;
 
         private enum EventType
         {

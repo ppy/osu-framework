@@ -151,7 +151,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Shader.Bind();
 
-            texture.TextureGL.WrapMode = TextureWrapMode.ClampToEdge;
             texture.TextureGL.Bind();
 
             updateVertexBuffer();

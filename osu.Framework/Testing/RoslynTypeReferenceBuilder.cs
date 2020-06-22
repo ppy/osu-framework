@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using osu.Framework.Logging;
@@ -222,8 +223,14 @@ namespace osu.Framework.Testing
             {
                 var kind = n.Kind();
 
+                // Ignored:
+                // - Entire using lines.
+                // - Namespace names (not entire namespaces).
+                // - Entire static classes.
+
                 return kind != SyntaxKind.UsingDirective
-                       && kind != SyntaxKind.NamespaceKeyword;
+                       && kind != SyntaxKind.NamespaceKeyword
+                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
             });
 
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
@@ -258,7 +265,7 @@ namespace osu.Framework.Testing
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
                 // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
-                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(exclude_attribute_name)))
+                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass?.Name.Contains(exclude_attribute_name) ?? false))
                 {
                     logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
                     return;
@@ -349,7 +356,7 @@ namespace osu.Framework.Testing
                 var node = directedGraph[s];
 
                 // This shouldn't be super tight (e.g. log_2), but tight enough that a significant number of nodes do get excluded.
-                double range = Math.Log(node.ExpansionFactor, 1.25d);
+                double range = Math.Log(Math.Max(1, node.ExpansionFactor), 1.25d);
 
                 var exclusionRange = (
                     min: range,

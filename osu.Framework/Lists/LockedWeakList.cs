@@ -82,10 +82,10 @@ namespace osu.Framework.Lists
             {
                 this.list = list;
 
-                listEnumerator = list.GetEnumerator();
-
                 lockTaken = false;
                 Monitor.Enter(list, ref lockTaken);
+
+                listEnumerator = list.GetEnumerator();
             }
 
             public bool MoveNext() => listEnumerator.MoveNext();
