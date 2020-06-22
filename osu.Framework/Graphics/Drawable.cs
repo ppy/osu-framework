@@ -2047,6 +2047,9 @@ namespace osu.Framework.Graphics
                     OnJoystickRelease(joystickRelease);
                     return false;
 
+                case JoystickAxisMoveEvent joystickAxisMove:
+                    return OnJoystickAxisMove(joystickAxisMove);
+
                 case MidiDownEvent midiDown:
                     return OnMidiDown(midiDown);
 
@@ -2215,6 +2218,13 @@ namespace osu.Framework.Graphics
         protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
 
         /// <summary>
+        /// An event that occurs when a <see cref="JoystickAxis"/> is moved.
+        /// </summary>
+        /// <param name="e">The <see cref="JoystickAxisMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnJoystickAxisMove(JoystickAxisMoveEvent e) => Handle(e);
+
+        /// <summary>
         /// An event that occurs when a <see cref="MidiKey"/> is pressed.
         /// </summary>
         /// <param name="e">The <see cref="MidiDownEvent"/> containing information about the input event.</param>
@@ -2300,7 +2310,8 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyDown),
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
-                nameof(OnJoystickRelease)
+                nameof(OnJoystickRelease),
+                nameof(OnJoystickAxisMove)
             };
 
             private static readonly Type[] positional_input_interfaces =
