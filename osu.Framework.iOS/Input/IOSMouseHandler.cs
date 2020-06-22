@@ -53,8 +53,11 @@ namespace osu.Framework.iOS.Input
         {
             base.Dispose(disposing);
 
-            view.RemoveInteraction(pointerInteraction);
-            view.RemoveGestureRecognizer(panGestureRecognizer);
+            if (pointerInteraction != null)
+                view.RemoveInteraction(pointerInteraction);
+
+            if (panGestureRecognizer != null)
+                view.RemoveGestureRecognizer(panGestureRecognizer);
         }
 
         private void locationUpdated(CGPoint location)
