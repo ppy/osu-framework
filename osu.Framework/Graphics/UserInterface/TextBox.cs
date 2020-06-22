@@ -501,8 +501,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
         /// <param name="value">The string of text to insert.</param>
-        /// <param name="onDrawableCreated">An action invoked whenever a new character drawable has been created.</param>
-        protected void InsertString(string value, Action<char, Drawable> onDrawableCreated = null)
+        protected void InsertString(string value) => insertString(value, null);
+
+        private void insertString(string value, Action<char, Drawable> onDrawableCreated)
         {
             if (string.IsNullOrEmpty(value)) return;
 
@@ -919,7 +920,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            InsertString(s.Substring(matchCount), (_, dc) =>
+            insertString(s.Substring(matchCount), (_, dc) =>
             {
                 dc.Colour = Color4.Aqua;
                 dc.Alpha = 0.6f;
