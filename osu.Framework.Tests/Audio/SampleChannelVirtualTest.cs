@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Audio
         public void Setup()
         {
             channel = new SampleChannelVirtual();
-            updateTrack();
+            updateChannel();
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.HasCompleted);
 
             channel.Play();
-            updateTrack();
+            updateChannel();
 
             Thread.Sleep(50);
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsTrue(channel.HasCompleted);
         }
 
-        private void updateTrack() => RunOnAudioThread(() => channel.Update());
+        private void updateChannel() => RunOnAudioThread(() => channel.Update());
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.
