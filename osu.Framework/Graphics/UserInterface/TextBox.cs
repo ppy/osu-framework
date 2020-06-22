@@ -514,7 +514,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             foreach (char c in value)
             {
-                if (char.IsControl(c) || !CanAddCharacter(c) || text.Length + 1 > LengthLimit)
+                if (char.IsControl(c) || !CanAddCharacter(c))
                 {
                     NotifyInputError();
                     continue;
@@ -522,6 +522,12 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (selectionLength > 0)
                     removeCharacterOrSelection();
+
+                if (text.Length + 1 > LengthLimit)
+                {
+                    NotifyInputError();
+                    break;
+                }
 
                 Drawable dc = AddCharacterToFlow(c);
                 dc.Show();
