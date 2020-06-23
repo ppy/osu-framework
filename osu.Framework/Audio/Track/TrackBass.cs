@@ -76,31 +76,7 @@ namespace osu.Framework.Audio.Track
             {
                 Preview = quick;
 
-                //encapsulate incoming stream with async buffer if it isn't already.
-                dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
-
-                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
-
-                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
-                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
-
-                if (!Preview)
-                {
-                    // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
-                    // cleaned up during a Bass.Free call. This is necessary for seamless switching between audio devices.
-                    // Further, we provide the flag BassFlags.FxFreeSource such that freeing the activeStream also frees
-                    // all parent decoding streams.
-                    const int bass_nodevice = 0x20000;
-
-                    Bass.ChannelSetDevice(activeStream, bass_nodevice);
-                    tempoAdjustStream = BassFx.TempoCreate(activeStream, BassFlags.Decode | BassFlags.FxFreeSource);
-                    Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
-                    activeStream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
-
-                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
-                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
-                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
-                }
+                activeStream = prepareStream(data, quick);
 
                 // will be -1 in case of an error
                 double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
@@ -133,6 +109,37 @@ namespace osu.Framework.Audio.Track
             });
 
             InvalidateState();
+        }
+
+        private int prepareStream(Stream data, bool quick)
+        {
+            //encapsulate incoming stream with async buffer if it isn't already.
+            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+
+            fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
+
+            BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
+            int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
+
+            if (!Preview)
+            {
+                // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
+                // cleaned up during a Bass.Free call. This is necessary for seamless switching between audio devices.
+                // Further, we provide the flag BassFlags.FxFreeSource such that freeing the stream also frees
+                // all parent decoding streams.
+                const int bass_nodevice = 0x20000;
+
+                Bass.ChannelSetDevice(stream, bass_nodevice);
+                tempoAdjustStream = BassFx.TempoCreate(stream, BassFlags.Decode | BassFlags.FxFreeSource);
+                Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
+                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
+
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+            }
+
+            return stream;
         }
 
         /// <summary>
