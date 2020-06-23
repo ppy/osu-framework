@@ -13,19 +13,11 @@ namespace osu.Framework.Audio
     {
         private int channel;
 
-        private ChannelAmplitudes currentAmplitudes;
-
-        public ChannelAmplitudes CurrentAmplitudes => currentAmplitudes;
-
-        private const int size = 256; // should be half of the FFT length provided to ChannelGetData.
-
-        private static readonly ChannelAmplitudes empty = new ChannelAmplitudes { FrequencyAmplitudes = new float[size] };
+        public ChannelAmplitudes CurrentAmplitudes { get; private set; } = ChannelAmplitudes.Empty;
 
         public BassAmplitudeProcessor(int channel)
         {
             this.channel = channel;
-
-            setEmpty();
         }
 
         public void SetChannel(int channel)
@@ -47,22 +39,12 @@ namespace osu.Framework.Audio
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
-                currentAmplitudes.LeftChannel = leftChannel;
-                currentAmplitudes.RightChannel = rightChannel;
-
-                float[] tempFrequencyData = new float[size];
-                Bass.ChannelGetData(ch, tempFrequencyData, (int)DataFlags.FFT512);
-                currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+                float[] frequencyData = new float[ChannelAmplitudes.AMPLITUDES_SIZE];
+                Bass.ChannelGetData(ch, frequencyData, (int)DataFlags.FFT512);
+                CurrentAmplitudes = new ChannelAmplitudes(leftChannel, rightChannel, frequencyData);
             }
             else
-                setEmpty();
-        }
-
-        private void setEmpty()
-        {
-            currentAmplitudes.LeftChannel = 0;
-            currentAmplitudes.RightChannel = 0;
-            currentAmplitudes.FrequencyAmplitudes = empty.FrequencyAmplitudes;
+                CurrentAmplitudes = ChannelAmplitudes.Empty;
         }
     }
 }

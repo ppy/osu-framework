@@ -99,8 +99,10 @@ namespace osu.Framework.Tests.Visual.Audio
             rightChannel.Width = amplitudes.RightChannel * 0.5f;
             leftChannel.Width = amplitudes.LeftChannel * 0.5f;
 
-            for (int i = 0; i < amplitudes.FrequencyAmplitudes.Length; i++)
-                amplitudeBoxes[i].Height = amplitudes.FrequencyAmplitudes[i];
+            var freqAmplitudes = amplitudes.FrequencyAmplitudes.Span;
+
+            for (int i = 0; i < freqAmplitudes.Length; i++)
+                amplitudeBoxes[i].Height = freqAmplitudes[i];
         }
     }
 }
