@@ -68,8 +68,8 @@ namespace osu.Framework.iOS
             IOSGameWindow.GameView = gameView;
 
             AllowScreenSuspension.BindValueChanged(allow =>
-                InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-            true);
+                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
+                true);
         }
 
         protected override IWindow CreateWindow() => new IOSGameWindow();
@@ -98,7 +98,14 @@ namespace osu.Framework.iOS
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new IOSTouchHandler(gameView), keyboardHandler = new IOSKeyboardHandler(gameView), rawKeyboardHandler = new IOSRawKeyboardHandler(), new MidiInputHandler() };
+            new InputHandler[]
+            {
+                new IOSTouchHandler(gameView),
+                keyboardHandler = new IOSKeyboardHandler(gameView),
+                rawKeyboardHandler = new IOSRawKeyboardHandler(),
+                new IOSMouseHandler(gameView),
+                new MidiInputHandler()
+            };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 

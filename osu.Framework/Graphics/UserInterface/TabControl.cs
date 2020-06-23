@@ -35,6 +35,18 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
+        /// <summary>
+        /// A collection of all tabs which are valid switch targets.
+        /// </summary>
+        protected internal IEnumerable<TabItem<T>> SwitchableTabs => AllTabs.Where(tab => tab.IsSwitchable);
+
+        protected internal IEnumerable<TabItem<T>> AllTabs => TabContainer.AllTabItems;
+
+        /// <summary>
+        /// All items which are currently present and visible in the tab control.
+        /// </summary>
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
+
         private readonly List<T> items = new List<T>();
 
         /// <summary>
@@ -53,8 +65,6 @@ namespace osu.Framework.Graphics.UserInterface
                     AddItem(item);
             }
         }
-
-        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -93,6 +103,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A mapping of tabs to their items.
         /// </summary>
+        /// <remarks>
+        /// There is no guaranteed order. To retrieve ordered tabs, use <see cref="SwitchableTabs"/> or <see cref="AllTabs"/> instead.
+        /// </remarks>
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         private readonly Dictionary<T, TabItem<T>> tabMap = new Dictionary<T, TabItem<T>>();
@@ -251,12 +264,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (tab == SelectedTab)
             {
-                if (Items.Count == 1)
+                if (SwitchableTabs.Count() < 2)
                     SelectedTab = null;
                 else
                 {
-                    tabMap.TryGetValue(Items.Last(), out TabItem<T> lastTab);
-                    SwitchTab(tab == lastTab ? -1 : 1);
+                    // check all tabs as to include self (in correct iteration order)
+                    bool anySwitchableTabsToRight = AllTabs.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
+                    SwitchTab(anySwitchableTabsToRight ? 1 : -1);
                 }
             }
 
@@ -309,34 +323,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
         public virtual void SwitchTab(int direction, bool wrap = true)
         {
-            if (Math.Abs(direction) != 1)
-                throw new ArgumentException("value must be -1 or 1", nameof(direction));
+            if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
-            TabItem<T>[] switchableTabs = TabContainer.AllTabItems.Where(tab => tab.IsSwitchable).ToArray();
-            int tabCount = switchableTabs.Length;
+            // the current selected tab may be an non-switchable tab, so search all tabs for a candidate.
+            // this is done to ensure ordering (ie. if an non-switchable tab is in the middle).
+            var allTabs = TabContainer.AllTabItems.Where(t => t.IsSwitchable || t == SelectedTab);
 
-            if (tabCount == 0)
-                return;
+            if (direction < 0)
+                allTabs = allTabs.Reverse();
 
-            if (tabCount == 1 || SelectedTab == null)
-            {
-                SelectTab(switchableTabs[0]);
-                return;
-            }
+            var found = allTabs.SkipWhile(t => t != SelectedTab).Skip(1).FirstOrDefault();
 
-            int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
-            int targetIndex = selectedIndex + direction;
+            if (found == null && wrap)
+                found = allTabs.FirstOrDefault(t => t != SelectedTab);
 
-            if (wrap)
-            {
-                targetIndex %= tabCount;
-                if (targetIndex < 0)
-                    targetIndex += tabCount;
-            }
-
-            targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
-
-            SelectTab(switchableTabs[targetIndex]);
+            if (found != null)
+                SelectTab(found);
         }
 
         private void activationRequested(TabItem<T> tab)

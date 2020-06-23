@@ -6,14 +6,14 @@
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7AA1DB5D-78DB-4693-AE50-D6078F5A0CAB}</ProjectGuid>
+    <ProjectGuid>{48783186-230D-4048-A97A-E4F1DF43BF5C}</ProjectGuid>
     <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
     <RootNamespace>FlappyDon.iOS</RootNamespace>
@@ -24,7 +24,6 @@
     <DebugType>full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
@@ -45,7 +44,6 @@
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
-    <DefineConstants>iOS DEBUG DIST SIMULATOR</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
@@ -78,7 +76,6 @@
     <DebugType>full</DebugType>
     <Optimize>True</Optimize>
     <OutputPath>bin\iPhone\Debug</OutputPath>
-    <DefineConstants>iOS DEBUG DIST</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <MtouchDebug>True</MtouchDebug>
@@ -134,7 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FlappyDon.Game\FlappyDon.Game.csproj">
-      <Project>{1ADACD09-7BE3-46A1-AEAB-C41E78E8700F}</Project>
+      <Project>{7809CB42-8FED-4BB7-8C68-7638357B94A6}</Project>
       <Name>FlappyDon.Game</Name>
     </ProjectReference>
   </ItemGroup>
@@ -165,10 +162,10 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2020.609.0" />
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2020.619.0" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
-    <PackageReference Include="ppy.osu.Framework" Version="2020.609.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2020.619.0" />
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" ExcludeAssets="all" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
