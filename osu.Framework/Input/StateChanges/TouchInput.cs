@@ -43,7 +43,12 @@ namespace osu.Framework.Input.StateChanges
             var positionChanged = lastPosition != null && Touch.Position != lastPosition;
 
             if (activityChanged || positionChanged)
-                handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, Touch, !activityChanged ? (bool?)null : Activate, lastPosition));
+            {
+                handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, Touch,
+                    !activityChanged ? (bool?)null : Activate,
+                    !positionChanged ? null : lastPosition
+                ));
+            }
         }
     }
 }
