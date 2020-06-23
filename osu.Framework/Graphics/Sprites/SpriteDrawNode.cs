@@ -63,6 +63,14 @@ namespace osu.Framework.Graphics.Sprites
                 null, TextureCoords);
         }
 
+        protected virtual void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+        {
+            if (GLWrapper.IsMaskingActive)
+                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+            else
+                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
+        }
+
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
             base.Draw(vertexAction);
@@ -83,12 +91,12 @@ namespace osu.Framework.Graphics.Sprites
         {
             base.DrawOpaqueInterior(vertexAction);
 
+            if (Texture?.Available != true)
+                return;
+
             TextureShader.Bind();
 
-            if (GLWrapper.IsMaskingActive)
-                DrawClipped(ref ConservativeScreenSpaceDrawQuad, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
-            else
-                DrawQuad(Texture, ConservativeScreenSpaceDrawQuad, DrawColourInfo.Colour, vertexAction: vertexAction, textureCoords: TextureCoords);
+            BlitOpaqueInterior(vertexAction);
 
             TextureShader.Unbind();
         }
