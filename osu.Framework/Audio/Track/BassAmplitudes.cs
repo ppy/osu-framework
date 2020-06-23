@@ -27,6 +27,8 @@ namespace osu.Framework.Audio.Track
         public BassAmplitudes(int channel)
         {
             this.channel = channel;
+
+            setEmpty();
         }
 
         public void SetChannel(int channel)
@@ -61,11 +63,14 @@ namespace osu.Framework.Audio.Track
                 currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
             }
             else
-            {
-                currentAmplitudes.LeftChannel = 0;
-                currentAmplitudes.RightChannel = 0;
-                currentAmplitudes.FrequencyAmplitudes = empty.FrequencyAmplitudes;
-            }
+                setEmpty();
+        }
+
+        private void setEmpty()
+        {
+            currentAmplitudes.LeftChannel = 0;
+            currentAmplitudes.RightChannel = 0;
+            currentAmplitudes.FrequencyAmplitudes = empty.FrequencyAmplitudes;
         }
     }
 }
