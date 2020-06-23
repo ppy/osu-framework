@@ -32,9 +32,27 @@ namespace osu.Framework.Tests.Visual.Input
         {
             Children = new Drawable[]
             {
+                new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Gray.Darken(2f),
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.BottomCentre,
+                            Text = "Parent"
+                        },
+                    }
+                },
                 receptors = new Container<InputReceptor>
                 {
-                    Padding = new MarginPadding { Bottom = 10f },
+                    Padding = new MarginPadding { Bottom = 20f },
                     RelativeSizeAxes = Axes.Both,
                     ChildrenEnumerable = touch_sources.Select(s => new InputReceptor(s)
                     {
