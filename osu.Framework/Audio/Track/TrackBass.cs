@@ -307,6 +307,6 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override TrackAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
     }
 }

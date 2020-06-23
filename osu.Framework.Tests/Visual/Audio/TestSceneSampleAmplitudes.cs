@@ -3,6 +3,7 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
@@ -11,26 +12,27 @@ using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class TestSceneTrackAmplitudes : FrameworkTestScene
+    public class TestSceneSampleAmplitudes : FrameworkTestScene
     {
-        private DrawableTrack track;
+        private DrawableSample sample;
 
         private Box leftChannel;
         private Box rightChannel;
 
-        private TrackBass bassTrack;
+        private SampleChannelBass bassSample;
 
         private Container amplitudeBoxes;
 
         [BackgroundDependencyLoader]
-        private void load(ITrackStore tracks)
+        private void load(ISampleStore samples)
         {
-            bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
-            var length = bassTrack.CurrentAmplitudes.FrequencyAmplitudes.Length;
+            bassSample = (SampleChannelBass)samples.Get("long.mp3");
+
+            var length = bassSample.CurrentAmplitudes.FrequencyAmplitudes.Length;
 
             Children = new Drawable[]
             {
-                track = new DrawableTrack(bassTrack),
+                sample = new DrawableSample(bassSample),
                 new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -85,16 +87,16 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             base.LoadComplete();
 
-            track.Looping = true;
-            AddStep("start track", () => track.Start());
-            AddStep("stop track", () => track.Stop());
+            sample.Looping = true;
+            AddStep("start sample", () => sample.Play());
+            AddStep("stop sample", () => sample.Stop());
         }
 
         protected override void Update()
         {
             base.Update();
 
-            var amplitudes = bassTrack.CurrentAmplitudes;
+            var amplitudes = bassSample.CurrentAmplitudes;
 
             rightChannel.Width = amplitudes.RightChannel * 0.5f;
             leftChannel.Width = amplitudes.LeftChannel * 0.5f;

@@ -6,7 +6,7 @@ namespace osu.Framework.Audio.Track
     /// <summary>
     /// An audio track.
     /// </summary>
-    public interface ITrack
+    public interface ITrack : IHasAmplitudes
     {
         /// <summary>
         /// States if this track should repeat.
