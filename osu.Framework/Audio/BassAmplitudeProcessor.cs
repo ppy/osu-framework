@@ -13,13 +13,13 @@ namespace osu.Framework.Audio
     {
         private int channel;
 
-        private TrackAmplitudes currentAmplitudes;
+        private ChannelAmplitudes currentAmplitudes;
 
-        public TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
+        public ChannelAmplitudes CurrentAmplitudes => currentAmplitudes;
 
         private const int size = 256; // should be half of the FFT length provided to ChannelGetData.
 
-        private static readonly TrackAmplitudes empty = new TrackAmplitudes { FrequencyAmplitudes = new float[size] };
+        private static readonly ChannelAmplitudes empty = new ChannelAmplitudes { FrequencyAmplitudes = new float[size] };
 
         public BassAmplitudeProcessor(int channel)
         {

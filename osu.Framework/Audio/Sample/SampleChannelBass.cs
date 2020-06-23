@@ -117,7 +117,7 @@ namespace osu.Framework.Audio.Sample
 
         public override bool Playing => playing;
 
-        public override TrackAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {

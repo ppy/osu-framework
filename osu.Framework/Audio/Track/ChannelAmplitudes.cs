@@ -5,7 +5,7 @@ using System;
 
 namespace osu.Framework.Audio.Track
 {
-    public struct TrackAmplitudes
+    public struct ChannelAmplitudes
     {
         public float LeftChannel;
         public float RightChannel;
