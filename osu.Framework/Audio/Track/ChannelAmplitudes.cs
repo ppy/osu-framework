@@ -5,6 +5,9 @@ using System;
 
 namespace osu.Framework.Audio.Track
 {
+    /// <summary>
+    /// A collection of information providing per-channel and per-frequency amplitudes of an audio channel.
+    /// </summary>
     public readonly struct ChannelAmplitudes
     {
         /// <summary>
@@ -12,11 +15,24 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public const int AMPLITUDES_SIZE = 256;
 
+        /// <summary>
+        /// The amplitude of the left channel (0..1).
+        /// </summary>
         public readonly float LeftChannel;
+
+        /// <summary>
+        /// The amplitude of the right channel (0..1).
+        /// </summary>
         public readonly float RightChannel;
 
+        /// <summary>
+        /// The maximum amplitude of the left and right channels (0..1).
+        /// </summary>
         public float Maximum => Math.Max(LeftChannel, RightChannel);
 
+        /// <summary>
+        /// The average amplitude of the left and right channels (0..1).
+        /// </summary>
         public float Average => (LeftChannel + RightChannel) / 2;
 
         /// <summary>
