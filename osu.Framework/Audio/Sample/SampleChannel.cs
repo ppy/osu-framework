@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -52,5 +53,12 @@ namespace osu.Framework.Audio.Sample
         public virtual bool Played => WasStarted && !Playing;
 
         public override bool IsAlive => base.IsAlive && !Played;
+
+        /// <summary>
+        /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
+        /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
+        /// The most recent values are returned. Synchronisation between channels should not be expected.
+        /// </summary>
+        public virtual TrackAmplitudes CurrentAmplitudes { get; } = new TrackAmplitudes();
     }
 }
