@@ -112,11 +112,6 @@ namespace osu.Framework.Audio.Track
 
         public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
 
-        /// <summary>
-        /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
-        /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
-        /// The most recent values are returned. Synchronisation between channels should not be expected.
-        /// </summary>
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = new ChannelAmplitudes();
 
         protected override void UpdateState()
