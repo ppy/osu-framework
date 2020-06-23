@@ -506,7 +506,7 @@ namespace osu.Framework.Testing
 
                     var methodWrapper = new MethodWrapper(m.GetType(), m);
 
-                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).FirstOrDefault() != null)
+                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
                     {
                         var parameters = m.GetParameters();
 
@@ -516,7 +516,7 @@ namespace osu.Framework.Testing
 
                             foreach (var p in methodWrapper.GetParameters())
                             {
-                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).FirstOrDefault();
+                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).SingleOrDefault();
                                 if (valueAttrib == null)
                                     throw new ArgumentException($"Parameter is present on a {nameof(TestAttribute)} method without values specification.", p.ParameterInfo.Name);
 
