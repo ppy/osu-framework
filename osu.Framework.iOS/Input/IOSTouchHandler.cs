@@ -14,8 +14,7 @@ namespace osu.Framework.iOS.Input
     public class IOSTouchHandler : InputHandler
     {
         private readonly IOSGameView view;
-
-        private bool rightClickPressed;
+        private NSMutableSet<UITouch> pendingRightClickTouches = new NSMutableSet<UITouch>();
 
         public IOSTouchHandler(IOSGameView view)
         {
@@ -36,17 +35,6 @@ namespace osu.Framework.iOS.Input
 
         private void handleUITouch(UITouch touch, UIEvent evt)
         {
-            // Right-click on iOS 13.4 and up
-            MouseButton buttonValue = MouseButton.Left;
-            if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4))
-            {
-                if (evt.ButtonMask == UIEventButtonMask.Secondary)
-                {
-                    buttonValue = MouseButton.Right;
-                    rightClickPressed = true;
-                }
-            }
-
             var location = touch.LocationInView(null);
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
@@ -55,15 +43,25 @@ namespace osu.Framework.iOS.Input
             {
                 case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    PendingInputs.Enqueue(new MouseButtonInput(buttonValue, true));
+                    if (evt.ButtonMask == UIEventButtonMask.Secondary)
+                    {
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
+                        pendingRightClickTouches.Add(touch);
+                    }
+                    else
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+
                     break;
 
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
-                    if (rightClickPressed)
+                    if (pendingRightClickTouches.Contains(touch))
+                    {
+                        pendingRightClickTouches.Remove(touch);
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
-
-                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                    }
+                    else
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
                     break;
             }
         }
