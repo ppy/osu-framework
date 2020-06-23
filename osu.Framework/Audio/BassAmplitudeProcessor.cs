@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
+using osu.Framework.Audio.Track;
 
-namespace osu.Framework.Audio.Track
+namespace osu.Framework.Audio
 {
     /// <summary>
     /// Computes and caches amplitudes for a bass channel.
     /// </summary>
-    public class BassAmplitudes
+    public class BassAmplitudeProcessor
     {
         private int channel;
 
@@ -20,7 +21,7 @@ namespace osu.Framework.Audio.Track
 
         private static readonly TrackAmplitudes empty = new TrackAmplitudes { FrequencyAmplitudes = new float[size] };
 
-        public BassAmplitudes(int channel)
+        public BassAmplitudeProcessor(int channel)
         {
             this.channel = channel;
 

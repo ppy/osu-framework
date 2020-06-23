@@ -106,7 +106,7 @@ namespace osu.Framework.Audio.Track
 
                     isLoaded = true;
 
-                    bassAmplitudes?.SetChannel(activeStream);
+                    bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });
 
@@ -166,7 +166,7 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        private BassAmplitudes bassAmplitudes;
+        private BassAmplitudeProcessor bassAmplitudeProcessor;
 
         protected override void UpdateState()
         {
@@ -180,7 +180,7 @@ namespace osu.Framework.Audio.Track
 
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
-            bassAmplitudes?.Update();
+            bassAmplitudeProcessor?.Update();
 
             base.UpdateState();
         }
@@ -307,6 +307,6 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override TrackAmplitudes CurrentAmplitudes => (bassAmplitudes ??= new BassAmplitudes(activeStream)).CurrentAmplitudes;
+        public override TrackAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
     }
 }
