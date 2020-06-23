@@ -105,6 +105,8 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
 
                     isLoaded = true;
+
+                    bassAmplitudes?.SetChannel(activeStream);
                 }
             });
 
@@ -164,6 +166,8 @@ namespace osu.Framework.Audio.Track
             }
         }
 
+        private BassAmplitudes bassAmplitudes;
+
         protected override void UpdateState()
         {
             var running = isRunningState(Bass.ChannelIsActive(activeStream));
@@ -176,24 +180,7 @@ namespace osu.Framework.Audio.Track
 
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
-            var leftChannel = isPlayed ? Bass.ChannelGetLevelLeft(activeStream) / 32768f : -1;
-            var rightChannel = isPlayed ? Bass.ChannelGetLevelRight(activeStream) / 32768f : -1;
-
-            if (leftChannel >= 0 && rightChannel >= 0)
-            {
-                currentAmplitudes.LeftChannel = leftChannel;
-                currentAmplitudes.RightChannel = rightChannel;
-
-                float[] tempFrequencyData = new float[256];
-                Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
-                currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
-            }
-            else
-            {
-                currentAmplitudes.LeftChannel = 0;
-                currentAmplitudes.RightChannel = 0;
-                currentAmplitudes.FrequencyAmplitudes = new float[256];
-            }
+            bassAmplitudes?.Update();
 
             base.UpdateState();
         }
@@ -320,8 +307,6 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        private TrackAmplitudes currentAmplitudes;
-
-        public override TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
+        public override TrackAmplitudes CurrentAmplitudes => (bassAmplitudes ??= new BassAmplitudes(activeStream)).CurrentAmplitudes;
     }
 }
