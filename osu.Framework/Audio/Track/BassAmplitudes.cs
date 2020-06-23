@@ -1,10 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
-// See the LICENCE file in the repository root for full licence text.
-
-using System;
 using ManagedBass;
 
 namespace osu.Framework.Audio.Track
@@ -33,25 +29,20 @@ namespace osu.Framework.Audio.Track
 
         public void SetChannel(int channel)
         {
-            if (this.channel != 0)
-                // just for simple thread safety. limitation can be easily removed later if required.
-                throw new InvalidOperationException("Can only set channel to non-zero value once");
-
-            if (channel == 0)
-                throw new ArgumentException("Channel must be non-zero", nameof(channel));
-
             this.channel = channel;
         }
 
         public void Update()
         {
-            if (channel == 0)
+            int ch = channel;
+
+            if (ch == 0)
                 return;
 
-            bool active = Bass.ChannelIsActive(channel) == PlaybackState.Playing;
+            bool active = Bass.ChannelIsActive(ch) == PlaybackState.Playing;
 
-            var leftChannel = active ? Bass.ChannelGetLevelLeft(channel) / 32768f : -1;
-            var rightChannel = active ? Bass.ChannelGetLevelRight(channel) / 32768f : -1;
+            var leftChannel = active ? Bass.ChannelGetLevelLeft(ch) / 32768f : -1;
+            var rightChannel = active ? Bass.ChannelGetLevelRight(ch) / 32768f : -1;
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
@@ -59,7 +50,7 @@ namespace osu.Framework.Audio.Track
                 currentAmplitudes.RightChannel = rightChannel;
 
                 float[] tempFrequencyData = new float[size];
-                Bass.ChannelGetData(channel, tempFrequencyData, (int)DataFlags.FFT512);
+                Bass.ChannelGetData(ch, tempFrequencyData, (int)DataFlags.FFT512);
                 currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
             }
             else
