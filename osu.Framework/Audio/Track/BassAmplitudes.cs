@@ -20,7 +20,9 @@ namespace osu.Framework.Audio.Track
 
         public TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
 
-        private static readonly TrackAmplitudes empty = new TrackAmplitudes { FrequencyAmplitudes = new float[256] };
+        private const int size = 256; // should be half of the FFT length provided to ChannelGetData.
+
+        private static readonly TrackAmplitudes empty = new TrackAmplitudes { FrequencyAmplitudes = new float[size] };
 
         public BassAmplitudes(int channel)
         {
@@ -54,7 +56,7 @@ namespace osu.Framework.Audio.Track
                 currentAmplitudes.LeftChannel = leftChannel;
                 currentAmplitudes.RightChannel = rightChannel;
 
-                float[] tempFrequencyData = new float[256];
+                float[] tempFrequencyData = new float[size];
                 Bass.ChannelGetData(channel, tempFrequencyData, (int)DataFlags.FFT512);
                 currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
             }
