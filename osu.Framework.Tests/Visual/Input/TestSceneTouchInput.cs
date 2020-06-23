@@ -110,6 +110,32 @@ namespace osu.Framework.Tests.Visual.Input
                 return true;
             });
 
+            AddStep("move touches outside of area", () =>
+            {
+                foreach (var s in touch_sources)
+                    InputManager.MoveTouchTo(new Touch(s, getTouchUpPos(s)));
+            });
+
+            AddAssert("received correct event for each receptor", () =>
+            {
+                foreach (var r in receptors)
+                {
+                    if (!(r.TouchEvents.TryDequeue(out TouchEvent te) && te is TouchMoveEvent touchMove))
+                        return false;
+
+                    if (touchMove.ScreenSpaceTouch.Source != r.AssociatedSource ||
+                        touchMove.ScreenSpaceTouch.Position != getTouchUpPos(r.AssociatedSource) ||
+                        touchMove.ScreenSpaceLastTouchPosition != getTouchMovePos(r.AssociatedSource) ||
+                        touchMove.ScreenSpaceTouchDownPosition != getTouchDownPos(r.AssociatedSource))
+                        return false;
+
+                    if (r.TouchEvents.Count > 0)
+                        return false;
+                }
+
+                return true;
+            });
+
             AddStep("deactivate touches out of receptors", () =>
             {
                 foreach (var s in touch_sources)
@@ -120,19 +146,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 foreach (var r in receptors)
                 {
-                    // event #1: move touch to deactivation position.
-                    // even if it's outside the receptor area, move events must still be fired to handlers of down event.
-                    if (!(r.TouchEvents.TryDequeue(out TouchEvent te1) && te1 is TouchMoveEvent touchMove))
-                        return false;
-
-                    if (touchMove.ScreenSpaceTouch.Source != r.AssociatedSource ||
-                        touchMove.ScreenSpaceTouch.Position != getTouchUpPos(r.AssociatedSource) ||
-                        touchMove.ScreenSpaceLastTouchPosition != getTouchMovePos(r.AssociatedSource) ||
-                        touchMove.ScreenSpaceTouchDownPosition != getTouchDownPos(r.AssociatedSource))
-                        return false;
-
-                    // event #2: deactivate touch.
-                    if (!(r.TouchEvents.TryDequeue(out TouchEvent te2) && te2 is TouchUpEvent touchUp))
+                    if (!(r.TouchEvents.TryDequeue(out TouchEvent te) && te is TouchUpEvent touchUp))
                         return false;
 
                     if (touchUp.ScreenSpaceTouch.Source != r.AssociatedSource ||
@@ -210,17 +224,17 @@ namespace osu.Framework.Tests.Visual.Input
                 return primaryReceptor.MouseEvents.Count == 0;
             });
 
-            AddStep("deactivate touches", () =>
+            AddStep("move touches outside of area", () =>
             {
                 foreach (var s in touch_sources)
-                    InputManager.EndTouch(new Touch(s, getTouchUpPos(s)));
+                    InputManager.MoveTouchTo(new Touch(s, getTouchUpPos(s)));
             });
 
-            AddAssert("received correct mouse events", () =>
+            AddAssert("received correct mouse-drag event", () =>
             {
-                // No mouse move event here since the up position is intentionally beyond the receptor boundaries. (only drag will received)
+                // No mouse move event here since the touch has moved outside of its receptor area. (only drag will received)
 
-                if (!(primaryReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent mouseDrag))
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is DragEvent mouseDrag))
                     return false;
 
                 if (mouseDrag.Button != MouseButton.Left ||
@@ -229,7 +243,18 @@ namespace osu.Framework.Tests.Visual.Input
                     mouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(TouchSource.Touch1))
                     return false;
 
-                if (!(primaryReceptor.MouseEvents.TryDequeue(out MouseEvent me3) && me3 is MouseUpEvent mouseUp))
+                return primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddStep("deactivate touches", () =>
+            {
+                foreach (var s in touch_sources)
+                    InputManager.EndTouch(new Touch(s, getTouchUpPos(s)));
+            });
+
+            AddAssert("received correct mouse-up event", () =>
+            {
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is MouseUpEvent mouseUp))
                     return false;
 
                 if (mouseUp.Button != MouseButton.Left ||
