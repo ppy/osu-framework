@@ -54,6 +54,6 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsAlive => base.IsAlive && !Played;
 
-        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = new ChannelAmplitudes();
+        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
     }
 }

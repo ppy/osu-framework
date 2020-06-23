@@ -112,7 +112,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool HasCompleted => IsLoaded && !IsRunning && CurrentTime >= Length;
 
-        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = new ChannelAmplitudes();
+        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
         protected override void UpdateState()
         {
