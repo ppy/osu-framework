@@ -43,7 +43,7 @@ namespace osu.Framework.iOS.Input
             {
                 case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    if (evt.ButtonMask == UIEventButtonMask.Secondary)
+                    if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && evt.ButtonMask == UIEventButtonMask.Secondary)
                     {
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
                         pendingRightClickTouches.Add(touch);
