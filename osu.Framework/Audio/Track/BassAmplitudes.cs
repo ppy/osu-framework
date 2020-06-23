@@ -20,6 +20,8 @@ namespace osu.Framework.Audio.Track
 
         public TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
 
+        private static readonly TrackAmplitudes empty = new TrackAmplitudes { FrequencyAmplitudes = new float[256] };
+
         public BassAmplitudes(int channel)
         {
             this.channel = channel;
@@ -60,7 +62,7 @@ namespace osu.Framework.Audio.Track
             {
                 currentAmplitudes.LeftChannel = 0;
                 currentAmplitudes.RightChannel = 0;
-                currentAmplitudes.FrequencyAmplitudes = new float[256];
+                currentAmplitudes.FrequencyAmplitudes = empty.FrequencyAmplitudes;
             }
         }
     }
