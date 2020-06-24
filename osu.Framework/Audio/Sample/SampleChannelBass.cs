@@ -3,6 +3,7 @@
 
 using System;
 using ManagedBass;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -14,6 +15,8 @@ namespace osu.Framework.Audio.Sample
         public override bool IsLoaded => Sample.IsLoaded;
 
         private float initialFrequency;
+
+        private BassAmplitudeProcessor bassAmplitudeProcessor;
 
         public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
             : base(sample, onPlay)
@@ -69,9 +72,12 @@ namespace osu.Framework.Audio.Sample
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
+
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 setLoopFlag(Looping);
+
+                bassAmplitudeProcessor?.SetChannel(channel);
             });
 
             InvalidateState();
@@ -91,6 +97,8 @@ namespace osu.Framework.Audio.Sample
         {
             playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
             base.UpdateState();
+
+            bassAmplitudeProcessor?.Update();
         }
 
         public override void Stop()
@@ -108,6 +116,8 @@ namespace osu.Framework.Audio.Sample
         }
 
         public override bool Playing => playing;
+
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Audio.Sample;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -36,5 +37,7 @@ namespace osu.Framework.Graphics.Audio
             get => channel.Looping;
             set => channel.Looping = value;
         }
+
+        public ChannelAmplitudes CurrentAmplitudes => channel.CurrentAmplitudes;
     }
 }
