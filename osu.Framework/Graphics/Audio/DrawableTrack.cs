@@ -56,5 +56,7 @@ namespace osu.Framework.Graphics.Audio
         public void Start() => track.Start();
 
         public void Stop() => track.Stop();
+
+        public ChannelAmplitudes CurrentAmplitudes => track.CurrentAmplitudes;
     }
 }
