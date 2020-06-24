@@ -16,6 +16,8 @@ namespace osu.Framework.iOS.Input
         private readonly IOSGameView view;
         private NSMutableSet<UITouch> pendingRightClickTouches = new NSMutableSet<UITouch>();
 
+        private bool rightClickSupport = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
+
         public IOSTouchHandler(IOSGameView view)
         {
             this.view = view;
@@ -38,7 +40,7 @@ namespace osu.Framework.iOS.Input
             {
                 case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    if (UIDevice.CurrentDevice.CheckSystemVersion(13, 4) && evt.ButtonMask == UIEventButtonMask.Secondary)
+                    if (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary)
                     {
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
                         pendingRightClickTouches.Add(touch);
