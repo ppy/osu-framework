@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -53,14 +54,22 @@ namespace osu.Framework.Allocation
                     if (modifier != AccessModifier.Private)
                         throw new AccessModifierNotAllowedForLoaderMethodException(modifier, method);
 
-                    var permitNulls = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>().permitNulls;
-                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType).Select(t => getDependency(t, type, permitNulls || t.IsNullable()));
+                    var attribute = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>();
+                    Debug.Assert(attribute != null);
+
+                    var permitNulls = attribute.permitNulls;
+                    var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
+                                                 .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
 
                     return (target, dc) =>
                     {
                         try
                         {
-                            method.Invoke(target, parameterGetters.Select(p => p(dc)).ToArray());
+                            var parameterArray = new object[parameterGetters.Length];
+                            for (int i = 0; i < parameterGetters.Length; i++)
+                                parameterArray[i] = parameterGetters[i](dc);
+
+                            method.Invoke(target, parameterArray);
                         }
                         catch (TargetInvocationException exc) // During non-await invocations
                         {

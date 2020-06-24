@@ -4,9 +4,9 @@
 using System;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Layout;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Containers
@@ -34,6 +34,9 @@ namespace osu.Framework.Graphics.Containers
 
             RelativeSizeAxes = content.RelativeSizeAxes;
             AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+
+            AddLayout(optimisingContainerCache);
+            AddLayout(isIntersectingCache);
         }
 
         public override double LifetimeStart
@@ -124,8 +127,8 @@ namespace osu.Framework.Graphics.Containers
 
         public bool DelayedLoadCompleted => InternalChildren.Count > 0;
 
-        private readonly Cached optimisingContainerCache = new Cached();
-        private readonly Cached isIntersectingCache = new Cached();
+        private readonly LayoutValue optimisingContainerCache = new LayoutValue(Invalidation.Parent);
+        private readonly LayoutValue isIntersectingCache = new LayoutValue(Invalidation.All);
         private ScheduledDelegate isIntersectingResetDelegate;
 
         protected bool IsIntersecting { get; private set; }
@@ -134,13 +137,9 @@ namespace osu.Framework.Graphics.Containers
 
         internal IOnScreenOptimisingContainer FindParentOptimisingContainer() => FindClosestParent<IOnScreenOptimisingContainer>();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            bool result = base.Invalidate(invalidation, source, shallPropagate);
-
-            if (invalidation.HasFlag(Invalidation.Parent))
-                result &= !optimisingContainerCache.Invalidate();
-            result &= !isIntersectingCache.Invalidate();
+            var result = base.OnInvalidate(invalidation, source);
 
             // For every invalidation, we schedule a reset of IsIntersecting to the game.
             // This is done since UpdateSubTreeMasking() may not be invoked in the current frame, as a result of presence/masking changes anywhere in our super-tree.
@@ -148,7 +147,10 @@ namespace osu.Framework.Graphics.Containers
             // For example, if a parent invalidated this wrapper every frame, IsIntersecting would be false by the time Update() is run and may only become true at the very end of the frame.
             // The scheduled delegate will be cancelled if this wrapper has its UpdateSubTreeMasking() invoked, as more accurate intersections can be computed there instead.
             if (isIntersectingResetDelegate == null)
+            {
                 isIntersectingResetDelegate = Game?.Scheduler.AddDelayed(() => IsIntersecting = false, 0);
+                result = true;
+            }
 
             return result;
         }

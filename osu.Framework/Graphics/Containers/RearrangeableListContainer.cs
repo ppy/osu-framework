@@ -2,7 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Events;
 using osuTK;
@@ -41,14 +44,13 @@ namespace osu.Framework.Graphics.Containers
         protected readonly FillFlowContainer<RearrangeableListItem<TModel>> ListContainer;
 
         /// <summary>
-        /// The mapping of <see cref="TModel"/> to <see cref="RearrangeableListItem{TModel}"/>.
+        /// The mapping of <typeparamref name="TModel"/> to <see cref="RearrangeableListItem{TModel}"/>.
         /// </summary>
         protected IReadOnlyDictionary<TModel, RearrangeableListItem<TModel>> ItemMap => itemMap;
 
         private readonly Dictionary<TModel, RearrangeableListItem<TModel>> itemMap = new Dictionary<TModel, RearrangeableListItem<TModel>>();
         private RearrangeableListItem<TModel> currentlyDraggedItem;
         private Vector2 screenSpaceDragPosition;
-        private bool isCurrentlyRearranging; // Will be true only for the duration that indices are being moved around
 
         /// <summary>
         /// Creates a new <see cref="RearrangeableListContainer{TModel}"/>.
@@ -68,42 +70,42 @@ namespace osu.Framework.Graphics.Containers
                 d.Child = ListContainer;
             });
 
-            Items.ItemsAdded += itemsAdded;
-            Items.ItemsRemoved += itemsRemoved;
+            Items.CollectionChanged += collectionChanged;
         }
 
-        private void itemsAdded(IEnumerable<TModel> items)
+        private void collectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (isCurrentlyRearranging)
-                return;
-
-            foreach (var item in items)
+            switch (e.Action)
             {
-                if (itemMap.ContainsKey(item))
-                {
-                    throw new InvalidOperationException($"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
-                }
+                case NotifyCollectionChangedAction.Add:
+                    addItems(e.NewItems);
+                    break;
 
-                var drawable = CreateDrawable(item).With(d =>
-                {
-                    d.StartArrangement += startArrangement;
-                    d.Arrange += arrange;
-                    d.EndArrangement += endArrangement;
-                });
+                case NotifyCollectionChangedAction.Remove:
+                    removeItems(e.OldItems);
 
-                ListContainer.Add(drawable);
-                itemMap[item] = drawable;
+                    // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
+                    // scroll position if we quickly add new items after calling a Clear().
+                    if (Items.Count == 0)
+                        ScrollContainer.ScrollToStart();
+                    break;
+
+                case NotifyCollectionChangedAction.Reset:
+                    currentlyDraggedItem = null;
+                    ListContainer.Clear();
+                    itemMap.Clear();
+                    break;
+
+                case NotifyCollectionChangedAction.Replace:
+                    removeItems(e.OldItems);
+                    addItems(e.NewItems);
+                    break;
             }
-
-            reSort();
         }
 
-        private void itemsRemoved(IEnumerable<TModel> items)
+        private void removeItems(IList items)
         {
-            if (isCurrentlyRearranging)
-                return;
-
-            foreach (var item in items)
+            foreach (var item in items.Cast<TModel>())
             {
                 if (currentlyDraggedItem != null && EqualityComparer<TModel>.Default.Equals(currentlyDraggedItem.Model, item))
                     currentlyDraggedItem = null;
@@ -113,19 +115,54 @@ namespace osu.Framework.Graphics.Containers
             }
 
             reSort();
+        }
 
-            if (Items.Count == 0)
+        private void addItems(IList items)
+        {
+            var drawablesToAdd = new List<Drawable>();
+
+            foreach (var item in items.Cast<TModel>())
             {
-                // Explicitly reset scroll position here so that ScrollContainer doesn't retain our
-                // scroll position if we quickly add new items after calling a Clear().
-                ScrollContainer.ScrollToStart();
+                if (itemMap.ContainsKey(item))
+                {
+                    throw new InvalidOperationException(
+                        $"Duplicate items cannot be added to a {nameof(BindableList<TModel>)} that is currently bound with a {nameof(RearrangeableListContainer<TModel>)}.");
+                }
+
+                var drawable = CreateDrawable(item).With(d =>
+                {
+                    d.StartArrangement += startArrangement;
+                    d.Arrange += arrange;
+                    d.EndArrangement += endArrangement;
+                });
+
+                drawablesToAdd.Add(drawable);
+                itemMap[item] = drawable;
             }
+
+            LoadComponentsAsync(drawablesToAdd, loaded =>
+            {
+                foreach (var d in loaded.Cast<RearrangeableListItem<TModel>>())
+                {
+                    // We shouldn't add items that were removed during the async load
+                    if (itemMap.ContainsKey(d.Model))
+                        ListContainer.Add(d);
+                }
+
+                reSort();
+            });
         }
 
         private void reSort()
         {
             for (int i = 0; i < Items.Count; i++)
-                ListContainer.SetLayoutPosition(itemMap[Items[i]], i);
+            {
+                var drawable = itemMap[Items[i]];
+
+                // If the async load didn't complete, the item wouldn't exist in the container and an exception would be thrown
+                if (drawable.Parent == ListContainer)
+                    ListContainer.SetLayoutPosition(drawable, i);
+            }
         }
 
         private void startArrangement(RearrangeableListItem<TModel> item, DragStartEvent e)
@@ -186,8 +223,13 @@ namespace osu.Framework.Graphics.Containers
 
             for (; dstIndex < Items.Count; dstIndex++)
             {
+                var drawable = itemMap[Items[dstIndex]];
+
+                if (!drawable.IsLoaded)
+                    continue;
+
                 // Using BoundingBox here takes care of scale, paddings, etc...
-                float height = itemMap[Items[dstIndex]].BoundingBox.Height;
+                float height = drawable.BoundingBox.Height;
 
                 // Rearrangement should occur only after the mid-point of items is crossed
                 heightAccumulator += height / 2;
@@ -215,15 +257,10 @@ namespace osu.Framework.Graphics.Containers
             if (srcIndex == dstIndex)
                 return;
 
-            isCurrentlyRearranging = true;
-
-            Items.RemoveAt(srcIndex);
-            Items.Insert(dstIndex, currentlyDraggedItem.Model);
+            Items.Move(srcIndex, dstIndex);
 
             // Todo: this could be optimised, but it's a very simple iteration over all the items
             reSort();
-
-            isCurrentlyRearranging = false;
         }
 
         /// <summary>

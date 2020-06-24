@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osuTK;
 using osuTK.Platform;
 
 namespace osu.Framework.Platform
@@ -27,6 +26,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="config">The configuration manager to use.</param>
         void SetupWindow(FrameworkConfigManager config);
+
+        /// <summary>
+        /// Creates the concrete window implementation.
+        /// </summary>
+        void Create();
 
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
@@ -53,17 +57,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Controls the vertical sync mode of the screen.
         /// </summary>
-        VSyncMode VSync { get; set; }
+        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
-
-        /// <summary>
-        /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
-        /// </summary>
-        DisplayDevice CurrentDisplay { get; }
 
         /// <summary>
         /// Whether this <see cref="IWindow"/> is active (in the foreground).
@@ -83,8 +82,29 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
-        /// Available resolutions for full-screen display.
+        /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
+        /// Supported window modes for the current platform can be retrieved via <see cref="SupportedWindowModes"/>.
         /// </summary>
-        IEnumerable<DisplayResolution> AvailableResolutions { get; }
+        Bindable<WindowMode> WindowMode { get; }
+
+        /// <summary>
+        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
+        /// </summary>
+        IEnumerable<Display> Displays { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
+        /// </summary>
+        Display PrimaryDisplay { get; }
+
+        /// <summary>
+        /// Exposes the <see cref="Display"/> that this window is currently on as a <see cref="Bindable{Display}"/>.
+        /// </summary>
+        Bindable<Display> CurrentDisplay { get; }
+
+        /// <summary>
+        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// </summary>
+        DisplayMode CurrentDisplayMode { get; }
     }
 }

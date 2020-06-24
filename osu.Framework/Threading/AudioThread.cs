@@ -4,7 +4,10 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using ManagedBass;
 using osu.Framework.Audio;
+using osu.Framework.Development;
+using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Threading
 {
@@ -14,6 +17,21 @@ namespace osu.Framework.Threading
             : base(name: "Audio")
         {
             OnNewFrame = onNewFrame;
+
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+        }
+
+        public override bool IsCurrent => ThreadSafety.IsAudioThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsAudioThread = true;
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
@@ -27,8 +45,12 @@ namespace osu.Framework.Threading
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
 
+        private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
+
         private void onNewFrame()
         {
+            cpu_usage.Value = Bass.CPUUsage;
+
             lock (managers)
             {
                 for (var i = 0; i < managers.Count; i++)
@@ -67,7 +89,10 @@ namespace osu.Framework.Threading
                 managers.Clear();
             }
 
-            ManagedBass.Bass.Free();
+            // Safety net to ensure we have freed all devices before exiting.
+            // This is mainly required for device-lost scenarios.
+            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+            while (Bass.Free()) { }
         }
     }
 }

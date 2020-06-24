@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicTabControl<T> : TabControl<T>
     {
         protected override Dropdown<T> CreateDropdown()
-            => new BasicDropdown<T>();
+            => new BasicTabControlDropdown();
 
         protected override TabItem<T> CreateTabItem(T value)
             => new BasicTabItem(value);
@@ -36,6 +36,17 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override void OnDeactivated()
                 => text.Colour = Color4.White;
+        }
+
+        public class BasicTabControlDropdown : BasicDropdown<T>
+        {
+            public BasicTabControlDropdown()
+            {
+                Menu.Anchor = Anchor.TopRight;
+                Menu.Origin = Anchor.TopRight;
+                Header.Anchor = Anchor.TopRight;
+                Header.Origin = Anchor.TopRight;
+            }
         }
     }
 }

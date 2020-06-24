@@ -1,37 +1,43 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Input.States
 {
     public class TouchState
     {
         /// <summary>
+        /// The maximum amount of touches this can handle.
+        /// </summary>
+        public static readonly int MAX_TOUCH_COUNT = Enum.GetValues(typeof(TouchSource)).Length;
+
+        /// <summary>
         /// The list of currently active touch sources.
         /// </summary>
-        public readonly ButtonStates<MouseButton> ActiveSources = new ButtonStates<MouseButton>();
+        public readonly ButtonStates<TouchSource> ActiveSources = new ButtonStates<TouchSource>();
 
         /// <summary>
-        /// The dictionary to retrieve current touch positions from and save them.
+        /// The array to retrieve current touch positions from and set them.
         /// </summary>
-        public readonly Dictionary<MouseButton, Vector2> TouchPositions = new Dictionary<MouseButton, Vector2>();
+        /// <remarks>
+        /// Using <see cref="GetTouchPosition"/> is recommended for retrieving
+        /// logically correct values, as this may contain already stale values.
+        /// </remarks>
+        public readonly Vector2[] TouchPositions = new Vector2[MAX_TOUCH_COUNT];
 
         /// <summary>
-        /// Retrieves the current touch position of a specified <paramref name="source"/>, or null if not existing in the <see cref="TouchPositions"/> dictionary.
+        /// Retrieves the current touch position of a specified <paramref name="source"/>.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        public Vector2? GetTouchPosition(MouseButton source)
-        {
-            if (!TouchPositions.TryGetValue(source, out var pos))
-                return null;
+        /// <param name="source">The touch source.</param>
+        /// <returns>The touch position, or null if provided <paramref name="source"/> is not currently active.</returns>
+        public Vector2? GetTouchPosition(TouchSource source) => IsActive(source) ? TouchPositions[(int)source] : (Vector2?)null;
 
-            return pos;
-        }
-
-        public bool IsActive(MouseButton source) => ActiveSources.IsPressed(source);
+        /// <summary>
+        /// Whether the provided touch <paramref name="source"/> is active.
+        /// </summary>
+        /// <param name="source">The touch source to check for.</param>
+        public bool IsActive(TouchSource source) => ActiveSources.IsPressed(source);
     }
 }

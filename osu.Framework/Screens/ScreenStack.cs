@@ -30,7 +30,7 @@ namespace osu.Framework.Screens
         /// <summary>
         /// The currently-active <see cref="IScreen"/>.
         /// </summary>
-        public IScreen CurrentScreen => stack.FirstOrDefault();
+        public IScreen CurrentScreen => stack.Count == 0 ? null : stack.Peek();
 
         private readonly Stack<IScreen> stack = new Stack<IScreen>();
 
@@ -257,16 +257,19 @@ namespace osu.Framework.Screens
             // The next current screen will be resumed
             if (shouldFireExitEvent && toExit.AsDrawable().IsLoaded)
             {
+                var next = CurrentScreen;
+
+                // Add the screen back on the stack to allow pushing screens in OnExiting.
+                stack.Push(toExit);
+
                 // if a screen is !ValidForResume, it should not be allowed to block unless it is the current screen (source == null)
                 // OnExiting should still be called regardless.
-                bool blockRequested = toExit.OnExiting(CurrentScreen);
+                bool blockRequested = toExit.OnExiting(next);
 
                 if ((source == null || toExit.ValidForResume) && blockRequested)
-                {
-                    // If the exit event gets cancelled, add the screen back on the stack.
-                    stack.Push(toExit);
                     return true;
-                }
+
+                stack.Pop();
             }
 
             // we will probably want to change this logic when we support returning to a screen after exiting.

@@ -121,6 +121,7 @@ namespace osu.Framework.Input
 
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
+                case JoystickAxisMoveEvent _:
                     SyncInputState(e.CurrentState);
                     break;
             }
@@ -170,7 +171,9 @@ namespace osu.Framework.Input
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
             new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+
             new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new JoystickAxisInput(parentState?.Joystick?.GetAxes()).Apply(CurrentState, this);
         }
     }
 }

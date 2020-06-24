@@ -9,13 +9,15 @@ namespace osu.Framework.Input.States
         public readonly KeyboardState Keyboard;
         public readonly TouchState Touch;
         public readonly JoystickState Joystick;
+        public readonly MidiState Midi;
 
-        public InputState(MouseState mouse = null, KeyboardState keyboard = null, TouchState touch = null, JoystickState joystick = null)
+        public InputState(MouseState mouse = null, KeyboardState keyboard = null, TouchState touch = null, JoystickState joystick = null, MidiState midi = null)
         {
             Mouse = mouse ?? new MouseState();
             Keyboard = keyboard ?? new KeyboardState();
             Touch = touch ?? new TouchState();
             Joystick = joystick ?? new JoystickState();
+            Midi = midi ?? new MidiState();
         }
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -59,7 +60,11 @@ namespace osu.Framework.Testing
         /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
         public TestBrowser(string assemblyNamespace = null)
         {
-            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
+            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
+            {
+                Debug.Assert(n.FullName != null);
+                return n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace);
+            }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
@@ -92,7 +97,7 @@ namespace osu.Framework.Testing
                                                 .GroupBy(
                                                     t =>
                                                     {
-                                                        string group = t.Namespace?.Substring(namespacePrefix.Length).TrimStart('.');
+                                                        string group = t.Namespace?.AsSpan(namespacePrefix.Length).TrimStart('.').ToString();
                                                         return string.IsNullOrWhiteSpace(group) ? "Ungrouped" : group;
                                                     },
                                                     t => t,
@@ -220,7 +225,7 @@ namespace osu.Framework.Testing
                                 {
                                     OnCommit = delegate
                                     {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSceneSubButton>()
+                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
                                                                          .FirstOrDefault(b => b.MatchingFilter)?.TestType;
                                         if (firstTest != null)
                                             LoadTest(firstTest);
@@ -250,7 +255,7 @@ namespace osu.Framework.Testing
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
 
-            if (RuntimeInfo.SupportsJIT)
+            if (RuntimeInfo.IsDesktop)
             {
                 backgroundCompiler = new DynamicClassCompiler<TestScene>();
                 backgroundCompiler.CompilationStarted += compileStarted;
@@ -304,6 +309,9 @@ namespace osu.Framework.Testing
         {
             compilingNotice.FadeOut(800, Easing.InQuint);
             compilingNotice.FadeColour(Color4.YellowGreen, 100);
+
+            if (newType == null)
+                return;
 
             int i = TestTypes.FindIndex(t => t.Name == newType.Name && t.Assembly.GetName().Name == newType.Assembly.GetName().Name);
 
@@ -403,6 +411,8 @@ namespace osu.Framework.Testing
                 CurrentTest.Dispose();
             }
 
+            var lastTest = CurrentTest;
+
             CurrentTest = null;
 
             if (testType == null && TestTypes.Count > 0)
@@ -415,13 +425,26 @@ namespace osu.Framework.Testing
 
             var newTest = (TestScene)Activator.CreateInstance(testType);
 
+            Debug.Assert(newTest != null);
+
             const string dynamic_prefix = "dynamic";
 
             // if we are a dynamically compiled type (via DynamicClassCompiler) we should update the dropdown accordingly.
             if (isDynamicLoad)
+            {
+                newTest.DynamicCompilationOriginal = lastTest?.DynamicCompilationOriginal ?? lastTest ?? newTest;
                 toolbar.AddAssembly($"{dynamic_prefix} ({testType.Name})", testType.Assembly);
+            }
             else
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+            {
+                TestTypes.RemoveAll(t =>
+                {
+                    Debug.Assert(t.Assembly.FullName != null);
+                    return t.Assembly.FullName.Contains(dynamic_prefix);
+                });
+
+                newTest.DynamicCompilationOriginal = newTest;
+            }
 
             Assembly.Value = testType.Assembly;
 
@@ -461,34 +484,72 @@ namespace osu.Framework.Testing
             {
                 var name = m.Name;
 
-                if (name == nameof(TestScene.TestConstructor))
+                if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
 
                 if (name.StartsWith("Test"))
                     name = name.Substring(4);
 
-                if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
+                int runCount = 1;
+
+                if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                 {
-                    hadTestAttributeTest = true;
-                    handleTestMethod(m, name);
+                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    Debug.Assert(count != null);
 
-                    if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
-                    {
-                        var count = (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
-
-                        for (int i = 2; i <= count; i++)
-                            handleTestMethod(m, $"{name} ({i})");
-                    }
+                    runCount += (int)count;
                 }
 
-                foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                for (int i = 0; i < runCount; i++)
                 {
-                    hadTestAttributeTest = true;
-                    CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)})");
+                    string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    addSetUpSteps();
+                    var methodWrapper = new MethodWrapper(m.GetType(), m);
 
-                    m.Invoke(CurrentTest, tc.Arguments);
+                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
+                    {
+                        var parameters = m.GetParameters();
+
+                        if (parameters.Length > 0)
+                        {
+                            var valueMatrix = new List<List<object>>();
+
+                            foreach (var p in methodWrapper.GetParameters())
+                            {
+                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).SingleOrDefault();
+                                if (valueAttrib == null)
+                                    throw new ArgumentException($"Parameter is present on a {nameof(TestAttribute)} method without values specification.", p.ParameterInfo.Name);
+
+                                List<object> choices = new List<object>();
+
+                                foreach (var choice in valueAttrib.GetData(p))
+                                    choices.Add(choice);
+
+                                valueMatrix.Add(choices);
+                            }
+
+                            foreach (var combination in valueMatrix.CartesianProduct())
+                            {
+                                hadTestAttributeTest = true;
+                                CurrentTest.AddLabel($"{name}({string.Join(", ", combination)}){repeatSuffix}");
+                                handleTestMethod(m, combination.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                            handleTestMethod(m);
+                        }
+                    }
+
+                    foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
+                    {
+                        hadTestAttributeTest = true;
+                        CurrentTest.AddLabel($"{name}({string.Join(", ", tc.Arguments)}){repeatSuffix}");
+
+                        handleTestMethod(m, tc.Arguments);
+                    }
                 }
             }
 
@@ -496,7 +557,7 @@ namespace osu.Framework.Testing
             if (!hadTestAttributeTest)
                 addSetUpSteps();
 
-            backgroundCompiler?.Checkpoint(CurrentTest);
+            backgroundCompiler?.SetRecompilationTarget(CurrentTest);
             runTests(onCompletion);
             updateButtons();
 
@@ -507,7 +568,7 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStep
+                    CurrentTest.AddStep(new SetUpStepButton
                     {
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
@@ -516,24 +577,11 @@ namespace osu.Framework.Testing
                 CurrentTest.RunSetUpSteps();
             }
 
-            void handleTestMethod(MethodInfo methodInfo, string name = null)
+            void handleTestMethod(MethodInfo methodInfo, object[] arguments = null)
             {
-                CurrentTest.AddLabel(name ?? methodInfo.Name);
-
                 addSetUpSteps();
-
-                methodInfo.Invoke(CurrentTest, null);
-
+                methodInfo.Invoke(CurrentTest, arguments);
                 CurrentTest.RunTearDownSteps();
-            }
-        }
-
-        private class SetUpStep : SingleStepButton
-        {
-            public SetUpStep()
-            {
-                Text = "[SetUp]";
-                LightColour = Color4.Teal;
             }
         }
 
@@ -549,7 +597,7 @@ namespace osu.Framework.Testing
                     // stop once one actual step has been run.
                     return true;
 
-                if (!(s is SetUpStep) && !(s is LabelStep))
+                if (!(s is SetUpStepButton) && !(s is LabelStep))
                     actualStepCount++;
 
                 return false;
@@ -601,7 +649,7 @@ namespace osu.Framework.Testing
 
         private class TestBrowserTextBox : BasicTextBox
         {
-            protected override float LeftRightPadding => TestSceneButton.LEFT_TEXT_PADDING;
+            protected override float LeftRightPadding => TestButtonBase.LEFT_TEXT_PADDING;
 
             public TestBrowserTextBox()
             {

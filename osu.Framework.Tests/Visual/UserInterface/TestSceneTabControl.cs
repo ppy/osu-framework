@@ -18,13 +18,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneTabControl : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(TabControl<>),
-            typeof(TabItem),
-            typeof(BasicTabControl<>),
-        };
-
         private readonly TestEnum[] items;
 
         private StyledTabControl pinnedAndAutoSort;
@@ -137,18 +130,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 if (pinned.Count > 0) pinnedAndAutoSort.UnpinItem(pinned.Pop());
             });
 
-            AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.VisibleItems.First());
+            AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.Items.First());
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.ElementAt(1));
+            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.ElementAt(1));
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.Last());
+            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.Last());
 
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.VisibleItems.First());
+            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
             AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);
@@ -249,6 +242,63 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestRemovingSelectedTabSwitchesSelection()
+        {
+            AddStep("Select tab 2", () => simpleTabcontrol.Current.Value = TestEnum.Test2);
+            AddStep("Remove tab 2", () => simpleTabcontrol.RemoveItem(TestEnum.Test2));
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test3);
+
+            AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
+            AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
+
+            AddStep("Remove all tabs", () =>
+            {
+                var itemsForDelete = new List<TestEnum?>(simpleTabcontrol.Items);
+                itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
+            });
+            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+        }
+
+        [Test]
+        public void TestRemovingUnswitchableTab()
+        {
+            AddStep("Set last tab unswitchable", () => ((StyledTabControl.TestTabItem)simpleTabcontrol.SwitchableTabs.Last()).SetSwitchable(false));
+
+            AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
+            AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
+
+            AddStep("Set first tab unswitchable", () => ((StyledTabControl.TestTabItem)simpleTabcontrol.SwitchableTabs.First()).SetSwitchable(false));
+
+            AddStep("Select first tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.First());
+            AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.First());
+        }
+
+        [Test]
+        public void TestUnswitchableNotSelectedOnRemoveAll()
+        {
+            AddStep("Set middle tab unswitchable", () => ((StyledTabControl.TestTabItem)simpleTabcontrol.SwitchableTabs.Skip(5).First()).SetSwitchable(false));
+
+            AddStep("Remove all switchable tabs", () =>
+            {
+                var itemsForDelete = new List<TestEnum?>();
+
+                foreach (var kvp in simpleTabcontrol.TabMap)
+                {
+                    if (kvp.Value.IsSwitchable)
+                        itemsForDelete.Add(kvp.Key);
+                }
+
+                itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
+            });
+
+            AddAssert("Unswitchable tab still present", () => simpleTabcontrol.Items.Count == 1);
+            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+        }
+
+        [Test]
         public void TestItemsImmediatelyUpdatedAfterAdd()
         {
             TabControlWithNoDropdown tabControl = null;
@@ -299,7 +349,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
-        private class StyledTabControl : TabControl<TestEnum?>
+        public class StyledTabControl : TabControl<TestEnum?>
         {
             public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
 
@@ -309,8 +359,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override Dropdown<TestEnum?> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value)
-                => new BasicTabControl<TestEnum?>.BasicTabItem(value);
+            public TabItem<TestEnum?> CreateTabItem(TestEnum? value, bool isSwitchable)
+                => new TestTabItem(value);
+
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value) => CreateTabItem(value, true);
+
+            public class TestTabItem : BasicTabControl<TestEnum?>.BasicTabItem
+            {
+                public TestTabItem(TestEnum? value)
+                    : base(value)
+                {
+                }
+
+                private bool switchable = true;
+
+                public void SetSwitchable(bool isSwitchable) => switchable = isSwitchable;
+
+                public override bool IsSwitchable => switchable;
+            }
         }
 
         private class StyledDropdown : Dropdown<TestEnum?>
@@ -363,7 +429,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override Dropdown<TestEnum> CreateDropdown() => null;
         }
 
-        private enum TestEnum
+        public enum TestEnum
         {
             Test0,
             Test1,

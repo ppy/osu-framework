@@ -2,56 +2,48 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osuTK;
-using osuTK.Input;
 
 namespace osu.Framework.Input
 {
     /// <summary>
     /// A manager that manages states and events for a single touch.
     /// </summary>
-    public class TouchEventManager : ButtonEventManager<MouseButton>
+    public class TouchEventManager : ButtonEventManager<TouchSource>
     {
         protected Vector2? TouchDownPosition;
 
-        public TouchEventManager(MouseButton source)
+        public TouchEventManager(TouchSource source)
             : base(source)
         {
         }
 
         public void HandlePositionChange(InputState state, Vector2 lastPosition)
         {
-            var position = state.Touch.TouchPositions[Button];
-
-            if (position == lastPosition)
-                return;
-
-            HandleTouchMove(state, position, lastPosition);
+            handleTouchMove(state, state.Touch.TouchPositions[(int)Button], lastPosition);
         }
 
-        protected void HandleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
+        private void handleTouchMove(InputState state, Vector2 position, Vector2 lastPosition)
         {
-            PropagateButtonEvent(InputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
+            PropagateButtonEvent(ButtonDownInputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
             TouchDownPosition = state.Touch.GetTouchPosition(Button);
+            Debug.Assert(TouchDownPosition != null);
 
-            if (TouchDownPosition is Vector2 downPosition && ButtonDownInputQueue == null)
-                return PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, downPosition)));
-
-            return null;
+            return PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
         }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
-            if (state.Touch.GetTouchPosition(Button) is Vector2 position && ButtonDownInputQueue != null)
-                PropagateButtonEvent(targets, new TouchUpEvent(state, new Touch(Button, position), TouchDownPosition));
-
+            var currentPosition = state.Touch.TouchPositions[(int)Button];
+            PropagateButtonEvent(targets, new TouchUpEvent(state, new Touch(Button, currentPosition), TouchDownPosition));
             TouchDownPosition = null;
         }
     }
