@@ -42,8 +42,8 @@ namespace osu.Framework.iOS.Input
                 case UITouchPhase.Began:
                     if (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary)
                     {
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
                         pendingRightClickTouches.Add(touch);
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
                     }
                     else
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
