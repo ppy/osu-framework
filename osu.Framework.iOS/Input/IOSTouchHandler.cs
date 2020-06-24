@@ -24,13 +24,8 @@ namespace osu.Framework.iOS.Input
 
         private void handleTouches(NSSet obj, UIEvent evt)
         {
-            if (obj.Count == 1)
-                handleUITouch((UITouch)obj.AnyObject, evt);
-            else
-            {
-                foreach (var t in obj)
-                    handleUITouch((UITouch)t, evt);
-            }
+            foreach (var t in obj)
+                handleUITouch((UITouch)t, evt);
         }
 
         private void handleUITouch(UITouch touch, UIEvent evt)
