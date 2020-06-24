@@ -48,20 +48,14 @@ namespace osu.Framework.Graphics.Shapes
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
             }
 
-            protected override void DrawOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+            protected override void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
             {
-                base.DrawOpaqueInterior(vertexAction);
-
-                TextureShader.Bind();
-
                 var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
 
                 if (GLWrapper.IsMaskingActive)
                     DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
                 else
                     DrawTriangle(Texture, triangle, DrawColourInfo.Colour, vertexAction: vertexAction);
-
-                TextureShader.Unbind();
             }
         }
     }
