@@ -18,7 +18,7 @@ namespace osu.Framework.iOS
     [Register("iOSGameView")]
     public class IOSGameView : osuTK.iOS.iOSGameView
     {
-        public event Action<NSSet> HandleTouches;
+        public event Action<NSSet, UIEvent> HandleTouches;
 
         public HiddenTextField KeyboardTextField { get; }
 
@@ -64,10 +64,10 @@ namespace osu.Framework.iOS
             }
         }
 
-        public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesEnded(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesMoved(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
+        public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesEnded(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesMoved(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
 
         protected override void CreateFrameBuffer()
         {
