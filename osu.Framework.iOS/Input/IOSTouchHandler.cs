@@ -32,15 +32,17 @@ namespace osu.Framework.iOS.Input
 
         private void handleUITouch(UITouch touch, UIEvent evt)
         {
-            var location = touch.LocationInView(null);
+            // Indirect pointer means the touch came from a mouse cursor, and wasn't a physcial touch on the screen
+            bool indirectTouch = (rightClickSupport && touch.Type == UITouchType.IndirectPointer);
+            bool rightClickEvent = (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary);
 
+            var location = touch.LocationInView(null);
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
 
             switch (touch.Phase)
             {
-                case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    if (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary)
+                    if (indirectTouch && rightClickEvent)
                     {
                         pendingRightClickTouches.Add(touch);
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
@@ -49,10 +51,46 @@ namespace osu.Framework.iOS.Input
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
 
                     break;
+                case UITouchPhase.Moved:
+                    if (!indirectTouch)
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                    else
+                    {
+                        // A single UITouch object represents the mouse cursor on iPadOS 13.4.
+                        // If the user clicks both left and right buttons on a physical mouse, this doesn't generate more
+                        // touch objects; it just changes the button mask value for the one touch object without calling "Began" or "Ended".
+                        // Without accounting for this, the mouse button input can sometimes be left in a "stuck" state. 
+          
+                        if (rightClickEvent)
+                        {
+                            // If a right-click event occurred, and the touch wasn't already saved in the right-click set,
+                            // the user has transitioned from left-click to right-click.
+                            if (!pendingRightClickTouches.Contains(touch))
+                            {
+                                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                                pendingRightClickTouches.Add(touch);
+                            }
 
+                            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
+                        }
+                        else
+                        {
+                            // If a left-click event has occurred, but the touch event was already saved in the right-click set,
+                            // the user has transitioned from a right-click event to a left-click.
+                            if (pendingRightClickTouches.Contains(touch))
+                            {
+                                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
+                                pendingRightClickTouches.Remove(touch);
+                            }
+
+                            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                        }
+                    }
+
+                    break;
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
-                    if (pendingRightClickTouches.Contains(touch))
+                    if (indirectTouch && pendingRightClickTouches.Contains(touch))
                     {
                         pendingRightClickTouches.Remove(touch);
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
