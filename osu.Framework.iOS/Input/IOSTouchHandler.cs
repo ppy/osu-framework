@@ -59,8 +59,8 @@ namespace osu.Framework.iOS.Input
                         // A single UITouch object represents the mouse cursor on iPadOS 13.4.
                         // If the user clicks both left and right buttons on a physical mouse, this doesn't generate more
                         // touch objects; it just changes the button mask value for the one touch object without calling "Began" or "Ended".
-                        // Without accounting for this, the mouse button input can sometimes be left in a "stuck" state. 
-          
+                        // Without accounting for this, the mouse button input can sometimes be left in a "stuck" state.
+
                         if (rightClickEvent)
                         {
                             // If a right-click event occurred, and the touch wasn't already saved in the right-click set,
