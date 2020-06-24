@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
-            lock (unloadClock)
+            lock (unloadLock)
                 base.Dispose(isDisposing);
         }
 
