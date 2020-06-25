@@ -14,9 +14,9 @@ namespace osu.Framework.iOS.Input
     public class IOSTouchHandler : InputHandler
     {
         private readonly IOSGameView view;
-        private NSMutableSet<UITouch> pendingRightClickTouches = new NSMutableSet<UITouch>();
 
-        private bool rightClickSupport = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
+        private UIEventButtonMask lastButtonMask = UIEventButtonMask.Primary;
+        private readonly bool rightClickSupport = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
 
         public IOSTouchHandler(IOSGameView view)
         {
@@ -32,84 +32,88 @@ namespace osu.Framework.iOS.Input
 
         private void handleUITouch(UITouch touch, UIEvent evt)
         {
-            // Indirect pointer means the touch came from a mouse cursor, and wasn't a physcial touch on the screen
-            bool indirectTouch = (rightClickSupport && touch.Type == UITouchType.IndirectPointer);
-            bool rightClickEvent = (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary);
-
             var location = touch.LocationInView(null);
+
+            // Indirect pointer means the touch came from a mouse cursor, and wasn't a physcial touch on the screen
+            bool indirectPointerTouch = (rightClickSupport && touch.Type == UITouchType.IndirectPointer);
+
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
 
             switch (touch.Phase)
             {
                 case UITouchPhase.Began:
-                    if (indirectTouch && rightClickEvent)
+                    if (indirectPointerTouch)
                     {
-                        pendingRightClickTouches.Add(touch);
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
+                        lastButtonMask = evt.ButtonMask;
+                        MouseButton mouseButton = isRightClick(lastButtonMask) ? MouseButton.Right : MouseButton.Left;
+                        PendingInputs.Enqueue(new MouseButtonInput(mouseButton, true));
                     }
                     else
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
 
                     break;
+
                 case UITouchPhase.Moved:
-                    if (!indirectTouch)
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                    if (indirectPointerTouch)
+                        transitionRightClick(evt);
                     else
-                    {
-                        // A single UITouch object represents the mouse cursor on iPadOS 13.4.
-                        // If the user clicks both left and right buttons on a physical mouse, this doesn't generate more
-                        // touch objects; it just changes the button mask value for the one touch object without calling "Began" or "Ended".
-                        // Without accounting for this, the mouse button input can sometimes be left in a "stuck" state.
-
-                        if (rightClickEvent)
-                        {
-                            // If a right-click event occurred, and the touch wasn't already saved in the right-click set,
-                            // the user has transitioned from left-click to right-click.
-                            if (!pendingRightClickTouches.Contains(touch))
-                            {
-                                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
-                                pendingRightClickTouches.Add(touch);
-                            }
-
-                            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
-                        }
-                        else
-                        {
-                            // If a left-click event has occurred, but the touch event was already saved in the right-click set,
-                            // the user has transitioned from a right-click event to a left-click.
-                            if (pendingRightClickTouches.Contains(touch))
-                            {
-                                PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
-                                pendingRightClickTouches.Remove(touch);
-                            }
-
-                            PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
-                        }
-                    }
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
 
                     break;
+
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
-                    if (indirectTouch && pendingRightClickTouches.Contains(touch))
+                    if (indirectPointerTouch)
                     {
-                        pendingRightClickTouches.Remove(touch);
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
+                        MouseButton mouseButton = isRightClick(lastButtonMask) ? MouseButton.Right : MouseButton.Left;
+                        PendingInputs.Enqueue(new MouseButtonInput(mouseButton, false));
                     }
                     else
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+
                     break;
             }
         }
 
-        public override bool IsActive => true;
+        private void transitionRightClick(UIEvent evt)
+        {
+            if (!rightClickSupport)
+                return;
 
-        public override int Priority => 0;
+            MouseButton activeButton = isRightClick(evt.ButtonMask) ? MouseButton.Right : MouseButton.Left;
+            MouseButton inactiveButton = activeButton == MouseButton.Right ? MouseButton.Left : MouseButton.Right;
+
+            // A single UITouch object represents the mouse cursor on iPadOS 13.4.
+            // If the user clicks both left and right buttons on a physical mouse, this doesn't generate more
+            // touch objects; it just changes the button mask value for the one touch object without calling "Began" or "Ended".
+            // If the stored mask value doesn't match the active one, this means the user alternated buttons, so unclick
+            // the previous button, and click the new button
+            if (lastButtonMask != evt.ButtonMask)
+            {
+                PendingInputs.Enqueue(new MouseButtonInput(inactiveButton, false));
+                lastButtonMask = evt.ButtonMask;
+            }
+
+            PendingInputs.Enqueue(new MouseButtonInput(activeButton, true));
+        }
+
+        private bool isRightClick(UIEventButtonMask buttonMask)
+        {
+            if (!rightClickSupport)
+                return false;
+
+            return (buttonMask == UIEventButtonMask.Secondary);
+        }
 
         protected override void Dispose(bool disposing)
         {
             view.HandleTouches -= handleTouches;
             base.Dispose(disposing);
         }
+
+        public override bool IsActive => true;
+
+        public override int Priority => 0;
 
         public override bool Initialize(GameHost host) => true;
     }
