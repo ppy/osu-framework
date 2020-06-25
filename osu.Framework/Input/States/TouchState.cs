@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using osuTK;
 
 namespace osu.Framework.Input.States
@@ -39,5 +41,20 @@ namespace osu.Framework.Input.States
         /// </summary>
         /// <param name="source">The touch source to check for.</param>
         public bool IsActive(TouchSource source) => ActiveSources.IsPressed(source);
+
+        /// <summary>
+        /// Enumerates the difference between this state and a <param ref="previous"/> state.
+        /// </summary>
+        /// <param name="previous">The previous state.</param>
+        public (IEnumerable<Touch> deactivated, IEnumerable<Touch> activated) EnumerateDifference(TouchState previous)
+        {
+            var activityDifference = ActiveSources.EnumerateDifference(previous.ActiveSources);
+
+            return
+            (
+                activityDifference.Released.Select(s => new Touch(s, previous.TouchPositions[(int)s])),
+                activityDifference.Pressed.Select(s => new Touch(s, TouchPositions[(int)s]))
+            );
+        }
     }
 }
