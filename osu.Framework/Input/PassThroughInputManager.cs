@@ -154,7 +154,8 @@ namespace osu.Framework.Input
         /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
         protected virtual void SyncInputState(InputState parentState)
         {
-            // release all buttons that is not pressed on parent state
+            // Only release buttons not pressed in parent, synchronizing what parent has already pressed
+            // as well may potentially lead to false mouse click input propagated to children.
             var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
