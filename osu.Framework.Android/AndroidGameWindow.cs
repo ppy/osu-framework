@@ -2,11 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Configuration;
-using osuTK.Graphics;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 using osuTK;
+using osuTK.Graphics;
 using GameWindow = osu.Framework.Platform.GameWindow;
+using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Android
 {
@@ -20,9 +21,9 @@ namespace osu.Framework.Android
         public override bool Focused
             => true;
 
-        public override osuTK.WindowState WindowState
+        public override WindowState WindowState
         {
-            get => osuTK.WindowState.Normal;
+            get => WindowState.Normal;
             set { }
         }
 
