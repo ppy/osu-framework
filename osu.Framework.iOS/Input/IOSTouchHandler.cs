@@ -35,7 +35,7 @@ namespace osu.Framework.iOS.Input
         {
             var location = touch.LocationInView(null);
 
-            // Indirect pointer means the touch came from a mouse cursor, and wasn't a physcial touch on the screen
+            // Indirect pointer means the touch came from a mouse cursor, and wasn't a physical touch on the screen
             bool isIndirect = (indirectPointerSupported && touch.Type == UITouchType.IndirectPointer);
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
