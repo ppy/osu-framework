@@ -1,12 +1,14 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using UIKit;
-using Foundation;
-using System.Drawing;
-using SixLabors.ImageSharp.PixelFormats;
-using AVFoundation;
 using System;
+using System.Drawing;
+using System.Runtime.CompilerServices;
+using AVFoundation;
+using Foundation;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using UIKit;
 
 namespace osu.Framework.iOS
 {
@@ -47,12 +49,12 @@ namespace osu.Framework.iOS
 
         private void aotImageSharp()
         {
-            System.Runtime.CompilerServices.Unsafe.SizeOf<Rgba32>();
-            System.Runtime.CompilerServices.Unsafe.SizeOf<long>();
+            Unsafe.SizeOf<Rgba32>();
+            Unsafe.SizeOf<long>();
 
             try
             {
-                new SixLabors.ImageSharp.Formats.Png.PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
+                new PngDecoder().Decode<Rgba32>(SixLabors.ImageSharp.Configuration.Default, null);
             }
             catch
             {
