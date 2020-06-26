@@ -49,24 +49,11 @@ namespace osu.Framework.iOS.Input
             return true;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (pointerInteraction != null)
-                view.RemoveInteraction(pointerInteraction);
-
-            if (panGestureRecognizer != null)
-                view.RemoveGestureRecognizer(panGestureRecognizer);
-        }
-
         private void locationUpdated(CGPoint location)
         {
             PendingInputs.Enqueue(new MousePositionAbsoluteInput
             {
-                Position = new Vector2(
-                    (float)location.X * view.Scale,
-                    (float)location.Y * view.Scale)
+                Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale)
             });
         }
 
@@ -78,15 +65,17 @@ namespace osu.Framework.iOS.Input
 
             Vector2 delta;
 
-            if (panGestureRecognizer.State == UIGestureRecognizerState.Began)
+            switch (panGestureRecognizer.State)
             {
-                // consume initial value.
-                delta = new Vector2((float)translation.X, (float)translation.Y);
-            }
-            else
-            {
-                // only consider relative change from previous value.
-                delta = new Vector2((float)(translation.X - lastScrollTranslation.X), (float)(translation.Y - lastScrollTranslation.Y));
+                case UIGestureRecognizerState.Began:
+                    // consume initial value.
+                    delta = new Vector2((float)translation.X, (float)translation.Y);
+                    break;
+
+                default:
+                    // only consider relative change from previous value.
+                    delta = new Vector2((float)(translation.X - lastScrollTranslation.X), (float)(translation.Y - lastScrollTranslation.Y));
+                    break;
             }
 
             lastScrollTranslation = translation;
@@ -96,6 +85,17 @@ namespace osu.Framework.iOS.Input
                 IsPrecise = true,
                 Delta = delta * scroll_rate_adjust
             });
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (pointerInteraction != null)
+                view.RemoveInteraction(pointerInteraction);
+
+            if (panGestureRecognizer != null)
+                view.RemoveGestureRecognizer(panGestureRecognizer);
         }
     }
 
