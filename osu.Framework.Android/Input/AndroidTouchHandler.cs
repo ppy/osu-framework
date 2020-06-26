@@ -5,6 +5,7 @@ using Android.Views;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
+using osuTK;
 using osuTK.Input;
 
 namespace osu.Framework.Android.Input
@@ -48,7 +49,7 @@ namespace osu.Framework.Android.Input
         {
             PendingInputs.Enqueue(new MousePositionAbsoluteInput
             {
-                Position = new osuTK.Vector2(e.GetX() * view.ScaleX, e.GetY() * view.ScaleY)
+                Position = new Vector2(e.GetX() * view.ScaleX, e.GetY() * view.ScaleY)
             });
         }
 
