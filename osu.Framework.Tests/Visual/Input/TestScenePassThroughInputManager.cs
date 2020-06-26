@@ -114,6 +114,25 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("mouse up count == 0", () => testInputManager.Status.MouseUpCount == 0);
         }
 
+        [Test]
+        public void TestTouchInput()
+        {
+            addTestInputManagerStep();
+            AddStep("begin first touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch1 &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch1] == Vector2.Zero);
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("end first touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddStep("begin second touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, Vector2.One)));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch2 &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == Vector2.One);
+        }
+
         public class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
