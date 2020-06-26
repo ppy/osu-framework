@@ -16,7 +16,8 @@ namespace osu.Framework.iOS.Input
         private readonly IOSGameView view;
 
         private UIEventButtonMask lastButtonMask = UIEventButtonMask.Primary;
-        private readonly bool rightClickSupport = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
+
+        private readonly bool indirectPointerSupported = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
 
         public IOSTouchHandler(IOSGameView view)
         {
@@ -35,14 +36,14 @@ namespace osu.Framework.iOS.Input
             var location = touch.LocationInView(null);
 
             // Indirect pointer means the touch came from a mouse cursor, and wasn't a physcial touch on the screen
-            bool indirectPointerTouch = (rightClickSupport && touch.Type == UITouchType.IndirectPointer);
+            bool isIndirect = (indirectPointerSupported && touch.Type == UITouchType.IndirectPointer);
 
             PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale) });
 
             switch (touch.Phase)
             {
                 case UITouchPhase.Began:
-                    if (indirectPointerTouch)
+                    if (isIndirect)
                     {
                         lastButtonMask = evt.ButtonMask;
                         MouseButton mouseButton = isRightClick(lastButtonMask) ? MouseButton.Right : MouseButton.Left;
@@ -54,7 +55,7 @@ namespace osu.Framework.iOS.Input
                     break;
 
                 case UITouchPhase.Moved:
-                    if (indirectPointerTouch)
+                    if (isIndirect)
                         transitionRightClick(evt);
                     else
                         PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
@@ -63,7 +64,7 @@ namespace osu.Framework.iOS.Input
 
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
-                    if (indirectPointerTouch)
+                    if (isIndirect)
                     {
                         MouseButton mouseButton = isRightClick(lastButtonMask) ? MouseButton.Right : MouseButton.Left;
                         PendingInputs.Enqueue(new MouseButtonInput(mouseButton, false));
@@ -77,7 +78,7 @@ namespace osu.Framework.iOS.Input
 
         private void transitionRightClick(UIEvent evt)
         {
-            if (!rightClickSupport)
+            if (!indirectPointerSupported)
                 return;
 
             MouseButton activeButton = isRightClick(evt.ButtonMask) ? MouseButton.Right : MouseButton.Left;
@@ -99,7 +100,7 @@ namespace osu.Framework.iOS.Input
 
         private bool isRightClick(UIEventButtonMask buttonMask)
         {
-            if (!rightClickSupport)
+            if (!indirectPointerSupported)
                 return false;
 
             return (buttonMask == UIEventButtonMask.Secondary);
