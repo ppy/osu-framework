@@ -25,6 +25,8 @@ namespace osu.Framework.Input
     /// </remarks>
     public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
+        protected override bool MapMouseToPrimaryTouch => !UseParentInput;
+
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
