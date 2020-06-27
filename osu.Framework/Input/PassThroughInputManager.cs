@@ -122,14 +122,6 @@ namespace osu.Framework.Input
             Sync();
         }
 
-        protected override void Update()
-        {
-            base.Update();
-
-            // Some non-positional events are blocked. Sync every frame.
-            if (UseParentInput) Sync(true);
-        }
-
         /// <summary>
         /// Sync input state to parent <see cref="InputManager"/>'s <see cref="InputState"/>.
         /// Call this when parent <see cref="InputManager"/> changed somehow.
