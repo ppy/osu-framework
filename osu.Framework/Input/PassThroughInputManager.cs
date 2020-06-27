@@ -49,13 +49,10 @@ namespace osu.Framework.Input
             if (!PropagateNonPositionalInputSubTree) return false;
 
             if (!allowBlocking)
-            {
                 base.BuildNonPositionalInputQueue(queue, false);
-                return false;
-            }
-
-            if (UseParentInput)
+            else
                 queue.Add(this);
+
             return false;
         }
 
@@ -63,8 +60,7 @@ namespace osu.Framework.Input
         {
             if (!PropagatePositionalInputSubTree) return false;
 
-            if (UseParentInput)
-                queue.Add(this);
+            queue.Add(this);
             return false;
         }
 
