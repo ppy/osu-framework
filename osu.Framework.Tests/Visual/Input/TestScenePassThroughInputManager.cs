@@ -4,7 +4,9 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
@@ -104,6 +106,47 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestInputNotPassedWhenEventAbsorbed()
+        {
+            Drawable absorbingBox = null;
+
+            addTestInputManagerStep();
+            AddStep("add drawable in front", () => Add(absorbingBox = new AbsorbingBox
+            {
+                Alpha = 0,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Size = testInputManager.Size / 2,
+            }));
+
+            AddStep("move mouse to top-left", () => InputManager.MoveMouseTo(absorbingBox.ScreenSpaceDrawQuad.TopLeft + Vector2.One));
+            AddAssert("movement received", () => testInputManager.CurrentState.Mouse.Position == absorbingBox.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+
+            // Movement is still received even when its absorbed as the pass-through manager uses IRequireHighFrequencyMousePosition.
+            AddStep("show absorbing drawable", () => absorbingBox.Alpha = 1f);
+            AddStep("move mouse to center", () => InputManager.MoveMouseTo(absorbingBox.ScreenSpaceDrawQuad.Centre));
+            AddAssert("movement still received", () => testInputManager.CurrentState.Mouse.Position == absorbingBox.ScreenSpaceDrawQuad.Centre);
+
+            AddStep("press key", () => InputManager.PressKey(Key.A));
+            AddAssert("key not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+            AddStep("release key", () => InputManager.ReleaseKey(Key.A));
+
+            // Ensure release events are still received even when in absorbed area.
+            AddStep("move mouse out", () => InputManager.MoveMouseTo(testInputManager.ScreenSpaceDrawQuad.TopLeft + Vector2.One));
+            AddStep("press left button", () => InputManager.PressButton(MouseButton.Left));
+            AddAssert("left pressed", () =>
+                testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left &&
+                testInputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+
+            AddStep("move mouse in", () => InputManager.MoveMouseTo(absorbingBox.ScreenSpaceDrawQuad.TopLeft + Vector2.One));
+            AddStep("release left button", () => InputManager.ReleaseButton(MouseButton.Left));
+            AddAssert("left released", () =>
+                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
+                testInputManager.CurrentState.Mouse.Position == absorbingBox.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+        }
+
+        [Test]
         public void MouseDownNoSync()
         {
             addTestInputManagerStep();
@@ -159,6 +202,11 @@ namespace osu.Framework.Tests.Visual.Input
                 Anchor = Anchor.Centre;
                 Child = Status = new TestSceneInputManager.ContainingInputManagerStatusText();
             }
+        }
+
+        private class AbsorbingBox : Box
+        {
+            protected override bool Handle(UIEvent e) => true;
         }
     }
 }
