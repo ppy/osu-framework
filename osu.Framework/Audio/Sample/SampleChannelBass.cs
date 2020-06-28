@@ -29,9 +29,9 @@ namespace osu.Framework.Audio.Sample
             channel = 0;
         }
 
-        internal override void OnStateChanged()
+        protected override void ApplyAdjustments()
         {
-            base.OnStateChanged();
+            base.ApplyAdjustments();
 
             if (channel != 0)
             {

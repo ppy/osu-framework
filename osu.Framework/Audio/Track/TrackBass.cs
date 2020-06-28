@@ -293,9 +293,9 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsRunning => isRunning;
 
-        internal override void OnStateChanged()
+        protected override void ApplyAdjustments()
         {
-            base.OnStateChanged();
+            base.ApplyAdjustments();
 
             setDirection(AggregateFrequency.Value < 0);
 

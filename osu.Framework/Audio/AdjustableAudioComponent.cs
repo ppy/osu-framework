@@ -48,9 +48,12 @@ namespace osu.Framework.Audio
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
 
-        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(ApplyAdjustments);
 
-        internal virtual void OnStateChanged()
+        /// <summary>
+        /// Applies adjustments to the audio component from the aggregated bindable adjustments.
+        /// </summary>
+        protected virtual void ApplyAdjustments()
         {
         }
 

@@ -87,9 +87,9 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        internal override void OnStateChanged()
+        protected override void ApplyAdjustments()
         {
-            base.OnStateChanged();
+            base.ApplyAdjustments();
 
             lock (clock)
                 clock.Rate = Tempo.Value * AggregateFrequency.Value;
