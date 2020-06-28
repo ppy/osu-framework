@@ -108,6 +108,7 @@ namespace osu.Framework.Input
                     break;
 
                 case KeyboardEvent _:
+                case TouchEvent _:
                 case JoystickButtonEvent _:
                 case JoystickAxisMoveEvent _:
                     SyncInputState(e.CurrentState);
@@ -149,21 +150,25 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Sync current state to parent state.
+        /// Sync current state to a certain state.
         /// </summary>
-        /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
-        protected virtual void SyncInputState(InputState parentState)
+        /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
+        protected virtual void SyncInputState(InputState state)
         {
             // invariant: if mouse button is currently pressed, then it has been pressed in parent (but not the converse)
             // therefore, mouse up events are always synced from parent
             // mouse down events are not synced to prevent false clicks
-            var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            var mouseButtonDifference = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+            new KeyboardKeyInput(state?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
 
-            new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
-            new JoystickAxisInput(parentState?.Joystick?.GetAxes()).Apply(CurrentState, this);
+            var touchStateDifference = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            new TouchInput(touchStateDifference.deactivated, false).Apply(CurrentState, this);
+            new TouchInput(touchStateDifference.activated, true).Apply(CurrentState, this);
+
+            new JoystickButtonInput(state?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
         }
     }
 }

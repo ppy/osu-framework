@@ -3,20 +3,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
+using CoreAnimation;
 using Foundation;
 using ObjCRuntime;
-using UIKit;
-using System.Threading.Tasks;
-using osu.Framework.Graphics.OpenGL;
 using OpenGLES;
-using CoreAnimation;
+using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
+using osuTK.iOS;
+using UIKit;
 
 namespace osu.Framework.iOS
 {
     [Register("iOSGameView")]
-    public class IOSGameView : osuTK.iOS.iOSGameView
+    public class IOSGameView : iOSGameView
     {
         public event Action<NSSet, UIEvent> HandleTouches;
 
@@ -26,7 +28,7 @@ namespace osu.Framework.iOS
         public static Class LayerClass() => GetLayerClass();
 
         [Export("initWithFrame:")]
-        public IOSGameView(System.Drawing.RectangleF frame)
+        public IOSGameView(RectangleF frame)
             : base(frame)
         {
             Scale = (float)UIScreen.MainScreen.Scale;

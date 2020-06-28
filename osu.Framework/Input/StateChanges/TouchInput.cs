@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 
@@ -12,12 +14,12 @@ namespace osu.Framework.Input.StateChanges
     public class TouchInput : IInput
     {
         /// <summary>
-        /// The touch structure providing the source and position to move to.
+        /// The list of touch structures each providing the source and position to move to.
         /// </summary>
-        public readonly Touch Touch;
+        public readonly IEnumerable<Touch> Touches;
 
         /// <summary>
-        /// Whether to activate the provided <see cref="Touch"/>.
+        /// Whether to activate the provided <see cref="Touches"/>.
         /// </summary>
         public readonly bool Activate;
 
@@ -25,10 +27,20 @@ namespace osu.Framework.Input.StateChanges
         /// Constructs a new <see cref="TouchInput"/>.
         /// </summary>
         /// <param name="touch">The <see cref="Touch"/>.</param>
-        /// <param name="activate">Whether to activate the provided <see cref="Touch"/>, must be true if changing position only.</param>
+        /// <param name="activate">Whether to activate the provided <param ref="touch"/>, must be true if changing position only.</param>
         public TouchInput(Touch touch, bool activate)
+            : this(touch.Yield(), activate)
         {
-            Touch = touch;
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="TouchInput"/>.
+        /// </summary>
+        /// <param name="touches">The list of <see cref="Touch"/>es.</param>
+        /// <param name="activate">Whether to activate the provided <param ref="touches"/>, must be true if changing position only.</param>
+        public TouchInput(IEnumerable<Touch> touches, bool activate)
+        {
+            Touches = touches;
             Activate = activate;
         }
 
@@ -36,18 +48,21 @@ namespace osu.Framework.Input.StateChanges
         {
             var touches = state.Touch;
 
-            var lastPosition = touches.GetTouchPosition(Touch.Source);
-            touches.TouchPositions[(int)Touch.Source] = Touch.Position;
-
-            bool activityChanged = touches.ActiveSources.SetPressed(Touch.Source, Activate);
-            var positionChanged = lastPosition != null && Touch.Position != lastPosition;
-
-            if (activityChanged || positionChanged)
+            foreach (var touch in Touches)
             {
-                handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, Touch,
-                    !activityChanged ? (bool?)null : Activate,
-                    !positionChanged ? null : lastPosition
-                ));
+                var lastPosition = touches.GetTouchPosition(touch.Source);
+                touches.TouchPositions[(int)touch.Source] = touch.Position;
+
+                bool activityChanged = touches.ActiveSources.SetPressed(touch.Source, Activate);
+                var positionChanged = lastPosition != null && touch.Position != lastPosition;
+
+                if (activityChanged || positionChanged)
+                {
+                    handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, touch,
+                        !activityChanged ? (bool?)null : Activate,
+                        !positionChanged ? null : lastPosition
+                    ));
+                }
             }
         }
     }

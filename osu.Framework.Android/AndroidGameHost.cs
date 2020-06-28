@@ -71,8 +71,10 @@ namespace osu.Framework.Android
             var activity = (Activity)gameView.Context;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            {
                 if (intent.ResolveActivity(activity.PackageManager) != null)
                     activity.StartActivity(intent);
+            }
         }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
