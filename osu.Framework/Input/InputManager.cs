@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
@@ -51,9 +52,14 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
-        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
-        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new JoystickState(), new MidiState());
+        protected virtual InputState CreateInitialState() => new InputState(
+            new MouseState { IsPositionValid = false },
+            new KeyboardState(),
+            new TouchState(),
+            new JoystickState(),
+            new MidiState()
+        );
 
         /// <summary>
         /// The last processed state.
@@ -106,7 +112,7 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState);
+        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
@@ -116,9 +122,11 @@ namespace osu.Framework.Input
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
-
+        private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
+
+        private readonly Dictionary<JoystickAxisSource, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<JoystickAxisSource, JoystickAxisEventManager>();
 
         protected InputManager()
         {
@@ -192,6 +200,28 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Create a <see cref="TouchEventManager"/> for a specified touch source.
+        /// </summary>
+        /// <param name="source">The touch source to be handled by the returned manager.</param>
+        /// <returns>The <see cref="TouchEventManager"/>.</returns>
+        protected virtual TouchEventManager CreateButtonEventManagerFor(TouchSource source) => new TouchEventManager(source);
+
+        /// <summary>
+        /// Get the <see cref="TouchEventManager"/> responsible for a specified touch source.
+        /// </summary>
+        /// <param name="source">The touch source to find the manager for.</param>
+        /// <returns>The <see cref="TouchEventManager"/>.</returns>
+        public TouchEventManager GetButtonEventManagerFor(TouchSource source)
+        {
+            if (touchEventManagers.TryGetValue(source, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(source);
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
+            return touchEventManagers[source] = manager;
+        }
+
+        /// <summary>
         /// Create a <see cref="JoystickButtonEventManager"/> for a specified joystick button.
         /// </summary>
         /// <param name="button">The button to be handled by the returned manager.</param>
@@ -233,6 +263,28 @@ namespace osu.Framework.Input
             var manager = CreateButtonEventManagerFor(key);
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="JoystickAxisEventManager"/> for a specified joystick axis.
+        /// </summary>
+        /// <param name="source">The axis to be handled by the returned manager.</param>
+        /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
+        protected virtual JoystickAxisEventManager CreateJoystickAxisEventManagerFor(JoystickAxisSource source) => new JoystickAxisEventManager(source);
+
+        /// <summary>
+        /// Get the <see cref="JoystickAxisEventManager"/> responsible for a specified joystick axis.
+        /// </summary>
+        /// <param name="source">The axis to find the the manager for.</param>
+        /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
+        public JoystickAxisEventManager GetJoystickAxisEventManagerFor(JoystickAxisSource source)
+        {
+            if (joystickAxisEventManagers.TryGetValue(source, out var existing))
+                return existing;
+
+            var manager = CreateJoystickAxisEventManagerFor(source);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return joystickAxisEventManagers[source] = manager;
         }
 
         /// <summary>
@@ -398,7 +450,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state)
+        private IEnumerable<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
@@ -407,7 +459,7 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(state.Mouse.Position, positionalInputQueue);
+                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
 
             positionalInputQueue.Reverse();
             return positionalInputQueue;
@@ -499,6 +551,19 @@ namespace osu.Framework.Input
             }
         }
 
+        protected virtual void HandleTouchStateChange(TouchStateChangeEvent e)
+        {
+            Debug.Assert(e.LastPosition != null || e.IsActive != null, $"A {nameof(TouchStateChangeEvent)} provided with no changes information.");
+
+            var manager = GetButtonEventManagerFor(e.Touch.Source);
+
+            if (e.LastPosition is Vector2 lastPosition)
+                manager.HandlePositionChange(e.State, lastPosition);
+
+            if (e.IsActive is bool active)
+                manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -525,8 +590,24 @@ namespace osu.Framework.Input
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
 
+                case TouchStateChangeEvent touchChange:
+                    HandleTouchStateChange(touchChange);
+
+                    // primary touch mapped to mouse.
+                    if (touchChange.Touch.Source == TouchSource.Touch1)
+                    {
+                        new MousePositionAbsoluteInput { Position = touchChange.Touch.Position }.Apply(CurrentState, this);
+                        new MouseButtonInput(MouseButton.Left, touchChange.State.Touch.IsActive(touchChange.Touch.Source)).Apply(CurrentState, this);
+                    }
+
+                    return;
+
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
+                    return;
+
+                case JoystickAxisChangeEvent joystickAxisChangeEvent:
+                    HandleJoystickAxisChange(joystickAxisChangeEvent);
                     return;
 
                 case ButtonStateChangeEvent<MidiKey> midiKeyStateChange:
@@ -534,6 +615,9 @@ namespace osu.Framework.Input
                     return;
             }
         }
+
+        protected virtual void HandleJoystickAxisChange(JoystickAxisChangeEvent e)
+            => GetJoystickAxisEventManagerFor(e.Axis.Source).HandleAxisChange(e.State, e.Axis.Value, e.LastValue);
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
         {

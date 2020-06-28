@@ -1,19 +1,22 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Input.Handlers;
 using Foundation;
-using UIKit;
-using osu.Framework.Platform;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
+using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
     public class IOSTouchHandler : InputHandler
     {
         private readonly IOSGameView view;
+        private NSMutableSet<UITouch> pendingRightClickTouches = new NSMutableSet<UITouch>();
+
+        private bool rightClickSupport = UIDevice.CurrentDevice.CheckSystemVersion(13, 4);
 
         public IOSTouchHandler(IOSGameView view)
         {
@@ -21,18 +24,13 @@ namespace osu.Framework.iOS.Input
             view.HandleTouches += handleTouches;
         }
 
-        private void handleTouches(NSSet obj)
+        private void handleTouches(NSSet obj, UIEvent evt)
         {
-            if (obj.Count == 1)
-                handleUITouch((UITouch)obj.AnyObject);
-            else
-            {
-                foreach (var t in obj)
-                    handleUITouch((UITouch)t);
-            }
+            foreach (var t in obj)
+                handleUITouch((UITouch)t, evt);
         }
 
-        private void handleUITouch(UITouch touch)
+        private void handleUITouch(UITouch touch, UIEvent evt)
         {
             var location = touch.LocationInView(null);
 
@@ -42,12 +40,25 @@ namespace osu.Framework.iOS.Input
             {
                 case UITouchPhase.Moved:
                 case UITouchPhase.Began:
-                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                    if (rightClickSupport && evt.ButtonMask == UIEventButtonMask.Secondary)
+                    {
+                        pendingRightClickTouches.Add(touch);
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, true));
+                    }
+                    else
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+
                     break;
 
                 case UITouchPhase.Cancelled:
                 case UITouchPhase.Ended:
-                    PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                    if (pendingRightClickTouches.Contains(touch))
+                    {
+                        pendingRightClickTouches.Remove(touch);
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Right, false));
+                    }
+                    else
+                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
                     break;
             }
         }

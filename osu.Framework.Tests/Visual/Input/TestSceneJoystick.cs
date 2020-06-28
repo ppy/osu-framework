@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
+using JoystickState = osu.Framework.Input.States.JoystickState;
 
 namespace osu.Framework.Tests.Visual.Input
 {
@@ -40,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Input
             for (int i = 0; i < 4; i++)
                 hatFlow.Add(new JoystickHatHandler(i));
 
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < JoystickState.MAX_AXES; i++)
                 axisFlow.Add(new JoystickAxisButtonHandler(i));
 
             Child = new FillFlowContainer
@@ -197,18 +198,18 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
-            private readonly int axisIndex;
+            private readonly JoystickAxisSource trackedAxis;
             private readonly Drawable background;
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
             private readonly SpriteText rawValue;
 
-            public JoystickAxisButtonHandler(int axisIndex)
+            public JoystickAxisButtonHandler(int trackedAxis)
             {
-                this.axisIndex = axisIndex;
-                positiveAxisButton = JoystickButton.FirstAxisPositive + axisIndex;
-                negativeAxisButton = JoystickButton.FirstAxisNegative + axisIndex;
+                this.trackedAxis = (JoystickAxisSource)trackedAxis;
+                positiveAxisButton = JoystickButton.FirstAxisPositive + trackedAxis;
+                negativeAxisButton = JoystickButton.FirstAxisNegative + trackedAxis;
 
                 Size = new Vector2(50);
 
@@ -224,7 +225,7 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"AX{axisIndex + 1}"
+                        Text = $"AX{trackedAxis + 1}"
                     },
                     rawValue = new SpriteText
                     {
@@ -233,14 +234,6 @@ namespace osu.Framework.Tests.Visual.Input
                         Text = "-"
                     }
                 };
-            }
-
-            protected override void Update()
-            {
-                base.Update();
-
-                var joy = GetContainingInputManager().CurrentState.Joystick;
-                rawValue.Text = joy.Axes.Find(a => a.Axis == axisIndex).Value.ToString("0.00");
             }
 
             protected override bool OnJoystickPress(JoystickPressEvent e)
@@ -261,6 +254,14 @@ namespace osu.Framework.Tests.Visual.Input
                     background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
                 else
                     base.OnJoystickRelease(e);
+            }
+
+            protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
+            {
+                if (e.Axis.Source == trackedAxis)
+                    rawValue.Text = e.Axis.Value.ToString("0.00");
+
+                return false;
             }
         }
     }
