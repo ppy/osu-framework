@@ -89,8 +89,6 @@ namespace osu.Framework.Audio.Track
 
         protected override void ApplyAdjustments()
         {
-            base.ApplyAdjustments();
-
             lock (clock)
                 clock.Rate = Tempo.Value * AggregateFrequency.Value;
         }

@@ -295,8 +295,6 @@ namespace osu.Framework.Audio.Track
 
         protected override void ApplyAdjustments()
         {
-            base.ApplyAdjustments();
-
             setDirection(AggregateFrequency.Value < 0);
 
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);

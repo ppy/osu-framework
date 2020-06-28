@@ -31,8 +31,6 @@ namespace osu.Framework.Audio.Sample
 
         protected override void ApplyAdjustments()
         {
-            base.ApplyAdjustments();
-
             if (channel != 0)
             {
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
