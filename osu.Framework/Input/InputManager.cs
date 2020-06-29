@@ -569,6 +569,21 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
         }
 
+        /// <summary>
+        /// Handles primary touch state change event to produce mouse input from.
+        /// </summary>
+        /// <param name="e">The primary touch state change event.</param>
+        /// <returns>Whether mouse input has been performed accordingly.</returns>
+        protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            if (!MapMouseToPrimaryTouch)
+                return false;
+
+            new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
+            new MouseButtonInput(MouseButton.Left, e.State.Touch.IsActive(e.Touch.Source)).Apply(CurrentState, this);
+            return true;
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -598,11 +613,8 @@ namespace osu.Framework.Input
                 case TouchStateChangeEvent touchChange:
                     HandleTouchStateChange(touchChange);
 
-                    if (MapMouseToPrimaryTouch && touchChange.Touch.Source == TouchSource.Touch1)
-                    {
-                        new MousePositionAbsoluteInput { Position = touchChange.Touch.Position }.Apply(CurrentState, this);
-                        new MouseButtonInput(MouseButton.Left, touchChange.State.Touch.IsActive(touchChange.Touch.Source)).Apply(CurrentState, this);
-                    }
+                    if (touchChange.Touch.Source == TouchSource.Touch1)
+                        HandleMouseTouchStateChange(touchChange);
 
                     return;
 

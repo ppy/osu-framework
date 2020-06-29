@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -25,8 +26,6 @@ namespace osu.Framework.Input
     /// </remarks>
     public class PassThroughInputManager : CustomInputManager, IRequireHighFrequencyMousePosition
     {
-        protected override bool MapMouseToPrimaryTouch => !UseParentInput;
-
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
@@ -81,6 +80,15 @@ namespace osu.Framework.Input
             }
 
             return pendingInputs;
+        }
+
+        protected override bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            // The parent manager will propagate mouse events from primary touch input if we are using it.
+            if (UseParentInput)
+                return false;
+
+            return base.HandleMouseTouchStateChange(e);
         }
 
         protected override bool Handle(UIEvent e)
