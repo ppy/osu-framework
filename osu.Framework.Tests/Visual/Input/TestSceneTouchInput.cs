@@ -178,6 +178,10 @@ namespace osu.Framework.Tests.Visual.Input
 
                 return true;
             });
+
+            // All touch events have been handled, mouse input should not be performed.
+            // For simplicity, let's check whether we received mouse events or not.
+            AddAssert("no mouse input performed", () => receptors.All(r => r.MouseEvents.Count == 0));
         }
 
         [Test]
@@ -186,6 +190,7 @@ namespace osu.Framework.Tests.Visual.Input
             InputReceptor primaryReceptor = null;
 
             AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("disable handling touches", () => primaryReceptor.HandleTouch = _ => false);
 
             AddStep("activate touches", () =>
             {
@@ -319,6 +324,7 @@ namespace osu.Framework.Tests.Visual.Input
             public readonly Queue<TouchEvent> TouchEvents = new Queue<TouchEvent>();
             public readonly Queue<MouseEvent> MouseEvents = new Queue<MouseEvent>();
 
+            public Func<TouchEvent, bool> HandleTouch;
             public Func<MouseEvent, bool> HandleMouse;
 
             public InputReceptor(TouchSource source)
@@ -347,8 +353,13 @@ namespace osu.Framework.Tests.Visual.Input
                 switch (e)
                 {
                     case TouchEvent te:
-                        TouchEvents.Enqueue(te);
-                        return !(e is TouchUpEvent);
+                        if (HandleTouch?.Invoke(te) != false)
+                        {
+                            TouchEvents.Enqueue(te);
+                            return true;
+                        }
+
+                        break;
 
                     case MouseDownEvent _:
                     case MouseMoveEvent _:
