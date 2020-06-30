@@ -128,6 +128,11 @@ namespace osu.Framework.Input
 
         private readonly Dictionary<JoystickAxisSource, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<JoystickAxisSource, JoystickAxisEventManager>();
 
+        /// <summary>
+        /// Whether to produce mouse input on any primary touch input.
+        /// </summary>
+        protected virtual bool MapMouseToPrimaryTouch => true;
+
         protected InputManager()
         {
             CurrentState = CreateInitialState();
@@ -564,6 +569,21 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
         }
 
+        /// <summary>
+        /// Handles primary touch state change event to produce mouse input from.
+        /// </summary>
+        /// <param name="e">The primary touch state change event.</param>
+        /// <returns>Whether mouse input has been performed accordingly.</returns>
+        protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            if (!MapMouseToPrimaryTouch)
+                return false;
+
+            new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
+            new MouseButtonInput(MouseButton.Left, e.State.Touch.IsActive(e.Touch.Source)).Apply(CurrentState, this);
+            return true;
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -593,12 +613,8 @@ namespace osu.Framework.Input
                 case TouchStateChangeEvent touchChange:
                     HandleTouchStateChange(touchChange);
 
-                    // primary touch mapped to mouse.
                     if (touchChange.Touch.Source == TouchSource.Touch1)
-                    {
-                        new MousePositionAbsoluteInput { Position = touchChange.Touch.Position }.Apply(CurrentState, this);
-                        new MouseButtonInput(MouseButton.Left, touchChange.State.Touch.IsActive(touchChange.Touch.Source)).Apply(CurrentState, this);
-                    }
+                        HandleMouseTouchStateChange(touchChange);
 
                     return;
 
