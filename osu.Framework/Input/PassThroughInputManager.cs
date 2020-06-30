@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -75,6 +76,15 @@ namespace osu.Framework.Input
             }
 
             return pendingInputs;
+        }
+
+        protected override bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            // The parent manager will propagate mouse events from primary touch input if we are using it.
+            if (UseParentInput)
+                return false;
+
+            return base.HandleMouseTouchStateChange(e);
         }
 
         protected override bool Handle(UIEvent e)
@@ -154,7 +164,9 @@ namespace osu.Framework.Input
         /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
         protected virtual void SyncInputState(InputState state)
         {
-            // release all buttons that is not pressed on parent state
+            // invariant: if mouse button is currently pressed, then it has been pressed in parent (but not the converse)
+            // therefore, mouse up events are always synced from parent
+            // mouse down events are not synced to prevent false clicks
             var mouseButtonDifference = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
