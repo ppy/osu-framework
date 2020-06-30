@@ -620,9 +620,18 @@ namespace osu.Framework.Input
                     return;
 
                 case TouchStateChangeEvent touchChange:
+                    var manager = GetButtonEventManagerFor(TouchSource.Touch1);
+                    bool touchHandled = false;
+
+                    touchHandled |= manager.HeldDrawable != null;
+
                     HandleTouchStateChange(touchChange);
 
-                    if (touchChange.Touch.Source == TouchSource.Touch1)
+                    touchHandled |= manager.HeldDrawable != null;
+
+                    // Produce mouse input if no drawable in the input queue has handled this touch event,
+                    // done for compatibility with components that do not handle multi-touching.
+                    if (!touchHandled && touchChange.Touch.Source == TouchSource.Touch1)
                         HandleMouseTouchStateChange(touchChange);
 
                     return;
