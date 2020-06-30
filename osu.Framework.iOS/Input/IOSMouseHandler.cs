@@ -13,6 +13,10 @@ using UIKit;
 
 namespace osu.Framework.iOS.Input
 {
+    /// <summary>
+    /// Handles scroll and positional updates for external cursor-based input devices.
+    /// Click / touch handling is still provided by <see cref="IOSTouchHandler"/>.
+    /// </summary>
     public class IOSMouseHandler : InputHandler
     {
         private readonly IOSGameView view;
