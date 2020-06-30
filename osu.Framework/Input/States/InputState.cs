@@ -36,7 +36,7 @@ namespace osu.Framework.Input.States
         /// <summary>
         /// Creates a new <see cref="InputState"/> using the individual input states from another <see cref="InputState"/>.
         /// </summary>
-        /// <param name="other">The <see cref="InputState"/> to take the individual input states from.</param>
+        /// <param name="other">The <see cref="InputState"/> to take the individual input states from. Note that states are not cloned and will remain as references to the same objects.</param>
         public InputState(InputState other)
             : this(other.Mouse, other.Keyboard, other.Touch, other.Joystick, other.Midi)
         {
