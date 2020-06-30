@@ -89,6 +89,21 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestUpReceivedOnDownFromSync()
+        {
+            addTestInputManagerStep();
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("press keyboard", () => InputManager.PressKey(Key.A));
+            AddAssert("key not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("key pressed", () => testInputManager.CurrentState.Keyboard.Keys.Single() == Key.A);
+
+            AddStep("release keyboard", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("key released", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+        }
+
+        [Test]
         public void MouseDownNoSync()
         {
             addTestInputManagerStep();
