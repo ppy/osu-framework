@@ -71,9 +71,11 @@ namespace osu.Framework.Input.StateChanges
                 if (buttonStates.SetPressed(entry.Button, entry.IsPressed))
                 {
                     var buttonStateChange = CreateEvent(state, entry.Button, entry.IsPressed ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
-                    handler.HandleInputStateChange(buttonStateChange);
+                    HandleInputStateChange(buttonStateChange, handler);
                 }
             }
         }
+
+        protected virtual void HandleInputStateChange(ButtonStateChangeEvent<TButton> e, IInputStateChangeHandler handler) => handler.HandleInputStateChange(e);
     }
 }

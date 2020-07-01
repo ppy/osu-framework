@@ -11,8 +11,10 @@ namespace osu.Framework.Input.StateChanges
     /// Denotes a relative change of mouse position.
     /// Pointing devices such as mice provide relative positional input.
     /// </summary>
-    public class MousePositionRelativeInput : IInput
+    public class MousePositionRelativeInput : IMouseInput
     {
+        public bool FromTouchSource { get; set; }
+
         /// <summary>
         /// The change in position. This will be added to the current position.
         /// When the current position is not valid, no changes will be made.

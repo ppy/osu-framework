@@ -14,8 +14,10 @@ namespace osu.Framework.Input.StateChanges
     /// <remarks>
     /// This is the first input received from any pointing device.
     /// </remarks>
-    public class MousePositionAbsoluteInput : IInput
+    public class MousePositionAbsoluteInput : IMouseInput
     {
+        public bool FromTouchSource { get; set; }
+
         /// <summary>
         /// The position which will be assigned to the current position.
         /// </summary>

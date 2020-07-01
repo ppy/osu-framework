@@ -2,13 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK.Input;
 
 namespace osu.Framework.Input.StateChanges
 {
-    public class MouseButtonInput : ButtonInput<MouseButton>
+    public class MouseButtonInput : ButtonInput<MouseButton>, IMouseInput
     {
+        public bool FromTouchSource { get; set; }
+
         public MouseButtonInput(IEnumerable<ButtonInputEntry<MouseButton>> entries)
             : base(entries)
         {
@@ -25,5 +28,11 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
+
+        protected override void HandleInputStateChange(ButtonStateChangeEvent<MouseButton> stateChangeEvent, IInputStateChangeHandler handler)
+        {
+            stateChangeEvent.State.Mouse.FromTouchSource = FromTouchSource;
+            base.HandleInputStateChange(stateChangeEvent, handler);
+        }
     }
 }
