@@ -295,6 +295,42 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestMouseStillReleasedOnHierarchyInterference()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to receive mouse", () =>
+            {
+                primaryReceptor.HandleTouch = _ => false;
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddAssert("primary receptor received mouse", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseMoveEvent;
+                bool event2 = primaryReceptor.MouseEvents.Dequeue() is MouseDownEvent;
+                return event1 && event2 && primaryReceptor.MouseEvents.Count == 0;
+            });
+
+            AddStep("add drawable", () => primaryReceptor.Add(new InputReceptor(TouchSource.Touch1)
+            {
+                RelativeSizeAxes = Axes.Both,
+                HandleTouch = _ => true,
+            }));
+
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1))));
+            AddAssert("primary receptor received mouse", () =>
+            {
+                bool event1 = primaryReceptor.MouseEvents.Dequeue() is MouseUpEvent;
+                return event1 && primaryReceptor.MouseEvents.Count == 0;
+            });
+            AddAssert("child receptor received nothing", () =>
+                primaryReceptor.TouchEvents.Count == 0 &&
+                primaryReceptor.MouseEvents.Count == 0);
+        }
+
+        [Test]
         public void TestMouseEventFromTouchIndication()
         {
             InputReceptor primaryReceptor = null;
@@ -317,7 +353,7 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("mouse event received", () => primaryReceptor.MouseEvents.Single() is MouseMoveEvent);
         }
 
-        private class InputReceptor : CompositeDrawable
+        private class InputReceptor : Container
         {
             public readonly TouchSource AssociatedSource;
 
@@ -326,6 +362,10 @@ namespace osu.Framework.Tests.Visual.Input
 
             public Func<TouchEvent, bool> HandleTouch;
             public Func<MouseEvent, bool> HandleMouse;
+
+            protected override Container<Drawable> Content => content;
+
+            private readonly Container content;
 
             public InputReceptor(TouchSource source)
             {
@@ -345,6 +385,10 @@ namespace osu.Framework.Tests.Visual.Input
                         Text = source.ToString(),
                         Colour = Color4.Black,
                     },
+                    content = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    }
                 };
             }
 
