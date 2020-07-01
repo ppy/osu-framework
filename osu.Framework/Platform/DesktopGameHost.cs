@@ -34,12 +34,12 @@ namespace osu.Framework.Platform
             UseSdl = useSdl;
         }
 
-        protected sealed override Storage CreateGameStorage()
+        protected sealed override Storage GetDefaultGameStorage()
         {
             if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
                 return GetStorage(RuntimeInfo.StartupDirectory);
 
-            return base.CreateGameStorage();
+            return base.GetDefaultGameStorage();
         }
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);

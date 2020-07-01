@@ -76,6 +76,14 @@ namespace osu.Framework
         /// </summary>
         protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
 
+        /// <summary>
+        /// Creates the <see cref="Storage"/> where this <see cref="Game"/> will reside.
+        /// </summary>
+        /// <param name="host">The <see cref="GameHost"/>.</param>
+        /// <param name="defaultStorage">The default <see cref="Storage"/> to be used if a custom <see cref="Storage"/> isn't desired.</param>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected internal virtual Storage CreateStorage(GameHost host, Storage defaultStorage) => defaultStorage;
+
         protected Game()
         {
             RelativeSizeAxes = Axes.Both;
