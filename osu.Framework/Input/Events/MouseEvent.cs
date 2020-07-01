@@ -13,6 +13,11 @@ namespace osu.Framework.Input.Events
     public abstract class MouseEvent : UIEvent
     {
         /// <summary>
+        /// Whether this event has been raised from a primary touch input source.
+        /// </summary>
+        public bool FromTouchSource => CurrentState.Mouse.FromTouchSource;
+
+        /// <summary>
         /// Whether a specific mouse button is pressed.
         /// </summary>
         public bool IsPressed(MouseButton button) => CurrentState.Mouse.Buttons.IsPressed(button);

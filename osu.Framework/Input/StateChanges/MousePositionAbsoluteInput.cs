@@ -29,6 +29,8 @@ namespace osu.Framework.Input.StateChanges
 
             if (!mouse.IsPositionValid || mouse.Position != Position)
             {
+                mouse.FromTouchSource = FromTouchSource;
+
                 var lastPosition = mouse.IsPositionValid ? mouse.Position : Position;
                 mouse.IsPositionValid = true;
                 mouse.Position = Position;

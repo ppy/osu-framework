@@ -34,6 +34,8 @@ namespace osu.Framework.Input.StateChanges
 
             if (Delta != Vector2.Zero)
             {
+                mouse.FromTouchSource = FromTouchSource;
+
                 var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
                 handler.HandleInputStateChange(new MouseScrollChangeEvent(state, this, lastScroll, IsPrecise));

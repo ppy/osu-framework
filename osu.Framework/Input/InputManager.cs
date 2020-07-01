@@ -579,8 +579,17 @@ namespace osu.Framework.Input
             if (!MapMouseToPrimaryTouch)
                 return false;
 
-            new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
-            new MouseButtonInput(MouseButton.Left, e.State.Touch.IsActive(e.Touch.Source)).Apply(CurrentState, this);
+            new MousePositionAbsoluteInput
+            {
+                FromTouchSource = true,
+                Position = e.Touch.Position,
+            }.Apply(CurrentState, this);
+
+            new MouseButtonInput(MouseButton.Left, e.State.Touch.IsActive(e.Touch.Source))
+            {
+                FromTouchSource = true,
+            }.Apply(CurrentState, this);
+
             return true;
         }
 

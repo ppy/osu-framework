@@ -27,6 +27,8 @@ namespace osu.Framework.Input.StateChanges
 
             if (mouse.IsPositionValid && Delta != Vector2.Zero)
             {
+                mouse.FromTouchSource = FromTouchSource;
+
                 var lastPosition = mouse.Position;
                 mouse.Position += Delta;
                 handler.HandleInputStateChange(new MousePositionChangeEvent(state, this, lastPosition));
