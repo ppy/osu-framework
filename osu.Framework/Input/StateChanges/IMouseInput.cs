@@ -8,6 +8,6 @@ namespace osu.Framework.Input.StateChanges
         /// <summary>
         /// Whether this input is performed from a primary touch input source.
         /// </summary>
-        public bool FromTouchSource { get; set; }
+        bool FromTouchSource { get; set; }
     }
 }
