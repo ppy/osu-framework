@@ -35,7 +35,7 @@ namespace osu.Framework.iOS.Input
                 handleUITouch((UITouch)t, evt);
         }
 
-        private UITouch[] activeTouches = new UITouch[10];
+        private readonly UITouch[] activeTouches = new UITouch[max_touches];
 
         private void handleUITouch(UITouch uiTouch, UIEvent e)
         {
