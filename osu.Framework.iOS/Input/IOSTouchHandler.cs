@@ -1,8 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using Foundation;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -14,6 +16,8 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSTouchHandler : InputHandler
     {
+        private const int max_touches = 10; // should match TouchSource enum count.
+
         private readonly IOSGameView view;
 
         private UIEventButtonMask? lastButtonMask;
@@ -32,18 +36,18 @@ namespace osu.Framework.iOS.Input
                 handleUITouch((UITouch)t, evt);
         }
 
+        private UITouch[] activeTouches = new UITouch[10];
+
         private void handleUITouch(UITouch touch, UIEvent e)
         {
             // always update position.
-            var location = touch.LocationInView(null);
-
-            PendingInputs.Enqueue(new MousePositionAbsoluteInput
-            {
-                Position = new Vector2((float)location.X * view.Scale, (float)location.Y * view.Scale)
-            });
+            var cgLocation = touch.LocationInView(null);
+            Vector2 location = new Vector2((float)cgLocation.X * view.Scale, (float)cgLocation.Y * view.Scale);
 
             if (indirectPointerSupported && touch.Type == UITouchType.IndirectPointer)
             {
+                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = location });
+
                 // Indirect pointer means the touch came from a mouse cursor, and wasn't a physical touch on the screen
                 switch (touch.Phase)
                 {
@@ -69,20 +73,58 @@ namespace osu.Framework.iOS.Input
             }
             else
             {
-                // simple logic before multiple button support was introduced.
-                // TODO: going forward, this should also handle multi-touch input.
+                TouchSource? existingSource = getTouchSource(touch);
+
+                // standard touch handling
                 switch (touch.Phase)
                 {
                     case UITouchPhase.Began:
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, true));
+                        Debug.Assert(existingSource == null);
+
+                        PendingInputs.Enqueue(new TouchInput(new Touch(assignTouch(touch), location), true));
+                        break;
+
+                    case UITouchPhase.Moved:
+                        Debug.Assert(existingSource != null);
+
+                        PendingInputs.Enqueue(new TouchInput(new Touch(existingSource.Value, location), true));
                         break;
 
                     case UITouchPhase.Cancelled:
                     case UITouchPhase.Ended:
-                        PendingInputs.Enqueue(new MouseButtonInput(MouseButton.Left, false));
+                        Debug.Assert(existingSource != null);
+
+                        PendingInputs.Enqueue(new TouchInput(new Touch(existingSource.Value, location), false));
+                        activeTouches[(int)existingSource] = null;
                         break;
                 }
             }
+        }
+
+        private TouchSource assignTouch(UITouch touch)
+        {
+            Debug.Assert(getTouchSource(touch) == null);
+
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (activeTouches[i] != null) continue;
+
+                activeTouches[i] = touch;
+                return (TouchSource)i;
+            }
+
+            throw new InvalidOperationException("Too many touches");
+        }
+
+        private TouchSource? getTouchSource(UITouch touch)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (ReferenceEquals(activeTouches[i], touch))
+                    return (TouchSource)i;
+            }
+
+            return null;
         }
 
         private MouseButton buttonFromMask(UIEventButtonMask buttonMask)
