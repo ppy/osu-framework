@@ -113,8 +113,11 @@ namespace osu.Framework.Input
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
                     break;
 
+                case TouchEvent touch:
+                    new TouchInput(touch.ScreenSpaceTouch, touch.IsActive(touch.ScreenSpaceTouch)).Apply(CurrentState, this);
+                    break;
+
                 case KeyboardEvent _:
-                case TouchEvent _:
                 case JoystickButtonEvent _:
                 case JoystickAxisMoveEvent _:
                     SyncInputState(e.CurrentState);

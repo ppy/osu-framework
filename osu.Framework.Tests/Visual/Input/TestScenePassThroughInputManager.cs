@@ -146,6 +146,11 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("synced properly", () =>
                 testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch2 &&
                 testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == Vector2.One);
+
+            AddStep("end second touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, new Vector2(2))));
+            AddAssert("synced properly", () =>
+                !testInputManager.CurrentState.Touch.ActiveSources.HasAnyButtonPressed &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == new Vector2(2));
         }
 
         public class TestInputManager : ManualInputManager
