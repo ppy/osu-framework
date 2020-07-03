@@ -62,18 +62,13 @@ namespace osu.Framework.Graphics.Pooling
         }
 
         /// <summary>
-        /// Assign this drawable to a <see cref="IDrawablePool"/>.
+        /// Assign this drawable to a consumer.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if this drawable is still in use, or is already in another pool.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this drawable is still in use.</exception>
         internal void Assign()
         {
             if (IsInUse)
                 throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
-
-            if (pool != null)
-                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in a pool");
-
-            Debug.Assert(pool != null);
 
             IsInUse = true;
 
