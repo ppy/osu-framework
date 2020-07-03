@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             resetWithNewPool(() => new TestPool(TimePerAction, pool_size));
 
-            AddRepeatStep("get new pooled drawable", consumeDrawable, 50);
+            AddRepeatStep("get new pooled drawable", () => consumeDrawable(), 50);
 
             AddUntilStep("all returned to pool", () => pool.CountAvailable == pool_size);
 
@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             resetWithNewPool(() => new TestPool(TimePerAction * 20, pool_size));
 
-            AddRepeatStep("get new pooled drawable", consumeDrawable, 50);
+            AddRepeatStep("get new pooled drawable", () => consumeDrawable(), 50);
 
             AddUntilStep("all returned to pool", () => pool.CountAvailable == consumed.Count);
 
@@ -66,13 +66,34 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("available count is correct", () => pool.CountAvailable == initialPoolSize);
         }
 
+        [Test]
+        public void TestPrepareAndFreeMethods()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+            TestDrawable drawable2 = null;
+
+            AddStep("consume item", () => drawable = (TestDrawable)consumeDrawable());
+
+            AddAssert("prepare was run", () => drawable.PreparedCount == 1);
+            AddUntilStep("free was run", () => drawable.FreedCount == 1);
+
+            AddStep("consume item", () => drawable2 = (TestDrawable)consumeDrawable());
+
+            AddAssert("is same item", () => ReferenceEquals(drawable, drawable2));
+
+            AddAssert("prepare was run", () => drawable2.PreparedCount == 2);
+            AddUntilStep("free was run", () => drawable2.FreedCount == 2);
+        }
+
         [TestCase(10)]
         [TestCase(20)]
         public void TestPoolUsageExceedsMaximum(int maxPoolSize)
         {
             resetWithNewPool(() => new TestPool(TimePerAction * 20, 10, maxPoolSize));
 
-            AddRepeatStep("get new pooled drawable", consumeDrawable, 50);
+            AddRepeatStep("get new pooled drawable", () => consumeDrawable(), 50);
 
             AddUntilStep("pool size hit maximum", () => pool.CountAvailable == maxPoolSize);
             AddUntilStep("count in pool is correct", () => consumed.Count(d => d.IsInPool) == maxPoolSize);
@@ -88,7 +109,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private static int displayCount;
 
-        private void consumeDrawable()
+        private PoolableDrawable consumeDrawable()
         {
             var drawable = pool.Get();
             consumed.Add(drawable);
@@ -98,6 +119,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             drawable.DisplayString = (++displayCount).ToString();
 
             Add(drawable);
+
+            return drawable;
         }
 
         private void resetWithNewPool(Func<DrawablePool<TestDrawable>> createPool)
@@ -175,12 +198,23 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             public new bool IsDisposed => base.IsDisposed;
 
+            public int PreparedCount { get; private set; }
+            public int FreedCount { get; private set; }
+
             protected override void PrepareForUse()
             {
                 this.FadeOutFromOne(fadeTime);
                 this.RotateTo(0).RotateTo(80, fadeTime);
 
                 Expire();
+
+                PreparedCount++;
+            }
+
+            protected override void FreeAfterUse()
+            {
+                base.FreeAfterUse();
+                FreedCount++;
             }
         }
     }
