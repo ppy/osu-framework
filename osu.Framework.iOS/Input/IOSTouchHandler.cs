@@ -120,6 +120,8 @@ namespace osu.Framework.iOS.Input
         {
             for (int i = 0; i < activeTouches.Length; i++)
             {
+                // The recommended (and only) way to track touches is storing and comparing references of the UITouch objects.
+                // https://stackoverflow.com/questions/39823914/how-to-track-multiple-touches
                 if (ReferenceEquals(activeTouches[i], touch))
                     return (TouchSource)i;
             }
