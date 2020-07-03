@@ -24,6 +24,11 @@ namespace osu.Framework.Graphics.Pooling
 
         private IDrawablePool pool;
 
+        private bool waitingForPrepare;
+
+        // ensure we are able to schedule the prepare call even if not visible.
+        public override bool IsPresent => waitingForPrepare || base.IsPresent;
+
         public void SetPool(IDrawablePool pool)
         {
             this.pool = pool;
@@ -40,7 +45,14 @@ namespace osu.Framework.Graphics.Pooling
             LifetimeStart = double.MinValue;
             LifetimeEnd = double.MaxValue;
 
-            Schedule(PrepareForUse);
+            waitingForPrepare = true;
+            Schedule(prepare);
+        }
+
+        private void prepare()
+        {
+            waitingForPrepare = false;
+            PrepareForUse();
         }
 
         /// <summary>
@@ -66,6 +78,7 @@ namespace osu.Framework.Graphics.Pooling
                     FreeAfterUse();
                     pool?.Return(this);
                     IsInUse = false;
+                    waitingForPrepare = false;
                 }
             }
 
