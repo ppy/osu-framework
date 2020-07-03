@@ -24,35 +24,16 @@ namespace osu.Framework.Graphics.Pooling
 
         private IDrawablePool pool;
 
+        /// <summary>
+        /// A flag to keep the drawable present to guarantee <see cref="prepare"/> can be performed as a scheduled call.
+        /// </summary>
         private bool waitingForPrepare;
 
-        // ensure we are able to schedule the prepare call even if not visible.
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
         public void SetPool(IDrawablePool pool)
         {
             this.pool = pool;
-        }
-
-        internal void Assign()
-        {
-            if (IsInUse)
-                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
-
-            Debug.Assert(pool != null);
-            IsInUse = true;
-
-            LifetimeStart = double.MinValue;
-            LifetimeEnd = double.MaxValue;
-
-            waitingForPrepare = true;
-            Schedule(prepare);
-        }
-
-        private void prepare()
-        {
-            waitingForPrepare = false;
-            PrepareForUse();
         }
 
         /// <summary>
@@ -67,6 +48,37 @@ namespace osu.Framework.Graphics.Pooling
         /// </summary>
         protected virtual void FreeAfterUse()
         {
+        }
+
+        /// <summary>
+        /// Assign this drawable to a <see cref="IDrawablePool"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if this drawable is still in use, or is already in another pool.</exception>
+        internal void Assign()
+        {
+            if (IsInUse)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
+
+            if (pool != null)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in a pool");
+
+            Debug.Assert(pool != null);
+
+            IsInUse = true;
+
+            LifetimeStart = double.MinValue;
+            LifetimeEnd = double.MaxValue;
+
+            waitingForPrepare = true;
+
+            // prepare call is scheduled as it may contain user code dependent on the clock being updated.
+            Schedule(prepare);
+        }
+
+        private void prepare()
+        {
+            waitingForPrepare = false;
+            PrepareForUse();
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
