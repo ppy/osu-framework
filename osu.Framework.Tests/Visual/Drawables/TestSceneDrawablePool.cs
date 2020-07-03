@@ -67,6 +67,34 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestReturnWithoutAdding()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+
+            AddStep("consume without adding", () => drawable = pool.Get());
+
+            AddStep("manually return", () => drawable.Return());
+
+            AddUntilStep("free was run", () => drawable.FreedCount == 1);
+            AddUntilStep("was returned", () => pool.CountAvailable == 1);
+
+            AddAssert("manually return twice throws", () =>
+            {
+                try
+                {
+                    drawable.Return();
+                    return false;
+                }
+                catch (InvalidOperationException)
+                {
+                    return true;
+                }
+            });
+        }
+
+        [Test]
         public void TestPrepareAndFreeMethods()
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
@@ -111,13 +139,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private PoolableDrawable consumeDrawable()
         {
-            var drawable = pool.Get();
+            var drawable = pool.Get(d =>
+            {
+                d.Position = new Vector2(RNG.NextSingle(), RNG.NextSingle());
+                d.DisplayString = (++displayCount).ToString();
+            });
+
             consumed.Add(drawable);
-
-            drawable.RelativePositionAxes = Axes.Both;
-            drawable.Position = new Vector2(RNG.NextSingle(), RNG.NextSingle());
-            drawable.DisplayString = (++displayCount).ToString();
-
             Add(drawable);
 
             return drawable;
@@ -176,6 +204,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 this.fadeTime = fadeTime;
 
+                RelativePositionAxes = Axes.Both;
                 Size = new Vector2(50);
                 Origin = Anchor.Centre;
 

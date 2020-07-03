@@ -31,6 +31,24 @@ namespace osu.Framework.Graphics.Pooling
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
         /// <summary>
+        /// Return this drawable to its pool manually. Note that this is not required if the drawable is using lifetime cleanup.
+        /// </summary>
+        public void Return()
+        {
+            if (!IsInUse)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} was already returned");
+
+            IsInUse = false;
+
+            FreeAfterUse();
+
+            // intentionally don't throw if a pool was not associated or otherwise.
+            // supports use of PooledDrawables outside of a pooled scenario without special handling.
+            pool?.Return(this);
+            waitingForPrepare = false;
+        }
+
+        /// <summary>
         /// Perform any initialisation on new usage of this drawable.
         /// </summary>
         protected virtual void PrepareForUse()
@@ -91,13 +109,7 @@ namespace osu.Framework.Graphics.Pooling
             if (invalidation.HasFlag(Invalidation.Parent))
             {
                 if (IsInUse && Parent == null)
-                {
-                    IsInUse = false;
-
-                    FreeAfterUse();
-                    pool?.Return(this);
-                    waitingForPrepare = false;
-                }
+                    Return();
             }
 
             return base.OnInvalidate(invalidation, source);
