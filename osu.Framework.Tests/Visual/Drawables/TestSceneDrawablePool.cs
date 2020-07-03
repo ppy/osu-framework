@@ -146,10 +146,17 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             resetWithNewPool(() => new TestPool(TimePerAction * 20, 10, maxPoolSize));
 
-            AddRepeatStep("get new pooled drawable", () => consumeDrawable(), 50);
+            AddStep("get many pooled drawables", () =>
+            {
+                for (int i = 0; i < maxPoolSize * 2; i++)
+                    consumeDrawable();
+            });
 
-            AddUntilStep("pool size hit maximum", () => pool.CountAvailable == maxPoolSize);
+            AddAssert("pool saturated", () => pool.CountAvailable == 0);
+
+            AddUntilStep("pool size returned to correct maximum", () => pool.CountAvailable == maxPoolSize);
             AddUntilStep("count in pool is correct", () => consumed.Count(d => d.IsInPool) == maxPoolSize);
+            AddAssert("excess drawables were used", () => consumed.Any(d => !d.IsInPool));
             AddAssert("non-returned drawables disposed", () => consumed.Where(d => !d.IsInPool).All(d => d.IsDisposed));
         }
 
