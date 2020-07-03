@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
@@ -28,20 +29,18 @@ namespace osu.Framework.Graphics.Pooling
             this.pool = pool;
         }
 
-        public void Assign()
+        internal void Assign()
         {
-            Debug.Assert(pool != null);
-            Debug.Assert(!IsInUse);
+            if (IsInUse)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
 
+            Debug.Assert(pool != null);
             IsInUse = true;
 
             LifetimeStart = double.MinValue;
             LifetimeEnd = double.MaxValue;
 
-            if (IsLoaded)
-                PrepareForUse();
-            else
-                Schedule(PrepareForUse);
+            Schedule(PrepareForUse);
         }
 
         /// <summary>
