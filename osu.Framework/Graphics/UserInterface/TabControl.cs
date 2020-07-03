@@ -83,6 +83,22 @@ namespace osu.Framework.Graphics.UserInterface
         public bool IsSwitchable { get; set; }
 
         /// <summary>
+        /// Whether a new tab should be automatically switched to when the current tab is removed.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>:
+        /// <list type="bullet">
+        /// <item>
+        /// <description>If the current tab is not the only tab in the <see cref="TabControl{T}"/>, then the next or previous tab will be selected depending on the current tab's position.</description>
+        /// </item>
+        /// <item>
+        /// <description>If the current tab is the only tab in the <see cref="TabControl{T}"/>, then selection will be cleared.</description>
+        /// </item>
+        /// </list>
+        /// </remarks>
+        protected virtual bool SwitchTabOnRemove => true;
+
+        /// <summary>
         /// Creates an optional overflow dropdown.
         /// When implementing this dropdown make sure:
         ///  - It is made to be anchored to the right-hand side of its parent.
@@ -195,6 +211,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Removes an item from the control.
         /// </summary>
+        /// <remarks>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
+        /// </remarks>
         /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
 
@@ -246,14 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// If <paramref name="tab"/> is currently selected and is not the only tab in the <see cref="TabControl{T}"/>,
-        /// then selection will switch to the next or previous one depending on <paramref name="tab"/>'s position.
-        /// </para>
-        /// <para>
-        /// If <paramref name="tab"/> is currently selected and is the only tab in the <see cref="TabControl{T}"/>,
-        /// then selection will be cleared.
-        /// </para>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
         /// </remarks>
         /// <param name="tab">The tab to remove.</param>
         /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
@@ -262,7 +274,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!tab.IsRemovable)
                 throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
-            if (tab == SelectedTab)
+            if (SwitchTabOnRemove && tab == SelectedTab)
             {
                 if (SwitchableTabs.Count() < 2)
                     SelectedTab = null;
