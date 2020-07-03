@@ -9,6 +9,8 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -768,6 +770,26 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
             AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 125f));
+        }
+
+        [Test]
+        public void TestSetContentByIndex()
+        {
+            setSingleDimensionContent(() => new Drawable[2][]
+            {
+                new Drawable[2]
+                {
+                    new FillBox(),
+                    new FillBox()
+                },
+                new Drawable[2]
+                {
+                    new FillBox(),
+                    new FillBox()
+                }
+            });
+
+            AddStep("Replace bottom right box with a SpriteText", () => grid.Content[1][1] = new SpriteText() { Text = new LocalisedString("test") });
         }
 
         /// <summary>
