@@ -30,6 +30,15 @@ namespace osu.Framework.Graphics.Pooling
 
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // this allows a PooledDrawable to still function outside of a pool.
+            if (!IsInPool)
+                Assign();
+        }
+
         /// <summary>
         /// Return this drawable to its pool manually. Note that this is not required if the drawable is using lifetime cleanup.
         /// </summary>

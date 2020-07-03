@@ -115,6 +115,19 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("free was run", () => drawable2.FreedCount == 2);
         }
 
+        [Test]
+        public void TestUsePoolableDrawableWithoutPool()
+        {
+            TestDrawable drawable = null;
+
+            AddStep("consume item", () => Add(drawable = new TestDrawable()));
+
+            AddAssert("prepare was run", () => drawable.PreparedCount == 1);
+            AddUntilStep("free was run", () => drawable.FreedCount == 1);
+
+            AddUntilStep("drawable was disposed", () => drawable.IsDisposed);
+        }
+
         [TestCase(10)]
         [TestCase(20)]
         public void TestPoolUsageExceedsMaximum(int maxPoolSize)
