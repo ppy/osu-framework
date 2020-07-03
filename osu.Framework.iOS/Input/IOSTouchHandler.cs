@@ -78,17 +78,11 @@ namespace osu.Framework.iOS.Input
                     // need to assign the new touch.
                     Debug.Assert(existingSource == null);
 
-                    for (int i = 0; i < activeTouches.Length; i++)
-                    {
-                        if (activeTouches[i] != null) continue;
-
-                        activeTouches[i] = uiTouch;
-                        existingSource = (TouchSource)i;
-                        break;
-                    }
+                    existingSource = assignNextAvailableTouchSource(uiTouch);
                 }
 
-                Debug.Assert(existingSource != null);
+                if (existingSource == null)
+                    return;
 
                 var touch = new Touch(existingSource.Value, location);
 
@@ -109,6 +103,20 @@ namespace osu.Framework.iOS.Input
                         break;
                 }
             }
+        }
+
+        private TouchSource? assignNextAvailableTouchSource(UITouch uiTouch)
+        {
+            for (int i = 0; i < activeTouches.Length; i++)
+            {
+                if (activeTouches[i] != null) continue;
+
+                activeTouches[i] = uiTouch;
+                return (TouchSource)i;
+            }
+
+            // we only handle up to TouchState.MAX_TOUCH_COUNT. Ignore any further touches for now.
+            return null;
         }
 
         private TouchSource? getTouchSource(UITouch touch)
