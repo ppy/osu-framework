@@ -7,15 +7,21 @@ namespace osu.Framework.Graphics.Containers
     {
         public GridContainerContent(Drawable[][] drawables)
         {
-            _ = new ArrayWrapper<Drawable>[drawables.Length];
+            _ = new ArrayWrapper<Drawable>[drawables?.Length ?? 0];
 
-            for (int i = 0; i < drawables.Length; i++)
+            if (drawables != null)
             {
-                _[i] = new ArrayWrapper<Drawable> { _ = new Drawable[drawables[i].Length] };
-
-                for (int j = 0; j < drawables[i].Length; j++)
+                for (int i = 0; i < drawables.Length; i++)
                 {
-                    _[i][j] = drawables[i][j];
+                    if (drawables[i] != null)
+                    {
+                        _[i] = new ArrayWrapper<Drawable> { _ = new Drawable[drawables[i].Length] };
+
+                        for (int j = 0; j < drawables[i].Length; j++)
+                        {
+                            _[i][j] = drawables[i][j];
+                        }
+                    }
                 }
             }
         }
