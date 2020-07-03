@@ -29,7 +29,7 @@ namespace osu.Framework.Tests.Visual.Input
             Child = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                Content = new GridContainerContent(new[]
                 {
                     new Drawable[]
                     {
@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Input
                         unique = new KeyBindingTester(SimultaneousBindingMode.Unique, KeyCombinationMatchingMode.Any),
                         all = new KeyBindingTester(SimultaneousBindingMode.All, KeyCombinationMatchingMode.Any)
                     },
-                }
+                })
             };
         }
 

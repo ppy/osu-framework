@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Content = new[]
+                    Content = new GridContainerContent(new[]
                     {
                         new Drawable[]
                         {
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Audio
                                               })
                             },
                         }
-                    }
+                    })
                 },
             };
         }

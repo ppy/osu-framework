@@ -45,7 +45,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             Child = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                Content = new GridContainerContent(new[]
                 {
                     new Drawable[]
                     {
@@ -76,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             }
                         }
                     },
-                },
+                }),
                 RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) }
             }
         };

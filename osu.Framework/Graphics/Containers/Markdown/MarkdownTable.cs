@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Content = rows.Select(x => x.ToArray()).ToArray(),
+                Content = new GridContainerContent(rows.Select(x => x.ToArray()).ToArray())
             };
         }
 
@@ -93,12 +93,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (table.Count == 0)
                 return;
 
-            Span<float> columnWidths = stackalloc float[tableContainer.Content[0].Length];
+            Span<float> columnWidths = stackalloc float[tableContainer.Content[0]._.Length];
 
             // Compute the maximum width of each column
-            for (int r = 0; r < tableContainer.Content.Length; r++)
+            for (int r = 0; r < tableContainer.Content._.Length; r++)
             {
-                for (int c = 0; c < tableContainer.Content[r].Length; c++)
+                for (int c = 0; c < tableContainer.Content[r]._.Length; c++)
                     columnWidths[c] = Math.Max(columnWidths[c], ((MarkdownTableCell)tableContainer.Content[r][c]).ContentWidth);
             }
 
@@ -129,9 +129,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
             if (table.Count == 0)
                 return;
 
-            var rowDefinitions = new Dimension[tableContainer.Content.Length];
-            for (int r = 0; r < tableContainer.Content.Length; r++)
-                rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r].Max(c => ((MarkdownTableCell)c).ContentHeight));
+            var rowDefinitions = new Dimension[tableContainer.Content._.Length];
+            for (int r = 0; r < tableContainer.Content._.Length; r++)
+                rowDefinitions[r] = new Dimension(GridSizeMode.Absolute, tableContainer.Content[r]._.Max(c => ((MarkdownTableCell)c).ContentHeight));
 
             tableContainer.RowDimensions = rowDefinitions;
         }

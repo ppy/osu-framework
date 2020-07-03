@@ -44,7 +44,7 @@ namespace osu.Framework.Testing
                     cells[r, c] = new Container { RelativeSizeAxes = Axes.Both };
             }
 
-            testContainer.Content = cells.ToJagged();
+            testContainer.Content = new GridContainerContent(cells.ToJagged());
         }
 
         protected Container Cell(int index) => (Container)cells[index / Cols, index % Cols];

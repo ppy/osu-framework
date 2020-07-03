@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void updateContent()
         {
-            grid.Content = getContentWithHeaders().ToJagged();
+            grid.Content = new GridContainerContent(getContentWithHeaders().ToJagged());
 
             grid.ColumnDimensions = columns.Select(c => c.Dimension).ToArray();
             grid.RowDimensions = Enumerable.Repeat(RowSize, totalRows).ToArray();

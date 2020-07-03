@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Bindables
             Child = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                Content = new GridContainerContent(new[]
                 {
                     new Drawable[]
                     {
@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Bindables
                         new BindableDisplayContainer<float>(bindableFloat),
                         new BindableDisplayContainer<double>(bindableDouble),
                     }
-                }
+                })
             };
         }
 

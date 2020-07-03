@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.UserInterface
             InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Content = new[]
+                Content = new GridContainerContent(new[]
                 {
                     new[]
                     {
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.UserInterface
                             Action = () => RequestRemoval?.Invoke(this),
                         },
                     },
-                },
+                }),
                 ColumnDimensions = new[]
                 {
                     new Dimension(GridSizeMode.AutoSize),
