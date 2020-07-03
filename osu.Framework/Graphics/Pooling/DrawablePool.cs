@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -11,8 +12,12 @@ namespace osu.Framework.Graphics.Pooling
     /// A component which provides a pool of reusable drawables.
     /// Should be used to reduce allocation and construction overhead of individual drawables.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="initialSize"/> drawables will be prepared ahead-of-time during this pool's asynchronous load procedure.
+    /// Drawables exceeding the pool's available size will not be asynchronously loaded as it is assumed they are immediately required for consumption.
+    /// </remarks>
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
-    public class DrawablePool<T> : Component, IDrawablePool where T : PoolableDrawable, new()
+    public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
         private readonly int initialSize;
         private readonly int? maximumSize;
@@ -40,6 +45,8 @@ namespace osu.Framework.Graphics.Pooling
         {
             for (int i = 0; i < initialSize; i++)
                 push(create());
+
+            LoadComponents(pool.ToArray());
         }
 
         /// <summary>
@@ -80,6 +87,7 @@ namespace osu.Framework.Graphics.Pooling
         {
             var drawable = CreateNewDrawable();
             drawable.SetPool(this);
+
             return drawable;
         }
 

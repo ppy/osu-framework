@@ -24,6 +24,18 @@ namespace osu.Framework.Tests.Visual.Drawables
         private readonly HashSet<TestDrawable> consumed = new HashSet<TestDrawable>();
 
         [Test]
+        public void TestPoolInitialDrawableLoadedAheadOfTime()
+        {
+            const int pool_size = 3;
+            resetWithNewPool(() => new TestPool(TimePerAction, pool_size));
+
+            for (int i = 0; i < 3; i++)
+                AddAssert("check drawable is in ready state", () => pool.Get().LoadState == LoadState.Ready);
+
+            AddAssert("check drawable is not in ready state", () => pool.Get().LoadState < LoadState.Ready);
+        }
+
+        [Test]
         public void TestPoolUsageWithinLimits()
         {
             const int pool_size = 10;
