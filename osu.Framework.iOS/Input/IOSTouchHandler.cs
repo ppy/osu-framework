@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using Foundation;
 using osu.Framework.Input;
@@ -38,18 +37,18 @@ namespace osu.Framework.iOS.Input
 
         private UITouch[] activeTouches = new UITouch[10];
 
-        private void handleUITouch(UITouch touch, UIEvent e)
+        private void handleUITouch(UITouch uiTouch, UIEvent e)
         {
             // always update position.
-            var cgLocation = touch.LocationInView(null);
+            var cgLocation = uiTouch.LocationInView(null);
             Vector2 location = new Vector2((float)cgLocation.X * view.Scale, (float)cgLocation.Y * view.Scale);
 
-            if (indirectPointerSupported && touch.Type == UITouchType.IndirectPointer)
+            if (indirectPointerSupported && uiTouch.Type == UITouchType.IndirectPointer)
             {
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = location });
 
                 // Indirect pointer means the touch came from a mouse cursor, and wasn't a physical touch on the screen
-                switch (touch.Phase)
+                switch (uiTouch.Phase)
                 {
                     case UITouchPhase.Began:
                     case UITouchPhase.Moved:
@@ -73,47 +72,44 @@ namespace osu.Framework.iOS.Input
             }
             else
             {
-                TouchSource? existingSource = getTouchSource(touch);
+                TouchSource? existingSource = getTouchSource(uiTouch);
+
+                if (uiTouch.Phase == UITouchPhase.Began)
+                {
+                    // need to assign the new touch.
+                    Debug.Assert(existingSource == null);
+
+                    for (int i = 0; i < activeTouches.Length; i++)
+                    {
+                        if (activeTouches[i] != null) continue;
+
+                        activeTouches[i] = uiTouch;
+                        existingSource = (TouchSource)i;
+                        break;
+                    }
+                }
+
+                Debug.Assert(existingSource != null);
+
+                var touch = new Touch(existingSource.Value, location);
 
                 // standard touch handling
-                switch (touch.Phase)
+                switch (uiTouch.Phase)
                 {
                     case UITouchPhase.Began:
-                        Debug.Assert(existingSource == null);
-
-                        PendingInputs.Enqueue(new TouchInput(new Touch(assignTouch(touch), location), true));
-                        break;
-
                     case UITouchPhase.Moved:
-                        Debug.Assert(existingSource != null);
-
-                        PendingInputs.Enqueue(new TouchInput(new Touch(existingSource.Value, location), true));
+                        PendingInputs.Enqueue(new TouchInput(touch, true));
                         break;
 
                     case UITouchPhase.Cancelled:
                     case UITouchPhase.Ended:
-                        Debug.Assert(existingSource != null);
+                        PendingInputs.Enqueue(new TouchInput(touch, false));
 
-                        PendingInputs.Enqueue(new TouchInput(new Touch(existingSource.Value, location), false));
+                        // touch no longer valid, remove from reference array.
                         activeTouches[(int)existingSource] = null;
                         break;
                 }
             }
-        }
-
-        private TouchSource assignTouch(UITouch touch)
-        {
-            Debug.Assert(getTouchSource(touch) == null);
-
-            for (int i = 0; i < activeTouches.Length; i++)
-            {
-                if (activeTouches[i] != null) continue;
-
-                activeTouches[i] = touch;
-                return (TouchSource)i;
-            }
-
-            throw new InvalidOperationException("Too many touches");
         }
 
         private TouchSource? getTouchSource(UITouch touch)
