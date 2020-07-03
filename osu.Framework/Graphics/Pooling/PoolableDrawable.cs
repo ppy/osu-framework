@@ -31,11 +31,6 @@ namespace osu.Framework.Graphics.Pooling
 
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
-        public void SetPool(IDrawablePool pool)
-        {
-            this.pool = pool;
-        }
-
         /// <summary>
         /// Perform any initialisation on new usage of this drawable.
         /// </summary>
@@ -48,6 +43,22 @@ namespace osu.Framework.Graphics.Pooling
         /// </summary>
         protected virtual void FreeAfterUse()
         {
+        }
+
+        /// <summary>
+        /// Set the associated pool this drawable is currently associated with.
+        /// </summary>
+        /// <param name="pool">The target pool, or null to disassociate from all pools (and cause the drawable to be disposed as if it was not pooled). </param>
+        /// <exception cref="InvalidOperationException">Thrown if this drawable is still in use, or is already in another pool.</exception>
+        internal void SetPool(IDrawablePool pool)
+        {
+            if (IsInUse)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
+
+            if (pool != null && this.pool != null)
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in a pool");
+
+            this.pool = pool;
         }
 
         /// <summary>
