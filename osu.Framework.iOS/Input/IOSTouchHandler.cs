@@ -6,6 +6,7 @@ using Foundation;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Input.States;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Input;
@@ -15,8 +16,6 @@ namespace osu.Framework.iOS.Input
 {
     public class IOSTouchHandler : InputHandler
     {
-        private const int max_touches = 10; // should match TouchSource enum count.
-
         private readonly IOSGameView view;
 
         private UIEventButtonMask? lastButtonMask;
@@ -35,7 +34,7 @@ namespace osu.Framework.iOS.Input
                 handleUITouch((UITouch)t, evt);
         }
 
-        private readonly UITouch[] activeTouches = new UITouch[max_touches];
+        private readonly UITouch[] activeTouches = new UITouch[TouchState.MAX_TOUCH_COUNT];
 
         private void handleUITouch(UITouch uiTouch, UIEvent e)
         {
