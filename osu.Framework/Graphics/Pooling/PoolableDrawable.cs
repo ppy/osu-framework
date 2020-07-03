@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
 
@@ -53,7 +52,7 @@ namespace osu.Framework.Graphics.Pooling
         internal void SetPool(IDrawablePool pool)
         {
             if (IsInUse)
-                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
+                throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is still in use");
 
             if (pool != null && this.pool != null)
                 throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in a pool");
@@ -93,9 +92,10 @@ namespace osu.Framework.Graphics.Pooling
             {
                 if (IsInUse && Parent == null)
                 {
+                    IsInUse = false;
+
                     FreeAfterUse();
                     pool?.Return(this);
-                    IsInUse = false;
                     waitingForPrepare = false;
                 }
             }
