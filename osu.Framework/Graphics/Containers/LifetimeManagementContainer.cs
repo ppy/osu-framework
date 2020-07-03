@@ -210,7 +210,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void childLifetimeChanged(Drawable child)
+        /// <remarks>
+        /// All executions of this callback are deferred until all children of this <see cref="LifetimeManagementContainer"/> are processed
+        /// to avoid mutating <see cref="CompositeDrawable.AliveInternalChildren"/> while they're being enumerated inside <see cref="Drawable.UpdateSubTree"/>.
+        /// </remarks>
+        private void childLifetimeChanged(Drawable child) => ScheduleAfterChildren(() =>
         {
             if (!childStateMap.TryGetValue(child, out var entry)) return;
 
@@ -218,7 +222,7 @@ namespace osu.Framework.Graphics.Containers
             entry.UpdateLifetime();
 
             updateChildEntry(entry, true);
-        }
+        });
 
         protected internal override void AddInternal(Drawable drawable)
         {
