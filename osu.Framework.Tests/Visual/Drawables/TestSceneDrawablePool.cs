@@ -140,6 +140,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("drawable was disposed", () => drawable.IsDisposed);
         }
 
+        [Test]
+        public void TestAllDrawablesComeReady()
+        {
+            const int pool_size = 10;
+            List<Drawable> retrieved = new List<Drawable>();
+
+            resetWithNewPool(() => new TestPool(TimePerAction * 20, 10, pool_size));
+
+            AddStep("get many pooled drawables", () =>
+            {
+                retrieved.Clear();
+                for (int i = 0; i < pool_size * 2; i++)
+                    retrieved.Add(pool.Get());
+            });
+
+            AddAssert("all drawables in ready state", () => retrieved.All(d => d.LoadState == LoadState.Ready));
+        }
+
         [TestCase(10)]
         [TestCase(20)]
         public void TestPoolUsageExceedsMaximum(int maxPoolSize)
