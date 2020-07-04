@@ -70,7 +70,10 @@ namespace osu.Framework.Graphics.Pooling
         public T Get(Action<T> setupAction = null)
         {
             if (!pool.TryPop(out var drawable))
+            {
                 drawable = create();
+                LoadComponent(drawable);
+            }
 
             setupAction?.Invoke(drawable);
             drawable.Assign();
