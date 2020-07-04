@@ -31,8 +31,6 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             for (int i = 0; i < 3; i++)
                 AddAssert("check drawable is in ready state", () => pool.Get().LoadState == LoadState.Ready);
-
-            AddAssert("check drawable is not in ready state", () => pool.Get().LoadState < LoadState.Ready);
         }
 
         [Test]
