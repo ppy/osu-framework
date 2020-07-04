@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Pooling
                 // if the return operation didn't come from the drawable, redirect to ensure consistent behaviour.
                 pooledDrawable.Return();
                 return;
-            };
+            }
 
             //TODO: check the drawable was sourced from this pool for safety.
             push((T)pooledDrawable);
