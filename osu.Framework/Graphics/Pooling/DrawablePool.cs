@@ -53,10 +53,17 @@ namespace osu.Framework.Graphics.Pooling
         /// Return a drawable after use.
         /// </summary>
         /// <param name="pooledDrawable">The drawable to return. Should have originally come from this pool.</param>
-        public void Return(Drawable pooledDrawable)
+        public void Return(PoolableDrawable pooledDrawable)
         {
             if (!(pooledDrawable is T))
                 throw new ArgumentException("Invalid type", nameof(pooledDrawable));
+
+            if (pooledDrawable.IsInUse)
+            {
+                // if the return operation didn't come from the drawable, redirect to ensure consistent behaviour.
+                pooledDrawable.Return();
+                return;
+            };
 
             //TODO: check the drawable was sourced from this pool for safety.
             push((T)pooledDrawable);

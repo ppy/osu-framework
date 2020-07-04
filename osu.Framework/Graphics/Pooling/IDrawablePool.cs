@@ -9,6 +9,6 @@ namespace osu.Framework.Graphics.Pooling
         /// Return a drawable after use.
         /// </summary>
         /// <param name="pooledDrawable">The drwable to return. Should have originally come from this pool.</param>
-        void Return(Drawable pooledDrawable);
+        void Return(PoolableDrawable pooledDrawable);
     }
 }
