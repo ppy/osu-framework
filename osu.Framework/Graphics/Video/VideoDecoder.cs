@@ -443,9 +443,13 @@ namespace osu.Framework.Graphics.Video
                                             tex.SetData(upload);
                                             decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
                                         }
+                                        else
+                                            ffmpeg.av_frame_free(&frame);
 
                                         lastDecodedFrameTime = (float)frameTime;
                                     }
+                                    else
+                                        ffmpeg.av_frame_free(&frame);
                                 }
                                 else
                                     Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
