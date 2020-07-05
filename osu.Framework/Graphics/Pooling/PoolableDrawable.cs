@@ -110,8 +110,8 @@ namespace osu.Framework.Graphics.Pooling
 
         private void prepare()
         {
-            waitingForPrepare = false;
             PrepareForUse();
+            waitingForPrepare = false;
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
