@@ -174,8 +174,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     velocity = MidiEvent.FixedDataSize(statusType) == 2 ? data[i++] : (byte)0;
                 }
 
-                if (runningStatus.ContainsKey(senderId))
-                    runningStatus.Remove(senderId);
+                runningStatus.Remove(senderId);
                 return;
             }
 
