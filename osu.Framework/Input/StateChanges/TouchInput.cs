@@ -52,7 +52,7 @@ namespace osu.Framework.Input.StateChanges
 
             foreach (var touch in Touches)
             {
-                bool isLatestTouch = !activityState.IsPressed(touch.Source) || activityState.Any() && touch.Source == activityState.Last();
+                bool isLatestTouch = !activityState.IsPressed(touch.Source) || (activityState.Any() && touch.Source == activityState.Last());
 
                 var lastPosition = touches.GetTouchPosition(touch.Source);
                 touches.TouchPositions[(int)touch.Source] = touch.Position;
