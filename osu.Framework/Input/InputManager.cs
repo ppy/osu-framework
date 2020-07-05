@@ -570,9 +570,9 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Handles primary touch state change event to produce mouse input from.
+        /// Handles latest activated touch state change event to produce mouse input from.
         /// </summary>
-        /// <param name="e">The primary touch state change event.</param>
+        /// <param name="e">The latest activated touch state change event.</param>
         /// <returns>Whether mouse input has been performed accordingly.</returns>
         protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
         {

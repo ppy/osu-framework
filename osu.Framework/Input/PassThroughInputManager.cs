@@ -80,7 +80,7 @@ namespace osu.Framework.Input
 
         protected override bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
         {
-            // The parent manager will propagate mouse events from primary touch input if we are using it.
+            // The parent manager will propagate mouse events from latest activated touch input if we are using it.
             if (UseParentInput)
                 return false;
 
