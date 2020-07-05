@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Pooling
 {
     public class PoolableDrawable : CompositeDrawable
     {
-        public override bool DisposeOnDeathRemoval => pool == null;
+        public override bool DisposeOnDeathRemoval => pool == null && base.DisposeOnDeathRemoval;
 
         /// <summary>
         /// Whether this pooled drawable is currently in use.

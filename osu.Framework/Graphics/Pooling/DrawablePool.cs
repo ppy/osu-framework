@@ -107,6 +107,11 @@ namespace osu.Framework.Graphics.Pooling
             {
                 // if the drawable can't be returned to the pool, mark it as such so it can be disposed of.
                 poolableDrawable.SetPool(null);
+
+                // then attempt disposal.
+                if (poolableDrawable.DisposeOnDeathRemoval)
+                    DisposeChildAsync(poolableDrawable);
+
                 return false;
             }
 

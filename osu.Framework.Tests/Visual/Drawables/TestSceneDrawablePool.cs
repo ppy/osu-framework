@@ -105,6 +105,33 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestPoolReturnWhenAboveCapacity()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction * 20, 1, 1));
+
+            TestDrawable first = null, second = null;
+
+            AddStep("consume item", () => first = consumeDrawable());
+
+            AddAssert("pool is empty", () => pool.CountAvailable == 0);
+
+            AddStep("consume and return another item", () =>
+            {
+                second = pool.Get();
+                second.Return();
+            });
+
+            AddAssert("first item still in use", () => first.IsInUse);
+
+            AddUntilStep("second is returned", () => !second.IsInUse && pool.CountAvailable == 1);
+
+            AddStep("expire first", () => first.Expire());
+
+            AddUntilStep("wait until first dead", () => !first.IsAlive);
+            AddUntilStep("drawable is disposed", () => first.IsDisposed);
+        }
+
+        [Test]
         public void TestPrepareAndFreeMethods()
         {
             resetWithNewPool(() => new TestPool(TimePerAction, 1));
@@ -112,12 +139,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestDrawable drawable = null;
             TestDrawable drawable2 = null;
 
-            AddStep("consume item", () => drawable = (TestDrawable)consumeDrawable());
+            AddStep("consume item", () => drawable = consumeDrawable());
 
             AddAssert("prepare was run", () => drawable.PreparedCount == 1);
             AddUntilStep("free was run", () => drawable.FreedCount == 1);
 
-            AddStep("consume item", () => drawable2 = (TestDrawable)consumeDrawable());
+            AddStep("consume item", () => drawable2 = consumeDrawable());
 
             AddAssert("is same item", () => ReferenceEquals(drawable, drawable2));
 
@@ -185,7 +212,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private static int displayCount;
 
-        private PoolableDrawable consumeDrawable()
+        private TestDrawable consumeDrawable()
         {
             var drawable = pool.Get(d =>
             {
