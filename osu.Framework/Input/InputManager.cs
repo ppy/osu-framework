@@ -129,9 +129,9 @@ namespace osu.Framework.Input
         private readonly Dictionary<JoystickAxisSource, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<JoystickAxisSource, JoystickAxisEventManager>();
 
         /// <summary>
-        /// Whether to produce mouse input on any primary touch input.
+        /// Whether to produce mouse input on any touch input from latest source.
         /// </summary>
-        protected virtual bool MapMouseToPrimaryTouch => true;
+        protected virtual bool MapMouseToLatestTouch => true;
 
         protected InputManager()
         {
@@ -576,11 +576,11 @@ namespace osu.Framework.Input
         /// <returns>Whether mouse input has been performed accordingly.</returns>
         protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
         {
-            if (!MapMouseToPrimaryTouch)
+            if (!MapMouseToLatestTouch)
                 return false;
 
             new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
-            new MouseButtonInput(MouseButton.Left, e.State.Touch.IsActive(e.Touch.Source)).Apply(CurrentState, this);
+            new MouseButtonInput(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed).Apply(CurrentState, this);
             return true;
         }
 
@@ -613,7 +613,7 @@ namespace osu.Framework.Input
                 case TouchStateChangeEvent touchChange:
                     HandleTouchStateChange(touchChange);
 
-                    if (touchChange.Touch.Source == TouchSource.Touch1)
+                    if (touchChange.IsLatestTouch)
                         HandleMouseTouchStateChange(touchChange);
 
                     return;
