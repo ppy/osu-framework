@@ -778,14 +778,14 @@ namespace osu.Framework.Tests.Visual.Layout
         [Test]
         public void TestSetContentByIndex()
         {
-            setSingleDimensionContent(() => new Drawable[2][]
+            setSingleDimensionContent(() => new[]
             {
-                new Drawable[2]
+                new Drawable[]
                 {
                     new FillBox(),
                     new FillBox()
                 },
-                new Drawable[2]
+                new Drawable[]
                 {
                     new FillBox(),
                     new FillBox()
@@ -797,7 +797,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 gridContentChangeEventWasFired = false;
                 grid.Content.ContentChanged += () => gridContentChangeEventWasFired = true;
 
-                grid.Content[1][1] = new SpriteText() { Text = new LocalisedString("test") };
+                grid.Content[1][1] = new SpriteText { Text = new LocalisedString("test") };
             });
             AddAssert("Content change event was fired", () => gridContentChangeEventWasFired);
         }

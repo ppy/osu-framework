@@ -44,7 +44,7 @@ namespace osu.Framework.Testing.Drawables
                             new Dimension(),
                             new Dimension(GridSizeMode.AutoSize),
                         },
-                        Content =new GridContainerContent(new[]
+                        Content = new GridContainerContent(new[]
                         {
                             new Drawable[]
                             {
