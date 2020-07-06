@@ -684,6 +684,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddAssert("non-transparent fill boxes have correct size", () =>
                 grid.Content
                     ._
+                    ._
                     .Select(wrapper => wrapper._)
                     .SelectMany(row => row)
                     .Where(box => box.Alpha > 0)

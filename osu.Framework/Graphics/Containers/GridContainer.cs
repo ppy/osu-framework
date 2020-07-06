@@ -45,10 +45,20 @@ namespace osu.Framework.Graphics.Containers
                 if (content == value)
                     return;
 
+                if (content != null)
+                    content.ContentChanged -= onContentChange;
+
                 content = value;
 
                 cellContent.Invalidate();
+
+                content.ContentChanged += onContentChange;
             }
+        }
+
+        private void onContentChange()
+        {
+            cellContent.Invalidate();
         }
 
         private Dimension[] rowDimensions = Array.Empty<Dimension>();
@@ -131,8 +141,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellContent.IsValid)
                 return;
 
-            int requiredRows = Content?._.Length ?? 0;
-            int requiredColumns = requiredRows == 0 ? 0 : Content._.Max(c => c?._.Length ?? 0);
+            int requiredRows = Content?._._.Length ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content._._.Max(c => c?._.Length ?? 0);
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
