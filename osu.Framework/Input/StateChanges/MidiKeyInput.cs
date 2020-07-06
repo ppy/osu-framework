@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.StateChanges
@@ -14,7 +15,7 @@ namespace osu.Framework.Input.StateChanges
         /// <summary>
         /// A mapping of <see cref="MidiKey"/>s to the velocities they were pressed or released with.
         /// </summary>
-        public readonly IReadOnlyDictionary<MidiKey, byte> Velocities;
+        public readonly IReadOnlyList<(MidiKey, byte)> Velocities;
 
         /// <summary>
         /// Creates a <see cref="MidiKeyInput"/> for a single key state.
@@ -25,7 +26,7 @@ namespace osu.Framework.Input.StateChanges
         public MidiKeyInput(MidiKey button, byte velocity, bool isPressed)
             : base(button, isPressed)
         {
-            Velocities = new Dictionary<MidiKey, byte> { [button] = velocity };
+            Velocities = new List<(MidiKey, byte)> { (button, velocity) };
         }
 
         /// <summary>
@@ -43,7 +44,7 @@ namespace osu.Framework.Input.StateChanges
         {
             // newer velocities always take precedence
             // if the newer midi state doesn't specify a velocity for a key, it will be preserved after Apply()
-            Velocities = new Dictionary<MidiKey, byte>(currentState.Velocities);
+            Velocities = currentState.Velocities.Select(entry => (entry.Key, entry.Value)).ToList();
         }
 
         /// <summary>
