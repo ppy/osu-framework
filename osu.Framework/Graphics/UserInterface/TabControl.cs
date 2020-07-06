@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </item>
         /// </list>
         /// </remarks>
-        protected bool SwitchTabOnRemove { get; set; } = true;
+        public bool SwitchTabOnRemove { get; set; } = true;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
