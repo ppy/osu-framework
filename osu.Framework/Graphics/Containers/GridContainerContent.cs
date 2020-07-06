@@ -1,13 +1,22 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+
 namespace osu.Framework.Graphics.Containers
 {
     public class GridContainerContent
     {
+        public event Action ContentChanged;
+
         public GridContainerContent(Drawable[][] drawables)
         {
-            _ = new ArrayWrapper<Drawable>[drawables?.Length ?? 0];
+            _ = new ArrayWrapper<ArrayWrapper<Drawable>>
+            {
+                _ = new ArrayWrapper<Drawable>[drawables?.Length ?? 0]
+            };
+
+            _.ArrayElementChanged += onArrayElementChanged;
 
             if (drawables != null)
             {
@@ -15,18 +24,25 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (drawables[i] != null)
                     {
-                        _[i] = new ArrayWrapper<Drawable> { _ = new Drawable[drawables[i].Length] };
+                        this[i] = new ArrayWrapper<Drawable> { _ = new Drawable[drawables[i].Length] };
+
+                        this[i].ArrayElementChanged += onArrayElementChanged;
 
                         for (int j = 0; j < drawables[i].Length; j++)
                         {
-                            _[i][j] = drawables[i][j];
+                            this[i][j] = drawables[i][j];
                         }
                     }
                 }
             }
         }
 
-        public ArrayWrapper<Drawable>[] _ { get; set; }
+        private void onArrayElementChanged()
+        {
+            ContentChanged?.Invoke();
+        }
+
+        public ArrayWrapper<ArrayWrapper<Drawable>> _ { get; }
 
         public ArrayWrapper<Drawable> this[int index]
         {
@@ -36,12 +52,18 @@ namespace osu.Framework.Graphics.Containers
 
         public class ArrayWrapper<T>
         {
+            public event Action ArrayElementChanged;
+
             public T[] _ { get; set; }
 
             public T this[int index]
             {
                 get => _[index];
-                set => _[index] = value;
+                set
+                {
+                    _[index] = value;
+                    ArrayElementChanged?.Invoke();
+                }
             }
         }
     }
