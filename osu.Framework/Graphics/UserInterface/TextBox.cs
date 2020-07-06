@@ -501,9 +501,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
         /// <param name="value">The string of text to insert.</param>
-        protected void InsertString(string value) => insertString(value, null);
+        protected void InsertString(string value) => insertString(value);
 
-        private void insertString(string value, Action<char, Drawable> onDrawableCreated)
+        private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
             if (string.IsNullOrEmpty(value)) return;
 
@@ -530,10 +530,10 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
                 }
 
-                Drawable dc = AddCharacterToFlow(c);
-                dc.Show();
+                Drawable drawable = AddCharacterToFlow(c);
 
-                onDrawableCreated?.Invoke(c, dc);
+                drawable.Show();
+                drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
                 selectionStart = selectionEnd = selectionLeft + 1;
@@ -920,11 +920,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
-            insertString(s.Substring(matchCount), (_, dc) =>
+            insertString(s.Substring(matchCount), d =>
             {
-                dc.Colour = Color4.Aqua;
-                dc.Alpha = 0.6f;
-                imeDrawables.Add(dc);
+                d.Colour = Color4.Aqua;
+                d.Alpha = 0.6f;
+                imeDrawables.Add(d);
             });
 
             audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
