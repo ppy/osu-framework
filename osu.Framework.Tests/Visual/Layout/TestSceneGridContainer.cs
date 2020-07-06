@@ -773,6 +773,8 @@ namespace osu.Framework.Tests.Visual.Layout
             AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 125f));
         }
 
+        private bool gridContentChangeEventWasFired;
+
         [Test]
         public void TestSetContentByIndex()
         {
@@ -790,7 +792,14 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             });
 
-            AddStep("Replace bottom right box with a SpriteText", () => grid.Content[1][1] = new SpriteText() { Text = new LocalisedString("test") });
+            AddStep("Replace bottom right box with a SpriteText", () =>
+            {
+                gridContentChangeEventWasFired = false;
+                grid.Content.ContentChanged += () => gridContentChangeEventWasFired = true;
+
+                grid.Content[1][1] = new SpriteText() { Text = new LocalisedString("test") };
+            });
+            AddAssert("Content change event was fired", () => gridContentChangeEventWasFired);
         }
 
         /// <summary>
