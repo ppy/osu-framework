@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
@@ -426,6 +427,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Removes a specified <paramref name="number"/> of characters left side of the current position.
         /// </summary>
+        /// <remarks>
+        /// If a selection persists, <see cref="removeSelection"/> must be called instead.
+        /// </remarks>
         private void removeCharacters(int number = 1)
         {
             if (Current.Disabled || text.Length == 0)
@@ -436,6 +440,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (removeCount == 0)
                 return;
+
+            Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
 
             audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
@@ -458,13 +464,7 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = removeStart; i < TextFlow.Count; i++)
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
-            if (removeCount >= selectionLength)
-                selectionStart = selectionEnd = removeStart;
-            else
-            {
-                selectionStart = selectionLeft;
-                selectionEnd = removeStart;
-            }
+            selectionStart = selectionEnd = removeStart;
 
             cursorAndLayout.Invalidate();
         }
