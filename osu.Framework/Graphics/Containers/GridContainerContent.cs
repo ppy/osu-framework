@@ -16,12 +16,12 @@ namespace osu.Framework.Graphics.Containers
         {
             source = drawables;
 
-            _ = new ArrayWrapper<ArrayWrapper<Drawable>>
+            WrappedArray = new ArrayWrapper<ArrayWrapper<Drawable>>
             {
-                _ = new ArrayWrapper<Drawable>[drawables?.Length ?? 0]
+                WrappedArray = new ArrayWrapper<Drawable>[drawables?.Length ?? 0]
             };
 
-            _.ArrayElementChanged += onArrayElementChanged;
+            WrappedArray.ArrayElementChanged += onArrayElementChanged;
 
             if (drawables != null)
             {
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (drawables[i] != null)
                     {
-                        this[i] = new ArrayWrapper<Drawable> { _ = drawables[i] };
+                        this[i] = new ArrayWrapper<Drawable> { WrappedArray = drawables[i] };
                         this[i].ArrayElementChanged += onArrayElementChanged;
                     }
                 }
@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             ContentChanged?.Invoke();
         }
 
-        public ArrayWrapper<ArrayWrapper<Drawable>> _ { get; }
+        public ArrayWrapper<ArrayWrapper<Drawable>> WrappedArray { get; }
 
         public static implicit operator Drawable[][](GridContainerContent content) => content.source;
 
@@ -51,8 +51,8 @@ namespace osu.Framework.Graphics.Containers
 
         public ArrayWrapper<Drawable> this[int index]
         {
-            get => _[index];
-            set => _[index] = value;
+            get => WrappedArray[index];
+            set => WrappedArray[index] = value;
         }
 
         /// <summary>
@@ -63,14 +63,14 @@ namespace osu.Framework.Graphics.Containers
         {
             public event Action ArrayElementChanged;
 
-            public T[] _ { get; set; }
+            public T[] WrappedArray { get; set; }
 
             public T this[int index]
             {
-                get => _[index];
+                get => WrappedArray[index];
                 set
                 {
-                    _[index] = value;
+                    WrappedArray[index] = value;
                     ArrayElementChanged?.Invoke();
                 }
             }

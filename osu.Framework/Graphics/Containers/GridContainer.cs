@@ -141,8 +141,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellContent.IsValid)
                 return;
 
-            int requiredRows = Content?._._.Length ?? 0;
-            int requiredColumns = requiredRows == 0 ? 0 : Content?._._.Max(c => c?._.Length ?? 0) ?? 0;
+            int requiredRows = Content?.WrappedArray.WrappedArray.Length ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content?.WrappedArray.WrappedArray.Max(c => c?.WrappedArray.Length ?? 0) ?? 0;
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     // Allow non-square grids
-                    if (c >= Content[r]._.Length)
+                    if (c >= Content[r].WrappedArray.Length)
                         continue;
 
                     // Allow empty cells
