@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool AutoSort { set; get; }
 
         /// <summary>
-        /// The <see cref="Dropdown"/> which is displayed when tabs overflow the visible bounds of this <see cref="TabControl{T}"/>.
+        /// The <see cref="Dropdown{T}"/> which is displayed when tabs overflow the visible bounds of this <see cref="TabControl{T}"/>.
         /// </summary>
         [CanBeNull]
         protected readonly Dropdown<T> Dropdown;
@@ -268,7 +268,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds an arbitrary <see cref="TabItem{T}"/> to the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="tab">The tab to add.</param>
-        /// <param name="addToDropdown">Whether the tab should be added to the dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += performTabSort;
@@ -290,7 +290,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
         /// </remarks>
         /// <param name="tab">The tab to remove.</param>
-        /// <param name="removeFromDropdown">Whether the tab should be removed from the dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
             if (!tab.IsRemovable)
@@ -424,7 +424,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the <see cref="TabFillFlowContainer"/> to contain the <see cref="TabItem{T}"/>s.
         /// </summary>
-        /// <returns></returns>
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
             Direction = FillDirection.Full,
