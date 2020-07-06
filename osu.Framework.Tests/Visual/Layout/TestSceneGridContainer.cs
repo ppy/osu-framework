@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.Layout
         public void TestSingleCellDistributedXy()
         {
             FillBox box = null;
-            AddStep("set content", () => grid.Content = new GridContainerContent(new[] { new Drawable[] { box = new FillBox() }, }));
+            AddStep("set content", () => grid.Content = new[] { new Drawable[] { box = new FillBox() }, });
             AddAssert("box is same size as grid", () => Precision.AlmostEquals(box.DrawSize, grid.DrawSize));
         }
 
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Visual.Layout
             FillBox box = null;
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[] { new Drawable[] { box = new FillBox() }, });
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Absolute, size) };
             });
 
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.Layout
             FillBox box = null;
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[] { new Drawable[] { box = new FillBox() }, });
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, size) };
             });
 
@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Layout
             FillBox box = null;
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[] { new Drawable[] { box = new FillBox() }, });
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = new[] { new Dimension(GridSizeMode.Absolute, absolute_height) };
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.Relative, relative_width) };
             });
@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual.Layout
             FillBox box = null;
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[] { new Drawable[] { box = new FillBox() }, });
+                grid.Content = new[] { new Drawable[] { box = new FillBox() }, };
                 grid.RowDimensions = new[] { new Dimension(GridSizeMode.Relative, height) };
             });
 
@@ -250,12 +250,12 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
                     new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
                     new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
-                });
+                };
             });
 
             for (int i = 0; i < 9; i++)
@@ -279,12 +279,12 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
                     new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
                     new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
-                });
+                };
 
                 grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
@@ -310,12 +310,12 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
                     new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
                     new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
-                });
+                };
 
                 grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
@@ -341,12 +341,12 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { boxes[0] = new FillBox(), boxes[1] = new FillBox(), boxes[2] = new FillBox() },
                     new Drawable[] { boxes[3] = new FillBox(), boxes[4] = new FillBox(), boxes[5] = new FillBox() },
                     new Drawable[] { boxes[6] = new FillBox(), boxes[7] = new FillBox(), boxes[8] = new FillBox() }
-                });
+                };
 
                 grid.RowDimensions = grid.ColumnDimensions = dimensions;
             });
@@ -377,13 +377,13 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { boxes[0] = new FillBox(), null, boxes[1] = new FillBox(), null },
                     null,
                     new Drawable[] { boxes[2] = new FillBox(), null, boxes[3] = new FillBox(), null },
                     null
-                });
+                };
             });
 
             AddAssert("two extra rows and columns", () =>
@@ -405,18 +405,18 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[]
                     {
                         new GridContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Content = new GridContainerContent(new[]
+                            Content = new[]
                             {
                                 new Drawable[] { boxes[0] = new FillBox(), new FillBox(), },
                                 new Drawable[] { new FillBox(), boxes[1] = new FillBox(), },
-                            })
+                            }
                         },
                         new FillBox(),
                     },
@@ -426,14 +426,14 @@ namespace osu.Framework.Tests.Visual.Layout
                         new GridContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Content = new GridContainerContent(new[]
+                            Content = new[]
                             {
                                 new Drawable[] { boxes[2] = new FillBox(), new FillBox(), },
                                 new Drawable[] { new FillBox(), boxes[3] = new FillBox(), },
-                            })
+                            }
                         }
                     }
-                });
+                };
             });
 
             for (int i = 0; i < 4; i++)
@@ -451,7 +451,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddStep("set content", () =>
             {
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new[]
                     {
@@ -473,7 +473,7 @@ namespace osu.Framework.Tests.Visual.Layout
                             Size = new Vector2(50, 10)
                         },
                     },
-                });
+                };
 
                 grid.ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) };
                 grid.RowDimensions = new[]
@@ -605,7 +605,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 gridParent.RelativeSizeAxes = Axes.Y;
                 gridParent.Width = 420;
 
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[]
                     {
@@ -613,7 +613,7 @@ namespace osu.Framework.Tests.Visual.Layout
                         new FillBox(),
                         new FillBox(),
                     },
-                });
+                };
 
                 grid.ColumnDimensions = new[]
                 {
@@ -635,14 +635,14 @@ namespace osu.Framework.Tests.Visual.Layout
                 gridParent.RelativeSizeAxes = Axes.Y;
                 gridParent.Width = 230;
 
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[]
                     {
                         new FillBox(),
                         new FillBox(),
                     },
-                });
+                };
 
                 grid.ColumnDimensions = new[]
                 {
@@ -672,12 +672,12 @@ namespace osu.Framework.Tests.Visual.Layout
                     new Dimension(GridSizeMode.AutoSize),
                     new Dimension()
                 };
-                grid.Content = new GridContainerContent(new[]
+                grid.Content = new[]
                 {
                     new Drawable[] { new FillBox(), transparentBox(alwaysPresent), new FillBox() },
                     new Drawable[] { new FillBox(), transparentBox(alwaysPresent), new FillBox() },
                     new Drawable[] { transparentBox(alwaysPresent), transparentBox(alwaysPresent), transparentBox(alwaysPresent) }
-                });
+                };
             });
 
             float desiredTransparentBoxSize = alwaysPresent ? 50 : 0;
@@ -843,7 +843,7 @@ namespace osu.Framework.Tests.Visual.Layout
             if (!row)
                 content = content.Invert();
 
-            grid.Content = new GridContainerContent(content);
+            grid.Content = content;
 
             if (dimensions == null)
                 return;

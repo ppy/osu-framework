@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Layout
                     AutoSizeAxes = Axes.Both,
                     RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                    Content = new GridContainerContent(new[]
+                    Content = new[]
                     {
                         new Drawable[]
                         {
@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Layout
                                 LifetimeStart = double.MaxValue
                             }
                         },
-                    })
+                    }
                 };
             });
 
@@ -66,13 +66,13 @@ namespace osu.Framework.Tests.Layout
                     AutoSizeAxes = Axes.Both,
                     RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                    Content = new GridContainerContent(new[]
+                    Content = new[]
                     {
                         new Drawable[]
                         {
                             box = new Box { Size = new Vector2(200) }
                         },
-                    })
+                    }
                 };
             });
 
@@ -97,13 +97,13 @@ namespace osu.Framework.Tests.Layout
                     AutoSizeAxes = Axes.Both,
                     RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
                     ColumnDimensions = new[] { new Dimension(GridSizeMode.AutoSize) },
-                    Content = new GridContainerContent(new[]
+                    Content = new[]
                     {
                         new Drawable[]
                         {
                             box = new TestBox1 { Size = new Vector2(200) }
                         },
-                    })
+                    }
                 };
             });
 

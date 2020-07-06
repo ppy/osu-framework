@@ -29,7 +29,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                     new Dimension(GridSizeMode.AutoSize),
                     new Dimension(),
                 },
-                Content = new GridContainerContent(new[]
+                Content = new[]
                 {
                     new Drawable[]
                     {
@@ -56,7 +56,7 @@ namespace osu.Framework.Testing.Drawables.Sections
                             Current = browser.PlaybackRate
                         },
                     }
-                })
+                }
             };
 
             rateAdjustSlider.Current.BindValueChanged(e => rateText.Text = e.NewValue.ToString("0%"), true);

@@ -138,7 +138,7 @@ namespace osu.Framework.Tests.Visual.Containers
             {
                 Name = "Safe Contents",
                 RelativeSizeAxes = Axes.Both,
-                Content = new GridContainerContent(boxes),
+                Content = boxes,
             };
         }
 

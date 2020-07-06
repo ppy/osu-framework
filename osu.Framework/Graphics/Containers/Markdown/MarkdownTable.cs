@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             {
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Content = new GridContainerContent(rows.Select(x => x.ToArray()).ToArray())
+                Content = rows.Select(x => x.ToArray()).ToArray()
             };
         }
 
