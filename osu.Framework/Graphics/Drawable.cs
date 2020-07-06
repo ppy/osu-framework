@@ -1613,7 +1613,7 @@ namespace osu.Framework.Graphics
                 if ((i & Invalidation.Colour) > 0)
                     return true;
 
-                return !s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour;
+                return !s.Colour.HasSingleColour || (s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour);
             });
 
         /// <summary>
@@ -2040,6 +2040,16 @@ namespace osu.Framework.Graphics
                     OnKeyUp(keyUp);
                     return false;
 
+                case TouchMoveEvent touchMove:
+                    return OnTouchMove(touchMove);
+
+                case TouchDownEvent touchDown:
+                    return OnTouchDown(touchDown);
+
+                case TouchUpEvent touchUp:
+                    OnTouchUp(touchUp);
+                    return false;
+
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
@@ -2202,6 +2212,32 @@ namespace osu.Framework.Graphics
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
 
         /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is active.
+        /// </summary>
+        /// <param name="e">The <see cref="TouchDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is not active.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchUp(TouchUpEvent e) => Handle(e);
+
+        /// <summary>
         /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
         /// </summary>
         /// <param name="e">The <see cref="JoystickPressEvent"/> containing information about the input event.</param>
@@ -2287,6 +2323,7 @@ namespace osu.Framework.Graphics
             private static readonly string[] positional_input_methods =
             {
                 nameof(Handle),
+                nameof(OnMouseMove),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -2299,7 +2336,9 @@ namespace osu.Framework.Graphics
                 nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnMouseMove)
+                nameof(OnTouchDown),
+                nameof(OnTouchMove),
+                nameof(OnTouchUp)
             };
 
             private static readonly string[] non_positional_input_methods =

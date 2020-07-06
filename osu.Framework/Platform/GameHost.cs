@@ -518,7 +518,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
 
-                Dependencies.CacheAs(Storage = CreateGameStorage());
+                Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
                 SetupForRun();
 
@@ -592,7 +592,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        /// <summary>
+        /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
+        /// </summary>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.

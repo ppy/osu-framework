@@ -403,6 +403,7 @@ namespace osu.Framework.Graphics.Video
                                 if (sendPacketResult == 0)
                                 {
                                     AVFrame* frame = ffmpeg.av_frame_alloc();
+                                    AVFrame* outFrame = null;
 
                                     var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
@@ -413,8 +414,6 @@ namespace osu.Framework.Graphics.Video
                                         if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
                                         {
                                             skipOutputUntilTime = null;
-
-                                            AVFrame* outFrame;
 
                                             if (convert)
                                             {
@@ -429,8 +428,6 @@ namespace osu.Framework.Graphics.Video
 
                                                 ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
                                                     outFrame->data, outFrame->linesize);
-
-                                                ffmpeg.av_frame_free(&frame);
                                             }
                                             else
                                                 outFrame = frame;
@@ -446,6 +443,11 @@ namespace osu.Framework.Graphics.Video
 
                                         lastDecodedFrameTime = (float)frameTime;
                                     }
+
+                                    // There are two cases: outFrame could be null in which case the above decode hasn't run, or the outFrame doesn't match the input frame,
+                                    // in which case it won't be automatically freed by the texture upload. In both cases we need to free the input frame.
+                                    if (outFrame != frame)
+                                        ffmpeg.av_frame_free(&frame);
                                 }
                                 else
                                     Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");

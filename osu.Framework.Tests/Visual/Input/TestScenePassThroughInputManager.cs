@@ -89,6 +89,21 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void TestUpReceivedOnDownFromSync()
+        {
+            addTestInputManagerStep();
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("press keyboard", () => InputManager.PressKey(Key.A));
+            AddAssert("key not pressed", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("key pressed", () => testInputManager.CurrentState.Keyboard.Keys.Single() == Key.A);
+
+            AddStep("release keyboard", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("key released", () => !testInputManager.CurrentState.Keyboard.Keys.HasAnyButtonPressed);
+        }
+
+        [Test]
         public void MouseDownNoSync()
         {
             addTestInputManagerStep();
@@ -112,6 +127,30 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
             AddAssert("pressed", () => mouse.IsPressed(MouseButton.Left));
             AddAssert("mouse up count == 0", () => testInputManager.Status.MouseUpCount == 0);
+        }
+
+        [Test]
+        public void TestTouchInput()
+        {
+            addTestInputManagerStep();
+            AddStep("begin first touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch1 &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch1] == Vector2.Zero);
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("end first touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, Vector2.Zero)));
+            AddStep("begin second touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch2, Vector2.One)));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch2 &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == Vector2.One);
+
+            AddStep("end second touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, new Vector2(2))));
+            AddAssert("synced properly", () =>
+                !testInputManager.CurrentState.Touch.ActiveSources.HasAnyButtonPressed &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == new Vector2(2));
         }
 
         public class TestInputManager : ManualInputManager
