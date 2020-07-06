@@ -5,6 +5,9 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// Implements a jagged array behavior with element change notifications
+    /// </summary>
     public class GridContainerContent
     {
         public event Action ContentChanged;
@@ -50,6 +53,10 @@ namespace osu.Framework.Graphics.Containers
             set => _[index] = value;
         }
 
+        /// <summary>
+        /// Wraps an array and provides a custom indexer with element change notification
+        /// </summary>
+        /// <typeparam name="T">An array data type</typeparam>
         public class ArrayWrapper<T>
         {
             public event Action ArrayElementChanged;
