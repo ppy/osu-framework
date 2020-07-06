@@ -27,14 +27,8 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (drawables[i] != null)
                     {
-                        this[i] = new ArrayWrapper<Drawable> { _ = new Drawable[drawables[i].Length] };
-
+                        this[i] = new ArrayWrapper<Drawable> { _ = drawables[i] };
                         this[i].ArrayElementChanged += onArrayElementChanged;
-
-                        for (int j = 0; j < drawables[i].Length; j++)
-                        {
-                            this[i][j] = drawables[i][j];
-                        }
                     }
                 }
             }
