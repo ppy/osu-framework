@@ -117,6 +117,10 @@ namespace osu.Framework.Input
                     new TouchInput(touch.ScreenSpaceTouch, touch.IsActive(touch.ScreenSpaceTouch)).Apply(CurrentState, this);
                     break;
 
+                case MidiEvent midi:
+                    new MidiKeyInput(midi.Key, midi.Velocity, midi.IsPressed(midi.Key)).Apply(CurrentState, this);
+                    break;
+
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
                 case JoystickAxisMoveEvent _:
@@ -178,6 +182,8 @@ namespace osu.Framework.Input
 
             new JoystickButtonInput(state?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
             new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
+
+            new MidiKeyInput(state?.Midi, CurrentState.Midi).Apply(CurrentState, this);
         }
     }
 }
