@@ -579,7 +579,9 @@ namespace osu.Framework.Input
             if (!MapMouseToLatestTouch)
                 return false;
 
-            new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
+            if (e.IsActive == true || e.LastPosition != null)
+                new MousePositionAbsoluteInput { Position = e.Touch.Position }.Apply(CurrentState, this);
+
             new MouseButtonInput(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed).Apply(CurrentState, this);
             return true;
         }
@@ -612,10 +614,7 @@ namespace osu.Framework.Input
 
                 case TouchStateChangeEvent touchChange:
                     HandleTouchStateChange(touchChange);
-
-                    if (touchChange.IsLatestTouch)
-                        HandleMouseTouchStateChange(touchChange);
-
+                    HandleMouseTouchStateChange(touchChange);
                     return;
 
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
