@@ -2124,7 +2124,7 @@ namespace osu.Framework.Graphics
         /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
         /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
         /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
         /// </remarks>
@@ -2223,7 +2223,7 @@ namespace osu.Framework.Graphics
         /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
         /// This will not occur if the touch has been activated then deactivated without moving from its initial position.
         /// </remarks>
         /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
