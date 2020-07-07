@@ -13,6 +13,20 @@ namespace osu.Framework.Graphics.Containers
     {
         public event Action ContentChanged;
 
+        public ArrayWrapper<ArrayWrapper<Drawable>> WrappedArray { get; }
+
+        public ArrayWrapper<Drawable> this[int index]
+        {
+            get => WrappedArray[index];
+            set => WrappedArray[index] = value;
+        }
+
+        public static implicit operator Drawable[][](GridContainerContent content) => content.source;
+
+        public static implicit operator GridContainerContent(Drawable[][] drawables) => new GridContainerContent(drawables);
+
+        private readonly Drawable[][] source;
+
         private GridContainerContent(Drawable[][] drawables)
         {
             source = drawables;
@@ -37,23 +51,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Drawable[][] source;
-
         private void onArrayElementChanged()
         {
             ContentChanged?.Invoke();
-        }
-
-        public ArrayWrapper<ArrayWrapper<Drawable>> WrappedArray { get; }
-
-        public static implicit operator Drawable[][](GridContainerContent content) => content.source;
-
-        public static implicit operator GridContainerContent(Drawable[][] drawables) => new GridContainerContent(drawables);
-
-        public ArrayWrapper<Drawable> this[int index]
-        {
-            get => WrappedArray[index];
-            set => WrappedArray[index] = value;
         }
 
         /// <summary>
