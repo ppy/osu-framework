@@ -61,15 +61,14 @@ namespace osu.Framework.Tests.Visual.Input
                 return false;
             }
 
-            protected override bool OnTouchMove(TouchMoveEvent e)
+            protected override void OnTouchMove(TouchMoveEvent e)
             {
                 if (IsDisposed)
-                    return false;
+                    return;
 
                 var circle = drawableTouches[(int)e.Touch.Source];
                 AddInternal(new FadingCircle(circle));
                 circle.Position = e.Touch.Position;
-                return false;
             }
 
             protected override void OnTouchUp(TouchUpEvent e)
