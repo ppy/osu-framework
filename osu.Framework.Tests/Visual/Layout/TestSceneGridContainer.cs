@@ -623,7 +623,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].WrappedArray.Sum(d => d.DrawWidth)));
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
 
         [Test]
@@ -651,7 +651,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].WrappedArray.Sum(d => d.DrawWidth)));
+            AddAssert("content spans grid size", () => Precision.AlmostEquals(grid.DrawWidth, grid.Content[0].Sum(d => d.DrawWidth)));
         }
 
         [TestCase(true)]
@@ -683,7 +683,6 @@ namespace osu.Framework.Tests.Visual.Layout
             float desiredTransparentBoxSize = alwaysPresent ? 50 : 0;
             AddAssert("non-transparent fill boxes have correct size", () =>
                 grid.Content
-                    .Select(wrapper => wrapper.WrappedArray)
                     .SelectMany(row => row)
                     .Where(box => box.Alpha > 0)
                     .All(box => Precision.AlmostEquals(box.DrawWidth, (grid.DrawWidth - desiredTransparentBoxSize) / 2)

@@ -100,9 +100,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count()) == 3);
             AddStep("disable headers", () => table.ShowHeaders = false);
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 2);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count()) == 2);
         }
 
         [Test]
@@ -118,9 +118,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count()) == 3);
             AddStep("disable headers", () => table.ShowHeaders = false);
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 3);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count()) == 3);
         }
 
         [Test]
@@ -202,14 +202,14 @@ namespace osu.Framework.Tests.Visual.Layout
                 new TableColumn("Header 3"),
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count()) == 3);
 
             AddStep("decrease columns", () => table.Columns = new[]
             {
                 new TableColumn("Header 1"),
             });
 
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.WrappedArray.Length) == 2);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count()) == 2);
         }
 
         [Test]
