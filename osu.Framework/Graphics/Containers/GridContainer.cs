@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
         /// Null elements are allowed to represent blank rows/cells.
         /// </para>
         /// </summary>
-        internal GridContainerContent Content
+        public GridContainerContent Content
         {
             get => content;
             set

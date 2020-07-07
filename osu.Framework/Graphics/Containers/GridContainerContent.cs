@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Implements a jagged array behavior with element change notifications
     /// </summary>
-    internal class GridContainerContent
+    public class GridContainerContent
     {
         public event Action ContentChanged;
 
