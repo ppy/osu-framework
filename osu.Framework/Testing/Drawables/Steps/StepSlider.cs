@@ -47,16 +47,14 @@ namespace osu.Framework.Testing.Drawables.Steps
                 spriteText = new SpriteText
                 {
                     Depth = -1,
+                    Padding = new MarginPadding(5),
+                    Font = FrameworkFont.Regular.With(size: 14),
                     Origin = Anchor.CentreLeft,
                     Anchor = Anchor.CentreLeft,
                 },
             });
 
             Masking = true;
-
-            spriteText.Anchor = Anchor.CentreLeft;
-            spriteText.Origin = Anchor.CentreLeft;
-            spriteText.Padding = new MarginPadding(5);
 
             // Bind to the underlying sliderbar
             var currentNumber = (BindableNumber<T>)Current;

@@ -36,10 +36,13 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// A collection of all tabs which are valid switch targets.
+        /// A collection of all tabs which are valid switch targets, sorted by their order of appearance.
         /// </summary>
         protected internal IEnumerable<TabItem<T>> SwitchableTabs => AllTabs.Where(tab => tab.IsSwitchable);
 
+        /// <summary>
+        /// The collection of all tabs, sorted by their order of appearance.
+        /// </summary>
         protected internal IEnumerable<TabItem<T>> AllTabs => TabContainer.AllTabItems;
 
         /// <summary>
@@ -71,27 +74,59 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool AutoSort { set; get; }
 
-        protected Dropdown<T> Dropdown;
-
-        protected readonly TabFillFlowContainer TabContainer;
-
-        protected TabItem<T> SelectedTab;
+        /// <summary>
+        /// The <see cref="Dropdown{T}"/> which is displayed when tabs overflow the visible bounds of this <see cref="TabControl{T}"/>.
+        /// </summary>
+        [CanBeNull]
+        protected readonly Dropdown<T> Dropdown;
 
         /// <summary>
-        /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
+        /// The flow of <see cref="TabItem{T}"/>s.
+        /// </summary>
+        protected readonly TabFillFlowContainer TabContainer;
+
+        /// <summary>
+        /// The currently-selected <see cref="TabItem{T}"/>.
+        /// </summary>
+        protected TabItem<T> SelectedTab { get; private set; }
+
+        /// <summary>
+        /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
         /// </summary>
         public bool IsSwitchable { get; set; }
 
         /// <summary>
+        /// Whether a new tab should be automatically switched to when the current tab is removed.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>:
+        /// <list type="bullet">
+        /// <item>
+        /// <description>If the current tab is not the only tab in the <see cref="TabControl{T}"/>, then the next or previous tab will be selected depending on the current tab's position.</description>
+        /// </item>
+        /// <item>
+        /// <description>If the current tab is the only tab in the <see cref="TabControl{T}"/>, then selection will be cleared.</description>
+        /// </item>
+        /// </list>
+        /// </remarks>
+        public bool SwitchTabOnRemove { get; set; } = true;
+
+        /// <summary>
         /// Creates an optional overflow dropdown.
         /// When implementing this dropdown make sure:
-        ///  - It is made to be anchored to the right-hand side of its parent.
-        ///  - The dropdown's header does *not* have a relative x axis.
+        /// <list type="bullet">
+        /// <item>
+        /// <description>It is made to be anchored to the right-hand side of its parent.</description>
+        /// </item>
+        /// <item>
+        /// <description>The dropdown's header does *not* have a relative x axis.</description>
+        /// </item>
+        /// </list>
         /// </summary>
         protected abstract Dropdown<T> CreateDropdown();
 
         /// <summary>
-        /// Creates a tab item.
+        /// Creates a <see cref="TabItem{T}"/> for a given <typeparamref name="T"/> value.
         /// </summary>
         protected abstract TabItem<T> CreateTabItem(T value);
 
@@ -112,6 +147,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private bool firstSelection = true;
 
+        /// <summary>
+        /// Creates a new <see cref="TabControl{T}"/>.
+        /// </summary>
         protected TabControl()
         {
             Dropdown = CreateDropdown();
@@ -153,9 +191,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        // Default to first selection in list
         protected override void LoadComplete()
         {
+            // Default to first selection in list
             if (firstSelection && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
@@ -163,7 +201,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Pin an item to the start of the list.
+        /// Pins an item to the start of the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="item">The item to pin.</param>
         public void PinItem(T item)
@@ -175,7 +213,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Unpin an item and return it to the start of unpinned items.
+        /// Unpins an item and returns it to the start of unpinned items.
         /// </summary>
         /// <param name="item">The item to unpin.</param>
         public void UnpinItem(T item)
@@ -187,19 +225,22 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Add a new item to the control.
+        /// Adds a new item to the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="item">The item to add.</param>
         public void AddItem(T item) => addTab(item);
 
         /// <summary>
-        /// Removes an item from the control.
+        /// Removes an item from the <see cref="TabControl{T}"/>.
         /// </summary>
+        /// <remarks>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
+        /// </remarks>
         /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
 
         /// <summary>
-        /// Removes all items from the control.
+        /// Removes all items from the <see cref="TabControl{T}"/>.
         /// </summary>
         public void Clear() => Items = Array.Empty<T>();
 
@@ -224,10 +265,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control.
+        /// Adds an arbitrary <see cref="TabItem{T}"/> to the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="tab">The tab to add.</param>
-        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += performTabSort;
@@ -246,23 +287,16 @@ namespace osu.Framework.Graphics.UserInterface
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// If <paramref name="tab"/> is currently selected and is not the only tab in the <see cref="TabControl{T}"/>,
-        /// then selection will switch to the next or previous one depending on <paramref name="tab"/>'s position.
-        /// </para>
-        /// <para>
-        /// If <paramref name="tab"/> is currently selected and is the only tab in the <see cref="TabControl{T}"/>,
-        /// then selection will be cleared.
-        /// </para>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
         /// </remarks>
         /// <param name="tab">The tab to remove.</param>
-        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
             if (!tab.IsRemovable)
                 throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
-            if (tab == SelectedTab)
+            if (SwitchTabOnRemove && tab == SelectedTab)
             {
                 if (SwitchableTabs.Count() < 2)
                     SelectedTab = null;
@@ -295,6 +329,10 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.ShowItem(tab.Value);
         }
 
+        /// <summary>
+        /// Selects a <see cref="TabItem{T}"/>.
+        /// </summary>
+        /// <param name="tab">The tab to select.</param>
         protected virtual void SelectTab(TabItem<T> tab)
         {
             selectTab(tab);
@@ -383,6 +421,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
         }
 
+        /// <summary>
+        /// Creates the <see cref="TabFillFlowContainer"/> to contain the <see cref="TabItem{T}"/>s.
+        /// </summary>
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
             Direction = FillDirection.Full,

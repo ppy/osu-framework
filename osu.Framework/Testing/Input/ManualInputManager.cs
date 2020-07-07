@@ -71,6 +71,9 @@ namespace osu.Framework.Testing.Input
 
         public void EndTouch(Touch touch) => Input(new TouchInput(touch, false));
 
+        public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
+        public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
+
         private class ManualInputHandler : InputHandler
         {
             public override bool Initialize(GameHost host) => true;
