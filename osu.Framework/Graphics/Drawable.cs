@@ -2040,11 +2040,12 @@ namespace osu.Framework.Graphics
                     OnKeyUp(keyUp);
                     return false;
 
-                case TouchMoveEvent touchMove:
-                    return OnTouchMove(touchMove);
-
                 case TouchDownEvent touchDown:
                     return OnTouchDown(touchDown);
+
+                case TouchMoveEvent touchMove:
+                    OnTouchMove(touchMove);
+                    return false;
 
                 case TouchUpEvent touchUp:
                     OnTouchUp(touchUp);
@@ -2123,7 +2124,7 @@ namespace osu.Framework.Graphics
         /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
         /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
         /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
         /// </remarks>
@@ -2222,17 +2223,17 @@ namespace osu.Framework.Graphics
         /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
+        /// This will not occur if the touch has been activated then deactivated without moving from its initial position.
         /// </remarks>
         /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
-        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
-        protected virtual bool OnTouchMove(TouchMoveEvent e) => Handle(e);
+        protected virtual void OnTouchMove(TouchMoveEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="Touch"/> is not active.
         /// </summary>
         /// <remarks>
-        /// This will only be invoked on the <see cref="Drawable"/> that returned <code>true</code> from a previous <see cref="OnTouchDown"/> invocation.
+        /// This is guaranteed to be invoked if <see cref="OnTouchDown"/> was invoked.
         /// </remarks>
         /// <param name="e">The <see cref="TouchUpEvent"/> containing information about the input event.</param>
         protected virtual void OnTouchUp(TouchUpEvent e) => Handle(e);
