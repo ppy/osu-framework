@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
@@ -48,12 +47,9 @@ namespace osu.Framework.Input.StateChanges
         public void Apply(InputState state, IInputStateChangeHandler handler)
         {
             var touches = state.Touch;
-            var activityState = touches.ActiveSources;
 
             foreach (var touch in Touches)
             {
-                bool isLatestTouch = !activityState.IsPressed(touch.Source) || (activityState.Any() && touch.Source == activityState.Last());
-
                 var lastPosition = touches.GetTouchPosition(touch.Source);
                 touches.TouchPositions[(int)touch.Source] = touch.Position;
 
@@ -62,7 +58,7 @@ namespace osu.Framework.Input.StateChanges
 
                 if (activityChanged || positionChanged)
                 {
-                    handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, touch, isLatestTouch,
+                    handler.HandleInputStateChange(new TouchStateChangeEvent(state, this, touch,
                         !activityChanged ? (bool?)null : Activate,
                         !positionChanged ? null : lastPosition
                     ));

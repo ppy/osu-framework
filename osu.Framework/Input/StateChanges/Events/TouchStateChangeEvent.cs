@@ -14,11 +14,6 @@ namespace osu.Framework.Input.StateChanges.Events
         public readonly Touch Touch;
 
         /// <summary>
-        /// Whether the source of this touch is the latest activated touch.
-        /// </summary>
-        public readonly bool IsLatestTouch;
-
-        /// <summary>
         /// Whether the <see cref="Touch"/> became active, or null if no activity change occurred.
         /// </summary>
         public readonly bool? IsActive;
@@ -28,11 +23,10 @@ namespace osu.Framework.Input.StateChanges.Events
         /// </summary>
         public readonly Vector2? LastPosition;
 
-        public TouchStateChangeEvent(InputState state, IInput input, Touch touch, bool isLatestTouch, bool? active, Vector2? lastPosition)
+        public TouchStateChangeEvent(InputState state, IInput input, Touch touch, bool? active, Vector2? lastPosition)
             : base(state, input)
         {
             Touch = touch;
-            IsLatestTouch = isLatestTouch;
 
             IsActive = active;
             LastPosition = lastPosition;
