@@ -2223,7 +2223,8 @@ namespace osu.Framework.Graphics
         /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This is guaranteed to be invoked if <see cref="OnTouchDown"/> was invoked.
+        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
+        /// This will not occur if the touch has been activated then deactivated without moving from its initial position.
         /// </remarks>
         /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
         protected virtual void OnTouchMove(TouchMoveEvent e) => Handle(e);
