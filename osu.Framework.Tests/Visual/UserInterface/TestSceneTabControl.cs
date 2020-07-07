@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private StyledTabControl removeAllTabControl;
         private StyledMultilineTabControl multilineTabControl;
         private StyledTabControl simpleTabcontrol;
+        private StyledTabControl simpleTabcontrolNoSwitchOnRemove;
 
         public TestSceneTabControl()
         {
@@ -48,6 +49,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     simpleTabcontrol = new StyledTabControl
                     {
                         Size = new Vector2(200, 30),
+                    },
+                    simpleTabcontrolNoSwitchOnRemove = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30),
+                        SwitchTabOnRemove = false
                     },
                     multilineTabControl = new StyledMultilineTabControl
                     {
@@ -82,6 +88,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             foreach (var item in items)
             {
                 simpleTabcontrol.AddItem(item);
+                simpleTabcontrolNoSwitchOnRemove.AddItem(item);
                 multilineTabControl.AddItem(item);
                 switchingTabControl.AddItem(item);
                 withoutDropdownTabControl.AddItem(item);
@@ -258,6 +265,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
             });
             AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+        }
+
+        /// <summary>
+        /// Tests that the selection is not switched on a <see cref="TabControl{T}"/> that has <see cref="TabControl{T}.SwitchTabOnRemove"/> set to <c>false</c>.
+        /// </summary>
+        [Test]
+        public void TestRemovingSelectedTabDoesNotSwitchSelectionIfNotSwitchTabOnRemove()
+        {
+            AddStep("Select tab 2", () => simpleTabcontrolNoSwitchOnRemove.Current.Value = TestEnum.Test2);
+            AddStep("Remove tab 2", () => simpleTabcontrolNoSwitchOnRemove.RemoveItem(TestEnum.Test2));
+            AddAssert("Ensure has not switched", () => simpleTabcontrolNoSwitchOnRemove.SelectedTab.Value == TestEnum.Test2);
         }
 
         [Test]
