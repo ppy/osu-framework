@@ -231,7 +231,7 @@ namespace osu.Framework.Tests.Visual.Input
                     if (mouseMove.ScreenSpaceMousePosition != getTouchDownPos(r.AssociatedSource))
                         return false;
 
-                    // Dequeue the false drag from first receptor to ensure there isn't any unexpected hidden event in this receptor.
+                    // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
                     if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent tmpMouseDrag))
                         return false;
 
@@ -239,9 +239,6 @@ namespace osu.Framework.Tests.Visual.Input
                         tmpMouseDrag.ScreenSpaceMousePosition != getTouchDownPos(r.AssociatedSource) ||
                         tmpMouseDrag.ScreenSpaceLastMousePosition != getTouchDownPos(r.AssociatedSource - 1) ||
                         tmpMouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
-                        return false;
-
-                    if (firstReceptor.MouseEvents.Count > 0)
                         return false;
 
                     return r.MouseEvents.Count == 0;
@@ -254,9 +251,8 @@ namespace osu.Framework.Tests.Visual.Input
                     InputManager.MoveTouchTo(new Touch(s, getTouchMovePos(s)));
             });
 
-            AddAssert("received correct movement event on latest", () =>
+            AddAssert("received regular mouse-move event", () =>
             {
-                // mouse-move event fires regardless of whether it is dragging, dequeue it first.
                 if (!(lastReceptor.MouseEvents.TryDequeue(out MouseEvent me1) && me1 is MouseMoveEvent mouseMove))
                     return false;
 
@@ -264,17 +260,7 @@ namespace osu.Framework.Tests.Visual.Input
                     mouseMove.ScreenSpaceLastMousePosition != getTouchDownPos(lastReceptor.AssociatedSource))
                     return false;
 
-                // Can be uncommented back when the wrong-down-queue issue is fixed, no drag to latest because mouse is still dragging from first.
-                //if (!(lastReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent mouseDrag))
-                //    return false;
-
-                //if (mouseDrag.Button != MouseButton.Left ||
-                //    mouseDrag.ScreenSpaceMousePosition != getTouchMovePos(lastReceptor.AssociatedSource) ||
-                //    mouseDrag.ScreenSpaceLastMousePosition != getTouchDownPos(lastReceptor.AssociatedSource) ||
-                //    mouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(lastReceptor.AssociatedSource))
-                //    return false;
-
-                // Still dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
+                // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
                 if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent tmpMouseDrag))
                     return false;
 
@@ -293,21 +279,10 @@ namespace osu.Framework.Tests.Visual.Input
                     InputManager.MoveTouchTo(new Touch(s, getTouchUpPos(s)));
             });
 
-            AddAssert("received correct movement event on latest", () =>
+            // No mouse-move event here since the touch has moved outside of its receptor area.
+            AddAssert("no mouse-move event received", () =>
             {
-                // No mouse move event here since the touch has moved outside of its receptor area. (only drag will received)
-
-                // Can be uncommented back when the wrong-down-queue issue is fixed, no drag to latest because mouse is still dragging from first.
-                //if (!(lastReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is DragEvent mouseDrag))
-                //    return false;
-
-                //if (mouseDrag.Button != MouseButton.Left ||
-                //    mouseDrag.ScreenSpaceMousePosition != getTouchUpPos(lastReceptor.AssociatedSource) ||
-                //    mouseDrag.ScreenSpaceLastMousePosition != getTouchMovePos(lastReceptor.AssociatedSource) ||
-                //    mouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(lastReceptor.AssociatedSource))
-                //    return false;
-
-                // Still dequeue the "wrong drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
+                // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
                 if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is DragEvent tmpMouseDrag))
                     return false;
 
@@ -326,24 +301,14 @@ namespace osu.Framework.Tests.Visual.Input
                     InputManager.EndTouch(new Touch(s, getTouchUpPos(s)));
             });
 
-            AddAssert("received correct up event on latest", () =>
+            AddAssert("received regular mouse-up event on first", () =>
             {
-                // Can be uncommented back when the wrong-down-queue issue is fixed, latest doesn't receive up because mouse thinks we're just dragging from first receptor to last.
-                //if (!(lastReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is MouseUpEvent mouseUp))
-                //    return false;
-
-                //if (mouseUp.Button != MouseButton.Left ||
-                //    mouseUp.ScreenSpaceMousePosition != getTouchUpPos(lastReceptor.AssociatedSource) ||
-                //    mouseUp.ScreenSpaceMouseDownPosition != getTouchDownPos(lastReceptor.AssociatedSource))
-                //    return false;
-
-                // Still dequeue the "wrong up" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
-                if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is MouseUpEvent tmpMouseUp))
+                if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is MouseUpEvent mouseUp))
                     return false;
 
-                if (tmpMouseUp.Button != MouseButton.Left ||
-                    tmpMouseUp.ScreenSpaceMousePosition != getTouchUpPos(lastReceptor.AssociatedSource) ||
-                    tmpMouseUp.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
+                if (mouseUp.Button != MouseButton.Left ||
+                    mouseUp.ScreenSpaceMousePosition != getTouchUpPos(lastReceptor.AssociatedSource) ||
+                    mouseUp.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
                     return false;
 
                 return lastReceptor.MouseEvents.Count == 0;
