@@ -683,8 +683,6 @@ namespace osu.Framework.Tests.Visual.Layout
             float desiredTransparentBoxSize = alwaysPresent ? 50 : 0;
             AddAssert("non-transparent fill boxes have correct size", () =>
                 grid.Content
-                    .WrappedArray
-                    .WrappedArray
                     .Select(wrapper => wrapper.WrappedArray)
                     .SelectMany(row => row)
                     .Where(box => box.Alpha > 0)

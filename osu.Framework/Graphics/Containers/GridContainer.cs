@@ -141,8 +141,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellContent.IsValid)
                 return;
 
-            int requiredRows = Content?.WrappedArray.WrappedArray.Length ?? 0;
-            int requiredColumns = requiredRows == 0 ? 0 : Content?.WrappedArray.WrappedArray.Max(c => c?.WrappedArray.Length ?? 0) ?? 0;
+            int requiredRows = Content?.Count() ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content?.Max(c => c?.WrappedArray.Length ?? 0) ?? 0;
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
