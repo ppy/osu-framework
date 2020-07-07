@@ -195,7 +195,7 @@ namespace osu.Framework.Tests.Visual.Input
                 InputManager.BeginTouch(new Touch(firstReceptor.AssociatedSource, getTouchDownPos(firstReceptor.AssociatedSource)));
             });
 
-            AddAssert("received correct down event on first", () =>
+            AddAssert("received mouse-down event on first", () =>
             {
                 // event #1: move mouse to first touch position.
                 if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me1) && me1 is MouseMoveEvent mouseMove))
