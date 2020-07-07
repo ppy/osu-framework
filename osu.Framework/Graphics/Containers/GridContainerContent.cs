@@ -2,17 +2,18 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// Implements a jagged array behavior with element change notifications
     /// </summary>
-    public class GridContainerContent
+    internal class GridContainerContent
     {
         public event Action ContentChanged;
 
-        public GridContainerContent(Drawable[][] drawables)
+        private GridContainerContent(Drawable[][] drawables)
         {
             source = drawables;
 
@@ -70,6 +71,9 @@ namespace osu.Framework.Graphics.Containers
                 get => WrappedArray[index];
                 set
                 {
+                    if (EqualityComparer<T>.Default.Equals(WrappedArray[index], value))
+                        return;
+
                     WrappedArray[index] = value;
                     ArrayElementChanged?.Invoke();
                 }
