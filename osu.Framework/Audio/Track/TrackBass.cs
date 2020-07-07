@@ -57,11 +57,32 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
-        /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, bool quick = false)
+        /// <param name="preview">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
+        public TrackBass(Stream data, bool preview = false)
+            : this(preview)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
+
+            EnqueueAction(() => activeStream = prepareStream(data));
+            InvalidateState();
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="TrackBass"/> from the provided bass stream handle.
+        /// </summary>
+        /// <param name="bassStreamHandle">A native bass stream handle prepared for use.</param>
+        /// <param name="preview">If true, the track will not add tempo adjust capabilities, and should only be used for preview purposes. Defaults to false.</param>
+        public TrackBass(int bassStreamHandle, bool preview = false)
+            : this(preview)
+        {
+            EnqueueAction(() => activeStream = prepareStream(bassStreamHandle));
+            InvalidateState();
+        }
+
+        private TrackBass(bool preview = false)
+        {
+            Preview = preview;
 
             // todo: support this internally to match the underlying Track implementation (which can support this).
             const float tempo_minimum_supported = 0.05f;
@@ -71,58 +92,25 @@ namespace osu.Framework.Audio.Track
                 if (t.NewValue < tempo_minimum_supported)
                     throw new ArgumentException($"{nameof(TrackBass)} does not support {nameof(Tempo)} specifications below {tempo_minimum_supported}. Use {nameof(Frequency)} instead.");
             };
-
-            EnqueueAction(() =>
-            {
-                Preview = quick;
-
-                activeStream = prepareStream(data, quick);
-
-                // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
-
-                bool success = seconds >= 0;
-
-                if (success)
-                {
-                    Length = seconds * 1000;
-
-                    // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
-                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
-
-                    Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
-                    initialFrequency = frequency;
-                    bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
-
-                    stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-                    endCallback = new SyncCallback((a, b, c, d) =>
-                    {
-                        if (!Looping)
-                            RaiseCompleted();
-                    });
-
-                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
-                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
-
-                    isLoaded = true;
-
-                    bassAmplitudeProcessor?.SetChannel(activeStream);
-                }
-            });
-
-            InvalidateState();
         }
 
-        private int prepareStream(Stream data, bool quick)
+        private int prepareStream(Stream data)
         {
             //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, Preview ? 8 : -1);
 
             fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
 
             BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
+            stream = prepareStream(stream);
+
+            return stream;
+        }
+
+        private int prepareStream(int handle)
+        {
             if (!Preview)
             {
                 // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
@@ -131,17 +119,48 @@ namespace osu.Framework.Audio.Track
                 // all parent decoding streams.
                 const int bass_nodevice = 0x20000;
 
-                Bass.ChannelSetDevice(stream, bass_nodevice);
-                tempoAdjustStream = BassFx.TempoCreate(stream, BassFlags.Decode | BassFlags.FxFreeSource);
+                Bass.ChannelSetDevice(handle, bass_nodevice);
+                tempoAdjustStream = BassFx.TempoCreate(handle, BassFlags.Decode | BassFlags.FxFreeSource);
                 Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
-                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
+                handle = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
 
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                Bass.ChannelSetAttribute(handle, ChannelAttribute.TempoUseQuickAlgorithm, 1);
+                Bass.ChannelSetAttribute(handle, ChannelAttribute.TempoOverlapMilliseconds, 4);
+                Bass.ChannelSetAttribute(handle, ChannelAttribute.TempoSequenceMilliseconds, 30);
             }
 
-            return stream;
+            // will be -1 in case of an error
+            double seconds = Bass.ChannelBytes2Seconds(handle, byteLength = Bass.ChannelGetLength(handle));
+
+            bool success = seconds >= 0;
+
+            if (success)
+            {
+                Length = seconds * 1000;
+
+                // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
+                lastSeekablePosition = Bass.ChannelBytes2Seconds(handle, byteLength - BYTES_PER_SAMPLE) * 1000;
+
+                Bass.ChannelGetAttribute(handle, ChannelAttribute.Frequency, out float frequency);
+                initialFrequency = frequency;
+                bitrate = (int)Bass.ChannelGetAttribute(handle, ChannelAttribute.Bitrate);
+
+                stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
+                endCallback = new SyncCallback((a, b, c, d) =>
+                {
+                    if (!Looping)
+                        RaiseCompleted();
+                });
+
+                Bass.ChannelSetSync(handle, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
+                Bass.ChannelSetSync(handle, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
+
+                isLoaded = true;
+
+                bassAmplitudeProcessor?.SetChannel(handle);
+            }
+
+            return handle;
         }
 
         /// <summary>
