@@ -219,90 +219,59 @@ namespace osu.Framework.Tests.Visual.Input
             // Activate each touch after first source and assert mouse has jumped to it.
             foreach (var s in touch_sources.Skip(1))
             {
-                AddStep($"activate {s}", () => InputManager.BeginTouch(new Touch(s, getTouchDownPos(s))));
+                Touch touch = default;
 
-                AddAssert("mouse jumped to latest activated touch", () =>
+                AddStep($"activate {s}", () => InputManager.BeginTouch(touch = new Touch(s, getTouchDownPos(s))));
+                AddAssert("mouse jumped to new touch", () => assertMouseOnTouchChange(touch, null, true));
+            }
+
+            Vector2? lastMovePosition = null;
+
+            // Move each touch inside area and assert regular mouse-move events received.
+            foreach (var s in touch_sources)
+            {
+                Touch touch = default;
+
+                AddStep($"move {s} inside area", () => InputManager.MoveTouchTo(touch = new Touch(s, getTouchMovePos(s))));
+                AddAssert("received regular mouse-move event", () =>
                 {
-                    var r = receptors[(int)s];
-
-                    if (!(r.MouseEvents.TryDequeue(out MouseEvent me1) && me1 is MouseMoveEvent mouseMove))
-                        return false;
-
-                    if (mouseMove.ScreenSpaceMousePosition != getTouchDownPos(r.AssociatedSource))
-                        return false;
-
-                    // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
-                    if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent tmpMouseDrag))
-                        return false;
-
-                    if (tmpMouseDrag.Button != MouseButton.Left ||
-                        tmpMouseDrag.ScreenSpaceMousePosition != getTouchDownPos(r.AssociatedSource) ||
-                        tmpMouseDrag.ScreenSpaceLastMousePosition != getTouchDownPos(r.AssociatedSource - 1) ||
-                        tmpMouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
-                        return false;
-
-                    return r.MouseEvents.Count == 0;
+                    // ReSharper disable once AccessToModifiedClosure
+                    var result = assertMouseOnTouchChange(touch, lastMovePosition, true);
+                    lastMovePosition = touch.Position;
+                    return result;
                 });
             }
 
-            AddStep("move touches", () =>
+            // Move each touch outside of area and assert no MouseMoveEvent expected to be received.
+            foreach (var s in touch_sources)
             {
-                foreach (var s in touch_sources)
-                    InputManager.MoveTouchTo(new Touch(s, getTouchMovePos(s)));
+                Touch touch = default;
+
+                AddStep($"move {s} outside of area", () => InputManager.MoveTouchTo(touch = new Touch(s, getTouchUpPos(s))));
+                AddAssert("no mouse-move event received", () =>
+                {
+                    // ReSharper disable once AccessToModifiedClosure
+                    var result = assertMouseOnTouchChange(touch, lastMovePosition, false);
+                    lastMovePosition = touch.Position;
+                    return result;
+                });
+            }
+
+            // Deactivate each touch but last touch and assert mouse did not jump to it.
+            foreach (var s in touch_sources.SkipLast(1))
+            {
+                AddStep($"deactivate {s}", () => InputManager.EndTouch(new Touch(s, getTouchUpPos(s))));
+                AddAssert("no mouse event received", () => receptors[(int)s].MouseEvents.Count == 0);
+            }
+
+            AddStep("deactivate last", () =>
+            {
+                InputManager.EndTouch(new Touch(lastReceptor.AssociatedSource, getTouchUpPos(lastReceptor.AssociatedSource)));
             });
 
-            AddAssert("received regular mouse-move event", () =>
+            AddAssert("received mouse-up event", () =>
             {
-                if (!(lastReceptor.MouseEvents.TryDequeue(out MouseEvent me1) && me1 is MouseMoveEvent mouseMove))
-                    return false;
-
-                if (mouseMove.ScreenSpaceMousePosition != getTouchMovePos(lastReceptor.AssociatedSource) ||
-                    mouseMove.ScreenSpaceLastMousePosition != getTouchDownPos(lastReceptor.AssociatedSource))
-                    return false;
-
-                // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
-                if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent tmpMouseDrag))
-                    return false;
-
-                if (tmpMouseDrag.Button != MouseButton.Left ||
-                    tmpMouseDrag.ScreenSpaceMousePosition != getTouchMovePos(lastReceptor.AssociatedSource) ||
-                    tmpMouseDrag.ScreenSpaceLastMousePosition != getTouchDownPos(lastReceptor.AssociatedSource) ||
-                    tmpMouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
-                    return false;
-
-                return lastReceptor.MouseEvents.Count == 0;
-            });
-
-            AddStep("move touches outside of area", () =>
-            {
-                foreach (var s in touch_sources)
-                    InputManager.MoveTouchTo(new Touch(s, getTouchUpPos(s)));
-            });
-
-            // No mouse-move event here since the touch has moved outside of its receptor area.
-            AddAssert("no mouse-move event received", () =>
-            {
-                // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
-                if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is DragEvent tmpMouseDrag))
-                    return false;
-
-                if (tmpMouseDrag.Button != MouseButton.Left ||
-                    tmpMouseDrag.ScreenSpaceMousePosition != getTouchUpPos(lastReceptor.AssociatedSource) ||
-                    tmpMouseDrag.ScreenSpaceLastMousePosition != getTouchMovePos(lastReceptor.AssociatedSource) ||
-                    tmpMouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
-                    return false;
-
-                return lastReceptor.MouseEvents.Count == 0;
-            });
-
-            AddStep("deactivate touches", () =>
-            {
-                foreach (var s in touch_sources)
-                    InputManager.EndTouch(new Touch(s, getTouchUpPos(s)));
-            });
-
-            AddAssert("received regular mouse-up event on first", () =>
-            {
+                // First receptor is the one handling the mouse down event, mouse up would be raised to it.
                 if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me) && me is MouseUpEvent mouseUp))
                     return false;
 
@@ -311,10 +280,37 @@ namespace osu.Framework.Tests.Visual.Input
                     mouseUp.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
                     return false;
 
-                return lastReceptor.MouseEvents.Count == 0;
+                return firstReceptor.MouseEvents.Count == 0;
             });
 
             AddAssert("all events dequeued", () => receptors.All(r => r.MouseEvents.Count == 0));
+
+            bool assertMouseOnTouchChange(Touch touch, Vector2? lastPosition, bool expectsMouseMove)
+            {
+                var receptor = receptors[(int)touch.Source];
+
+                if (expectsMouseMove)
+                {
+                    if (!(receptor.MouseEvents.TryDequeue(out MouseEvent me1) && me1 is MouseMoveEvent mouseMove))
+                        return false;
+
+                    if (mouseMove.ScreenSpaceMousePosition != touch.Position ||
+                        lastPosition != null && mouseMove.ScreenSpaceLastMousePosition != lastPosition.Value)
+                        return false;
+                }
+
+                // Dequeue the "false drag" from first receptor to ensure there isn't any unexpected hidden event in this receptor.
+                if (!(firstReceptor.MouseEvents.TryDequeue(out MouseEvent me2) && me2 is DragEvent mouseDrag))
+                    return false;
+
+                if (mouseDrag.Button != MouseButton.Left ||
+                    mouseDrag.ScreenSpaceMousePosition != touch.Position ||
+                    lastPosition != null && mouseDrag.ScreenSpaceLastMousePosition != lastPosition.Value ||
+                    mouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
+                    return false;
+
+                return receptor.MouseEvents.Count == 0;
+            }
         }
 
         private class InputReceptor : CompositeDrawable
