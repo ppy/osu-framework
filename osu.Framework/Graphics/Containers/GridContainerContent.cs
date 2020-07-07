@@ -14,12 +14,10 @@ namespace osu.Framework.Graphics.Containers
     {
         public event Action ContentChanged;
 
-        public ArrayWrapper<ArrayWrapper<Drawable>> WrappedArray { get; }
-
         public ArrayWrapper<Drawable> this[int index]
         {
-            get => WrappedArray[index];
-            set => WrappedArray[index] = value;
+            get => wrappedArray[index];
+            set => wrappedArray[index] = value;
         }
 
         public static implicit operator Drawable[][](GridContainerContent content) => content.source;
@@ -28,16 +26,18 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Drawable[][] source;
 
+        private ArrayWrapper<ArrayWrapper<Drawable>> wrappedArray { get; }
+
         private GridContainerContent(Drawable[][] drawables)
         {
             source = drawables;
 
-            WrappedArray = new ArrayWrapper<ArrayWrapper<Drawable>>
+            wrappedArray = new ArrayWrapper<ArrayWrapper<Drawable>>
             {
                 WrappedArray = new ArrayWrapper<Drawable>[drawables?.Length ?? 0]
             };
 
-            WrappedArray.ArrayElementChanged += onArrayElementChanged;
+            wrappedArray.ArrayElementChanged += onArrayElementChanged;
 
             if (drawables != null)
             {
@@ -93,12 +93,12 @@ namespace osu.Framework.Graphics.Containers
 
         public IEnumerator<ArrayWrapper<Drawable>> GetEnumerator()
         {
-            return ((IEnumerable<ArrayWrapper<Drawable>>)WrappedArray.WrappedArray).GetEnumerator();
+            return ((IEnumerable<ArrayWrapper<Drawable>>)wrappedArray.WrappedArray).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return WrappedArray.WrappedArray.GetEnumerator();
+            return wrappedArray.WrappedArray.GetEnumerator();
         }
     }
 }
