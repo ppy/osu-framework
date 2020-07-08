@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             get => content;
             set
             {
-                if (content == value)
+                if (content?.Equals(value) ?? false)
                     return;
 
                 if (content != null)

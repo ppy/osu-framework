@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Implements a jagged array behavior with element change notifications
     /// </summary>
-    public class GridContainerContent : IReadOnlyList<GridContainerContent.ArrayWrapper<Drawable>>
+    public class GridContainerContent : IReadOnlyList<GridContainerContent.ArrayWrapper<Drawable>>, IEquatable<GridContainerContent>
     {
         public event Action ContentChanged;
 
@@ -106,5 +106,26 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public int Count => wrappedArray.Count;
+
+        public bool Equals(GridContainerContent other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return source == other.source;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+
+            return obj.GetType() == GetType() && Equals((GridContainerContent)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(source);
+        }
     }
 }
