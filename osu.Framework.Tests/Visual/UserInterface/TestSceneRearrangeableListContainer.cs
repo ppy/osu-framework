@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestBindBeforeLoad()
         {
-            AddStep("create list", () => list = new TestRearrangeableList() { RelativeSizeAxes = Axes.Both });
+            AddStep("create list", () => list = new TestRearrangeableList { RelativeSizeAxes = Axes.Both });
             AddStep("bind list to items", () => list.Items.BindTo(new BindableList<int>(new[] { 1, 2, 3 })));
             AddStep("add list to hierarchy", () => listContainer.Add(list));
         }
