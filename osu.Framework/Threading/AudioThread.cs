@@ -5,7 +5,6 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -93,8 +92,16 @@ namespace osu.Framework.Threading
                 // If the device has already been initialised, we can still use it, but we need to switch to the device first.
                 Bass.CurrentDevice = deviceIndex;
 
-                // See: FreeDevice(). The no-sound device is not freed, so it's possible to get here without it having been initialised locally.
-                deviceReferences[deviceIndex] = deviceReferences.GetValueOrDefault(deviceIndex) + 1;
+                if (!deviceReferences.ContainsKey(deviceIndex))
+                {
+                    // If we get here without having an existing reference, one of two scenarios can have taken place:
+                    // 1. The device was initialised externally to the AudioEngine loop (e.g. the user calling Bass.Init() manually).
+                    // 2. The device is the no-sound device. I'm not sure exactly what causes this but it seems certain Bass calls may implicitly initialise the no-sound device.
+                    // In these cases, we'll assume one outside reference, so that calls to FreeDevice() won't free the device.
+                    deviceReferences[deviceIndex] = 1;
+                }
+
+                deviceReferences[deviceIndex]++;
                 return true;
             }
 
@@ -109,41 +116,34 @@ namespace osu.Framework.Threading
         {
             Debug.Assert(IsCurrent, "Cannot free devices when not on the audio thread.");
 
-            // Can happen if the AudioManager is disposed before it ever initialised a device.
+            // Happens on the first device initialisation or if the AudioManager is disposed before it ever initialised a device.
             if (deviceIndex == -1)
                 return;
 
-            // Check if we were the ones who initialised the device.
-            if (!deviceReferences.ContainsKey(deviceIndex))
+            if (deviceIndex == 0)
             {
-                // I don't really know how this is possible - it's not a 100% replication but sometimes AudioManager
-                // can be disposed while having a current device (0) without ever having initialised it.
-                // This can result in a memory leak however I've only ever seen this happen within tests, so let's silently ignore this device.
+                // Freeing the no-sound device in one thread seems to cause Bass.ChannelPlay() to hang indefinitely in other threads that are also using the no-sound device.
+                // This has only been observed within tests and should not occur within standard execution, so let's silently ignore the no-sound device (it's only used for decoding anyway).
+                // This may be a Linux-specific issue.
                 return;
             }
 
-            if (deviceIndex == 0)
-            {
-                // Freeing the no-sound device in one thread seems to cause Bass_ChannelPlay() to hang indefinitely in other threads that are also using the no-sound device.
-                // This may be a Linux-specific issue.
-                // Once again, I've only seen this happen within tests and should not occur within standard execution, so let's silently ignore the no-sound device (it's only used for decoding anyway).
-                return;
-            }
+            Debug.Assert(deviceReferences[deviceIndex] > 0);
 
             if (--deviceReferences[deviceIndex] == 0)
             {
                 // All references have been lost to the device, so we can free it.
                 // We'll need to activate the device to do so, but afterwards we must attempt to restore to the currently-active device if we can.
                 // When switching devices the process follows the order: Init() -> UpdateDevice() -> Free(), so the "currently-active" device may correspond to the device which we've switched to.
-                int currentDevice = Bass.CurrentDevice;
+                int lastDevice = Bass.CurrentDevice;
 
                 // Free the device.
                 Bass.CurrentDevice = deviceIndex;
                 Bass.Free();
 
                 // If the previously-current device wasn't the one we just freed, switch back to it.
-                if (deviceIndex != currentDevice)
-                    Bass.CurrentDevice = currentDevice;
+                if (deviceIndex != lastDevice)
+                    Bass.CurrentDevice = lastDevice;
             }
         }
 
