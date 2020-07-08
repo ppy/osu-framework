@@ -295,7 +295,7 @@ namespace osu.Framework.Tests.Visual.Input
                         return false;
 
                     if (mouseMove.ScreenSpaceMousePosition != touch.Position ||
-                        lastPosition != null && mouseMove.ScreenSpaceLastMousePosition != lastPosition.Value)
+                        (lastPosition != null && mouseMove.ScreenSpaceLastMousePosition != lastPosition.Value))
                         return false;
                 }
 
@@ -305,7 +305,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                 if (mouseDrag.Button != MouseButton.Left ||
                     mouseDrag.ScreenSpaceMousePosition != touch.Position ||
-                    lastPosition != null && mouseDrag.ScreenSpaceLastMousePosition != lastPosition.Value ||
+                    (lastPosition != null && mouseDrag.ScreenSpaceLastMousePosition != lastPosition.Value) ||
                     mouseDrag.ScreenSpaceMouseDownPosition != getTouchDownPos(firstReceptor.AssociatedSource))
                     return false;
 
