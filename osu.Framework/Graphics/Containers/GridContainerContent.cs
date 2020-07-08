@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Implements a jagged array behavior with element change notifications
     /// </summary>
-    public class GridContainerContent : IEnumerable<GridContainerContent.ArrayWrapper<Drawable>>
+    public class GridContainerContent : IReadOnlyList<GridContainerContent.ArrayWrapper<Drawable>>
     {
         public event Action ContentChanged;
 
@@ -32,10 +32,7 @@ namespace osu.Framework.Graphics.Containers
         {
             source = drawables;
 
-            wrappedArray = new ArrayWrapper<ArrayWrapper<Drawable>>
-            {
-                WrappedArray = new ArrayWrapper<Drawable>[drawables?.Length ?? 0]
-            };
+            wrappedArray = new ArrayWrapper<ArrayWrapper<Drawable>>(new ArrayWrapper<Drawable>[drawables?.Length ?? 0]);
 
             wrappedArray.ArrayElementChanged += onArrayElementChanged;
 
@@ -45,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (drawables[i] != null)
                     {
-                        this[i] = new ArrayWrapper<Drawable> { WrappedArray = drawables[i] };
+                        this[i] = new ArrayWrapper<Drawable>(drawables[i]);
                         this[i].ArrayElementChanged += onArrayElementChanged;
                     }
                 }
@@ -61,44 +58,53 @@ namespace osu.Framework.Graphics.Containers
         /// Wraps an array and provides a custom indexer with element change notification
         /// </summary>
         /// <typeparam name="T">An array data type</typeparam>
-        public class ArrayWrapper<T> : IEnumerable<T>
+        public class ArrayWrapper<T> : IReadOnlyList<T>
         {
             public event Action ArrayElementChanged;
 
-            public T[] WrappedArray { get; set; }
+            private T[] wrappedArray { get; set; }
+
+            public ArrayWrapper(T[] arrayToWrap)
+            {
+                wrappedArray = arrayToWrap;
+            }
 
             public T this[int index]
             {
-                get => WrappedArray[index];
+                get => wrappedArray[index];
                 set
                 {
-                    if (EqualityComparer<T>.Default.Equals(WrappedArray[index], value))
+                    if (EqualityComparer<T>.Default.Equals(wrappedArray[index], value))
                         return;
 
-                    WrappedArray[index] = value;
+                    wrappedArray[index] = value;
                     ArrayElementChanged?.Invoke();
                 }
             }
 
             public IEnumerator<T> GetEnumerator()
             {
-                return ((IEnumerable<T>)WrappedArray).GetEnumerator();
+                return ((IEnumerable<T>)wrappedArray).GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return WrappedArray.GetEnumerator();
+                return wrappedArray.GetEnumerator();
             }
+
+            public int Count => wrappedArray.Length;
         }
 
         public IEnumerator<ArrayWrapper<Drawable>> GetEnumerator()
         {
-            return ((IEnumerable<ArrayWrapper<Drawable>>)wrappedArray.WrappedArray).GetEnumerator();
+            return ((IEnumerable<ArrayWrapper<Drawable>>)wrappedArray).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return wrappedArray.WrappedArray.GetEnumerator();
+            return wrappedArray.GetEnumerator();
         }
+
+        public int Count => wrappedArray.Count;
     }
 }
