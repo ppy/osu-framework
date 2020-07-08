@@ -41,12 +41,6 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
         }
 
-        [TearDown]
-        public void Teardown()
-        {
-            Bass.Free();
-        }
-
         [Test]
         public void TestStart()
         {
