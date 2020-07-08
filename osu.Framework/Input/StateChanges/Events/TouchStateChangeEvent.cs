@@ -27,6 +27,7 @@ namespace osu.Framework.Input.StateChanges.Events
             : base(state, input)
         {
             Touch = touch;
+
             IsActive = active;
             LastPosition = lastPosition;
         }
