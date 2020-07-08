@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -18,10 +19,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private TestRearrangeableList list;
 
+        private Container listContainer;
+
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new Container
+            Child = listContainer = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -40,6 +43,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 addItems(1);
                 AddAssert($"last item is \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().Last().Model == localI);
             }
+        }
+
+        [Test]
+        public void TestBindBeforeLoad()
+        {
+            AddStep("create list", () => list = new TestRearrangeableList() { RelativeSizeAxes = Axes.Both });
+            AddStep("bind list to items", () => list.Items.BindTo(new BindableList<int>(new[] { 1, 2, 3 })));
+            AddStep("add list to hierarchy", () => listContainer.Add(list));
         }
 
         [Test]
