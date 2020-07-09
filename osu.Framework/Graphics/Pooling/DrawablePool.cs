@@ -58,6 +58,9 @@ namespace osu.Framework.Graphics.Pooling
             if (!(pooledDrawable is T))
                 throw new ArgumentException("Invalid type", nameof(pooledDrawable));
 
+            if (Parent != null)
+                throw new InvalidOperationException("Drawable was attempted to be returned to pool while still in a hierarchy");
+
             if (pooledDrawable.IsInUse)
             {
                 // if the return operation didn't come from the drawable, redirect to ensure consistent behaviour.
