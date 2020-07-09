@@ -649,6 +649,7 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = selectionEnd = 0;
                     TextFlow?.Clear();
 
+                    text = string.Empty;
                     InsertString(value);
 
                     selectionStart = Math.Clamp(startBefore, 0, text.Length);
