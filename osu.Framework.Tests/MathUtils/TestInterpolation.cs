@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.MathUtils
         {
         }
 
-        private struct TestClassWithValueAt : IInterpolable<TestClassWithValueAt>
+        private readonly struct TestClassWithValueAt : IInterpolable<TestClassWithValueAt>
         {
             private readonly int i;
 

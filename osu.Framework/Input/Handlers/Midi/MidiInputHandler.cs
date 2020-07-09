@@ -120,46 +120,71 @@ namespace osu.Framework.Input.Handlers.Midi
             }
         }
 
+        /// <remarks>
+        /// This function is not intended to provide complete correctness of MIDI parsing.
+        /// For now the goal is to correctly parse "note start" and "note end" events and correctly delimit all events.
+        /// </remarks>
         private void readEvent(byte[] data, string senderId, ref int i, out byte eventType, out byte key, out byte velocity)
         {
             byte statusType = data[i++];
 
+            // continuation messages:
+            // need running status to be interpreted correctly
             if (statusType <= 0x7F)
             {
-                // This is a running status, re-use the event type from the previous message
                 if (!runningStatus.ContainsKey(senderId))
                     throw new InvalidDataException($"Received running status of sender {senderId}, but no event type was stored");
 
                 eventType = runningStatus[senderId];
                 key = statusType;
                 velocity = data[i++];
+                return;
             }
-            else if (statusType >= 0xF8)
-            {
-                // Events F8 through FF do not reset the last known status byte
-                eventType = statusType;
-                key = data[i++];
-                velocity = data[i++];
-            }
-            else if (statusType >= 0xF0)
-            {
-                // Events F0 through F7 reset the running status
-                eventType = statusType;
-                key = data[i++];
-                velocity = data[i++];
 
-                if (runningStatus.ContainsKey(senderId))
-                    runningStatus.Remove(senderId);
-            }
-            else
+            // real-time messages:
+            // 0 additional data bytes always, do not reset running status
+            if (statusType >= 0xF8)
             {
-                // normal event, update running status
                 eventType = statusType;
-                key = data[i++];
-                velocity = data[i++];
-
-                runningStatus[senderId] = eventType;
+                key = velocity = 0;
+                return;
             }
+
+            // system common messages:
+            // variable number of additional data bytes, reset running status
+            if (statusType >= 0xF0)
+            {
+                eventType = statusType;
+
+                // system exclusive message
+                // vendor-specific, terminated by 0xF7
+                // ignoring their whole contents for now since we can't do anything with them anyway
+                if (statusType == 0xF0)
+                {
+                    while (data[i - 1] != 0xF7)
+                        i++;
+
+                    key = velocity = 0;
+                }
+                // other common system messages
+                // fixed size given by MidiEvent.FixedDataSize
+                else
+                {
+                    key = MidiEvent.FixedDataSize(statusType) >= 1 ? data[i++] : (byte)0;
+                    velocity = MidiEvent.FixedDataSize(statusType) == 2 ? data[i++] : (byte)0;
+                }
+
+                runningStatus.Remove(senderId);
+                return;
+            }
+
+            // channel messages
+            // fixed size (varying per event type), set running status
+            eventType = statusType;
+            key = MidiEvent.FixedDataSize(statusType) >= 1 ? data[i++] : (byte)0;
+            velocity = MidiEvent.FixedDataSize(statusType) == 2 ? data[i++] : (byte)0;
+
+            runningStatus[senderId] = eventType;
         }
 
         private void dispatchEvent(byte eventType, byte key, byte velocity)

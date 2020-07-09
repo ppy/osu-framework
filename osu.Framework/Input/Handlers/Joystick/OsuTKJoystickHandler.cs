@@ -63,6 +63,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         private void handleState(JoystickDevice device, JoystickState newState)
         {
             PendingInputs.Enqueue(new JoystickButtonInput(newState.Buttons, device.LastState?.Buttons));
+            PendingInputs.Enqueue(new JoystickAxisInput(newState.GetAxes()));
 
             device.LastState = newState;
         }
@@ -110,16 +111,16 @@ namespace osu.Framework.Input.Handlers.Joystick
                     // do not allow a deadzone below float_epsilon
                     var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
 
-                    if (!Precision.AlmostEquals(value, 0, deadzone))
-                    {
-                        Axes.Add(new JoystickAxis(i, value));
+                    if (Precision.AlmostEquals(value, 0, deadzone))
+                        // Round values in the deadzone to zero.
+                        value = 0;
 
-                        // We're off the center, activate negative / positive button
-                        if (value > deadzone)
-                            Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
-                        else if (value < deadzone * -1)
-                            Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
-                    }
+                    AxesValues[i] = value;
+
+                    if (value > deadzone)
+                        Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
+                    else if (value < -deadzone)
+                        Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
                 }
 
                 // Populate normal buttons
@@ -158,7 +159,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of axes supported by osuTK.
             /// </summary>
-            public const int MAX_AXES = 64;
+            public const int MAX_AXES = JoystickState.MAX_AXES;
 
             /// <summary>
             /// Amount of buttons supported by osuTK.
@@ -173,7 +174,7 @@ namespace osu.Framework.Input.Handlers.Joystick
             /// <summary>
             /// Amount of movement around the "centre" of the axis that counts as moving within the deadzone.
             /// </summary>
-            private const float deadzone_threshold = 0.05f;
+            private const float deadzone_threshold = 0.075f;
 
             /// <summary>
             /// The last state of this <see cref="JoystickDevice"/>.

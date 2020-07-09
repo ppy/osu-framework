@@ -385,6 +385,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
         }
 
+        [Test]
+        public void TestReplaceSelectionWhileLimited()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add limited textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                    Text = "some text",
+                });
+
+                textBox.LengthLimit = textBox.Text.Length;
+            });
+
+            AddStep("focus textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
+            AddStep("insert string", () => textBox.InsertString("another"));
+            AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
+        }
+
         private class InsertableTextBox : BasicTextBox
         {
             /// <summary>

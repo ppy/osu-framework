@@ -32,9 +32,14 @@ namespace osu.Framework.Input
             {
                 case MousePositionChangeEvent mousePositionChange:
                     var mouse = mousePositionChange.State.Mouse;
+
                     // confine cursor
                     if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width, Host.Window.Height));
+                    {
+                        float scale = (Host.Window as DesktopWindow)?.Scale ?? 1f;
+                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width * scale, Host.Window.Height * scale));
+                    }
+
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:

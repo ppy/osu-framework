@@ -60,7 +60,11 @@ namespace osu.Framework.Testing
         /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
         public TestBrowser(string assemblyNamespace = null)
         {
-            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
+            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
+            {
+                Debug.Assert(n.FullName != null);
+                return n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace);
+            }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
@@ -433,7 +437,12 @@ namespace osu.Framework.Testing
             }
             else
             {
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+                TestTypes.RemoveAll(t =>
+                {
+                    Debug.Assert(t.Assembly.FullName != null);
+                    return t.Assembly.FullName.Contains(dynamic_prefix);
+                });
+
                 newTest.DynamicCompilationOriginal = newTest;
             }
 
@@ -484,18 +493,54 @@ namespace osu.Framework.Testing
                 int runCount = 1;
 
                 if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
-                    runCount += (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                {
+                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    Debug.Assert(count != null);
+
+                    runCount += (int)count;
+                }
 
                 for (int i = 0; i < runCount; i++)
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
-                    {
-                        hadTestAttributeTest = true;
-                        CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                    var methodWrapper = new MethodWrapper(m.GetType(), m);
 
-                        handleTestMethod(m);
+                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
+                    {
+                        var parameters = m.GetParameters();
+
+                        if (parameters.Length > 0)
+                        {
+                            var valueMatrix = new List<List<object>>();
+
+                            foreach (var p in methodWrapper.GetParameters())
+                            {
+                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).SingleOrDefault();
+                                if (valueAttrib == null)
+                                    throw new ArgumentException($"Parameter is present on a {nameof(TestAttribute)} method without values specification.", p.ParameterInfo.Name);
+
+                                List<object> choices = new List<object>();
+
+                                foreach (var choice in valueAttrib.GetData(p))
+                                    choices.Add(choice);
+
+                                valueMatrix.Add(choices);
+                            }
+
+                            foreach (var combination in valueMatrix.CartesianProduct())
+                            {
+                                hadTestAttributeTest = true;
+                                CurrentTest.AddLabel($"{name}({string.Join(", ", combination)}){repeatSuffix}");
+                                handleTestMethod(m, combination.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                            handleTestMethod(m);
+                        }
                     }
 
                     foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())

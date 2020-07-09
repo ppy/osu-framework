@@ -53,6 +53,8 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Drawable drawable, Vector2? offset = null) => MoveMouseTo(drawable.ToScreenSpace(drawable.LayoutRectangle.Centre) + (offset ?? Vector2.Zero));
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
+        public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
+
         public void Click(MouseButton button)
         {
             PressButton(button);
@@ -64,6 +66,13 @@ namespace osu.Framework.Testing.Input
 
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
+
+        public void BeginTouch(Touch touch) => Input(new TouchInput(touch, true));
+
+        public void EndTouch(Touch touch) => Input(new TouchInput(touch, false));
+
+        public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
+        public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
 
         private class ManualInputHandler : InputHandler
         {

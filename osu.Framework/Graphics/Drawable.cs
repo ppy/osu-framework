@@ -298,7 +298,10 @@ namespace osu.Framework.Graphics
                 double allowedDuration = blocking ? 16 : 100;
 
                 if (loadDuration > allowedDuration)
-                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance, blocking ? LogLevel.Important : LogLevel.Verbose);
+                {
+                    Logger.Log($@"{ToString()} took {loadDuration:0.00}ms to load" + (blocking ? " (and blocked the update thread)" : " (async)"), LoggingTarget.Performance,
+                        blocking ? LogLevel.Important : LogLevel.Verbose);
+                }
             }
         }
 
@@ -1610,7 +1613,7 @@ namespace osu.Framework.Graphics
                 if ((i & Invalidation.Colour) > 0)
                     return true;
 
-                return !s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour;
+                return !s.Colour.HasSingleColour || (s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour);
             });
 
         /// <summary>
@@ -1744,7 +1747,17 @@ namespace osu.Framework.Graphics
         /// <param name="invalidation">The flags to invalidate with.</param>
         /// <param name="source">The source that triggered the invalidation.</param>
         /// <returns>If any layout was invalidated.</returns>
-        public bool Invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self)
+        public bool Invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self) => invalidate(invalidation, source);
+
+        /// <summary>
+        /// Invalidates the layout of this <see cref="Drawable"/>.
+        /// </summary>
+        /// <param name="invalidation">The flags to invalidate with.</param>
+        /// <param name="source">The source that triggered the invalidation.</param>
+        /// <param name="propagateToParent">Whether to propagate the invalidation to the parent of this <see cref="Drawable"/>.
+        /// Only has an effect if <paramref name="source"/> is <see cref="InvalidationSource.Self"/>.</param>
+        /// <returns>If any layout was invalidated.</returns>
+        private bool invalidate(Invalidation invalidation = Invalidation.All, InvalidationSource source = InvalidationSource.Self, bool propagateToParent = true)
         {
             if (source != InvalidationSource.Child && source != InvalidationSource.Parent && source != InvalidationSource.Self)
                 throw new InvalidOperationException($"A {nameof(Drawable)} can only be invalidated with a singular {nameof(source)} (child, parent, or self).");
@@ -1762,7 +1775,7 @@ namespace osu.Framework.Graphics
             // If the invalidation originated locally, propagate to the immediate parent.
             // Note: This is done _before_ invalidation is blocked below, since the parent always needs to be aware of changes even if the Drawable's invalidation state hasn't changed.
             // This is for only propagating once, otherwise it would propagate all the way to the root Drawable.
-            if (source == InvalidationSource.Self)
+            if (propagateToParent && source == InvalidationSource.Self)
                 Parent?.Invalidate(invalidation, InvalidationSource.Child);
 
             // Perform the invalidation.
@@ -1834,8 +1847,8 @@ namespace osu.Framework.Graphics
         /// <param name="changedAxes">The <see cref="Axes"/> that were affected.</param>
         private void invalidateParentSizeDependencies(Invalidation invalidation, Axes changedAxes)
         {
-            // A parent source is faked so that the invalidation doesn't propagate upwards unnecessarily.
-            Invalidate(invalidation, InvalidationSource.Parent);
+            // We're invalidating the parent manually, so we should not propagate it upwards.
+            invalidate(invalidation, InvalidationSource.Self, false);
 
             // The fast path, which performs an invalidation on the parent along with optimisations for bypassed sizing axes.
             Parent?.InvalidateChildrenSizeDependencies(invalidation, changedAxes, this);
@@ -2027,12 +2040,26 @@ namespace osu.Framework.Graphics
                     OnKeyUp(keyUp);
                     return false;
 
+                case TouchDownEvent touchDown:
+                    return OnTouchDown(touchDown);
+
+                case TouchMoveEvent touchMove:
+                    OnTouchMove(touchMove);
+                    return false;
+
+                case TouchUpEvent touchUp:
+                    OnTouchUp(touchUp);
+                    return false;
+
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
                 case JoystickReleaseEvent joystickRelease:
                     OnJoystickRelease(joystickRelease);
                     return false;
+
+                case JoystickAxisMoveEvent joystickAxisMove:
+                    return OnJoystickAxisMove(joystickAxisMove);
 
                 case MidiDownEvent midiDown:
                     return OnMidiDown(midiDown);
@@ -2097,7 +2124,7 @@ namespace osu.Framework.Graphics
         /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
         /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
         /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
         /// </remarks>
@@ -2186,6 +2213,32 @@ namespace osu.Framework.Graphics
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
 
         /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is active.
+        /// </summary>
+        /// <param name="e">The <see cref="TouchDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
+        /// This will not occur if the touch has been activated then deactivated without moving from its initial position.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchMove(TouchMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is not active.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnTouchDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchUp(TouchUpEvent e) => Handle(e);
+
+        /// <summary>
         /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
         /// </summary>
         /// <param name="e">The <see cref="JoystickPressEvent"/> containing information about the input event.</param>
@@ -2200,6 +2253,13 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <param name="e">The <see cref="JoystickReleaseEvent"/> containing information about the input event.</param>
         protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickAxis"/> is moved.
+        /// </summary>
+        /// <param name="e">The <see cref="JoystickAxisMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnJoystickAxisMove(JoystickAxisMoveEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="MidiKey"/> is pressed.
@@ -2264,6 +2324,7 @@ namespace osu.Framework.Graphics
             private static readonly string[] positional_input_methods =
             {
                 nameof(Handle),
+                nameof(OnMouseMove),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -2276,7 +2337,9 @@ namespace osu.Framework.Graphics
                 nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnMouseMove)
+                nameof(OnTouchDown),
+                nameof(OnTouchMove),
+                nameof(OnTouchUp)
             };
 
             private static readonly string[] non_positional_input_methods =
@@ -2287,7 +2350,8 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyDown),
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
-                nameof(OnJoystickRelease)
+                nameof(OnJoystickRelease),
+                nameof(OnJoystickAxisMove)
             };
 
             private static readonly Type[] positional_input_interfaces =

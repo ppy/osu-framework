@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using NUnit.Framework;
@@ -59,6 +60,7 @@ namespace osu.Framework.Tests.Bindables
         public void TestParse(Type type, object input, object output)
         {
             IBindable bindable = (IBindable)Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
+            Debug.Assert(bindable != null);
 
             bindable.Parse(input);
             object value = bindable.GetType().GetProperty(nameof(Bindable<object>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);

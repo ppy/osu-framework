@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Input.Handlers;
 using Foundation;
-using UIKit;
-using osuTK.Input;
-using osu.Framework.Platform;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
+using osuTK.Input;
+using UIKit;
 
 namespace osu.Framework.iOS.Input
 {

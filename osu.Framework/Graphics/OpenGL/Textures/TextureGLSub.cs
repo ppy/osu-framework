@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly TextureGL parent;
         private RectangleI bounds;
 
+        public override RectangleI Bounds => bounds;
+
         public override TextureGL Native => parent.Native;
 
         public override int TextureId => parent.TextureId;
@@ -97,7 +99,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
         }
 
-        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT)
+        internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
             {
@@ -118,7 +120,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = adjustedBounds;
             }
 
-            parent?.SetData(upload, wrapModeS, wrapModeT);
+            UpdateOpacity(upload, ref uploadOpacity);
+            parent?.SetData(upload, wrapModeS, wrapModeT, uploadOpacity);
         }
     }
 }

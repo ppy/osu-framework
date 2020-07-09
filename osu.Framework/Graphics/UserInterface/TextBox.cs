@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -426,18 +428,23 @@ namespace osu.Framework.Graphics.UserInterface
         private void removeSelection() => removeCharacters(selectionLength);
 
         /// <summary>
-        /// Removes a specified amount of characters left side of the current position.
+        /// Removes a specified <paramref name="number"/> of characters left side of the current position.
         /// </summary>
-        private void removeCharacters(int amount = 1)
+        /// <remarks>
+        /// If a selection persists, <see cref="removeSelection"/> must be called instead.
+        /// </remarks>
+        private void removeCharacters(int number = 1)
         {
             if (Current.Disabled || text.Length == 0)
                 return;
 
-            int removeStart = Math.Clamp(selectionRight - amount, 0, selectionRight);
+            int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
             int removeCount = selectionRight - removeStart;
 
             if (removeCount == 0)
                 return;
+
+            Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
 
             audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
@@ -462,13 +469,7 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = removeStart; i < TextFlow.Count; i++)
                 TextFlow.ChangeChildDepth(TextFlow[i], getDepthForCharacterIndex(i));
 
-            if (removeCount >= selectionLength)
-                selectionStart = selectionEnd = removeStart;
-            else
-            {
-                selectionStart = selectionLeft;
-                selectionEnd = removeStart;
-            }
+            selectionStart = selectionEnd = removeStart;
 
             cursorAndLayout.Invalidate();
         }
@@ -510,13 +511,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
-        /// <summary>
-        /// Insert an arbitrary string at the current position.
-        /// </summary>
-        /// <param name="value">The string of text to insert.</param>
-        /// <param name="onDrawableCreated">An action invoked whenever a new character drawable is created.</param>
-        protected void InsertString(string value, Action<char, Drawable> onDrawableCreated = null)
+        protected void InsertString(string value) => insertString(value);
+
+        private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
+            StringBuilder inserted = new StringBuilder();
+
             if (string.IsNullOrEmpty(value)) return;
 
             if (Current.Disabled)
@@ -524,9 +524,6 @@ namespace osu.Framework.Graphics.UserInterface
                 NotifyInputError();
                 return;
             }
-
-            if (selectionLength > 0)
-                removeSelection();
 
             foreach (char c in value)
             {
@@ -536,24 +533,30 @@ namespace osu.Framework.Graphics.UserInterface
                     continue;
                 }
 
+                if (selectionLength > 0)
+                    removeSelection();
+
                 if (text.Length + 1 > LengthLimit)
                 {
                     NotifyInputError();
                     break;
                 }
 
-                Drawable ch = AddCharacterToFlow(c);
-                ch.Show();
+                Drawable drawable = AddCharacterToFlow(c);
 
-                onDrawableCreated?.Invoke(c, ch);
+                drawable.Show();
+                drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+                inserted.Append(c);
+
                 selectionStart = selectionEnd = selectionLeft + 1;
+
+                cursorAndLayout.Invalidate();
             }
 
-            OnTextAdded(value);
-
-            cursorAndLayout.Invalidate();
+            if (inserted.Length > 0)
+                OnTextAdded(inserted.ToString());
         }
 
         /// <summary>
@@ -646,7 +649,6 @@ namespace osu.Framework.Graphics.UserInterface
                     selectionStart = selectionEnd = 0;
                     TextFlow?.Clear();
 
-                    text = string.Empty;
                     InsertString(value);
 
                     selectionStart = Math.Clamp(startBefore, 0, text.Length);
@@ -964,17 +966,14 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             if (matchCount == s.Length)
-            {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 return;
-            }
 
-            // Add the rest of the new / modified characters.
-            InsertString(s.Substring(matchCount), (_, dr) =>
+            insertString(s.Substring(matchCount), d =>
             {
-                dr.Colour = Color4.Aqua;
-                dr.Alpha = 0.6f;
-                imeDrawables.Add(dr);
+                d.Colour = Color4.Aqua;
+                d.Alpha = 0.6f;
+                imeDrawables.Add(d);
             });
 
             audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
