@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Pooling
         private IDrawablePool pool;
 
         /// <summary>
-        /// A flag to keep the drawable present to guarantee <see cref="prepare"/> can be performed as a scheduled call.
+        /// A flag to keep the drawable present to guarantee the prepare call can be performed as a scheduled call.
         /// </summary>
         private bool waitingForPrepare;
 
