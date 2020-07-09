@@ -70,9 +70,9 @@ namespace osu.Framework.Graphics.Pooling
         }
 
         /// <summary>
-        /// Get a drawable
+        /// Get a drawable from this pool.
         /// </summary>
-        /// <param name="setupAction"></param>
+        /// <param name="setupAction">An optional action to be performed on this drawable immediately after retrieval. Should generally be used to prepare the drawable into a usable state.</param>
         /// <returns></returns>
         public T Get(Action<T> setupAction = null)
         {
