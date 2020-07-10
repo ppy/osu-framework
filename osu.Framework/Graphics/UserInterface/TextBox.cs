@@ -246,6 +246,7 @@ namespace osu.Framework.Graphics.UserInterface
                     case PlatformActionMethod.Delete:
                         if (selectionLength == 0)
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
+
                         if (selectionLength > 0)
                             removeSelection();
 
@@ -502,10 +503,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
-        /// <summary>
-        /// Insert an arbitrary string into this <see cref="TextBox"/> at the current position.
-        /// </summary>
-        /// <param name="value">The string of text to insert.</param>
         protected void InsertString(string value) => insertString(value);
 
         private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
