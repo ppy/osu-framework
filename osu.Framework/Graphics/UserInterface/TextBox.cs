@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -250,6 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
                     case PlatformActionMethod.Delete:
                         if (selectionLength == 0)
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
+
                         if (selectionLength > 0)
                             removeSelection();
 
@@ -415,6 +417,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
                 audio.Samples.Get(@"Keyboard/key-movement")?.Play();
+                OnCaretMoved(expand);
                 cursorAndLayout.Invalidate();
             }
         }
@@ -458,7 +461,9 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
+            var removedText = text.Substring(removeStart, removeCount);
             text = text.Remove(removeStart, removeCount);
+            OnTextRemoved(removedText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = removeStart; i < TextFlow.Count; i++)
@@ -506,14 +511,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
-        /// <summary>
-        /// Insert an arbitrary string into the text at the current position.
-        /// </summary>
-        /// <param name="value">The string of text to insert.</param>
         protected void InsertString(string value) => insertString(value);
 
         private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
+            StringBuilder inserted = new StringBuilder();
+
             if (string.IsNullOrEmpty(value)) return;
 
             if (Current.Disabled)
@@ -545,16 +548,53 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
+                inserted.Append(c);
+
                 selectionStart = selectionEnd = selectionLeft + 1;
 
                 cursorAndLayout.Invalidate();
             }
+
+            if (inserted.Length > 0)
+                OnTextAdded(inserted.ToString());
         }
 
         /// <summary>
         /// Called whenever an invalid character has been entered
         /// </summary>
         protected abstract void NotifyInputError();
+
+        /// <summary>
+        /// Invoked whenever a text string has been inserted to <see cref="Text"/>.
+        /// </summary>
+        /// <param name="added">The inserted text string.</param>
+        protected virtual void OnTextAdded(string added)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever a text string has been removed from <see cref="Text"/>.
+        /// </summary>
+        /// <param name="removed">The removed text string.</param>
+        protected virtual void OnTextRemoved(string removed)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever a text string has been committed to the textbox.
+        /// </summary>
+        /// <param name="textChanged">Whether the current text string is different than the last committed.</param>
+        protected virtual void OnTextCommitted(bool textChanged)
+        {
+        }
+
+        /// <summary>
+        /// Invoked whenever the caret has moved from its position.
+        /// </summary>
+        /// <param name="selecting">Whether the caret is selecting text while moving.</param>
+        protected virtual void OnCaretMoved(bool selecting)
+        {
+        }
 
         /// <summary>
         /// Creates a placeholder that shows whenever the textbox is empty. Override <see cref="Drawable.Show"/> or <see cref="Drawable.Hide"/> for custom behavior.
@@ -608,8 +648,8 @@ namespace osu.Framework.Graphics.UserInterface
                     int startBefore = selectionStart;
                     selectionStart = selectionEnd = 0;
                     TextFlow?.Clear();
-                    text = string.Empty;
 
+                    text = string.Empty;
                     InsertString(value);
 
                     selectionStart = Math.Clamp(startBefore, 0, text.Length);
@@ -663,6 +703,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Schedule(consumePendingText);
         }
 
+        #region Input event handling
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
@@ -707,6 +749,9 @@ namespace osu.Framework.Graphics.UserInterface
                 manager.ChangeFocus(null);
         }
 
+        /// <summary>
+        /// Commits current text on this <see cref="TextBox"/> and releases focus if <see cref="ReleaseFocusOnCommit"/> is set.
+        /// </summary>
         protected virtual void Commit()
         {
             if (ReleaseFocusOnCommit && HasFocus)
@@ -719,7 +764,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
 
+            OnTextCommitted(hasNewComittableText);
             OnCommit?.Invoke(this, hasNewComittableText);
+
             lastCommitText = text;
         }
 
@@ -861,7 +908,9 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        #region Native TextBox handling (winform specific)
+        #endregion
+
+        #region Native TextBox handling (platform-specific)
 
         private void unbindInput()
         {
@@ -878,7 +927,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                foreach (Drawable d in imeDrawables)
+                foreach (var d in imeDrawables)
                 {
                     d.Colour = Color4.White;
                     d.FadeTo(1, 200, Easing.Out);
