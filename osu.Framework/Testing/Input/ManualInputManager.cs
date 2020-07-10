@@ -38,7 +38,7 @@ namespace osu.Framework.Testing.Input
                     return;
 
                 showVisualCursorGuide = value;
-                testCursor.Alpha = value ? 1 : 0;
+                testCursor.State.Value = value ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
