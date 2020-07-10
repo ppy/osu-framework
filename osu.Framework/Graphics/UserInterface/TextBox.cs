@@ -10,13 +10,11 @@ using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Platform;
@@ -52,9 +50,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
-
-        [Resolved]
-        private AudioManager audio { get; set; }
 
         /// <summary>
         /// Whether this TextBox should accept left and right arrow keys for navigation.
@@ -416,7 +411,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                audio.Samples.Get(@"Keyboard/key-movement")?.Play();
                 OnCaretMoved(expand);
                 cursorAndLayout.Invalidate();
             }
@@ -445,8 +439,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
-
-            audio.Samples.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -690,14 +682,7 @@ namespace osu.Framework.Graphics.UserInterface
             string pendingText = textInput?.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
-            {
-                if (pendingText.Any(char.IsUpper))
-                    audio.Samples.Get(@"Keyboard/key-caps")?.Play();
-                else
-                    audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-
                 InsertString(pendingText);
-            }
 
             if (consumingText)
                 Schedule(consumePendingText);
@@ -761,8 +746,6 @@ namespace osu.Framework.Graphics.UserInterface
                     // the commit will happen as a result of the focus loss.
                     return;
             }
-
-            audio.Samples.Get(@"Keyboard/key-confirm")?.Play();
 
             OnTextCommitted(hasNewComittableText);
             OnCommit?.Invoke(this, hasNewComittableText);
@@ -976,8 +959,6 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Alpha = 0.6f;
                 imeDrawables.Add(d);
             });
-
-            audio.Samples.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion
