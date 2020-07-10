@@ -21,6 +21,15 @@ namespace osu.Framework.Tests.Dependencies
         }
 
         [Test]
+        public void TestModelWithNonReadOnlyFieldsFails()
+        {
+            IReadOnlyDependencyContainer unused;
+
+            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<NonReadOnlyFieldModel>(null));
+            Assert.Throws<TypeInitializationException>(() => unused = new CachedModelDependencyContainer<PropertyModel>(null));
+        }
+
+        [Test]
         public void TestSettingNoModelResolvesDefault()
         {
             var resolver = new FieldModelResolver();
@@ -48,10 +57,10 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestModelWithBindablePropertiesPropagatesToChildren()
         {
-            var resolver = new PropertyModelResolver();
-            var dependencies = new CachedModelDependencyContainer<PropertyModel>(null)
+            var resolver = new FieldModelResolver();
+            var dependencies = new CachedModelDependencyContainer<FieldModel>(null)
             {
-                Model = { Value = new PropertyModel { Bindable = { Value = 2 } } }
+                Model = { Value = new FieldModel { Bindable = { Value = 2 } } }
             };
 
             dependencies.Inject(resolver);
@@ -62,10 +71,10 @@ namespace osu.Framework.Tests.Dependencies
         [Test]
         public void TestChangeModelValuePropagatesToChildren()
         {
-            var resolver = new PropertyModelResolver();
-            var dependencies = new CachedModelDependencyContainer<PropertyModel>(null)
+            var resolver = new FieldModelResolver();
+            var dependencies = new CachedModelDependencyContainer<FieldModel>(null)
             {
-                Model = { Value = new PropertyModel { Bindable = { Value = 2 } } }
+                Model = { Value = new FieldModel { Bindable = { Value = 2 } } }
             };
 
             dependencies.Inject(resolver);
@@ -259,27 +268,34 @@ namespace osu.Framework.Tests.Dependencies
         private class NonBindablePublicFieldModel
         {
 #pragma warning disable 649
-            public int FailingField;
+            public readonly int FailingField;
 #pragma warning restore 649
         }
 
         private class NonBindablePrivateFieldModel
         {
 #pragma warning disable 169
-            private int failingField;
+            private readonly int failingField;
 #pragma warning restore 169
+        }
+
+        private class NonReadOnlyFieldModel
+        {
+#pragma warning disable 649
+            public Bindable<int> Bindable;
+#pragma warning restore 649
+        }
+
+        private class PropertyModel
+        {
+            // ReSharper disable once UnusedMember.Local
+            public Bindable<int> Bindable { get; private set; }
         }
 
         private class FieldModel
         {
             [Cached]
             public readonly Bindable<int> Bindable = new Bindable<int>(1);
-        }
-
-        private class PropertyModel
-        {
-            [Cached]
-            public Bindable<int> Bindable { get; private set; } = new Bindable<int>(1);
         }
 
         private class DerivedFieldModel : FieldModel
@@ -292,12 +308,6 @@ namespace osu.Framework.Tests.Dependencies
         {
             [Resolved]
             public FieldModel Model { get; private set; }
-        }
-
-        private class PropertyModelResolver
-        {
-            [Resolved]
-            public PropertyModel Model { get; private set; }
         }
 
         private class DerivedFieldModelResolver
