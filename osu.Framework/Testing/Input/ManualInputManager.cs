@@ -23,7 +23,28 @@ namespace osu.Framework.Testing.Input
 
         protected override Container<Drawable> Content => content;
 
+        private bool showVisualCursorGuide = true;
+
+        /// <summary>
+        /// Whether to show a visible cursor tracking position and clicks.
+        /// Generally should be enabled unless it blocks the test's content.
+        /// </summary>
+        public bool ShowVisualCursorGuide
+        {
+            get => showVisualCursorGuide;
+            set
+            {
+                if (value == showVisualCursorGuide)
+                    return;
+
+                showVisualCursorGuide = value;
+                testCursor.Alpha = value ? 1 : 0;
+            }
+        }
+
         private readonly Container content;
+
+        private readonly TestCursorContainer testCursor;
 
         public ManualInputManager()
         {
@@ -33,7 +54,7 @@ namespace osu.Framework.Testing.Input
             InternalChildren = new Drawable[]
             {
                 content = new Container { RelativeSizeAxes = Axes.Both },
-                new TestCursorContainer(),
+                testCursor = new TestCursorContainer(),
             };
         }
 
