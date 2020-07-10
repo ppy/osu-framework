@@ -4,12 +4,12 @@
 using System;
 using Android.Content;
 using Android.Runtime;
+using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Views.InputMethods;
-using Android.Text;
-using osuTK.Graphics;
 using osu.Framework.Android.Input;
+using osuTK.Graphics;
 
 namespace osu.Framework.Android
 {
@@ -126,8 +126,8 @@ namespace osu.Framework.Android
             // (see: https://github.com/ppy/osu/issues/6264 and linked related mono/xamarin issues)
             // to be removed when upstream fixes come in
             return ex is AggregateException ae
-                && ae.InnerException is ObjectDisposedException ode
-                && ode.ObjectName == "MobileAuthenticatedStream";
+                   && ae.InnerException is ObjectDisposedException ode
+                   && ode.ObjectName == "MobileAuthenticatedStream";
         }
 
         public override bool OnCheckIsTextEditor() => true;

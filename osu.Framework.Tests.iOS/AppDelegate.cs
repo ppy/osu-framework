@@ -4,7 +4,7 @@
 using Foundation;
 using osu.Framework.iOS;
 
-namespace osu.Framework.Tests.iOS
+namespace osu.Framework.Tests
 {
     [Register("AppDelegate")]
     public class AppDelegate : GameAppDelegate

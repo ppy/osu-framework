@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureGLAtlasWhite(TextureGLSingle parent)
             : base(new RectangleI(0, 0, 1, 1), parent)
         {
+            Opacity = Opacity.Opaque;
         }
 
         internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)

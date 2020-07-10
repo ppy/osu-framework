@@ -6,7 +6,7 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// A channel playing back an audio sample.
     /// </summary>
-    public interface ISampleChannel
+    public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
         /// Start playback.

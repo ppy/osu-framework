@@ -610,6 +610,8 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDragStart(DragStartEvent e)
             {
+                if (e.Button != MouseButton.Left) return false;
+
                 dragOffset = e.MousePosition[(int)ScrollDirection] - Position[(int)ScrollDirection];
                 return true;
             }

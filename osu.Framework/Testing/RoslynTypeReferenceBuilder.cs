@@ -265,7 +265,7 @@ namespace osu.Framework.Testing
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
                 // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
-                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass.Name.Contains(exclude_attribute_name)))
+                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass?.Name.Contains(exclude_attribute_name) ?? false))
                 {
                     logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
                     return;

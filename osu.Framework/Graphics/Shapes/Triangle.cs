@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using osuTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shapes
 {
@@ -45,6 +46,16 @@ namespace osu.Framework.Graphics.Shapes
             {
                 DrawTriangle(Texture, toTriangle(ScreenSpaceDrawQuad), DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
+            }
+
+            protected override void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
+            {
+                var triangle = toTriangle(ConservativeScreenSpaceDrawQuad);
+
+                if (GLWrapper.IsMaskingActive)
+                    DrawClipped(ref triangle, Texture, DrawColourInfo.Colour, vertexAction: vertexAction);
+                else
+                    DrawTriangle(Texture, triangle, DrawColourInfo.Colour, vertexAction: vertexAction);
             }
         }
     }

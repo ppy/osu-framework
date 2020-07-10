@@ -14,8 +14,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public bool IsTransparent;
-
         /// <summary>
         /// The texture wrap mode in horizontal direction.
         /// </summary>
@@ -26,7 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public readonly WrapMode WrapModeT;
 
-        protected TextureGL(WrapMode wrapModeS, WrapMode wrapModeT)
+        protected TextureGL(WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             WrapModeS = wrapModeS;
             WrapModeT = wrapModeT;
@@ -74,11 +72,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public abstract bool Loaded { get; }
 
+        public Opacity Opacity { get; protected set; } = Opacity.Mixed;
+
         public abstract int TextureId { get; }
 
         public abstract int Height { get; set; }
 
         public abstract int Width { get; set; }
+
+        public abstract RectangleI Bounds { get; }
 
         public Vector2 Size => new Vector2(Width, Height);
 
@@ -140,7 +142,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Sets the pixel data of this <see cref="TextureGL"/>.
         /// </summary>
         /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
-        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT);
+        public void SetData(ITextureUpload upload) => SetData(upload, WrapModeS, WrapModeT, null);
 
         /// <summary>
         /// Sets the pixel data of this <see cref="TextureGLAtlas"/>.
@@ -148,7 +150,51 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <param name="upload">The <see cref="ITextureUpload"/> containing the data.</param>
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
-        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT);
+        /// <param name="uploadOpacity">Whether the upload is opaque, transparent, or a mix of both..</param>
+        internal abstract void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity);
+
+        protected static Opacity ComputeOpacity(ITextureUpload upload)
+        {
+            // TODO: Investigate performance issues and revert functionality once we are sure there is no overhead.
+            // see https://github.com/ppy/osu/issues/9307
+            return Opacity.Mixed;
+
+            // if (upload.Data.Length == 0)
+            //     return Opacity.Transparent;
+            //
+            // bool isTransparent = true;
+            // bool isOpaque = true;
+            //
+            // for (int i = 0; i < upload.Data.Length; ++i)
+            // {
+            //     isTransparent &= upload.Data[i].A == 0;
+            //     isOpaque &= upload.Data[i].A == 255;
+            //
+            //     if (!isTransparent && !isOpaque)
+            //         return Opacity.Mixed;
+            // }
+            //
+            // if (isTransparent)
+            //     return Opacity.Transparent;
+            //
+            // return Opacity.Opaque;
+        }
+
+        protected void UpdateOpacity(ITextureUpload upload, ref Opacity? uploadOpacity)
+        {
+            // Compute opacity if it doesn't have a value yet
+            uploadOpacity ??= ComputeOpacity(upload);
+
+            // Update the texture's opacity depending on the upload's opacity.
+            // If the upload covers the entire bounds of the texture, it fully
+            // determines the texture's opacity. Otherwise, it can only turn
+            // the texture's opacity into a mixed state (if it disagrees with
+            // the texture's existing opacity).
+            if (upload.Bounds == Bounds && upload.Level == 0)
+                Opacity = uploadOpacity.Value;
+            else if (uploadOpacity.Value != Opacity)
+                Opacity = Opacity.Mixed;
+        }
     }
 
     public enum WrapMode
@@ -172,5 +218,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Repeats the texture.
         /// </summary>
         Repeat = 3,
+    }
+
+    public enum Opacity
+    {
+        Opaque,
+        Mixed,
+        Transparent,
     }
 }

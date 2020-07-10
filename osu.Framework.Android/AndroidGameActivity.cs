@@ -1,13 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using osu.Framework.Platform;
+using Process = System.Diagnostics.Process;
 
 namespace osu.Framework.Android
 {
@@ -60,10 +59,13 @@ namespace osu.Framework.Android
             {
                 host.AllowScreenSuspension.BindValueChanged(allow =>
                 {
-                    if (allow.NewValue)
-                        Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-                    else
-                        Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    RunOnUiThread(() =>
+                    {
+                        if (allow.NewValue)
+                            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        else
+                            Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    });
                 }, true);
             };
         }
@@ -72,7 +74,7 @@ namespace osu.Framework.Android
         {
             base.OnPause();
             // Because Android is not playing nice with Background - we just kill it
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            Process.GetCurrentProcess().Kill();
         }
 
         public override void OnBackPressed()

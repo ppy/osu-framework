@@ -23,7 +23,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="Markdig" Version="0.20.0" />
-    <PackageReference Include="FFmpeg.AutoGen" Version="4.2.2.2" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.0.3" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
@@ -37,9 +37,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.159" />
-    <PackageReference Include="StbiSharp" Version="1.0.11" />
-    <PackageReference Include="Veldrid.Sdl2" Version="4.7.0" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" /> <!-- Can be removed after removing Veldrid.Sdl2 -->
+    <PackageReference Include="StbiSharp" Version="1.0.12" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.15" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.

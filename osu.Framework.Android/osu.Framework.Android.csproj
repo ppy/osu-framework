@@ -26,6 +26,6 @@
     <PackageReference Include="ppy.osuTK.Android" Version="1.0.159" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so"/>
+    <EmbeddedNativeLibrary Include="$(MSBuildThisFileDirectory)\**\*.so" />
   </ItemGroup>
 </Project>

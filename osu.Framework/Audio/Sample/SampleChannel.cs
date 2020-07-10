@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System;
+using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -52,5 +53,7 @@ namespace osu.Framework.Audio.Sample
         public virtual bool Played => WasStarted && !Playing;
 
         public override bool IsAlive => base.IsAlive && !Played;
+
+        public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
     }
 }

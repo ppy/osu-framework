@@ -240,6 +240,8 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
+            Debug.Assert(args.Exception != null);
+
             args.Exception.Data["unhandled"] = "unobserved";
             handleException(args.Exception);
         }
@@ -354,6 +356,7 @@ namespace osu.Framework.Platform
                     {
                         var depthValue = new DepthValue();
 
+                        GL.ColorMask(false, false, false, false);
                         GLWrapper.SetBlend(BlendingParameters.None);
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
@@ -361,6 +364,7 @@ namespace osu.Framework.Platform
                         buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
 
                         GLWrapper.PopDepthInfo();
+                        GL.ColorMask(true, true, true, true);
 
                         // The back pass doesn't write depth, but needs to depth test properly
                         GLWrapper.PushDepthInfo(new DepthInfo(true, false));
@@ -416,7 +420,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDLWindow win)
+                    if (Window is DesktopWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
@@ -510,11 +514,11 @@ namespace osu.Framework.Platform
                 var assembly = DebugUtils.GetEntryAssembly();
 
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version.ToString();
+                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
 
-                Dependencies.CacheAs(Storage = CreateGameStorage());
+                Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
                 SetupForRun();
 
@@ -528,6 +532,8 @@ namespace osu.Framework.Platform
                 {
                     Window.SetupWindow(Config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    Window.Create();
 
                     IsActive.BindTo(Window.IsActive);
                 }
@@ -555,7 +561,7 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        if (Window is SDLWindow window)
+                        if (Window is DesktopWindow window)
                             window.Update += windowUpdate;
                         else
                             Window.UpdateFrame += (o, e) => windowUpdate();
@@ -586,7 +592,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        /// <summary>
+        /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
+        /// </summary>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.

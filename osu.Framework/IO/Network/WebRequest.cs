@@ -274,7 +274,9 @@ namespace osu.Framework.IO.Network
 
                             postContent = new MemoryStream();
                             rawContent.Position = 0;
-                            rawContent.CopyTo(postContent);
+
+                            await rawContent.CopyToAsync(postContent, linkedToken.Token);
+
                             postContent.Position = 0;
                         }
                         else
@@ -565,8 +567,7 @@ namespace osu.Framework.IO.Network
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
-            if (rawContent == null)
-                rawContent = new MemoryStream();
+            rawContent ??= new MemoryStream();
 
             stream.CopyTo(rawContent);
         }

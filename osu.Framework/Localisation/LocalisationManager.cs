@@ -57,8 +57,7 @@ namespace osu.Framework.Localisation
                         break;
                 }
 
-                if (validLocale == null)
-                    validLocale = locales[0];
+                validLocale ??= locales[0];
             }
 
             if (validLocale.Name != args.NewValue)

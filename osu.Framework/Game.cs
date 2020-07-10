@@ -76,6 +76,14 @@ namespace osu.Framework
         /// </summary>
         protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
 
+        /// <summary>
+        /// Creates the <see cref="Storage"/> where this <see cref="Game"/> will reside.
+        /// </summary>
+        /// <param name="host">The <see cref="GameHost"/>.</param>
+        /// <param name="defaultStorage">The default <see cref="Storage"/> to be used if a custom <see cref="Storage"/> isn't desired.</param>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected internal virtual Storage CreateStorage(GameHost host, Storage defaultStorage) => defaultStorage;
+
         protected Game()
         {
             RelativeSizeAxes = Axes.Both;
@@ -195,8 +203,9 @@ namespace osu.Framework
         /// </summary>
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
-        public void AddFont(ResourceStore<byte[]> store, string assetName = null)
-            => addFont(Fonts, store, assetName);
+        /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
+            => addFont(target ?? Fonts, store, assetName);
 
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
