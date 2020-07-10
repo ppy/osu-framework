@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -248,6 +250,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("scroll hasn't changed", () => list.ScrollPosition == scrollPosition);
         }
 
+        [Test]
+        public void TestRemoveDuringLoadAndReAdd()
+        {
+            TestDelayedLoadRearrangeableList delayedList = null;
+
+            AddStep("create list", () => Child = delayedList = new TestDelayedLoadRearrangeableList());
+
+            AddStep("add item 1", () => delayedList.Items.Add(1));
+            AddStep("remove item 1", () => delayedList.Items.Remove(1));
+            AddStep("add item 1", () => delayedList.Items.Add(1));
+            AddStep("allow load", () => delayedList.AllowLoad.Release(100));
+
+            AddAssert("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
@@ -303,6 +320,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public void ScrollTo(int item)
                 => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
+        }
+
+        private class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
+        {
+            public readonly SemaphoreSlim AllowLoad = new SemaphoreSlim(0, 100);
+
+            protected override BasicRearrangeableListItem<int> CreateBasicItem(int item) => new TestRearrangeableListItem(item, AllowLoad);
+
+            private class TestRearrangeableListItem : BasicRearrangeableListItem<int>
+            {
+                private readonly SemaphoreSlim allowLoad;
+
+                public TestRearrangeableListItem(int item, SemaphoreSlim allowLoad)
+                    : base(item, false)
+                {
+                    this.allowLoad = allowLoad;
+                }
+
+                [BackgroundDependencyLoader]
+                private void load()
+                {
+                    if (!allowLoad.Wait(TimeSpan.FromSeconds(10)))
+                        throw new TimeoutException();
+                }
+            }
         }
     }
 }

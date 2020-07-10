@@ -149,8 +149,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 foreach (var d in drawables.Cast<RearrangeableListItem<TModel>>())
                 {
-                    // We shouldn't add items that were removed during the async load
-                    if (itemMap.ContainsKey(d.Model))
+                    // Don't add drawables whose models were removed during the async load, or drawables that are no longer attached to the contained model.
+                    if (itemMap.TryGetValue(d.Model, out var modelDrawable) && modelDrawable == d)
                         ListContainer.Add(d);
                 }
 
