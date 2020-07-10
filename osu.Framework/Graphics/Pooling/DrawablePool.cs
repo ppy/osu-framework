@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Pooling
         private readonly Stack<T> pool = new Stack<T>();
 
         /// <summary>
-        /// create a new pool instance.
+        /// Create a new pool instance.
         /// </summary>
         /// <param name="initialSize">The number of drawables to be prepared for initial consumption.</param>
         /// <param name="maximumSize">An optional maximum size after which the pool will no longer be expanded.</param>
@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Pooling
         /// Get a drawable from this pool.
         /// </summary>
         /// <param name="setupAction">An optional action to be performed on this drawable immediately after retrieval. Should generally be used to prepare the drawable into a usable state.</param>
-        /// <returns></returns>
+        /// <returns>The drawable.</returns>
         public T Get(Action<T> setupAction = null)
         {
             if (!pool.TryPop(out var drawable))
