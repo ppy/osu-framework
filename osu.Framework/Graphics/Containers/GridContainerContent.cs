@@ -10,14 +10,29 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Implements a jagged array behavior with element change notifications
     /// </summary>
-    public class GridContainerContent : IReadOnlyList<GridContainerContent.ArrayWrapper<Drawable>>, IEquatable<GridContainerContent>
+    public class GridContainerContent : IList<IList<Drawable>>, IEquatable<GridContainerContent>
     {
         public event Action ContentChanged;
 
-        public ArrayWrapper<Drawable> this[int index]
+        public int IndexOf(IList<Drawable> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Insert(int index, IList<Drawable> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new NotSupportedException();
+        }
+
+        public IList<Drawable> this[int index]
         {
             get => wrappedArray[index];
-            set => wrappedArray[index] = value;
+            set => wrappedArray[index] = value as ArrayWrapper<Drawable>;
         }
 
         public static implicit operator Drawable[][](GridContainerContent content) => content.source;
@@ -42,8 +57,9 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (drawables[i] != null)
                     {
-                        this[i] = new ArrayWrapper<Drawable>(drawables[i]);
-                        this[i].ArrayElementChanged += onArrayElementChanged;
+                        var arrayWrapper = new ArrayWrapper<Drawable>(drawables[i]);
+                        this[i] = arrayWrapper;
+                        arrayWrapper.ArrayElementChanged += onArrayElementChanged;
                     }
                 }
             }
@@ -58,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
         /// Wraps an array and provides a custom indexer with element change notification
         /// </summary>
         /// <typeparam name="T">An array data type</typeparam>
-        public class ArrayWrapper<T> : IReadOnlyList<T>
+        private class ArrayWrapper<T> : IList<T>
         {
             public event Action ArrayElementChanged;
 
@@ -67,6 +83,21 @@ namespace osu.Framework.Graphics.Containers
             public ArrayWrapper(T[] arrayToWrap)
             {
                 wrappedArray = arrayToWrap;
+            }
+
+            public int IndexOf(T item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void Insert(int index, T item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void RemoveAt(int index)
+            {
+                throw new NotSupportedException();
             }
 
             public T this[int index]
@@ -92,10 +123,36 @@ namespace osu.Framework.Graphics.Containers
                 return wrappedArray.GetEnumerator();
             }
 
+            public void Add(T item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void Clear()
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool Contains(T item)
+            {
+                throw new NotSupportedException();
+            }
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool Remove(T item)
+            {
+                throw new NotSupportedException();
+            }
+
             public int Count => wrappedArray.Length;
+            public bool IsReadOnly => true;
         }
 
-        public IEnumerator<ArrayWrapper<Drawable>> GetEnumerator()
+        public IEnumerator<IList<Drawable>> GetEnumerator()
         {
             return ((IEnumerable<ArrayWrapper<Drawable>>)wrappedArray).GetEnumerator();
         }
@@ -105,7 +162,33 @@ namespace osu.Framework.Graphics.Containers
             return wrappedArray.GetEnumerator();
         }
 
+        public void Add(IList<Drawable> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool Contains(IList<Drawable> item)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void CopyTo(IList<Drawable>[] array, int arrayIndex)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool Remove(IList<Drawable> item)
+        {
+            throw new NotSupportedException();
+        }
+
         public int Count => wrappedArray.Count;
+        public bool IsReadOnly => true;
 
         public bool Equals(GridContainerContent other)
         {
@@ -113,6 +196,11 @@ namespace osu.Framework.Graphics.Containers
             if (ReferenceEquals(this, other)) return true;
 
             return source == other.source;
+        }
+
+        IEnumerator<IList<Drawable>> IEnumerable<IList<Drawable>>.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public override bool Equals(object obj)
