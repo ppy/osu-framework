@@ -32,7 +32,17 @@ namespace osu.Framework.Graphics.Containers
         public IList<Drawable> this[int index]
         {
             get => wrappedArray[index];
-            set => wrappedArray[index] = value as ArrayWrapper<Drawable>;
+            set
+            {
+                if (value is ArrayWrapper<Drawable> drawables)
+                {
+                    if (wrappedArray[index] != null)
+                        wrappedArray[index].ArrayElementChanged -= onArrayElementChanged;
+
+                    wrappedArray[index] = drawables;
+                    drawables.ArrayElementChanged += onArrayElementChanged;
+                }
+            }
         }
 
         public static implicit operator Drawable[][](GridContainerContent content) => content.source;
