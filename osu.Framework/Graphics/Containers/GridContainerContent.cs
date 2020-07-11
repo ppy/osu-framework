@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
 
         public IEnumerator<IList<Drawable>> GetEnumerator()
         {
-            return ((IEnumerable<ArrayWrapper<Drawable>>)wrappedArray).GetEnumerator();
+            return wrappedArray.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
