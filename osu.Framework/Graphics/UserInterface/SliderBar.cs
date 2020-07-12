@@ -21,6 +21,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float RangePadding;
 
+        /// <summary>
+        /// Whether keyboard control should be allowed even when the bar is not hovered.
+        /// </summary>
+        protected virtual bool AllowKeyboardInputWhenNotHovered => false;
+
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         /// <summary>
@@ -155,7 +160,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (!IsHovered || currentNumberInstantaneous.Disabled)
+            if ((!AllowKeyboardInputWhenNotHovered && !IsHovered) || currentNumberInstantaneous.Disabled)
                 return false;
 
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
