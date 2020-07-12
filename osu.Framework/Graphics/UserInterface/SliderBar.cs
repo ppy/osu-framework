@@ -160,7 +160,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if ((!AllowKeyboardInputWhenNotHovered && !IsHovered) || currentNumberInstantaneous.Disabled)
+            if (currentNumberInstantaneous.Disabled)
+                return false;
+
+            bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
+            if (!shouldHandle)
                 return false;
 
             var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
