@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderBarText;
-        private readonly TestSliderBar<double> sliderBar;
+        private readonly TestSliderBar sliderBar;
         private readonly SliderBar<double> transferOnCommitSliderBar;
 
         public TestSceneSliderBar()
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Text = "BasicSliderBar:",
                     },
-                    sliderBar = new TestSliderBar<double>
+                    sliderBar = new TestSliderBar
                     {
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
         }
 
-        public class TestSliderBar<T> : BasicSliderBar<double>
+        public class TestSliderBar : BasicSliderBar<double>
         {
             public bool KeyboardInput;
 
