@@ -82,7 +82,9 @@ namespace osu.Framework.Graphics.Pooling
             if (!pool.TryPop(out var drawable))
             {
                 drawable = create();
-                LoadComponent(drawable);
+
+                if (LoadState >= LoadState.Loading)
+                    LoadComponent(drawable);
             }
 
             setupAction?.Invoke(drawable);

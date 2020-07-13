@@ -19,7 +19,8 @@ namespace osu.Framework.Development
                 var entry = Assembly.GetEntryAssembly();
 
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
-                return entry == null || entry.Location.Contains("testhost");
+                // when running under nunit + Rider > 2020.2 EAP6, entry assembly becomes ReSharperTestRunner[32|64], which isn't what we want.
+                return entry == null || entry.Location.Contains("testhost") || entry.Location.Contains("ReSharperTestRunner");
             }
         );
 
