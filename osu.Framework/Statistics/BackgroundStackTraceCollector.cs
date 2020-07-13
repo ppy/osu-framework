@@ -169,20 +169,25 @@ namespace osu.Framework.Statistics
             isCollecting = false;
         }
 
-        private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
+        private static IList<ClrStackFrame> getStackTrace(Thread targetThread)
         {
             try
             {
-                return DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive).ClrVersions[0];
+                var target = DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive);
+
+                if (target == null) return null;
+
+                using (target)
+                {
+                    var runtime = target.ClrVersions[0].CreateRuntime();
+                    return runtime.Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+                }
             }
             catch
             {
                 return null;
             }
-        });
-
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) =>
-            clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+        }
 
         #region IDisposable Support
 
