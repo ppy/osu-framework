@@ -209,6 +209,25 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
         }
 
+        [Test]
+        public void TestGotoZeroOnFirstFrameVisible()
+        {
+            loadNewAnimation();
+
+            AddStep("set time to 1000", () => clock.CurrentTime = 1000);
+            AddStep("hide animation", () => animation.Hide());
+
+            AddStep("set time = 2000", () => clock.CurrentTime = 2000);
+            AddStep("goto(0) and show", () =>
+            {
+                animation.GotoFrame(0);
+                animation.Show();
+            });
+
+            // Note: We won't get PlaybackPosition=0 here because the test runner increments the clock by at least 200ms per step, so 1000 is a safe value.
+            AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>

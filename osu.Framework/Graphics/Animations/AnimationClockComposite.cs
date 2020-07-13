@@ -92,6 +92,8 @@ namespace osu.Framework.Graphics.Animations
             {
                 hasSeeked = true;
                 manualClock.CurrentTime = value;
+
+                consumeClockTime();
             }
         }
 
