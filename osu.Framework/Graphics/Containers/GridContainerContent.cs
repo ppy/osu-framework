@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -16,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         public int IndexOf(IList<Drawable> item)
         {
-            throw new NotSupportedException();
+            return wrappedArray.IndexOf((ArrayWrapper<Drawable>)item);
         }
 
         public void Insert(int index, IList<Drawable> item)
@@ -97,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
 
             public int IndexOf(T item)
             {
-                throw new NotSupportedException();
+                return Array.IndexOf(wrappedArray, item);
             }
 
             public void Insert(int index, T item)
@@ -145,7 +146,7 @@ namespace osu.Framework.Graphics.Containers
 
             public bool Contains(T item)
             {
-                throw new NotSupportedException();
+                return wrappedArray.Contains(item);
             }
 
             public void CopyTo(T[] array, int arrayIndex)
@@ -184,7 +185,7 @@ namespace osu.Framework.Graphics.Containers
 
         public bool Contains(IList<Drawable> item)
         {
-            throw new NotSupportedException();
+            return wrappedArray.Contains(item);
         }
 
         public void CopyTo(IList<Drawable>[] array, int arrayIndex)
