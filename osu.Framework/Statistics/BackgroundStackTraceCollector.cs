@@ -171,14 +171,21 @@ namespace osu.Framework.Statistics
 
         private static IList<ClrStackFrame> getStackTrace(Thread targetThread)
         {
-            var target = DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive);
-
-            if (target == null) return null;
-
-            using (target)
+            try
             {
-                var runtime = target.ClrVersions[0].CreateRuntime();
-                return runtime.Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+                var target = DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive);
+
+                if (target == null) return null;
+
+                using (target)
+                {
+                    var runtime = target.ClrVersions[0].CreateRuntime();
+                    return runtime.Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
 
