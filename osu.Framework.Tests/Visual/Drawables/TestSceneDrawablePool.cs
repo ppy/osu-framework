@@ -203,6 +203,12 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("non-returned drawables disposed", () => consumed.Where(d => !d.IsInPool).All(d => d.IsDisposed));
         }
 
+        [Test]
+        public void TestGetFromNotLoadedPool()
+        {
+            Assert.DoesNotThrow(() => new TestPool(100, 1).Get());
+        }
+
         protected override void Update()
         {
             base.Update();
@@ -235,7 +241,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                 pool = createPool();
 
                 Children = new Drawable[]
-
                 {
                     pool,
                     count = new SpriteText(),
