@@ -137,37 +137,6 @@ namespace osu.Framework.Graphics.OpenGL
             if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
 
-            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
-            stat_texture_uploads_dequeued.Value = 0;
-            stat_texture_uploads_performed.Value = 0;
-
-            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
-            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
-            int uploads = 0;
-            int uploadedPixels = 0;
-
-            // continue attempting to upload textures until enough uploads have been performed.
-            while (texture_upload_queue.TryDequeue(out TextureGL texture))
-            {
-                stat_texture_uploads_dequeued.Value++;
-
-                texture.IsQueuedForUpload = false;
-
-                if (!texture.Upload())
-                    continue;
-
-                stat_texture_uploads_performed.Value++;
-
-                if (++uploads >= targetUploads)
-                    break;
-
-                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
-                    break;
-            }
-
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
-
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
             lastBlendingEnabledState = null;
@@ -208,6 +177,37 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushDepthInfo(DepthInfo.Default);
             Clear(new ClearInfo(Color4.Black));
+
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int uploads = 0;
+            int uploadedPixels = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
+                    break;
+            }
+
+            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
         }
 
         private static ClearInfo currentClearInfo;
