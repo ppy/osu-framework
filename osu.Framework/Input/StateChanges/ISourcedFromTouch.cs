@@ -5,8 +5,15 @@ using osu.Framework.Input.StateChanges.Events;
 
 namespace osu.Framework.Input.StateChanges
 {
+    /// <summary>
+    /// Denotes an input which was sourced from a touch event.
+    /// Generally used to mark when an alternate input was triggered from a touch source (ie. touch being emulated as a mouse).
+    /// </summary>
     public interface ISourcedFromTouch
     {
+        /// <summary>
+        /// The source touch event.
+        /// </summary>
         TouchStateChangeEvent TouchEvent { get; set; }
     }
 }
