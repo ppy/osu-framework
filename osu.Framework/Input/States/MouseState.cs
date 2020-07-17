@@ -19,7 +19,7 @@ namespace osu.Framework.Input.States
         public bool IsPositionValid { get; set; } = true;
 
         /// <summary>
-        /// The last input source to make a change to state.
+        /// The last input source to make a change to the state.
         /// </summary>
         public IInput LastSource { get; set; }
 
