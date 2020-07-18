@@ -676,15 +676,20 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
-
-            if (handledBy != null && shouldLog(e))
+            foreach (var drawable in drawables)
             {
-                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
-                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                if (!drawable.TriggerEvent(e)) continue;
+
+                if (shouldLog(e))
+                {
+                    var detail = drawable is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    Logger.Log($"{detail} handled by {drawable}.", LoggingTarget.Runtime, LogLevel.Debug);
+                }
+
+                return true;
             }
 
-            return handledBy != null;
+            return false;
         }
 
         private bool shouldLog(UIEvent eventType)
