@@ -414,14 +414,14 @@ namespace osu.Framework.Input
             }
         }
 
+        private readonly List<IInput> inputs = new List<IInput>();
+
         protected virtual List<IInput> GetPendingInputs()
         {
-            var inputs = new List<IInput>();
+            inputs.Clear();
 
             foreach (var h in InputHandlers)
-            {
-                inputs.AddRange(h.GetPendingInputs());
-            }
+                h.GetPendingInputs(inputs);
 
             return inputs;
         }

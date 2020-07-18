@@ -25,16 +25,13 @@ namespace osu.Framework.Input.Handlers
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
-        public virtual List<IInput> GetPendingInputs()
+        /// <param name="inputs">The list for pending inputs to be added to.</param>
+        public void GetPendingInputs(List<IInput> inputs)
         {
             lock (pendingInputsRetrievalLock)
             {
-                List<IInput> pending = new List<IInput>();
-
                 while (PendingInputs.TryDequeue(out IInput s))
-                    pending.Add(s);
-
-                return pending;
+                    inputs.Add(s);
             }
         }
 
