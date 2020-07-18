@@ -45,7 +45,9 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 title = value;
-                scheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, $"{value} (SDL)"));
+
+                if (SdlWindowHandle != IntPtr.Zero)
+                    scheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, $"{value} (SDL)"));
             }
         }
 
@@ -82,7 +84,9 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 position = value;
-                scheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+
+                if (SdlWindowHandle != IntPtr.Zero)
+                    scheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
             }
         }
 
@@ -92,20 +96,30 @@ namespace osu.Framework.Platform.Sdl
         {
             get
             {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return size;
+                if (SdlWindowHandle != IntPtr.Zero)
+                {
+                    switch (windowFlags.ToWindowState())
+                    {
+                        case WindowState.Normal:
+                        case WindowState.Maximised:
+                            SDL.SDL_GetWindowSize(SdlWindowHandle, out int w, out int h);
+                            return new Size(w, h);
 
-                SDL.SDL_GetWindowSize(SdlWindowHandle, out int w, out int h);
-                return new Size(w, h);
+                        case WindowState.Fullscreen:
+                        case WindowState.FullscreenBorderless:
+                            SDL.SDL_GetCurrentDisplayMode(currentDisplayIndex, out var mode);
+                            return new Size(mode.w, mode.h);
+                    }
+                }
+
+                return size;
             }
             set
             {
                 size = value;
-                scheduler.Add(() =>
-                {
-                    SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height);
-                    validateScale(true);
-                });
+
+                if (SdlWindowHandle != IntPtr.Zero)
+                    ChangeWindowState(windowFlags.ToWindowState(), value);
             }
         }
 
@@ -158,32 +172,13 @@ namespace osu.Framework.Platform.Sdl
             get => SdlWindowHandle == IntPtr.Zero ? windowState : windowFlags.ToWindowState();
             set
             {
+                if (value == windowFlags.ToWindowState())
+                    return;
+
                 windowState = value;
-                scheduler.Add(() =>
-                {
-                    switch (value)
-                    {
-                        case WindowState.Normal:
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, 0);
-                            break;
 
-                        case WindowState.Fullscreen:
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                            break;
-
-                        case WindowState.FullscreenBorderless:
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                            break;
-
-                        case WindowState.Maximised:
-                            SDL.SDL_MaximizeWindow(SdlWindowHandle);
-                            break;
-
-                        case WindowState.Minimised:
-                            SDL.SDL_MinimizeWindow(SdlWindowHandle);
-                            break;
-                    }
-                });
+                if (SdlWindowHandle != IntPtr.Zero)
+                    ChangeWindowState(value);
             }
         }
 
@@ -361,6 +356,88 @@ namespace osu.Framework.Platform.Sdl
         }
 
         public void Close() => scheduler.Add(() => Exists = false);
+
+        public void ChangeWindowState(WindowState state, Size? requestedSize = null, DisplayMode? displayMode = null)
+        {
+            windowState = state;
+
+            switch (state)
+            {
+                case WindowState.Fullscreen:
+                case WindowState.FullscreenBorderless:
+                    scheduler.Add(() =>
+                    {
+                        if (SdlWindowHandle == IntPtr.Zero)
+                            return;
+
+                        var targetSize = requestedSize ?? displayMode?.Size;
+
+                        if (targetSize != null)
+                        {
+                            var requestedMode = new SDL.SDL_DisplayMode { w = targetSize.Value.Width, h = targetSize.Value.Height, refresh_rate = displayMode?.RefreshRate ?? 60 };
+                            SDL.SDL_GetClosestDisplayMode(CurrentDisplay.Index, ref requestedMode, out var closestMode);
+                            SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
+                        }
+
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle,
+                            (uint)(state == WindowState.Fullscreen ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP));
+
+                        validateScale(true);
+
+                        if (targetSize != null)
+                            OnResized();
+                    });
+
+                    break;
+
+                case WindowState.Normal:
+                    scheduler.Add(() =>
+                    {
+                        if (SdlWindowHandle == IntPtr.Zero)
+                            return;
+
+                        var targetSize = requestedSize ?? displayMode?.Size;
+
+                        if (targetSize != null)
+                            SDL.SDL_SetWindowSize(SdlWindowHandle, targetSize.Value.Width, targetSize.Value.Height);
+
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, 0);
+
+                        validateScale(true);
+
+                        if (targetSize != null)
+                            OnResized();
+                    });
+
+                    break;
+
+                case WindowState.Maximised:
+                    scheduler.Add(() =>
+                    {
+                        if (SdlWindowHandle == IntPtr.Zero)
+                            return;
+
+                        SDL.SDL_MaximizeWindow(SdlWindowHandle);
+
+                        validateScale(true);
+
+                        OnResized();
+                    });
+
+                    break;
+
+                case WindowState.Minimised:
+                    scheduler.Add(() =>
+                    {
+                        if (SdlWindowHandle == IntPtr.Zero)
+                            return;
+
+                        SDL.SDL_MinimizeWindow(SdlWindowHandle);
+                    });
+
+                    break;
+            }
+        }
 
         private void pollMouse()
         {
