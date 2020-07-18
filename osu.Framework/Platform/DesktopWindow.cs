@@ -22,6 +22,33 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
+        protected Vector2 RelativePosition
+        {
+            get
+            {
+                var displayBounds = CurrentDisplay.Value.Bounds;
+                var windowX = Position.Value.X - displayBounds.X;
+                var windowY = Position.Value.Y - displayBounds.Y;
+                var windowSize = sizeWindowed.Value;
+
+                return new Vector2(
+                    displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0,
+                    displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0);
+            }
+            set
+            {
+                if (WindowMode.Value != Configuration.WindowMode.Windowed)
+                    return;
+
+                var displayBounds = CurrentDisplay.Value.Bounds;
+                var windowSize = Size.Value;
+                var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
+                var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * value.Y);
+
+                Position.Value = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+            }
+        }
+
         /// <summary>
         /// Initialises a window for desktop platforms.
         /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="PassthroughGraphicsBackend"/>.
@@ -35,6 +62,13 @@ namespace osu.Framework.Platform
         {
             base.SetupWindow(config);
 
+            CurrentDisplay.ValueChanged += evt =>
+            {
+                windowDisplayIndex.Value = (DisplayIndex)evt.NewValue.Index;
+                windowPositionX.Value = 0.5;
+                windowPositionY.Value = 0.5;
+            };
+
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
             windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue), true);
 
@@ -42,7 +76,7 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (!evt.NewValue.IsEmpty && WindowState.Value == Platform.WindowState.Fullscreen)
+                if (!evt.NewValue.IsEmpty && (WindowState.Value == Platform.WindowState.Fullscreen || WindowState.Value == Platform.WindowState.FullscreenBorderless))
                     Size.Value = evt.NewValue;
             };
 
@@ -57,6 +91,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
+            RelativePosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
+
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
             WindowMode.BindValueChanged(evt => UpdateWindowMode(evt.NewValue), true);
 
@@ -67,57 +103,17 @@ namespace osu.Framework.Platform
             Moved += onMoved;
         }
 
-        protected Vector2 GetRelativePosition(Display display)
+        protected override void UpdateWindowMode(WindowMode mode, Size? size = null)
         {
-            var displaySize = display.Bounds.Size;
-            var windowX = Position.Value.X - display.Bounds.Location.X;
-            var windowY = Position.Value.Y - display.Bounds.Location.Y;
-            var windowSize = Size.Value;
-
-            return new Vector2(
-                displaySize.Width > windowSize.Width ? (float)windowX / (displaySize.Width - windowSize.Width) : 0,
-                displaySize.Height > windowSize.Height ? (float)windowY / (displaySize.Height - windowSize.Height) : 0);
-        }
-
-        protected void SetRelativePosition(float x, float y, Display display)
-        {
-            var displaySize = display.Bounds.Size;
-            var windowSize = Size.Value;
-            var windowX = (int)Math.Round((displaySize.Width - windowSize.Width) * x);
-            var windowY = (int)Math.Round((displaySize.Height - windowSize.Height) * y);
-
-            Position.Value = new Point(windowX + display.Bounds.X, windowY + display.Bounds.Y);
-        }
-
-        protected virtual void UpdateWindowMode(WindowMode mode)
-        {
-            var currentDisplay = CurrentDisplay.Value;
-
             switch (mode)
             {
-                case Configuration.WindowMode.Fullscreen:
-                    var newFullscreenSize = sizeFullscreen.Value;
-
-                    WindowState.Value = Platform.WindowState.Fullscreen;
-                    Size.Value = newFullscreenSize;
-
+                case Configuration.WindowMode.Windowed:
+                    base.UpdateWindowMode(mode, size ?? sizeWindowed.Value);
                     break;
 
                 case Configuration.WindowMode.Borderless:
-                    var newBorderlessSize = sizeFullscreen.Value;
-
-                    WindowState.Value = Platform.WindowState.FullscreenBorderless;
-                    Size.Value = newBorderlessSize;
-
-                    break;
-
-                case Configuration.WindowMode.Windowed:
-                    var newWindowedSize = sizeWindowed.Value;
-
-                    WindowState.Value = Platform.WindowState.Normal;
-                    Size.Value = newWindowedSize;
-                    SetRelativePosition((float)windowPositionX.Value, (float)windowPositionY.Value, currentDisplay);
-
+                case Configuration.WindowMode.Fullscreen:
+                    base.UpdateWindowMode(mode, size ?? sizeFullscreen.Value);
                     break;
             }
 
@@ -126,27 +122,36 @@ namespace osu.Framework.Platform
 
         private void onResized()
         {
-            if (!Size.Value.IsEmpty && WindowMode.Value == Configuration.WindowMode.Windowed)
-                sizeWindowed.Value = Size.Value;
+            if (Size.Value.IsEmpty)
+                return;
+
+            switch (WindowMode.Value)
+            {
+                case Configuration.WindowMode.Windowed:
+                    sizeWindowed.Value = Size.Value;
+                    updateWindowPositionConfig();
+                    break;
+
+                case Configuration.WindowMode.Borderless:
+                case Configuration.WindowMode.Fullscreen:
+                    sizeFullscreen.Value = Size.Value;
+                    break;
+            }
         }
 
         private void onMoved(Point point)
         {
-            // Need to call onResized as it's possible the window may have moved between a
-            // high-dpi and regular display. This means the logical window size would be the same,
-            // but the scale will have changed.
-            onResized();
+            updateWindowPositionConfig();
+        }
 
-            var currentDisplay = CurrentDisplay.Value;
-
+        private void updateWindowPositionConfig()
+        {
             if (WindowMode.Value == Configuration.WindowMode.Windowed)
             {
-                var relativePosition = GetRelativePosition(currentDisplay);
+                var relativePosition = RelativePosition;
                 windowPositionX.Value = relativePosition.X;
                 windowPositionY.Value = relativePosition.Y;
             }
-
-            windowDisplayIndex.Value = (DisplayIndex)currentDisplay.Index;
         }
 
         private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)

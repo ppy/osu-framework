@@ -366,6 +366,24 @@ namespace osu.Framework.Platform
 
         #region Bindable Handling
 
+        protected virtual void UpdateWindowMode(WindowMode mode, Size? size = null)
+        {
+            switch (mode)
+            {
+                case Configuration.WindowMode.Fullscreen:
+                    windowBackend.ChangeWindowState(Platform.WindowState.Fullscreen, size);
+                    break;
+
+                case Configuration.WindowMode.Borderless:
+                    windowBackend.ChangeWindowState(Platform.WindowState.FullscreenBorderless, size);
+                    break;
+
+                case Configuration.WindowMode.Windowed:
+                    windowBackend.ChangeWindowState(Platform.WindowState.Normal, size);
+                    break;
+            }
+        }
+
         private void visible_ValueChanged(ValueChangedEvent<bool> evt)
         {
             windowBackend.Visible = evt.NewValue;
