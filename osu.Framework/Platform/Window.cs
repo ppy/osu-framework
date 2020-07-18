@@ -423,11 +423,11 @@ namespace osu.Framework.Platform
             boundsChanging = false;
         }
 
-        private void windowBackend_WindowStateChanged()
+        private void windowBackend_WindowStateChanged(WindowState windowState)
         {
-            WindowState.Value = windowBackend.WindowState;
+            WindowState.Value = windowState;
 
-            switch (windowBackend.WindowState)
+            switch (windowState)
             {
                 case Platform.WindowState.Fullscreen:
                     WindowMode.Value = Configuration.WindowMode.Fullscreen;

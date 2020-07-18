@@ -100,7 +100,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked after the window's state has changed.
         /// </summary>
-        event Action WindowStateChanged;
+        event Action<WindowState> WindowStateChanged;
 
         /// <summary>
         /// Invoked when the user attempts to close the window.

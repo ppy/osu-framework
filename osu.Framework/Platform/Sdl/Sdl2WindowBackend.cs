@@ -260,7 +260,7 @@ namespace osu.Framework.Platform.Sdl
 
         public event Action Update;
         public event Action Resized;
-        public event Action WindowStateChanged;
+        public event Action<WindowState> WindowStateChanged;
         public event Func<bool> CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
@@ -291,7 +291,7 @@ namespace osu.Framework.Platform.Sdl
 
         protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized() => Resized?.Invoke();
-        protected virtual void OnWindowStateChanged() => WindowStateChanged?.Invoke();
+        protected virtual void OnWindowStateChanged(WindowState windowState) => WindowStateChanged?.Invoke(windowState);
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
@@ -317,7 +317,7 @@ namespace osu.Framework.Platform.Sdl
                 return;
 
             windowState = WindowState;
-            OnWindowStateChanged();
+            OnWindowStateChanged(windowState);
         }
 
         #endregion
