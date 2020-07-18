@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
@@ -21,20 +21,21 @@ namespace osu.Framework.Input.Handlers
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
         private readonly object pendingInputsRetrievalLock = new object();
+        private readonly List<IInput> pendingInputsList = new List<IInput>();
 
         /// <summary>
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
-        public virtual List<IInput> GetPendingInputs()
+        public virtual IReadOnlyList<IInput> GetPendingInputs()
         {
             lock (pendingInputsRetrievalLock)
             {
-                List<IInput> pending = new List<IInput>();
+                pendingInputsList.Clear();
 
                 while (PendingInputs.TryDequeue(out IInput s))
-                    pending.Add(s);
+                    pendingInputsList.Add(s);
 
-                return pending;
+                return pendingInputsList;
             }
         }
 

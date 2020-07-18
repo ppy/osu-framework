@@ -65,14 +65,16 @@ namespace osu.Framework.Input
             return false;
         }
 
-        protected override List<IInput> GetPendingInputs()
+        private readonly IReadOnlyList<IInput> emptyList = new List<IInput>();
+
+        protected override IReadOnlyList<IInput> GetPendingInputs()
         {
             //we still want to call the base method to clear any pending states that may build up.
             var pendingInputs = base.GetPendingInputs();
 
             if (UseParentInput)
             {
-                pendingInputs.Clear();
+                pendingInputs = emptyList;
             }
 
             return pendingInputs;
