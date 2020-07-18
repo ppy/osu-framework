@@ -42,6 +42,15 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
+        /// Reset to a pristine state.
+        /// </summary>
+        internal void Reset()
+        {
+            depth = -1;
+            count = 0;
+        }
+
+        /// <summary>
         /// Whether the depth value can be incremented.
         /// </summary>
         internal bool CanIncrement
