@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics.Cursor
             if (inputManager.DraggedDrawable is IHasCustomTooltip customDraggedTarget)
                 return hasValidTooltip(customDraggedTarget) ? customDraggedTarget : null;
 
-            ITooltipContentProvider targetCandidate = FindTargets().Find(hasValidTooltip);
+            ITooltipContentProvider targetCandidate = FindTargets().FirstOrDefault(hasValidTooltip);
 
             // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
             if (targetCandidate != lastCandidate)

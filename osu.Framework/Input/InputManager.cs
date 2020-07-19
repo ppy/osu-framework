@@ -112,13 +112,13 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
+        public List<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public IEnumerable<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
+        public List<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
@@ -440,7 +440,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildNonPositionalInputQueue()
+        private List<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
 
@@ -467,7 +467,7 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
+        private List<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
