@@ -655,7 +655,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
             }
 
-            AvailableInputHandlers = CreateAvailableInputHandlers();
+            AvailableInputHandlers = CreateAvailableInputHandlers().ToArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
@@ -846,7 +846,7 @@ namespace osu.Framework.Platform
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
+        public InputHandler[] AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 
