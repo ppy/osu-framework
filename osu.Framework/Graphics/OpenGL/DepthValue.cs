@@ -22,8 +22,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         private const int max_count = 1999;
 
-        private float depth = -1;
+        private float depth;
         private int count;
+
+        public DepthValue()
+        {
+            Reset();
+        }
 
         /// <summary>
         /// Increments the depth value.
