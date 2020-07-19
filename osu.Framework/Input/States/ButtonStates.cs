@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,13 +49,22 @@ namespace osu.Framework.Input.States
             return true;
         }
 
-        public bool HasAnyButtonPressed => pressedButtons.Any();
+        public bool HasAnyButtonPressed => pressedButtons.Count > 0;
 
         /// <summary>
         /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
-        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons) => new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
+        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
+        {
+            if (!lastButtons.HasAnyButtonPressed)
+                return new ButtonStateDifference(Array.Empty<TButton>(), this);
+
+            if (!HasAnyButtonPressed)
+                return new ButtonStateDifference(lastButtons, Array.Empty<TButton>());
+
+            return new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
+        }
 
         /// <summary>
         /// Copies the state of another <see cref="ButtonStates{TButton}"/> to ourselves.
