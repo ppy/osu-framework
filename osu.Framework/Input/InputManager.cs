@@ -368,6 +368,8 @@ namespace osu.Framework.Input
 
         private bool hoverEventsUpdated;
 
+        private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
+
         protected override void Update()
         {
             unfocusIfNoLongerValid();
@@ -385,7 +387,17 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState));
+                highFrequencyDrawables.Clear();
+
+                foreach (var d in PositionalInputQueue)
+                {
+                    if (d is IRequireHighFrequencyMousePosition)
+                        highFrequencyDrawables.Add(d);
+                }
+
+                PropagateBlockableEvent(highFrequencyDrawables, new MouseMoveEvent(CurrentState));
+
+                highFrequencyDrawables.Clear();
             }
 
             updateKeyRepeat(CurrentState);
@@ -674,7 +686,7 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
         /// <returns>Whether the event was handled.</returns>
-        protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
+        protected virtual bool PropagateBlockableEvent(List<Drawable> drawables, UIEvent e)
         {
             var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
 
