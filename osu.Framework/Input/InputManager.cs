@@ -45,7 +45,7 @@ namespace osu.Framework.Input
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
 
-        protected abstract IEnumerable<InputHandler> InputHandlers { get; }
+        protected abstract InputHandler[] InputHandlers { get; }
 
         private double keyboardRepeatTime;
         private Key? keyboardRepeatKey;

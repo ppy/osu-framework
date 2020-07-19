@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
@@ -13,7 +12,7 @@ namespace osu.Framework.Input
 {
     public class UserInputManager : PassThroughInputManager
     {
-        protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
+        protected override InputHandler[] InputHandlers => Host.AvailableInputHandlers;
 
         protected override bool HandleHoverEvents => Host.Window?.CursorInWindow ?? true;
 
