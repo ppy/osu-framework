@@ -58,7 +58,7 @@ namespace osu.Framework.Input.States
         public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
             if (!lastButtons.HasAnyButtonPressed)
-                return new ButtonStateDifference(Array.Empty<TButton>(), this.pressedButtons);
+                return new ButtonStateDifference(Array.Empty<TButton>(), pressedButtons);
 
             if (!HasAnyButtonPressed)
                 return new ButtonStateDifference(lastButtons.pressedButtons, Array.Empty<TButton>());
