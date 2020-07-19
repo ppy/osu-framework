@@ -70,7 +70,7 @@ namespace osu.Framework.Platform
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
-            windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue), true);
+            windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
 
