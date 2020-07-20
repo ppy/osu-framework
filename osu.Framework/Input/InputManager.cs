@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -776,7 +776,16 @@ namespace osu.Framework.Input
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(NonPositionalInputQueue.FirstOrDefault(target => target.RequestsFocus));
+            foreach (var d in NonPositionalInputQueue)
+            {
+                if (d.RequestsFocus)
+                {
+                    ChangeFocus(d);
+                    return;
+                }
+            }
+
+            ChangeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
