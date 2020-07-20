@@ -113,12 +113,18 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
+        /// <remarks>
+        /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
+        /// </remarks>
         public ReadOnlyCollection<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
+        /// <remarks>
+        /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
+        /// </remarks>
         public ReadOnlyCollection<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
