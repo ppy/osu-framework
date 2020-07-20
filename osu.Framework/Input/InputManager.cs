@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -112,13 +113,13 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public List<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
+        public ReadOnlyCollection<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public List<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
+        public ReadOnlyCollection<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
@@ -137,6 +138,9 @@ namespace osu.Framework.Input
         {
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
+
+            readOnlyPositionalInputQueue = new ReadOnlyCollection<Drawable>(positionalInputQueue);
+            readOnlyInputQueue = new ReadOnlyCollection<Drawable>(inputQueue);
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
@@ -428,7 +432,9 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private List<Drawable> buildNonPositionalInputQueue()
+        private readonly ReadOnlyCollection<Drawable> readOnlyInputQueue;
+
+        private ReadOnlyCollection<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
 
@@ -450,12 +456,14 @@ namespace osu.Framework.Input
             // need to be reversed.
             inputQueue.Reverse();
 
-            return inputQueue;
+            return readOnlyInputQueue;
         }
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private List<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
+        private readonly ReadOnlyCollection<Drawable> readOnlyPositionalInputQueue;
+
+        private ReadOnlyCollection<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
@@ -467,7 +475,7 @@ namespace osu.Framework.Input
                 children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
 
             positionalInputQueue.Reverse();
-            return positionalInputQueue;
+            return readOnlyPositionalInputQueue;
         }
 
         protected virtual bool HandleHoverEvents => true;
