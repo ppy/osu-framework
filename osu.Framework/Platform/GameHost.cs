@@ -333,6 +333,8 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
+        private readonly DepthValue depthValue = new DepthValue();
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -354,7 +356,7 @@ namespace osu.Framework.Platform
 
                     if (!bypassFrontToBackPass.Value)
                     {
-                        var depthValue = new DepthValue();
+                        depthValue.Reset();
 
                         GL.ColorMask(false, false, false, false);
                         GLWrapper.SetBlend(BlendingParameters.None);
