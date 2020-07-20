@@ -23,7 +23,7 @@ namespace osu.Framework.Input.Handlers
         private readonly object pendingInputsRetrievalLock = new object();
 
         /// <summary>
-        /// Retrieve a list of all pending states since the last call to this method.
+        /// Add all pending states since the last call to this method to a provided list.
         /// </summary>
         /// <param name="inputs">The list for pending inputs to be added to.</param>
         public virtual void CollectPendingInputs(List<IInput> inputs)
