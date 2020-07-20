@@ -387,7 +387,7 @@ namespace osu.Framework.Input
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                highFrequencyDrawables.Clear();
+                Debug.Assert(highFrequencyDrawables.Count == 0);
 
                 foreach (var d in PositionalInputQueue)
                 {
