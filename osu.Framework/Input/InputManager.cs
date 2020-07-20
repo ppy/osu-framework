@@ -421,7 +421,7 @@ namespace osu.Framework.Input
             inputs.Clear();
 
             foreach (var h in InputHandlers)
-                h.GetPendingInputs(inputs);
+                h.CollectPendingInputs(inputs);
 
             return inputs;
         }

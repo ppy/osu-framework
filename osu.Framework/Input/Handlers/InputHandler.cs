@@ -26,7 +26,7 @@ namespace osu.Framework.Input.Handlers
         /// Retrieve a list of all pending states since the last call to this method.
         /// </summary>
         /// <param name="inputs">The list for pending inputs to be added to.</param>
-        public virtual void GetPendingInputs(List<IInput> inputs)
+        public virtual void CollectPendingInputs(List<IInput> inputs)
         {
             lock (pendingInputsRetrievalLock)
             {
@@ -46,7 +46,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         /// <summary>
-        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="GetPendingInputs"/> call
+        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
         public readonly BindableBool Enabled = new BindableBool(true);
 
