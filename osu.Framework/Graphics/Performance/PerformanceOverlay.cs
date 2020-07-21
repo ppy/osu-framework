@@ -26,30 +26,42 @@ namespace osu.Framework.Graphics.Performance
 
                 state = value;
 
-                switch (state)
-                {
-                    case FrameStatisticsMode.None:
-                        this.FadeOut(100);
-                        break;
-
-                    case FrameStatisticsMode.Minimal:
-                    case FrameStatisticsMode.Full:
-                        if (!initialised)
-                        {
-                            initialised = true;
-                            foreach (GameThread t in threads)
-                                Add(new FrameStatisticsDisplay(t) { State = state });
-                        }
-
-                        this.FadeIn(100);
-                        break;
-                }
-
-                foreach (FrameStatisticsDisplay d in Children)
-                    d.State = state;
-
-                StateChanged?.Invoke(State);
+                if (IsLoaded)
+                    updateState();
             }
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            updateState();
+        }
+
+        private void updateState()
+        {
+            switch (state)
+            {
+                case FrameStatisticsMode.None:
+                    this.FadeOut(100);
+                    break;
+
+                case FrameStatisticsMode.Minimal:
+                case FrameStatisticsMode.Full:
+                    if (!initialised)
+                    {
+                        initialised = true;
+                        foreach (GameThread t in threads)
+                            Add(new FrameStatisticsDisplay(t) { State = state });
+                    }
+
+                    this.FadeIn(100);
+                    break;
+            }
+
+            foreach (FrameStatisticsDisplay d in Children)
+                d.State = state;
+
+            StateChanged?.Invoke(State);
         }
 
         public PerformanceOverlay(IEnumerable<GameThread> threads)

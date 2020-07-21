@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Cursor
             // keep track of all hovered drawables below this and nested effect containers
             // so we can decide which ones are valid candidates for receiving our effect and so
             // we know when we can abort our search.
-            for (int i = targetCandidates.IndexOf(this) - 1; i >= 0; i--)
+            for (int i = selfIndex - 1; i >= 0; i--)
             {
                 var candidate = targetCandidates[i] as TTarget;
 

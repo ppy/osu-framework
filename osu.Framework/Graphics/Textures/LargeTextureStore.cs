@@ -18,8 +18,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly object referenceCountLock = new object();
         private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
 
-        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
-            : base(store, false, All.Linear, true)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null, All filteringMode = All.Linear)
+            : base(store, false, filteringMode, true)
         {
         }
 

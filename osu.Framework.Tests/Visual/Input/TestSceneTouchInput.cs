@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osuTK;
@@ -313,12 +314,37 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
+        [Test]
+        public void TestMouseEventFromTouchIndication()
+        {
+            InputReceptor primaryReceptor = null;
+
+            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
+            AddStep("setup handlers to avoid mouse-from-touch events", () =>
+            {
+                primaryReceptor.HandleMouse = e => !(e.CurrentState.Mouse.LastSource is ISourcedFromTouch);
+            });
+
+            AddStep("perform input on primary touch", () =>
+            {
+                InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1)));
+                InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1)));
+                InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchUpPos(TouchSource.Touch1)));
+            });
+            AddAssert("no mouse event received", () => primaryReceptor.MouseEvents.Count == 0);
+
+            AddStep("perform mouse move input", () => InputManager.MoveMouseTo(getTouchDownPos(TouchSource.Touch1)));
+            AddAssert("mouse event received", () => primaryReceptor.MouseEvents.Single() is MouseMoveEvent);
+        }
+
         private class InputReceptor : CompositeDrawable
         {
             public readonly TouchSource AssociatedSource;
 
             public readonly Queue<TouchEvent> TouchEvents = new Queue<TouchEvent>();
             public readonly Queue<MouseEvent> MouseEvents = new Queue<MouseEvent>();
+
+            public Func<MouseEvent, bool> HandleMouse;
 
             public InputReceptor(TouchSource source)
             {
@@ -353,12 +379,17 @@ namespace osu.Framework.Tests.Visual.Input
                     case MouseMoveEvent _:
                     case DragEvent _:
                     case MouseUpEvent _:
-                        MouseEvents.Enqueue((MouseEvent)e);
-                        return !(e is MouseUpEvent);
+                        if (HandleMouse?.Invoke((MouseEvent)e) != false)
+                        {
+                            MouseEvents.Enqueue((MouseEvent)e);
+                            return true;
+                        }
+
+                        break;
 
                     // not worth enqueuing, just handle for receiving drag.
-                    case DragStartEvent _:
-                        return true;
+                    case DragStartEvent dse:
+                        return HandleMouse?.Invoke(dse) ?? true;
                 }
 
                 return false;
