@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -655,7 +656,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
             }
 
-            AvailableInputHandlers = CreateAvailableInputHandlers().ToArray();
+            AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
@@ -846,7 +847,7 @@ namespace osu.Framework.Platform
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public InputHandler[] AvailableInputHandlers { get; private set; }
+        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 
