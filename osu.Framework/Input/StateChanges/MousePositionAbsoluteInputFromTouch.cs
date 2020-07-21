@@ -7,6 +7,11 @@ namespace osu.Framework.Input.StateChanges
 {
     public class MousePositionAbsoluteInputFromTouch : MousePositionAbsoluteInput, ISourcedFromTouch
     {
-        public TouchStateChangeEvent TouchEvent { get; set; }
+        public MousePositionAbsoluteInputFromTouch(TouchStateChangeEvent touchEvent)
+        {
+            TouchEvent = touchEvent;
+        }
+
+        public TouchStateChangeEvent TouchEvent { get; }
     }
 }

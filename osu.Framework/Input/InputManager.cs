@@ -581,17 +581,13 @@ namespace osu.Framework.Input
 
             if (e.IsActive == true || e.LastPosition != null)
             {
-                new MousePositionAbsoluteInputFromTouch
+                new MousePositionAbsoluteInputFromTouch(e)
                 {
-                    TouchEvent = e,
                     Position = e.Touch.Position
                 }.Apply(CurrentState, this);
             }
 
-            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed)
-            {
-                TouchEvent = e,
-            }.Apply(CurrentState, this);
+            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
             return true;
         }
 
