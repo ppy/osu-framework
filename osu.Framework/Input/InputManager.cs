@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -144,9 +145,6 @@ namespace osu.Framework.Input
         {
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
-
-            readOnlyPositionalInputQueue = new SlimReadOnlyListWrapper<Drawable>(positionalInputQueue);
-            readOnlyInputQueue = new SlimReadOnlyListWrapper<Drawable>(inputQueue);
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
@@ -438,8 +436,6 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private readonly SlimReadOnlyListWrapper<Drawable> readOnlyInputQueue;
-
         private SlimReadOnlyListWrapper<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
@@ -462,12 +458,10 @@ namespace osu.Framework.Input
             // need to be reversed.
             inputQueue.Reverse();
 
-            return readOnlyInputQueue;
+            return inputQueue.AsSlimReadOnly();
         }
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
-
-        private readonly SlimReadOnlyListWrapper<Drawable> readOnlyPositionalInputQueue;
 
         private SlimReadOnlyListWrapper<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
@@ -481,7 +475,7 @@ namespace osu.Framework.Input
                 children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
 
             positionalInputQueue.Reverse();
-            return readOnlyPositionalInputQueue;
+            return positionalInputQueue.AsSlimReadOnly();
         }
 
         protected virtual bool HandleHoverEvents => true;
