@@ -333,6 +333,8 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
+        private readonly DepthValue depthValue = new DepthValue();
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -354,7 +356,7 @@ namespace osu.Framework.Platform
 
                     if (!bypassFrontToBackPass.Value)
                     {
-                        var depthValue = new DepthValue();
+                        depthValue.Reset();
 
                         GL.ColorMask(false, false, false, false);
                         GLWrapper.SetBlend(BlendingParameters.None);
@@ -518,7 +520,7 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(this);
 
-                Dependencies.CacheAs(Storage = CreateGameStorage());
+                Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
                 SetupForRun();
 
@@ -592,7 +594,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        /// <summary>
+        /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
+        /// </summary>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.

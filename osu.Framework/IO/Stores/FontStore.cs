@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Graphics.Textures;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -89,8 +88,10 @@ namespace osu.Framework.IO.Stores
                     await store.LoadFontAsync();
                     Logger.Log($"Loaded Font {store.FontName}!", level: LogLevel.Debug);
                 }
-                catch (OperationCanceledException)
+                catch
                 {
+                    // Errors are logged by LoadFontAsync() but also propagated outwards.
+                    // We can gracefully continue when loading a font fails, so the exception shouldn't trigger the unobserved exception handler of GameHost and potentially crash the game.
                 }
             });
         }

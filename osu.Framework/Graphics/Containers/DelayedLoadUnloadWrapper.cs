@@ -84,6 +84,17 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
+        private readonly object disposalLock = new object();
+        private bool isDisposed;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            lock (disposalLock)
+                isDisposed = true;
+
+            base.Dispose(isDisposing);
+        }
+
         protected override void CancelTasks()
         {
             base.CancelTasks();
@@ -109,9 +120,16 @@ namespace osu.Framework.Graphics.Containers
             else
                 timeHidden += unloadClock.ElapsedFrameTime;
 
-            if (ShouldUnloadContent)
+            if (!ShouldUnloadContent)
+                return;
+
+            Debug.Assert(contentLoaded);
+
+            // This code is running on the game's scheduler meanwhile an async disposal may have already been triggered from elsewhere in the hierarchy.
+            lock (disposalLock)
             {
-                Debug.Assert(contentLoaded);
+                if (isDisposed)
+                    return;
 
                 ClearInternal();
                 Content = null;

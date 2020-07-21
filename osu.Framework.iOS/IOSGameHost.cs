@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Foundation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;

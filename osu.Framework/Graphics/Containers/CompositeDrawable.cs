@@ -535,12 +535,14 @@ namespace osu.Framework.Graphics.Containers
             drawable.ChildID = ++currentChildID;
             drawable.RemoveCompletedTransforms = RemoveCompletedTransforms;
 
-            if (drawable.LoadState >= LoadState.Ready)
-                drawable.Parent = this;
-            else if (LoadState >= LoadState.Loading)
+            if (LoadState >= LoadState.Loading)
             {
                 // If we're already loaded, we can eagerly allow children to be loaded
-                loadChild(drawable);
+
+                if (drawable.LoadState >= LoadState.Ready)
+                    drawable.Parent = this;
+                else
+                    loadChild(drawable);
             }
 
             internalChildren.Add(drawable);

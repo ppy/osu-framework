@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using osu.Framework.Logging;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,11 +47,20 @@ namespace osu.Framework.Testing
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
 
+            if (Debugger.IsAttached)
+            {
+                referenceBuilder = new EmptyTypeReferenceBuilder();
+
+                Logger.Log("Dynamic compilation disabled (debugger attached).");
+                return;
+            }
+
 #if NETCOREAPP
             referenceBuilder = new RoslynTypeReferenceBuilder();
 #else
             referenceBuilder = new EmptyTypeReferenceBuilder();
 #endif
+
             Task.Run(async () =>
             {
                 Logger.Log("Initialising dynamic compilation...");
@@ -101,7 +111,7 @@ namespace osu.Framework.Testing
 
         private async Task recompileAsync(Type targetType, string changedFile)
         {
-            if (targetType == null || isCompiling)
+            if (targetType == null || isCompiling || referenceBuilder is EmptyTypeReferenceBuilder)
                 return;
 
             isCompiling = true;

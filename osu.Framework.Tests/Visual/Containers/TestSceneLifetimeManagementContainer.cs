@@ -193,6 +193,26 @@ namespace osu.Framework.Tests.Visual.Containers
             validate(1);
         }
 
+        [Test]
+        public void TestLifetimeMutatingChildren()
+        {
+            AddStep("detach container", () => Remove(container));
+
+            TestLifetimeMutatingChild first = null, second = null;
+            AddStep("add children", () =>
+            {
+                container.AddInternal(first = new TestLifetimeMutatingChild(3, 5));
+                container.AddInternal(second = new TestLifetimeMutatingChild(3, 5));
+            });
+
+            AddStep("process single frame when children alive", () =>
+            {
+                manualClock.CurrentTime = 4;
+                container.UpdateSubTree();
+            });
+            AddAssert("both children processed", () => first.Processed && second.Processed);
+        }
+
         [Test, Ignore("Takes too long. Unignore when you changed relevant code.")]
         public void TestFuzz()
         {
@@ -321,6 +341,24 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
+        public class TestLifetimeMutatingChild : TestChild
+        {
+            public bool Processed { get; private set; }
+
+            public TestLifetimeMutatingChild(double lifetimeStart, double lifetimeEnd)
+                : base(lifetimeStart, lifetimeEnd)
+            {
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                LifetimeEnd = LifetimeStart;
+                Processed = true;
+            }
+        }
+
         public class TestContainer : LifetimeManagementContainer
         {
             public event Action<LifetimeBoundaryCrossedEvent> OnCrossing;
@@ -340,6 +378,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 OnCrossing?.Invoke(e);
             }
+
+            public new void UpdateSubTree() => base.UpdateSubTree();
         }
     }
 }

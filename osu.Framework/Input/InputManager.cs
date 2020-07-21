@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -127,6 +127,11 @@ namespace osu.Framework.Input
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
         private readonly Dictionary<JoystickAxisSource, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<JoystickAxisSource, JoystickAxisEventManager>();
+
+        /// <summary>
+        /// Whether to produce mouse input on any touch input from latest source.
+        /// </summary>
+        protected virtual bool MapMouseToLatestTouch => true;
 
         protected InputManager()
         {
@@ -409,14 +414,14 @@ namespace osu.Framework.Input
             }
         }
 
+        private readonly List<IInput> inputs = new List<IInput>();
+
         protected virtual List<IInput> GetPendingInputs()
         {
-            var inputs = new List<IInput>();
+            inputs.Clear();
 
             foreach (var h in InputHandlers)
-            {
-                inputs.AddRange(h.GetPendingInputs());
-            }
+                h.CollectPendingInputs(inputs);
 
             return inputs;
         }
@@ -564,6 +569,28 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
         }
 
+        /// <summary>
+        /// Handles latest activated touch state change event to produce mouse input from.
+        /// </summary>
+        /// <param name="e">The latest activated touch state change event.</param>
+        /// <returns>Whether mouse input has been performed accordingly.</returns>
+        protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            if (!MapMouseToLatestTouch)
+                return false;
+
+            if (e.IsActive == true || e.LastPosition != null)
+            {
+                new MousePositionAbsoluteInputFromTouch(e)
+                {
+                    Position = e.Touch.Position
+                }.Apply(CurrentState, this);
+            }
+
+            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            return true;
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -592,14 +619,7 @@ namespace osu.Framework.Input
 
                 case TouchStateChangeEvent touchChange:
                     HandleTouchStateChange(touchChange);
-
-                    // primary touch mapped to mouse.
-                    if (touchChange.Touch.Source == TouchSource.Touch1)
-                    {
-                        new MousePositionAbsoluteInput { Position = touchChange.Touch.Position }.Apply(CurrentState, this);
-                        new MouseButtonInput(MouseButton.Left, touchChange.State.Touch.IsActive(touchChange.Touch.Source)).Apply(CurrentState, this);
-                    }
-
+                    HandleMouseTouchStateChange(touchChange);
                     return;
 
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
@@ -661,15 +681,20 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
-
-            if (handledBy != null && shouldLog(e))
+            foreach (var d in drawables)
             {
-                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
-                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                if (!d.TriggerEvent(e)) continue;
+
+                if (shouldLog(e))
+                {
+                    var detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
+                }
+
+                return true;
             }
 
-            return handledBy != null;
+            return false;
         }
 
         private bool shouldLog(UIEvent eventType)
@@ -761,7 +786,16 @@ namespace osu.Framework.Input
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(NonPositionalInputQueue.FirstOrDefault(target => target.RequestsFocus));
+            foreach (var d in NonPositionalInputQueue)
+            {
+                if (d.RequestsFocus)
+                {
+                    ChangeFocus(d);
+                    return;
+                }
+            }
+
+            ChangeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

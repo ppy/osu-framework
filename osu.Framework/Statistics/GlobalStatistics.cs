@@ -47,8 +47,11 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
             {
-                foreach (var stat in statistics.Where(s => group?.Equals(s.Group, StringComparison.Ordinal) != false).ToArray())
-                    statistics.Remove(stat);
+                for (int i = 0; i < statistics.Count; i++)
+                {
+                    if (group?.Equals(statistics[i].Group, StringComparison.Ordinal) != false)
+                        statistics.RemoveAt(i--);
+                }
             }
         }
 
