@@ -14,6 +14,6 @@ namespace osu.Framework.Input.StateChanges
         /// <summary>
         /// The source touch event.
         /// </summary>
-        TouchStateChangeEvent TouchEvent { get; set; }
+        TouchStateChangeEvent TouchEvent { get; }
     }
 }
