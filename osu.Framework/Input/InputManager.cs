@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -15,6 +14,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -116,7 +116,7 @@ namespace osu.Framework.Input
         /// <remarks>
         /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
         /// </remarks>
-        public ReadOnlyCollection<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
+        public SlimReadOnlyListWrapper<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
@@ -125,7 +125,7 @@ namespace osu.Framework.Input
         /// <remarks>
         /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
         /// </remarks>
-        public ReadOnlyCollection<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
+        public SlimReadOnlyListWrapper<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
@@ -145,8 +145,8 @@ namespace osu.Framework.Input
             CurrentState = CreateInitialState();
             RelativeSizeAxes = Axes.Both;
 
-            readOnlyPositionalInputQueue = new ReadOnlyCollection<Drawable>(positionalInputQueue);
-            readOnlyInputQueue = new ReadOnlyCollection<Drawable>(inputQueue);
+            readOnlyPositionalInputQueue = new SlimReadOnlyListWrapper<Drawable>(positionalInputQueue);
+            readOnlyInputQueue = new SlimReadOnlyListWrapper<Drawable>(inputQueue);
 
             foreach (var button in Enum.GetValues(typeof(MouseButton)).Cast<MouseButton>())
             {
@@ -438,9 +438,9 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private readonly ReadOnlyCollection<Drawable> readOnlyInputQueue;
+        private readonly SlimReadOnlyListWrapper<Drawable> readOnlyInputQueue;
 
-        private ReadOnlyCollection<Drawable> buildNonPositionalInputQueue()
+        private SlimReadOnlyListWrapper<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
 
@@ -467,9 +467,9 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private readonly ReadOnlyCollection<Drawable> readOnlyPositionalInputQueue;
+        private readonly SlimReadOnlyListWrapper<Drawable> readOnlyPositionalInputQueue;
 
-        private ReadOnlyCollection<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
+        private SlimReadOnlyListWrapper<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
