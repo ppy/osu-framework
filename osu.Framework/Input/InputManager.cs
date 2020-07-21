@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -414,14 +414,14 @@ namespace osu.Framework.Input
             }
         }
 
+        private readonly List<IInput> inputs = new List<IInput>();
+
         protected virtual List<IInput> GetPendingInputs()
         {
-            var inputs = new List<IInput>();
+            inputs.Clear();
 
             foreach (var h in InputHandlers)
-            {
-                inputs.AddRange(h.GetPendingInputs());
-            }
+                h.CollectPendingInputs(inputs);
 
             return inputs;
         }
@@ -676,15 +676,20 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
-
-            if (handledBy != null && shouldLog(e))
+            foreach (var d in drawables)
             {
-                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
-                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                if (!d.TriggerEvent(e)) continue;
+
+                if (shouldLog(e))
+                {
+                    var detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
+                }
+
+                return true;
             }
 
-            return handledBy != null;
+            return false;
         }
 
         private bool shouldLog(UIEvent eventType)
@@ -776,7 +781,16 @@ namespace osu.Framework.Input
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(NonPositionalInputQueue.FirstOrDefault(target => target.RequestsFocus));
+            foreach (var d in NonPositionalInputQueue)
+            {
+                if (d.RequestsFocus)
+                {
+                    ChangeFocus(d);
+                    return;
+                }
+            }
+
+            ChangeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager
