@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -403,7 +403,7 @@ namespace osu.Framework.Input
                         highFrequencyDrawables.Add(d);
                 }
 
-                PropagateBlockableEvent(highFrequencyDrawables, new MouseMoveEvent(CurrentState));
+                PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), new MouseMoveEvent(CurrentState));
 
                 highFrequencyDrawables.Clear();
             }
@@ -699,7 +699,7 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
         /// <returns>Whether the event was handled.</returns>
-        protected virtual bool PropagateBlockableEvent(List<Drawable> drawables, UIEvent e)
+        protected virtual bool PropagateBlockableEvent(SlimReadOnlyListWrapper<Drawable> drawables, UIEvent e)
         {
             foreach (var d in drawables)
             {
