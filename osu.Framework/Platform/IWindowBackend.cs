@@ -35,6 +35,12 @@ namespace osu.Framework.Platform
         /// </summary>
         Size Size { get; set; }
 
+        Size WindowedSize { get; set; }
+
+        Size ScaledSize { get; }
+
+        Size FullscreenSize { get; set; }
+
         /// <summary>
         /// Returns the scale of window's drawable area.
         /// In high-dpi environments this will be greater than one.
@@ -210,16 +216,6 @@ namespace osu.Framework.Platform
         /// Requests that the window close.
         /// </summary>
         void Close();
-
-        /// <summary>
-        /// Requests that the window change state, size, and/or display mode.
-        /// Should be used if intending to switch between windowed and fullscreen modes to
-        /// ensure they are performed atomically.
-        /// </summary>
-        /// <param name="state">The <see cref="WindowState"/> to change to.</param>
-        /// <param name="requestedSize">The target <see cref="Size"/> for the window, or null if the size should not change.</param>
-        /// <param name="displayMode">The target <see cref="DisplayMode"/> for fullscreen mode, or null to use <paramref name="requestedSize"/>@60hz.</param>
-        void ChangeWindowState(WindowState state, Size? requestedSize = null, DisplayMode? displayMode = null);
 
         #endregion
     }

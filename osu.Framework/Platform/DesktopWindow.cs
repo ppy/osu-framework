@@ -41,7 +41,7 @@ namespace osu.Framework.Platform
                     return;
 
                 var displayBounds = CurrentDisplay.Value.Bounds;
-                var windowSize = Size.Value;
+                var windowSize = sizeWindowed.Value;
                 var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
                 var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * value.Y);
 
@@ -72,20 +72,23 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
             windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
 
-            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
-
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (!evt.NewValue.IsEmpty && (WindowState.Value == Platform.WindowState.Fullscreen || WindowState.Value == Platform.WindowState.FullscreenBorderless))
-                    Size.Value = evt.NewValue;
+                if (evt.NewValue.IsEmpty)
+                    return;
+
+                WindowBackend.FullscreenSize = evt.NewValue;
             };
 
             sizeWindowed.ValueChanged += evt =>
             {
-                if (!evt.NewValue.IsEmpty && WindowState.Value == Platform.WindowState.Normal)
-                    Size.Value = evt.NewValue;
+                if (evt.NewValue.IsEmpty)
+                    return;
+
+                WindowBackend.WindowedSize = evt.NewValue;
             };
 
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
@@ -96,47 +99,17 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
             WindowMode.BindValueChanged(evt => UpdateWindowMode(evt.NewValue), true);
 
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+            // config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+            // ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
 
             Resized += onResized;
             Moved += onMoved;
         }
 
-        protected override void UpdateWindowMode(WindowMode mode, Size? size = null)
-        {
-            switch (mode)
-            {
-                case Configuration.WindowMode.Windowed:
-                    base.UpdateWindowMode(mode, size ?? sizeWindowed.Value);
-                    break;
-
-                case Configuration.WindowMode.Borderless:
-                case Configuration.WindowMode.Fullscreen:
-                    base.UpdateWindowMode(mode, size ?? sizeFullscreen.Value);
-                    break;
-            }
-
-            ConfineMouseMode.TriggerChange();
-        }
-
         private void onResized()
         {
-            if (Size.Value.IsEmpty)
-                return;
-
-            switch (WindowMode.Value)
-            {
-                case Configuration.WindowMode.Windowed:
-                    sizeWindowed.Value = Size.Value;
-                    updateWindowPositionConfig();
-                    break;
-
-                case Configuration.WindowMode.Borderless:
-                case Configuration.WindowMode.Fullscreen:
-                    sizeFullscreen.Value = Size.Value;
-                    break;
-            }
+            // Size.Value = WindowBackend.WindowedSize;
+            updateWindowPositionConfig();
         }
 
         private void onMoved(Point point)
@@ -146,7 +119,7 @@ namespace osu.Framework.Platform
 
         private void updateWindowPositionConfig()
         {
-            if (WindowMode.Value == Configuration.WindowMode.Windowed)
+            if (WindowState.Value == Platform.WindowState.Normal)
             {
                 var relativePosition = RelativePosition;
                 windowPositionX.Value = relativePosition.X;
