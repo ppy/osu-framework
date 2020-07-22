@@ -11,10 +11,8 @@ namespace osu.Framework.Input.StateChanges
     /// Denotes a relative change of mouse scroll.
     /// Pointing devices such as mice provide relative scroll input.
     /// </summary>
-    public class MouseScrollRelativeInput : IMouseInput
+    public class MouseScrollRelativeInput : IInput
     {
-        public bool FromTouchSource { get; set; }
-
         /// <summary>
         /// The change in scroll. This is added to the current scroll.
         /// </summary>
@@ -34,8 +32,6 @@ namespace osu.Framework.Input.StateChanges
 
             if (Delta != Vector2.Zero)
             {
-                mouse.FromTouchSource = FromTouchSource;
-
                 var lastScroll = mouse.Scroll;
                 mouse.Scroll += Delta;
                 mouse.LastSource = this;

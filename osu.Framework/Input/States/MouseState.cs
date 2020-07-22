@@ -10,11 +10,6 @@ namespace osu.Framework.Input.States
 {
     public class MouseState
     {
-        /// <summary>
-        /// Whether the last mouse input has been performed from a touch input source.
-        /// </summary>
-        public bool FromTouchSource { get; set; }
-
         public readonly ButtonStates<MouseButton> Buttons = new ButtonStates<MouseButton>();
 
         public Vector2 Scroll { get; set; }
@@ -34,7 +29,7 @@ namespace osu.Framework.Input.States
         public override string ToString()
         {
             string position = IsPositionValid ? $"({Position.X:F0},{Position.Y:F0})" : "(Invalid)";
-            return $@"{GetType().ReadableName()} {position} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2}) {(FromTouchSource ? "(State from touch source)" : "")}";
+            return $@"{GetType().ReadableName()} {position} {Buttons} Scroll ({Scroll.X:F2},{Scroll.Y:F2})";
         }
     }
 }

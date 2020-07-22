@@ -14,10 +14,8 @@ namespace osu.Framework.Input.StateChanges
     /// <remarks>
     /// This is the first input received from any pointing device.
     /// </remarks>
-    public class MousePositionAbsoluteInput : IMouseInput
+    public class MousePositionAbsoluteInput : IInput
     {
-        public bool FromTouchSource { get; set; }
-
         /// <summary>
         /// The position which will be assigned to the current position.
         /// </summary>
@@ -29,8 +27,6 @@ namespace osu.Framework.Input.StateChanges
 
             if (!mouse.IsPositionValid || mouse.Position != Position)
             {
-                mouse.FromTouchSource = FromTouchSource;
-
                 var lastPosition = mouse.IsPositionValid ? mouse.Position : Position;
                 mouse.IsPositionValid = true;
                 mouse.LastSource = this;

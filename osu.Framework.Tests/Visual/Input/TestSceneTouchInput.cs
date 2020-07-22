@@ -377,29 +377,6 @@ namespace osu.Framework.Tests.Visual.Input
                 primaryReceptor.MouseEvents.Count == 0);
         }
 
-        [Test]
-        public void TestMouseEventFromTouchIndication()
-        {
-            InputReceptor primaryReceptor = null;
-
-            AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
-            AddStep("setup handlers to avoid mouse-from-touch events", () =>
-            {
-                primaryReceptor.HandleMouse = me => !me.FromTouchSource;
-            });
-
-            AddStep("perform input on primary touch", () =>
-            {
-                InputManager.BeginTouch(new Touch(TouchSource.Touch1, getTouchDownPos(TouchSource.Touch1)));
-                InputManager.MoveTouchTo(new Touch(TouchSource.Touch1, getTouchMovePos(TouchSource.Touch1)));
-                InputManager.EndTouch(new Touch(TouchSource.Touch1, getTouchUpPos(TouchSource.Touch1)));
-            });
-            AddAssert("no mouse event received", () => primaryReceptor.MouseEvents.Count == 0);
-
-            AddStep("perform mouse move input", () => InputManager.MoveMouseTo(getTouchDownPos(TouchSource.Touch1)));
-            AddAssert("mouse event received", () => primaryReceptor.MouseEvents.Single() is MouseMoveEvent);
-        }
-
         private class InputReceptor : Container
         {
             public readonly TouchSource AssociatedSource;
