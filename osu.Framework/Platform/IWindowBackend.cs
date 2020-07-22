@@ -33,13 +33,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        Size Size { get; set; }
-
         Size WindowedSize { get; set; }
 
-        Size ScaledSize { get; }
-
         Size FullscreenSize { get; set; }
+
+        Size ClientSize { get; }
 
         /// <summary>
         /// Returns the scale of window's drawable area.

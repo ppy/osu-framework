@@ -69,62 +69,26 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private Point position = Point.Empty;
+        private readonly Cached<Point> position = new Cached<Point>();
 
         public Point Position
         {
             get
             {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return position;
+                if (!position.IsValid && SdlWindowHandle != IntPtr.Zero && windowFlags.ToWindowState() == WindowState.Normal)
+                {
+                    SDL.SDL_GetWindowPosition(SdlWindowHandle, out int x, out int y);
+                    position.Value = new Point(x, y);
+                }
 
-                SDL.SDL_GetWindowPosition(SdlWindowHandle, out int x, out int y);
-                return new Point(x, y);
+                return position.IsValid ? position.Value : Point.Empty;
             }
             set
             {
-                position = value;
+                position.Value = value;
 
                 if (SdlWindowHandle != IntPtr.Zero)
                     scheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
-            }
-        }
-
-        public Size Size
-        {
-            get
-            {
-                switch (windowFlags.ToWindowState())
-                {
-                    case WindowState.Normal:
-                    case WindowState.Maximised:
-                    case WindowState.Minimised:
-                        return WindowedSize;
-
-                    case WindowState.Fullscreen:
-                        return FullscreenSize;
-
-                    case WindowState.FullscreenBorderless:
-                        SDL.SDL_GetDesktopDisplayMode(currentDisplayIndex, out var mode);
-                        return new Size(mode.w, mode.h);
-                }
-
-                return Size.Empty;
-            }
-            set
-            {
-                switch (windowFlags.ToWindowState())
-                {
-                    case WindowState.Normal:
-                    case WindowState.Maximised:
-                    case WindowState.Minimised:
-                        WindowedSize = value;
-                        break;
-
-                    case WindowState.Fullscreen:
-                        FullscreenSize = value;
-                        break;
-                }
             }
         }
 
@@ -134,11 +98,11 @@ namespace osu.Framework.Platform.Sdl
         {
             get
             {
-                if (SdlWindowHandle == IntPtr.Zero)
+                if (SdlWindowHandle == IntPtr.Zero || windowFlags.ToWindowState() != WindowState.Normal)
                     return windowedSize;
 
                 SDL.SDL_GetWindowSize(SdlWindowHandle, out int w, out int h);
-                return new Size(w, h);
+                return windowedSize = new Size(w, h);
             }
             set
             {
@@ -148,13 +112,9 @@ namespace osu.Framework.Platform.Sdl
                 {
                     scheduler.Add(() =>
                     {
-                        SDL.SDL_GetWindowSize(SdlWindowHandle, out int w, out int h);
-
-                        if (w != value.Width || h != value.Height)
-                        {
-                            SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height);
-                            validateScale(true);
-                        }
+                        SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height);
+                        scale.Invalidate();
+                        validateScale(true);
                     });
                 }
             }
@@ -170,7 +130,7 @@ namespace osu.Framework.Platform.Sdl
                     return fullscreenSize;
 
                 SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode);
-                return new Size(mode.w, mode.h);
+                return fullscreenSize = new Size(mode.w, mode.h);
             }
             set
             {
@@ -180,7 +140,6 @@ namespace osu.Framework.Platform.Sdl
                 {
                     scheduler.Add(() =>
                     {
-                        // TODO: better method of finding preferred display mode
                         var requestedMode = new SDL.SDL_DisplayMode { w = value.Width, h = value.Height, refresh_rate = 60 };
                         SDL.SDL_GetClosestDisplayMode(currentDisplayIndex, ref requestedMode, out var closestMode);
                         SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
@@ -190,7 +149,28 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public Size ScaledSize => windowFlags.ToWindowState() == WindowState.Fullscreen ? FullscreenSize : (Size * Scale).ToSize();
+        public Size ClientSize
+        {
+            get
+            {
+                switch (windowFlags.ToWindowState())
+                {
+                    case WindowState.Normal:
+                    case WindowState.Maximised:
+                    case WindowState.Minimised:
+                        return (WindowedSize * Scale).ToSize();
+
+                    case WindowState.Fullscreen:
+                        return FullscreenSize;
+
+                    case WindowState.FullscreenBorderless:
+                        SDL.SDL_GetDesktopDisplayMode(currentDisplayIndex, out var mode);
+                        return new Size((int)(mode.w * Scale), (int)(mode.h * Scale));
+                }
+
+                return Size.Empty;
+            }
+        }
 
         private readonly Cached<float> scale = new Cached<float>();
 
@@ -209,7 +189,15 @@ namespace osu.Framework.Platform.Sdl
 
             SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out int w, out _);
 
-            scale.Value = w / (float)Size.Width;
+            var width = WindowedSize.Width;
+
+            if (windowFlags.ToWindowState() == WindowState.FullscreenBorderless)
+            {
+                SDL.SDL_GetDesktopDisplayMode(currentDisplayIndex, out var mode);
+                width = mode.w;
+            }
+
+            scale.Value = w / (float)width;
             return scale.Value;
         }
 
@@ -296,7 +284,7 @@ namespace osu.Framework.Platform.Sdl
 
                 scheduler.Add(() =>
                 {
-                    var windowSize = Size;
+                    var windowSize = WindowedSize;
                     int x = value.Bounds.Left + value.Bounds.Width / 2 - windowSize.Width / 2;
                     int y = value.Bounds.Top + value.Bounds.Height / 2 - windowSize.Height / 2;
                     SDL.SDL_SetWindowPosition(SdlWindowHandle, x, y);
@@ -424,7 +412,7 @@ namespace osu.Framework.Platform.Sdl
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                                         WindowState.ToFlags();
 
-            SdlWindowHandle = SDL.SDL_CreateWindow(Title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SdlWindowHandle = SDL.SDL_CreateWindow(Title, Position.X, Position.Y, WindowedSize.Width, WindowedSize.Height, flags);
 
             validateScale(true);
 
@@ -463,8 +451,10 @@ namespace osu.Framework.Platform.Sdl
 
             previousPolledPoint = new Point(x, y);
 
-            var rx = x - Position.X;
-            var ry = y - Position.Y;
+            var pos = windowFlags.ToWindowState() == WindowState.Normal ? Position : CurrentDisplay.Bounds.Location;
+            var rx = x - pos.X;
+            var ry = y - pos.Y;
+
             OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * Scale, ry * Scale) });
         }
 

@@ -372,17 +372,14 @@ namespace osu.Framework.Platform
             {
                 case Configuration.WindowMode.Fullscreen:
                     WindowBackend.WindowState = Platform.WindowState.Fullscreen;
-                    // WindowBackend.ChangeWindowState(Platform.WindowState.Fullscreen, size);
                     break;
 
                 case Configuration.WindowMode.Borderless:
                     WindowBackend.WindowState = Platform.WindowState.FullscreenBorderless;
-                    // WindowBackend.ChangeWindowState(Platform.WindowState.FullscreenBorderless, size);
                     break;
 
                 case Configuration.WindowMode.Windowed:
                     WindowBackend.WindowState = Platform.WindowState.Normal;
-                    // WindowBackend.ChangeWindowState(Platform.WindowState.Normal, size);
                     break;
             }
         }
@@ -405,7 +402,7 @@ namespace osu.Framework.Platform
             {
                 boundsChanging = true;
                 Position.Value = WindowBackend.Position;
-                Size.Value = WindowBackend.Size;
+                Size.Value = WindowBackend.WindowedSize;
                 boundsChanging = false;
             }
 
@@ -440,7 +437,7 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            WindowBackend.Size = evt.NewValue;
+            WindowBackend.WindowedSize = evt.NewValue;
             boundsChanging = false;
         }
 
@@ -526,7 +523,8 @@ namespace osu.Framework.Platform
 
         public Rectangle ClientRectangle
         {
-            get => new Rectangle(Point.Empty, WindowBackend.ScaledSize);
+            get => new Rectangle(Position.Value, WindowBackend.ClientSize);
+            // get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
             set
             {
                 // Position.Value = value.Location;
@@ -536,7 +534,7 @@ namespace osu.Framework.Platform
 
         Size INativeWindow.ClientSize
         {
-            get => WindowBackend.ScaledSize;
+            get => WindowBackend.ClientSize;
             set
             {
                 // Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));

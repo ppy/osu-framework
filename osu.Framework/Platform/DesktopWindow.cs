@@ -86,6 +86,9 @@ namespace osu.Framework.Platform
                     return;
 
                 WindowBackend.WindowedSize = evt.NewValue;
+                Size.Value = evt.NewValue;
+
+                Console.WriteLine($"sizeWindowed.ValueChanged: Size = {Size.Value}");
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -108,13 +111,18 @@ namespace osu.Framework.Platform
 
         private void onResized()
         {
-            // Size.Value = WindowBackend.WindowedSize;
-            updateWindowPositionConfig();
+            if (WindowState.Value == Platform.WindowState.Normal)
+            {
+                sizeWindowed.Value = WindowBackend.WindowedSize;
+                Size.Value = sizeWindowed.Value;
+                updateWindowPositionConfig();
+            }
         }
 
         private void onMoved(Point point)
         {
-            updateWindowPositionConfig();
+            if (WindowState.Value == Platform.WindowState.Normal)
+                updateWindowPositionConfig();
         }
 
         private void updateWindowPositionConfig()
