@@ -189,6 +189,12 @@ namespace osu.Framework.Tests.Visual.Input
         {
             InputReceptor firstReceptor = null, lastReceptor = null;
 
+            AddStep("setup receptors to receive mouse-from-touch", () =>
+            {
+                foreach (var r in receptors)
+                    r.HandleTouch = _ => false;
+            });
+
             AddStep("retrieve receptors", () =>
             {
                 firstReceptor = receptors[(int)TouchSource.Touch1];
@@ -324,8 +330,9 @@ namespace osu.Framework.Tests.Visual.Input
             InputReceptor primaryReceptor = null;
 
             AddStep("retrieve primary receptor", () => primaryReceptor = receptors[(int)TouchSource.Touch1]);
-            AddStep("setup handlers to avoid mouse-from-touch events", () =>
+            AddStep("setup receptors to discard mouse-from-touch events", () =>
             {
+                primaryReceptor.HandleTouch = _ => false;
                 primaryReceptor.HandleMouse = e => !(e.CurrentState.Mouse.LastSource is ISourcedFromTouch);
             });
 
