@@ -127,8 +127,14 @@ namespace osu.Framework.Allocation
                 {
                     if (!typeof(IBindable).IsAssignableFrom(field.FieldType))
                     {
-                        throw new InvalidOperationException($"The field \"{field.Name}\" does not subclass {nameof(IBindable)}. "
-                                                            + $"All fields or auto-properties of a cached model container's model must subclass {nameof(IBindable)}");
+                        throw new InvalidOperationException($"\"{field.DeclaringType}.{field.Name}\" does not subclass {nameof(IBindable)}. "
+                                                            + $"All fields of {typeof(TModel)} must subclass {nameof(IBindable)} to be used in a {nameof(CachedModelDependencyContainer<TModel>)}.");
+                    }
+
+                    if (!field.IsInitOnly)
+                    {
+                        throw new InvalidOperationException($"\"{field.DeclaringType}.{field.Name}\" is not readonly. "
+                                                            + $"All fields of {typeof(TModel)} must be readonly to be used in a {nameof(CachedModelDependencyContainer<TModel>)}.");
                     }
                 }
             }

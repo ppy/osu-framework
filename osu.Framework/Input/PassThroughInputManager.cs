@@ -81,9 +81,9 @@ namespace osu.Framework.Input
         {
             if (!UseParentInput) return false;
 
-            // Don't handle simulated mouse events from touch source, we may have a
+            // Don't handle mouse events sourced from touches, we may have a
             // child drawable handling actual touches, we will produce one ourselves.
-            if (e is MouseEvent mouse && mouse.FromTouchSource)
+            if (e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
 
             switch (e)
@@ -108,8 +108,15 @@ namespace osu.Framework.Input
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
                     break;
 
+                case TouchEvent touch:
+                    new TouchInput(touch.ScreenSpaceTouch, touch.IsActive(touch.ScreenSpaceTouch)).Apply(CurrentState, this);
+                    break;
+
+                case MidiEvent midi:
+                    new MidiKeyInput(midi.Key, midi.Velocity, midi.IsPressed(midi.Key)).Apply(CurrentState, this);
+                    break;
+
                 case KeyboardEvent _:
-                case TouchEvent _:
                 case JoystickButtonEvent _:
                 case JoystickAxisMoveEvent _:
                     SyncInputState(e.CurrentState);
@@ -170,6 +177,8 @@ namespace osu.Framework.Input
 
             new JoystickButtonInput(state?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
             new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
+
+            new MidiKeyInput(state?.Midi, CurrentState.Midi).Apply(CurrentState, this);
         }
     }
 }

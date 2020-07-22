@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -18,10 +21,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private TestRearrangeableList list;
 
+        private Container listContainer;
+
         [SetUp]
         public void Setup() => Schedule(() =>
         {
-            Child = new Container
+            Child = listContainer = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -40,6 +45,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 addItems(1);
                 AddAssert($"last item is \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().Last().Model == localI);
             }
+        }
+
+        [Test]
+        public void TestBindBeforeLoad()
+        {
+            AddStep("create list", () => list = new TestRearrangeableList { RelativeSizeAxes = Axes.Both });
+            AddStep("bind list to items", () => list.Items.BindTo(new BindableList<int>(new[] { 1, 2, 3 })));
+            AddStep("add list to hierarchy", () => listContainer.Add(list));
         }
 
         [Test]
@@ -237,6 +250,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("scroll hasn't changed", () => list.ScrollPosition == scrollPosition);
         }
 
+        [Test]
+        public void TestRemoveDuringLoadAndReAdd()
+        {
+            TestDelayedLoadRearrangeableList delayedList = null;
+
+            AddStep("create list", () => Child = delayedList = new TestDelayedLoadRearrangeableList());
+
+            AddStep("add item 1", () => delayedList.Items.Add(1));
+            AddStep("remove item 1", () => delayedList.Items.Remove(1));
+            AddStep("add item 1", () => delayedList.Items.Add(1));
+            AddStep("allow load", () => delayedList.AllowLoad.Release(100));
+
+            AddAssert("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
+        }
+
         private void addDragSteps(int from, int to, int[] expectedSequence)
         {
             AddStep($"move to {from}", () =>
@@ -292,6 +320,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public void ScrollTo(int item)
                 => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
+        }
+
+        private class TestDelayedLoadRearrangeableList : BasicRearrangeableListContainer<int>
+        {
+            public readonly SemaphoreSlim AllowLoad = new SemaphoreSlim(0, 100);
+
+            protected override BasicRearrangeableListItem<int> CreateBasicItem(int item) => new TestRearrangeableListItem(item, AllowLoad);
+
+            private class TestRearrangeableListItem : BasicRearrangeableListItem<int>
+            {
+                private readonly SemaphoreSlim allowLoad;
+
+                public TestRearrangeableListItem(int item, SemaphoreSlim allowLoad)
+                    : base(item, false)
+                {
+                    this.allowLoad = allowLoad;
+                }
+
+                [BackgroundDependencyLoader]
+                private void load()
+                {
+                    if (!allowLoad.Wait(TimeSpan.FromSeconds(10)))
+                        throw new TimeoutException();
+                }
+            }
         }
     }
 }

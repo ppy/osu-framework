@@ -9,7 +9,7 @@ namespace osu.Framework.Input
     public enum TouchSource
     {
         /// <summary>
-        /// The first and primary touch source.
+        /// The first touch source.
         /// </summary>
         Touch1,
 

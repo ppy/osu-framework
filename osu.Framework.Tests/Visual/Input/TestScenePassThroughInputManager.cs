@@ -149,6 +149,33 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("synced properly", () =>
                 testInputManager.CurrentState.Touch.ActiveSources.Single() == TouchSource.Touch2 &&
                 testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == Vector2.One);
+
+            AddStep("end second touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch2, new Vector2(2))));
+            AddAssert("synced properly", () =>
+                !testInputManager.CurrentState.Touch.ActiveSources.HasAnyButtonPressed &&
+                testInputManager.CurrentState.Touch.TouchPositions[(int)TouchSource.Touch2] == new Vector2(2));
+        }
+
+        [Test]
+        public void TestMidiInput()
+        {
+            addTestInputManagerStep();
+
+            AddStep("press C3", () => InputManager.PressMidiKey(MidiKey.C3, 70));
+            AddAssert("synced properly", () =>
+                testInputManager.CurrentState.Midi.Keys.IsPressed(MidiKey.C3)
+                && testInputManager.CurrentState.Midi.Velocities[MidiKey.C3] == 70);
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+            AddStep("release C3", () => InputManager.ReleaseMidiKey(MidiKey.C3, 40));
+            AddStep("press F#3", () => InputManager.PressMidiKey(MidiKey.FSharp3, 65));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("synced properly", () =>
+                !testInputManager.CurrentState.Midi.Keys.IsPressed(MidiKey.C3) &&
+                testInputManager.CurrentState.Midi.Velocities[MidiKey.C3] == 40 &&
+                testInputManager.CurrentState.Midi.Keys.IsPressed(MidiKey.FSharp3) &&
+                testInputManager.CurrentState.Midi.Velocities[MidiKey.FSharp3] == 65);
         }
 
         [Test]
