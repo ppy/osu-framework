@@ -13,6 +13,10 @@ namespace osu.Framework.Audio
     {
         private int channel;
 
+        /// <summary>
+        /// The most recent amplitude data. Note that this is updated on an ongoing basis and there is no guarantee it is in a consistent (single sample) state.
+        /// If you need consistent data, make a copy of FrequencyAmplitudes while on the audio thread.
+        /// </summary>
         public ChannelAmplitudes CurrentAmplitudes { get; private set; } = ChannelAmplitudes.Empty;
 
         public BassAmplitudeProcessor(int channel)
@@ -24,6 +28,8 @@ namespace osu.Framework.Audio
         {
             this.channel = channel;
         }
+
+        private float[] frequencyData;
 
         public void Update()
         {
@@ -39,7 +45,7 @@ namespace osu.Framework.Audio
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
-                float[] frequencyData = new float[ChannelAmplitudes.AMPLITUDES_SIZE];
+                frequencyData ??= new float[ChannelAmplitudes.AMPLITUDES_SIZE];
                 Bass.ChannelGetData(ch, frequencyData, (int)DataFlags.FFT512);
                 CurrentAmplitudes = new ChannelAmplitudes(leftChannel, rightChannel, frequencyData);
             }
