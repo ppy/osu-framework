@@ -83,7 +83,7 @@ namespace osu.Framework.Input
 
             // Don't handle mouse events sourced from touches, we may have a
             // child drawable handling actual touches, we will produce one ourselves.
-            if (e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
                 return false;
 
             switch (e)
