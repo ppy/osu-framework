@@ -280,10 +280,8 @@ namespace osu.Framework.Graphics.Performance
 
                 frameTimeDisplay.Counting = running;
 
-                // dequeue all pending frames on state change.
-                while (monitor.PendingFrames.TryDequeue(out _))
-                {
-                }
+                // clear all pending frames on state change.
+                monitor.PendingFrames.Clear();
             }
         }
 
