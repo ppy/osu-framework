@@ -344,8 +344,35 @@ namespace osu.Framework.Tests.Visual.Input
             });
             AddAssert("no mouse event received", () => primaryReceptor.MouseEvents.Count == 0);
 
-            AddStep("perform mouse move input", () => InputManager.MoveMouseTo(getTouchDownPos(TouchSource.Touch1)));
-            AddAssert("mouse event received", () => primaryReceptor.MouseEvents.Single() is MouseMoveEvent);
+            AddStep("perform input on mouse", () =>
+            {
+                InputManager.MoveMouseTo(getTouchDownPos(TouchSource.Touch1));
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(getTouchMovePos(TouchSource.Touch1));
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("all mouse events received", () =>
+            {
+                // mouse moved.
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out var me1) && me1 is MouseMoveEvent))
+                    return false;
+
+                // left down.
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out var me2) && me2 is MouseDownEvent))
+                    return false;
+
+                // mouse dragged with left.
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out var me3) && me3 is MouseMoveEvent))
+                    return false;
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out var me4) && me4 is DragEvent))
+                    return false;
+
+                // left up.
+                if (!(primaryReceptor.MouseEvents.TryDequeue(out var me5) && me5 is MouseUpEvent))
+                    return false;
+
+                return primaryReceptor.MouseEvents.Count == 0;
+            });
         }
 
         [Test]
