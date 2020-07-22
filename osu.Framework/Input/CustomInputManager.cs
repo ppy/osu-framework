@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using osu.Framework.Input.Handlers;
 
@@ -13,9 +14,9 @@ namespace osu.Framework.Input
     /// </summary>
     public class CustomInputManager : InputManager
     {
-        protected override InputHandler[] InputHandlers => inputHandlers;
+        protected override ImmutableArray<InputHandler> InputHandlers => inputHandlers;
 
-        private InputHandler[] inputHandlers = Array.Empty<InputHandler>();
+        private ImmutableArray<InputHandler> inputHandlers = ImmutableArray.Create<InputHandler>();
 
         protected void AddHandler(InputHandler handler)
         {
@@ -32,12 +33,12 @@ namespace osu.Framework.Input
             }
 
             existingHandlers.Insert(index, handler);
-            inputHandlers = existingHandlers.ToArray();
+            inputHandlers = existingHandlers.ToImmutableArray();
         }
 
         protected void RemoveHandler(InputHandler handler)
         {
-            inputHandlers = inputHandlers.Where(h => h != handler).ToArray();
+            inputHandlers = inputHandlers.Where(h => h != handler).ToImmutableArray();
         }
 
         protected override void Dispose(bool isDisposing)

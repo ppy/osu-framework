@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -45,7 +46,7 @@ namespace osu.Framework.Input
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
 
-        protected abstract InputHandler[] InputHandlers { get; }
+        protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
 
         private double keyboardRepeatTime;
         private Key? keyboardRepeatKey;
