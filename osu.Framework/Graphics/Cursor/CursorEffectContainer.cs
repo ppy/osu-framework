@@ -1,11 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Input;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -36,15 +36,27 @@ namespace osu.Framework.Graphics.Cursor
             Debug.Assert(targetChildren.Count == 0, $"{nameof(targetChildren)} should be empty but has {targetChildren.Count} elements.");
 
             // Skip all drawables in the hierarchy prior to (and including) ourself.
-            var targetCandidates = inputManager.PositionalInputQueue.Reverse().SkipWhile(d => d != this).Skip(1);
+            var targetCandidates = inputManager.PositionalInputQueue;
+
+            int selfIndex = targetCandidates.IndexOf(this);
+
+            if (selfIndex < 0) return;
 
             childDrawables.Add(this);
 
             // keep track of all hovered drawables below this and nested effect containers
             // so we can decide which ones are valid candidates for receiving our effect and so
             // we know when we can abort our search.
-            foreach (var candidate in targetCandidates)
+            for (int i = selfIndex - 1; i >= 0; i--)
             {
+                var candidate = targetCandidates[i] as TTarget;
+
+                if (candidate == null)
+                    continue;
+
+                if (!candidate.IsHovered)
+                    continue;
+
                 // Children of drawables we are responsible for transitively also fall into our subtree,
                 // and therefore we need to handle them. If they are not children of any drawables we handle,
                 // it means that we iterated beyond our subtree and may terminate.
@@ -83,23 +95,26 @@ namespace osu.Framework.Graphics.Cursor
                 if (nestedTtcChildDrawables.Contains(candidate))
                     continue;
 
-                if (candidate is TTarget target && target.IsHovered)
-                    // We found a valid candidate; keep track of it
-                    targetChildren.Add(target);
+                // We found a valid candidate; keep track of it
+                targetChildren.Add(candidate);
             }
         }
 
-        protected List<TTarget> FindTargets()
+        protected IEnumerable<TTarget> FindTargets()
         {
             findTargetChildren();
-
-            List<TTarget> result = new List<TTarget>(targetChildren);
-            result.Reverse();
 
             // Clean up
             childDrawables.Clear();
             nestedTtcChildDrawables.Clear();
             newChildDrawables.Clear();
+
+            if (targetChildren.Count == 0)
+                return Enumerable.Empty<TTarget>();
+
+            List<TTarget> result = new List<TTarget>(targetChildren);
+            result.Reverse();
+
             targetChildren.Clear();
 
             return result;
