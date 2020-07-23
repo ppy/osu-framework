@@ -45,14 +45,14 @@ namespace osu.Framework.Input.StateChanges
         {
             var difference = (current ?? new ButtonStates<TButton>()).EnumerateDifference(previous ?? new ButtonStates<TButton>());
 
-            var entries = new List<ButtonInputEntry<TButton>>();
+            var builder = ImmutableArray.CreateBuilder<ButtonInputEntry<TButton>>(difference.Released.Length + difference.Pressed.Length);
 
             foreach (var button in difference.Released)
-                entries.Add(new ButtonInputEntry<TButton>(button, false));
+                builder.Add(new ButtonInputEntry<TButton>(button, false));
             foreach (var button in difference.Pressed)
-                entries.Add(new ButtonInputEntry<TButton>(button, true));
+                builder.Add(new ButtonInputEntry<TButton>(button, true));
 
-            Entries = entries.ToImmutableArray();
+            Entries = builder.MoveToImmutable();
         }
 
         /// <summary>
