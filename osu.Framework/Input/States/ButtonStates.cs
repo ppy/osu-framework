@@ -16,12 +16,12 @@ namespace osu.Framework.Input.States
     public class ButtonStates<TButton> : IEnumerable<TButton>
         where TButton : struct
     {
-        private List<TButton> pressedButtons = new List<TButton>();
+        private HashSet<TButton> pressedButtons = new HashSet<TButton>();
 
         public ButtonStates<TButton> Clone()
         {
             var clone = (ButtonStates<TButton>)MemberwiseClone();
-            clone.pressedButtons = new List<TButton>(pressedButtons);
+            clone.pressedButtons = new HashSet<TButton>(pressedButtons);
             return clone;
         }
 
@@ -63,7 +63,22 @@ namespace osu.Framework.Input.States
             if (!HasAnyButtonPressed)
                 return new ButtonStateDifference(lastButtons.pressedButtons, Array.Empty<TButton>());
 
-            return new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
+            List<TButton> released = null;
+            List<TButton> pressed = null;
+
+            foreach (var b in pressedButtons)
+            {
+                if (!lastButtons.pressedButtons.Contains(b))
+                    (pressed ??= new List<TButton>()).Add(b);
+            }
+
+            foreach (var b in lastButtons.pressedButtons)
+            {
+                if (!pressedButtons.Contains(b))
+                    (released ??= new List<TButton>()).Add(b);
+            }
+
+            return new ButtonStateDifference(released ?? Enumerable.Empty<TButton>(), pressed ?? Enumerable.Empty<TButton>());
         }
 
         /// <summary>
@@ -73,7 +88,8 @@ namespace osu.Framework.Input.States
         public void Set(ButtonStates<TButton> other)
         {
             pressedButtons.Clear();
-            pressedButtons.AddRange(other.pressedButtons);
+            foreach (var b in other.pressedButtons)
+                pressedButtons.Add(b);
         }
 
         public override string ToString() => $@"{GetType().ReadableName()}({string.Join(' ', pressedButtons)})";
