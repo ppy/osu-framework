@@ -1,16 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
-using osuTK.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -201,7 +201,16 @@ namespace osu.Framework.Graphics.Cursor
             if (inputManager.DraggedDrawable is IHasCustomTooltip customDraggedTarget)
                 return hasValidTooltip(customDraggedTarget) ? customDraggedTarget : null;
 
-            ITooltipContentProvider targetCandidate = FindTargets().Find(hasValidTooltip);
+            ITooltipContentProvider targetCandidate = null;
+
+            foreach (var target in FindTargets())
+            {
+                if (hasValidTooltip(target))
+                {
+                    targetCandidate = target;
+                    break;
+                }
+            }
 
             // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
             if (targetCandidate != lastCandidate)
@@ -212,6 +221,15 @@ namespace osu.Framework.Graphics.Cursor
 
             if (targetCandidate == null)
                 return null;
+
+            return handlePotentialTarget(targetCandidate);
+        }
+
+        private ITooltipContentProvider handlePotentialTarget(ITooltipContentProvider targetCandidate)
+        {
+            // this method is intentionally split out from the main lookup above as it has several expensive delegate (LINQ) allocations.
+            // this allows the case where no tooltip is displayed to run with no allocations.
+            // further optimisation work can be done here to reduce allocations while a tooltip is being displayed.
 
             double appearDelay = (targetCandidate as IHasAppearDelay)?.AppearDelay ?? AppearDelay;
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.

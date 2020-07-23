@@ -25,5 +25,11 @@ namespace osu.Framework.Input.StateChanges
         }
 
         protected override ButtonStates<MouseButton> GetButtonStates(InputState state) => state.Mouse.Buttons;
+
+        public override void Apply(InputState state, IInputStateChangeHandler handler)
+        {
+            state.Mouse.LastSource = this;
+            base.Apply(state, handler);
+        }
     }
 }
