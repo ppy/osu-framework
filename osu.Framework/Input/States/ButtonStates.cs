@@ -58,27 +58,30 @@ namespace osu.Framework.Input.States
         public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
         {
             if (!lastButtons.HasAnyButtonPressed)
-                return new ButtonStateDifference(Array.Empty<TButton>(), pressedButtons);
+            {
+                // if no buttons pressed anywhere, use static to avoid alloc.
+                return !HasAnyButtonPressed ? ButtonStateDifference.EMPTY : new ButtonStateDifference(Array.Empty<TButton>(), pressedButtons.ToArray());
+            }
 
             if (!HasAnyButtonPressed)
-                return new ButtonStateDifference(lastButtons.pressedButtons, Array.Empty<TButton>());
+                return new ButtonStateDifference(lastButtons.pressedButtons.ToArray(), Array.Empty<TButton>());
 
-            List<TButton> released = null;
-            List<TButton> pressed = null;
+            List<TButton> released = new List<TButton>();
+            List<TButton> pressed = new List<TButton>();
 
             foreach (var b in pressedButtons)
             {
                 if (!lastButtons.pressedButtons.Contains(b))
-                    (pressed ??= new List<TButton>()).Add(b);
+                    pressed.Add(b);
             }
 
             foreach (var b in lastButtons.pressedButtons)
             {
                 if (!pressedButtons.Contains(b))
-                    (released ??= new List<TButton>()).Add(b);
+                    released.Add(b);
             }
 
-            return new ButtonStateDifference(released ?? Enumerable.Empty<TButton>(), pressed ?? Enumerable.Empty<TButton>());
+            return new ButtonStateDifference(released.ToArray(), pressed.ToArray());
         }
 
         /// <summary>
@@ -102,10 +105,12 @@ namespace osu.Framework.Input.States
 
         public readonly struct ButtonStateDifference
         {
-            public readonly IEnumerable<TButton> Released;
-            public readonly IEnumerable<TButton> Pressed;
+            public readonly TButton[] Released;
+            public readonly TButton[] Pressed;
 
-            public ButtonStateDifference(IEnumerable<TButton> released, IEnumerable<TButton> pressed)
+            public static readonly ButtonStateDifference EMPTY = new ButtonStateDifference(Array.Empty<TButton>(), Array.Empty<TButton>());
+
+            public ButtonStateDifference(TButton[] released, TButton[] pressed)
             {
                 Released = released;
                 Pressed = pressed;
