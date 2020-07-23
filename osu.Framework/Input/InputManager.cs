@@ -379,6 +379,8 @@ namespace osu.Framework.Input
 
         private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
 
+        private MouseMoveEvent highFrequencyMoveEvent;
+
         protected override void Update()
         {
             unfocusIfNoLongerValid();
@@ -389,7 +391,9 @@ namespace osu.Framework.Input
 
             hoverEventsUpdated = false;
 
-            foreach (var result in GetPendingInputs())
+            var pendingInputs = GetPendingInputs();
+
+            foreach (var result in pendingInputs)
             {
                 result.Apply(CurrentState, this);
             }
@@ -404,7 +408,15 @@ namespace osu.Framework.Input
                         highFrequencyDrawables.Add(d);
                 }
 
-                PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), new MouseMoveEvent(CurrentState));
+                if (highFrequencyDrawables.Count > 0)
+                {
+                    // conditional avoid allocs of MouseMoveEvent when state is guaranteed to not have been mutated.
+                    // can be removed if we pool/change UIEvent allocation to be more efficient.
+                    if (highFrequencyMoveEvent == null || pendingInputs.Count > 0)
+                        highFrequencyMoveEvent = new MouseMoveEvent(CurrentState);
+
+                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), highFrequencyMoveEvent);
+                }
 
                 highFrequencyDrawables.Clear();
             }
