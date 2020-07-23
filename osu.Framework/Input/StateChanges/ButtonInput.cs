@@ -29,7 +29,7 @@ namespace osu.Framework.Input.StateChanges
         /// <param name="isPressed">The state of <paramref name="button"/>.</param>
         protected ButtonInput(TButton button, bool isPressed)
         {
-            Entries = new[] { new ButtonInputEntry<TButton>(button, isPressed) }.ToImmutableArray();
+            Entries = ImmutableArray.Create(new ButtonInputEntry<TButton>(button, isPressed));
         }
 
         /// <summary>
