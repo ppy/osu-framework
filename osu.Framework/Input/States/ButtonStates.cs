@@ -71,7 +71,7 @@ namespace osu.Framework.Input.States
 
             foreach (var b in pressedButtons)
             {
-                if (!lastButtons.Contains(b))
+                if (!lastButtons.pressedButtons.Contains(b))
                     pressed.Add(b);
             }
 
