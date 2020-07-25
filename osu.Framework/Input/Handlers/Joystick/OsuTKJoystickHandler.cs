@@ -224,8 +224,8 @@ namespace osu.Framework.Input.Handlers.Joystick
                         if (Precision.AlmostEquals(0, axisValue))
                             continue;
 
-                        // Cap deadzones at 0.999f to avoid division by zero when rescaling
-                        defaultDeadZones.Value[i] = Math.Min(0.999f, axisValue + deadzone_threshold);
+                        // Cap deadzone at 0.5f to avoid division by zero and catastrophic cancellation when rescaling
+                        defaultDeadZones.Value[i] = Math.Min(0.5f, axisValue + deadzone_threshold);
                     }
                 }
             }
