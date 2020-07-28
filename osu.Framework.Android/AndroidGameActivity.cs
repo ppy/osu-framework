@@ -61,7 +61,7 @@ namespace osu.Framework.Android
                 {
                     RunOnUiThread(() =>
                     {
-                        if (allow.NewValue)
+                        if (!allow.NewValue)
                             Window.AddFlags(WindowManagerFlags.KeepScreenOn);
                         else
                             Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
