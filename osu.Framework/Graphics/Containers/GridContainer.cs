@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Containers
 
                 content = value;
 
-                cellContent.Invalidate();
+                onContentChange();
 
                 if (content != null)
                     content.ArrayElementChanged += onContentChange;

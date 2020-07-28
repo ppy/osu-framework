@@ -17,6 +17,8 @@ namespace osu.Framework.Lists
 
         private T[] wrappedArray { get; }
 
+        public static implicit operator ObservableArray<T>(T[] source) => source == null ? null : new ObservableArray<T>(source);
+
         public ObservableArray(T[] arrayToWrap)
         {
             wrappedArray = arrayToWrap ?? throw new ArgumentNullException(nameof(arrayToWrap));
