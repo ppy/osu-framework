@@ -792,7 +792,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Replace bottom right box with a SpriteText", () =>
             {
                 gridContentChangeEventWasFired = false;
-                grid.Content.ContentChanged += () => gridContentChangeEventWasFired = true;
+                grid.Content.ArrayElementChanged += () => gridContentChangeEventWasFired = true;
 
                 grid.Content[1][1] = new SpriteText { Text = new LocalisedString("test") };
             });

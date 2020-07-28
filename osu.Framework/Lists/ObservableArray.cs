@@ -1,0 +1,81 @@
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace osu.Framework.Lists
+{
+    /// <summary>
+    /// Wraps an array and provides a custom indexer with element change notification
+    /// </summary>
+    /// <typeparam name="T">An array data type</typeparam>
+    public class ObservableArray<T> : IReadOnlyList<T>, IEquatable<ObservableArray<T>>, ObservableArray<T>.INotifyArrayChanged
+    {
+        public event Action ArrayElementChanged;
+
+        private T[] wrappedArray { get; }
+
+        public ObservableArray(T[] arrayToWrap)
+        {
+            wrappedArray = arrayToWrap ?? throw new ArgumentNullException(nameof(arrayToWrap));
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ((IEnumerable<T>)wrappedArray).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return wrappedArray.GetEnumerator();
+        }
+
+        public bool Equals(ObservableArray<T> other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return wrappedArray == other.wrappedArray;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+
+            return obj.GetType() == GetType() && Equals((ObservableArray<T>)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(wrappedArray);
+        }
+
+        public int Count => wrappedArray.Length;
+
+        public T this[int index]
+        {
+            get => wrappedArray[index];
+            set
+            {
+                if (EqualityComparer<T>.Default.Equals(wrappedArray[index], value))
+                    return;
+
+                wrappedArray[index] = value;
+                OnArrayElementChanged();
+            }
+        }
+
+        protected void OnArrayElementChanged()
+        {
+            ArrayElementChanged?.Invoke();
+        }
+
+        public interface INotifyArrayChanged
+        {
+            event Action ArrayElementChanged;
+        }
+    }
+}

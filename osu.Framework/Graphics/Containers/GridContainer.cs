@@ -46,13 +46,14 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 if (content != null)
-                    content.ContentChanged -= onContentChange;
+                    content.ArrayElementChanged -= onContentChange;
 
                 content = value;
 
                 cellContent.Invalidate();
 
-                content.ContentChanged += onContentChange;
+                if (content != null)
+                    content.ArrayElementChanged += onContentChange;
             }
         }
 
