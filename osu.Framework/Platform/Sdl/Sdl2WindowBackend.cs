@@ -17,6 +17,9 @@ using Rectangle = System.Drawing.Rectangle;
 
 namespace osu.Framework.Platform.Sdl
 {
+    /// <summary>
+    /// Implementation of <see cref="IWindowBackend"/> that uses libSDL2.
+    /// </summary>
     public class Sdl2WindowBackend : IWindowBackend
     {
         private const int default_width = 1366;
@@ -112,7 +115,6 @@ namespace osu.Framework.Platform.Sdl
                 scheduler.Add(() =>
                 {
                     SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height);
-                    // scale.Invalidate();
                     validateScale(true);
                 });
             }
@@ -241,17 +243,19 @@ namespace osu.Framework.Platform.Sdl
 
         public Display PrimaryDisplay => Displays.First();
 
+        private Display currentDisplay;
         private int currentDisplayIndex;
 
         public Display CurrentDisplay
         {
-            get => Displays.ElementAtOrDefault(currentDisplayIndex);
+            get => currentDisplay ??= Displays.ElementAtOrDefault(currentDisplayIndex);
             set
             {
                 if (value.Index == currentDisplayIndex)
                     return;
 
                 currentDisplayIndex = value.Index;
+                currentDisplay = null;
 
                 if (SdlWindowHandle == IntPtr.Zero)
                     return;
@@ -333,6 +337,15 @@ namespace osu.Framework.Platform.Sdl
             OnDisplayChanged(CurrentDisplay);
         }
 
+        private void checkWindowStateChanged()
+        {
+            if (windowState == WindowState)
+                return;
+
+            windowState = WindowState;
+            OnWindowStateChanged(windowState);
+        }
+
         private int windowDisplayIndex => SdlWindowHandle == IntPtr.Zero ? 0 : SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
 
         private SDL.SDL_WindowFlags windowFlags => SdlWindowHandle == IntPtr.Zero ? 0 : (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle);
@@ -393,15 +406,6 @@ namespace osu.Framework.Platform.Sdl
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
-
-        private void triggerWindowStateChanged()
-        {
-            if (windowState == WindowState)
-                return;
-
-            windowState = WindowState;
-            OnWindowStateChanged(windowState);
-        }
 
         #endregion
 
@@ -676,16 +680,16 @@ namespace osu.Framework.Platform.Sdl
             {
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
                     OnShown();
-                    triggerWindowStateChanged();
+                    checkWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
                     OnHidden();
-                    triggerWindowStateChanged();
+                    checkWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                    triggerWindowStateChanged();
+                    checkWindowStateChanged();
                     checkCurrentDisplay();
                     validateScale(true);
                     OnMoved(new Point(evtWindow.data1, evtWindow.data2));
@@ -693,7 +697,7 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    triggerWindowStateChanged();
+                    checkWindowStateChanged();
                     checkCurrentDisplay();
                     validateScale(true);
                     OnResized();
@@ -702,7 +706,7 @@ namespace osu.Framework.Platform.Sdl
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                    triggerWindowStateChanged();
+                    checkWindowStateChanged();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
