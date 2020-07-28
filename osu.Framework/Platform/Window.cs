@@ -523,12 +523,9 @@ namespace osu.Framework.Platform
 
         public Rectangle ClientRectangle
         {
-            // get => new Rectangle(Position.Value, WindowBackend.ClientSize);
             get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
             set
             {
-                // Position.Value = value.Location;
-                // Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
             }
         }
 
@@ -537,7 +534,6 @@ namespace osu.Framework.Platform
             get => WindowBackend.ClientSize;
             set
             {
-                // Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
             }
         }
 

@@ -112,6 +112,13 @@ namespace osu.Framework.Platform
             Moved += onMoved;
         }
 
+        protected override void UpdateWindowMode(WindowMode mode)
+        {
+            base.UpdateWindowMode(mode);
+
+            ConfineMouseMode.TriggerChange();
+        }
+
         private void onResized()
         {
             if (WindowState.Value == Platform.WindowState.Normal)
