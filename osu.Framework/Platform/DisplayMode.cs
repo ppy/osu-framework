@@ -30,14 +30,20 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly int RefreshRate;
 
-        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate)
+        /// <summary>
+        /// The display index.
+        /// </summary>
+        public readonly int DisplayIndex;
+
+        public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int displayIndex)
         {
             Format = format ?? "Unknown";
             Size = size;
             BitsPerPixel = bitsPerPixel;
             RefreshRate = refreshRate;
+            DisplayIndex = displayIndex;
         }
 
-        public override string ToString() => $"Format: {Format}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}";
+        public override string ToString() => $"Format: {Format}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, DisplayIndex: {DisplayIndex}";
     }
 }

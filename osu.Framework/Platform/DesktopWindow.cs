@@ -74,10 +74,15 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (evt.NewValue.IsEmpty)
+                if (evt.NewValue.IsEmpty || CurrentDisplay.Value == null)
                     return;
 
-                WindowBackend.FullscreenSize = evt.NewValue;
+                var mode = CurrentDisplay.Value.FindDisplayMode(evt.NewValue);
+
+                Console.WriteLine($"mode: {mode}");
+
+                if (mode.Size != System.Drawing.Size.Empty)
+                    WindowBackend.CurrentDisplayMode = mode;
             };
 
             sizeWindowed.ValueChanged += evt =>
@@ -85,10 +90,8 @@ namespace osu.Framework.Platform
                 if (evt.NewValue.IsEmpty)
                     return;
 
-                WindowBackend.WindowedSize = evt.NewValue;
+                WindowBackend.Size = evt.NewValue;
                 Size.Value = evt.NewValue;
-
-                Console.WriteLine($"sizeWindowed.ValueChanged: Size = {Size.Value}");
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -102,8 +105,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
             WindowMode.BindValueChanged(evt => UpdateWindowMode(evt.NewValue), true);
 
-            // config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-            // ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
 
             Resized += onResized;
             Moved += onMoved;
@@ -113,7 +116,7 @@ namespace osu.Framework.Platform
         {
             if (WindowState.Value == Platform.WindowState.Normal)
             {
-                sizeWindowed.Value = WindowBackend.WindowedSize;
+                sizeWindowed.Value = WindowBackend.Size;
                 Size.Value = sizeWindowed.Value;
                 updateWindowPositionConfig();
             }

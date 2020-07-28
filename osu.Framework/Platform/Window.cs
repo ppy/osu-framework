@@ -402,7 +402,7 @@ namespace osu.Framework.Platform
             {
                 boundsChanging = true;
                 Position.Value = WindowBackend.Position;
-                Size.Value = WindowBackend.WindowedSize;
+                Size.Value = WindowBackend.Size;
                 boundsChanging = false;
             }
 
@@ -437,7 +437,7 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            WindowBackend.WindowedSize = evt.NewValue;
+            WindowBackend.Size = evt.NewValue;
             boundsChanging = false;
         }
 
@@ -523,8 +523,8 @@ namespace osu.Framework.Platform
 
         public Rectangle ClientRectangle
         {
-            get => new Rectangle(Position.Value, WindowBackend.ClientSize);
-            // get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
+            // get => new Rectangle(Position.Value, WindowBackend.ClientSize);
+            get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
             set
             {
                 // Position.Value = value.Location;

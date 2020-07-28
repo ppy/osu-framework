@@ -33,10 +33,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        Size WindowedSize { get; set; }
+        Size Size { get; set; }
 
-        Size FullscreenSize { get; set; }
-
+        /// <summary>
+        /// Returns the drawable area, after scaling.
+        /// </summary>
         Size ClientSize { get; }
 
         /// <summary>
@@ -78,14 +79,14 @@ namespace osu.Framework.Platform
         Display PrimaryDisplay { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
         Display CurrentDisplay { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; set; }
 
         #endregion
 
