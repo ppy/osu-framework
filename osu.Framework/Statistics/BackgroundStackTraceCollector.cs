@@ -1,15 +1,14 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Logging;
-using osu.Framework.Timing;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Diagnostics.Runtime;
+using osu.Framework.Logging;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -18,7 +17,7 @@ namespace osu.Framework.Statistics
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
-        private IList<ClrStackFrame> backgroundMonitorStackTrace;
+        private string[] backgroundMonitorStackTrace;
 
         private readonly StopwatchClock clock;
         private readonly string threadName;
@@ -156,7 +155,7 @@ namespace osu.Framework.Statistics
                 logMessage.AppendLine(@"| Stack trace:");
 
                 foreach (var f in frames)
-                    logMessage.AppendLine($@"|- {f.DisplayString}");
+                    logMessage.AppendLine($@"|- {f}");
             }
             else
                 logMessage.AppendLine(@"| Call stack was not recorded.");
@@ -169,18 +168,19 @@ namespace osu.Framework.Statistics
             isCollecting = false;
         }
 
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread)
+        private static string[] getStackTrace(Thread targetThread)
         {
             try
             {
-                var target = DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive);
-
-                if (target == null) return null;
-
-                using (target)
+                using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))
                 {
-                    var runtime = target.ClrVersions[0].CreateRuntime();
-                    return runtime.Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+                    using (var runtime = target.ClrVersions[0].CreateRuntime())
+                    {
+                        return runtime.Threads
+                                      .FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?
+                                      .EnumerateStackTrace().Select(f => f.ToString())
+                                      .ToArray();
+                    }
                 }
             }
             catch
