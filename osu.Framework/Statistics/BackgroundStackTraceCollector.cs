@@ -171,7 +171,11 @@ namespace osu.Framework.Statistics
 
         private static IList<ClrStackFrame> getStackTrace(Thread targetThread)
         {
-            try
+            // temporarily disabled due to memory leak per CreateRuntime() call.
+            // as a side note, we are using a legacy version of this package and the newer one removes the functionality we are using (but fixes the leak).
+            return null;
+
+            /*try
             {
                 var target = DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive);
 
@@ -186,7 +190,7 @@ namespace osu.Framework.Statistics
             catch
             {
                 return null;
-            }
+            }*/
         }
 
         #region IDisposable Support
