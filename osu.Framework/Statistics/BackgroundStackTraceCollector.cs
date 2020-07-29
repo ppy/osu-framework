@@ -77,6 +77,12 @@ namespace osu.Framework.Statistics
 
         private void startThread()
         {
+            // Since v2.0 of Microsoft.Diagnostics.Runtime, support is provided to retrieve stack traces on unix platforms but
+            // it causes a full core dump, which is very slow and causes a visible freeze.
+            // For the time being let's remain windows-only (as this functionality used to be).
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
             Trace.Assert(cancellation == null);
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
