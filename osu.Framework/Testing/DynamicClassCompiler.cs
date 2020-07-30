@@ -126,21 +126,27 @@ namespace osu.Framework.Testing
                 CompilationStarted?.Invoke();
 
                 // Compilation procedure:
-                // 1. Find the files that need to be recompiled (build references).
-                // 2. Find the assemblies that need to be recompiled (build assemblies).
+                // 1. Find the files that need to be recompiled (get referenced files).
+                // 2. Find the assemblies that need to be recompiled (get referenced assemblies).
                 // 3. Create the compilation options.
                 //    3.1. Import all metadata references.
-                //    3.2. Set a custom (internal) property that allows the compiler to ignore accessibility, to support internals.
+                //    3.2. Set a (internal) property that allows the compiler to ignore accessibility, to support internals.
                 // 4. Create the assembly namespace {currAssembly}.Dynamic.{version}, where {version} is incremented for each DCC. This allows the assembly to "replace" an existing one.
                 // 5. Add a custom compiler attribute to ignore access checks (required to make use of 3.2).
                 //    5.1. Ignore access checks to all required assemblies from 2.
                 // 6. Compile and return the emitted assembly.
 
+                // 1: Get all referenced files.
                 var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
                 foreach (var f in newRequiredFiles)
                     requiredFiles.Add(f);
 
+                // 2: Get all referenced assemblies.
                 var requiredAssemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
+                var assemblyMetadata = requiredAssemblies.Where(a => !string.IsNullOrEmpty(a))
+                                                         .Select(a => MetadataReference.CreateFromFile(a));
+
+                // 3. Create the compilation options.
                 var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithMetadataImportOptions(MetadataImportOptions.All);
 
                 // This is an internal property which allows the compiler to ignore accessibility.
@@ -163,28 +169,29 @@ namespace osu.Framework.Testing
 #endif
                 }, languageVersion: LanguageVersion.Latest);
 
-                var references = requiredAssemblies.Where(a => !string.IsNullOrEmpty(a))
-                                                   .Select(a => MetadataReference.CreateFromFile(a));
-
+                // 4: Create the custom assembly namespace, making sure it's always different.
                 // ensure we don't duplicate the dynamic suffix.
                 string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
                 string dynamicNamespace = $"{assemblyNamespace}.Dynamic.{++currentVersion}";
 
+                // Create the syntax trees, starting with the required files.
                 var requiredSyntaxTrees = new List<SyntaxTree>();
                 requiredSyntaxTrees.AddRange(requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file, Encoding.UTF8), parseOptions, file, encoding: Encoding.UTF8)));
+
+                // 5: Add custom compiler attribute to ignore access checks
                 requiredSyntaxTrees.Add(CSharpSyntaxTree.ParseText(ignores_access_checks_to_attribute_string, parseOptions));
 
                 var ignoreAccessChecksText = new StringBuilder();
                 ignoreAccessChecksText.AppendLine("using System.Runtime.CompilerServices;");
-
                 foreach (var asm in requiredAssemblies.Where(s => !string.IsNullOrEmpty(s)))
                     ignoreAccessChecksText.AppendLine($"[assembly: IgnoresAccessChecksTo(\"{Path.GetFileNameWithoutExtension(asm)}\")]");
                 requiredSyntaxTrees.Add(CSharpSyntaxTree.ParseText(ignoreAccessChecksText.ToString(), parseOptions));
 
+                // 6: Compile.
                 var compilation = CSharpCompilation.Create(
                     dynamicNamespace,
                     requiredSyntaxTrees,
-                    references,
+                    assemblyMetadata,
                     options
                 );
 
