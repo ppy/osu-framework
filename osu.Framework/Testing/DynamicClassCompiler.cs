@@ -125,13 +125,29 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
+                // Compilation procedure:
+                // 1. Find the files that need to be recompiled (build references).
+                // 2. Find the assemblies that need to be recompiled (build assemblies).
+                // 3. Create the compilation options.
+                //    3.1. Import all metadata references.
+                //    3.2. Set a custom (internal) property that allows the compiler to ignore accessibility, to support internals.
+                // 4. Create the assembly namespace {currAssembly}.Dynamic.{version}, where {version} is incremented for each DCC. This allows the assembly to "replace" an existing one.
+                // 5. Add a custom compiler attribute to ignore access checks (required to make use of 3.2).
+                //    5.1. Ignore access checks to all required assemblies from 2.
+                // 6. Compile and return the emitted assembly.
+
                 var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
                 foreach (var f in newRequiredFiles)
                     requiredFiles.Add(f);
 
                 var requiredAssemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
+                var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithMetadataImportOptions(MetadataImportOptions.All);
 
-                var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+                // This is an internal property which allows the compiler to ignore accessibility.
+                // https://www.strathweb.com/2018/10/no-internalvisibleto-no-problem-bypassing-c-visibility-rules-with-roslyn/
+                var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic);
+                Debug.Assert(topLevelBinderFlagsProperty != null);
+                topLevelBinderFlagsProperty.SetValue(options, (uint)1 << 22);
 
                 // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
                 var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
@@ -152,15 +168,22 @@ namespace osu.Framework.Testing
 
                 // ensure we don't duplicate the dynamic suffix.
                 string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
+                string dynamicNamespace = $"{assemblyNamespace}.Dynamic.{++currentVersion}";
 
-                string assemblyVersion = $"{++currentVersion}.0.*";
-                string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
+                var requiredSyntaxTrees = new List<SyntaxTree>();
+                requiredSyntaxTrees.AddRange(requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file, Encoding.UTF8), parseOptions, file, encoding: Encoding.UTF8)));
+                requiredSyntaxTrees.Add(CSharpSyntaxTree.ParseText(ignores_access_checks_to_attribute_string, parseOptions));
+
+                var ignoreAccessChecksText = new StringBuilder();
+                ignoreAccessChecksText.AppendLine("using System.Runtime.CompilerServices;");
+
+                foreach (var asm in requiredAssemblies.Where(s => !string.IsNullOrEmpty(s)))
+                    ignoreAccessChecksText.AppendLine($"[assembly: IgnoresAccessChecksTo(\"{Path.GetFileNameWithoutExtension(asm)}\")]");
+                requiredSyntaxTrees.Add(CSharpSyntaxTree.ParseText(ignoreAccessChecksText.ToString(), parseOptions));
 
                 var compilation = CSharpCompilation.Create(
                     dynamicNamespace,
-                    requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file, Encoding.UTF8), parseOptions, file, encoding: Encoding.UTF8))
-                                 // Compile the assembly with a new version so that it replaces the existing one
-                                 .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions)),
+                    requiredSyntaxTrees,
                     references,
                     options
                 );
@@ -246,5 +269,19 @@ namespace osu.Framework.Testing
         }
 
         #endregion
+
+        private const string ignores_access_checks_to_attribute_string = @"namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+    public class IgnoresAccessChecksToAttribute : Attribute
+    {
+        public IgnoresAccessChecksToAttribute(string assemblyName)
+        {
+            AssemblyName = assemblyName;
+        }
+
+        public string AssemblyName { get; }
+    }
+}";
     }
 }
