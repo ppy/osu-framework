@@ -187,6 +187,8 @@ namespace osu.Framework.Graphics.Transforms
 
                 var tCanRewind = !RemoveCompletedTransforms && t.Rewindable;
 
+                bool shouldFlushLastApplicationCache = false;
+
                 if (time < t.StartTime)
                     break;
 
@@ -211,7 +213,7 @@ namespace osu.Framework.Graphics.Transforms
                         if (!tCanRewind)
                         {
                             transforms.RemoveAt(j--);
-                            resetLastAppliedCache();
+                            shouldFlushLastApplicationCache = true;
                             i--;
 
                             if (u.OnAbort != null)
@@ -239,7 +241,7 @@ namespace osu.Framework.Graphics.Transforms
                         if (!tCanRewind)
                         {
                             transforms.RemoveAt(i--);
-                            resetLastAppliedCache();
+                            shouldFlushLastApplicationCache = true;
                         }
 
                         if (t.IsLooping)
@@ -262,14 +264,16 @@ namespace osu.Framework.Graphics.Transforms
                             // this could be added back at a lower index than where we are currently iterating, but
                             // running the same transform twice isn't a huge deal.
                             transforms.Add(t);
-                            resetLastAppliedCache();
+                            shouldFlushLastApplicationCache = true;
                         }
                         else if (t.OnComplete != null)
                             removalActions.Value.Add(t.OnComplete);
                     }
                 }
 
-                if (t.AppliedToEnd)
+                if (shouldFlushLastApplicationCache)
+                    resetLastAppliedCache();
+                else if (t.AppliedToEnd)
                     setLastAppliedIndex(t.TargetMember, i);
             }
 
