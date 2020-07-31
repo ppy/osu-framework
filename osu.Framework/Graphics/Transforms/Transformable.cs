@@ -85,6 +85,39 @@ namespace osu.Framework.Graphics.Transforms
 
         private double lastUpdateTransformsTime;
 
+        private readonly Dictionary<string, int?> lastAppliedTransformIndices = new Dictionary<string, int?>();
+
+        /// <summary>
+        /// Retrieve the last transform index that was <see cref="Transform.AppliedToEnd"/> (in <see cref="transformsLazy"/>).
+        /// </summary>
+        /// <param name="targetMember">An optional target member. If null, the highest common last application is returned.</param>
+        /// <returns></returns>
+        private int getLastAppliedIndex(string targetMember = null)
+        {
+            if (targetMember == null)
+                return lastAppliedTransformIndices.Values.Max() ?? 0;
+
+            if (lastAppliedTransformIndices.TryGetValue(targetMember, out int? val))
+                return val ?? 0;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Set the last transform index that was <see cref="Transform.AppliedToEnd"/> for a specific target member.
+        /// </summary>
+        /// <param name="targetMember">The target member to set the index of.</param>
+        /// <param name="index">The index of the transform in <see cref="transformsLazy"/>.</param>
+        private void setLastAppliedIndex(string targetMember, int? index = null)
+        {
+            lastAppliedTransformIndices[targetMember] = index;
+        }
+
+        /// <summary>
+        /// Reset the last applied index cache completely.
+        /// </summary>
+        private void resetLastAppliedCache() => lastAppliedTransformIndices.Clear();
+
         /// <summary>
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
@@ -103,6 +136,8 @@ namespace osu.Framework.Graphics.Transforms
 
             if (rewinding && !RemoveCompletedTransforms)
             {
+                resetLastAppliedCache();
+
                 var appliedToEndReverts = new List<string>();
 
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
@@ -146,7 +181,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = 0; i < transforms.Count; ++i)
+            for (int i = getLastAppliedIndex(); i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
@@ -162,7 +197,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
                     // be safely removed.
-                    for (int j = 0; j < i; ++j)
+                    for (int j = getLastAppliedIndex(t.TargetMember); j < i; ++j)
                     {
                         var u = transforms[j];
                         if (u.TargetMember != t.TargetMember) continue;
@@ -176,6 +211,7 @@ namespace osu.Framework.Graphics.Transforms
                         if (!tCanRewind)
                         {
                             transforms.RemoveAt(j--);
+                            resetLastAppliedCache();
                             i--;
 
                             if (u.OnAbort != null)
@@ -201,7 +237,10 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.AppliedToEnd)
                     {
                         if (!tCanRewind)
+                        {
                             transforms.RemoveAt(i--);
+                            resetLastAppliedCache();
+                        }
 
                         if (t.IsLooping)
                         {
@@ -223,11 +262,15 @@ namespace osu.Framework.Graphics.Transforms
                             // this could be added back at a lower index than where we are currently iterating, but
                             // running the same transform twice isn't a huge deal.
                             transforms.Add(t);
+                            resetLastAppliedCache();
                         }
                         else if (t.OnComplete != null)
                             removalActions.Value.Add(t.OnComplete);
                     }
                 }
+
+                if (t.AppliedToEnd)
+                    setLastAppliedIndex(t.TargetMember, i);
             }
 
             invokePendingRemovalActions();
@@ -254,6 +297,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!transformsLazy.IsValueCreated || !transformsLazy.Value.Remove(toRemove))
                 return;
 
+            resetLastAppliedCache();
             toRemove.OnAbort?.Invoke();
         }
 
@@ -281,6 +325,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!transformsLazy.IsValueCreated)
                 return;
 
+            resetLastAppliedCache();
             Transform[] toAbort;
 
             if (targetMember == null)
@@ -336,6 +381,7 @@ namespace osu.Framework.Graphics.Transforms
             var toFlush = transformsLazy.Value.Where(toFlushPredicate).ToArray();
 
             transformsLazy.Value.RemoveAll(t => toFlushPredicate(t));
+            resetLastAppliedCache();
 
             foreach (Transform t in toFlush)
             {
@@ -448,6 +494,7 @@ namespace osu.Framework.Graphics.Transforms
 
             transform.TransformID = customTransformID ?? ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
+            resetLastAppliedCache();
 
             // Remove all existing following transforms touching the same property as this one.
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
@@ -457,6 +504,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);
+                    resetLastAppliedCache();
                     if (t.OnAbort != null)
                         removalActions.Value.Add(t.OnAbort);
                 }
