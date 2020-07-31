@@ -44,6 +44,6 @@ namespace osu.Framework.Platform
             DisplayIndex = displayIndex;
         }
 
-        public override string ToString() => $"Format: {Format}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, DisplayIndex: {DisplayIndex}";
+        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, DisplayIndex: {DisplayIndex}, Format: {Format}";
     }
 }

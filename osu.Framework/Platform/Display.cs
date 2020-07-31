@@ -61,10 +61,12 @@ namespace osu.Framework.Platform
         /// <param name="refreshRate">The refresh rate in hertz. If null, the highest available refresh rate will be used.</param>
         /// <returns></returns>
         public DisplayMode FindDisplayMode(Size size, int? bitsPerPixel = null, int? refreshRate = null) =>
-            DisplayModes.Where(mode => mode.Size == size &&
+            DisplayModes.Where(mode => mode.Size.Width <= size.Width && mode.Size.Height <= size.Height &&
                                        (bitsPerPixel == null || mode.BitsPerPixel == bitsPerPixel) &&
                                        (refreshRate == null || mode.RefreshRate == refreshRate))
-                        .OrderByDescending(mode => mode.RefreshRate)
+                        .OrderByDescending(mode => mode.Size.Width)
+                        .ThenByDescending(mode => mode.Size.Height)
+                        .ThenByDescending(mode => mode.RefreshRate)
                         .ThenByDescending(mode => mode.BitsPerPixel)
                         .FirstOrDefault();
     }
