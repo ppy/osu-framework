@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Transforms
                     if (time >= t.StartTime)
                     {
                         // we are in the middle of this transform, so we want to mark as not-completely-applied.
-                        // note that we should only do this for the last transform of each TargetMemeber to avoid incorrect application order.
+                        // note that we should only do this for the last transform of each TargetMember to avoid incorrect application order.
                         // the actual application will be in the main loop below now that AppliedToEnd is false.
                         if (!appliedToEndReverts.Contains(t.TargetMember))
                         {
