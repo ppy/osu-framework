@@ -78,9 +78,6 @@ namespace osu.Framework.Platform
                     return;
 
                 var mode = CurrentDisplay.Value.FindDisplayMode(evt.NewValue);
-
-                Console.WriteLine($"mode: {mode}");
-
                 if (mode.Size != System.Drawing.Size.Empty)
                     WindowBackend.CurrentDisplayMode = mode;
             };
