@@ -91,16 +91,15 @@ namespace osu.Framework.Graphics.Transforms
         /// Retrieve the last transform index that was <see cref="Transform.AppliedToEnd"/> (in <see cref="transformsLazy"/>).
         /// </summary>
         /// <param name="targetMember">An optional target member. If null, the highest common last application is returned.</param>
-        /// <returns></returns>
-        private int getLastAppliedIndex(string targetMember = null)
+        private int? getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
-                return lastAppliedTransformIndices.Values.Max() ?? 0;
+                return lastAppliedTransformIndices.Values.Min();
 
             if (lastAppliedTransformIndices.TryGetValue(targetMember, out int? val))
-                return val ?? 0;
+                return val;
 
-            return 0;
+            return null;
         }
 
         /// <summary>
@@ -181,7 +180,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = getLastAppliedIndex(); i < transforms.Count; ++i)
+            for (int i = getLastAppliedIndex() ?? 0; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
@@ -199,7 +198,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
                     // be safely removed.
-                    for (int j = getLastAppliedIndex(t.TargetMember); j < i; ++j)
+                    for (int j = getLastAppliedIndex(t.TargetMember) ?? 0; j < i; ++j)
                     {
                         var u = transforms[j];
                         if (u.TargetMember != t.TargetMember) continue;
@@ -273,7 +272,12 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (shouldFlushLastApplicationCache)
                     resetLastAppliedCache();
+                // if this transform is applied to end, we can be sure that all previous transforms for the TargetMember have been completed.
                 else if (t.AppliedToEnd)
+                    setLastAppliedIndex(t.TargetMember, i + 1);
+                // if not applied to end, tracking the first actively applying transform for each TargetMember is required
+                // to help find the common minimum index to start processing from each next update call.
+                else if (t.Applied && getLastAppliedIndex(t.TargetMember) == null)
                     setLastAppliedIndex(t.TargetMember, i);
             }
 
