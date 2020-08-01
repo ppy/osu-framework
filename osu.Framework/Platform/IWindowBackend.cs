@@ -100,7 +100,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked after the window has resized.
         /// </summary>
-        event Action Resized;
+        event Action<Size> Resized;
 
         /// <summary>
         /// Invoked after the window's state has changed.

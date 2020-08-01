@@ -396,13 +396,13 @@ namespace osu.Framework.Platform
 
         private bool boundsChanging;
 
-        private void windowBackend_Resized()
+        private void windowBackend_Resized(Size size)
         {
             if (!boundsChanging)
             {
                 boundsChanging = true;
                 Position.Value = WindowBackend.Position;
-                Size.Value = WindowBackend.Size;
+                Size.Value = size;
                 boundsChanging = false;
             }
 
