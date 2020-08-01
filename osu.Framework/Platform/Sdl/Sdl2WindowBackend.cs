@@ -237,18 +237,21 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private DisplayMode? currentDisplayMode;
+        private DisplayMode currentDisplayMode;
 
         public DisplayMode CurrentDisplayMode
         {
-            get => currentDisplayMode ?? displayModeFromSDL(windowDisplayMode, windowDisplayIndex);
+            get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode);
             set
             {
-                // lock (updateLock)
-                // {
-                // currentDisplayMode = displayModeFromSDL(closestDisplayMode(value), value.DisplayIndex);
-                //     updateCache.Invalidate();
-                // }
+                currentDisplayMode = value;
+
+                commandScheduler.Add(() =>
+                {
+                    var closest = closestDisplayMode(value);
+                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closest);
+                    scale.Invalidate();
+                });
             }
         }
 
@@ -308,7 +311,7 @@ namespace osu.Framework.Platform.Sdl
         private SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode)
         {
             var targetMode = new SDL.SDL_DisplayMode { w = mode.Size.Width, h = mode.Size.Height, refresh_rate = mode.RefreshRate };
-            SDL.SDL_GetClosestDisplayMode(mode.DisplayIndex, ref targetMode, out var closest);
+            SDL.SDL_GetClosestDisplayMode(windowDisplayIndex, ref targetMode, out var closest);
             return closest;
         }
 
@@ -318,7 +321,7 @@ namespace osu.Framework.Platform.Sdl
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return displayModeFromSDL(mode, displayIndex);
+                                             return displayModeFromSDL(mode);
                                          })
                                          .ToArray();
 
@@ -326,10 +329,10 @@ namespace osu.Framework.Platform.Sdl
             return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
         }
 
-        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex)
+        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode)
         {
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, displayIndex);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate);
         }
 
         #endregion
