@@ -80,7 +80,8 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 position = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+                if (SdlWindowHandle != IntPtr.Zero)
+                    commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
             }
         }
 
@@ -92,7 +93,8 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 size = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
+                if (SdlWindowHandle != IntPtr.Zero)
+                    commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
             }
         }
 
@@ -129,6 +131,10 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 initialWindowState = value;
+
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return;
+
                 commandScheduler.Add(() =>
                 {
                     switch (value)
@@ -211,24 +217,21 @@ namespace osu.Framework.Platform.Sdl
         public Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay;
-        private int initialDisplayIndex;
-        private int lastDisplayIndex;
+        private int lastDisplayIndex = -1;
 
         public Display CurrentDisplay
         {
-            get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? initialDisplayIndex : windowDisplayIndex);
+            get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? 0 : windowDisplayIndex);
             set
             {
-                initialDisplayIndex = value.Index;
-
                 if (value.Index == windowDisplayIndex)
                     return;
 
-                int x = value.Bounds.Left + value.Bounds.Width / 2 - Size.Width / 2;
-                int y = value.Bounds.Top + value.Bounds.Height / 2 - Size.Height / 2;
+                int x = value.Bounds.Left + value.Bounds.Width / 2 - size.Width / 2;
+                int y = value.Bounds.Top + value.Bounds.Height / 2 - size.Height / 2;
 
-                Position = new Point(x, y);
                 WindowState = WindowState.Normal;
+                Position = new Point(x, y);
             }
         }
 
@@ -396,7 +399,6 @@ namespace osu.Framework.Platform.Sdl
                                         WindowState.ToFlags();
 
             SdlWindowHandle = SDL.SDL_CreateWindow(Title, Position.X, Position.Y, Size.Width, Size.Height, flags);
-            // CurrentDisplayIndex = windowDisplayIndex;
             scale.Invalidate();
             Exists = true;
         }
