@@ -188,20 +188,21 @@ namespace osu.Framework.Platform.Sdl
                 return scale.Value;
 
             var w = ClientSize.Width;
+            float value = 1f;
 
-            switch (WindowState)
+            switch (windowFlags.ToWindowState())
             {
                 case WindowState.Normal:
-                    scale.Value = w / (float)Size.Width;
+                    value = w / (float)windowSize.Width;
                     break;
 
                 case WindowState.Fullscreen:
-                    scale.Value = w / (float)CurrentDisplayMode.Size.Width;
+                    value = w / (float)windowDisplayMode.w;
                     break;
 
                 case WindowState.FullscreenBorderless:
                     SDL.SDL_GetDesktopDisplayMode(windowDisplayIndex, out var mode);
-                    scale.Value = w / (float)mode.w;
+                    value = w / (float)mode.w;
                     break;
 
                 case WindowState.Maximised:
@@ -209,7 +210,8 @@ namespace osu.Framework.Platform.Sdl
                     return 1f;
             }
 
-            return scale.Value;
+            scale.Value = value;
+            return value;
         }
 
         public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
@@ -663,12 +665,15 @@ namespace osu.Framework.Platform.Sdl
             if (lastWindowState != currentState)
             {
                 lastWindowState = currentState;
+                scale.Invalidate();
                 eventScheduler.Add(() => OnWindowStateChanged(currentState));
             }
 
             if (lastDisplayIndex != displayIndex)
             {
                 lastDisplayIndex = displayIndex;
+                currentDisplay = null;
+                scale.Invalidate();
                 eventScheduler.Add(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
             }
 
