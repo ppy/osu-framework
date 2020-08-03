@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 resetLastAppliedCache();
 
-                var appliedToEndReverts = new List<string>();
+                bool appliedToEndRevert = false;
 
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
@@ -74,16 +74,16 @@ namespace osu.Framework.Graphics.Transforms
                     if (time >= t.StartTime)
                     {
                         // we are in the middle of this transform, so we want to mark as not-completely-applied.
-                        // note that we should only do this for the last transform of each TargetMember to avoid incorrect application order.
+                        // note that we should only do this for the last transform to avoid incorrect application order.
                         // the actual application will be in the main loop below now that AppliedToEnd is false.
-                        if (!appliedToEndReverts.Contains(t.TargetMember))
+                        if (!appliedToEndRevert)
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
                             else
                                 t.Apply(t.EndTime);
 
-                            appliedToEndReverts.Add(t.TargetMember);
+                            appliedToEndRevert = true;
                         }
                     }
                     else
@@ -118,7 +118,6 @@ namespace osu.Framework.Graphics.Transforms
                     for (int j = lastAppliedIndex.IsValid ? lastAppliedIndex.Value : 0; j < i; ++j)
                     {
                         var u = transforms[j];
-                        if (u.TargetMember != t.TargetMember) continue;
 
                         if (!u.AppliedToEnd)
                             // we may have applied the existing transforms too far into the future.
@@ -222,14 +221,9 @@ namespace osu.Framework.Graphics.Transforms
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
-
-                if (t.TargetMember == transform.TargetMember)
-                {
-                    transforms.RemoveAt(i--);
-                    resetLastAppliedCache();
-                    if (t.OnAbort != null)
-                        removalActions.Value.Add(t.OnAbort);
-                }
+                transforms.RemoveAt(i--);
+                if (t.OnAbort != null)
+                    removalActions.Value.Add(t.OnAbort);
             }
 
             invokePendingRemovalActions();
