@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.Transforms
             // Flush is undefined for endlessly looping transforms
             var toFlush = transforms.Where(toFlushPredicate).ToArray();
 
-            transforms.RemoveAll(t => toFlushPredicate(t));
+            transforms.RemoveAll(toFlushPredicate);
             resetLastAppliedCache();
 
             foreach (Transform t in toFlush)
