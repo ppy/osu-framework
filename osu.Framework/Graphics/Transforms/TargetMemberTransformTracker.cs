@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IReadOnlyList<Transform> Transforms => transforms;
+        public IEnumerable<Transform> Transforms => transforms;
 
         /// <summary>
         /// The member this instance is tracking.
@@ -30,6 +30,12 @@ namespace osu.Framework.Graphics.Transforms
         private readonly Transformable transformable;
 
         private readonly Lazy<List<Action>> removalActions = new Lazy<List<Action>>(() => new List<Action>());
+
+        /// <summary>
+        /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
+        /// incremented whenever a <see cref="Transform"/> is added.
+        /// </summary>
+        private ulong currentTransformID;
 
         /// <summary>
         /// The index of the last transform in <see cref="transforms"/> to be applied to completion.
@@ -191,38 +197,6 @@ namespace osu.Framework.Graphics.Transforms
             invokePendingRemovalActions();
         }
 
-        private void invokePendingRemovalActions()
-        {
-            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
-            {
-                var toRemove = removalActions.Value.ToArray();
-                removalActions.Value.Clear();
-
-                foreach (var action in toRemove)
-                    action();
-            }
-        }
-
-        /// <summary>
-        /// Reset the last applied index cache completely.
-        /// </summary>
-        private void resetLastAppliedCache() => lastAppliedIndex.Invalidate();
-
-        /// <summary>
-        /// Removes a <see cref="Transform"/>.
-        /// </summary>
-        /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
-        public void RemoveTransform(Transform toRemove)
-        {
-            transforms.Remove(toRemove);
-        }
-
-        /// <summary>
-        /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
-        /// incremented whenever a <see cref="Transform"/> is added.
-        /// </summary>
-        private ulong currentTransformID;
-
         /// <summary>
         /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
         /// <see cref="TransformableExtensions.PopulateTransform{TValue, TEasing, TThis}"/>.
@@ -269,14 +243,19 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
+        /// Removes a <see cref="Transform"/>.
+        /// </summary>
+        /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
+        public void RemoveTransform(Transform toRemove)
+        {
+            transforms.Remove(toRemove);
+        }
+
+        /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
         /// </summary>
         /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
-        /// <param name="targetMember">
-        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
-        /// Null for clearing all <see cref="Transform"/>s.
-        /// </param>
-        public virtual void ClearTransformsAfter(double time, string targetMember = null)
+        public virtual void ClearTransformsAfter(double time)
         {
             resetLastAppliedCache();
 
@@ -292,11 +271,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         public virtual void FinishTransforms()
         {
-            Func<Transform, bool> toFlushPredicate;
-            if (TargetMember == null)
-                toFlushPredicate = t => !t.IsLooping;
-            else
-                toFlushPredicate = t => !t.IsLooping && t.TargetMember == TargetMember;
+            bool toFlushPredicate(Transform t) => !t.IsLooping;
 
             // Flush is undefined for endlessly looping transforms
             var toFlush = transforms.Where(toFlushPredicate).ToArray();
@@ -310,5 +285,22 @@ namespace osu.Framework.Graphics.Transforms
                 t.OnComplete?.Invoke();
             }
         }
+
+        private void invokePendingRemovalActions()
+        {
+            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
+            {
+                var toRemove = removalActions.Value.ToArray();
+                removalActions.Value.Clear();
+
+                foreach (var action in toRemove)
+                    action();
+            }
+        }
+
+        /// <summary>
+        /// Reset the last applied index cache completely.
+        /// </summary>
+        private void resetLastAppliedCache() => lastAppliedIndex.Invalidate();
     }
 }
