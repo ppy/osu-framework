@@ -180,13 +180,9 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (shouldFlushLastApplicationCache)
                     resetLastAppliedCache();
-                // if this transform is applied to end, we can be sure that all previous transforms for the TargetMember have been completed.
+                // if this transform is applied to end, we can be sure that all previous transforms have been completed.
                 else if (t.AppliedToEnd)
                     setLastAppliedIndex(i + 1);
-                // if not applied to end, tracking the first actively applying transform for each TargetMember is required
-                // to help find the common minimum index to start processing from each next update call.
-                else if (t.Applied && getLastAppliedIndex() == null)
-                    setLastAppliedIndex(i);
             }
 
             invokePendingRemovalActions();
