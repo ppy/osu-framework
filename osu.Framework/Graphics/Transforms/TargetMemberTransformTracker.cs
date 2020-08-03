@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Transforms
     internal class TargetMemberTransformTracker
     {
         /// <summary>
-        /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
+        /// A list of <see cref="Transform"/>s associated with the <see cref="TargetMember"/>.
         /// </summary>
         public IEnumerable<Transform> Transforms => transforms;
 
