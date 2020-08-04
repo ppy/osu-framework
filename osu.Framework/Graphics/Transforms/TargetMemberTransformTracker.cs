@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Caching;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Transforms
@@ -40,7 +39,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// The index of the last transform in <see cref="transforms"/> to be applied to completion.
         /// </summary>
-        private readonly Cached<int> lastAppliedIndex = new Cached<int>();
+        private int? lastAppliedIndex;
 
         public TargetMemberTransformTracker(Transformable transformable, string targetMember)
         {
@@ -97,7 +96,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = lastAppliedIndex.IsValid ? lastAppliedIndex.Value : 0; i < transforms.Count; ++i)
+            for (int i = lastAppliedIndex ?? 0; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
@@ -115,7 +114,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
                     // be safely removed.
-                    for (int j = lastAppliedIndex.IsValid ? lastAppliedIndex.Value : 0; j < i; ++j)
+                    for (int j = lastAppliedIndex ?? 0; j < i; ++j)
                     {
                         var u = transforms[j];
 
@@ -190,7 +189,7 @@ namespace osu.Framework.Graphics.Transforms
                     resetLastAppliedCache();
                 // if this transform is applied to end, we can be sure that all previous transforms have been completed.
                 else if (t.AppliedToEnd)
-                    lastAppliedIndex.Value = i + 1;
+                    lastAppliedIndex = i + 1;
             }
 
             invokePendingRemovalActions();
@@ -295,6 +294,6 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Reset the last applied index cache completely.
         /// </summary>
-        private void resetLastAppliedCache() => lastAppliedIndex.Invalidate();
+        private void resetLastAppliedCache() => lastAppliedIndex = null;
     }
 }
