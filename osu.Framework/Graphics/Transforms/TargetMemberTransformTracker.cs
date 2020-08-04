@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Transformable transformable;
 
-        private readonly Lazy<List<Action>> removalActions = new Lazy<List<Action>>(() => new List<Action>());
+        private readonly List<Action> removalActions = new List<Action>();
 
         /// <summary>
         /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Transforms
                             i--;
 
                             if (u.OnAbort != null)
-                                removalActions.Value.Add(u.OnAbort);
+                                removalActions.Add(u.OnAbort);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                         }
                         else if (t.OnComplete != null)
-                            removalActions.Value.Add(t.OnComplete);
+                            removalActions.Add(t.OnComplete);
                     }
                 }
 
@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics.Transforms
                 var t = transforms[i];
                 transforms.RemoveAt(i--);
                 if (t.OnAbort != null)
-                    removalActions.Value.Add(t.OnAbort);
+                    removalActions.Add(t.OnAbort);
             }
 
             invokePendingRemovalActions();
@@ -282,10 +282,10 @@ namespace osu.Framework.Graphics.Transforms
 
         private void invokePendingRemovalActions()
         {
-            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
+            if (removalActions.Count > 0)
             {
-                var toRemove = removalActions.Value.ToArray();
-                removalActions.Value.Clear();
+                var toRemove = removalActions.ToArray();
+                removalActions.Clear();
 
                 foreach (var action in toRemove)
                     action();
