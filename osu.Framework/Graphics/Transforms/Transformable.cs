@@ -40,9 +40,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IEnumerable<Transform> Transforms => !targetMemberTrackers.IsValueCreated
-            ? Enumerable.Empty<Transform>()
-            : targetMemberTrackers.Value.SelectMany(t => t.Transforms);
+        public IEnumerable<Transform> Transforms => targetMemberTrackers.SelectMany(t => t.Transforms);
 
         /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
@@ -81,15 +79,11 @@ namespace osu.Framework.Graphics.Transforms
 
         private double lastUpdateTransformsTime;
 
-        private readonly Lazy<List<TargetMemberTransformTracker>> targetMemberTrackers =
-            new Lazy<List<TargetMemberTransformTracker>>(() => new List<TargetMemberTransformTracker>());
+        private readonly List<TargetMemberTransformTracker> targetMemberTrackers = new List<TargetMemberTransformTracker>();
 
         private TargetMemberTransformTracker getTrackerFor(string targetMember, bool createIfNotExisting = false)
         {
-            if (!targetMemberTrackers.IsValueCreated && !createIfNotExisting)
-                return null;
-
-            foreach (var t in targetMemberTrackers.Value)
+            foreach (var t in targetMemberTrackers)
             {
                 if (t.TargetMember == targetMember)
                     return t;
@@ -98,7 +92,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!createIfNotExisting) return null;
 
             var tracker = new TargetMemberTransformTracker(this, targetMember);
-            targetMemberTrackers.Value.Add(tracker);
+            targetMemberTrackers.Add(tracker);
             return tracker;
         }
 
@@ -110,17 +104,12 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
         private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
-            if (!targetMemberTrackers.IsValueCreated)
-                return;
-
             bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
-            var trackers = targetMemberTrackers.Value;
-
             // collection may grow due to abort / completion events.
-            for (var i = 0; i < trackers.Count; i++)
-                trackers[i].UpdateTransforms(time, rewinding);
+            for (var i = 0; i < targetMemberTrackers.Count; i++)
+                targetMemberTrackers[i].UpdateTransforms(time, rewinding);
         }
 
         /// <summary>
@@ -156,20 +145,15 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            if (!targetMemberTrackers.IsValueCreated)
-                return;
-
             if (targetMember != null)
             {
                 getTrackerFor(targetMember)?.ClearTransformsAfter(time);
             }
             else
             {
-                var trackers = targetMemberTrackers.Value;
-
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < trackers.Count; i++)
-                    trackers[i].ClearTransformsAfter(time);
+                for (var i = 0; i < targetMemberTrackers.Count; i++)
+                    targetMemberTrackers[i].ClearTransformsAfter(time);
             }
         }
 
@@ -198,20 +182,15 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            if (!targetMemberTrackers.IsValueCreated)
-                return;
-
             if (targetMember != null)
             {
                 getTrackerFor(targetMember)?.FinishTransforms();
             }
             else
             {
-                var trackers = targetMemberTrackers.Value;
-
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < trackers.Count; i++)
-                    trackers[i].FinishTransforms();
+                for (var i = 0; i < targetMemberTrackers.Count; i++)
+                    targetMemberTrackers[i].FinishTransforms();
             }
         }
 
