@@ -38,7 +38,9 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
-            Stop();
+            if (!IsDisposed)
+                Stop();
+
             base.Dispose(disposing);
         }
 
