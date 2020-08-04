@@ -287,8 +287,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Dispose(bool isDisposing)
         {
-            base.Dispose(isDisposing);
             detachEvents();
+            base.Dispose(isDisposing);
         }
 
         protected override bool OnHover(HoverEvent e)
