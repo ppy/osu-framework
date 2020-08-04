@@ -15,9 +15,6 @@ namespace osu.Framework.Audio.Track
         protected virtual void RaiseCompleted() => Completed?.Invoke();
         protected virtual void RaiseFailed() => Failed?.Invoke();
 
-        /// <summary>
-        /// Is this track capable of producing audio?
-        /// </summary>
         public virtual bool IsDummyDevice => true;
 
         /// <summary>
