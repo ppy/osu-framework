@@ -18,8 +18,7 @@ namespace osu.Framework.Input
         protected Vector2? TouchDownPosition;
 
         /// <summary>
-        /// The drawable from the input queue that handled a <see cref="TouchEvent"/> corresponding to this touch source.
-        /// Null when no drawable has handled a touch event or the touch is not yet active / has been deactivated.
+        /// The drawable from the input queue that handled a <see cref="TouchDownEvent"/> corresponding to this touch source.
         /// </summary>
         public Drawable HeldDrawable { get; private set; }
 
