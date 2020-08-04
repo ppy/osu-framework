@@ -211,7 +211,7 @@ namespace osu.Framework.Tests.Visual.Input
                 positiveAxisButton = JoystickButton.FirstAxisPositive + trackedAxis;
                 negativeAxisButton = JoystickButton.FirstAxisNegative + trackedAxis;
 
-                Size = new Vector2(50);
+                Size = new Vector2(100, 50);
 
                 InternalChildren = new[]
                 {
@@ -259,7 +259,7 @@ namespace osu.Framework.Tests.Visual.Input
             protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
             {
                 if (e.Axis.Source == trackedAxis)
-                    rawValue.Text = e.Axis.Value.ToString("0.00");
+                    rawValue.Text = e.Axis.Value.ToString("0.0000000");
 
                 return false;
             }
