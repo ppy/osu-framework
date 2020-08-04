@@ -375,20 +375,11 @@ namespace osu.Framework.Graphics.Visualisation
             isExpanded = false;
         }
 
-        private void onAutoSize()
-        {
-            Scheduler.Add(() => activityAutosize.FadeOutFromOne(1));
-        }
+        private void onAutoSize() => activityAutosize.FadeOutFromOne(1);
 
-        private void onLayout()
-        {
-            Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
-        }
+        private void onLayout() => activityLayout.FadeOutFromOne(1);
 
-        private void onInvalidated(Drawable d)
-        {
-            Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
-        }
+        private void onInvalidated(Drawable d) => activityInvalidate.FadeOutFromOne(1);
 
         private void onDispose()
         {
