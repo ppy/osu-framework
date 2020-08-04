@@ -103,13 +103,14 @@ namespace osu.Framework.Audio.Sample
 
         public override void Stop()
         {
-            if (channel == 0) return;
-
             base.Stop();
 
             EnqueueAction(() =>
             {
+                if (channel == 0) return;
+
                 Bass.ChannelStop(channel);
+
                 // ChannelStop frees the channel.
                 channel = 0;
             });

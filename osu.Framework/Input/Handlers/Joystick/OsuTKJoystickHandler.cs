@@ -114,12 +114,15 @@ namespace osu.Framework.Input.Handlers.Joystick
                     if (Precision.AlmostEquals(value, 0, deadzone))
                         // Round values in the deadzone to zero.
                         value = 0;
+                    else
+                        // Rescale values then clamp back into [-1;1] range.
+                        value = Math.Clamp((value - deadzone * Math.Sign(value)) / (1 - deadzone), -1, 1);
 
                     AxesValues[i] = value;
 
-                    if (value > deadzone)
+                    if (value > 0)
                         Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
-                    else if (value < -deadzone)
+                    else if (value < 0)
                         Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
                 }
 
@@ -221,7 +224,8 @@ namespace osu.Framework.Input.Handlers.Joystick
                         if (Precision.AlmostEquals(0, axisValue))
                             continue;
 
-                        defaultDeadZones.Value[i] = axisValue + deadzone_threshold;
+                        // Cap deadzone at 0.5f to avoid division by zero and catastrophic cancellation when rescaling
+                        defaultDeadZones.Value[i] = Math.Min(0.5f, axisValue + deadzone_threshold);
                     }
                 }
             }
