@@ -21,7 +21,7 @@ namespace osu.Framework.Input
         /// The drawable from the input queue that handled a <see cref="TouchEvent"/> corresponding to this touch source.
         /// Null when no drawable has handled a touch event or the touch is not yet active / has been deactivated.
         /// </summary>
-        public Drawable HeldDrawable { get; protected set; }
+        public Drawable HeldDrawable { get; private set; }
 
         public TouchEventManager(TouchSource source)
             : base(source)
