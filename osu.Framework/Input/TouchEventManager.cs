@@ -17,6 +17,11 @@ namespace osu.Framework.Input
     {
         protected Vector2? TouchDownPosition;
 
+        /// <summary>
+        /// The drawable from the input queue that handled a <see cref="TouchDownEvent"/> corresponding to this touch source.
+        /// </summary>
+        public Drawable HeldDrawable { get; private set; }
+
         public TouchEventManager(TouchSource source)
             : base(source)
         {
@@ -34,16 +39,21 @@ namespace osu.Framework.Input
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
+            Debug.Assert(HeldDrawable == null);
+
+            Debug.Assert(TouchDownPosition == null);
             TouchDownPosition = state.Touch.GetTouchPosition(Button);
             Debug.Assert(TouchDownPosition != null);
 
-            return PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
+            return HeldDrawable = PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
         }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {
             var currentPosition = state.Touch.TouchPositions[(int)Button];
             PropagateButtonEvent(targets, new TouchUpEvent(state, new Touch(Button, currentPosition), TouchDownPosition));
+
+            HeldDrawable = null;
             TouchDownPosition = null;
         }
     }

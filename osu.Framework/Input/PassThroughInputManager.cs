@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -78,18 +77,14 @@ namespace osu.Framework.Input
             return pendingInputs;
         }
 
-        protected override bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
-        {
-            // The parent manager will propagate mouse events from latest moved touch input if we are using it.
-            if (UseParentInput)
-                return false;
-
-            return base.HandleMouseTouchStateChange(e);
-        }
-
         protected override bool Handle(UIEvent e)
         {
             if (!UseParentInput) return false;
+
+            // Don't handle mouse events sourced from touches, we may have a
+            // child drawable handling actual touches, we will produce one ourselves.
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return false;
 
             switch (e)
             {

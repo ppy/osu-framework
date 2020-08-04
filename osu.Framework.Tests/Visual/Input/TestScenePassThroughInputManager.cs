@@ -1,10 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
@@ -175,6 +178,43 @@ namespace osu.Framework.Tests.Visual.Input
                 testInputManager.CurrentState.Midi.Velocities[MidiKey.FSharp3] == 65);
         }
 
+        [Test]
+        public void TestMouseTouchProductionOnPassThrough()
+        {
+            addTestInputManagerStep();
+            AddStep("setup hierarchy", () =>
+            {
+                Add(new HandlingBox
+                {
+                    Alpha = 0.5f,
+                    Depth = 1,
+                    RelativeSizeAxes = Axes.Both,
+                    OnHandle = e => e is MouseEvent,
+                });
+
+                testInputManager.Add(new HandlingBox
+                {
+                    Alpha = 0.5f,
+                    RelativeSizeAxes = Axes.Both,
+                    OnHandle = e => e is TouchEvent,
+                });
+            });
+
+            AddStep("begin touch", () => InputManager.BeginTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
+            AddAssert("ensure parent manager produced mouse", () =>
+                InputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left &&
+                InputManager.CurrentState.Mouse.Position == testInputManager.ScreenSpaceDrawQuad.Centre);
+
+            AddAssert("pass-through did not produce mouse", () =>
+                !testInputManager.CurrentState.Mouse.Buttons.HasAnyButtonPressed &&
+                testInputManager.CurrentState.Mouse.Position != testInputManager.ScreenSpaceDrawQuad.Centre);
+
+            AddStep("end touch", () => InputManager.EndTouch(new Touch(TouchSource.Touch1, testInputManager.ScreenSpaceDrawQuad.Centre)));
+
+            AddStep("press mouse", () => InputManager.PressButton(MouseButton.Left));
+            AddAssert("pass-through handled mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
+        }
+
         public class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;
@@ -186,6 +226,13 @@ namespace osu.Framework.Tests.Visual.Input
                 Anchor = Anchor.Centre;
                 Child = Status = new TestSceneInputManager.ContainingInputManagerStatusText();
             }
+        }
+
+        public class HandlingBox : Box
+        {
+            public Func<UIEvent, bool> OnHandle;
+
+            protected override bool Handle(UIEvent e) => OnHandle?.Invoke(e) ?? false;
         }
     }
 }
