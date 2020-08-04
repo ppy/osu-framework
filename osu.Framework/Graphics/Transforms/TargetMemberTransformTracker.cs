@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (rewinding && !transformable.RemoveCompletedTransforms)
             {
-                resetLastAppliedCache();
+                resetLastAppliedIndex();
 
                 bool appliedToEndRevert = false;
 
@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 if (flushAppliedCache)
-                    resetLastAppliedCache();
+                    resetLastAppliedIndex();
                 // if this transform is applied to end, we can be sure that all previous transforms have been completed.
                 else if (t.AppliedToEnd)
                     lastAppliedIndex = i + 1;
@@ -214,7 +214,7 @@ namespace osu.Framework.Graphics.Transforms
 
             transform.TransformID = customTransformID ?? ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
-            resetLastAppliedCache();
+            resetLastAppliedIndex();
 
             // Remove all existing following transforms touching the same property as this one.
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
@@ -250,7 +250,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
         public virtual void ClearTransformsAfter(double time)
         {
-            resetLastAppliedCache();
+            resetLastAppliedIndex();
 
             var toAbort = transforms.Where(t => t.StartTime >= time).ToArray();
             transforms.RemoveAll(t => t.StartTime >= time);
@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.Transforms
             var toFlush = transforms.Where(toFlushPredicate).ToArray();
 
             transforms.RemoveAll(toFlushPredicate);
-            resetLastAppliedCache();
+            resetLastAppliedIndex();
 
             foreach (Transform t in toFlush)
             {
@@ -294,6 +294,6 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Reset the last applied index cache completely.
         /// </summary>
-        private void resetLastAppliedCache() => lastAppliedIndex = null;
+        private void resetLastAppliedIndex() => lastAppliedIndex = null;
     }
 }
