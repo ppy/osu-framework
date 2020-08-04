@@ -40,13 +40,13 @@ namespace osu.Framework.Input
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
+            Debug.Assert(HeldDrawable == null);
+
+            Debug.Assert(TouchDownPosition == null);
             TouchDownPosition = state.Touch.GetTouchPosition(Button);
             Debug.Assert(TouchDownPosition != null);
 
-            var handled = PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
-            HeldDrawable = handled;
-
-            return handled;
+            return HeldDrawable = PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
         }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
