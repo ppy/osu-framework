@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using ManagedBass;
 using osu.Framework.Audio.Track;
 using osuTK;
@@ -46,15 +47,21 @@ namespace osu.Framework.Audio.Sample
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, bassFreq);
 
+            var channelState = Bass.ChannelIsActive(channel);
+
             // Handle channels with 0 frequencies due to BASS not supporting them (0 = original rate)
             // Documentation for the frequency limits: http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm
-            if (AggregateFrequency.Value == 0 && !pausedDueToZeroFrequency)
+            if (AggregateFrequency.Value == 0 && channelState != PlaybackState.Paused)
             {
-                pausedDueToZeroFrequency = true;
+                Debug.Assert(!pausedDueToZeroFrequency, $"{nameof(pausedDueToZeroFrequency)} set while channel is playing.");
+
                 Bass.ChannelPause(channel);
+                pausedDueToZeroFrequency = true;
             }
             else if (AggregateFrequency.Value > 0 && pausedDueToZeroFrequency)
             {
+                Debug.Assert(channelState == PlaybackState.Paused, $"channel not paused while {nameof(pausedDueToZeroFrequency)} set.");
+
                 pausedDueToZeroFrequency = false;
                 Bass.ChannelPlay(channel);
             }
@@ -100,16 +107,9 @@ namespace osu.Framework.Audio.Sample
 
             InvalidateState();
 
-            if (AggregateFrequency.Value == 0)
-            {
-                // The channel should be initially paused, no need to pause it here.
-                pausedDueToZeroFrequency = true;
-                return;
-            }
-
             EnqueueAction(() =>
             {
-                if (channel != 0)
+                if (channel != 0 && !pausedDueToZeroFrequency)
                     Bass.ChannelPlay(channel, restart);
             });
 
