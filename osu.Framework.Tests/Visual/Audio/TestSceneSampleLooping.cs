@@ -3,8 +3,8 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Audio.Track;
 using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Audio
@@ -14,21 +14,22 @@ namespace osu.Framework.Tests.Visual.Audio
         private SampleChannel sampleChannel;
 
         [Resolved]
-        private ISampleStore samples { get; set; }
+        private AudioManager audioManager { get; set; }
 
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddUntilStep("audio device ready", () => audioManager.IsLoaded);
             AddStep("create looping sample", createLoopingSample);
         }
 
         [Test]
-        public void TestClearLoopingFlag()
+        public void TestDisableLoopingFlag()
         {
             playAndCheckSample();
 
-            AddStep("clear looping", () => sampleChannel.Looping = false);
-            AddUntilStep("not playing", () => !sampleChannel.Playing);
+            AddStep("disable looping", () => sampleChannel.Looping = false);
+            AddUntilStep("ensure stops", () => !sampleChannel.Playing);
         }
 
         [Test]
@@ -69,7 +70,7 @@ namespace osu.Framework.Tests.Visual.Audio
         private void createLoopingSample()
         {
             sampleChannel?.Dispose();
-            sampleChannel = samples.Get("tone.wav");
+            sampleChannel = audioManager.Samples.Get("tone.wav");
 
             // reduce volume of the tone due to how loud it normally is.
             sampleChannel.Volume.Value = 0.05;
