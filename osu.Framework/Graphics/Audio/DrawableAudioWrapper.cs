@@ -91,33 +91,137 @@ namespace osu.Framework.Graphics.Audio
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
 
         public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
+    }
+
+    public static class DrawableAudioWrapperExtensions
+    {
+        #region Easing
 
         /// <summary>
-        /// Smoothly adjusts <see cref="Volume"/> over time.
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Volume"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> VolumeTo(double newVolume, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Volume, newVolume, duration, easing);
+        public static TransformSequence<DrawableAudioWrapper> VolumeTo(this DrawableAudioWrapper wrapper, double newVolume, double duration = 0, Easing easing = Easing.None)
+            => wrapper.VolumeTo(newVolume, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
-        /// Smoothly adjusts <see cref="Balance"/> over time.
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Balance"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> BalanceTo(double newBalance, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Balance, newBalance, duration, easing);
+        public static TransformSequence<DrawableAudioWrapper> BalanceTo(this DrawableAudioWrapper wrapper, double newBalance, double duration = 0, Easing easing = Easing.None)
+            => wrapper.BalanceTo(newBalance, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
-        /// Smoothly adjusts <see cref="Frequency"/> over time.
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Frequency"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> FrequencyTo(double newFrequency, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Frequency, newFrequency, duration, easing);
+        public static TransformSequence<DrawableAudioWrapper> FrequencyTo(this DrawableAudioWrapper wrapper, double newFrequency, double duration = 0, Easing easing = Easing.None) =>
+            wrapper.FrequencyTo(newFrequency, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
-        /// Smoothly adjusts <see cref="Tempo"/> over time.
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Tempo"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> TempoTo(double newTempo, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Tempo, newTempo, duration, easing);
+        public static TransformSequence<DrawableAudioWrapper> TempoTo(this DrawableAudioWrapper wrapper, double newTempo, double duration = 0, Easing easing = Easing.None) =>
+            wrapper.TempoTo(newTempo, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Volume"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> VolumeTo(this TransformSequence<DrawableAudioWrapper> sequence, double newVolume, double duration = 0, Easing easing = Easing.None) =>
+            sequence.VolumeTo(newVolume, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Balance"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> BalanceTo(this TransformSequence<DrawableAudioWrapper> sequence, double newBalance, double duration = 0, Easing easing = Easing.None) =>
+            sequence.BalanceTo(newBalance, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Frequency"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> FrequencyTo(this TransformSequence<DrawableAudioWrapper> sequence, double newFrequency, double duration = 0,
+                                                                          Easing easing = Easing.None) =>
+            sequence.FrequencyTo(newFrequency, duration, new DefaultEasingFunction(easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Tempo"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> TempoTo(this TransformSequence<DrawableAudioWrapper> sequence, double newTempo, double duration = 0, Easing easing = Easing.None) =>
+            sequence.TempoTo(newTempo, duration, new DefaultEasingFunction(easing));
+
+        #endregion
+
+        #region Generic Easing
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Volume"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> VolumeTo<TEasing>(this DrawableAudioWrapper wrapper, double newVolume, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => wrapper.TransformBindableTo(wrapper.Volume, newVolume, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Balance"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> BalanceTo<TEasing>(this DrawableAudioWrapper wrapper, double newBalance, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => wrapper.TransformBindableTo(wrapper.Balance, newBalance, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Frequency"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> FrequencyTo<TEasing>(this DrawableAudioWrapper wrapper, double newFrequency, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => wrapper.TransformBindableTo(wrapper.Frequency, newFrequency, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Tempo"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> TempoTo<TEasing>(this DrawableAudioWrapper wrapper, double newTempo, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => wrapper.TransformBindableTo(wrapper.Tempo, newTempo, duration, easing);
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Volume"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> VolumeTo<TEasing>(this TransformSequence<DrawableAudioWrapper> sequence, double newVolume, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => sequence.Append(o => o.TransformBindableTo(o.Volume, newVolume, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Balance"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> BalanceTo<TEasing>(this TransformSequence<DrawableAudioWrapper> sequence, double newBalance, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => sequence.Append(o => o.TransformBindableTo(o.Balance, newBalance, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Frequency"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> FrequencyTo<TEasing>(this TransformSequence<DrawableAudioWrapper> sequence, double newFrequency, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => sequence.Append(o => o.TransformBindableTo(o.Frequency, newFrequency, duration, easing));
+
+        /// <summary>
+        /// Smoothly adjusts <see cref="DrawableAudioWrapper.Tempo"/> over time.
+        /// </summary>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<DrawableAudioWrapper> TempoTo<TEasing>(this TransformSequence<DrawableAudioWrapper> sequence, double newTempo, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => sequence.Append(o => o.TransformBindableTo(o.Tempo, newTempo, duration, easing));
+
+        #endregion
     }
 }
