@@ -51,11 +51,19 @@ namespace osu.Framework.Tests.Visual.Audio
             AddAssert("is still playing", () => sampleChannel.Playing);
         }
 
+        [Test]
+        public void TestZeroFrequencyAfterStop()
+        {
+            stopAndCheckSample();
+
+            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
+            AddAssert("still stopped", () => !sampleChannel.Playing);
+        }
+
         [TearDownSteps]
         public void TearDownSteps()
         {
-            AddStep("stop playing", () => sampleChannel.Stop());
-            AddUntilStep("not playing", () => !sampleChannel.Playing);
+            stopAndCheckSample();
         }
 
         private void playAndCheckSample()
@@ -65,6 +73,12 @@ namespace osu.Framework.Tests.Visual.Audio
             // ensures that it is in fact looping given that the loaded sample length is very short.
             AddWaitStep("wait", 10);
             AddAssert("is playing", () => sampleChannel.Playing);
+        }
+
+        private void stopAndCheckSample()
+        {
+            AddStep("stop playing", () => sampleChannel.Stop());
+            AddUntilStep("stopped", () => !sampleChannel.Playing);
         }
 
         private void createLoopingSample()
