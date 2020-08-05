@@ -61,7 +61,7 @@ namespace osu.Framework.IO.Stores
                     return null;
 
                 byte[] buffer = new byte[input.Length];
-                await input.ReadAsync(buffer, 0, buffer.Length);
+                await input.ReadAsync(buffer.AsMemory());
                 return buffer;
             }
         }
@@ -95,7 +95,7 @@ namespace osu.Framework.IO.Stores
             for (int i = 0; i < split.Length - 1; i++)
                 split[i] = split[i].Replace('-', '_');
 
-            return assembly?.GetManifestResourceStream($@"{prefix}.{string.Join(".", split)}");
+            return assembly?.GetManifestResourceStream($@"{prefix}.{string.Join('.', split)}");
         }
 
         #region IDisposable Support

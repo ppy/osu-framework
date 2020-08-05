@@ -21,16 +21,22 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern void av_frame_free(AVFrame** frame);
 
         [DllImport(dll_name)]
-        private static extern int av_image_fill_arrays(ref byte_ptrArray4 dst_data, ref int_array4 dst_linesize, byte* src, AVPixelFormat pix_fmt, int width, int height, int align);
+        private static extern void av_frame_unref(AVFrame* frame);
 
         [DllImport(dll_name)]
-        private static extern int av_image_get_buffer_size(AVPixelFormat pix_fmt, int width, int height, int align);
+        private static extern int av_frame_get_buffer(AVFrame* frame, int align);
+
+        [DllImport(dll_name)]
+        private static extern byte* av_strdup(string s);
 
         [DllImport(dll_name)]
         private static extern void* av_malloc(ulong size);
 
         [DllImport(dll_name)]
         private static extern AVPacket* av_packet_alloc();
+
+        [DllImport(dll_name)]
+        private static extern void av_packet_unref(AVPacket* pkt);
 
         [DllImport(dll_name)]
         private static extern void av_packet_free(AVPacket** pkt);
@@ -91,10 +97,12 @@ namespace osu.Framework.iOS.Graphics.Video
         {
             av_frame_alloc = av_frame_alloc,
             av_frame_free = av_frame_free,
-            av_image_fill_arrays = av_image_fill_arrays,
-            av_image_get_buffer_size = av_image_get_buffer_size,
+            av_frame_unref = av_frame_unref,
+            av_frame_get_buffer = av_frame_get_buffer,
+            av_strdup = av_strdup,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
+            av_packet_unref = av_packet_unref,
             av_packet_free = av_packet_free,
             av_read_frame = av_read_frame,
             av_seek_frame = av_seek_frame,

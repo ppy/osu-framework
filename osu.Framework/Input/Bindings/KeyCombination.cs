@@ -125,10 +125,10 @@ namespace osu.Framework.Input.Bindings
 
         public override int GetHashCode()
         {
-            int hash = 0;
+            var hash = new HashCode();
             foreach (var key in Keys)
-                hash = hash * 17 + (int)key;
-            return hash;
+                hash.Add(key);
+            return hash.ToHashCode();
         }
 
         public static implicit operator KeyCombination(InputKey singleKey) => new KeyCombination(ImmutableArray.Create(singleKey));
@@ -141,15 +141,18 @@ namespace osu.Framework.Input.Bindings
         /// Get a string representation can be used with <see cref="KeyCombination(string)"/>.
         /// </summary>
         /// <returns>The string representation.</returns>
-        public override string ToString() => string.Join(",", Keys.Select(k => (int)k));
+        public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
-        public string ReadableString() => string.Join(" ", Keys.Select(getReadableKey));
+        public string ReadableString() => string.Join(' ', Keys.Select(getReadableKey));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.MidiA0)
+                return key.ToString().Substring("Midi".Length).Replace("Sharp", "#");
+
             if (key >= InputKey.FirstJoystickHatRightButton)
                 return $"Joystick Hat {key - InputKey.FirstJoystickHatRightButton + 1} Right";
             if (key >= InputKey.FirstJoystickHatLeftButton)
@@ -393,6 +396,8 @@ namespace osu.Framework.Input.Bindings
             return InputKey.None;
         }
 
+        public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);
+
         /// <summary>
         /// Construct a new instance from input state.
         /// </summary>
@@ -445,6 +450,9 @@ namespace osu.Framework.Input.Bindings
                 foreach (var joystickButton in state.Joystick.Buttons)
                     keys.Add(FromJoystickButton(joystickButton));
             }
+
+            if (state.Midi != null)
+                keys.AddRange(state.Midi.Keys.Select(FromMidiKey));
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
             keys.Sort();

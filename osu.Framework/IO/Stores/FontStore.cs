@@ -1,15 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Graphics.Textures;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.IO.Stores
 {
@@ -47,14 +48,9 @@ namespace osu.Framework.IO.Stores
             switch (store)
             {
                 case FontStore fs:
-                    if (fs.Atlas == null)
-                    {
-                        // share the main store's atlas.
-                        fs.Atlas = Atlas;
-                    }
-
-                    if (fs.cacheStorage == null)
-                        fs.cacheStorage = cacheStorage;
+                    // if null, share the main store's atlas.
+                    fs.Atlas ??= Atlas;
+                    fs.cacheStorage ??= cacheStorage;
 
                     nestedFontStores.Add(fs);
                     return;
@@ -92,8 +88,10 @@ namespace osu.Framework.IO.Stores
                     await store.LoadFontAsync();
                     Logger.Log($"Loaded Font {store.FontName}!", level: LogLevel.Debug);
                 }
-                catch (OperationCanceledException)
+                catch
                 {
+                    // Errors are logged by LoadFontAsync() but also propagated outwards.
+                    // We can gracefully continue when loading a font fails, so the exception shouldn't trigger the unobserved exception handler of GameHost and potentially crash the game.
                 }
             });
         }
@@ -114,9 +112,9 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
-        public override Texture Get(string name)
+        public new Texture Get(string name)
         {
-            var found = base.Get(name);
+            var found = base.Get(name, WrapMode.None, WrapMode.None);
 
             if (found == null)
             {
@@ -130,6 +128,7 @@ namespace osu.Framework.IO.Stores
             return found;
         }
 
+        [CanBeNull]
         public ITexturedCharacterGlyph Get(string fontName, char character)
         {
             var key = (fontName, character);

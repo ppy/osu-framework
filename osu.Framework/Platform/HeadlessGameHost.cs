@@ -26,18 +26,19 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        protected override Storage GetStorage(string baseName) => new DesktopStorage($"headless-{baseName}", this);
+        public override string UserStoragePath => "./headless/";
 
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
-            : base(gameName, bindIPC, portableInstallation: portableInstallation)
+        public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+            : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)
         {
             this.realtime = realtime;
         }
 
-        protected override void SetupConfig(IDictionary<FrameworkSetting, object> gameDefaults)
+        protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
-            base.SetupConfig(gameDefaults);
-            Config.Set(FrameworkSetting.AudioDevice, "No sound");
+            defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
+
+            base.SetupConfig(defaultOverrides);
         }
 
         protected override void SetupForRun()
@@ -48,14 +49,6 @@ namespace osu.Framework.Platform
         }
 
         protected override void SetupToolkit()
-        {
-        }
-
-        protected override void UpdateInitialize()
-        {
-        }
-
-        protected override void DrawInitialize()
         {
         }
 

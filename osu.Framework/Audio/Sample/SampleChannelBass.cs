@@ -3,6 +3,7 @@
 
 using System;
 using ManagedBass;
+using osu.Framework.Audio.Track;
 using osuTK;
 
 namespace osu.Framework.Audio.Sample
@@ -15,6 +16,8 @@ namespace osu.Framework.Audio.Sample
         public override bool IsLoaded => Sample.IsLoaded;
 
         private float initialFrequency;
+
+        private BassAmplitudeProcessor bassAmplitudeProcessor;
 
         public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
             : base(sample, onPlay)
@@ -71,6 +74,8 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
+            base.Play(restart);
+
             EnqueueAction(() =>
             {
                 if (!IsLoaded)
@@ -85,18 +90,15 @@ namespace osu.Framework.Audio.Sample
                 // We are creating a new channel for every playback, since old channels may
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
+
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 setLoopFlag(Looping);
+
+                bassAmplitudeProcessor?.SetChannel(channel);
             });
 
             InvalidateState();
-
-            // Needs to happen on the main thread such that
-            // Played does not become true for a short moment.
-            playing = true;
-
-            base.Play(restart);
 
             if (AggregateFrequency.Value == 0)
             {
@@ -110,29 +112,38 @@ namespace osu.Framework.Audio.Sample
                 if (channel != 0)
                     Bass.ChannelPlay(channel, restart);
             });
+
+            // Needs to happen on the main thread such that
+            // Played does not become true for a short moment.
+            playing = true;
         }
 
         protected override void UpdateState()
         {
             playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
             base.UpdateState();
+
+            bassAmplitudeProcessor?.Update();
         }
 
         public override void Stop()
         {
-            if (channel == 0) return;
-
             base.Stop();
 
             EnqueueAction(() =>
             {
+                if (channel == 0) return;
+
                 Bass.ChannelStop(channel);
+
                 // ChannelStop frees the channel.
                 channel = 0;
             });
         }
 
         public override bool Playing => playing;
+
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {

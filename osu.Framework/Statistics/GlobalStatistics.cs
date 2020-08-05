@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osu.Framework.Bindables;
 
@@ -38,12 +39,19 @@ namespace osu.Framework.Statistics
             }
         }
 
-        public static void Clear()
+        /// <summary>
+        /// Clear all statistics.
+        /// </summary>
+        /// <param name="group">An optional group identifier, limiting the clear operation to the matching group.</param>
+        public static void Clear(string group = null)
         {
             lock (statistics)
             {
-                foreach (var stat in statistics)
-                    stat.Clear();
+                for (int i = 0; i < statistics.Count; i++)
+                {
+                    if (group?.Equals(statistics[i].Group, StringComparison.Ordinal) != false)
+                        statistics.RemoveAt(i--);
+                }
             }
         }
 

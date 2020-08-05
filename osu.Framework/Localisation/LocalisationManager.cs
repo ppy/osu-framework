@@ -50,15 +50,14 @@ namespace osu.Framework.Localisation
             {
                 var culture = string.IsNullOrEmpty(args.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(args.NewValue);
 
-                for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
+                for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
                     validLocale = locales.Find(l => l.Name == c.Name);
                     if (validLocale != null)
                         break;
                 }
 
-                if (validLocale == null)
-                    validLocale = locales[0];
+                validLocale ??= locales[0];
             }
 
             if (validLocale.Name != args.NewValue)

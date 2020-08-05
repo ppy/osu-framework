@@ -3,13 +3,16 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
+using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 
@@ -30,6 +33,16 @@ namespace osu.Framework.Platform
             IsPortableInstallation = portableInstallation;
             UseSdl = useSdl;
         }
+
+        protected sealed override Storage GetDefaultGameStorage()
+        {
+            if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
+                return GetStorage(RuntimeInfo.StartupDirectory);
+
+            return base.GetDefaultGameStorage();
+        }
+
+        public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
 
         protected override void SetupForRun()
         {
@@ -90,6 +103,7 @@ namespace osu.Framework.Platform
                         new OsuTKMouseHandler(),
                         new OsuTKKeyboardHandler(),
                         new OsuTKJoystickHandler(),
+                        new MidiInputHandler(),
                     };
 
                     var defaultDisabled = new InputHandler[]

@@ -6,6 +6,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using Process = System.Diagnostics.Process;
 
 namespace osu.Framework.Android
 {
@@ -53,13 +54,27 @@ namespace osu.Framework.Android
                     UIVisibilityFlags = systemUiFlags;
                 }
             };
+
+            gameView.HostStarted += host =>
+            {
+                host.AllowScreenSuspension.BindValueChanged(allow =>
+                {
+                    RunOnUiThread(() =>
+                    {
+                        if (!allow.NewValue)
+                            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+                        else
+                            Window.ClearFlags(WindowManagerFlags.KeepScreenOn);
+                    });
+                }, true);
+            };
         }
 
         protected override void OnPause()
         {
             base.OnPause();
             // Because Android is not playing nice with Background - we just kill it
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            Process.GetCurrentProcess().Kill();
         }
 
         public override void OnBackPressed()

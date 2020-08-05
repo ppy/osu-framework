@@ -149,12 +149,16 @@ namespace osu.Framework.Graphics.Visualisation
             visualiser.Depth = 0;
 
             treeContainer.Target = targetVisualiser = visualiser;
+            targetVisualiser.TopLevel = true;
         }
 
         void IContainVisualisedDrawables.RemoveVisualiser(VisualisedDrawable visualiser)
         {
             target = null;
+
+            targetVisualiser.TopLevel = false;
             targetVisualiser = null;
+
             treeContainer.Target = null;
 
             if (Target == null)
@@ -238,8 +242,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!validForTarget(composite))
                         return;
 
-                    if (compositeTarget == null)
-                        compositeTarget = composite;
+                    compositeTarget ??= composite;
 
                     // Allow targeting composites that don't have any content but display a border/glow
 

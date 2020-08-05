@@ -17,7 +17,7 @@ namespace osu.Framework.Allocation
     /// Cached values may be resolved through <see cref="BackgroundDependencyLoaderAttribute"/> or <see cref="ResolvedAttribute"/>.
     /// </summary>
     [MeansImplicitUse]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Interface, AllowMultiple = true, Inherited = false)]
     public class CachedAttribute : Attribute
     {
         internal const BindingFlags ACTIVATOR_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
@@ -66,6 +66,12 @@ namespace osu.Framework.Allocation
 
             // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)
             var allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                foreach (var attribute in iface.GetCustomAttributes<CachedAttribute>())
+                    additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? iface, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));
+            }
 
             foreach (var attribute in type.GetCustomAttributes<CachedAttribute>())
                 additionActivators.Add((target, dc, info) => dc.CacheAs(attribute.Type ?? type, new CacheInfo(info.Name ?? attribute.Name, info.Parent), target, allowValueTypes));

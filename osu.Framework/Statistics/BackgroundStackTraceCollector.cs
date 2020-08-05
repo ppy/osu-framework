@@ -1,15 +1,14 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Logging;
-using osu.Framework.Timing;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Diagnostics.Runtime;
+using osu.Framework.Logging;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -18,13 +17,14 @@ namespace osu.Framework.Statistics
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
-        private IList<ClrStackFrame> backgroundMonitorStackTrace;
+        private string[] backgroundMonitorStackTrace;
 
         private readonly StopwatchClock clock;
+        private readonly string threadName;
 
         private readonly Lazy<Logger> logger;
 
-        private readonly Thread targetThread;
+        private Thread targetThread;
 
         internal double LastConsumptionTime;
 
@@ -37,16 +37,19 @@ namespace osu.Framework.Statistics
         /// </summary>
         /// <param name="targetThread">The thread to monitor.</param>
         /// <param name="clock">The clock to use for elapsed time checks.</param>
-        public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock)
+        /// <param name="threadName">A name used for tracking purposes. Can be used to track potentially changing threads under a single name.</param>
+        public BackgroundStackTraceCollector(Thread targetThread, StopwatchClock clock, string threadName = null)
         {
-            if (Debugger.IsAttached) return;
+            if (Debugger.IsAttached)
+                return;
 
             this.clock = clock;
+            this.threadName = threadName ?? targetThread?.Name;
             this.targetThread = targetThread;
 
             logger = new Lazy<Logger>(() =>
             {
-                var l = Logger.GetLogger($"performance-{targetThread.Name?.ToLower() ?? "unknown"}");
+                var l = Logger.GetLogger($"performance-{threadName?.ToLower() ?? "unknown"}");
                 l.OutputToListeners = false;
                 return l;
             });
@@ -74,27 +77,41 @@ namespace osu.Framework.Statistics
 
         private void startThread()
         {
+            // Since v2.0 of Microsoft.Diagnostics.Runtime, support is provided to retrieve stack traces on unix platforms but
+            // it causes a full core dump, which is very slow and causes a visible freeze.
+            // For the time being let's remain windows-only (as this functionality used to be).
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+                return;
+
             Trace.Assert(cancellation == null);
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
             {
-                Name = $"{targetThread.Name}-StackTraceCollector",
+                Name = $"{threadName}-StackTraceCollector",
                 IsBackground = true
             };
 
             thread.Start();
         }
 
+        private bool isCollecting;
+
         private void run(CancellationToken cancellation)
         {
             while (!cancellation.IsCancellationRequested)
             {
-                if (targetThread.IsAlive && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
+                var elapsed = clock.ElapsedMilliseconds - LastConsumptionTime;
+                var threshold = spikeRecordThreshold / 2;
+
+                if (targetThread.IsAlive && isCollecting && clock.ElapsedMilliseconds - LastConsumptionTime > spikeRecordThreshold / 2 && backgroundMonitorStackTrace == null)
                 {
                     try
                     {
-                        Logger.Log("Retrieving background stack trace...");
+                        Logger.Log($"Retrieving background stack trace on {threadName} thread ({elapsed:N0}ms over threshold of {threshold:N0}ms)...");
                         backgroundMonitorStackTrace = getStackTrace(targetThread);
+                        Logger.Log("Done!");
+
+                        Thread.Sleep(100);
                     }
                     catch (Exception e)
                     {
@@ -118,6 +135,8 @@ namespace osu.Framework.Statistics
         {
             if (targetThread == null) return;
 
+            isCollecting = true;
+
             var frames = backgroundMonitorStackTrace;
             backgroundMonitorStackTrace = null;
 
@@ -130,7 +149,7 @@ namespace osu.Framework.Statistics
 
             StringBuilder logMessage = new StringBuilder();
 
-            logMessage.AppendLine($@"| Slow frame on thread ""{targetThread.Name}""");
+            logMessage.AppendLine($@"| Slow frame on thread ""{threadName}""");
             logMessage.AppendLine(@"|");
             logMessage.AppendLine($@"| * Thread time  : {clock.CurrentTime:#0,#}ms");
             logMessage.AppendLine($@"| * Frame length : {elapsedFrameTime:#0,#}ms (allowable: {currentThreshold:#0,#}ms)");
@@ -142,7 +161,7 @@ namespace osu.Framework.Statistics
                 logMessage.AppendLine(@"| Stack trace:");
 
                 foreach (var f in frames)
-                    logMessage.AppendLine($@"|- {f.DisplayString}");
+                    logMessage.AppendLine($@"|- {f}");
             }
             else
                 logMessage.AppendLine(@"| Call stack was not recorded.");
@@ -150,20 +169,31 @@ namespace osu.Framework.Statistics
             logger.Value.Add(logMessage.ToString());
         }
 
-        private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
+        public void EndFrame()
+        {
+            isCollecting = false;
+        }
+
+        private static string[] getStackTrace(Thread targetThread)
         {
             try
             {
-                return DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive).ClrVersions[0];
+                using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))
+                {
+                    using (var runtime = target.ClrVersions[0].CreateRuntime())
+                    {
+                        return runtime.Threads
+                                      .FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?
+                                      .EnumerateStackTrace().Select(f => f.ToString())
+                                      .ToArray();
+                    }
+                }
             }
             catch
             {
                 return null;
             }
-        });
-
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) =>
-            clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+        }
 
         #region IDisposable Support
 
@@ -180,6 +210,7 @@ namespace osu.Framework.Statistics
             {
                 Enabled = false; // stops the thread if running.
                 isDisposed = true;
+                targetThread = null;
             }
         }
 

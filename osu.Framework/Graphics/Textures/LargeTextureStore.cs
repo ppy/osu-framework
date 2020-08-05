@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
+using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -17,8 +18,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly object referenceCountLock = new object();
         private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
 
-        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
-            : base(store, false, All.Linear, true)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null, All filteringMode = All.Linear)
+            : base(store, false, filteringMode, true)
         {
         }
 
@@ -28,12 +29,14 @@ namespace osu.Framework.Graphics.Textures
         /// If you wish to use the same texture multiple times, call this method an equal number of times.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
+        /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
+        /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
         /// <returns>The texture.</returns>
-        public override Texture Get(string name)
+        public override Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             lock (referenceCountLock)
             {
-                var tex = base.Get(name);
+                var tex = base.Get(name, wrapModeS, wrapModeT);
 
                 if (tex?.TextureGL == null)
                     return null;

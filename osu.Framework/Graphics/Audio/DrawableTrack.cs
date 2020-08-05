@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Graphics.Audio
@@ -23,11 +24,25 @@ namespace osu.Framework.Graphics.Audio
             this.track = track;
         }
 
+        public event Action Completed
+        {
+            add => track.Completed += value;
+            remove => track.Completed -= value;
+        }
+
+        public event Action Failed
+        {
+            add => track.Failed += value;
+            remove => track.Failed -= value;
+        }
+
         public bool Looping
         {
             get => track.Looping;
             set => track.Looping = value;
         }
+
+        public bool IsDummyDevice => track.IsDummyDevice;
 
         public double RestartPoint
         {
@@ -43,7 +58,13 @@ namespace osu.Framework.Graphics.Audio
             set => track.Length = value;
         }
 
+        public int? Bitrate => track.Bitrate;
+
         public bool IsRunning => track.IsRunning;
+
+        public bool IsReversed => track.IsReversed;
+
+        public bool HasCompleted => track.HasCompleted;
 
         public void Reset() => track.Reset();
 
@@ -56,5 +77,7 @@ namespace osu.Framework.Graphics.Audio
         public void Start() => track.Start();
 
         public void Stop() => track.Stop();
+
+        public ChannelAmplitudes CurrentAmplitudes => track.CurrentAmplitudes;
     }
 }

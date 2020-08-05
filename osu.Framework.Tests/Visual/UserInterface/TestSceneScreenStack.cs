@@ -27,12 +27,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TestScreen baseScreen;
         private ScreenStack stack;
 
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Screen),
-            typeof(IScreen)
-        };
-
         [SetUp]
         public void SetupTest() => Schedule(() =>
         {
@@ -696,6 +690,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
             AddStep("Make current the same screen", () => screen1.MakeCurrent());
             AddAssert("Screen 1 is current", () => screen1.IsCurrentScreen());
+        }
+
+        [Test]
+        public void TestPushOnExiting()
+        {
+            TestScreen screen1 = null;
+
+            pushAndEnsureCurrent(() =>
+            {
+                screen1 = new TestScreen(id: 1);
+                screen1.Exiting = () =>
+                {
+                    screen1.Push(new TestScreen(id: 2));
+                    return true;
+                };
+                return screen1;
+            });
+
+            AddStep("Exit screen 1", () => screen1.Exit());
+            AddAssert("Screen 1 is not current", () => !screen1.IsCurrentScreen());
+            AddAssert("Stack is not empty", () => stack.CurrentScreen != null);
         }
 
         [Test]

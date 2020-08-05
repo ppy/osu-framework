@@ -1,18 +1,18 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Platform;
 using TKVector2 = osuTK.Vector2;
 using SNVector2 = System.Numerics.Vector2;
 using SDPoint = System.Drawing.Point;
-using VPoint = Veldrid.Point;
 using SDSize = System.Drawing.Size;
-using VWindowState = Veldrid.WindowState;
 using TKWindowState = osuTK.WindowState;
 
 namespace osu.Framework.Extensions
 {
     /// <summary>
-    /// Temporary extension functions for bridging between osuTK, Veldrid, and System.Numerics
+    /// Temporary extension functions for bridging between osuTK, System.Drawing, and System.Numerics
+    /// Can be removed when the SDL2 migration is complete.
     /// </summary>
     public static class BridgingExtensions
     {
@@ -34,59 +34,45 @@ namespace osu.Framework.Extensions
         public static SDPoint ToSystemDrawingPoint(this SNVector2 vec) =>
             new SDPoint((int)vec.X, (int)vec.Y);
 
-        public static VPoint ToVeldridPoint(this SNVector2 vec) =>
-            new VPoint((int)vec.X, (int)vec.Y);
-
-        public static SNVector2 ToSystemNumerics(this VPoint point) =>
-            new SNVector2(point.X, point.Y);
-
-        public static TKWindowState ToOsuTK(this VWindowState state)
+        public static TKWindowState ToOsuTK(this WindowState state)
         {
             switch (state)
             {
-                case VWindowState.Normal:
+                case WindowState.Normal:
                     return TKWindowState.Normal;
 
-                case VWindowState.FullScreen:
+                case WindowState.Fullscreen:
+                case WindowState.FullscreenBorderless:
                     return TKWindowState.Fullscreen;
 
-                case VWindowState.Maximized:
+                case WindowState.Maximised:
                     return TKWindowState.Maximized;
 
-                case VWindowState.Minimized:
+                case WindowState.Minimised:
                     return TKWindowState.Minimized;
-
-                case VWindowState.BorderlessFullScreen:
-                    // WARNING: not supported by osuTK.WindowState
-                    return TKWindowState.Fullscreen;
-
-                case VWindowState.Hidden:
-                    // WARNING: not supported by osuTK.WindowState
-                    return TKWindowState.Normal;
             }
 
             return TKWindowState.Normal;
         }
 
-        public static VWindowState ToVeldrid(this TKWindowState state)
+        public static WindowState ToFramework(this TKWindowState state)
         {
             switch (state)
             {
                 case TKWindowState.Normal:
-                    return VWindowState.Normal;
+                    return WindowState.Normal;
 
                 case TKWindowState.Minimized:
-                    return VWindowState.Minimized;
+                    return WindowState.Minimised;
 
                 case TKWindowState.Maximized:
-                    return VWindowState.Maximized;
+                    return WindowState.Maximised;
 
                 case TKWindowState.Fullscreen:
-                    return VWindowState.FullScreen;
+                    return WindowState.Fullscreen;
             }
 
-            // WARNING: some cases not supported by osuTK.WindowState
-            return VWindowState.Normal;
+            return WindowState.Normal;
         }
     }
 }
