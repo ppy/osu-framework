@@ -2,14 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Audio
 {
     /// <summary>
     /// A <see cref="Track"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableTrack : DrawableAudioWrapper, ITrack
+    public class DrawableTrack : DrawableAudioWrapper, ITrack, IAdjustableClock
     {
         private readonly Track track;
 
@@ -52,6 +54,12 @@ namespace osu.Framework.Graphics.Audio
 
         public double CurrentTime => track.CurrentTime;
 
+        public double Rate
+        {
+            get => track.Rate;
+            set => track.Rate = value;
+        }
+
         public double Length
         {
             get => track.Length;
@@ -66,11 +74,23 @@ namespace osu.Framework.Graphics.Audio
 
         public bool HasCompleted => track.HasCompleted;
 
-        public void Reset() => track.Reset();
+        public void Reset()
+        {
+            Volume.Value = 1;
+
+            ResetSpeedAdjustments();
+
+            Stop();
+            Seek(0);
+        }
 
         public void Restart() => track.Restart();
 
-        public void ResetSpeedAdjustments() => track.ResetSpeedAdjustments();
+        public void ResetSpeedAdjustments()
+        {
+            RemoveAllAdjustments(AdjustableProperty.Frequency);
+            RemoveAllAdjustments(AdjustableProperty.Tempo);
+        }
 
         public bool Seek(double seek) => track.Seek(seek);
 
