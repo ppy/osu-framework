@@ -91,11 +91,11 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                // Remove looping flag from previous channel to prevent endless playback
-                setLoopFlag(false);
+                // Free previous channels as we're creating a new channel for every playback, since old channels
+                // may be overriden when too many other channels are created from the same sample.
+                if (Bass.ChannelIsActive(channel) != PlaybackState.Stopped)
+                    Bass.ChannelStop(channel);
 
-                // We are creating a new channel for every playback, since old channels may
-                // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
 
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
