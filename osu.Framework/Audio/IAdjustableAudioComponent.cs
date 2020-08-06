@@ -75,17 +75,17 @@ namespace osu.Framework.Audio
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Frequency"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FrequencyTo<T>(this T wrapper, double newFrequency, double duration = 0, Easing easing = Easing.None)
+        public static TransformSequence<T> FrequencyTo<T>(this T component, double newFrequency, double duration = 0, Easing easing = Easing.None)
             where T : class, IAdjustableAudioComponent, IDrawable
-            => wrapper.FrequencyTo(newFrequency, duration, new DefaultEasingFunction(easing));
+            => component.FrequencyTo(newFrequency, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Tempo"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TempoTo<T>(this T wrapper, double newTempo, double duration = 0, Easing easing = Easing.None)
+        public static TransformSequence<T> TempoTo<T>(this T component, double newTempo, double duration = 0, Easing easing = Easing.None)
             where T : class, IAdjustableAudioComponent, IDrawable
-            => wrapper.TempoTo(newTempo, duration, new DefaultEasingFunction(easing));
+            => component.TempoTo(newTempo, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Volume"/> over time.
@@ -127,37 +127,37 @@ namespace osu.Framework.Audio
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Volume"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> VolumeTo<T, TEasing>(this T wrapper, double newVolume, double duration, TEasing easing)
+        public static TransformSequence<T> VolumeTo<T, TEasing>(this T component, double newVolume, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => wrapper.TransformBindableTo(wrapper.Volume, newVolume, duration, easing);
+            => component.TransformBindableTo(component.Volume, newVolume, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Balance"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> BalanceTo<T, TEasing>(this T wrapper, double newBalance, double duration, TEasing easing)
+        public static TransformSequence<T> BalanceTo<T, TEasing>(this T component, double newBalance, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => wrapper.TransformBindableTo(wrapper.Balance, newBalance, duration, easing);
+            => component.TransformBindableTo(component.Balance, newBalance, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Frequency"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> FrequencyTo<T, TEasing>(this T wrapper, double newFrequency, double duration, TEasing easing)
+        public static TransformSequence<T> FrequencyTo<T, TEasing>(this T component, double newFrequency, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => wrapper.TransformBindableTo(wrapper.Frequency, newFrequency, duration, easing);
+            => component.TransformBindableTo(component.Frequency, newFrequency, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Tempo"/> over time.
         /// </summary>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<T> TempoTo<T, TEasing>(this T wrapper, double newTempo, double duration, TEasing easing)
+        public static TransformSequence<T> TempoTo<T, TEasing>(this T component, double newTempo, double duration, TEasing easing)
             where T : class, IAdjustableAudioComponent, IDrawable
             where TEasing : IEasingFunction
-            => wrapper.TransformBindableTo(wrapper.Tempo, newTempo, duration, easing);
+            => component.TransformBindableTo(component.Tempo, newTempo, duration, easing);
 
         /// <summary>
         /// Smoothly adjusts <see cref="IAdjustableAudioComponent.Volume"/> over time.
