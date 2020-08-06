@@ -131,6 +131,7 @@ namespace osu.Framework.Audio.Sample
 
                 // ChannelStop frees the channel.
                 channel = 0;
+                pausedDueToZeroFrequency = false;
             });
         }
 
