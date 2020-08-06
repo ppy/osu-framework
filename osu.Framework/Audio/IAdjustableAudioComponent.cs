@@ -40,5 +40,11 @@ namespace osu.Framework.Audio
         /// <param name="type">The target type for this adjustment.</param>
         /// <param name="adjustBindable">The bindable adjustment.</param>
         void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable);
+
+        /// <summary>
+        /// Removes all adjustments of a type.
+        /// </summary>
+        /// <param name="type">The target type to remove all adjustments of.</param>
+        void RemoveAllAdjustments(AdjustableProperty type);
     }
 }
