@@ -143,7 +143,7 @@ namespace osu.Framework.Input.Bindings
         /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
-        public string ReadableString() => string.Join(' ', Keys.Select(getReadableKey));
+        public string ReadableString() => string.Join('-', Keys.Select(getReadableKey));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
@@ -250,10 +250,10 @@ namespace osu.Framework.Input.Bindings
                     return "~";
 
                 case InputKey.Minus:
-                    return "-";
+                    return "Minus";
 
                 case InputKey.Plus:
-                    return "+";
+                    return "Plus";
 
                 case InputKey.BracketLeft:
                     return "(";
