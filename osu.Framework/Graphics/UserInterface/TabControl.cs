@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool SwitchTabOnRemove { get; set; } = true;
 
         /// <summary>
-        /// When true, it allows multiple tabs to be selected at the same moment.
+        /// When true, multiple tabs can be selected at the same time.
         /// </summary>
         public bool CanSelectMultipleTabs = false;
 
