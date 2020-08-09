@@ -112,6 +112,11 @@ namespace osu.Framework.Graphics.UserInterface
         public bool SwitchTabOnRemove { get; set; } = true;
 
         /// <summary>
+        /// When true, it allows multiple tabs to be selected at the same moment.
+        /// </summary>
+        public bool CanSelectMultipleTabs = false;
+
+        /// <summary>
         /// Creates an optional overflow dropdown.
         /// When implementing this dropdown make sure:
         /// <list type="bullet">
@@ -345,11 +350,19 @@ namespace osu.Framework.Graphics.UserInterface
             if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
 
-            // Deactivate previously selected tab
-            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
+            // Deactivate previously selected tab if multi tab selection is disabled
+            if (SelectedTab != null && SelectedTab != tab && CanSelectMultipleTabs == false)
+                SelectedTab.Active.Value = false;
 
+            // Deactivating previously selected tab and not selecting the new tab if the clicked tab if the same as the last one, and CanSelectMultipleTabs is true
+            if (SelectedTab != null && SelectedTab == tab && CanSelectMultipleTabs)
+            {
+                SelectedTab.Active.Value = false;
+                return;
+            }
+
+            // Selecting new tab
             SelectedTab = tab;
-
             if (SelectedTab != null)
                 SelectedTab.Active.Value = true;
         }

@@ -349,6 +349,77 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
         }
 
+        /// <summary>
+        /// Testing to see if <see cref="TabControl{T}.CanSelectMultipleTabs"/> field is working when selecting two tabs
+        /// </summary>
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestClickTwoTabs(bool canSelectMultipleTabs)
+        {
+            StyledTabControl tabControl = null;
+
+            AddStep("tab control setup", () =>
+            {
+                tabControl = createTestTabControl();
+                tabControl.CanSelectMultipleTabs = canSelectMultipleTabs;
+            });
+
+            AddStep("select first and then second tab", () =>
+            {
+                tabControl.TabMap[TestEnum.Test0].Click();
+                tabControl.TabMap[TestEnum.Test1].Click();
+            });
+
+            AddAssert("check if every tab's active value is correct", () =>
+            {
+                var shouldBeActiveTabs = new List<TabItem<TestEnum?>>() { tabControl.TabMap[TestEnum.Test1] };
+                if (canSelectMultipleTabs)
+                {
+                    shouldBeActiveTabs.Add(tabControl.TabMap[TestEnum.Test0]);
+                }
+                var shouldntBeActiveTabs = tabControl.TabMap.Values.Except(shouldBeActiveTabs).ToList();
+                return shouldBeActiveTabs.All(t => t.Active.Value == true) && shouldntBeActiveTabs.All(t => t.Active.Value == false);
+            });
+        }
+
+        /// <summary>
+        /// Testing to see how the tab reacts when it is selected twice (behavior should change based on the value of <see cref="TabControl{T}.CanSelectMultipleTabs"/> field
+        /// </summary>
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestSelectTabTwice(bool canSelectMultipleTabs)
+        {
+            StyledTabControl tabControl = null;
+
+            AddStep("tab control setup", () =>
+            {
+                tabControl = createTestTabControl();
+                tabControl.CanSelectMultipleTabs = canSelectMultipleTabs;
+            });
+
+            AddRepeatStep("select first tab twice", () =>
+            {
+                tabControl.TabMap[TestEnum.Test0].Click();
+            }, 2);
+
+            AddAssert("check if every tab's active value is correct", () =>
+            {
+                var clickedTab = tabControl.TabMap[TestEnum.Test0];
+                var otherTabs = tabControl.TabMap.Values.Where(t => t.Value != TestEnum.Test0);
+                return clickedTab.Active.Value != canSelectMultipleTabs && otherTabs.All(t => t.Active.Value == false);
+            });
+        }
+
+        private StyledTabControl createTestTabControl()
+        {
+            var control = new StyledTabControl();
+            foreach (var item in items)
+            {
+                control.AddItem(item);
+            }
+            return control;
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
