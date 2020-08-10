@@ -6,7 +6,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicTabControl<T> : TabControl<T>
+    public class BasicTabControl<T> : BaseTabControl<T>
     {
         protected override Dropdown<T> CreateDropdown()
             => new BasicTabControlDropdown();
