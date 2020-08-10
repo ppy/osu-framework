@@ -362,7 +362,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 singleSelectTabControl = new SimpleSingleSelectTabControl();
                 multiSelectTabControl = new SimpleMultiSelectTabControl();
-                foreach(var item in items)
+                foreach (var item in items)
                 {
                     singleSelectTabControl.AddItem(item);
                     multiSelectTabControl.AddItem(item);
@@ -409,7 +409,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 singleSelectTabControl = new SimpleSingleSelectTabControl();
                 multiSelectTabControl = new SimpleMultiSelectTabControl();
-                foreach(var item in items)
+                foreach (var item in items)
                 {
                     singleSelectTabControl.AddItem(item);
                     multiSelectTabControl.AddItem(item);
