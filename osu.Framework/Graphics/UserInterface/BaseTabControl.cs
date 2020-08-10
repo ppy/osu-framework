@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The last-selected <see cref="TabItem{T}"/>.
         /// </summary>
-        protected internal TabItem<T> LastSelectedTab;
+        protected TabItem<T> LastSelectedTab;
 
         /// <summary>
         /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// When true, multiple tabs can be selected at the same time.
         /// </summary>
-        protected internal bool CanSelectMultipleTabs = false;
+        protected bool CanSelectMultipleTabs = false;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// There is no guaranteed order. To retrieve ordered tabs, use <see cref="SwitchableTabs"/> or <see cref="AllTabs"/> instead.
         /// </remarks>
-        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
+        protected internal IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
         private readonly Dictionary<T, TabItem<T>> tabMap = new Dictionary<T, TabItem<T>>();
 

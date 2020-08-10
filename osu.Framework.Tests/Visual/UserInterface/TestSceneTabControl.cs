@@ -350,77 +350,95 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         /// <summary>
-        /// Testing to see if <see cref="TabControl{T}.CanSelectMultipleTabs"/> field is working when selecting two tabs
+        /// Testing to see if <see cref="SingleSelectTabControl{T}"/> and <see cref="MultiSelectTabControl{T}"/> respond correctly when selecting two tabs
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void TestClickTwoTabs(bool canSelectMultipleTabs)
+        [Test]
+        public void TestClickTwoTabs()
         {
-            StyledTabControl tabControl = null;
+            SimpleSingleSelectTabControl singleSelectTabControl = null;
+            SimpleMultiSelectTabControl multiSelectTabControl = null;
 
             AddStep("tab control setup", () =>
             {
-                tabControl = createTestTabControl();
-                tabControl.CanSelectMultipleTabs = canSelectMultipleTabs;
+                singleSelectTabControl = new SimpleSingleSelectTabControl();
+                multiSelectTabControl = new SimpleMultiSelectTabControl();
+                foreach(var item in items)
+                {
+                    singleSelectTabControl.AddItem(item);
+                    multiSelectTabControl.AddItem(item);
+                }
             });
 
             AddStep("select first and then second tab", () =>
             {
-                tabControl.TabMap[TestEnum.Test0].Click();
-                tabControl.TabMap[TestEnum.Test1].Click();
+                singleSelectTabControl.TabMap[TestEnum.Test0].Click();
+                singleSelectTabControl.TabMap[TestEnum.Test1].Click();
+                multiSelectTabControl.TabMap[TestEnum.Test0].Click();
+                multiSelectTabControl.TabMap[TestEnum.Test1].Click();
             });
 
             AddAssert("check if every tab's active value is correct", () =>
             {
-                var shouldBeActiveTabs = new List<TabItem<TestEnum?>>() { tabControl.TabMap[TestEnum.Test1] };
-                if (canSelectMultipleTabs)
-                {
-                    shouldBeActiveTabs.Add(tabControl.TabMap[TestEnum.Test0]);
-                }
-                var shouldntBeActiveTabs = tabControl.TabMap.Values.Except(shouldBeActiveTabs).ToList();
-                return shouldBeActiveTabs.All(t => t.Active.Value == true) && shouldntBeActiveTabs.All(t => t.Active.Value == false);
+                return
+                singleSelectTabControl.TabMap[TestEnum.Test1].Active.Value == true &&
+                singleSelectTabControl.TabMap.Values.Where(v => v.Value != TestEnum.Test1).All(v => v.Active.Value == false) &&
+                multiSelectTabControl.TabMap[TestEnum.Test0].Active.Value == true &&
+                multiSelectTabControl.TabMap[TestEnum.Test1].Active.Value == true &&
+                multiSelectTabControl.TabMap.Values.Where(v => v.Value != TestEnum.Test0 && v.Value != TestEnum.Test1).All(v => v.Active.Value == false);
+            });
+
+            AddAssert("check if SelectedTab/SelectedTabs values are correct", () =>
+            {
+                return
+                singleSelectTabControl.SelectedTab.Value == TestEnum.Test1 &&
+                multiSelectTabControl.SelectedTabs.Count() == 2 &&
+                multiSelectTabControl.SelectedTabs.Where(t => t.Value != TestEnum.Test0 && t.Value != TestEnum.Test1).Any() == false;
             });
         }
 
         /// <summary>
-        /// Testing to see how the tab reacts when it is selected twice (behavior should change based on the value of <see cref="TabControl{T}.CanSelectMultipleTabs"/> field
+        /// Testing to see how <see cref="SingleSelectTabControl{T}"/> and <see cref="MultiSelectTabControl{T}"/> controls react when the same tab is selected twice
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void TestSelectTabTwice(bool canSelectMultipleTabs)
+        [Test]
+        public void TestSelectTabTwice()
         {
-            StyledTabControl tabControl = null;
+            SimpleSingleSelectTabControl singleSelectTabControl = null;
+            SimpleMultiSelectTabControl multiSelectTabControl = null;
 
             AddStep("tab control setup", () =>
             {
-                tabControl = createTestTabControl();
-                tabControl.CanSelectMultipleTabs = canSelectMultipleTabs;
+                singleSelectTabControl = new SimpleSingleSelectTabControl();
+                multiSelectTabControl = new SimpleMultiSelectTabControl();
+                foreach(var item in items)
+                {
+                    singleSelectTabControl.AddItem(item);
+                    multiSelectTabControl.AddItem(item);
+                }
             });
 
             AddRepeatStep("select first tab twice", () =>
             {
-                tabControl.TabMap[TestEnum.Test0].Click();
+                singleSelectTabControl.TabMap[TestEnum.Test0].Click();
+                multiSelectTabControl.TabMap[TestEnum.Test0].Click();
             }, 2);
 
             AddAssert("check if every tab's active value is correct", () =>
             {
-                var clickedTab = tabControl.TabMap[TestEnum.Test0];
-                var otherTabs = tabControl.TabMap.Values.Where(t => t.Value != TestEnum.Test0);
-                return clickedTab.Active.Value != canSelectMultipleTabs && otherTabs.All(t => t.Active.Value == false);
+                return
+                singleSelectTabControl.TabMap[TestEnum.Test0].Active.Value == true &&
+                singleSelectTabControl.TabMap.Values.Where(v => v.Value != TestEnum.Test0).All(v => v.Active.Value == false) &&
+                multiSelectTabControl.TabMap.Values.All(v => v.Active.Value == false);
+            });
+
+            AddAssert("check if SelectedTab/SelectedTabs values are correct", () =>
+            {
+                return
+                singleSelectTabControl.SelectedTab.Value == TestEnum.Test0 &&
+                multiSelectTabControl.SelectedTabs.Any() == false;
             });
         }
 
-        private StyledTabControl createTestTabControl()
-        {
-            var control = new StyledTabControl();
-            foreach (var item in items)
-            {
-                control.AddItem(item);
-            }
-            return control;
-        }
-
-        private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
+        private class StyledTabControlWithoutDropdown : BaseTabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
 
@@ -428,7 +446,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 => new BasicTabControl<TestEnum>.BasicTabItem(value);
         }
 
-        private class StyledMultilineTabControl : TabControl<TestEnum>
+        private class StyledMultilineTabControl : BaseTabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
 
@@ -438,7 +456,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             protected override TabFillFlowContainer CreateTabFlow() => base.CreateTabFlow().With(f => { f.AllowMultiline = true; });
         }
 
-        public class StyledTabControl : TabControl<TestEnum?>
+        public class StyledTabControl : SingleSelectTabControl<TestEnum?>
         {
             public new IReadOnlyDictionary<TestEnum?, TabItem<TestEnum?>> TabMap => base.TabMap;
 
@@ -516,6 +534,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private class TabControlWithNoDropdown : BasicTabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
+        }
+
+        private class SimpleSingleSelectTabControl : SingleSelectTabControl<TestEnum?>
+        {
+            protected override Dropdown<TestEnum?> CreateDropdown() => null;
+
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value) => new StyledTabControl.TestTabItem(value);
+        }
+
+        private class SimpleMultiSelectTabControl : MultiSelectTabControl<TestEnum?>
+        {
+            protected override Dropdown<TestEnum?> CreateDropdown() => null;
+
+            protected override TabItem<TestEnum?> CreateTabItem(TestEnum? value) => new StyledTabControl.TestTabItem(value);
         }
 
         public enum TestEnum
