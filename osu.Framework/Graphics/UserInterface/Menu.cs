@@ -480,7 +480,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (e.Key == Key.Escape && !TopLevelMenu)
+            if (state == MenuState.Open && e.Key == Key.Escape && !TopLevelMenu)
             {
                 Close();
                 return true;
