@@ -54,7 +54,7 @@ namespace osu.Framework.Platform
         /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="PassthroughGraphicsBackend"/>.
         /// </summary>
         public DesktopWindow()
-            : base(new Sdl2WindowBackend(), new PassthroughGraphicsBackend())
+            : base(new Sdl2WindowBackend(), new Sdl2GraphicsBackend())
         {
         }
 

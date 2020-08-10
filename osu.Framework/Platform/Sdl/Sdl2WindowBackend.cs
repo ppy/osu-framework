@@ -20,7 +20,7 @@ namespace osu.Framework.Platform.Sdl
     /// <summary>
     /// Implementation of <see cref="IWindowBackend"/> that uses libSDL2.
     /// </summary>
-    public class Sdl2WindowBackend : IWindowBackend
+    public class Sdl2WindowBackend : WindowBackend
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -39,11 +39,11 @@ namespace osu.Framework.Platform.Sdl
 
         #region IWindowBackend.Properties
 
-        public bool Exists { get; private set; }
+        public override bool Exists { get; protected set; }
 
         private string title = "";
 
-        public string Title
+        public override string Title
         {
             get => SdlWindowHandle == IntPtr.Zero ? title : SDL.SDL_GetWindowTitle(SdlWindowHandle);
             set
@@ -56,7 +56,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool visible;
 
-        public bool Visible
+        public override bool Visible
         {
             get => SdlWindowHandle == IntPtr.Zero ? visible : windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
             set
@@ -74,7 +74,7 @@ namespace osu.Framework.Platform.Sdl
 
         private Point position = Point.Empty;
 
-        public Point Position
+        public override Point Position
         {
             get => SdlWindowHandle == IntPtr.Zero ? position : windowPosition;
             set
@@ -87,7 +87,7 @@ namespace osu.Framework.Platform.Sdl
 
         private Size size = new Size(default_width, default_height);
 
-        public Size Size
+        public override Size Size
         {
             get => SdlWindowHandle == IntPtr.Zero ? size : windowSize;
             set
@@ -100,7 +100,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool cursorVisible = true;
 
-        public bool CursorVisible
+        public override bool CursorVisible
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorVisible : SDL.SDL_ShowCursor(SDL.SDL_QUERY) == SDL.SDL_ENABLE;
             set
@@ -112,7 +112,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool cursorConfined;
 
-        public bool CursorConfined
+        public override bool CursorConfined
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : SDL.SDL_GetWindowGrab(SdlWindowHandle) == SDL.SDL_bool.SDL_TRUE;
             set
@@ -125,7 +125,7 @@ namespace osu.Framework.Platform.Sdl
         private WindowState initialWindowState = WindowState.Normal;
         private WindowState lastWindowState;
 
-        public WindowState WindowState
+        public override WindowState WindowState
         {
             get => SdlWindowHandle == IntPtr.Zero ? initialWindowState : windowFlags.ToWindowState();
             set
@@ -163,7 +163,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public Size ClientSize
+        public override Size ClientSize
         {
             get
             {
@@ -177,7 +177,7 @@ namespace osu.Framework.Platform.Sdl
 
         private readonly Cached<float> scale = new Cached<float>();
 
-        public float Scale => validateScale();
+        public override float Scale => validateScale();
 
         private float validateScale(bool force = false)
         {
@@ -214,14 +214,12 @@ namespace osu.Framework.Platform.Sdl
             return value;
         }
 
-        public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
-
-        public Display PrimaryDisplay => Displays.First();
+        public override IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
 
         private Display currentDisplay;
         private int lastDisplayIndex = -1;
 
-        public Display CurrentDisplay
+        public override Display CurrentDisplay
         {
             get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? 0 : windowDisplayIndex);
             set
@@ -239,7 +237,7 @@ namespace osu.Framework.Platform.Sdl
 
         private DisplayMode currentDisplayMode;
 
-        public DisplayMode CurrentDisplayMode
+        public override DisplayMode CurrentDisplayMode
         {
             get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode, windowDisplayIndex, 0);
             set
@@ -337,66 +335,14 @@ namespace osu.Framework.Platform.Sdl
 
         #endregion
 
-        #region IWindowBackend.Events
-
-        public event Action Update;
-        public event Action<Size> Resized;
-        public event Action<WindowState> WindowStateChanged;
-        public event Func<bool> CloseRequested;
-        public event Action Closed;
-        public event Action FocusLost;
-        public event Action FocusGained;
-        public event Action Shown;
-        public event Action Hidden;
-        public event Action MouseEntered;
-        public event Action MouseLeft;
-        public event Action<Point> Moved;
-        public event Action<MouseScrollRelativeInput> MouseWheel;
-        public event Action<MousePositionAbsoluteInput> MouseMove;
-        public event Action<MouseButtonInput> MouseDown;
-        public event Action<MouseButtonInput> MouseUp;
-        public event Action<KeyboardKeyInput> KeyDown;
-        public event Action<KeyboardKeyInput> KeyUp;
-        public event Action<char> KeyTyped;
-        public event Action<string> DragDrop;
-        public event Action<Display> DisplayChanged;
-
-        #endregion
-
         public Sdl2WindowBackend()
         {
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
         }
 
-        #region Event Invocation
-
-        protected virtual void OnUpdate() => Update?.Invoke();
-        protected virtual void OnResized(Size size) => Resized?.Invoke(size);
-        protected virtual void OnWindowStateChanged(WindowState windowState) => WindowStateChanged?.Invoke(windowState);
-        protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
-        protected virtual void OnClosed() => Closed?.Invoke();
-        protected virtual void OnFocusLost() => FocusLost?.Invoke();
-        protected virtual void OnFocusGained() => FocusGained?.Invoke();
-        protected virtual void OnShown() => Shown?.Invoke();
-        protected virtual void OnHidden() => Hidden?.Invoke();
-        protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
-        protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
-        protected virtual void OnMouseMove(MousePositionAbsoluteInput args) => MouseMove?.Invoke(args);
-        protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
-        protected virtual void OnMouseUp(MouseButtonInput evt) => MouseUp?.Invoke(evt);
-        protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
-        protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
-        protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
-        protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
-
-        #endregion
-
         #region IWindowBackend.Methods
 
-        public void Create()
+        public override void Create()
         {
             SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
@@ -408,7 +354,7 @@ namespace osu.Framework.Platform.Sdl
             Exists = true;
         }
 
-        public void Run()
+        public override void Run()
         {
             while (Exists)
             {
@@ -432,7 +378,7 @@ namespace osu.Framework.Platform.Sdl
             SDL.SDL_Quit();
         }
 
-        public void Close() => commandScheduler.Add(() => Exists = false);
+        public override void Close() => commandScheduler.Add(() => Exists = false);
 
         private void pollMouse()
         {
