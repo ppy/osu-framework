@@ -241,7 +241,7 @@ namespace osu.Framework.Platform.Sdl
 
         public DisplayMode CurrentDisplayMode
         {
-            get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode);
+            get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode, windowDisplayIndex, 0);
             set
             {
                 currentDisplayMode = value;
@@ -321,7 +321,7 @@ namespace osu.Framework.Platform.Sdl
                                          .Select(modeIndex =>
                                          {
                                              SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return displayModeFromSDL(mode);
+                                             return displayModeFromSDL(mode, displayIndex, modeIndex);
                                          })
                                          .ToArray();
 
@@ -329,10 +329,10 @@ namespace osu.Framework.Platform.Sdl
             return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
         }
 
-        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode)
+        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
         {
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
         #endregion
