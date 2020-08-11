@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
     /// <summary>
     /// An audio track.
     /// </summary>
-    public interface ITrack : IHasAmplitudes, IAdjustableAudioComponent
+    public interface ITrack : IAdjustableClock, IHasAmplitudes, IAdjustableAudioComponent
     {
         /// <summary>
         /// Invoked when this track has completed.
@@ -36,11 +37,6 @@ namespace osu.Framework.Audio.Track
         double RestartPoint { get; set; }
 
         /// <summary>
-        /// Current position in milliseconds.
-        /// </summary>
-        double CurrentTime { get; }
-
-        /// <summary>
         /// Length of the track in milliseconds.
         /// </summary>
         double Length { get; set; }
@@ -49,11 +45,6 @@ namespace osu.Framework.Audio.Track
         /// The bitrate of this track.
         /// </summary>
         int? Bitrate { get; }
-
-        /// <summary>
-        /// Whether this track is currently running.
-        /// </summary>
-        bool IsRunning { get; }
 
         /// <summary>
         /// Whether this track is reversed.
@@ -66,35 +57,8 @@ namespace osu.Framework.Audio.Track
         public bool HasCompleted { get; }
 
         /// <summary>
-        /// Reset this track to a logical default state.
-        /// </summary>
-        void Reset();
-
-        /// <summary>
         /// Restarts this track from the <see cref="Track.RestartPoint"/> while retaining adjustments.
         /// </summary>
         void Restart();
-
-        /// <summary>
-        /// Removes all speed adjustments added to this track.
-        /// </summary>
-        void ResetSpeedAdjustments();
-
-        /// <summary>
-        /// Seek to a new position.
-        /// </summary>
-        /// <param name="seek">New position in milliseconds</param>
-        /// <returns>Whether the seek was successful.</returns>
-        bool Seek(double seek);
-
-        /// <summary>
-        /// Start playback.
-        /// </summary>
-        void Start();
-
-        /// <summary>
-        /// Stop playback.
-        /// </summary>
-        void Stop();
     }
 }
