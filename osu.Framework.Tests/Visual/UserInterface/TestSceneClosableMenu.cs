@@ -63,6 +63,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("find menu", () => menu = (AnimatedMenu)Menus.GetSubMenu(0));
             AddStep("press escape", () => InputManager.Key(Key.Escape));
             AddAssert("press handled", () => menu.PressBlocked);
+            AddStep("reset flag", () => menu.PressBlocked = false);
             AddStep("press escape again", () => InputManager.Key(Key.Escape));
             AddAssert("press not handled", () => !menu.PressBlocked);
         }
@@ -83,7 +84,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override void AnimateOpen() => this.FadeIn(500);
 
-            protected override void AnimateClose() => this.FadeOut(500);
+            protected override void AnimateClose() => this.FadeOut(5000); // Ensure escape is pressed while menu is still fading
 
             protected override Menu CreateSubMenu() => new AnimatedMenu(Direction);
         }

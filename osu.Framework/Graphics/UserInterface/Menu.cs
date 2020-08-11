@@ -238,6 +238,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuState.Closed:
                     AnimateClose();
+
+                    if (GetContainingInputManager()?.FocusedDrawable == this)
+                        GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
@@ -478,9 +481,13 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override bool ShouldBeConsideredForInput(Drawable child) => base.ShouldBeConsideredForInput(child) && State == MenuState.Open;
+
+        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State == MenuState.Open;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (state == MenuState.Open && e.Key == Key.Escape && !TopLevelMenu)
+            if (e.Key == Key.Escape && !TopLevelMenu)
             {
                 Close();
                 return true;
