@@ -239,7 +239,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case MenuState.Closed:
                     AnimateClose();
 
-                    if (GetContainingInputManager()?.FocusedDrawable == this)
+                    if (HasFocus)
                         GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
