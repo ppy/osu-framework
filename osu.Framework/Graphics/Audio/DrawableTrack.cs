@@ -4,14 +4,13 @@
 using System;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
-using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Audio
 {
     /// <summary>
     /// A <see cref="Track"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableTrack : DrawableAudioWrapper, ITrack, IAdjustableClock
+    public class DrawableTrack : DrawableAudioWrapper, ITrack
     {
         private readonly Track track;
 
@@ -99,5 +98,10 @@ namespace osu.Framework.Graphics.Audio
         public void Stop() => track.Stop();
 
         public ChannelAmplitudes CurrentAmplitudes => track.CurrentAmplitudes;
+
+        /// <summary>
+        /// Whether the underlying track is loaded.
+        /// </summary>
+        public bool TrackLoaded => track.IsLoaded;
     }
 }

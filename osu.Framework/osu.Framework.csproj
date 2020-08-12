@@ -29,7 +29,7 @@
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.137201" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
@@ -45,8 +45,8 @@
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2020.213.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.6.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.6.0">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.7.0">
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
     </PackageReference>
   </ItemGroup>
