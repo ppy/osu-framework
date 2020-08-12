@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(1, HEIGHT),
+                                            Texture = new Texture(1, HEIGHT, true),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -508,7 +508,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(WIDTH, HEIGHT);
                 Child = Sprite = new Sprite();
 
-                Sprite.Texture = new Texture(WIDTH, HEIGHT) { TextureGL = { BypassTextureUploadQueueing = true } };
+                Sprite.Texture = new Texture(WIDTH, HEIGHT, true) { TextureGL = { BypassTextureUploadQueueing = true } };
             }
         }
 
