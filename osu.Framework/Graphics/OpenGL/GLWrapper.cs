@@ -31,6 +31,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
 
+        /// <summary>
+        /// The interval (in frames) before checking whether VBOs should be freed.
+        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// </summary>
+        private const int vbo_free_check_interval = 300;
+
         public static ulong ResetId { get; private set; }
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
@@ -82,6 +88,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
+        private static readonly List<IVertexBuffer> vertex_buffer_list = new List<IVertexBuffer>();
+
         public static bool IsInitialized { get; private set; }
 
         private static WeakReference<GameHost> host;
@@ -131,6 +139,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
+            ResetId++;
+
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -180,17 +190,11 @@ namespace osu.Framework.Graphics.OpenGL
             PushDepthInfo(DepthInfo.Default);
             Clear(new ClearInfo(Color4.Black));
 
+            freeUnusedVertexBuffers();
+
             stat_texture_uploads_queued.Value = texture_upload_queue.Count;
             stat_texture_uploads_dequeued.Value = 0;
             stat_texture_uploads_performed.Value = 0;
-
-            vertex_buffers.RemoveAll(b => b.IsDisposed);
-
-            foreach (var buf in vertex_buffers)
-            {
-                if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > 300)
-                    buf.Free();
-            }
 
             // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
             int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
@@ -218,8 +222,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
-
-            ResetId++;
         }
 
         private static ClearInfo currentClearInfo;
@@ -360,9 +362,21 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static readonly List<IVertexBuffer> vertex_buffers = new List<IVertexBuffer>();
+        internal static void RegisterVertexBuffer(IVertexBuffer buffer) => vertex_buffer_list.Add(buffer);
 
-        internal static void RegisterVertexBuffer(IVertexBuffer buffer) => vertex_buffers.Add(buffer);
+        private static void freeUnusedVertexBuffers()
+        {
+            if (ResetId % vbo_free_check_interval != 0)
+                return;
+
+            vertex_buffer_list.RemoveAll(b => b.IsDisposed);
+
+            foreach (var buf in vertex_buffer_list)
+            {
+                if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                    buf.Free();
+            }
+        }
 
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
