@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class TabItem : ClickableContainer
     {
         /// <summary>
-        /// If false, this <see cref="TabItem{T}"/> cannot be removed from its <see cref="BaseTabControl{T}"/>.
+        /// If false, ths <see cref="TabItem{T}"/> cannot be removed from its <see cref="TabControl{T}"/>.
         /// </summary>
         public abstract bool IsRemovable { get; }
     }
