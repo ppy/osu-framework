@@ -481,9 +481,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected override bool ShouldBeConsideredForInput(Drawable child) => base.ShouldBeConsideredForInput(child) && State == MenuState.Open;
-
-        public override bool PropagateNonPositionalInputSubTree => base.PropagateNonPositionalInputSubTree && State == MenuState.Open;
+        public override bool HandleNonPositionalInput => State == MenuState.Open;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
