@@ -17,7 +17,6 @@ using osu.Framework.Statistics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
 using GameWindow = osu.Framework.Platform.GameWindow;
@@ -212,9 +211,11 @@ namespace osu.Framework.Graphics.OpenGL
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
 
-            lock (vertex_buffer_memories)
+            lock (vertex_buffers)
             {
-                foreach (var buf in vertex_buffer_memories)
+                vertex_buffers.RemoveAll(b => b.IsDisposed);
+
+                foreach (var buf in vertex_buffers)
                 {
                     if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > 300)
                         buf.Free();
@@ -362,17 +363,12 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static readonly List<IVertexBufferStorage> vertex_buffer_memories = new List<IVertexBufferStorage>();
+        private static readonly List<IVertexBuffer> vertex_buffers = new List<IVertexBuffer>();
 
-        internal static VertexBufferStorage<T> AllocateVertexBuffer<T>(int amountVertices)
-            where T : struct, IEquatable<T>, IVertex
+        internal static void RegisterVertexBuffer(IVertexBuffer buffer)
         {
-            var memory = new VertexBufferStorage<T>(amountVertices, SixLabors.ImageSharp.Configuration.Default.MemoryAllocator);
-
-            lock (vertex_buffer_memories)
-                vertex_buffer_memories.Add(memory);
-
-            return memory;
+            lock (vertex_buffers)
+                vertex_buffers.Add(buffer);
         }
 
         private static readonly int[] last_bound_texture = new int[16];

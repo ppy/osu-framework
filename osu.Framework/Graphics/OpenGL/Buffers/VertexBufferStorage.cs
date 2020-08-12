@@ -59,7 +59,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             memoryOwner.Dispose();
             memoryOwner = null;
             memory = Memory<T>.Empty;
-
             memoryLease.Dispose();
 
             LastUseResetId = 0;
