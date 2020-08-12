@@ -79,6 +79,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             int size = Size * STRIDE;
 
+            memoryLease = NativeMemoryTracker.AddMemory(this, Size * STRIDE);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)size, IntPtr.Zero, usage);
         }
 
@@ -170,7 +171,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (memoryOwner == null)
             {
                 memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(Size, AllocationOptions.Clean);
-                memoryLease = NativeMemoryTracker.AddMemory(this, Size * VertexUtils<T>.STRIDE);
                 memory = memoryOwner.Memory;
             }
 
@@ -187,15 +187,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 Unbind();
 
+                memoryLease?.Dispose();
+                memoryLease = null;
+
                 GL.DeleteBuffer(vboId);
                 vboId = -1;
             }
 
             memoryOwner?.Dispose();
-            memoryLease?.Dispose();
             memoryOwner = null;
-            memoryLease = null;
-
             memory = Memory<DepthWrappingVertex<T>>.Empty;
 
             LastUseResetId = 0;
