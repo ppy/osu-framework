@@ -98,5 +98,10 @@ namespace osu.Framework.Graphics.Audio
         public void Stop() => track.Stop();
 
         public ChannelAmplitudes CurrentAmplitudes => track.CurrentAmplitudes;
+
+        /// <summary>
+        /// Whether the underlying track is loaded.
+        /// </summary>
+        public bool TrackLoaded => track.IsLoaded;
     }
 }
