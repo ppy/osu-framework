@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         ulong LastUseResetId { get; }
 
-        bool IsDisposed { get; }
+        bool InUse { get; }
 
         void Free();
     }
@@ -33,7 +33,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         private int vboId = -1;
-        private bool isRegistered;
 
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
@@ -94,7 +93,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        public bool IsDisposed { get; private set; }
+        protected bool IsDisposed { get; private set; }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -164,16 +163,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             ThreadSafety.EnsureDrawThread();
 
-            if (!isRegistered)
-            {
-                GLWrapper.RegisterVertexBuffer(this);
-                isRegistered = true;
-            }
-
-            if (memoryOwner == null)
+            if (!InUse)
             {
                 memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(Size, AllocationOptions.Clean);
                 memory = memoryOwner.Memory;
+
+                GLWrapper.RegisterVertexBufferUse(this);
             }
 
             LastUseResetId = GLWrapper.ResetId;
@@ -182,6 +177,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         }
 
         public ulong LastUseResetId { get; private set; }
+
+        public bool InUse => LastUseResetId > 0;
 
         void IVertexBuffer.Free()
         {

@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
-        private static readonly List<IVertexBuffer> vertex_buffer_list = new List<IVertexBuffer>();
+        private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
 
         public static bool IsInitialized { get; private set; }
 
@@ -362,20 +362,20 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        internal static void RegisterVertexBuffer(IVertexBuffer buffer) => vertex_buffer_list.Add(buffer);
+        internal static void RegisterVertexBufferUse(IVertexBuffer buffer) => vertex_buffers_in_use.Add(buffer);
 
         private static void freeUnusedVertexBuffers()
         {
             if (ResetId % vbo_free_check_interval != 0)
                 return;
 
-            vertex_buffer_list.RemoveAll(b => b.IsDisposed);
-
-            foreach (var buf in vertex_buffer_list)
+            foreach (var buf in vertex_buffers_in_use)
             {
-                if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                if (buf.InUse && ResetId - buf.LastUseResetId > vbo_free_check_interval)
                     buf.Free();
             }
+
+            vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
         private static readonly int[] last_bound_texture = new int[16];
