@@ -162,6 +162,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private ref Memory<DepthWrappingVertex<T>> getMemory()
         {
+            ThreadSafety.EnsureDrawThread();
+
             if (!isRegistered)
             {
                 GLWrapper.RegisterVertexBuffer(this);

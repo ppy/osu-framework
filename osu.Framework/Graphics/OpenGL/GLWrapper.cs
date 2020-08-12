@@ -184,6 +184,14 @@ namespace osu.Framework.Graphics.OpenGL
             stat_texture_uploads_dequeued.Value = 0;
             stat_texture_uploads_performed.Value = 0;
 
+            vertex_buffers.RemoveAll(b => b.IsDisposed);
+
+            foreach (var buf in vertex_buffers)
+            {
+                if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > 300)
+                    buf.Free();
+            }
+
             // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
             int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
             int uploads = 0;
@@ -210,17 +218,6 @@ namespace osu.Framework.Graphics.OpenGL
 
             Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
             Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
-
-            lock (vertex_buffers)
-            {
-                vertex_buffers.RemoveAll(b => b.IsDisposed);
-
-                foreach (var buf in vertex_buffers)
-                {
-                    if (buf.LastUseResetId > 0 && ResetId - buf.LastUseResetId > 300)
-                        buf.Free();
-                }
-            }
 
             ResetId++;
         }
@@ -365,11 +362,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly List<IVertexBuffer> vertex_buffers = new List<IVertexBuffer>();
 
-        internal static void RegisterVertexBuffer(IVertexBuffer buffer)
-        {
-            lock (vertex_buffers)
-                vertex_buffers.Add(buffer);
-        }
+        internal static void RegisterVertexBuffer(IVertexBuffer buffer) => vertex_buffers.Add(buffer);
 
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
