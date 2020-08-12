@@ -37,7 +37,10 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         private const int vbo_free_check_interval = 300;
 
-        public static ulong ResetId { get; private set; }
+        /// <summary>
+        /// The amount of times <see cref="Reset"/> has been invoked.
+        /// </summary>
+        internal static ulong ResetId { get; private set; }
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
@@ -362,6 +365,10 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
+        /// <summary>
+        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
         internal static void RegisterVertexBufferUse(IVertexBuffer buffer) => vertex_buffers_in_use.Add(buffer);
 
         private static void freeUnusedVertexBuffers()

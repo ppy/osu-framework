@@ -12,15 +12,6 @@ using SixLabors.Memory;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    internal interface IVertexBuffer
-    {
-        ulong LastUseResetId { get; }
-
-        bool InUse { get; }
-
-        void Free();
-    }
-
     public abstract class VertexBuffer<T> : IVertexBuffer, IDisposable
         where T : struct, IEquatable<T>, IVertex
     {
@@ -28,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private readonly BufferUsageHint usage;
 
-        private Memory<DepthWrappingVertex<T>> memory;
+        private Memory<DepthWrappingVertex<T>> vertexMemory;
         private IMemoryOwner<DepthWrappingVertex<T>> memoryOwner;
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
@@ -166,14 +157,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (!InUse)
             {
                 memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<DepthWrappingVertex<T>>(Size, AllocationOptions.Clean);
-                memory = memoryOwner.Memory;
+                vertexMemory = memoryOwner.Memory;
 
                 GLWrapper.RegisterVertexBufferUse(this);
             }
 
             LastUseResetId = GLWrapper.ResetId;
 
-            return ref memory;
+            return ref vertexMemory;
         }
 
         public ulong LastUseResetId { get; private set; }
@@ -195,7 +186,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             memoryOwner?.Dispose();
             memoryOwner = null;
-            memory = Memory<DepthWrappingVertex<T>>.Empty;
+            vertexMemory = Memory<DepthWrappingVertex<T>>.Empty;
 
             LastUseResetId = 0;
         }
