@@ -111,6 +111,15 @@ namespace osu.Framework.Platform.Sdl
 
         private readonly Cached<float> scale = new Cached<float>();
 
+        public Size ClientSize
+        {
+            get
+            {
+                SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
+                return new Size(w, h);
+            }
+        }
+
         public float Scale => validateScale();
 
         private float validateScale(bool force = false)

@@ -36,6 +36,11 @@ namespace osu.Framework.Platform
         Size Size { get; set; }
 
         /// <summary>
+        /// Returns the drawable area, after scaling.
+        /// </summary>
+        Size ClientSize { get; }
+
+        /// <summary>
         /// Returns the scale of window's drawable area.
         /// In high-dpi environments this will be greater than one.
         /// </summary>
