@@ -79,14 +79,14 @@ namespace osu.Framework.Platform
         Display PrimaryDisplay { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
         Display CurrentDisplay { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; set; }
 
         #endregion
 
@@ -100,12 +100,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked after the window has resized.
         /// </summary>
-        event Action Resized;
+        event Action<Size> Resized;
 
         /// <summary>
         /// Invoked after the window's state has changed.
         /// </summary>
-        event Action WindowStateChanged;
+        event Action<WindowState> WindowStateChanged;
 
         /// <summary>
         /// Invoked when the user attempts to close the window.

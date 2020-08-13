@@ -228,6 +228,7 @@ namespace osu.Framework.Platform.Sdl
                 SDL.SDL_GetCurrentDisplayMode(currentDisplayIndex, out var mode);
                 return displayModeFromSDL(mode);
             }
+            set { }
         }
 
         private static Display displayFromSDL(int displayIndex)
@@ -268,8 +269,8 @@ namespace osu.Framework.Platform.Sdl
         #region IWindowBackend.Events
 
         public event Action Update;
-        public event Action Resized;
-        public event Action WindowStateChanged;
+        public event Action<Size> Resized;
+        public event Action<WindowState> WindowStateChanged;
         public event Func<bool> CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
@@ -299,8 +300,8 @@ namespace osu.Framework.Platform.Sdl
         #region Event Invocation
 
         protected virtual void OnUpdate() => Update?.Invoke();
-        protected virtual void OnResized() => Resized?.Invoke();
-        protected virtual void OnWindowStateChanged() => WindowStateChanged?.Invoke();
+        protected virtual void OnResized(Size size) => Resized?.Invoke(size);
+        protected virtual void OnWindowStateChanged(WindowState state) => WindowStateChanged?.Invoke(state);
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
@@ -604,17 +605,16 @@ namespace osu.Framework.Platform.Sdl
                     OnMoved(new Point(evtWindow.data1, evtWindow.data2));
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     checkCurrentDisplay();
                     validateScale(true);
-                    OnResized();
+                    OnResized(new Size(evtWindow.data1, evtWindow.data2));
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                    OnWindowStateChanged();
+                    OnWindowStateChanged(windowFlags.ToWindowState());
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
