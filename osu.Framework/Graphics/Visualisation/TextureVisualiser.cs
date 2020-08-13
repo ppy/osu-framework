@@ -238,6 +238,23 @@ namespace osu.Framework.Graphics.Visualisation
                     // background
                     DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
 
+                    float aspect = (float)texture.Width / texture.Height;
+
+                    if (aspect > 1)
+                    {
+                        float newHeight = shrunkenQuad.Height / aspect;
+
+                        shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
+                        shrunkenQuad.Height = newHeight;
+                    }
+                    else if (aspect < 1)
+                    {
+                        float newWidth = shrunkenQuad.Width / (1 / aspect);
+
+                        shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
+                        shrunkenQuad.Width = newWidth;
+                    }
+
                     // texture
                     texture.Bind();
                     DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
