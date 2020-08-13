@@ -1,15 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Drawing;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
+using osuTK;
 
 namespace osu.Framework.Platform
 {
     public class DesktopWindow : Window
     {
+        private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly BindableSize sizeWindowed = new BindableSize();
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
@@ -66,6 +71,17 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
             windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
+
+            sizeFullscreen.ValueChanged += evt =>
+            {
+                if (evt.NewValue.IsEmpty || CurrentDisplay.Value == null)
+                    return;
+
+                var mode = CurrentDisplay.Value.FindDisplayMode(evt.NewValue);
+                if (mode.Size != System.Drawing.Size.Empty)
+                    WindowBackend.CurrentDisplayMode = mode;
+            };
+
             sizeWindowed.ValueChanged += evt =>
             {
                 if (evt.NewValue.IsEmpty)
@@ -75,17 +91,29 @@ namespace osu.Framework.Platform
                 Size.Value = evt.NewValue;
             };
 
+            config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
 
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             RelativePosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
+
+            config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+            WindowMode.BindValueChanged(evt => UpdateWindowMode(evt.NewValue), true);
+
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
             ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
 
             Resized += onResized;
             Moved += onMoved;
+        }
+
+        protected override void UpdateWindowMode(WindowMode mode)
+        {
+            base.UpdateWindowMode(mode);
+
+            ConfineMouseMode.TriggerChange();
         }
 
         private void onResized()
