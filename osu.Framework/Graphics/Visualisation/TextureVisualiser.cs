@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Visualisation
                     if (!textureReference.TryGetTarget(out var texture))
                         return string.Empty;
 
-                    return $"type: {texture.GetType().Name}, size: {(float)(texture.Width * texture.Height * 4) / 1024 / 1024:N2}mb";
+                    return $"type: {texture.GetType().Name}, size: {(float)texture.GetByteSize() / 1024 / 1024:N2}mb";
                 }
             }
         }

@@ -42,6 +42,10 @@ namespace osu.Framework.Graphics.Video
 
         public override int TextureId => textureIds?[0] ?? 0;
 
+        private int textureSize;
+
+        public override int GetByteSize() => textureSize;
+
         internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
@@ -83,13 +87,21 @@ namespace osu.Framework.Graphics.Video
 
                     if (i == 0)
                     {
-                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
-                            videoUpload.Frame->width, videoUpload.Frame->height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                        int width = videoUpload.Frame->width;
+                        int height = videoUpload.Frame->height;
+
+                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+
+                        textureSize += width * height;
                     }
                     else
                     {
-                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8,
-                            (videoUpload.Frame->width + 1) / 2, (videoUpload.Frame->height + 1) / 2, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+                        int width = (videoUpload.Frame->width + 1) / 2;
+                        int height = (videoUpload.Frame->height + 1) / 2;
+
+                        GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+
+                        textureSize += width * height;
                     }
 
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);

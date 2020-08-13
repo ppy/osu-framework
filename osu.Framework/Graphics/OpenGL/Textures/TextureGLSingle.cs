@@ -183,6 +183,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
+        /// <summary>
+        /// Retrieves the size of this texture in bytes.
+        /// </summary>
+        public virtual int GetByteSize() => Width * Height * 4;
+
         private static void rotateVector(ref Vector2 toRotate, float sin, float cos)
         {
             float oldX = toRotate.X;
