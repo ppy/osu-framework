@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
@@ -164,7 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        private class UsageBackground : Box
+        private class UsageBackground : Box, IHasTooltip
         {
             private readonly WeakReference<TextureGLSingle> textureReference;
 
@@ -261,6 +262,17 @@ namespace osu.Framework.Graphics.Visualisation
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;
+            }
+
+            public string TooltipText
+            {
+                get
+                {
+                    if (!textureReference.TryGetTarget(out var texture))
+                        return string.Empty;
+
+                    return $"type: {texture.GetType().Name}, size: {(float)(texture.Width * texture.Height * 4) / 1024 / 1024:N2}mb";
+                }
             }
         }
     }
