@@ -13,6 +13,7 @@ namespace osu.Framework.Platform
         private readonly BindableSize sizeWindowed = new BindableSize();
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
+        private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
@@ -56,10 +57,22 @@ namespace osu.Framework.Platform
         {
             base.SetupWindow(config);
 
+            CurrentDisplay.ValueChanged += evt =>
+            {
+                windowDisplayIndex.Value = (DisplayIndex)evt.NewValue.Index;
+                windowPositionX.Value = 0.5;
+                windowPositionY.Value = 0.5;
+            };
+
+            config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
+            windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
             sizeWindowed.ValueChanged += evt =>
             {
-                if (!evt.NewValue.IsEmpty && WindowState.Value == Platform.WindowState.Normal)
-                    Size.Value = evt.NewValue;
+                if (evt.NewValue.IsEmpty)
+                    return;
+
+                WindowBackend.Size = evt.NewValue;
+                Size.Value = evt.NewValue;
             };
 
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
