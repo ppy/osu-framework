@@ -49,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
 
         /// <summary>
-        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// The total amount of times this <see cref="TextureGLSingle"/> was bound.
         /// </summary>
-        public ulong BindCount { get; private set; }
+        public ulong BindCount { get; protected set; }
 
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;

@@ -40,13 +40,25 @@ namespace osu.Framework.Graphics.Video
             base.SetData(upload, wrapModeS, wrapModeT, Opacity = Opacity.Opaque);
         }
 
+        public override int TextureId => textureIds?[0] ?? 0;
+
         internal override bool Bind(TextureUnit unit, WrapMode wrapModeS, WrapMode wrapModeT)
         {
             if (!Available)
                 throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
+            Upload();
+
+            if (textureIds == null)
+                return false;
+
+            bool anyBound = false;
+
             for (int i = 0; i < textureIds.Length; i++)
-                GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
+                anyBound |= GLWrapper.BindTexture(textureIds[i], unit + i, wrapModeS, wrapModeT);
+
+            if (anyBound)
+                BindCount++;
 
             return true;
         }
