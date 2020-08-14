@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics.Textures
         public string AssetName;
 
         /// <summary>
+        /// A lookup key used by <see cref="TextureStore"/>s.
+        /// </summary>
+        internal string LookupKey;
+
+        /// <summary>
         /// At what multiple of our expected resolution is our underlying texture?
         /// </summary>
         public float ScaleAdjust = 1;
