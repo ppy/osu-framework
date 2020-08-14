@@ -335,6 +335,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             }
         }
 
+        [Test]
+        public void TestMultipleTransformTargets()
+        {
+            boxTest(box =>
+            {
+                box.Delay(500).MoveTo(new Vector2(0, 0.25f), 500);
+                box.MoveToY(0.5f, 250);
+            });
+
+            checkAtTime(double.MinValue, box => box.Y == 0);
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.5f);
+            checkAtTime(750, box => box.Y == 0.375f);
+            checkAtTime(1000, box => box.Y == 0.25f);
+            checkAtTime(1500, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.375f);
+        }
+
         private Box box;
 
         private void checkAtTime(double time, Func<Box, bool> assert)
