@@ -1,11 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Lists;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -17,22 +14,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     internal class TextureGLAtlas : TextureGLSingle
     {
         /// <summary>
-        /// Contains all currently-active <see cref="TextureGLAtlas"/>es.
-        /// </summary>
-        private static readonly LockedWeakList<TextureGLAtlas> all_atlases = new LockedWeakList<TextureGLAtlas>();
-
-        /// <summary>
         /// The amount of padding around each texture in the atlas.
         /// </summary>
         private readonly int padding;
-
-        /// <summary>
-        /// Invoked when a new <see cref="TextureGLAtlas"/> is created.
-        /// </summary>
-        /// <remarks>
-        /// Invocation from the draw or update thread cannot be assumed.
-        /// </remarks>
-        public static event Action<TextureGLAtlas> TextureCreated;
 
         private readonly RectangleI atlasBounds;
 
@@ -44,22 +28,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             this.padding = padding;
 
             atlasBounds = new RectangleI(0, 0, Width, Height);
-
-            all_atlases.Add(this);
-
-            TextureCreated?.Invoke(this);
-        }
-
-        /// <summary>
-        /// Retrieves all currently-active <see cref="TextureGLAtlas"/>es.
-        /// </summary>
-        public static TextureGLAtlas[] GetAllAtlases() => all_atlases.ToArray();
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            all_atlases.Remove(this);
         }
 
         internal override void SetData(ITextureUpload upload, WrapMode wrapModeS, WrapMode wrapModeT, Opacity? uploadOpacity)
