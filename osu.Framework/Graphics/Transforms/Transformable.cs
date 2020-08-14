@@ -92,13 +92,16 @@ namespace osu.Framework.Graphics.Transforms
             return null;
         }
 
-        private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping)
+        private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
         {
             foreach (var t in targetGroupingTrackers)
             {
                 if (t.TargetGrouping == targetGrouping)
                     return t;
             }
+
+            if (!createIfNotExisting)
+                return null;
 
             var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
             targetGroupingTrackers.Add(tracker);
@@ -127,7 +130,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            getTrackerForGrouping(toRemove.TargetGrouping)?.RemoveTransform(toRemove);
+            getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
         }
@@ -291,7 +294,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
-            getTrackerForGrouping(transform.TargetGrouping).AddTransform(transform, customTransformID);
+            getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform, customTransformID);
         }
     }
 }
