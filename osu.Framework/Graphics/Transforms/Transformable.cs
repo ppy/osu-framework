@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            getTrackerFor(toRemove.TargetGrouping)?.RemoveTransform(toRemove);
+            getTrackerForGrouping(toRemove.TargetGrouping)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
         }
