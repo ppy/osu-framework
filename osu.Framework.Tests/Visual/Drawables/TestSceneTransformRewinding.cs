@@ -350,6 +350,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(750, box => box.Y == 0.375f);
             checkAtTime(1000, box => box.Y == 0.25f);
             checkAtTime(1500, box => box.Y == 0.25f);
+            checkAtTime(1250, box => box.Y == 0.25f);
             checkAtTime(750, box => box.Y == 0.375f);
         }
 
