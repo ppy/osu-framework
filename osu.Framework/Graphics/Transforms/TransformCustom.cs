@@ -21,9 +21,9 @@ namespace osu.Framework.Graphics.Transforms
         where T : class, ITransformable
         where TEasing : IEasingFunction
     {
-        private readonly string targetGrouping;
-
         public override string TargetGrouping => targetGrouping ?? TargetMember;
+
+        private readonly string targetGrouping;
 
         private delegate TValue ReadFunc(T transformable);
 
