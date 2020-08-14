@@ -116,7 +116,10 @@ namespace osu.Framework.Graphics.Textures
                 {
                     try
                     {
-                        textureCache[key] = tex = getTexture(name, wrapModeS, wrapModeT);
+                        tex = getTexture(name, wrapModeS, wrapModeT);
+                        if (tex != null)
+                            tex.LookupKey = key;
+                        textureCache[key] = tex;
                     }
                     catch (TextureTooLargeForGLException)
                     {
@@ -129,16 +132,20 @@ namespace osu.Framework.Graphics.Textures
         }
 
         /// <summary>
-        /// Disposes and removes a texture with the specified name from the texture cache.
+        /// Disposes and removes a texture from the cache.
         /// </summary>
-        /// <param name="name">The name of the texture to purge from the cache.</param>
-        protected void Purge(string name)
+        /// <param name="texture">The texture to purge from the cache.</param>
+        protected void Purge(Texture texture)
         {
             lock (textureCache)
             {
-                if (textureCache.TryGetValue(name, out var tex))
-                    tex.Dispose();
-                textureCache.Remove(name);
+                if (textureCache.TryGetValue(texture.LookupKey, out var tex))
+                {
+                    tex?.TextureGL?.Dispose();
+                    tex?.Dispose();
+                }
+
+                textureCache.Remove(texture.LookupKey);
             }
         }
     }
