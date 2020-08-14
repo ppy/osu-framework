@@ -36,6 +36,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public abstract string TargetMember { get; }
 
+        /// <summary>
+        /// A grouping specification that should match any other <see cref="Transform"/>s which affect the same properties.
+        /// </summary>
+        public virtual string TargetGrouping => TargetMember;
+
         public abstract void Apply(double time);
 
         public abstract void ReadIntoStartValue();
