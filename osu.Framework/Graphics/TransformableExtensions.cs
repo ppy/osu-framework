@@ -610,7 +610,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this T drawable, float newHeight, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing, nameof(drawable.Position));
+            => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing, nameof(drawable.Size));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> over time.
