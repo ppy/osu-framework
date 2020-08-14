@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IEnumerable<Transform> Transforms => targetMemberTrackers.SelectMany(t => t.Transforms);
+        public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
 
         /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
@@ -79,20 +79,29 @@ namespace osu.Framework.Graphics.Transforms
 
         private double lastUpdateTransformsTime;
 
-        private readonly List<TargetMemberTransformTracker> targetMemberTrackers = new List<TargetMemberTransformTracker>();
+        private readonly List<TargetGroupingTransformTracker> targetGroupingTrackers = new List<TargetGroupingTransformTracker>();
 
-        private TargetMemberTransformTracker getTrackerFor(string targetMember, bool createIfNotExisting = false)
+        private TargetGroupingTransformTracker getTrackerFor(string targetMember)
         {
-            foreach (var t in targetMemberTrackers)
+            foreach (var t in targetGroupingTrackers)
             {
-                if (t.TargetMember == targetMember)
+                if (t.TargetMembers.Contains(targetMember))
                     return t;
             }
 
-            if (!createIfNotExisting) return null;
+            return null;
+        }
 
-            var tracker = new TargetMemberTransformTracker(this, targetMember);
-            targetMemberTrackers.Add(tracker);
+        private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping)
+        {
+            foreach (var t in targetGroupingTrackers)
+            {
+                if (t.TargetGrouping == targetGrouping)
+                    return t;
+            }
+
+            var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
+            targetGroupingTrackers.Add(tracker);
             return tracker;
         }
 
@@ -108,8 +117,8 @@ namespace osu.Framework.Graphics.Transforms
             lastUpdateTransformsTime = time;
 
             // collection may grow due to abort / completion events.
-            for (var i = 0; i < targetMemberTrackers.Count; i++)
-                targetMemberTrackers[i].UpdateTransforms(time, rewinding);
+            for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                targetGroupingTrackers[i].UpdateTransforms(time, rewinding);
         }
 
         /// <summary>
@@ -118,7 +127,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            getTrackerFor(toRemove.TargetMember)?.RemoveTransform(toRemove);
+            getTrackerFor(toRemove.TargetGrouping)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
         }
@@ -147,13 +156,13 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (targetMember != null)
             {
-                getTrackerFor(targetMember)?.ClearTransformsAfter(time);
+                getTrackerFor(targetMember)?.ClearTransformsAfter(time, targetMember);
             }
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetMemberTrackers.Count; i++)
-                    targetMemberTrackers[i].ClearTransformsAfter(time);
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].ClearTransformsAfter(time);
             }
         }
 
@@ -184,13 +193,13 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (targetMember != null)
             {
-                getTrackerFor(targetMember)?.FinishTransforms();
+                getTrackerFor(targetMember)?.FinishTransforms(targetMember);
             }
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetMemberTrackers.Count; i++)
-                    targetMemberTrackers[i].FinishTransforms();
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].FinishTransforms();
             }
         }
 
@@ -282,7 +291,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
-            getTrackerFor(transform.TargetMember, true).AddTransform(transform, customTransformID);
+            getTrackerForGrouping(transform.TargetGrouping).AddTransform(transform, customTransformID);
         }
     }
 }
