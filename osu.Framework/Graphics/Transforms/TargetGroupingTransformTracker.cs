@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 resetLastAppliedIndex();
 
-                var appliedToEndReverts = new List<string>();
+                bool appliedToEndRevert = false;
 
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
@@ -82,14 +82,14 @@ namespace osu.Framework.Graphics.Transforms
                         // we are in the middle of this transform, so we want to mark as not-completely-applied.
                         // note that we should only do this for the last transform to avoid incorrect application order.
                         // the actual application will be in the main loop below now that AppliedToEnd is false.
-                        if (!appliedToEndReverts.Contains(t.TargetMember))
+                        if (!appliedToEndRevert)
                         {
                             if (time < t.EndTime)
                                 t.AppliedToEnd = false;
                             else
                                 t.Apply(t.EndTime);
 
-                            appliedToEndReverts.Add(t.TargetMember);
+                            appliedToEndRevert = true;
                         }
                     }
                     else
