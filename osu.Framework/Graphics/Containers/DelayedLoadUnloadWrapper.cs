@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.Containers
             content.LifetimeEnd = lifetimeEnd;
 
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
-            Schedule(() =>
+            Game.Schedule(() =>
             {
                 Debug.Assert(!contentLoaded);
                 Debug.Assert(unloadSchedule == null);
@@ -131,7 +131,9 @@ namespace osu.Framework.Graphics.Containers
                 if (isDisposed)
                     return;
 
-                ClearInternal();
+                // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
+                ClearInternal(false);
+                DisposeChildAsync(Content);
                 Content = null;
 
                 timeHidden = 0;
