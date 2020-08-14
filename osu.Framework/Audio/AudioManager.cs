@@ -280,9 +280,6 @@ namespace osu.Framework.Audio
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
 
-            Bass.PlaybackBufferLength = 100;
-            Bass.UpdatePeriod = 5;
-
             return true;
         }
 
@@ -296,7 +293,9 @@ namespace osu.Framework.Audio
                 return true;
 
             // reduce latency to a known sane minimum.
+            Bass.Configure(ManagedBass.Configuration.DevicePeriod, 1);
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
+            Bass.Configure(ManagedBass.Configuration.PlaybackBufferLength, 100);
 
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
             Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
