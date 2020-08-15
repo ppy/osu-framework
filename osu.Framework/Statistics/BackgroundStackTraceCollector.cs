@@ -83,6 +83,9 @@ namespace osu.Framework.Statistics
             if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
                 return;
 
+            // As it turns out, it's also too slow to be useful on windows, so let's fully disable for the time being.
+            return;
+
             Trace.Assert(cancellation == null);
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
