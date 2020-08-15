@@ -84,9 +84,8 @@ namespace osu.Framework.Statistics
                 return;
 
             // As it turns out, it's also too slow to be useful on windows, so let's fully disable for the time being.
-            return;
 
-            Trace.Assert(cancellation == null);
+            /*Trace.Assert(cancellation == null);
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
             {
@@ -94,7 +93,7 @@ namespace osu.Framework.Statistics
                 IsBackground = true
             };
 
-            thread.Start();
+            thread.Start();*/
         }
 
         private bool isCollecting;
