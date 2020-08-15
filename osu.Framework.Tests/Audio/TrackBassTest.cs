@@ -300,13 +300,6 @@ namespace osu.Framework.Tests.Audio
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, currentTime);
             Assert.Less(track.CurrentTime, currentTime + 1000.0);
-
-            void takeEffectsAndUpdateAfter(int after)
-            {
-                updateTrack();
-                Thread.Sleep(after);
-                updateTrack();
-            }
         }
 
         /// <summary>
@@ -337,13 +330,13 @@ namespace osu.Framework.Tests.Audio
             // assert track channel still paused regardless of frequency because it's stopped via Stop() above.
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(0, track.CurrentTime);
+        }
 
-            void takeEffectsAndUpdateAfter(int timeout)
-            {
-                updateTrack();
-                Thread.Sleep(timeout);
-                updateTrack();
-            }
+        private void takeEffectsAndUpdateAfter(int after)
+        {
+            updateTrack();
+            Thread.Sleep(after);
+            updateTrack();
         }
 
         private void startPlaybackAt(double time)
