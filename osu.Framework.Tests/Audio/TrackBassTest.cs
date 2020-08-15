@@ -296,10 +296,10 @@ namespace osu.Framework.Tests.Audio
             track.Frequency.Value = 1;
             takeEffectsAndUpdateAfter(50);
 
-            // ensure time didn't jump away, but now is progressing normally.
+            // ensure time didn't jump away, and is progressing normally.
             Assert.IsTrue(track.IsRunning);
-            Assert.GreaterOrEqual(track.CurrentTime, currentTime + 50);
-            Assert.Less(track.CurrentTime, currentTime + 1050.0);
+            Assert.Greater(track.CurrentTime, currentTime);
+            Assert.Less(track.CurrentTime, currentTime + 1000.0);
 
             void takeEffectsAndUpdateAfter(int after)
             {
