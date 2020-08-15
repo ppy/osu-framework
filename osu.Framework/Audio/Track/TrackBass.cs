@@ -53,7 +53,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
+        private BassRelativeFrequencyHandler relativeFrequencyHandler;
 
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
@@ -64,18 +64,6 @@ namespace osu.Framework.Audio.Track
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
-
-            relativeFrequencyHandler = new BassRelativeFrequencyHandler
-            {
-                RequestZeroFrequencyPause = () => stopInternal(),
-                RequestZeroFrequencyResume = () =>
-                {
-                    // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
-                    if (!isPlayed) return;
-
-                    startInternal();
-                },
-            };
 
             // todo: support this internally to match the underlying Track implementation (which can support this).
             const float tempo_minimum_supported = 0.05f;
@@ -118,7 +106,18 @@ namespace osu.Framework.Audio.Track
 
                     isLoaded = true;
 
-                    relativeFrequencyHandler.SetChannel(activeStream);
+                    relativeFrequencyHandler = new BassRelativeFrequencyHandler(activeStream)
+                    {
+                        RequestZeroFrequencyPause = () => stopInternal(),
+                        RequestZeroFrequencyResume = () =>
+                        {
+                            // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
+                            if (!isPlayed) return;
+
+                            startInternal();
+                        },
+                    };
+
                     bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });

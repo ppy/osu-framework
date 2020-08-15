@@ -20,6 +20,11 @@ namespace osu.Framework.Audio
 
         public bool ZeroFrequencyPauseRequested { get; private set; }
 
+        public BassRelativeFrequencyHandler(int channel)
+        {
+            SetChannel(channel);
+        }
+
         public void SetChannel(int c)
         {
             channel = c;
