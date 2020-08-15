@@ -33,7 +33,7 @@ namespace osu.Framework.Audio
             Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
         }
 
-        public void UpdateChannelFrequency(double relativeFrequency)
+        public void SetFrequency(double relativeFrequency)
         {
             // http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm (BASS_ATTRIB_FREQ's description)
             // Above documentation shows the frequency limits which the constants (min_bass_freq, max_bass_freq) came from.

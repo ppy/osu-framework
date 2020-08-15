@@ -310,7 +310,7 @@ namespace osu.Framework.Audio.Track
 
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
-            relativeFrequencyHandler.UpdateChannelFrequency(AggregateFrequency.Value);
+            relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
 
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(AggregateTempo.Value) - 1) * 100);
         }

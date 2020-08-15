@@ -40,7 +40,7 @@ namespace osu.Framework.Audio.Sample
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
-            relativeFrequencyHandler.UpdateChannelFrequency(AggregateFrequency.Value);
+            relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
         }
 
         public override bool Looping
