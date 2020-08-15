@@ -268,6 +268,84 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(1.5, track.Rate);
         }
 
+        [Test]
+        public void TestZeroFrequencyHandling()
+        {
+            // start track.
+            track.StartAsync();
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure running and has progressed.
+            Assert.IsTrue(track.IsRunning);
+            Assert.Greater(track.CurrentTime, 0);
+
+            // now set to zero frequency and update track to take effects.
+            track.Frequency.Value = 0;
+            updateTrack();
+
+            var currentTime = track.CurrentTime;
+
+            // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
+            Thread.Sleep(50);
+            updateTrack();
+
+            Assert.IsTrue(track.IsRunning);
+            Assert.AreEqual(currentTime, track.CurrentTime);
+
+            // set back to one and update track.
+            track.Frequency.Value = 1;
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure time didn't jump away, but now is progressing normally.
+            Assert.IsTrue(track.IsRunning);
+            Assert.GreaterOrEqual(track.CurrentTime, currentTime + 50);
+            Assert.Less(track.CurrentTime, currentTime + 1050.0);
+
+            void takeEffectsAndUpdateAfter(int after)
+            {
+                updateTrack();
+                Thread.Sleep(after);
+                updateTrack();
+            }
+        }
+
+        /// <summary>
+        /// Ensure setting a paused (or not yet played) track's frequency from zero to one doesn't resume / play it.
+        /// </summary>
+        [Test]
+        public void TestZeroFrequencyDoesntResumeTrack()
+        {
+            // start at zero frequency and wait a bit.
+            track.Frequency.Value = 0;
+            track.StartAsync();
+            takeEffectsAndUpdateAfter(50);
+
+            // ensure started but not progressing.
+            Assert.IsTrue(track.IsRunning);
+            Assert.AreEqual(0, track.CurrentTime);
+
+            // stop track and update.
+            track.StopAsync();
+            updateTrack();
+
+            Assert.IsFalse(track.IsRunning);
+
+            // set back to 1 frequency.
+            track.Frequency.Value = 1;
+            takeEffectsAndUpdateAfter(50);
+
+            // assert track channel still paused regardless of frequency because it's stopped via Stop() above.
+            Assert.IsFalse(track.IsRunning);
+            Assert.AreEqual(0, track.CurrentTime);
+
+            void takeEffectsAndUpdateAfter(int timeout)
+            {
+                updateTrack();
+                Thread.Sleep(timeout);
+                updateTrack();
+            }
+        }
+
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
