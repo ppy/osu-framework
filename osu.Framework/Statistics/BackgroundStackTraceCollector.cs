@@ -80,10 +80,11 @@ namespace osu.Framework.Statistics
             // Since v2.0 of Microsoft.Diagnostics.Runtime, support is provided to retrieve stack traces on unix platforms but
             // it causes a full core dump, which is very slow and causes a visible freeze.
             // For the time being let's remain windows-only (as this functionality used to be).
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
-                return;
 
             // As it turns out, it's also too slow to be useful on windows, so let's fully disable for the time being.
+
+            //if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+            //    return;
 
             /*Trace.Assert(cancellation == null);
 
