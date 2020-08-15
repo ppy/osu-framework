@@ -4,24 +4,28 @@
 using System;
 using ManagedBass;
 using osu.Framework.Audio.Track;
-using osuTK;
 
 namespace osu.Framework.Audio.Sample
 {
     public sealed class SampleChannelBass : SampleChannel, IBassAudio
     {
+        private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
+
         private volatile int channel;
         private volatile bool playing;
 
         public override bool IsLoaded => Sample.IsLoaded;
-
-        private float initialFrequency;
 
         private BassAmplitudeProcessor bassAmplitudeProcessor;
 
         public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
             : base(sample, onPlay)
         {
+            relativeFrequencyHandler = new BassRelativeFrequencyHandler
+            {
+                RequestZeroFrequencyPause = () => Bass.ChannelPause(channel),
+                RequestZeroFrequencyResume = () => Bass.ChannelPlay(channel),
+            };
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
@@ -33,8 +37,6 @@ namespace osu.Framework.Audio.Sample
             channel = 0;
         }
 
-        private bool pausedDueToZeroFrequency;
-
         internal override void OnStateChanged()
         {
             base.OnStateChanged();
@@ -44,23 +46,8 @@ namespace osu.Framework.Audio.Sample
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, AggregateBalance.Value);
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, bassFreq);
-
-            // Handle channels with 0 frequencies due to BASS not supporting them (0 = original rate)
-            // Documentation for the frequency limits: http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm
-            if (!pausedDueToZeroFrequency && AggregateFrequency.Value == 0)
-            {
-                Bass.ChannelPause(channel);
-                pausedDueToZeroFrequency = true;
-            }
-            else if (pausedDueToZeroFrequency && AggregateFrequency.Value > 0)
-            {
-                Bass.ChannelPlay(channel);
-                pausedDueToZeroFrequency = false;
-            }
+            relativeFrequencyHandler.UpdateChannelFrequency(AggregateFrequency.Value);
         }
-
-        private double bassFreq => MathHelper.Clamp(initialFrequency * AggregateFrequency.Value, 100, 100000);
 
         public override bool Looping
         {
@@ -92,9 +79,9 @@ namespace osu.Framework.Audio.Sample
                 channel = ((SampleBass)Sample).CreateChannel();
 
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
-                Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 setLoopFlag(Looping);
 
+                relativeFrequencyHandler.SetChannel(channel);
                 bassAmplitudeProcessor?.SetChannel(channel);
             });
 
@@ -102,7 +89,7 @@ namespace osu.Framework.Audio.Sample
 
             EnqueueAction(() =>
             {
-                if (channel != 0 && !pausedDueToZeroFrequency)
+                if (channel != 0 && !relativeFrequencyHandler.ZeroFrequencyPauseRequested)
                     Bass.ChannelPlay(channel, restart);
             });
 
@@ -131,7 +118,6 @@ namespace osu.Framework.Audio.Sample
 
                 // ChannelStop frees the channel.
                 channel = 0;
-                pausedDueToZeroFrequency = false;
             });
         }
 
