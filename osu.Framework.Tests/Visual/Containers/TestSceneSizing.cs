@@ -1153,7 +1153,9 @@ namespace osu.Framework.Tests.Visual.Containers
 
     internal class InfofulBox : Container
     {
+#pragma warning disable CA1805
         public bool Chameleon = false;
+#pragma warning restore CA1805
         public bool AllowDrag = true;
 
         protected override void OnDrag(DragEvent e)
