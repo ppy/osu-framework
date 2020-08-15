@@ -306,6 +306,9 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
+            if (activeStream == 0)
+                return;
+
             setDirection(AggregateFrequency.Value < 0);
 
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
