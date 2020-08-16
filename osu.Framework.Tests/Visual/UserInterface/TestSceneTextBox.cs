@@ -90,6 +90,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     TabbableContentContainer = textBoxes
                 });
 
+                BasicTextBox overrideInputBox;
+                textBoxes.Add(overrideInputBox = new BasicTextBox
+                {
+                    Text = @"Override input textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+                overrideInputBox.Current.BindValueChanged(vce =>
+                {
+                    if (vce.NewValue != @"Input overridden!")
+                        overrideInputBox.Text = @"Input overridden!";
+                });
+
                 textBoxes.Add(new CustomTextBox
                 {
                     Text = @"Custom textbox",
@@ -180,6 +193,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
             AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
+        }
+
+        [Test]
+        public void TestInputOverride()
+        {
+            ExposedTextFlowBox overrideInputBox = null;
+
+            AddStep("add override textbox", () =>
+            {
+                textBoxes.Add(overrideInputBox = new ExposedTextFlowBox
+                {
+                    Text = @"Override input textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+                overrideInputBox.Current.BindValueChanged(vce =>
+                {
+                    if (vce.NewValue != @"Input overridden!")
+                        overrideInputBox.Text = @"Input overridden!";
+                });
+            });
+
+            AddStep(@"set some text", () => overrideInputBox.Text = "smth");
+            AddAssert(@"verify display state", () => overrideInputBox.TextFlow.Children.Count == "Input overridden!".Length);
         }
 
         [TestCase(true, true)]
@@ -410,6 +447,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
+        }
+
+        private class ExposedTextFlowBox : BasicTextBox
+        {
+            public new FillFlowContainer TextFlow => base.TextFlow;
         }
 
         private class InsertableTextBox : BasicTextBox
