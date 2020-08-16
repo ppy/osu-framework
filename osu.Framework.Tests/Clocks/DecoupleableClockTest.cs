@@ -378,7 +378,7 @@ namespace osu.Framework.Tests.Clocks
 
         private class TestClockWithRange : TestClock
         {
-            public double MinTime { get; set; } = 0;
+            public double MinTime => 0;
             public double MaxTime { get; set; } = double.PositiveInfinity;
 
             public override bool Seek(double position)
