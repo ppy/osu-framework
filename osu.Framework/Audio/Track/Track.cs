@@ -2,12 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
-using osu.Framework.Timing;
 using System;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, ITrack
+    public abstract class Track : AdjustableAudioComponent, ITrack
     {
         public event Action Completed;
         public event Action Failed;
@@ -15,9 +14,6 @@ namespace osu.Framework.Audio.Track
         protected virtual void RaiseCompleted() => Completed?.Invoke();
         protected virtual void RaiseFailed() => Failed?.Invoke();
 
-        /// <summary>
-        /// Is this track capable of producing audio?
-        /// </summary>
         public virtual bool IsDummyDevice => true;
 
         /// <summary>

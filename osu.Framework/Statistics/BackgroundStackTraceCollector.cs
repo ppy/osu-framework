@@ -1,15 +1,14 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Logging;
-using osu.Framework.Timing;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Diagnostics.Runtime;
+using osu.Framework.Logging;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -18,7 +17,7 @@ namespace osu.Framework.Statistics
     /// </summary>
     internal class BackgroundStackTraceCollector : IDisposable
     {
-        private IList<ClrStackFrame> backgroundMonitorStackTrace;
+        private string[] backgroundMonitorStackTrace;
 
         private readonly StopwatchClock clock;
         private readonly string threadName;
@@ -78,7 +77,16 @@ namespace osu.Framework.Statistics
 
         private void startThread()
         {
-            Trace.Assert(cancellation == null);
+            // Since v2.0 of Microsoft.Diagnostics.Runtime, support is provided to retrieve stack traces on unix platforms but
+            // it causes a full core dump, which is very slow and causes a visible freeze.
+            // For the time being let's remain windows-only (as this functionality used to be).
+
+            // As it turns out, it's also too slow to be useful on windows, so let's fully disable for the time being.
+
+            //if (RuntimeInfo.OS != RuntimeInfo.Platform.Windows)
+            //    return;
+
+            /*Trace.Assert(cancellation == null);
 
             var thread = new Thread(() => run((cancellation = new CancellationTokenSource()).Token))
             {
@@ -86,7 +94,7 @@ namespace osu.Framework.Statistics
                 IsBackground = true
             };
 
-            thread.Start();
+            thread.Start();*/
         }
 
         private bool isCollecting;
@@ -156,7 +164,7 @@ namespace osu.Framework.Statistics
                 logMessage.AppendLine(@"| Stack trace:");
 
                 foreach (var f in frames)
-                    logMessage.AppendLine($@"|- {f.DisplayString}");
+                    logMessage.AppendLine($@"|- {f}");
             }
             else
                 logMessage.AppendLine(@"| Call stack was not recorded.");
@@ -169,20 +177,26 @@ namespace osu.Framework.Statistics
             isCollecting = false;
         }
 
-        private static readonly Lazy<ClrInfo> clr_info = new Lazy<ClrInfo>(delegate
+        private static string[] getStackTrace(Thread targetThread)
         {
             try
             {
-                return DataTarget.AttachToProcess(Process.GetCurrentProcess().Id, 200, AttachFlag.Passive).ClrVersions[0];
+                using (var target = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id))
+                {
+                    using (var runtime = target.ClrVersions[0].CreateRuntime())
+                    {
+                        return runtime.Threads
+                                      .FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?
+                                      .EnumerateStackTrace().Select(f => f.ToString())
+                                      .ToArray();
+                    }
+                }
             }
             catch
             {
                 return null;
             }
-        });
-
-        private static IList<ClrStackFrame> getStackTrace(Thread targetThread) =>
-            clr_info.Value?.CreateRuntime().Threads.FirstOrDefault(t => t.ManagedThreadId == targetThread.ManagedThreadId)?.StackTrace;
+        }
 
         #region IDisposable Support
 

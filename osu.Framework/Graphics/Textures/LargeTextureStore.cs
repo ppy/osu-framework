@@ -18,8 +18,8 @@ namespace osu.Framework.Graphics.Textures
         private readonly object referenceCountLock = new object();
         private readonly Dictionary<string, TextureWithRefCount.ReferenceCount> referenceCounts = new Dictionary<string, TextureWithRefCount.ReferenceCount>();
 
-        public LargeTextureStore(IResourceStore<TextureUpload> store = null)
-            : base(store, false, All.Linear, true)
+        public LargeTextureStore(IResourceStore<TextureUpload> store = null, All filteringMode = All.Linear)
+            : base(store, false, filteringMode, true)
         {
         }
 
@@ -41,19 +41,19 @@ namespace osu.Framework.Graphics.Textures
                 if (tex?.TextureGL == null)
                     return null;
 
-                if (!referenceCounts.TryGetValue(name, out TextureWithRefCount.ReferenceCount count))
-                    referenceCounts[name] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(name));
+                if (!referenceCounts.TryGetValue(tex.LookupKey, out TextureWithRefCount.ReferenceCount count))
+                    referenceCounts[tex.LookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(tex));
 
                 return new TextureWithRefCount(tex.TextureGL, count);
             }
         }
 
-        private void onAllReferencesLost(string name)
+        private void onAllReferencesLost(Texture texture)
         {
             Debug.Assert(Monitor.IsEntered(referenceCountLock));
 
-            referenceCounts.Remove(name);
-            Purge(name);
+            referenceCounts.Remove(texture.LookupKey);
+            Purge(texture);
         }
     }
 }

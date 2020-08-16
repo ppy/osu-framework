@@ -57,6 +57,16 @@ namespace osu.Framework.Platform.MacOS
             UpdateFrame += OnUpdateFrame;
         }
 
+        public override void SetupWindow(FrameworkConfigManager config)
+        {
+            base.SetupWindow(config);
+
+            // due to an issue with osuTK, confine mode will cause the mouse to become unusable on recent macOS versions.
+            // because it is not necessary anyway (on macOS confining in fullscreen is implicit), force off and disable.
+            ConfineMouseMode.Value = Input.ConfineMouseMode.Never;
+            ConfineMouseMode.Disabled = true;
+        }
+
         private NSWindowStyleMask styleMask => (NSWindowStyleMask)Cocoa.SendUint(WindowInfo.Handle, selStyleMask);
 
         private bool menuBarVisible => Cocoa.SendBool(classNSMenu, selMenuBarVisible);
@@ -257,6 +267,7 @@ namespace osu.Framework.Platform.MacOS
         }
     }
 
+    [Flags]
     internal enum CocoaKeyModifiers
     {
         LeftControl = 1,

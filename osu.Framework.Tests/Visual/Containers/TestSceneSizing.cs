@@ -1153,7 +1153,6 @@ namespace osu.Framework.Tests.Visual.Containers
 
     internal class InfofulBox : Container
     {
-        public bool Chameleon = false;
         public bool AllowDrag = true;
 
         protected override void OnDrag(DragEvent e)
@@ -1172,46 +1171,6 @@ namespace osu.Framework.Tests.Visual.Containers
                 RelativeSizeAxes = Axes.Both,
                 Depth = float.MaxValue,
             });
-        }
-
-        private int lastSwitch;
-
-        protected override void Update()
-        {
-            if (Chameleon && (int)Time.Current / 1000 != lastSwitch)
-            {
-                lastSwitch = (int)Time.Current / 1000;
-
-                switch (lastSwitch % 6)
-                {
-                    case 0:
-                        Anchor = (Anchor)((int)Anchor + 1);
-                        Origin = (Anchor)((int)Origin + 1);
-                        break;
-
-                    case 1:
-                        this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
-                        break;
-
-                    case 2:
-                        this.MoveTo(new Vector2(200, 0), 800, Easing.Out);
-                        break;
-
-                    case 3:
-                        this.MoveTo(new Vector2(200, 200), 800, Easing.Out);
-                        break;
-
-                    case 4:
-                        this.MoveTo(new Vector2(0, 200), 800, Easing.Out);
-                        break;
-
-                    case 5:
-                        this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
-                        break;
-                }
-            }
-
-            base.Update();
         }
     }
 }

@@ -7,7 +7,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -15,7 +14,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -82,6 +81,14 @@ namespace osu.Framework.Graphics.Audio
                 component?.Dispose();
         }
 
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+            => adjustments.AddAdjustment(type, adjustBindable);
+
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+            => adjustments.RemoveAdjustment(type, adjustBindable);
+
+        public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
+
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 
         public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
@@ -91,33 +98,5 @@ namespace osu.Framework.Graphics.Audio
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
 
         public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
-
-        /// <summary>
-        /// Smoothly adjusts <see cref="Volume"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> VolumeTo(double newVolume, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Volume, newVolume, duration, easing);
-
-        /// <summary>
-        /// Smoothly adjusts <see cref="Balance"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> BalanceTo(double newBalance, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Balance, newBalance, duration, easing);
-
-        /// <summary>
-        /// Smoothly adjusts <see cref="Frequency"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> FrequencyTo(double newFrequency, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Frequency, newFrequency, duration, easing);
-
-        /// <summary>
-        /// Smoothly adjusts <see cref="Tempo"/> over time.
-        /// </summary>
-        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public TransformSequence<DrawableAudioWrapper> TempoTo(double newTempo, double duration = 0, Easing easing = Easing.None) =>
-            this.TransformBindableTo(Tempo, newTempo, duration, easing);
     }
 }

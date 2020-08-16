@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -333,6 +334,8 @@ namespace osu.Framework.Platform
 
         private long lastDrawFrameId;
 
+        private readonly DepthValue depthValue = new DepthValue();
+
         protected virtual void DrawFrame()
         {
             if (Root == null)
@@ -354,7 +357,7 @@ namespace osu.Framework.Platform
 
                     if (!bypassFrontToBackPass.Value)
                     {
-                        var depthValue = new DepthValue();
+                        depthValue.Reset();
 
                         GL.ColorMask(false, false, false, false);
                         GLWrapper.SetBlend(BlendingParameters.None);
@@ -655,7 +658,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
             }
 
-            AvailableInputHandlers = CreateAvailableInputHandlers();
+            AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
@@ -846,7 +849,7 @@ namespace osu.Framework.Platform
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
+        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 

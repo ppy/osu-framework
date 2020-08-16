@@ -23,7 +23,28 @@ namespace osu.Framework.Testing.Input
 
         protected override Container<Drawable> Content => content;
 
+        private bool showVisualCursorGuide = true;
+
+        /// <summary>
+        /// Whether to show a visible cursor tracking position and clicks.
+        /// Generally should be enabled unless it blocks the test's content.
+        /// </summary>
+        public bool ShowVisualCursorGuide
+        {
+            get => showVisualCursorGuide;
+            set
+            {
+                if (value == showVisualCursorGuide)
+                    return;
+
+                showVisualCursorGuide = value;
+                testCursor.State.Value = value ? Visibility.Visible : Visibility.Hidden;
+            }
+        }
+
         private readonly Container content;
+
+        private readonly TestCursorContainer testCursor;
 
         public ManualInputManager()
         {
@@ -33,7 +54,7 @@ namespace osu.Framework.Testing.Input
             InternalChildren = new Drawable[]
             {
                 content = new Container { RelativeSizeAxes = Axes.Both },
-                new TestCursorContainer(),
+                testCursor = new TestCursorContainer(),
             };
         }
 
@@ -46,6 +67,15 @@ namespace osu.Framework.Testing.Input
         public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
         public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
 
+        /// <summary>
+        /// Press and release the specified key.
+        /// </summary>
+        public void Key(Key key)
+        {
+            PressKey(key);
+            ReleaseKey(key);
+        }
+
         public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });
         public void ScrollHorizontalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(delta, 0), isPrecise);
         public void ScrollVerticalBy(float delta, bool isPrecise = false) => ScrollBy(new Vector2(0, delta), isPrecise);
@@ -55,6 +85,9 @@ namespace osu.Framework.Testing.Input
 
         public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
 
+        /// <summary>
+        /// Press and release the specified button.
+        /// </summary>
         public void Click(MouseButton button)
         {
             PressButton(button);
@@ -68,8 +101,10 @@ namespace osu.Framework.Testing.Input
         public void ReleaseJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, false));
 
         public void BeginTouch(Touch touch) => Input(new TouchInput(touch, true));
-
         public void EndTouch(Touch touch) => Input(new TouchInput(touch, false));
+
+        public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
+        public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
 
         private class ManualInputHandler : InputHandler
         {

@@ -42,6 +42,9 @@ namespace osu.Framework.Threading
             base.MakeCurrent();
 
             ThreadSafety.IsDrawThread = true;
+
+            // Seems to be required on some drivers as the context is lost from the draw thread.
+            host.Window?.MakeCurrent();
         }
 
         protected sealed override void Cleanup()
