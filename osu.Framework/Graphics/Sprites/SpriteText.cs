@@ -547,12 +547,10 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-#pragma warning disable CA1805
         /// <summary>
         /// The characters that should be excluded from fixed-width application. Defaults to (".", ",", ":", " ") if null.
         /// </summary>
-        protected virtual char[] FixedWidthExcludeCharacters { get; } = null;
-#pragma warning restore CA1805
+        protected virtual char[] FixedWidthExcludeCharacters => null;
 
         /// <summary>
         /// The character to fallback to use if a character glyph lookup failed.
