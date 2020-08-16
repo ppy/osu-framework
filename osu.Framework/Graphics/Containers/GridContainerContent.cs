@@ -11,8 +11,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class GridContainerContent : ObservableArray<ObservableArray<Drawable>>
     {
-        private readonly Drawable[][] source;
-
         public static implicit operator GridContainerContent(Drawable[][] drawables)
         {
             if (drawables == null)
@@ -24,8 +22,6 @@ namespace osu.Framework.Graphics.Containers
         private GridContainerContent([NotNull] Drawable[][] drawables)
             : base(new ObservableArray<Drawable>[drawables.Length])
         {
-            source = drawables;
-
             for (int i = 0; i < drawables.Length; i++)
             {
                 if (drawables[i] != null)
