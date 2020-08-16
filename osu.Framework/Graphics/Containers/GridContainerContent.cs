@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using JetBrains.Annotations;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.Containers
             return new GridContainerContent(drawables);
         }
 
-        private GridContainerContent(Drawable[][] drawables)
+        private GridContainerContent([NotNull] Drawable[][] drawables)
             : base(new ObservableArray<Drawable>[drawables.Length])
         {
             source = drawables;
