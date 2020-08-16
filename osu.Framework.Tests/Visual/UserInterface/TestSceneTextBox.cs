@@ -198,11 +198,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestInputOverride()
         {
-            ExposedTextFlowBox overrideInputBox = null;
+            InsertableTextBox overrideInputBox = null;
 
             AddStep("add override textbox", () =>
             {
-                textBoxes.Add(overrideInputBox = new ExposedTextFlowBox
+                textBoxes.Add(overrideInputBox = new InsertableTextBox
                 {
                     Text = @"Override input textbox",
                     Size = new Vector2(500, 30),
@@ -211,12 +211,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 overrideInputBox.Current.BindValueChanged(vce =>
                 {
                     if (vce.NewValue != @"Input overridden!")
-                        overrideInputBox.Text = @"Input overridden!";
+                        overrideInputBox.Current.Value = @"Input overridden!";
                 });
             });
 
             AddStep(@"set some text", () => overrideInputBox.Text = "smth");
-            AddAssert(@"verify display state", () => overrideInputBox.TextFlow.Children.Count == "Input overridden!".Length);
+            AddAssert(@"verify display state", () => overrideInputBox.FlowingText.Length == "Input overridden!".Length);
         }
 
         [TestCase(true, true)]
@@ -447,11 +447,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
-        }
-
-        private class ExposedTextFlowBox : BasicTextBox
-        {
-            public new FillFlowContainer TextFlow => base.TextFlow;
         }
 
         private class InsertableTextBox : BasicTextBox
