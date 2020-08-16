@@ -12,8 +12,6 @@ namespace osu.Framework.Graphics.Containers
     {
         private readonly Drawable[][] source;
 
-        public static implicit operator Drawable[][](GridContainerContent content) => content.source;
-
         public static implicit operator GridContainerContent(Drawable[][] drawables)
         {
             if (drawables == null)
