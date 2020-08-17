@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Containers
             //Words matched by parent is not needed to match children
             var childTerms = terms.Where(term =>
                 !filterable.FilterTerms.Any(filterTerm =>
-                    filterTerm.IndexOf(term, StringComparison.InvariantCultureIgnoreCase) >= 0)).ToArray();
+                    filterTerm.Contains(term, StringComparison.InvariantCultureIgnoreCase))).ToArray();
 
             bool matching = childTerms.Length == 0;
 
