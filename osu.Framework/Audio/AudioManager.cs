@@ -293,7 +293,6 @@ namespace osu.Framework.Audio
                 return true;
 
             // reduce latency to a known sane minimum.
-            Bass.Configure(ManagedBass.Configuration.DevicePeriod, 1);
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
             Bass.Configure(ManagedBass.Configuration.PlaybackBufferLength, 100);
 
