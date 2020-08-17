@@ -61,13 +61,17 @@ namespace osu.Framework.Graphics.Containers
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
 
         private bool contentLoaded;
+        private ScheduledDelegate scheduledLifetimeUpdate;
 
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
 
-            content.LifetimeStart = lifetimeStart;
-            content.LifetimeEnd = lifetimeEnd;
+            scheduledLifetimeUpdate = Schedule(() =>
+            {
+                content.LifetimeStart = lifetimeStart;
+                content.LifetimeEnd = lifetimeEnd;
+            });
 
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             Game.Schedule(() =>
@@ -106,6 +110,9 @@ namespace osu.Framework.Graphics.Containers
 
                 total_loaded.Value--;
             }
+
+            scheduledLifetimeUpdate?.Cancel();
+            scheduledLifetimeUpdate = null;
         }
 
         private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
