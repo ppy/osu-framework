@@ -61,7 +61,7 @@ namespace osu.Framework.Audio
         {
             foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
             {
-                var aggregate = getAggregate(type) = new AggregateBindable<double>(getAggregateFunction(type), getProperty(type).GetUnboundCopy());
+                var aggregate = getAggregate(type) = new AggregateBindable<double>(GetAggregateFunction(type), getProperty(type).GetUnboundCopy());
                 aggregate.AddSource(getProperty(type));
             }
         }
@@ -140,7 +140,7 @@ namespace osu.Framework.Audio
             throw new ArgumentException($"{nameof(AdjustableProperty)} \"{type}\" is missing mapping", nameof(type));
         }
 
-        private Func<double, double, double> getAggregateFunction(AdjustableProperty type)
+        internal static Func<double, double, double> GetAggregateFunction(AdjustableProperty type)
         {
             switch (type)
             {
