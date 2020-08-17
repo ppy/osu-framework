@@ -14,12 +14,17 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => Sample.IsLoaded;
 
-        private BassRelativeFrequencyHandler relativeFrequencyHandler;
+        private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor bassAmplitudeProcessor;
 
         public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
             : base(sample, onPlay)
         {
+            relativeFrequencyHandler = new BassRelativeFrequencyHandler
+            {
+                RequestZeroFrequencyPause = () => Bass.ChannelPause(channel),
+                RequestZeroFrequencyResume = () => Bass.ChannelPlay(channel),
+            };
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
@@ -75,17 +80,7 @@ namespace osu.Framework.Audio.Sample
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
                 setLoopFlag(Looping);
 
-                if (relativeFrequencyHandler == null)
-                {
-                    relativeFrequencyHandler = new BassRelativeFrequencyHandler(channel)
-                    {
-                        RequestZeroFrequencyPause = () => Bass.ChannelPause(channel),
-                        RequestZeroFrequencyResume = () => Bass.ChannelPlay(channel),
-                    };
-                }
-                else
-                    relativeFrequencyHandler.SetChannel(channel);
-
+                relativeFrequencyHandler.SetChannel(channel);
                 bassAmplitudeProcessor?.SetChannel(channel);
             });
 

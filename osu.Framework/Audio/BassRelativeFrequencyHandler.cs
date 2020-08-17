@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using ManagedBass;
 
 namespace osu.Framework.Audio
@@ -20,11 +21,6 @@ namespace osu.Framework.Audio
 
         public bool ZeroFrequencyPauseRequested { get; private set; }
 
-        public BassRelativeFrequencyHandler(int channel)
-        {
-            SetChannel(channel);
-        }
-
         public void SetChannel(int c)
         {
             channel = c;
@@ -35,6 +31,8 @@ namespace osu.Framework.Audio
 
         public void SetFrequency(double relativeFrequency)
         {
+            Debug.Assert(channel != 0, "Attempting to set frequency without specifying a channel in SetChannel() before, or an invalid one was specified.");
+
             // http://bass.radio42.com/help/html/ff7623f0-6e9f-6be8-c8a7-17d3a6dc6d51.htm (BASS_ATTRIB_FREQ's description)
             // Above documentation shows the frequency limits which the constants (min_bass_freq, max_bass_freq) came from.
             const int min_bass_freq = 100;
