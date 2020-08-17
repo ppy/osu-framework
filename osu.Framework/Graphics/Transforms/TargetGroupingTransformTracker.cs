@@ -12,17 +12,17 @@ namespace osu.Framework.Graphics.Transforms
     /// <summary>
     /// Tracks the lifetime of transforms for one specified target member.
     /// </summary>
-    internal class TargetMemberTransformTracker
+    internal class TargetGroupingTransformTracker
     {
         /// <summary>
-        /// A list of <see cref="Transform"/>s associated with the <see cref="TargetMember"/>.
+        /// A list of <see cref="Transform"/>s associated with the <see cref="TargetGrouping"/>.
         /// </summary>
         public IEnumerable<Transform> Transforms => transforms;
 
         /// <summary>
         /// The member this instance is tracking.
         /// </summary>
-        public readonly string TargetMember;
+        public readonly string TargetGrouping;
 
         private readonly SortedList<Transform> transforms = new SortedList<Transform>(Transform.COMPARER);
 
@@ -41,9 +41,16 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private int? lastAppliedIndex;
 
-        public TargetMemberTransformTracker(Transformable transformable, string targetMember)
+        /// <summary>
+        /// All <see cref="Transform.TargetMember"/>s which are handled by this tracker.
+        /// </summary>
+        public IEnumerable<string> TargetMembers => targetMembers;
+
+        private readonly HashSet<string> targetMembers = new HashSet<string>();
+
+        public TargetGroupingTransformTracker(Transformable transformable, string targetGrouping)
         {
-            TargetMember = targetMember;
+            TargetGrouping = targetGrouping;
             this.transformable = transformable;
         }
 
@@ -117,6 +124,7 @@ namespace osu.Framework.Graphics.Transforms
                     for (int j = lastAppliedIndex ?? 0; j < i; ++j)
                     {
                         var u = transforms[j];
+                        if (u.TargetMember != t.TargetMember) continue;
 
                         if (!u.AppliedToEnd)
                             // we may have applied the existing transforms too far into the future.
@@ -208,6 +216,11 @@ namespace osu.Framework.Graphics.Transforms
         {
             Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
 
+            if (transform.TargetGrouping != TargetGrouping)
+                throw new ArgumentException($"Target grouping \"{transform.TargetGrouping}\" does not match this tracker's grouping \"{TargetGrouping}\".", nameof(transform));
+
+            targetMembers.Add(transform.TargetMember);
+
             // This contains check may be optimized away in the future, should it become a bottleneck
             if (transform.TransformID != 0 && transforms.Contains(transform))
                 throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
@@ -220,9 +233,13 @@ namespace osu.Framework.Graphics.Transforms
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
-                transforms.RemoveAt(i--);
-                if (t.OnAbort != null)
-                    removalActions.Add(t.OnAbort);
+
+                if (t.TargetMember == transform.TargetMember)
+                {
+                    transforms.RemoveAt(i--);
+                    if (t.OnAbort != null)
+                        removalActions.Add(t.OnAbort);
+                }
             }
 
             invokePendingRemovalActions();
@@ -248,12 +265,26 @@ namespace osu.Framework.Graphics.Transforms
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
         /// </summary>
         /// <param name="time">The time to clear <see cref="Transform"/>s after.</param>
-        public virtual void ClearTransformsAfter(double time)
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
+        /// Null for clearing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void ClearTransformsAfter(double time, string targetMember = null)
         {
             resetLastAppliedIndex();
 
-            var toAbort = transforms.Where(t => t.StartTime >= time).ToArray();
-            transforms.RemoveAll(t => t.StartTime >= time);
+            Transform[] toAbort;
+
+            if (targetMember == null)
+            {
+                toAbort = transforms.Where(t => t.StartTime >= time).ToArray();
+                transforms.RemoveAll(t => t.StartTime >= time);
+            }
+            else
+            {
+                toAbort = transforms.Where(t => t.TargetMember == targetMember && t.StartTime >= time).ToArray();
+                transforms.RemoveAll(t => t.TargetMember == targetMember && t.StartTime >= time);
+            }
 
             foreach (var t in toAbort)
                 t.OnAbort?.Invoke();
@@ -262,14 +293,22 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Finishes specified <see cref="Transform"/>s, using their <see cref="Transform{TValue}.EndValue"/>.
         /// </summary>
-        public virtual void FinishTransforms()
+        /// <param name="targetMember">
+        /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to finish.
+        /// Null for finishing all <see cref="Transform"/>s.
+        /// </param>
+        public virtual void FinishTransforms(string targetMember = null)
         {
-            bool toFlushPredicate(Transform t) => !t.IsLooping;
+            Func<Transform, bool> toFlushPredicate;
+            if (targetMember == null)
+                toFlushPredicate = t => !t.IsLooping;
+            else
+                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
 
             // Flush is undefined for endlessly looping transforms
             var toFlush = transforms.Where(toFlushPredicate).ToArray();
 
-            transforms.RemoveAll(toFlushPredicate);
+            transforms.RemoveAll(t => toFlushPredicate(t));
             resetLastAppliedIndex();
 
             foreach (Transform t in toFlush)
