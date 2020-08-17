@@ -295,6 +295,13 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform, customTransformID);
+
+            // If our newly added transform could have an immediate effect, then let's
+            // make this effect happen immediately.
+            // This is done globally instead of locally in the single member tracker
+            // to keep the transformable's state consistent (e.g. with lastUpdateTransformsTime)
+            if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
     }
 }
