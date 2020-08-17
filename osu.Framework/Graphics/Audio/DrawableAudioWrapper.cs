@@ -16,26 +16,6 @@ namespace osu.Framework.Graphics.Audio
     [Cached(typeof(IAggregateAudioAdjustment))]
     public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment, IAdjustableAudioComponent
     {
-        /// <summary>
-        /// The volume of this component.
-        /// </summary>
-        public BindableNumber<double> Volume => adjustments.Volume;
-
-        /// <summary>
-        /// The playback balance of this sample (-1 .. 1 where 0 is centered)
-        /// </summary>
-        public BindableNumber<double> Balance => adjustments.Balance;
-
-        /// <summary>
-        /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
-        /// </summary>
-        public BindableNumber<double> Frequency => adjustments.Frequency;
-
-        /// <summary>
-        /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
-        /// </summary>
-        public BindableNumber<double> Tempo => adjustments.Tempo;
-
         private readonly AdjustableAudioComponent component;
         private readonly bool disposeUnderlyingComponentOnDispose;
 
@@ -91,21 +71,24 @@ namespace osu.Framework.Graphics.Audio
                 component?.Dispose();
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
-            => adjustments.AddAdjustment(type, adjustBindable);
+        #region Public audio adjustments exposure
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
-            => adjustments.RemoveAdjustment(type, adjustBindable);
+        public IBindable<double> AggregateVolume => publicAdjustments.AggregateVolume;
+        public IBindable<double> AggregateBalance => publicAdjustments.AggregateBalance;
+        public IBindable<double> AggregateFrequency => publicAdjustments.AggregateFrequency;
+        public IBindable<double> AggregateTempo => publicAdjustments.AggregateTempo;
 
-        public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
+        public BindableNumber<double> Volume => publicAdjustments.Volume;
+        public BindableNumber<double> Balance => publicAdjustments.Balance;
+        public BindableNumber<double> Frequency => publicAdjustments.Frequency;
+        public BindableNumber<double> Tempo => publicAdjustments.Tempo;
 
-        public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
+        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) => publicAdjustments.AddAdjustment(type, adjustBindable);
+        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) => publicAdjustments.RemoveAdjustment(type, adjustBindable);
+        public void RemoveAllAdjustments(AdjustableProperty type) => publicAdjustments.RemoveAllAdjustments(type);
 
-        public IBindable<double> AggregateBalance => adjustments.AggregateBalance;
+        #endregion
 
-        public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
-
-        public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
         /// <summary>
         /// Represents a <see cref="AudioAdjustments"/> class with internal adjustments that isn't exposed in <see cref="PublicAdjustments"/>.
         /// </summary>
