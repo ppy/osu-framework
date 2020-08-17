@@ -243,13 +243,6 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             invokePendingRemovalActions();
-
-            var time = transformable.Time.Current;
-
-            // If our newly added transform could have an immediate effect, then let's
-            // make this effect happen immediately.
-            if (transform.StartTime < time || transform.EndTime <= time)
-                UpdateTransforms(time, !transformable.RemoveCompletedTransforms && transform.StartTime <= time);
         }
 
         /// <summary>
