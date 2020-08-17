@@ -37,10 +37,10 @@ namespace osu.Framework.Graphics.Audio
         public BindableNumber<double> Tempo => adjustments.Tempo;
 
         private readonly AdjustableAudioComponent component;
-
         private readonly bool disposeUnderlyingComponentOnDispose;
 
-        private readonly AudioAdjustments adjustments = new AudioAdjustments();
+        private readonly AudioWrapperAdjustments wrapperAdjustments = new AudioWrapperAdjustments();
+        private AudioAdjustments publicAdjustments => wrapperAdjustments.PublicAdjustments;
 
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
@@ -62,20 +62,30 @@ namespace osu.Framework.Graphics.Audio
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
 
-            component.BindAdjustments(adjustments);
+            component.BindAdjustments(wrapperAdjustments);
         }
 
         [BackgroundDependencyLoader(true)]
         private void load(IAggregateAudioAdjustment parentAdjustment)
         {
+            wrapperAdjustments.UpdateClockState(Clock.IsRunning);
+
             if (parentAdjustment != null)
-                adjustments.BindAdjustments(parentAdjustment);
+                publicAdjustments.BindAdjustments(parentAdjustment);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            // todo: IClock.IsRunning should be a bindable to allow listening for its changes from inside the wrapper adjustments rather than updating per-frame.
+            wrapperAdjustments.UpdateClockState(Clock.IsRunning);
         }
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            component?.UnbindAdjustments(adjustments);
+            component?.UnbindAdjustments(wrapperAdjustments);
 
             if (disposeUnderlyingComponentOnDispose)
                 component?.Dispose();
@@ -96,5 +106,44 @@ namespace osu.Framework.Graphics.Audio
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
+        /// <summary>
+        /// Represents a <see cref="AudioAdjustments"/> class with internal adjustments that isn't exposed in <see cref="PublicAdjustments"/>.
+        /// </summary>
+        private class AudioWrapperAdjustments : IAggregateAudioAdjustment
+        {
+            /// <summary>
+            /// The public adjustments, exposed to consumers for adding adjustments to it.
+            /// </summary>
+            public readonly AudioAdjustments PublicAdjustments = new AudioAdjustments();
+
+            private readonly AggregateBindable<double> aggregateFrequency;
+
+            IBindable<double> IAggregateAudioAdjustment.AggregateVolume => PublicAdjustments.AggregateVolume;
+            IBindable<double> IAggregateAudioAdjustment.AggregateBalance => PublicAdjustments.AggregateBalance;
+            IBindable<double> IAggregateAudioAdjustment.AggregateFrequency => aggregateFrequency.Result;
+            IBindable<double> IAggregateAudioAdjustment.AggregateTempo => PublicAdjustments.AggregateTempo;
+
+            public AudioWrapperAdjustments()
+            {
+                aggregateFrequency = new AggregateBindable<double>(AudioAdjustments.GetAggregateFunction(AdjustableProperty.Frequency), PublicAdjustments.Frequency.GetUnboundCopy());
+                aggregateFrequency.AddSource(PublicAdjustments.AggregateFrequency);
+            }
+
+            private BindableDouble clockRunningFreqAdjust;
+
+            public void UpdateClockState(bool running)
+            {
+                double adjustValue = running ? 1f : 0f;
+
+                if (clockRunningFreqAdjust == null)
+                {
+                    clockRunningFreqAdjust = new BindableDouble(adjustValue);
+                    aggregateFrequency.AddSource(clockRunningFreqAdjust);
+                    return;
+                }
+
+                clockRunningFreqAdjust.Value = adjustValue;
+            }
+        }
     }
 }
