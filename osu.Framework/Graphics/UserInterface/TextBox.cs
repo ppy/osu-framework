@@ -567,9 +567,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Invoked whenever a text string has been removed by user input.
+        /// Invoked when text is removed via user input.
         /// </summary>
-        /// <param name="removed">The removed text string.</param>
+        /// <param name="removed">The text which was removed.</param>
         protected virtual void OnUserTextRemoved(string removed)
         {
         }
