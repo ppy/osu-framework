@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
@@ -413,104 +412,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
 
-        [Test]
-        public void TestTextboxEventsInvokedProperly()
-        {
-            EventQueuesTextBox textBox = null;
-
-            AddStep("add limited textbox", () =>
-            {
-                textBoxes.Add(textBox = new EventQueuesTextBox
-                {
-                    CommitOnFocusLost = true,
-                    ReleaseFocusOnCommit = false,
-                    Size = new Vector2(200, 40),
-                    Text = "some default text",
-                });
-            });
-
-            AddStep("focus textbox", () =>
-            {
-                InputManager.MoveMouseTo(textBox);
-                InputManager.Click(MouseButton.Left);
-            });
-
-            #region Text mutation
-
-            AddStep("set text property once more", () => textBox.Text = "set property once more");
-            AddStep("insert string via protected method", () => textBox.InsertString(" inserted string."));
-            AddAssert("no user text consumed event", () => textBox.UserConsumedTextQueue.Count == 0);
-
-            // todo: this is not straightforward to support at the moment (requires manipulating ITextInputSource, which is stored at host level), steps commented for now.
-            //AddStep("press letter key to insert text", () => addToPendingTextInput());
-            //AddAssert("user text consumed event", () => textBox.UserConsumedTextQueue.Dequeue() == "W" && textBox.UserConsumedTextQueue.Count == 0);
-
-            AddStep("invoke delete action to remove text", () => textBox.DeletePreviousCharacter());
-            AddAssert("user text removed event", () => textBox.UserRemovedTextQueue.Dequeue() == "." && textBox.UserRemovedTextQueue.Count == 0);
-
-            #endregion
-
-            #region Commit with focus lost & enter key
-
-            AddStep("press enter key for committing text", () => InputManager.Key(Key.Enter));
-
-            AddAssert("text committed event", () =>
-                // Ensure dequeued text commit event has textChanged = true.
-                textBox.CommittedTextQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
-
-            AddStep("click away", () =>
-            {
-                InputManager.MoveMouseTo(Content.ToScreenSpace(Vector2.Zero));
-                InputManager.Click(MouseButton.Left);
-            });
-
-            AddAssert("text committed event", () =>
-                // Ensure dequeued text commit event has textChanged = false.
-                textBox.CommittedTextQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
-
-            // Refocus back for the remaining checks below.
-            AddStep("focus textbox", () =>
-            {
-                InputManager.MoveMouseTo(textBox);
-                InputManager.Click(MouseButton.Left);
-            });
-
-            #endregion
-
-            #region Caret moving / expanding selection
-
-            AddStep("invoke move action to move caret", () => textBox.MoveToStart());
-            AddAssert("caret moved event", () =>
-                // Ensure dequeued caret move event has selecting = false.
-                textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
-
-            AddStep("invoke select action to expand selection", () => textBox.OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)));
-            AddAssert("caret moved event", () =>
-                // Ensure dequeued caret move event has selecting = true.
-                textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);
-
-            #endregion
-
-            AddAssert("all event queues emptied", () => textBox.UserConsumedTextQueue.Count == 0 &&
-                                                        textBox.UserRemovedTextQueue.Count == 0 &&
-                                                        textBox.CommittedTextQueue.Count == 0 &&
-                                                        textBox.CaretMovedQueue.Count == 0);
-        }
-
-        private class EventQueuesTextBox : InsertableTextBox
-        {
-            public readonly Queue<string> UserConsumedTextQueue = new Queue<string>();
-            public readonly Queue<string> UserRemovedTextQueue = new Queue<string>();
-            public readonly Queue<bool> CommittedTextQueue = new Queue<bool>();
-            public readonly Queue<bool> CaretMovedQueue = new Queue<bool>();
-
-            protected override void OnUserTextConsumed(string consumed) => UserConsumedTextQueue.Enqueue(consumed);
-            protected override void OnUserTextRemoved(string removed) => UserRemovedTextQueue.Enqueue(removed);
-            protected override void OnTextCommitted(bool textChanged) => CommittedTextQueue.Enqueue(textChanged);
-            protected override void OnCaretMoved(bool selecting) => CaretMovedQueue.Enqueue(selecting);
-        }
-
-        private class InsertableTextBox : BasicTextBox
+        public class InsertableTextBox : BasicTextBox
         {
             /// <summary>
             /// Returns the shown-in-screen text.
