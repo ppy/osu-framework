@@ -958,16 +958,16 @@ namespace osu.Framework.Graphics.UserInterface
                 //in the case of backspacing (or a NOP), we can exit early here.
                 return;
 
-            var insertedValue = s.Substring(matchCount);
+            string insertedText = s.Substring(matchCount);
 
-            insertString(insertedValue, d =>
+            insertString(insertedText, d =>
             {
                 d.Colour = Color4.Aqua;
                 d.Alpha = 0.6f;
                 imeDrawables.Add(d);
             });
 
-            OnUserTextAdded(insertedValue);
+            OnUserTextAdded(insertedText);
         }
 
         #endregion
