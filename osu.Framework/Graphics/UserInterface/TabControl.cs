@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += performTabSort;
+            tab.PinnedChanged += PerformTabSort;
             tab.ActivationRequested += activationRequested;
 
             items.Add(tab.Value);
@@ -343,7 +343,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // Only reorder if not pinned and not showing
             if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
-                performTabSort(tab);
+                PerformTabSort(tab);
 
             // Deactivate previously selected tab
             if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
@@ -387,7 +387,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectTab(tab);
         }
 
-        private void performTabSort(TabItem<T> tab)
+        protected void PerformTabSort(TabItem<T> tab)
         {
             TabContainer.SetLayoutPosition(tab, getTabDepth(tab));
 
