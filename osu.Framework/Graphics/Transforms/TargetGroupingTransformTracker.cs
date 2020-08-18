@@ -325,7 +325,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Retrieve the last transform index that was <see cref="Transform.AppliedToEnd"/>.
         /// </summary>
-        /// <param name="targetMember">An optional target member. If null, the highest common last application is returned.</param>
+        /// <param name="targetMember">An optional target member. If null, the lowest common last application is returned.</param>
         private int? getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
