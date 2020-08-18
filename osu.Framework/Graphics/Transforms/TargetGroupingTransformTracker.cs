@@ -225,12 +225,21 @@ namespace osu.Framework.Graphics.Transforms
             int insertionIndex = transforms.Add(transform);
             resetLastAppliedCache();
 
+            bool insertionWasAtEndOfList = insertionIndex == transforms.Count - 1;
+
             // Remove all existing following transforms touching the same property as this one.
-            for (int i = insertionIndex + 1; i < transforms.Count; ++i)
+            for (int i = 0; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
-                if (t.TargetMember == transform.TargetMember)
+                if (!insertionWasAtEndOfList && i < insertionIndex)
+                {
+                    // as we are removing all transforms after the newly added one, the TargetMember may not be in a good state.
+                    // this could mean that we get an incorrect value read into our StartValue on next update.
+                    // To avoid this, we ensure all transforms before the insertion point on next update.
+                    t.AppliedToEnd = false;
+                }
+                else if (i > insertionIndex && t.TargetMember == transform.TargetMember)
                 {
                     transforms.RemoveAt(i--);
                     if (t.OnAbort != null)
