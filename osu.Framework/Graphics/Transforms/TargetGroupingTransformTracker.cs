@@ -248,6 +248,7 @@ namespace osu.Framework.Graphics.Transforms
         public void RemoveTransform(Transform toRemove)
         {
             transforms.Remove(toRemove);
+            resetLastAppliedCache();
         }
 
         /// <summary>
