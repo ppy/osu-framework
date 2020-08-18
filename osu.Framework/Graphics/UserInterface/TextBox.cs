@@ -559,10 +559,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract void NotifyInputError();
 
         /// <summary>
-        /// Invoked whenever pending text input from user has been consumed, this is not necessarily what has been inserted to <see cref="Text"/> (i.e. some may have been disallowed by <see cref="CanAddCharacter"/>)
+        /// Invoked when new text is added via user input.
         /// </summary>
-        /// <param name="consumed">The consumed text string.</param>
-        protected virtual void OnUserTextConsumed(string consumed)
+        /// <param name="added">The text which was added.</param>
+        protected virtual void OnUserTextAdded(string added)
         {
         }
 
@@ -686,7 +686,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
             {
                 InsertString(pendingText);
-                OnUserTextConsumed(pendingText);
+                OnUserTextAdded(pendingText);
             }
 
             if (consumingText)
@@ -967,7 +967,7 @@ namespace osu.Framework.Graphics.UserInterface
                 imeDrawables.Add(d);
             });
 
-            OnUserTextConsumed(insertedValue);
+            OnUserTextAdded(insertedValue);
         }
 
         #endregion
