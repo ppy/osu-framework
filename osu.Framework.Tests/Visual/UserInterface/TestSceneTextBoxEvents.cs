@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public readonly Queue<bool> CommittedTextQueue = new Queue<bool>();
             public readonly Queue<bool> CaretMovedQueue = new Queue<bool>();
 
-            protected override void OnUserTextConsumed(string consumed) => UserConsumedTextQueue.Enqueue(consumed);
+            protected override void OnUserTextAdded(string consumed) => UserConsumedTextQueue.Enqueue(consumed);
             protected override void OnUserTextRemoved(string removed) => UserRemovedTextQueue.Enqueue(removed);
             protected override void OnTextCommitted(bool textChanged) => CommittedTextQueue.Enqueue(textChanged);
             protected override void OnCaretMoved(bool selecting) => CaretMovedQueue.Enqueue(selecting);
