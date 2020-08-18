@@ -367,6 +367,29 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestSimultaneousTransformsOutOfOrder()
+        {
+            boxTest(box =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.MoveToX(0.5f, 4 * interval);
+                    box.Delay(interval).MoveToY(0.5f, 2 * interval);
+                }
+            });
+
+            checkAtTime(0, box => Precision.AlmostEquals(box.Position, new Vector2(0)));
+            checkAtTime(interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.125f, 0)));
+            checkAtTime(2 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.25f, 0.25f)));
+            checkAtTime(3 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.375f, 0.5f)));
+            checkAtTime(4 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.5f)));
+            checkAtTime(3 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.375f, 0.5f)));
+            checkAtTime(2 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.25f, 0.25f)));
+            checkAtTime(interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.125f, 0)));
+            checkAtTime(0, box => Precision.AlmostEquals(box.Position, new Vector2(0)));
+        }
+
+        [Test]
         public void TestMultipleTransformTargets()
         {
             boxTest(box =>
