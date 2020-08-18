@@ -84,11 +84,7 @@ namespace osu.Framework.Graphics.Transforms
                         // the actual application will be in the main loop below now that AppliedToEnd is false.
                         if (!appliedToEndReverts.Contains(t.TargetMember))
                         {
-                            if (time < t.EndTime)
-                                t.AppliedToEnd = false;
-                            else
-                                t.Apply(t.EndTime);
-
+                            t.AppliedToEnd = false;
                             appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
