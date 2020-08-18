@@ -276,8 +276,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private static bool shouldConsiderCell(Drawable cell) => cell != null && cell.IsAlive && cell.IsPresent;
-        private static float getCellWidth(Drawable cell) => shouldConsiderCell(cell) ? cell.BoundingBox.Width : 0;
-        private static float getCellHeight(Drawable cell) => shouldConsiderCell(cell) ? cell.BoundingBox.Height : 0;
+        private static float getCellWidth(Drawable cell) => shouldConsiderCell(cell) ? cell.RequiredParentSizeToFit.X : 0;
+        private static float getCellHeight(Drawable cell) => shouldConsiderCell(cell) ? cell.RequiredParentSizeToFit.Y : 0;
 
         /// <summary>
         /// Distributes any available length along all distributed dimensions, if required.
