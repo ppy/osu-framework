@@ -243,8 +243,6 @@ namespace osu.Framework.Input.Handlers.Joystick
                             origin = 1;
                         else if (axisValue < 0)
                             origin = -1;
-                        else
-                            Logger.Log("No origin value was somehow determined", level: LogLevel.Important);
 
                         axisOrigins.Value[i] = origin;
 
