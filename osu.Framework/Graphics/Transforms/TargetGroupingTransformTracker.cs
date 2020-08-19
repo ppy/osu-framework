@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// The index of the last transform in <see cref="transforms"/> to be applied to completion.
         /// </summary>
-        private int? lastAppliedIndex;
+        private readonly Dictionary<string, int> lastAppliedTransformIndices = new Dictionary<string, int>();
 
         /// <summary>
         /// All <see cref="Transform.TargetMember"/>s which are handled by this tracker.
@@ -58,9 +58,9 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (rewinding && !transformable.RemoveCompletedTransforms)
             {
-                resetLastAppliedIndex();
+                resetLastAppliedCache();
 
-                bool appliedToEndRevert = false;
+                var appliedToEndReverts = new List<string>();
 
                 // Under the case that completed transforms are not removed, reversing the clock is permitted.
                 // We need to first look back through all the transforms and apply the start values of the ones that were previously
@@ -80,16 +80,12 @@ namespace osu.Framework.Graphics.Transforms
                     if (time >= t.StartTime)
                     {
                         // we are in the middle of this transform, so we want to mark as not-completely-applied.
-                        // note that we should only do this for the last transform to avoid incorrect application order.
+                        // note that we should only do this for the last transform of each TargetMember to avoid incorrect application order.
                         // the actual application will be in the main loop below now that AppliedToEnd is false.
-                        if (!appliedToEndRevert)
+                        if (!appliedToEndReverts.Contains(t.TargetMember))
                         {
-                            if (time < t.EndTime)
-                                t.AppliedToEnd = false;
-                            else
-                                t.Apply(t.EndTime);
-
-                            appliedToEndRevert = true;
+                            t.AppliedToEnd = false;
+                            appliedToEndReverts.Add(t.TargetMember);
                         }
                     }
                     else
@@ -103,7 +99,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = lastAppliedIndex ?? 0; i < transforms.Count; ++i)
+            for (int i = getLastAppliedIndex(); i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
@@ -121,7 +117,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
                     // be safely removed.
-                    for (int j = lastAppliedIndex ?? 0; j < i; ++j)
+                    for (int j = getLastAppliedIndex(t.TargetMember); j < i; ++j)
                     {
                         var u = transforms[j];
                         if (u.TargetMember != t.TargetMember) continue;
@@ -194,10 +190,10 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 if (flushAppliedCache)
-                    resetLastAppliedIndex();
+                    resetLastAppliedCache();
                 // if this transform is applied to end, we can be sure that all previous transforms have been completed.
                 else if (t.AppliedToEnd)
-                    lastAppliedIndex = i + 1;
+                    setLastAppliedIndex(t.TargetMember, i + 1);
             }
 
             invokePendingRemovalActions();
@@ -227,7 +223,7 @@ namespace osu.Framework.Graphics.Transforms
 
             transform.TransformID = customTransformID ?? ++currentTransformID;
             int insertionIndex = transforms.Add(transform);
-            resetLastAppliedIndex();
+            resetLastAppliedCache();
 
             // Remove all existing following transforms touching the same property as this one.
             for (int i = insertionIndex + 1; i < transforms.Count; ++i)
@@ -252,6 +248,7 @@ namespace osu.Framework.Graphics.Transforms
         public void RemoveTransform(Transform toRemove)
         {
             transforms.Remove(toRemove);
+            resetLastAppliedCache();
         }
 
         /// <summary>
@@ -264,7 +261,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, string targetMember = null)
         {
-            resetLastAppliedIndex();
+            resetLastAppliedCache();
 
             Transform[] toAbort;
 
@@ -302,7 +299,7 @@ namespace osu.Framework.Graphics.Transforms
             var toFlush = transforms.Where(toFlushPredicate).ToArray();
 
             transforms.RemoveAll(t => toFlushPredicate(t));
-            resetLastAppliedIndex();
+            resetLastAppliedCache();
 
             foreach (Transform t in toFlush)
             {
@@ -324,8 +321,37 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
+        /// Retrieve the last transform index that was <see cref="Transform.AppliedToEnd"/>.
+        /// </summary>
+        /// <param name="targetMember">An optional target member. If null, the lowest common last application is returned.</param>
+        private int getLastAppliedIndex(string targetMember = null)
+        {
+            if (targetMember == null)
+                return lastAppliedTransformIndices.Values.Min();
+
+            if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
+                return val;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Set the last transform index that was <see cref="Transform.AppliedToEnd"/> for a specific target member.
+        /// </summary>
+        /// <param name="targetMember">The target member to set the index of.</param>
+        /// <param name="index">The index of the transform in <see cref="transforms"/>.</param>
+        private void setLastAppliedIndex(string targetMember, int index)
+        {
+            lastAppliedTransformIndices[targetMember] = index;
+        }
+
+        /// <summary>
         /// Reset the last applied index cache completely.
         /// </summary>
-        private void resetLastAppliedIndex() => lastAppliedIndex = null;
+        private void resetLastAppliedCache()
+        {
+            foreach (var tracked in targetMembers)
+                lastAppliedTransformIndices[tracked] = 0;
+        }
     }
 }
