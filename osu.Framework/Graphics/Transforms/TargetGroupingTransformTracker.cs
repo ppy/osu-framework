@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// The index of the last transform in <see cref="transforms"/> to be applied to completion.
         /// </summary>
-        private readonly Dictionary<string, int> lastAppliedIndex = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> lastAppliedTransformIndices = new Dictionary<string, int>();
 
         /// <summary>
         /// All <see cref="Transform.TargetMember"/>s which are handled by this tracker.
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            for (int i = getLastAppliedIndex() ?? 0; i < transforms.Count; ++i)
+            for (int i = getLastAppliedIndex(); i < transforms.Count; ++i)
             {
                 var t = transforms[i];
 
@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Transforms
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
                     // be safely removed.
-                    for (int j = getLastAppliedIndex(t.TargetMember) ?? 0; j < i; ++j)
+                    for (int j = getLastAppliedIndex(t.TargetMember); j < i; ++j)
                     {
                         var u = transforms[j];
                         if (u.TargetMember != t.TargetMember) continue;
@@ -320,21 +320,19 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        private readonly Dictionary<string, int?> lastAppliedTransformIndices = new Dictionary<string, int?>();
-
         /// <summary>
         /// Retrieve the last transform index that was <see cref="Transform.AppliedToEnd"/>.
         /// </summary>
         /// <param name="targetMember">An optional target member. If null, the lowest common last application is returned.</param>
-        private int? getLastAppliedIndex(string targetMember = null)
+        private int getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
                 return lastAppliedTransformIndices.Values.Min();
 
-            if (lastAppliedTransformIndices.TryGetValue(targetMember, out int? val))
+            if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
                 return val;
 
-            return null;
+            return 0;
         }
 
         /// <summary>
@@ -342,7 +340,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="targetMember">The target member to set the index of.</param>
         /// <param name="index">The index of the transform in <see cref="transforms"/>.</param>
-        private void setLastAppliedIndex(string targetMember, int? index = null)
+        private void setLastAppliedIndex(string targetMember, int index)
         {
             lastAppliedTransformIndices[targetMember] = index;
         }
