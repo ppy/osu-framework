@@ -107,6 +107,11 @@ namespace osu.Framework.Input.Handlers.Joystick
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
                     var value = device.RawState.GetAxis(i);
+                    var origin = device.AxisOrigins?[i] ?? 0;
+
+                    // Rescale and flip for off-center origin
+                    if (origin != 0)
+                        value = (origin - value) / (2 * Math.Sign(origin));
 
                     // do not allow a deadzone below float_epsilon
                     var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
@@ -194,11 +199,17 @@ namespace osu.Framework.Input.Handlers.Joystick
             public osuTK.Input.JoystickState RawState { get; private set; }
 
             private readonly Lazy<float[]> defaultDeadZones = new Lazy<float[]>(() => new float[MAX_AXES]);
+            private readonly Lazy<float[]> axisOrigins = new Lazy<float[]>(() => new float[MAX_AXES]);
 
             /// <summary>
             /// Default deadzones for each axis. Can be null if deadzones have not been found.
             /// </summary>
             public float[] DefaultDeadzones => defaultDeadZones.IsValueCreated ? defaultDeadZones.Value : null;
+
+            /// <summary>
+            /// Axis origins for each axis. Can be null if origins have not been found.
+            /// </summary>
+            public float[] AxisOrigins => axisOrigins.IsValueCreated ? axisOrigins.Value : null;
 
             /// <summary>
             /// The <see cref="Guid"/> for this <see cref="JoystickDevice"/>.
@@ -220,12 +231,25 @@ namespace osu.Framework.Input.Handlers.Joystick
                 {
                     for (int i = 0; i < MAX_AXES; i++)
                     {
-                        var axisValue = Math.Abs(RawState.GetAxis(i));
+                        var axisValue = RawState.GetAxis(i);
                         if (Precision.AlmostEquals(0, axisValue))
                             continue;
 
+                        float origin = 0;
+
+                        if (Precision.AlmostEquals(axisValue, 0, 0.5f))
+                            origin = 0;
+                        else if (axisValue > 0)
+                            origin = 1;
+                        else if (axisValue < 0)
+                            origin = -1;
+                        else
+                            Logger.Log("No origin value was somehow determined", level: LogLevel.Important);
+
+                        axisOrigins.Value[i] = origin;
+
                         // Cap deadzone at 0.5f to avoid division by zero and catastrophic cancellation when rescaling
-                        defaultDeadZones.Value[i] = Math.Min(0.5f, axisValue + deadzone_threshold);
+                        defaultDeadZones.Value[i] = Math.Min(0.5f, Math.Abs(axisValue - origin) + deadzone_threshold);
                     }
                 }
             }
