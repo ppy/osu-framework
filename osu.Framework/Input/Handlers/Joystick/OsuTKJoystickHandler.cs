@@ -106,28 +106,11 @@ namespace osu.Framework.Input.Handlers.Joystick
                 // Populate axes
                 for (int i = 0; i < JoystickDevice.MAX_AXES; i++)
                 {
-                    var value = device.RawState.GetAxis(i);
-                    var origin = device.AxisOrigins?[i] ?? 0;
+                    AxesValues[i] = getAxisValue(device, i);
 
-                    // Rescale and flip for off-center origin
-                    if (origin != 0)
-                        value = (origin - value) / (2 * Math.Sign(origin));
-
-                    // do not allow a deadzone below float_epsilon
-                    var deadzone = MathF.Max(device.DefaultDeadzones?[i] ?? 0, Precision.FLOAT_EPSILON);
-
-                    if (Precision.AlmostEquals(value, 0, deadzone))
-                        // Round values in the deadzone to zero.
-                        value = 0;
-                    else
-                        // Rescale values then clamp back into [-1;1] range.
-                        value = Math.Clamp((value - deadzone * Math.Sign(value)) / (1 - deadzone), -1, 1);
-
-                    AxesValues[i] = value;
-
-                    if (value > 0)
+                    if (AxesValues[i] > 0)
                         Buttons.SetPressed(JoystickButton.FirstAxisPositive + i, true);
-                    else if (value < 0)
+                    else if (AxesValues[i] < 0)
                         Buttons.SetPressed(JoystickButton.FirstAxisNegative + i, true);
                 }
 
@@ -159,6 +142,28 @@ namespace osu.Framework.Input.Handlers.Joystick
                     yield return JoystickButton.FirstHatLeft + hat;
                 else if (state.IsRight)
                     yield return JoystickButton.FirstHatRight + hat;
+            }
+
+            private float getAxisValue(JoystickDevice device, int axis)
+            {
+                var value = device.RawState.GetAxis(axis);
+                var origin = device.AxisOrigins?[axis] ?? 0;
+
+                // Rescale and flip for off-center origin
+                if (origin != 0)
+                    value = (origin - value) / (2 * Math.Sign(origin));
+
+                // do not allow a deadzone below float_epsilon
+                var deadzone = MathF.Max(device.DefaultDeadzones?[axis] ?? 0, Precision.FLOAT_EPSILON);
+
+                if (Precision.AlmostEquals(value, 0, deadzone))
+                    // Round values in the deadzone to zero.
+                    value = 0;
+                else
+                    // Rescale values then clamp back into [-1;1] range.
+                    value = Math.Clamp((value - deadzone * Math.Sign(value)) / (1 - deadzone), -1, 1);
+
+                return value;
             }
         }
 
