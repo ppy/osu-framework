@@ -37,16 +37,16 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Sets the component's BASS channel handle.
         /// </summary>
-        /// <param name="c">The channel handle.</param>
-        public void SetChannel(int c)
+        /// <param name="channel">The channel handle.</param>
+        public void SetChannel(int channel)
         {
             if (channel == 0)
-                throw new ArgumentException("Invalid channel handle specified.", nameof(c));
+                throw new ArgumentException("Invalid channel handle specified.", nameof(channel));
 
-            channel = c;
+            this.channel = channel;
             IsFrequencyZero = false;
 
-            Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
+            Bass.ChannelGetAttribute(this.channel, ChannelAttribute.Frequency, out initialFrequency);
         }
 
         /// <summary>
