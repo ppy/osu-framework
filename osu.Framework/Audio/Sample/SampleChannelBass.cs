@@ -22,8 +22,8 @@ namespace osu.Framework.Audio.Sample
         {
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                RequestZeroFrequencyPause = () => Bass.ChannelPause(channel),
-                RequestZeroFrequencyResume = () => Bass.ChannelPlay(channel),
+                FrequencyChangedToZero = () => Bass.ChannelPause(channel),
+                FrequencyChangedFromZero = () => Bass.ChannelPlay(channel),
             };
         }
 
@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Sample
 
             EnqueueAction(() =>
             {
-                if (channel != 0 && !relativeFrequencyHandler.ZeroFrequencyPauseRequested)
+                if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
                     Bass.ChannelPlay(channel, restart);
             });
 

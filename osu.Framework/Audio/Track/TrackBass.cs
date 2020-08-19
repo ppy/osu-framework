@@ -67,8 +67,8 @@ namespace osu.Framework.Audio.Track
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                RequestZeroFrequencyPause = () => stopInternal(),
-                RequestZeroFrequencyResume = () =>
+                FrequencyChangedToZero = () => stopInternal(),
+                FrequencyChangedFromZero = () =>
                 {
                     // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
                     if (!isPlayed) return;
@@ -267,7 +267,7 @@ namespace osu.Framework.Audio.Track
             if (Bass.ChannelGetPosition(activeStream) == byteLength)
                 return false;
 
-            if (relativeFrequencyHandler.ZeroFrequencyPauseRequested)
+            if (relativeFrequencyHandler.IsFrequencyZero)
                 return true;
 
             return Bass.ChannelPlay(activeStream);
