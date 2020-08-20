@@ -228,7 +228,10 @@ namespace osu.Framework.Platform.Sdl
                 SDL.SDL_GetCurrentDisplayMode(currentDisplayIndex, out var mode);
                 return displayModeFromSDL(mode);
             }
-            set { }
+            set
+            {
+                // TODO: change display modes
+            }
         }
 
         private static Display displayFromSDL(int displayIndex)
