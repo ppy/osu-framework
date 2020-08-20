@@ -141,12 +141,9 @@ namespace osu.Framework.Platform
 
         private void updateWindowPositionConfig()
         {
-            if (WindowState.Value == Platform.WindowState.Normal)
-            {
-                var relativePosition = RelativePosition;
-                windowPositionX.Value = relativePosition.X;
-                windowPositionY.Value = relativePosition.Y;
-            }
+            var relativePosition = RelativePosition;
+            windowPositionX.Value = relativePosition.X;
+            windowPositionY.Value = relativePosition.Y;
         }
 
         private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
