@@ -13,7 +13,7 @@ mkdir build
 
 #Configure
 ./configure --disable-ffplay --disable-ffprobe --disable-avdevice --disable-swresample \
---disable-static --enable-shared --prefix=build --libdir=../native
+--disable-static --enable-shared --prefix=build --libdir=../../native
 
 #Compile
 make -j
