@@ -1,5 +1,6 @@
 #!/bin/sh
 #You may need to compile on a distro that has an older version of GLIBC to avoid some issues.
+#Also, GCC 5.4.0 or Clang 3.8.0 is recommended.
 #Tested on Ubuntu 16.04 and Ubuntu 20.10, works fine.
 
 #Extract tarball
