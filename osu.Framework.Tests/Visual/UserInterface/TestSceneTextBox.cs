@@ -412,7 +412,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
 
-        private class InsertableTextBox : BasicTextBox
+        public class InsertableTextBox : BasicTextBox
         {
             /// <summary>
             /// Returns the shown-in-screen text.

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -163,8 +162,12 @@ namespace osu.Framework.Graphics.UserInterface
                     if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
 
                     clipboard?.SetText(SelectedText);
+
                     if (action.ActionType == PlatformActionType.Cut)
-                        removeSelection();
+                    {
+                        string removedText = removeSelection();
+                        OnUserTextRemoved(removedText);
+                    }
 
                     return true;
 
@@ -248,7 +251,10 @@ namespace osu.Framework.Graphics.UserInterface
                             selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
 
                         if (selectionLength > 0)
-                            removeSelection();
+                        {
+                            string removedText = removeSelection();
+                            OnUserTextRemoved(removedText);
+                        }
 
                         break;
                 }
@@ -419,7 +425,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Removes the selected text if a selection persists.
         /// </summary>
-        private void removeSelection() => removeCharacters(selectionLength);
+        private string removeSelection() => removeCharacters(selectionLength);
 
         /// <summary>
         /// Removes a specified <paramref name="number"/> of characters left side of the current position.
@@ -427,16 +433,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <remarks>
         /// If a selection persists, <see cref="removeSelection"/> must be called instead.
         /// </remarks>
-        private void removeCharacters(int number = 1)
+        /// <returns>A string of the removed characters.</returns>
+        private string removeCharacters(int number = 1)
         {
             if (Current.Disabled || text.Length == 0)
-                return;
+                return string.Empty;
 
             int removeStart = Math.Clamp(selectionRight - number, 0, selectionRight);
             int removeCount = selectionRight - removeStart;
 
             if (removeCount == 0)
-                return;
+                return string.Empty;
 
             Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
 
@@ -455,7 +462,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             var removedText = text.Substring(removeStart, removeCount);
             text = text.Remove(removeStart, removeCount);
-            OnTextRemoved(removedText);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
             for (int i = removeStart; i < TextFlow.Count; i++)
@@ -464,6 +470,8 @@ namespace osu.Framework.Graphics.UserInterface
             selectionStart = selectionEnd = removeStart;
 
             cursorAndLayout.Invalidate();
+
+            return removedText;
         }
 
         /// <summary>
@@ -507,8 +515,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void insertString(string value, Action<Drawable> drawableCreationParameters = null)
         {
-            StringBuilder inserted = new StringBuilder();
-
             if (string.IsNullOrEmpty(value)) return;
 
             if (Current.Disabled)
@@ -540,15 +546,11 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
-                inserted.Append(c);
 
                 selectionStart = selectionEnd = selectionLeft + 1;
 
                 cursorAndLayout.Invalidate();
             }
-
-            if (inserted.Length > 0)
-                OnTextAdded(inserted.ToString());
         }
 
         /// <summary>
@@ -557,18 +559,18 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract void NotifyInputError();
 
         /// <summary>
-        /// Invoked whenever a text string has been inserted to <see cref="Text"/>.
+        /// Invoked when new text is added via user input.
         /// </summary>
-        /// <param name="added">The inserted text string.</param>
-        protected virtual void OnTextAdded(string added)
+        /// <param name="added">The text which was added.</param>
+        protected virtual void OnUserTextAdded(string added)
         {
         }
 
         /// <summary>
-        /// Invoked whenever a text string has been removed from <see cref="Text"/>.
+        /// Invoked when text is removed via user input.
         /// </summary>
-        /// <param name="removed">The removed text string.</param>
-        protected virtual void OnTextRemoved(string removed)
+        /// <param name="removed">The text which was removed.</param>
+        protected virtual void OnUserTextRemoved(string removed)
         {
         }
 
@@ -682,7 +684,10 @@ namespace osu.Framework.Graphics.UserInterface
             string pendingText = textInput?.GetPendingText();
 
             if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
+            {
                 InsertString(pendingText);
+                OnUserTextAdded(pendingText);
+            }
 
             if (consumingText)
                 Schedule(consumePendingText);
@@ -953,12 +958,16 @@ namespace osu.Framework.Graphics.UserInterface
                 //in the case of backspacing (or a NOP), we can exit early here.
                 return;
 
-            insertString(s.Substring(matchCount), d =>
+            string insertedText = s.Substring(matchCount);
+
+            insertString(insertedText, d =>
             {
                 d.Colour = Color4.Aqua;
                 d.Alpha = 0.6f;
                 imeDrawables.Add(d);
             });
+
+            OnUserTextAdded(insertedText);
         }
 
         #endregion

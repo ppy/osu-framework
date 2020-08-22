@@ -63,6 +63,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool ShouldLoadContent => timeVisible > timeBeforeLoad;
 
         private Task loadTask;
+        private ScheduledDelegate scheduledAddition;
 
         protected override void Update()
         {
@@ -85,7 +86,9 @@ namespace osu.Framework.Graphics.Containers
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
 
             DelayedLoadStarted?.Invoke(Content);
-            loadTask = LoadComponentAsync(Content, EndDelayedLoad);
+
+            // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
+            loadTask = LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler);
         }
 
         protected virtual void EndDelayedLoad(Drawable content)
@@ -93,8 +96,12 @@ namespace osu.Framework.Graphics.Containers
             timeVisible = 0;
             loadTask = null;
 
-            AddInternal(content);
-            DelayedLoadComplete?.Invoke(content);
+            // This code is running on the game's scheduler, while this DLW may have been async disposed, so the addition is scheduled locally to prevent adding to disposed DLWs.
+            scheduledAddition = Schedule(() =>
+            {
+                AddInternal(content);
+                DelayedLoadComplete?.Invoke(content);
+            });
         }
 
         protected override void Dispose(bool isDisposing)
@@ -107,6 +114,9 @@ namespace osu.Framework.Graphics.Containers
         {
             isIntersectingCache.Invalidate();
             loadTask = null;
+
+            scheduledAddition?.Cancel();
+            scheduledAddition = null;
         }
 
         /// <summary>
