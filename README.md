@@ -51,7 +51,7 @@ This framework is licensed under the [MIT licence](https://opensource.org/licens
 
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
 
-For video decoding, This software uses libraries from the FFmpeg project under the LGPLv2.1.
+For video decoding, this software uses libraries from the FFmpeg project under the LGPLv2.1.
 
 ## Projects that use osu!framework
 
