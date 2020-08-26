@@ -231,6 +231,21 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
         }
 
+        [TestCase(0)]
+        [TestCase(48)]
+        public void TestGotoFrameBeforeLoaded(int frame)
+        {
+            AddStep("create new animation", () => animation = new TestAnimation(true, fontStore)
+            {
+                Loop = false
+            });
+            AddStep($"go to frame {frame}", () => animation.GotoFrame(frame));
+
+            AddStep("load animation", () => animationContainer.Child = animation);
+
+            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
