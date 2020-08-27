@@ -24,6 +24,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         private TestAnimation animation;
         private Container animationContainer;
 
+        [Resolved]
+        private FontStore fontStore { get; set; }
+
         [SetUpSteps]
         public void SetUpSteps()
         {
@@ -228,11 +231,26 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
         }
 
+        [TestCase(0)]
+        [TestCase(48)]
+        public void TestGotoFrameBeforeLoaded(int frame)
+        {
+            AddStep("create new animation", () => animation = new TestAnimation(true, fontStore)
+            {
+                Loop = false
+            });
+            AddStep($"go to frame {frame}", () => animation.GotoFrame(frame));
+
+            AddStep("load animation", () => animationContainer.Child = animation);
+
+            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
             {
-                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent, fontStore)
                 {
                     Loop = false,
                 };
@@ -260,27 +278,16 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             public const int LOADABLE_FRAMES = 72;
 
-            [Resolved]
-            private FontStore fontStore { get; set; }
-
             public int FramesProcessed;
 
-            public TestAnimation(bool startFromCurrent)
+            // fontStore passed in via ctor to be able to test scenarios where an animation
+            // already has frames before load
+            public TestAnimation(bool startFromCurrent, FontStore fontStore)
                 : base(startFromCurrent)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
-            }
 
-            protected override void DisplayFrame(Texture content)
-            {
-                FramesProcessed++;
-                base.DisplayFrame(content);
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
                 for (int i = 0; i < LOADABLE_FRAMES; i++)
                 {
                     AddFrame(new Texture(fontStore.Get(null, (char)('0' + i))?.Texture.TextureGL)
@@ -288,6 +295,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                         ScaleAdjust = 1 + i / 40f,
                     }, 250);
                 }
+            }
+
+            protected override void DisplayFrame(Texture content)
+            {
+                FramesProcessed++;
+                base.DisplayFrame(content);
             }
         }
     }
