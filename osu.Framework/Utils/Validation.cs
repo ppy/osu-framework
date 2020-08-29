@@ -3,20 +3,11 @@
 
 using osuTK;
 using osu.Framework.Graphics;
-using System;
 
 namespace osu.Framework.Utils
 {
     public static class Validation
     {
-        /// <summary>
-        /// Returns whether a value is not <see cref="float.NegativeInfinity"/>, <see cref="float.PositiveInfinity"/> or <see cref="float.NaN"/>.
-        /// </summary>
-        /// <param name="toCheck"></param>
-        /// <returns>Whether the float is valid in our conditions.</returns>
-        [Obsolete("Use float.IsFinite in .NET Standard 2.1")] // can be removed 20200626
-        public static bool IsFinite(float toCheck) => float.IsFinite(toCheck);
-
         /// <summary>
         /// Returns whether the two coordinates of a <see cref="Vector2"/> are not infinite or NaN.
         /// <para>For further information, see <seealso cref="float.IsFinite(float)"/>.</para>
