@@ -51,12 +51,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool Exists => WindowBackend.Exists;
 
-        /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
-        /// </summary>
-        public float Scale => WindowBackend.Scale;
-
         public Display PrimaryDisplay => WindowBackend.PrimaryDisplay;
 
         public DisplayMode CurrentDisplayMode => WindowBackend.CurrentDisplayMode;

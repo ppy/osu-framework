@@ -109,7 +109,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private readonly Cached<float> scale = new Cached<float>();
+        private readonly Cached<float> cachedScale = new Cached<float>();
 
         public Size ClientSize
         {
@@ -120,20 +120,20 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public float Scale => validateScale();
+        private float scale => validateScale();
 
         private float validateScale(bool force = false)
         {
-            if (!force && scale.IsValid)
-                return scale.Value;
+            if (!force && cachedScale.IsValid)
+                return cachedScale.Value;
 
             if (SdlWindowHandle == IntPtr.Zero)
                 return 1f;
 
             SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out int w, out _);
 
-            scale.Value = w / (float)Size.Width;
-            return scale.Value;
+            cachedScale.Value = w / (float)Size.Width;
+            return cachedScale.Value;
         }
 
         private bool cursorVisible = true;
@@ -376,7 +376,7 @@ namespace osu.Framework.Platform.Sdl
 
             var rx = x - Position.X;
             var ry = y - Position.Y;
-            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * Scale, ry * Scale) });
+            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * scale, ry * scale) });
         }
 
         #endregion
@@ -553,7 +553,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * Scale, evtMotion.y * Scale) });
+            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * scale, evtMotion.y * scale) });
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
