@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -51,8 +52,19 @@ namespace osu.Framework.Graphics.Performance
         {
             base.LoadComplete();
 
-            GlobalStatistics.Statistics.ItemsAdded += add;
-            GlobalStatistics.Statistics.ItemsRemoved += remove;
+            GlobalStatistics.Statistics.CollectionChanged += (_, e) =>
+            {
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Add:
+                        add(e.NewItems.Cast<IGlobalStatistic>());
+                        break;
+
+                    case NotifyCollectionChangedAction.Remove:
+                        remove(e.OldItems.Cast<IGlobalStatistic>());
+                        break;
+                }
+            };
 
             // ToArray is to guard against collection modification in underlying bindable.
             add(GlobalStatistics.Statistics.ToArray());

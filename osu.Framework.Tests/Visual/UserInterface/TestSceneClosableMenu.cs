@@ -4,13 +4,15 @@
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
+using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneClosableMenu : MenuTestScene
     {
-        protected override Menu CreateMenu() => new BasicMenu(Direction.Vertical)
+        protected override Menu CreateMenu() => new AnimatedMenu(Direction.Vertical)
         {
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
@@ -51,6 +53,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 return true;
             });
+        }
+
+        [Test]
+        public void TestMenuIgnoresEscapeWhenClosed()
+        {
+            AnimatedMenu menu = null;
+
+            AddStep("find menu", () => menu = (AnimatedMenu)Menus.GetSubMenu(0));
+            AddStep("press escape", () => InputManager.Key(Key.Escape));
+            AddAssert("press handled", () => menu.PressBlocked);
+            AddStep("reset flag", () => menu.PressBlocked = false);
+            AddStep("press escape again", () => InputManager.Key(Key.Escape));
+            AddAssert("press not handled", () => !menu.PressBlocked);
+        }
+
+        private class AnimatedMenu : BasicMenu
+        {
+            public bool PressBlocked { get; set; }
+
+            public AnimatedMenu(Direction direction)
+                : base(direction)
+            {
+            }
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                return PressBlocked = base.OnKeyDown(e);
+            }
+
+            protected override void AnimateOpen() => this.FadeIn(500);
+
+            protected override void AnimateClose() => this.FadeOut(5000); // Ensure escape is pressed while menu is still fading
+
+            protected override Menu CreateSubMenu() => new AnimatedMenu(Direction);
         }
     }
 }

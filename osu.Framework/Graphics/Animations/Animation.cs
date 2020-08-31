@@ -100,6 +100,17 @@ namespace osu.Framework.Graphics.Animations
         }
 
         /// <summary>
+        /// Removes all frames from this animation.
+        /// </summary>
+        public void ClearFrames()
+        {
+            frameData.Clear();
+
+            Duration = 0;
+            CurrentFrameIndex = 0;
+        }
+
+        /// <summary>
         /// Displays the given contents.
         /// </summary>
         /// <remarks>This method will only be called after <see cref="OnFrameAdded(T, double)"/> has been called at least once.</remarks>

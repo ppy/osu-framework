@@ -98,6 +98,33 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
+        private readonly Cached<float> cachedScale = new Cached<float>();
+
+        public Size ClientSize
+        {
+            get
+            {
+                SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
+                return new Size(w, h);
+            }
+        }
+
+        private float scale => validateScale();
+
+        private float validateScale(bool force = false)
+        {
+            if (!force && cachedScale.IsValid)
+                return cachedScale.Value;
+
+            if (SdlWindowHandle == IntPtr.Zero)
+                return 1f;
+
+            SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out int w, out _);
+
+            cachedScale.Value = w / (float)Size.Width;
+            return cachedScale.Value;
+        }
+
         private bool cursorVisible = true;
 
         public override bool CursorVisible
@@ -303,6 +330,10 @@ namespace osu.Framework.Platform.Sdl
 
                 SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode);
                 return mode;
+            }
+            set
+            {
+                // TODO: change display modes
             }
         }
 
@@ -648,7 +679,6 @@ namespace osu.Framework.Platform.Sdl
 
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     var eventSize = new Size(evtWindow.data1, evtWindow.data2);
 

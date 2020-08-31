@@ -60,7 +60,7 @@ namespace osu.Framework
 
         private DrawVisualiser drawVisualiser;
 
-        private TextureAtlasVisualiser atlasVisualiser;
+        private TextureVisualiser textureVisualiser;
 
         private LogOverlay logOverlay;
 
@@ -293,16 +293,16 @@ namespace osu.Framework
 
                 case FrameworkAction.ToggleAtlasVisualiser:
 
-                    if (atlasVisualiser == null)
+                    if (textureVisualiser == null)
                     {
-                        LoadComponentAsync(atlasVisualiser = new TextureAtlasVisualiser
+                        LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
                             Position = new Vector2(100 + 2 * ToolWindow.WIDTH, 100),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
 
-                    atlasVisualiser.ToggleVisibility();
+                    textureVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:

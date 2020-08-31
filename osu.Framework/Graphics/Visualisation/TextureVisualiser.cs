@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
@@ -15,19 +16,47 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class TextureAtlasVisualiser : ToolWindow
+    internal class TextureVisualiser : ToolWindow
     {
-        private readonly FillFlowContainer<TexturePanel> panelFlow;
+        private readonly FillFlowContainer<TexturePanel> atlasFlow;
+        private readonly FillFlowContainer<TexturePanel> textureFlow;
 
-        public TextureAtlasVisualiser()
-            : base("Texture Atlases", "(Ctrl+F3 to toggle)")
+        public TextureVisualiser()
+            : base("Textures", "(Ctrl+F3 to toggle)")
         {
-            ScrollContent.Child = panelFlow = new FillFlowContainer<TexturePanel>
+            ScrollContent.Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
-                Spacing = new Vector2(22),
-                Padding = new MarginPadding(10),
+                Children = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Text = "Atlases",
+                        Padding = new MarginPadding(5),
+                        Font = FrameworkFont.Condensed.With(weight: "Bold")
+                    },
+                    atlasFlow = new FillFlowContainer<TexturePanel>
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Spacing = new Vector2(22),
+                        Padding = new MarginPadding(10),
+                    },
+                    new SpriteText
+                    {
+                        Text = "Textures",
+                        Padding = new MarginPadding(5),
+                        Font = FrameworkFont.Condensed.With(weight: "Bold")
+                    },
+                    textureFlow = new FillFlowContainer<TexturePanel>
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Spacing = new Vector2(22),
+                        Padding = new MarginPadding(10),
+                    }
+                }
             };
         }
 
@@ -35,43 +64,46 @@ namespace osu.Framework.Graphics.Visualisation
         {
             base.PopIn();
 
-            foreach (var tex in TextureGLAtlas.GetAllAtlases())
+            foreach (var tex in TextureGLSingle.GetAllTextures())
                 addTexture(tex);
 
-            TextureGLAtlas.TextureCreated += addTexture;
+            TextureGLSingle.TextureCreated += addTexture;
         }
 
         protected override void PopOut()
         {
             base.PopOut();
 
-            panelFlow.Clear();
+            atlasFlow.Clear();
+            textureFlow.Clear();
 
-            TextureGLAtlas.TextureCreated -= addTexture;
+            TextureGLSingle.TextureCreated -= addTexture;
         }
 
-        private void addTexture(TextureGLAtlas texture) => Schedule(() =>
+        private void addTexture(TextureGLSingle texture) => Schedule(() =>
         {
-            if (panelFlow.Any(p => p.AtlasTexture == texture))
+            var target = texture is TextureGLAtlas ? atlasFlow : textureFlow;
+
+            if (target.Any(p => p.Texture == texture))
                 return;
 
-            panelFlow.Add(new TexturePanel(texture));
+            target.Add(new TexturePanel(texture));
         });
 
         private class TexturePanel : CompositeDrawable
         {
-            private readonly WeakReference<TextureGLAtlas> atlasReference;
+            private readonly WeakReference<TextureGLSingle> textureReference;
 
-            public TextureGLAtlas AtlasTexture => atlasReference.TryGetTarget(out var tex) ? tex : null;
+            public TextureGLSingle Texture => textureReference.TryGetTarget(out var tex) ? tex : null;
 
             private readonly SpriteText titleText;
             private readonly SpriteText footerText;
 
             private readonly UsageBackground usage;
 
-            public TexturePanel(TextureGLAtlas atlasTexture)
+            public TexturePanel(TextureGLSingle texture)
             {
-                atlasReference = new WeakReference<TextureGLAtlas>(atlasTexture);
+                textureReference = new WeakReference<TextureGLSingle>(texture);
 
                 Size = new Vector2(100, 132);
 
@@ -96,7 +128,7 @@ namespace osu.Framework.Graphics.Visualisation
                             AutoSizeAxes = Axes.Y,
                             Children = new Drawable[]
                             {
-                                usage = new UsageBackground(atlasReference)
+                                usage = new UsageBackground(textureReference)
                                 {
                                     Size = new Vector2(100)
                                 },
@@ -118,32 +150,32 @@ namespace osu.Framework.Graphics.Visualisation
 
                 try
                 {
-                    var atlas = AtlasTexture;
+                    var texture = Texture;
 
-                    if (atlas?.Available != true)
+                    if (texture?.Available != true)
                     {
                         Expire();
                         return;
                     }
 
-                    titleText.Text = $"{atlas.TextureId}. {atlas.Width}x{atlas.Height} ";
+                    titleText.Text = $"{texture.TextureId}. {texture.Width}x{texture.Height} ";
                     footerText.Text = Precision.AlmostBigger(usage.AverageUsagesPerFrame, 1) ? $"{usage.AverageUsagesPerFrame:N0} binds" : string.Empty;
                 }
                 catch { }
             }
         }
 
-        private class UsageBackground : Box
+        private class UsageBackground : Box, IHasTooltip
         {
-            private readonly WeakReference<TextureGLAtlas> atlasReference;
+            private readonly WeakReference<TextureGLSingle> textureReference;
 
             private ulong lastBindCount;
 
             public float AverageUsagesPerFrame { get; private set; }
 
-            public UsageBackground(WeakReference<TextureGLAtlas> atlasReference)
+            public UsageBackground(WeakReference<TextureGLSingle> textureReference)
             {
-                this.atlasReference = atlasReference;
+                this.textureReference = textureReference;
             }
 
             protected override DrawNode CreateDrawNode() => new UsageBackgroundDrawNode(this);
@@ -154,7 +186,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 private ColourInfo drawColour;
 
-                private WeakReference<TextureGLAtlas> atlasReference;
+                private WeakReference<TextureGLSingle> textureReference;
 
                 public UsageBackgroundDrawNode(Box source)
                     : base(source)
@@ -165,12 +197,12 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     base.ApplyState();
 
-                    atlasReference = Source.atlasReference;
+                    textureReference = Source.textureReference;
                 }
 
                 public override void Draw(Action<TexturedVertex2D> vertexAction)
                 {
-                    if (!atlasReference.TryGetTarget(out var texture))
+                    if (!textureReference.TryGetTarget(out var texture))
                         return;
 
                     if (!texture.Available)
@@ -194,7 +226,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 protected override void Blit(Action<TexturedVertex2D> vertexAction)
                 {
-                    if (!atlasReference.TryGetTarget(out var texture))
+                    if (!textureReference.TryGetTarget(out var texture))
                         return;
 
                     const float border_width = 4;
@@ -207,12 +239,40 @@ namespace osu.Framework.Graphics.Visualisation
                     // background
                     DrawQuad(Texture, shrunkenQuad, Color4.Black, null, vertexAction);
 
-                    // atlas texture
+                    float aspect = (float)texture.Width / texture.Height;
+
+                    if (aspect > 1)
+                    {
+                        float newHeight = shrunkenQuad.Height / aspect;
+
+                        shrunkenQuad.Y += (shrunkenQuad.Height - newHeight) / 2;
+                        shrunkenQuad.Height = newHeight;
+                    }
+                    else if (aspect < 1)
+                    {
+                        float newWidth = shrunkenQuad.Width / (1 / aspect);
+
+                        shrunkenQuad.X += (shrunkenQuad.Width - newWidth) / 2;
+                        shrunkenQuad.Width = newWidth;
+                    }
+
+                    // texture
                     texture.Bind();
                     DrawQuad(texture, shrunkenQuad, Color4.White, null, vertexAction);
                 }
 
                 protected internal override bool CanDrawOpaqueInterior => false;
+            }
+
+            public string TooltipText
+            {
+                get
+                {
+                    if (!textureReference.TryGetTarget(out var texture))
+                        return string.Empty;
+
+                    return $"type: {texture.GetType().Name}, size: {(float)texture.GetByteSize() / 1024 / 1024:N2}mb";
+                }
             }
         }
     }

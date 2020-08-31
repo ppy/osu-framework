@@ -1822,7 +1822,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTransform = Transforms.Count == 0 ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
+            var currentTransform = !Transforms.Any() ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
             {

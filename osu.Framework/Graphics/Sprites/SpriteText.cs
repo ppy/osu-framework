@@ -550,7 +550,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The characters that should be excluded from fixed-width application. Defaults to (".", ",", ":", " ") if null.
         /// </summary>
-        protected virtual char[] FixedWidthExcludeCharacters { get; } = null;
+        protected virtual char[] FixedWidthExcludeCharacters => null;
 
         /// <summary>
         /// The character to fallback to use if a character glyph lookup failed.

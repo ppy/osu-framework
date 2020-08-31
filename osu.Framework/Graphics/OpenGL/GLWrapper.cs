@@ -31,6 +31,17 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
 
+        /// <summary>
+        /// The interval (in frames) before checking whether VBOs should be freed.
+        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// </summary>
+        private const int vbo_free_check_interval = 300;
+
+        /// <summary>
+        /// The amount of times <see cref="Reset"/> has been invoked.
+        /// </summary>
+        internal static ulong ResetId { get; private set; }
+
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
 
@@ -79,6 +90,8 @@ namespace osu.Framework.Graphics.OpenGL
         private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
+
+        private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
 
         public static bool IsInitialized { get; private set; }
 
@@ -129,6 +142,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
+            ResetId++;
+
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -177,6 +192,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushDepthInfo(DepthInfo.Default);
             Clear(new ClearInfo(Color4.Black));
+
+            freeUnusedVertexBuffers();
 
             stat_texture_uploads_queued.Value = texture_upload_queue.Count;
             stat_texture_uploads_dequeued.Value = 0;
@@ -346,6 +363,26 @@ namespace osu.Framework.Graphics.OpenGL
             FlushCurrentBatch();
 
             lastActiveBatch = batch;
+        }
+
+        /// <summary>
+        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
+        internal static void RegisterVertexBufferUse(IVertexBuffer buffer) => vertex_buffers_in_use.Add(buffer);
+
+        private static void freeUnusedVertexBuffers()
+        {
+            if (ResetId % vbo_free_check_interval != 0)
+                return;
+
+            foreach (var buf in vertex_buffers_in_use)
+            {
+                if (buf.InUse && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                    buf.Free();
+            }
+
+            vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
         private static readonly int[] last_bound_texture = new int[16];

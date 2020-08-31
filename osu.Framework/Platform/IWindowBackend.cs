@@ -41,12 +41,6 @@ namespace osu.Framework.Platform
         Size ClientSize { get; }
 
         /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
-        /// </summary>
-        float Scale { get; }
-
-        /// <summary>
         /// Returns or sets the cursor's visibility within the window.
         /// </summary>
         bool CursorVisible { get; set; }

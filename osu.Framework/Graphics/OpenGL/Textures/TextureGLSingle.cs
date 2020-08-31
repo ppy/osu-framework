@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
@@ -12,6 +13,7 @@ using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
@@ -22,11 +24,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGLSingle : TextureGL
     {
+        /// <summary>
+        /// Contains all currently-active <see cref="TextureGLSingle"/>es.
+        /// </summary>
+        private static readonly LockedWeakList<TextureGLSingle> all_textures = new LockedWeakList<TextureGLSingle>();
+
         public const int MAX_MIPMAP_LEVELS = 3;
 
         private static readonly Action<TexturedVertex2D> default_quad_action = new QuadBatch<TexturedVertex2D>(100, 1000).AddAction;
 
         private readonly Queue<ITextureUpload> uploadQueue = new Queue<ITextureUpload>();
+
+        /// <summary>
+        /// Invoked when a new <see cref="TextureGLAtlas"/> is created.
+        /// </summary>
+        /// <remarks>
+        /// Invocation from the draw or update thread cannot be assumed.
+        /// </remarks>
+        public static event Action<TextureGLSingle> TextureCreated;
 
         private int internalWidth;
         private int internalHeight;
@@ -34,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private readonly All filteringMode;
 
         /// <summary>
-        /// The total amount of times this <see cref="TextureGLAtlas"/> was bound.
+        /// The total amount of times this <see cref="TextureGLSingle"/> was bound.
         /// </summary>
-        public ulong BindCount { get; private set; }
+        public ulong BindCount { get; protected set; }
 
         // ReSharper disable once InconsistentlySynchronizedField (no need to lock here. we don't really care if the value is stale).
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
@@ -59,13 +74,24 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Height = height;
             this.manualMipmaps = manualMipmaps;
             this.filteringMode = filteringMode;
+
+            all_textures.Add(this);
+
+            TextureCreated?.Invoke(this);
         }
+
+        /// <summary>
+        /// Retrieves all currently-active <see cref="TextureGLSingle"/>s.
+        /// </summary>
+        public static TextureGLSingle[] GetAllTextures() => all_textures.ToArray();
 
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
+            all_textures.Remove(this);
 
             while (tryGetNextUpload(out var upload))
                 upload.Dispose();
@@ -156,6 +182,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 return textureId;
             }
         }
+
+        /// <summary>
+        /// Retrieves the size of this texture in bytes.
+        /// </summary>
+        public virtual int GetByteSize() => Width * Height * 4;
 
         private static void rotateVector(ref Vector2 toRotate, float sin, float cos)
         {

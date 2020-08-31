@@ -53,7 +53,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(500, box => Precision.AlmostEquals(box.Scale.X, 0.5f));
             checkAtTime(250, box => Precision.AlmostEquals(box.Scale.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 1);
+            AddAssert("check transform count", () => box.Transforms.Count() == 1);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * (i -= 2), box => Precision.AlmostEquals(box.Scale.X, 0.5f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 4);
+            AddAssert("check transform count", () => box.Transforms.Count() == 4);
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * (i -= 2), box => Precision.AlmostEquals(box.Y, 0.75f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.X, 0.75f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 4);
+            AddAssert("check transform count", () => box.Transforms.Count() == 4);
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(interval * (i - 2), box => Precision.AlmostEquals(box.Alpha, 1f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 7);
+            AddAssert("check transform count", () => box.Transforms.Count() == 7);
         }
 
         [Test]
@@ -154,7 +154,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(interval * ++i, box => Precision.AlmostEquals(box.Scale.X, 0.1f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            AddAssert("check transform count", () => box.Transforms.Count() == 2);
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.3125f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.25f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            AddAssert("check transform count", () => box.Transforms.Count() == 2);
         }
 
         [Test]
@@ -199,7 +199,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.6875f));
             checkAtTime(interval * --i, box => Precision.AlmostEquals(box.Scale.X, 0.375f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 2);
+            AddAssert("check transform count", () => box.Transforms.Count() == 2);
         }
 
         [Test]
@@ -216,7 +216,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(interval * 4, box => Precision.AlmostEquals(box.Alpha, 1) && Precision.AlmostEquals(box.Scale.X, 0.9f));
             checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0) && Precision.AlmostEquals(box.Scale.X, 0.575f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 3);
+            AddAssert("check transform count", () => box.Transforms.Count() == 3);
         }
 
         [Test]
@@ -238,8 +238,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     box.Delay(interval * 3).FadeOutFromOne(interval);
 
                     // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
-                    box.RemoveTransform(box.Transforms[2]);
-                    box.RemoveTransform(box.Transforms[0]);
+                    box.RemoveTransform(box.Transforms.ElementAt(2));
+                    box.RemoveTransform(box.Transforms.ElementAt(0));
                 }
             });
 
@@ -251,6 +251,37 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             // importantly, this should be 0 not 1, reading from the EndValue of the first FadeOutFromOne transform.
             checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 0));
+        }
+
+        [Test]
+        public void AddPastTransformFromFutureWhenNotInHierarchy()
+        {
+            AddStep("seek clock to 1000", () => manualClock.CurrentTime = interval * 4);
+
+            AddStep("create box", () =>
+            {
+                box = createBox();
+                box.Clock = manualFramedClock;
+                box.RemoveCompletedTransforms = false;
+
+                manualFramedClock.ProcessFrame();
+                using (box.BeginAbsoluteSequence(0))
+                    box.Delay(interval * 2).FadeOut(interval);
+            });
+
+            AddStep("seek clock to 0", () => manualClock.CurrentTime = 0);
+
+            AddStep("add box", () =>
+            {
+                Add(new AnimationContainer
+                {
+                    Child = box,
+                    ExaminableDrawable = box,
+                });
+            });
+
+            checkAtTime(interval * 2, box => Precision.AlmostEquals(box.Alpha, 1));
+            checkAtTime(interval * 3, box => Precision.AlmostEquals(box.Alpha, 0));
         }
 
         [Test]
@@ -272,8 +303,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     box.Delay(interval * 3).FadeInFromZero(interval);
 
                     // FadeOutFromOne adds extra transforms which disallow testing this scenario, so we remove them.
-                    box.RemoveTransform(box.Transforms[2]);
-                    box.RemoveTransform(box.Transforms[0]);
+                    box.RemoveTransform(box.Transforms.ElementAt(2));
+                    box.RemoveTransform(box.Transforms.ElementAt(0));
                 }
             });
 
@@ -300,7 +331,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 checkAtTime(interval * i, box => Precision.AlmostEquals(box.Rotation, 0));
             }
 
-            AddAssert("check transform count", () => box.Transforms.Count == 10);
+            AddAssert("check transform count", () => box.Transforms.Count() == 10);
 
             for (int i = count; i >= 0; i--)
             {
@@ -316,7 +347,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             checkAtTime(750, box => Precision.AlmostEquals(box.Rotation, 0f));
 
-            AddAssert("check transform count", () => box.Transforms.Count == 8);
+            AddAssert("check transform count", () => box.Transforms.Count() == 8);
 
             const int count = 4;
 
@@ -326,13 +357,55 @@ namespace osu.Framework.Tests.Visual.Drawables
                 checkAtTime(interval * i, box => Precision.AlmostEquals(box.Rotation, 0));
             }
 
-            AddAssert("check transform count", () => box.Transforms.Count == 10);
+            AddAssert("check transform count", () => box.Transforms.Count() == 10);
 
             for (int i = count; i >= 0; i--)
             {
                 if (i > 0) checkAtTime(interval * i - 1, box => Precision.AlmostEquals(box.Rotation, 90f, 1));
                 checkAtTime(interval * i, box => Precision.AlmostEquals(box.Rotation, 0));
             }
+        }
+
+        [Test]
+        public void TestSimultaneousTransformsOutOfOrder()
+        {
+            boxTest(box =>
+            {
+                using (box.BeginAbsoluteSequence(0))
+                {
+                    box.MoveToX(0.5f, 4 * interval);
+                    box.Delay(interval).MoveToY(0.5f, 2 * interval);
+                }
+            });
+
+            checkAtTime(0, box => Precision.AlmostEquals(box.Position, new Vector2(0)));
+            checkAtTime(interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.125f, 0)));
+            checkAtTime(2 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.25f, 0.25f)));
+            checkAtTime(3 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.375f, 0.5f)));
+            checkAtTime(4 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.5f)));
+            checkAtTime(3 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.375f, 0.5f)));
+            checkAtTime(2 * interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.25f, 0.25f)));
+            checkAtTime(interval, box => Precision.AlmostEquals(box.Position, new Vector2(0.125f, 0)));
+            checkAtTime(0, box => Precision.AlmostEquals(box.Position, new Vector2(0)));
+        }
+
+        [Test]
+        public void TestMultipleTransformTargets()
+        {
+            boxTest(box =>
+            {
+                box.Delay(500).MoveTo(new Vector2(0, 0.25f), 500);
+                box.MoveToY(0.5f, 250);
+            });
+
+            checkAtTime(double.MinValue, box => box.Y == 0);
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.5f);
+            checkAtTime(750, box => box.Y == 0.375f);
+            checkAtTime(1000, box => box.Y == 0.25f);
+            checkAtTime(1500, box => box.Y == 0.25f);
+            checkAtTime(1250, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.375f);
         }
 
         private Box box;
@@ -356,19 +429,24 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 Add(new AnimationContainer(startTime)
                 {
-                    Child = box = new Box
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Both,
-                        RelativePositionAxes = Axes.Both,
-                        Scale = new Vector2(0.25f),
-                    },
+                    Child = box = createBox(),
                     ExaminableDrawable = box,
                 });
 
                 action(box);
             });
+        }
+
+        private static Box createBox()
+        {
+            return new Box
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                RelativePositionAxes = Axes.Both,
+                Scale = new Vector2(0.25f),
+            };
         }
 
         private class AnimationContainer : Container

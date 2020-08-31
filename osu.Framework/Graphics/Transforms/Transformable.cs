@@ -2,12 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
-using System.Collections.Generic;
-using System.Diagnostics;
+using osu.Framework.Timing;
 using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
@@ -39,12 +37,10 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private readonly Lazy<SortedList<Transform>> transformsLazy = new Lazy<SortedList<Transform>>(() => new SortedList<Transform>(Transform.COMPARER));
-
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IReadOnlyList<Transform> Transforms => transformsLazy.IsValueCreated ? (IReadOnlyList<Transform>)transformsLazy.Value : Array.Empty<Transform>();
+        public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
 
         /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
@@ -81,9 +77,36 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms(Time.Current);
         }
 
-        private readonly Lazy<List<Action>> removalActions = new Lazy<List<Action>>(() => new List<Action>());
-
         private double lastUpdateTransformsTime;
+
+        private readonly List<TargetGroupingTransformTracker> targetGroupingTrackers = new List<TargetGroupingTransformTracker>();
+
+        private TargetGroupingTransformTracker getTrackerFor(string targetMember)
+        {
+            foreach (var t in targetGroupingTrackers)
+            {
+                if (t.TargetMembers.Contains(targetMember))
+                    return t;
+            }
+
+            return null;
+        }
+
+        private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
+        {
+            foreach (var t in targetGroupingTrackers)
+            {
+                if (t.TargetGrouping == targetGrouping)
+                    return t;
+            }
+
+            if (!createIfNotExisting)
+                return null;
+
+            var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
+            targetGroupingTrackers.Add(tracker);
+            return tracker;
+        }
 
         /// <summary>
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
@@ -96,153 +119,9 @@ namespace osu.Framework.Graphics.Transforms
             bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
-            if (!transformsLazy.IsValueCreated)
-                return;
-
-            var transforms = transformsLazy.Value;
-
-            if (rewinding && !RemoveCompletedTransforms)
-            {
-                var appliedToEndReverts = new List<string>();
-
-                // Under the case that completed transforms are not removed, reversing the clock is permitted.
-                // We need to first look back through all the transforms and apply the start values of the ones that were previously
-                // applied, but now exist in the future relative to the current time.
-                for (int i = transforms.Count - 1; i >= 0; i--)
-                {
-                    var t = transforms[i];
-
-                    // rewind logic needs to only run on transforms which have been applied at least once.
-                    if (!t.Applied)
-                        continue;
-
-                    // some specific transforms can be marked as non-rewindable.
-                    if (!t.Rewindable)
-                        continue;
-
-                    if (time >= t.StartTime)
-                    {
-                        // we are in the middle of this transform, so we want to mark as not-completely-applied.
-                        // note that we should only do this for the last transform of each TargetMemeber to avoid incorrect application order.
-                        // the actual application will be in the main loop below now that AppliedToEnd is false.
-                        if (!appliedToEndReverts.Contains(t.TargetMember))
-                        {
-                            if (time < t.EndTime)
-                                t.AppliedToEnd = false;
-                            else
-                                t.Apply(t.EndTime);
-
-                            appliedToEndReverts.Add(t.TargetMember);
-                        }
-                    }
-                    else
-                    {
-                        // we are before the start time of this transform, so we want to eagerly apply the value at current time and mark as not-yet-applied.
-                        // this transform will not be applied again unless we play forward in the future.
-                        t.Apply(time);
-                        t.Applied = false;
-                        t.AppliedToEnd = false;
-                    }
-                }
-            }
-
-            for (int i = 0; i < transforms.Count; ++i)
-            {
-                var t = transforms[i];
-
-                var tCanRewind = !RemoveCompletedTransforms && t.Rewindable;
-
-                if (time < t.StartTime)
-                    break;
-
-                if (!t.Applied)
-                {
-                    // This is the first time we are updating this transform.
-                    // We will find other still active transforms which act on the same target member and remove them.
-                    // Since following transforms acting on the same target member are immediately removed when a
-                    // new one is added, we can be sure that previous transforms were added before this one and can
-                    // be safely removed.
-                    for (int j = 0; j < i; ++j)
-                    {
-                        var u = transforms[j];
-                        if (u.TargetMember != t.TargetMember) continue;
-
-                        if (!u.AppliedToEnd)
-                            // we may have applied the existing transforms too far into the future.
-                            // we want to prepare to potentially read into the newly activated transform's StartTime,
-                            // so we should re-apply using its StartTime as a basis.
-                            u.Apply(t.StartTime);
-
-                        if (!tCanRewind)
-                        {
-                            transforms.RemoveAt(j--);
-                            i--;
-
-                            if (u.OnAbort != null)
-                                removalActions.Value.Add(u.OnAbort);
-                        }
-                        else
-                            u.AppliedToEnd = true;
-                    }
-                }
-
-                if (!t.HasStartValue)
-                {
-                    t.ReadIntoStartValue();
-                    t.HasStartValue = true;
-                }
-
-                if (!t.AppliedToEnd)
-                {
-                    t.Apply(time);
-
-                    t.AppliedToEnd = time >= t.EndTime;
-
-                    if (t.AppliedToEnd)
-                    {
-                        if (!tCanRewind)
-                            transforms.RemoveAt(i--);
-
-                        if (t.IsLooping)
-                        {
-                            if (tCanRewind)
-                            {
-                                t.IsLooping = false;
-                                t = t.Clone();
-                            }
-
-                            t.AppliedToEnd = false;
-                            t.Applied = false;
-                            t.HasStartValue = false;
-
-                            t.IsLooping = true;
-
-                            t.StartTime += t.LoopDelay;
-                            t.EndTime += t.LoopDelay;
-
-                            // this could be added back at a lower index than where we are currently iterating, but
-                            // running the same transform twice isn't a huge deal.
-                            transforms.Add(t);
-                        }
-                        else if (t.OnComplete != null)
-                            removalActions.Value.Add(t.OnComplete);
-                    }
-                }
-            }
-
-            invokePendingRemovalActions();
-        }
-
-        private void invokePendingRemovalActions()
-        {
-            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
-            {
-                var toRemove = removalActions.Value.ToArray();
-                removalActions.Value.Clear();
-
-                foreach (var action in toRemove)
-                    action();
-            }
+            // collection may grow due to abort / completion events.
+            for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                targetGroupingTrackers[i].UpdateTransforms(time, rewinding);
         }
 
         /// <summary>
@@ -251,8 +130,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            if (!transformsLazy.IsValueCreated || !transformsLazy.Value.Remove(toRemove))
-                return;
+            getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
         }
@@ -265,7 +143,8 @@ namespace osu.Framework.Graphics.Transforms
         /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
         /// Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) =>
+            ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
 
         /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
@@ -278,24 +157,16 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            if (!transformsLazy.IsValueCreated)
-                return;
-
-            Transform[] toAbort;
-
-            if (targetMember == null)
+            if (targetMember != null)
             {
-                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time).ToArray();
-                transformsLazy.Value.RemoveAll(t => t.StartTime >= time);
+                getTrackerFor(targetMember)?.ClearTransformsAfter(time, targetMember);
             }
             else
             {
-                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
-                transformsLazy.Value.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
+                // collection may grow due to abort / completion events.
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].ClearTransformsAfter(time);
             }
-
-            foreach (var t in toAbort)
-                t.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -323,24 +194,15 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            if (!transformsLazy.IsValueCreated)
-                return;
-
-            Func<Transform, bool> toFlushPredicate;
-            if (targetMember == null)
-                toFlushPredicate = t => !t.IsLooping;
-            else
-                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
-
-            // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Value.Where(toFlushPredicate).ToArray();
-
-            transformsLazy.Value.RemoveAll(t => toFlushPredicate(t));
-
-            foreach (Transform t in toFlush)
+            if (targetMember != null)
             {
-                t.Apply(t.EndTime);
-                t.OnComplete?.Invoke();
+                getTrackerFor(targetMember)?.FinishTransforms(targetMember);
+            }
+            else
+            {
+                // collection may grow due to abort / completion events.
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].FinishTransforms();
             }
         }
 
@@ -405,12 +267,6 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
-        /// incremented whenever a <see cref="Transform"/> is added.
-        /// </summary>
-        private ulong currentTransformID;
-
-        /// <summary>
         /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
         /// <see cref="TransformableExtensions.PopulateTransform{TValue, TEasing, TThis}"/>.
         /// Added <see cref="Transform"/>s are immediately applied, and therefore have an immediate effect on this object if the current time of this
@@ -438,34 +294,12 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
-            var transforms = transformsLazy.Value;
-
-            Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
-
-            // This contains check may be optimized away in the future, should it become a bottleneck
-            if (transform.TransformID != 0 && transforms.Contains(transform))
-                throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
-
-            transform.TransformID = customTransformID ?? ++currentTransformID;
-            int insertionIndex = transforms.Add(transform);
-
-            // Remove all existing following transforms touching the same property as this one.
-            for (int i = insertionIndex + 1; i < transforms.Count; ++i)
-            {
-                var t = transforms[i];
-
-                if (t.TargetMember == transform.TargetMember)
-                {
-                    transforms.RemoveAt(i--);
-                    if (t.OnAbort != null)
-                        removalActions.Value.Add(t.OnAbort);
-                }
-            }
-
-            invokePendingRemovalActions();
+            getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform, customTransformID);
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
+            // This is done globally instead of locally in the single member tracker
+            // to keep the transformable's state consistent (e.g. with lastUpdateTransformsTime)
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
                 updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }

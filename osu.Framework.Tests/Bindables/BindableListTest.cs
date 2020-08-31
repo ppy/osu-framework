@@ -120,19 +120,10 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("0");
 
-#pragma warning disable 618 // can be removed 20200817
-            IEnumerable<string> addedItem = null;
-            IEnumerable<string> removedItem = null;
-            bindableStringList.ItemsAdded += v => addedItem = v;
-            bindableStringList.ItemsRemoved += v => removedItem = v;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList[0] = "1";
-
-            Assert.That(removedItem.Single(), Is.EqualTo("0"));
-            Assert.That(addedItem.Single(), Is.EqualTo("1"));
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo("0".Yield()));
@@ -149,19 +140,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            IEnumerable<string> addedItem = null;
-            IEnumerable<string> removedItem = null;
-            list.ItemsAdded += v => addedItem = v;
-            list.ItemsRemoved += v => removedItem = v;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList[0] = "1";
-
-            Assert.That(removedItem.Single(), Is.EqualTo("0"));
-            Assert.That(addedItem.Single(), Is.EqualTo("1"));
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo("0".Yield()));
@@ -189,16 +171,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesSubscriber(string str)
         {
-#pragma warning disable 618 // can be removed 20200817
-            string addedString = null;
-            bindableStringList.ItemsAdded += s => addedString = s.SingleOrDefault();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Add(str);
-
-            Assert.AreEqual(str, addedString);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(str.Yield()));
@@ -210,16 +186,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesSubscriberOnce(string str)
         {
-#pragma warning disable 618 // can be removed 20200817
-            int notificationCount = 0;
-            bindableStringList.ItemsAdded += s => notificationCount++;
-#pragma warning restore 618
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringList.Add(str);
-
-            Assert.AreEqual(1, notificationCount);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
         }
@@ -229,14 +199,6 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesMultipleSubscribers(string str)
         {
-#pragma warning disable 618 // can be removed 20200817
-            bool subscriberANotified = false;
-            bool subscriberBNotified = false;
-            bool subscriberCNotified = false;
-            bindableStringList.ItemsAdded += s => subscriberANotified = true;
-            bindableStringList.ItemsAdded += s => subscriberBNotified = true;
-            bindableStringList.ItemsAdded += s => subscriberCNotified = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA = null;
             NotifyCollectionChangedEventArgs triggeredArgsB = null;
             NotifyCollectionChangedEventArgs triggeredArgsC = null;
@@ -245,10 +207,6 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsC = args;
 
             bindableStringList.Add(str);
-
-            Assert.IsTrue(subscriberANotified);
-            Assert.IsTrue(subscriberBNotified);
-            Assert.IsTrue(subscriberCNotified);
 
             Assert.That(triggeredArgsA, Is.Not.Null);
             Assert.That(triggeredArgsB, Is.Not.Null);
@@ -260,24 +218,12 @@ namespace osu.Framework.Tests.Bindables
         [TestCase(null)]
         public void TestAddWithStringNotifiesMultipleSubscribersOnlyAfterTheAdd(string str)
         {
-#pragma warning disable 618 // can be removed 20200817
-            bool subscriberANotified = false;
-            bool subscriberBNotified = false;
-            bool subscriberCNotified = false;
-            bindableStringList.ItemsAdded += s => subscriberANotified = true;
-            bindableStringList.ItemsAdded += s => subscriberBNotified = true;
-            bindableStringList.ItemsAdded += s => subscriberCNotified = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA = null;
             NotifyCollectionChangedEventArgs triggeredArgsB = null;
             NotifyCollectionChangedEventArgs triggeredArgsC = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsA = args;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsB = args;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsC = args;
-
-            Assert.IsFalse(subscriberANotified);
-            Assert.IsFalse(subscriberBNotified);
-            Assert.IsFalse(subscriberCNotified);
 
             Assert.That(triggeredArgsA, Is.Null);
             Assert.That(triggeredArgsB, Is.Null);
@@ -369,21 +315,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             bindableStringList.BindTo(list);
 
-#pragma warning disable 618 // can be removed 20200817
-            IEnumerable<string> addedItems = null;
-            list.ItemsAdded += e => addedItems = e;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.AddRange(items);
-
-            Assert.Multiple(() =>
-            {
-                Assert.NotNull(addedItems);
-                CollectionAssert.AreEquivalent(items, addedItems);
-                CollectionAssert.AreEquivalent(items, list);
-            });
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(items));
@@ -438,19 +373,10 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.AddRange(new[] { "0", "1", "2" });
 
-#pragma warning disable 618 // can be removed 20200817
-            string removedItem = null;
-            string addedItem = null;
-            bindableStringList.ItemsAdded += s => addedItem = s.Single();
-            bindableStringList.ItemsRemoved += s => removedItem = s.Single();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Move(0, 1);
-
-            Assert.That(removedItem, Is.EqualTo("0"));
-            Assert.That(addedItem, Is.EqualTo("0"));
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Move));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo("0".Yield()));
@@ -464,14 +390,6 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.AddRange(new[] { "0", "1", "2" });
 
-#pragma warning disable 618 // can be removed 20200817
-            bool updatedA = false;
-            bool updatedB = false;
-            bool updatedC = false;
-            bindableStringList.ItemsRemoved += s => updatedA = true;
-            bindableStringList.ItemsRemoved += s => updatedB = true;
-            bindableStringList.ItemsRemoved += s => updatedC = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA = null;
             NotifyCollectionChangedEventArgs triggeredArgsB = null;
             NotifyCollectionChangedEventArgs triggeredArgsC = null;
@@ -480,13 +398,6 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsC = args;
 
             bindableStringList.Move(0, 1);
-
-            Assert.Multiple(() =>
-            {
-                Assert.True(updatedA);
-                Assert.True(updatedB);
-                Assert.True(updatedC);
-            });
 
             Assert.That(triggeredArgsA, Is.Not.Null);
             Assert.That(triggeredArgsB, Is.Not.Null);
@@ -533,16 +444,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasMoved = false;
-            list.ItemsRemoved += s => wasMoved = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Move(0, 1);
-
-            Assert.True(wasMoved);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Move));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo("0".Yield()));
@@ -558,12 +463,6 @@ namespace osu.Framework.Tests.Bindables
             var listA = new BindableList<string>();
             listA.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasMovedA1 = false;
-            bool wasMovedA2 = false;
-            listA.ItemsRemoved += s => wasMovedA1 = true;
-            listA.ItemsRemoved += s => wasMovedA2 = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsA2 = null;
             listA.CollectionChanged += (_, args) => triggeredArgsA1 = args;
@@ -572,26 +471,12 @@ namespace osu.Framework.Tests.Bindables
             var listB = new BindableList<string>();
             listB.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasMovedB1 = false;
-            bool wasMovedB2 = false;
-            listB.ItemsRemoved += s => wasMovedB1 = true;
-            listB.ItemsRemoved += s => wasMovedB2 = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsB1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsB2 = null;
             listB.CollectionChanged += (_, args) => triggeredArgsB1 = args;
             listB.CollectionChanged += (_, args) => triggeredArgsB2 = args;
 
             bindableStringList.Move(0, 1);
-
-            Assert.Multiple(() =>
-            {
-                Assert.IsTrue(wasMovedA1);
-                Assert.IsTrue(wasMovedA2);
-                Assert.IsTrue(wasMovedB1);
-                Assert.IsTrue(wasMovedB2);
-            });
 
             Assert.That(triggeredArgsA1, Is.Not.Null);
             Assert.That(triggeredArgsA2, Is.Not.Null);
@@ -625,16 +510,10 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("2");
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasAdded = false;
-            bindableStringList.ItemsAdded += _ => wasAdded = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Insert(1, "1");
-
-            Assert.IsTrue(wasAdded);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Has.One.Items.EqualTo("1"));
@@ -650,16 +529,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasAdded = false;
-            list.ItemsAdded += _ => wasAdded = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Insert(1, "1");
-
-            Assert.IsTrue(wasAdded);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Has.One.Items.EqualTo("1"));
@@ -734,16 +607,10 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringList.Add(item);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool updated = false;
-            bindableStringList.ItemsRemoved += s => updated = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Remove(item);
-
-            Assert.True(updated);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo(item));
@@ -788,14 +655,6 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringList.Add(item);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool updatedA = false;
-            bool updatedB = false;
-            bool updatedC = false;
-            bindableStringList.ItemsRemoved += s => updatedA = true;
-            bindableStringList.ItemsRemoved += s => updatedB = true;
-            bindableStringList.ItemsRemoved += s => updatedC = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA = null;
             NotifyCollectionChangedEventArgs triggeredArgsB = null;
             NotifyCollectionChangedEventArgs triggeredArgsC = null;
@@ -804,13 +663,6 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsC = args;
 
             bindableStringList.Remove(item);
-
-            Assert.Multiple(() =>
-            {
-                Assert.True(updatedA);
-                Assert.True(updatedB);
-                Assert.True(updatedC);
-            });
 
             Assert.That(triggeredArgsA, Is.Not.Null);
             Assert.That(triggeredArgsB, Is.Not.Null);
@@ -860,16 +712,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasRemoved = false;
-            list.ItemsRemoved += s => wasRemoved = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Remove(item);
-
-            Assert.True(wasRemoved);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo(item));
@@ -884,12 +730,6 @@ namespace osu.Framework.Tests.Bindables
             var listA = new BindableList<string>();
             listA.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasRemovedA1 = false;
-            bool wasRemovedA2 = false;
-            listA.ItemsRemoved += s => wasRemovedA1 = true;
-            listA.ItemsRemoved += s => wasRemovedA2 = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsA2 = null;
             listA.CollectionChanged += (_, args) => triggeredArgsA1 = args;
@@ -898,26 +738,12 @@ namespace osu.Framework.Tests.Bindables
             var listB = new BindableList<string>();
             listB.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasRemovedB1 = false;
-            bool wasRemovedB2 = false;
-            listB.ItemsRemoved += s => wasRemovedB1 = true;
-            listB.ItemsRemoved += s => wasRemovedB2 = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsB1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsB2 = null;
             listB.CollectionChanged += (_, args) => triggeredArgsB1 = args;
             listB.CollectionChanged += (_, args) => triggeredArgsB2 = args;
 
             bindableStringList.Remove(item);
-
-            Assert.Multiple(() =>
-            {
-                Assert.IsTrue(wasRemovedA1);
-                Assert.IsTrue(wasRemovedA2);
-                Assert.IsTrue(wasRemovedB1);
-                Assert.IsTrue(wasRemovedB2);
-            });
 
             Assert.That(triggeredArgsA1, Is.Not.Null);
             Assert.That(triggeredArgsA2, Is.Not.Null);
@@ -931,14 +757,8 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringList.Add(item);
 
-#pragma warning disable 618
-            bool wasRemoved = false;
-            bindableStringList.ItemsRemoved += _ => wasRemoved = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
-
-            Assert.That(wasRemoved, Is.False);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -978,23 +798,13 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("1");
 
-#pragma warning disable 618 // can be removed 20200817
-            List<string> itemsRemoved = null;
-            bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveRange(1, 1);
 
             Assert.AreEqual(1, bindableStringList.Count);
-            Assert.AreEqual("0", bindableStringList.FirstOrDefault());
-
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual(1, itemsRemoved.Count);
-                Assert.AreEqual("1", itemsRemoved.FirstOrDefault());
-            });
+            Assert.AreEqual("0", bindableStringList.Single());
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("1"));
@@ -1010,20 +820,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            List<string> itemsRemoved = null;
-            list.ItemsRemoved += i => itemsRemoved = i.ToList();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveRange(0, 1);
-
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual(1, itemsRemoved.Count);
-                Assert.AreEqual("0", itemsRemoved.FirstOrDefault());
-            });
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("0"));
@@ -1038,16 +838,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool notified = false;
-            list.ItemsRemoved += i => notified = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveRange(0, 0);
-
-            Assert.IsFalse(notified);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -1083,16 +877,10 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringList.Add("abc");
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasRemoved = false;
-            bindableStringList.ItemsRemoved += _ => wasRemoved = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveAt(0);
-
-            Assert.IsTrue(wasRemoved);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("abc"));
@@ -1107,16 +895,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasRemoved = false;
-            list.ItemsRemoved += s => wasRemoved = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveAt(0);
-
-            Assert.IsTrue(wasRemoved);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Has.One.Items.EqualTo("abc"));
@@ -1152,19 +934,27 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("0");
             bindableStringList.Add("0");
 
-#pragma warning disable 618 // can be removed 20200817
-            List<string> itemsRemoved = null;
-            bindableStringList.ItemsRemoved += i => itemsRemoved = i.ToList();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveAll(m => m == "0");
 
-            Assert.AreEqual(2, itemsRemoved.Count);
-
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new[] { "0", "0" }));
+        }
+
+        [Test]
+        public void TestRemoveAllNoopDoesntNotifySubscibers()
+        {
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.RemoveAll(m => m == "1");
+
+            Assert.That(triggeredArgs, Is.Null);
         }
 
         [Test]
@@ -1176,16 +966,10 @@ namespace osu.Framework.Tests.Bindables
             var list = new BindableList<string>();
             list.BindTo(bindableStringList);
 
-#pragma warning disable 618 // can be removed 20200817
-            List<string> itemsRemoved = null;
-            list.ItemsRemoved += i => itemsRemoved = i.ToList();
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             list.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.RemoveAll(m => m == "0");
-
-            Assert.AreEqual(2, itemsRemoved.Count);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new[] { "0", "0" }));
@@ -1241,16 +1025,10 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasNotified = false;
-            bindableStringList.ItemsRemoved += items => wasNotified = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Clear();
-
-            Assert.IsTrue(wasNotified);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new[] { "testA", "testA", "testA", "testA", "testA" }));
@@ -1263,14 +1041,8 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasNotified = false;
-            bindableStringList.ItemsRemoved += items => wasNotified = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
-
-            Assert.IsFalse(wasNotified);
 
             Assert.That(triggeredArgs, Is.Null);
 
@@ -1283,14 +1055,6 @@ namespace osu.Framework.Tests.Bindables
             for (int i = 0; i < 5; i++)
                 bindableStringList.Add("testA");
 
-#pragma warning disable 618 // can be removed 20200817
-            bool wasNotifiedA = false;
-            bool wasNotifiedB = false;
-            bool wasNotifiedC = false;
-            bindableStringList.ItemsRemoved += items => wasNotifiedA = true;
-            bindableStringList.ItemsRemoved += items => wasNotifiedB = true;
-            bindableStringList.ItemsRemoved += items => wasNotifiedC = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgsA = null;
             NotifyCollectionChangedEventArgs triggeredArgsB = null;
             NotifyCollectionChangedEventArgs triggeredArgsC = null;
@@ -1299,13 +1063,6 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.CollectionChanged += (_, args) => triggeredArgsC = args;
 
             bindableStringList.Clear();
-
-            Assert.Multiple(() =>
-            {
-                Assert.IsTrue(wasNotifiedA);
-                Assert.IsTrue(wasNotifiedB);
-                Assert.IsTrue(wasNotifiedC);
-            });
 
             Assert.That(triggeredArgsA, Is.Not.Null);
             Assert.That(triggeredArgsB, Is.Not.Null);
@@ -1565,25 +1322,10 @@ namespace osu.Framework.Tests.Bindables
             string[] strings = { "testA", "testB", "testC" };
             bindableStringList.AddRange(strings);
 
-#pragma warning disable 618 // can be removed 20200817
-            bool itemsGotCleared = false;
-            IEnumerable<string> clearedItems = null;
-            bindableStringList.ItemsRemoved += items =>
-            {
-                itemsGotCleared = true;
-                clearedItems = items;
-            };
-#pragma warning restore 618
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringList.Parse(null);
-
-            Assert.Multiple(() =>
-            {
-                CollectionAssert.AreEquivalent(strings, clearedItems);
-                Assert.IsTrue(itemsGotCleared);
-            });
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
@@ -1597,31 +1339,10 @@ namespace osu.Framework.Tests.Bindables
             bindableStringList.Add("test123");
             IEnumerable<string> strings = new[] { "testA", "testB" };
 
-#pragma warning disable 618 // can be removed 20200817
-            IEnumerable<string> addedItems = null;
-            bool? itemsWereFirstCleaned = null;
-            bindableStringList.ItemsAdded += items =>
-            {
-                addedItems = items;
-                itemsWereFirstCleaned ??= false;
-            };
-            bindableStringList.ItemsRemoved += items =>
-            {
-                itemsWereFirstCleaned ??= true;
-            };
-#pragma warning restore 618
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
             bindableStringList.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringList.Parse(strings);
-
-            Assert.Multiple(() =>
-            {
-                CollectionAssert.AreEquivalent(strings, bindableStringList);
-                CollectionAssert.AreEquivalent(strings, addedItems);
-                Assert.NotNull(itemsWereFirstCleaned);
-                Assert.IsTrue(itemsWereFirstCleaned ?? false);
-            });
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
             Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
@@ -1641,16 +1362,10 @@ namespace osu.Framework.Tests.Bindables
         {
             var boundCopy = bindableStringList.GetBoundCopy();
 
-#pragma warning disable 618 // can be removed 20200817
-            bool boundCopyItemAdded = false;
-            boundCopy.ItemsAdded += item => boundCopyItemAdded = true;
-#pragma warning restore 618
             NotifyCollectionChangedEventArgs triggeredArgs = null;
             boundCopy.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringList.Add("test");
-
-            Assert.IsTrue(boundCopyItemAdded);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo("test".Yield()));
