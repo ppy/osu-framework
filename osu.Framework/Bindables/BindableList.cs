@@ -299,6 +299,8 @@ namespace osu.Framework.Bindables
 
             var removed = collection.FindAll(match);
 
+            if (removed.Count == 0) return removed.Count;
+
             // RemoveAll is internally optimised
             collection.RemoveAll(match);
 
