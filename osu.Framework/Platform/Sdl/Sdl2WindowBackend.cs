@@ -109,22 +109,31 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private readonly Cached<float> scale = new Cached<float>();
+        private readonly Cached<float> cachedScale = new Cached<float>();
 
-        public float Scale => validateScale();
+        public Size ClientSize
+        {
+            get
+            {
+                SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
+                return new Size(w, h);
+            }
+        }
+
+        private float scale => validateScale();
 
         private float validateScale(bool force = false)
         {
-            if (!force && scale.IsValid)
-                return scale.Value;
+            if (!force && cachedScale.IsValid)
+                return cachedScale.Value;
 
             if (SdlWindowHandle == IntPtr.Zero)
                 return 1f;
 
             SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out int w, out _);
 
-            scale.Value = w / (float)Size.Width;
-            return scale.Value;
+            cachedScale.Value = w / (float)Size.Width;
+            return cachedScale.Value;
         }
 
         private bool cursorVisible = true;
@@ -219,6 +228,10 @@ namespace osu.Framework.Platform.Sdl
                 SDL.SDL_GetCurrentDisplayMode(currentDisplayIndex, out var mode);
                 return displayModeFromSDL(mode);
             }
+            set
+            {
+                // TODO: change display modes
+            }
         }
 
         private static Display displayFromSDL(int displayIndex)
@@ -259,8 +272,8 @@ namespace osu.Framework.Platform.Sdl
         #region IWindowBackend.Events
 
         public event Action Update;
-        public event Action Resized;
-        public event Action WindowStateChanged;
+        public event Action<Size> Resized;
+        public event Action<WindowState> WindowStateChanged;
         public event Func<bool> CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
@@ -290,8 +303,8 @@ namespace osu.Framework.Platform.Sdl
         #region Event Invocation
 
         protected virtual void OnUpdate() => Update?.Invoke();
-        protected virtual void OnResized() => Resized?.Invoke();
-        protected virtual void OnWindowStateChanged() => WindowStateChanged?.Invoke();
+        protected virtual void OnResized(Size size) => Resized?.Invoke(size);
+        protected virtual void OnWindowStateChanged(WindowState state) => WindowStateChanged?.Invoke(state);
         protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
@@ -363,7 +376,7 @@ namespace osu.Framework.Platform.Sdl
 
             var rx = x - Position.X;
             var ry = y - Position.Y;
-            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * Scale, ry * Scale) });
+            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * scale, ry * scale) });
         }
 
         #endregion
@@ -540,7 +553,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * Scale, evtMotion.y * Scale) });
+            OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * scale, evtMotion.y * scale) });
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -595,17 +608,16 @@ namespace osu.Framework.Platform.Sdl
                     OnMoved(new Point(evtWindow.data1, evtWindow.data2));
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     checkCurrentDisplay();
                     validateScale(true);
-                    OnResized();
+                    OnResized(new Size(evtWindow.data1, evtWindow.data2));
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                    OnWindowStateChanged();
+                    OnWindowStateChanged(windowFlags.ToWindowState());
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:

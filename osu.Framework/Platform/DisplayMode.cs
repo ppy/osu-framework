@@ -38,6 +38,6 @@ namespace osu.Framework.Platform
             RefreshRate = refreshRate;
         }
 
-        public override string ToString() => $"Format: {Format}, Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}";
+        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}";
     }
 }
