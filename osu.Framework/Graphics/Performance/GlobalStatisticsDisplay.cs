@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
 
                     case NotifyCollectionChangedAction.Remove:
-                        remove(e.NewItems.Cast<IGlobalStatistic>());
+                        remove(e.OldItems.Cast<IGlobalStatistic>());
                         break;
                 }
             };
