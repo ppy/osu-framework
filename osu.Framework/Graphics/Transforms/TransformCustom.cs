@@ -21,6 +21,10 @@ namespace osu.Framework.Graphics.Transforms
         where T : class, ITransformable
         where TEasing : IEasingFunction
     {
+        public override string TargetGrouping => targetGrouping ?? TargetMember;
+
+        private readonly string targetGrouping;
+
         private delegate TValue ReadFunc(T transformable);
 
         private delegate void WriteFunc(T transformable, TValue value);
@@ -155,9 +159,11 @@ namespace osu.Framework.Graphics.Transforms
         /// <see cref="Transform.EndTime"/>, and a current time.
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
-        public TransformCustom(string propertyOrFieldName)
+        /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
+        public TransformCustom(string propertyOrFieldName, string grouping = null)
         {
             TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
 
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");

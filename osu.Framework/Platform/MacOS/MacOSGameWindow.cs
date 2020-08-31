@@ -267,6 +267,7 @@ namespace osu.Framework.Platform.MacOS
         }
     }
 
+    [Flags]
     internal enum CocoaKeyModifiers
     {
         LeftControl = 1,

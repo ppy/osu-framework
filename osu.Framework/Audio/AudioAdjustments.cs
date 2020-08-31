@@ -72,9 +72,6 @@ namespace osu.Framework.Audio
         public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
             => getAggregate(type).RemoveSource(adjustBindable);
 
-        public IBindable<double> GetAggregate(AdjustableProperty type)
-            => getAggregate(type).Result;
-
         /// <summary>
         /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
         /// </summary>

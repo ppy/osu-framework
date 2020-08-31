@@ -212,8 +212,7 @@ namespace osu.Framework.Graphics.UserInterface
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
 
-            ItemSource.ItemsAdded += _ => setItems(ItemSource);
-            ItemSource.ItemsRemoved += _ => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)

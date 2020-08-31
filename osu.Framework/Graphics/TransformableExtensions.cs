@@ -44,11 +44,12 @@ namespace osu.Framework.Graphics
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
+        /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
-        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing)
+        public static TransformSequence<TThis> TransformTo<TThis, TValue, TEasing>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
-            => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing));
+            => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing, grouping));
 
         /// <summary>
         /// Applies a <see cref="Transform"/> to a given <see cref="ITransformable"/>.
@@ -77,11 +78,12 @@ namespace osu.Framework.Graphics
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
+        /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
         public static Transform<TValue, DefaultEasingFunction, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration = 0,
-                                                                                                   Easing easing = Easing.None)
+                                                                                                   Easing easing = Easing.None, string grouping = null)
             where TThis : class, ITransformable
-            => t.MakeTransform(propertyOrFieldName, newValue, duration, new DefaultEasingFunction(easing));
+            => t.MakeTransform(propertyOrFieldName, newValue, duration, new DefaultEasingFunction(easing), grouping);
 
         /// <summary>
         /// Creates a <see cref="Transform{TValue, T}"/> for smoothly changing <paramref name="propertyOrFieldName"/>
@@ -96,11 +98,12 @@ namespace osu.Framework.Graphics
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
+        /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
         /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
-        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing)
+        public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
-            => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName), newValue, duration, easing);
+            => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName, grouping), newValue, duration, easing);
 
         /// <summary>
         /// Populates a newly created <see cref="Transform{TValue, T}"/> with necessary values.
@@ -598,7 +601,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeWidthTo<T, TEasing>(this T drawable, float newWidth, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Width), newWidth, duration, easing);
+            => drawable.TransformTo(nameof(drawable.Width), newWidth, duration, easing, nameof(drawable.Size));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Height"/> over time.
@@ -607,7 +610,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> ResizeHeightTo<T, TEasing>(this T drawable, float newHeight, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing);
+            => drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing, nameof(drawable.Size));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> over time.
@@ -645,7 +648,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToX<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.X), destination, duration, easing);
+            => drawable.TransformTo(nameof(drawable.X), destination, duration, easing, nameof(drawable.Position));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Y"/> over time.
@@ -654,7 +657,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToY<T, TEasing>(this T drawable, float destination, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(nameof(drawable.Y), destination, duration, easing);
+            => drawable.TransformTo(nameof(drawable.Y), destination, duration, easing, nameof(drawable.Position));
 
         /// <summary>
         /// Smoothly adjusts <see cref="Drawable.Position"/> by an offset to its final value over time.

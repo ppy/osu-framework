@@ -41,19 +41,19 @@ namespace osu.Framework.Graphics.Textures
                 if (tex?.TextureGL == null)
                     return null;
 
-                if (!referenceCounts.TryGetValue(name, out TextureWithRefCount.ReferenceCount count))
-                    referenceCounts[name] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(name));
+                if (!referenceCounts.TryGetValue(tex.LookupKey, out TextureWithRefCount.ReferenceCount count))
+                    referenceCounts[tex.LookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(tex));
 
                 return new TextureWithRefCount(tex.TextureGL, count);
             }
         }
 
-        private void onAllReferencesLost(string name)
+        private void onAllReferencesLost(Texture texture)
         {
             Debug.Assert(Monitor.IsEntered(referenceCountLock));
 
-            referenceCounts.Remove(name);
-            Purge(name);
+            referenceCounts.Remove(texture.LookupKey);
+            Purge(texture);
         }
     }
 }
