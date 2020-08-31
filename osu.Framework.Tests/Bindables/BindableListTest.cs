@@ -944,6 +944,20 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestRemoveAllNoopDoesntNotifySubscibers()
+        {
+            bindableStringList.Add("0");
+            bindableStringList.Add("0");
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            bindableStringList.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringList.RemoveAll(m => m == "1");
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
+        [Test]
         public void TestRemoveAllNotifiesBoundLists()
         {
             bindableStringList.Add("0");
