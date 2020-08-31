@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AutoSizeAxes = Axes.Y;
             RelativeSizeAxes = Axes.X;
 
-            table.Normalize();
+            table.NormalizeUsingHeaderRow();
 
             AddLayout(columnDefinitionCache);
             AddLayout(rowDefinitionCache);
