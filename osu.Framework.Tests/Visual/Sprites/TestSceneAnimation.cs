@@ -246,6 +246,18 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
         }
 
+        [Test]
+        public void TestClearFrames()
+        {
+            loadNewAnimation();
+
+            AddUntilStep("animation is playing", () => animation.CurrentFrameIndex > 0);
+
+            AddStep("clear frames", () => animation.ClearFrames());
+            AddAssert("animation duration is 0", () => animation.Duration == 0);
+            AddAssert("animation is at start", () => animation.CurrentFrameIndex == 0);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
