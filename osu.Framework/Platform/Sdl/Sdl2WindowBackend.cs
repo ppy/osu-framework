@@ -100,29 +100,41 @@ namespace osu.Framework.Platform.Sdl
 
         private readonly Cached<float> cachedScale = new Cached<float>();
 
-        public Size ClientSize
-        {
-            get
-            {
-                SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
-                return new Size(w, h);
-            }
-        }
-
         private float scale => validateScale();
 
         private float validateScale(bool force = false)
         {
-            if (!force && cachedScale.IsValid)
-                return cachedScale.Value;
-
             if (SdlWindowHandle == IntPtr.Zero)
                 return 1f;
 
-            SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out int w, out _);
+            if (!force && cachedScale.IsValid)
+                return cachedScale.Value;
 
-            cachedScale.Value = w / (float)Size.Width;
-            return cachedScale.Value;
+            var w = ClientSize.Width;
+            float value = 1f;
+
+            switch (windowFlags.ToWindowState())
+            {
+                case WindowState.Normal:
+                    value = w / (float)windowSize.Width;
+                    break;
+
+                case WindowState.Fullscreen:
+                    value = w / (float)windowDisplayMode.w;
+                    break;
+
+                case WindowState.FullscreenBorderless:
+                    SDL.SDL_GetDesktopDisplayMode(windowDisplayIndex, out var mode);
+                    value = w / (float)mode.w;
+                    break;
+
+                case WindowState.Maximised:
+                case WindowState.Minimised:
+                    return 1f;
+            }
+
+            cachedScale.Value = value;
+            return value;
         }
 
         private bool cursorVisible = true;
@@ -202,45 +214,6 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private readonly Cached<float> scale = new Cached<float>();
-
-        public override float Scale => validateScale();
-
-        private float validateScale(bool force = false)
-        {
-            if (SdlWindowHandle == IntPtr.Zero)
-                return 1f;
-
-            if (!force && scale.IsValid)
-                return scale.Value;
-
-            var w = ClientSize.Width;
-            float value = 1f;
-
-            switch (windowFlags.ToWindowState())
-            {
-                case WindowState.Normal:
-                    value = w / (float)windowSize.Width;
-                    break;
-
-                case WindowState.Fullscreen:
-                    value = w / (float)windowDisplayMode.w;
-                    break;
-
-                case WindowState.FullscreenBorderless:
-                    SDL.SDL_GetDesktopDisplayMode(windowDisplayIndex, out var mode);
-                    value = w / (float)mode.w;
-                    break;
-
-                case WindowState.Maximised:
-                case WindowState.Minimised:
-                    return 1f;
-            }
-
-            scale.Value = value;
-            return value;
-        }
-
         public override IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
 
         private Display currentDisplay;
@@ -275,7 +248,7 @@ namespace osu.Framework.Platform.Sdl
                 {
                     var closest = closestDisplayMode(value);
                     SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closest);
-                    scale.Invalidate();
+                    cachedScale.Invalidate();
                 });
             }
         }
@@ -381,7 +354,7 @@ namespace osu.Framework.Platform.Sdl
                                         WindowState.ToFlags();
 
             SdlWindowHandle = SDL.SDL_CreateWindow(Title, Position.X, Position.Y, Size.Width, Size.Height, flags);
-            scale.Invalidate();
+            cachedScale.Invalidate();
             Exists = true;
         }
 
@@ -423,7 +396,7 @@ namespace osu.Framework.Platform.Sdl
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * Scale, ry * Scale) }));
+            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * scale, ry * scale) }));
         }
 
         #endregion
@@ -600,7 +573,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * Scale, evtMotion.y * Scale) }));
+            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * scale, evtMotion.y * scale) }));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -645,7 +618,7 @@ namespace osu.Framework.Platform.Sdl
             if (lastWindowState != currentState)
             {
                 lastWindowState = currentState;
-                scale.Invalidate();
+                cachedScale.Invalidate();
                 eventScheduler.Add(() => OnWindowStateChanged(currentState));
             }
 
@@ -653,7 +626,7 @@ namespace osu.Framework.Platform.Sdl
             {
                 lastDisplayIndex = displayIndex;
                 currentDisplay = null;
-                scale.Invalidate();
+                cachedScale.Invalidate();
                 eventScheduler.Add(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
             }
 
@@ -673,7 +646,7 @@ namespace osu.Framework.Platform.Sdl
                     if (currentState == WindowState.Normal && !eventPos.Equals(position))
                     {
                         position = eventPos;
-                        scale.Invalidate();
+                        cachedScale.Invalidate();
                         eventScheduler.Add(() => OnMoved(eventPos));
                     }
 
@@ -685,7 +658,7 @@ namespace osu.Framework.Platform.Sdl
                     if (currentState == WindowState.Normal && !eventSize.Equals(size))
                     {
                         size = eventSize;
-                        scale.Invalidate();
+                        cachedScale.Invalidate();
                         eventScheduler.Add(() => OnResized(eventSize));
                     }
 

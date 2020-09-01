@@ -16,7 +16,6 @@ namespace osu.Framework.Platform
         public virtual Point Position { get; set; }
         public virtual Size Size { get; set; }
         public virtual Size ClientSize { get; set; }
-        public virtual float Scale { get; } = 1f;
         public virtual bool CursorVisible { get; set; }
         public virtual bool CursorConfined { get; set; }
         public virtual WindowState WindowState { get; set; }
