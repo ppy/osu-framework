@@ -22,8 +22,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public class Window : IWindow
     {
-        private readonly IWindowBackend windowBackend;
-        private readonly IGraphicsBackend graphicsBackend;
+        protected readonly IWindowBackend WindowBackend;
+        protected readonly IGraphicsBackend GraphicsBackend;
 
         #region Properties
 
@@ -32,8 +32,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public string Title
         {
-            get => windowBackend.Title;
-            set => windowBackend.Title = value;
+            get => WindowBackend.Title;
+            set => WindowBackend.Title = value;
         }
 
         /// <summary>
@@ -41,27 +41,21 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool VerticalSync
         {
-            get => graphicsBackend.VerticalSync;
-            set => graphicsBackend.VerticalSync = value;
+            get => GraphicsBackend.VerticalSync;
+            set => GraphicsBackend.VerticalSync = value;
         }
 
         /// <summary>
         /// Returns true if window has been created.
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
-        public bool Exists => windowBackend.Exists;
+        public bool Exists => WindowBackend.Exists;
 
-        /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
-        /// </summary>
-        public float Scale => windowBackend.Scale;
+        public Display PrimaryDisplay => WindowBackend.PrimaryDisplay;
 
-        public Display PrimaryDisplay => windowBackend.PrimaryDisplay;
+        public DisplayMode CurrentDisplayMode => WindowBackend.CurrentDisplayMode;
 
-        public DisplayMode CurrentDisplayMode => windowBackend.CurrentDisplayMode;
-
-        public IEnumerable<Display> Displays => windowBackend.Displays;
+        public IEnumerable<Display> Displays => WindowBackend.Displays;
 
         public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
@@ -258,19 +252,19 @@ namespace osu.Framework.Platform
         /// <param name="graphicsBackend">The <see cref="IGraphicsBackend"/> to use.</param>
         public Window(IWindowBackend windowBackend, IGraphicsBackend graphicsBackend)
         {
-            this.windowBackend = windowBackend;
-            this.graphicsBackend = graphicsBackend;
+            WindowBackend = windowBackend;
+            GraphicsBackend = graphicsBackend;
 
             Position.ValueChanged += position_ValueChanged;
             Size.ValueChanged += size_ValueChanged;
 
             CursorState.ValueChanged += evt =>
             {
-                this.windowBackend.CursorVisible = !evt.NewValue.HasFlag(Platform.CursorState.Hidden);
-                this.windowBackend.CursorConfined = evt.NewValue.HasFlag(Platform.CursorState.Confined);
+                WindowBackend.CursorVisible = !evt.NewValue.HasFlag(Platform.CursorState.Hidden);
+                WindowBackend.CursorConfined = evt.NewValue.HasFlag(Platform.CursorState.Confined);
             };
 
-            WindowState.ValueChanged += evt => this.windowBackend.WindowState = evt.NewValue;
+            WindowState.ValueChanged += evt => WindowBackend.WindowState = evt.NewValue;
 
             Visible.ValueChanged += visible_ValueChanged;
 
@@ -298,61 +292,61 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Starts the window's run loop.
         /// </summary>
-        public void Run() => windowBackend.Run();
+        public void Run() => WindowBackend.Run();
 
         /// <summary>
         /// Attempts to close the window.
         /// </summary>
-        public void Close() => windowBackend.Close();
+        public void Close() => WindowBackend.Close();
 
         /// <summary>
         /// Creates the concrete window implementation and initialises the graphics backend.
         /// </summary>
         public void Create()
         {
-            windowBackend.Create();
+            WindowBackend.Create();
 
-            windowBackend.Resized += windowBackend_Resized;
-            windowBackend.WindowStateChanged += () => WindowState.Value = windowBackend.WindowState;
-            windowBackend.Moved += windowBackend_Moved;
-            windowBackend.Hidden += () => Visible.Value = false;
-            windowBackend.Shown += () => Visible.Value = true;
+            WindowBackend.Resized += windowBackend_Resized;
+            WindowBackend.WindowStateChanged += windowBackend_WindowStateChanged;
+            WindowBackend.Moved += windowBackend_Moved;
+            WindowBackend.Hidden += () => Visible.Value = false;
+            WindowBackend.Shown += () => Visible.Value = true;
 
-            windowBackend.FocusGained += () => focused.Value = true;
-            windowBackend.FocusLost += () => focused.Value = false;
-            windowBackend.MouseEntered += () => cursorInWindow.Value = true;
-            windowBackend.MouseLeft += () => cursorInWindow.Value = false;
+            WindowBackend.FocusGained += () => focused.Value = true;
+            WindowBackend.FocusLost += () => focused.Value = false;
+            WindowBackend.MouseEntered += () => cursorInWindow.Value = true;
+            WindowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
-            windowBackend.Closed += OnExited;
-            windowBackend.CloseRequested += OnExitRequested;
-            windowBackend.Update += OnUpdate;
-            windowBackend.KeyDown += OnKeyDown;
-            windowBackend.KeyUp += OnKeyUp;
-            windowBackend.KeyTyped += OnKeyTyped;
-            windowBackend.MouseDown += OnMouseDown;
-            windowBackend.MouseUp += OnMouseUp;
-            windowBackend.MouseMove += OnMouseMove;
-            windowBackend.MouseWheel += OnMouseWheel;
-            windowBackend.DragDrop += OnDragDrop;
+            WindowBackend.Closed += OnExited;
+            WindowBackend.CloseRequested += OnExitRequested;
+            WindowBackend.Update += OnUpdate;
+            WindowBackend.KeyDown += OnKeyDown;
+            WindowBackend.KeyUp += OnKeyUp;
+            WindowBackend.KeyTyped += OnKeyTyped;
+            WindowBackend.MouseDown += OnMouseDown;
+            WindowBackend.MouseUp += OnMouseUp;
+            WindowBackend.MouseMove += OnMouseMove;
+            WindowBackend.MouseWheel += OnMouseWheel;
+            WindowBackend.DragDrop += OnDragDrop;
 
-            windowBackend.DisplayChanged += d => CurrentDisplay.Value = d;
+            WindowBackend.DisplayChanged += d => CurrentDisplay.Value = d;
 
-            graphicsBackend.Initialise(windowBackend);
+            GraphicsBackend.Initialise(WindowBackend);
 
-            CurrentDisplay.Value = windowBackend.CurrentDisplay;
-            CurrentDisplay.ValueChanged += evt => windowBackend.CurrentDisplay = evt.NewValue;
+            CurrentDisplay.Value = WindowBackend.CurrentDisplay;
+            CurrentDisplay.ValueChanged += evt => WindowBackend.CurrentDisplay = evt.NewValue;
         }
 
         /// <summary>
         /// Requests that the graphics backend perform a buffer swap.
         /// </summary>
-        public void SwapBuffers() => graphicsBackend.SwapBuffers();
+        public void SwapBuffers() => GraphicsBackend.SwapBuffers();
 
         /// <summary>
         /// Requests that the graphics backend become the current context.
         /// May not be required for some backends.
         /// </summary>
-        public void MakeCurrent() => graphicsBackend.MakeCurrent();
+        public void MakeCurrent() => GraphicsBackend.MakeCurrent();
 
         public virtual void CycleMode()
         {
@@ -366,9 +360,27 @@ namespace osu.Framework.Platform
 
         #region Bindable Handling
 
+        protected virtual void UpdateWindowMode(WindowMode mode)
+        {
+            switch (mode)
+            {
+                case Configuration.WindowMode.Fullscreen:
+                    WindowBackend.WindowState = Platform.WindowState.Fullscreen;
+                    break;
+
+                case Configuration.WindowMode.Borderless:
+                    WindowBackend.WindowState = Platform.WindowState.FullscreenBorderless;
+                    break;
+
+                case Configuration.WindowMode.Windowed:
+                    WindowBackend.WindowState = Platform.WindowState.Normal;
+                    break;
+            }
+        }
+
         private void visible_ValueChanged(ValueChangedEvent<bool> evt)
         {
-            windowBackend.Visible = evt.NewValue;
+            WindowBackend.Visible = evt.NewValue;
 
             if (evt.NewValue)
                 OnShown();
@@ -378,13 +390,13 @@ namespace osu.Framework.Platform
 
         private bool boundsChanging;
 
-        private void windowBackend_Resized()
+        private void windowBackend_Resized(Size size)
         {
             if (!boundsChanging)
             {
                 boundsChanging = true;
-                Position.Value = windowBackend.Position;
-                Size.Value = windowBackend.Size;
+                Position.Value = WindowBackend.Position;
+                Size.Value = size;
                 boundsChanging = false;
             }
 
@@ -409,7 +421,7 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            windowBackend.Position = evt.NewValue;
+            WindowBackend.Position = evt.NewValue;
             boundsChanging = false;
         }
 
@@ -419,8 +431,28 @@ namespace osu.Framework.Platform
                 return;
 
             boundsChanging = true;
-            windowBackend.Size = evt.NewValue;
+            WindowBackend.Size = evt.NewValue;
             boundsChanging = false;
+        }
+
+        private void windowBackend_WindowStateChanged(WindowState windowState)
+        {
+            WindowState.Value = windowState;
+
+            switch (windowState)
+            {
+                case Platform.WindowState.Fullscreen:
+                    WindowMode.Value = Configuration.WindowMode.Fullscreen;
+                    break;
+
+                case Platform.WindowState.FullscreenBorderless:
+                    WindowMode.Value = Configuration.WindowMode.Borderless;
+                    break;
+
+                case Platform.WindowState.Normal:
+                    WindowMode.Value = Configuration.WindowMode.Windowed;
+                    break;
+            }
         }
 
         #endregion
@@ -485,32 +517,32 @@ namespace osu.Framework.Platform
 
         public Rectangle ClientRectangle
         {
-            get => new Rectangle(Position.Value.X, Position.Value.Y, (int)(Size.Value.Width * Scale), (int)(Size.Value.Height * Scale));
+            get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
             set
             {
-                Position.Value = value.Location;
-                Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
             }
         }
 
         Size INativeWindow.ClientSize
         {
-            get => new Size((int)(Size.Value.Width * Scale), (int)(Size.Value.Height * Scale));
-            set => Size.Value = new Size((int)(value.Width / Scale), (int)(value.Height / Scale));
+            get => WindowBackend.ClientSize;
+            set
+            {
+            }
         }
 
         public MouseCursor Cursor { get; set; }
 
         public bool CursorVisible
         {
-            get => windowBackend.CursorVisible;
-            set => windowBackend.CursorVisible = value;
+            get => WindowBackend.CursorVisible;
+            set => WindowBackend.CursorVisible = value;
         }
 
         public bool CursorGrabbed
         {
-            get => windowBackend.CursorConfined;
-            set => windowBackend.CursorConfined = value;
+            get => WindowBackend.CursorConfined;
+            set => WindowBackend.CursorConfined = value;
         }
 
 #pragma warning disable 0067

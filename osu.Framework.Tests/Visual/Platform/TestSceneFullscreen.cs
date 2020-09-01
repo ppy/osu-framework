@@ -20,6 +20,7 @@ namespace osu.Framework.Tests.Visual.Platform
     public class TestSceneFullscreen : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
         private readonly Dropdown<Display> displaysDropdown;
@@ -40,6 +41,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentDisplayMode,
                     currentWindowMode,
                     supportedWindowModes,
                     displaysDropdown = new BasicDropdown<Display> { Width = 600 }
@@ -121,6 +123,7 @@ namespace osu.Framework.Tests.Visual.Platform
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
+            currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
         }
     }
 }

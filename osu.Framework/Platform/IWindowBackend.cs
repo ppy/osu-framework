@@ -36,10 +36,9 @@ namespace osu.Framework.Platform
         Size Size { get; set; }
 
         /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
+        /// Returns the drawable area, after scaling.
         /// </summary>
-        float Scale { get; }
+        Size ClientSize { get; }
 
         /// <summary>
         /// Returns or sets the cursor's visibility within the window.
@@ -74,14 +73,14 @@ namespace osu.Framework.Platform
         Display PrimaryDisplay { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
         Display CurrentDisplay { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; set; }
 
         #endregion
 
@@ -95,12 +94,12 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked after the window has resized.
         /// </summary>
-        event Action Resized;
+        event Action<Size> Resized;
 
         /// <summary>
         /// Invoked after the window's state has changed.
         /// </summary>
-        event Action WindowStateChanged;
+        event Action<WindowState> WindowStateChanged;
 
         /// <summary>
         /// Invoked when the user attempts to close the window.
