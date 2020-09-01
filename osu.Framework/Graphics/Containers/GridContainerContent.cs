@@ -7,18 +7,10 @@ using osu.Framework.Lists;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A wrapper that provides access to the <see cref="GridContainer.Content"/> with element change notifications.
+    /// A wrapper for the content of a <see cref="GridContainer"/> that provides notifications when elements are changed.
     /// </summary>
     public class GridContainerContent : ObservableArray<ObservableArray<Drawable>>
     {
-        public static implicit operator GridContainerContent(Drawable[][] drawables)
-        {
-            if (drawables == null)
-                return null;
-
-            return new GridContainerContent(drawables);
-        }
-
         private GridContainerContent([NotNull] Drawable[][] drawables)
             : base(new ObservableArray<Drawable>[drawables.Length])
         {
@@ -31,6 +23,14 @@ namespace osu.Framework.Graphics.Containers
                     observableArray.ArrayElementChanged += OnArrayElementChanged;
                 }
             }
+        }
+
+        public static implicit operator GridContainerContent(Drawable[][] drawables)
+        {
+            if (drawables == null)
+                return null;
+
+            return new GridContainerContent(drawables);
         }
     }
 }

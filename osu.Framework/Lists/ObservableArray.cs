@@ -8,16 +8,17 @@ using System.Collections.Generic;
 namespace osu.Framework.Lists
 {
     /// <summary>
-    /// Wraps an array and provides a custom indexer with element change notification
+    /// A wrapper for an array that provides notifications when elements are changed.
     /// </summary>
-    /// <typeparam name="T">An array data type</typeparam>
+    /// <typeparam name="T">The type of elements stored in the array.</typeparam>
     public class ObservableArray<T> : IReadOnlyList<T>, IEquatable<ObservableArray<T>>, ObservableArray<T>.INotifyArrayChanged
     {
+        /// <summary>
+        /// Invoked when an element of the array is changed via <see cref="this[int]"/>.
+        /// </summary>
         public event Action ArrayElementChanged;
 
         private T[] wrappedArray { get; }
-
-        public static implicit operator ObservableArray<T>(T[] source) => source == null ? null : new ObservableArray<T>(source);
 
         public ObservableArray(T[] arrayToWrap)
         {
@@ -74,6 +75,8 @@ namespace osu.Framework.Lists
         {
             ArrayElementChanged?.Invoke();
         }
+
+        public static implicit operator ObservableArray<T>(T[] source) => source == null ? null : new ObservableArray<T>(source);
 
         public interface INotifyArrayChanged
         {
