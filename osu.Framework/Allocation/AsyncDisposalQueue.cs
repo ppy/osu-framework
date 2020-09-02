@@ -22,6 +22,8 @@ namespace osu.Framework.Allocation
 
         private static readonly ManualResetEventSlim processing_reset_event = new ManualResetEventSlim(true);
 
+        private static int runningTasks;
+
         public static void Enqueue(IDisposable disposable)
         {
             lock (disposal_queue)
@@ -31,35 +33,34 @@ namespace osu.Framework.Allocation
                 if (runTask?.Status < TaskStatus.Running)
                     return;
 
+                Interlocked.Increment(ref runningTasks);
                 processing_reset_event.Reset();
             }
 
             runTask = Task.Run(() =>
             {
-                while (true)
+                IDisposable[] itemsToDispose;
+
+                lock (disposal_queue)
                 {
-                    IDisposable[] itemsToDispose;
+                    itemsToDispose = disposal_queue.ToArray();
+                    disposal_queue.Clear();
+                }
 
-                    lock (disposal_queue)
-                    {
-                        itemsToDispose = disposal_queue.ToArray();
-                        disposal_queue.Clear();
+                for (int i = 0; i < itemsToDispose.Length; i++)
+                {
+                    ref var item = ref itemsToDispose[i];
 
-                        if (itemsToDispose.Length == 0)
-                        {
-                            processing_reset_event.Set();
-                            runTask = null;
-                            return;
-                        }
-                    }
+                    last_disposal.Value = item.ToString();
+                    item.Dispose();
 
-                    for (int i = 0; i < itemsToDispose.Length; i++)
-                    {
-                        ref var item = ref itemsToDispose[i];
+                    item = null;
+                }
 
-                        last_disposal.Value = item.ToString();
-                        item.Dispose();
-                    }
+                lock (disposal_queue)
+                {
+                    if (Interlocked.Decrement(ref runningTasks) == 0)
+                        processing_reset_event.Set();
                 }
             });
         }
