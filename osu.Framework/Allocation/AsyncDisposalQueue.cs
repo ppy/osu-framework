@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Statistics;
 
@@ -19,34 +20,54 @@ namespace osu.Framework.Allocation
 
         private static Task runTask;
 
+        private static readonly ManualResetEventSlim processing_reset_event = new ManualResetEventSlim(true);
+
         public static void Enqueue(IDisposable disposable)
         {
             lock (disposal_queue)
+            {
                 disposal_queue.Add(disposable);
 
-            if (runTask?.Status < TaskStatus.Running)
-                return;
+                if (runTask?.Status < TaskStatus.Running)
+                    return;
+
+                processing_reset_event.Reset();
+            }
 
             runTask = Task.Run(() =>
             {
-                IDisposable[] itemsToDispose;
-
-                lock (disposal_queue)
+                while (true)
                 {
-                    itemsToDispose = disposal_queue.ToArray();
-                    disposal_queue.Clear();
-                }
+                    IDisposable[] itemsToDispose;
 
-                for (int i = 0; i < itemsToDispose.Length; i++)
-                {
-                    ref var item = ref itemsToDispose[i];
+                    lock (disposal_queue)
+                    {
+                        itemsToDispose = disposal_queue.ToArray();
+                        disposal_queue.Clear();
 
-                    last_disposal.Value = item.ToString();
-                    item.Dispose();
+                        if (itemsToDispose.Length == 0)
+                        {
+                            processing_reset_event.Set();
+                            runTask = null;
+                            return;
+                        }
+                    }
 
-                    item = null;
+                    for (int i = 0; i < itemsToDispose.Length; i++)
+                    {
+                        ref var item = ref itemsToDispose[i];
+
+                        last_disposal.Value = item.ToString();
+                        item.Dispose();
+                    }
                 }
             });
         }
+
+        /// <summary>
+        /// Wait until all items in the async disposal queue have been flushed.
+        /// Will wait for a maximum of 10 seconds.
+        /// </summary>
+        public static void WaitForEmpty() => processing_reset_event.Wait(TimeSpan.FromSeconds(10));
     }
 }

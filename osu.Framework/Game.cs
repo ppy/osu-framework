@@ -351,6 +351,8 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            AsyncDisposalQueue.WaitForEmpty();
+
             Audio?.Dispose();
             Audio = null;
 
