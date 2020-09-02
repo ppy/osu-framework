@@ -247,7 +247,15 @@ namespace osu.Framework.Platform.Sdl
                 commandScheduler.Add(() =>
                 {
                     var closest = closestDisplayMode(value);
+                    var wasFullscreen = windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    if (wasFullscreen)
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+
                     SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closest);
+
+                    if (wasFullscreen)
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+
                     cachedScale.Invalidate();
                 });
             }

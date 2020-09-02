@@ -27,14 +27,6 @@ namespace osu.Framework.Platform
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
         /// <summary>
-        /// macOS exclusive fullscreen support is not currently supported.
-        /// </summary>
-        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes =>
-            RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx
-                ? new[] { Configuration.WindowMode.Windowed, Configuration.WindowMode.Borderless }
-                : base.DefaultSupportedWindowModes;
-
-        /// <summary>
         /// Gets or sets the window's position on the current screen given a relative value between 0 and 1.
         /// The position is calculated with respect to the window's size such that:
         ///   (0, 0) indicates that the window is aligned to the top left of the screen,
