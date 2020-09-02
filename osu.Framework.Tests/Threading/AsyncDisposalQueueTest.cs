@@ -39,6 +39,20 @@ namespace osu.Framework.Tests.Threading
             Assert.That(objects.Select(d => d.TaskId).Distinct().Count(), Is.LessThan(objects.Count));
         }
 
+        [Test]
+        public void TestManyAsyncDisposalUsingWait()
+        {
+            var objects = new List<DisposableObject>();
+            for (int i = 0; i < 10000; i++)
+                objects.Add(new DisposableObject());
+
+            objects.ForEach(AsyncDisposalQueue.Enqueue);
+
+            AsyncDisposalQueue.WaitForEmpty();
+
+            Assert.That(objects.All(o => o.IsDisposed));
+        }
+
         private class DisposableObject : IDisposable
         {
             public int? TaskId { get; private set; }
