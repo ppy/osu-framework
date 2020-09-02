@@ -349,7 +349,7 @@ namespace osu.Framework.Platform.Sdl
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                                         WindowState.ToFlags();
 
-            SdlWindowHandle = SDL.SDL_CreateWindow(Title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SdlWindowHandle = SDL.SDL_CreateWindow($"{title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
             cachedScale.Invalidate();
             Exists = true;
         }
