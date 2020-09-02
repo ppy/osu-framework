@@ -59,6 +59,11 @@ namespace osu.Framework.Platform
 
         public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
+        /// <summary>
+        /// Returns the window modes that the platform should support by default.
+        /// </summary>
+        protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>();
+
         #endregion
 
         #region Mutable Bindables
@@ -114,7 +119,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
-        public IBindableList<WindowMode> SupportedWindowModes { get; } = new BindableList<WindowMode>(Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>());
+        public IBindableList<WindowMode> SupportedWindowModes { get; }
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
@@ -254,6 +259,8 @@ namespace osu.Framework.Platform
         {
             WindowBackend = windowBackend;
             GraphicsBackend = graphicsBackend;
+
+            SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
             Position.ValueChanged += position_ValueChanged;
             Size.ValueChanged += size_ValueChanged;

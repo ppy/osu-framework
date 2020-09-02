@@ -304,10 +304,6 @@ namespace osu.Framework.Platform.Sdl
                 SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode);
                 return mode;
             }
-            set
-            {
-                // TODO: change display modes
-            }
         }
 
         private SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode)

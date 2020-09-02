@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
@@ -12,6 +13,9 @@ using osuTK;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Implementation of <see cref="Window"/> used for desktop platforms.
+    /// </summary>
     public class DesktopWindow : Window
     {
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -21,6 +25,14 @@ namespace osu.Framework.Platform
         private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
+
+        /// <summary>
+        /// macOS exclusive fullscreen support is not currently supported.
+        /// </summary>
+        protected override IEnumerable<WindowMode> DefaultSupportedWindowModes =>
+            RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx
+                ? new[] { Configuration.WindowMode.Windowed, Configuration.WindowMode.Borderless }
+                : base.DefaultSupportedWindowModes;
 
         /// <summary>
         /// Gets or sets the window's position on the current screen given a relative value between 0 and 1.
