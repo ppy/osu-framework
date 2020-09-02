@@ -53,13 +53,43 @@ namespace osu.Framework.Tests.Threading
             Assert.That(objects.All(o => o.IsDisposed));
         }
 
+        [Test]
+        public void TestNestedAsyncDisposal()
+        {
+            var objects = new List<NestedDisposableObject>();
+            for (int i = 0; i < 10000; i++)
+                objects.Add(new NestedDisposableObject());
+
+            objects.ForEach(AsyncDisposalQueue.Enqueue);
+
+            int attempts = 1000;
+
+            while (!objects.All(o => o.IsDisposed && o.Nested?.IsDisposed == true))
+            {
+                if (attempts-- == 0)
+                    Assert.Fail("Expected all objects to dispose.");
+                Thread.Sleep(10);
+            }
+        }
+
+        private class NestedDisposableObject : DisposableObject
+        {
+            public DisposableObject Nested;
+
+            public override void Dispose()
+            {
+                base.Dispose();
+                AsyncDisposalQueue.Enqueue(Nested = new DisposableObject());
+            }
+        }
+
         private class DisposableObject : IDisposable
         {
             public int? TaskId { get; private set; }
 
             public bool IsDisposed { get; private set; }
 
-            public void Dispose()
+            public virtual void Dispose()
             {
                 TaskId = Task.CurrentId;
                 IsDisposed = true;
