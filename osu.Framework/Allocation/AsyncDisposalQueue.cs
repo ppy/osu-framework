@@ -24,6 +24,10 @@ namespace osu.Framework.Allocation
 
         private static int runningTasks;
 
+        /// <summary>
+        /// Enqueue a disposable object for asynchronous disposal.
+        /// </summary>
+        /// <param name="disposable">The object to dispose.</param>
         public static void Enqueue(IDisposable disposable)
         {
             lock (disposal_queue)
