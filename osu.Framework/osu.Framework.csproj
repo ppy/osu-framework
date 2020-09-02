@@ -30,7 +30,7 @@
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.7.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.137201" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.142701" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
