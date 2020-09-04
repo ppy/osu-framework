@@ -9,6 +9,10 @@ using osu.Framework.Input.StateChanges;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Abstract implementation of <see cref="IWindowBackend"/> that provides default functionality
+    /// for window backend subclasses.
+    /// </summary>
     public abstract class WindowBackend : IWindowBackend
     {
         public virtual string Title { get; set; }

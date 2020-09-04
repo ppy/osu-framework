@@ -61,7 +61,7 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Initialises a window for desktop platforms.
-        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="PassthroughGraphicsBackend"/>.
+        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="Sdl2GraphicsBackend"/>.
         /// </summary>
         public DesktopWindow()
             : base(new Sdl2WindowBackend(), new Sdl2GraphicsBackend())
