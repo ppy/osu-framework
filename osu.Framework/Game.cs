@@ -353,6 +353,10 @@ namespace osu.Framework
         {
             AsyncDisposalQueue.WaitForEmpty();
 
+            base.Dispose(isDisposing);
+
+            AsyncDisposalQueue.WaitForEmpty();
+
             Audio?.Dispose();
             Audio = null;
 
@@ -361,8 +365,6 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
-
-            base.Dispose(isDisposing);
         }
     }
 }
