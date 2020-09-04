@@ -351,6 +351,15 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            // ensure any async disposals are completed before we begin to rip components out.
+            // if we were to not wait, async disposals may throw unexpected exceptions.
+            AsyncDisposalQueue.WaitForEmpty();
+
+            base.Dispose(isDisposing);
+
+            // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
+            AsyncDisposalQueue.WaitForEmpty();
+
             Audio?.Dispose();
             Audio = null;
 
@@ -359,8 +368,6 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
-
-            base.Dispose(isDisposing);
         }
     }
 }
