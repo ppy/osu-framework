@@ -633,7 +633,7 @@ namespace osu.Framework.Graphics.Containers
         /// Updates the life status of <see cref="InternalChildren"/> according to their
         /// <see cref="Drawable.ShouldBeAlive"/> property.
         /// </summary>
-        /// <returns>True if the life status of at least one child changed.</returns>
+        /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
             // Can not have alive children if we are not loaded.
