@@ -25,7 +25,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// The input queue for propagating button up events.
-        /// This is created from <see cref="InputQueue"/> when the the button is pressed.
+        /// This is created from <see cref="InputQueue"/> when the button is pressed.
         /// </summary>
         [CanBeNull]
         protected List<Drawable> ButtonDownInputQueue { get; private set; }

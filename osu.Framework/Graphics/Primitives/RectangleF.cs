@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.Primitives
 
         /// <summary>
         /// Gets this <see cref="RectangleF"/> with positive width and height.
-        /// This is usefull if you have a <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
+        /// This is useful if you have a <see cref="RectangleF"/> with negative <see cref="Width"/> or <see cref="Height"/>.
         /// </summary>
         /// <example>
         /// var rect = new <see cref="RectangleF"/> { <see cref="Width"/> = -200, <see cref="Height"/> = -300 }
