@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// This is true iff <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
+        /// This is true if <see cref="UpdateSubTree"/> has run once on this <see cref="Drawable"/>.
         /// </summary>
         public bool IsLoaded => loadState >= LoadState.Loaded;
 
@@ -1531,12 +1531,12 @@ namespace osu.Framework.Graphics
         internal virtual Drawable Original => this;
 
         /// <summary>
-        /// True iff <see cref="CreateProxy"/> has been called before.
+        /// True if <see cref="CreateProxy"/> has been called before.
         /// </summary>
         public bool HasProxy => proxy != null;
 
         /// <summary>
-        /// True iff this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
+        /// True if this <see cref="Drawable"/> is not a proxy of any <see cref="Drawable"/>.
         /// </summary>
         public bool IsProxy => Original != this;
 

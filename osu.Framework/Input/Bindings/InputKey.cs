@@ -736,7 +736,7 @@ namespace osu.Framework.Input.Bindings
         ExtraMouseButton7 = 141,
 
         /// <summary>
-        /// The eigth extra mouse button.
+        /// The eighth extra mouse button.
         /// </summary>
         ExtraMouseButton8 = 142,
 

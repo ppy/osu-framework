@@ -36,7 +36,7 @@ namespace FlappyDon.Game.Elements
             {
                 // Because the quad is rotated 45 degrees during animation and the collision
                 // event occurs when even the corner touches, shrink the collision box
-                // so that it more acdurately matches the bounds of the character on-screen.
+                // so that it more accurately matches the bounds of the character on-screen.
                 RectangleF rect = ScreenSpaceDrawQuad.AABBFloat;
                 rect = rect.Shrink(new Vector2(rect.Width * 0.3f, rect.Height * 0.2f));
                 return Quad.FromRectangle(rect);

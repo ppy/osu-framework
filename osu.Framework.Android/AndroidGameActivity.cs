@@ -45,7 +45,7 @@ namespace osu.Framework.Android
 
             UIVisibilityFlags = SystemUiFlags.LayoutFlags | SystemUiFlags.ImmersiveSticky | SystemUiFlags.HideNavigation;
 
-            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigaton bar and potentially the status bar
+            // Firing up the on-screen keyboard (eg: interacting with textboxes) may cause the UI visibility flags to be altered thus showing the navigation bar and potentially the status bar
             // This sets back the UI flags to hidden once the interaction with the on-screen keyboard has finished.
             Window.DecorView.SystemUiVisibilityChange += (_, e) =>
             {

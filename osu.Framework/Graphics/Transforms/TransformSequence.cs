@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originFunc"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
         /// <typeparam name="TResult">The return type of <paramref name="originFunc"/>.</typeparam>
         /// <param name="originFunc">The function to be invoked.</param>
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originAction"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
         /// <param name="originAction">The function to be invoked.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
