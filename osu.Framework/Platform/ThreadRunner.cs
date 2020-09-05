@@ -16,7 +16,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Runs a game host in a specifc threading mode.
+    /// Runs a game host in a specific threading mode.
     /// </summary>
     public class ThreadRunner
     {

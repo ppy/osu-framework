@@ -23,7 +23,7 @@ namespace osu.Framework.Utils
         }
 
         /// <summary>
-        /// Finds the guassian blur kernel size where the magnitude of the gaussian distribution within the kernel
+        /// Finds the gaussian blur kernel size where the magnitude of the gaussian distribution within the kernel
         /// is greater than or equal to cutoffThreshold times the maximum of the distribution.
         /// </summary>
         /// <param name="sigma">Standard deviation of the distribution.</param>

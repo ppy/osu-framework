@@ -289,7 +289,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="JoystickAxisEventManager"/> responsible for a specified joystick axis.
         /// </summary>
-        /// <param name="source">The axis to find the the manager for.</param>
+        /// <param name="source">The axis to find the manager for.</param>
         /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
         public JoystickAxisEventManager GetJoystickAxisEventManagerFor(JoystickAxisSource source)
         {
