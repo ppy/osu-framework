@@ -25,27 +25,45 @@ namespace osu.Framework
 {
     public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
     {
+        /// <summary>
+        /// Gets this <see cref="Host"/>'s window.
+        /// </summary>
         public IWindow Window => Host?.Window;
 
+        /// <summary>
+        /// Gets the current ResourceStore{T}.
+        /// </summary>
         public ResourceStore<byte[]> Resources { get; private set; }
 
+        /// <summary>
+        /// Gets this <see cref="TextureStore"/>.
+        /// </summary>
         public TextureStore Textures { get; private set; }
 
+        /// <summary>
+        /// Gets this <see cref="GameHost"/>.
+        /// </summary>
         protected GameHost Host { get; private set; }
 
         private readonly Bindable<bool> isActive = new Bindable<bool>(true);
 
         /// <summary>
-        /// Whether the game is active (in the foreground).
+        /// Gets whether the game is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
+        /// <summary>
+        /// Get this <see cref="AudioManager"/>.
+        /// </summary>
         public AudioManager Audio { get; private set; }
 
+        /// <summary>
+        /// Get this <see cref="ShaderManager"/>.
+        /// </summary>
         public ShaderManager Shaders { get; private set; }
 
         /// <summary>
-        /// A store containing fonts accessible game-wide.
+        /// Gets a store containing fonts accessible game-wide.
         /// </summary>
         /// <remarks>
         /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
@@ -54,6 +72,9 @@ namespace osu.Framework
 
         private FontStore localFonts;
 
+        /// <summary>
+        /// Gets this <see cref="LocalisationManager"/>.
+        /// </summary>
         protected LocalisationManager Localisation { get; private set; }
 
         private readonly Container content;
@@ -64,8 +85,15 @@ namespace osu.Framework
 
         private LogOverlay logOverlay;
 
+        /// <summary>
+        /// Gets the <see cref="content"/>.
+        /// </summary>
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Creates a new <see cref="UserInputManager"/>.
+        /// </summary>
+        /// <returns>A new instance of <see cref="UserInputManager"/>.</returns>
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
 
         /// <summary>
@@ -113,6 +141,11 @@ namespace osu.Framework
 
         private DependencyContainer dependencies;
 
+        /// <summary>
+        /// Creates
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <returns></returns>
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
             dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
