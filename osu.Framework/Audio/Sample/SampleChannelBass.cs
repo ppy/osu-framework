@@ -4,7 +4,6 @@
 using System;
 using ManagedBass;
 using osu.Framework.Audio.Track;
-using osuTK;
 
 namespace osu.Framework.Audio.Sample
 {
