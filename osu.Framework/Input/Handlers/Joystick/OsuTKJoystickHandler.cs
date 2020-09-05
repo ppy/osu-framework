@@ -220,12 +220,8 @@ namespace osu.Framework.Input.Handlers.Joystick
                 {
                     for (int i = 0; i < MAX_AXES; i++)
                     {
-                        var axisValue = Math.Abs(RawState.GetAxis(i));
-                        if (Precision.AlmostEquals(0, axisValue))
-                            continue;
-
                         // Cap deadzone at 0.5f to avoid division by zero and catastrophic cancellation when rescaling
-                        defaultDeadZones.Value[i] = Math.Min(0.5f, axisValue + deadzone_threshold);
+                        defaultDeadZones.Value[i] = Math.Min(0.5f, Math.Abs(RawState.GetAxis(i)) + deadzone_threshold);
                     }
                 }
             }
