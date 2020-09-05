@@ -142,10 +142,10 @@ namespace osu.Framework
         private DependencyContainer dependencies;
 
         /// <summary>
-        /// Creates
+        /// Creates a <see cref="DependencyContainer"/> with children.
         /// </summary>
         /// <param name="parent"></param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="IReadOnlyDependencyContainer"/></returns>
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
             dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
