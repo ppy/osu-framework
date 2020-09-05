@@ -20,7 +20,6 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var observableArray = new ObservableArray<Drawable>(drawables[i]);
                     this[i] = observableArray;
-                    observableArray.ArrayElementChanged += OnArrayElementChanged;
                 }
             }
         }

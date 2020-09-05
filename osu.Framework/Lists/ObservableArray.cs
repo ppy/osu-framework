@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
 {
@@ -11,14 +12,15 @@ namespace osu.Framework.Lists
     /// A wrapper for an array that provides notifications when elements are changed.
     /// </summary>
     /// <typeparam name="T">The type of elements stored in the array.</typeparam>
-    public class ObservableArray<T> : IReadOnlyList<T>, IEquatable<ObservableArray<T>>, ObservableArray<T>.INotifyArrayChanged
+    public class ObservableArray<T> : IReadOnlyList<T>, IEquatable<ObservableArray<T>>, INotifyArrayChanged
     {
         /// <summary>
         /// Invoked when an element of the array is changed via <see cref="this[int]"/>.
         /// </summary>
         public event Action ArrayElementChanged;
 
-        private T[] wrappedArray { get; }
+        [NotNull]
+        private readonly T[] wrappedArray;
 
         public ObservableArray(T[] arrayToWrap)
         {
@@ -66,7 +68,14 @@ namespace osu.Framework.Lists
                 if (EqualityComparer<T>.Default.Equals(wrappedArray[index], value))
                     return;
 
+                var previousValue = wrappedArray[index];
+                if (previousValue is INotifyArrayChanged previousNotifier)
+                    previousNotifier.ArrayElementChanged -= OnArrayElementChanged;
+
                 wrappedArray[index] = value;
+                if (value is INotifyArrayChanged notifier)
+                    notifier.ArrayElementChanged += OnArrayElementChanged;
+
                 OnArrayElementChanged();
             }
         }
@@ -77,10 +86,5 @@ namespace osu.Framework.Lists
         }
 
         public static implicit operator ObservableArray<T>(T[] source) => source == null ? null : new ObservableArray<T>(source);
-
-        public interface INotifyArrayChanged
-        {
-            event Action ArrayElementChanged;
-        }
     }
 }
