@@ -9,7 +9,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Represents a display mode on a given <see cref="Display"/>.
     /// </summary>
-    public readonly struct DisplayMode : IEquatable<DisplayMode>
+    public readonly struct DisplayMode
     {
         /// <summary>
         /// The pixel format of the display mode, if available.
@@ -31,8 +31,14 @@ namespace osu.Framework.Platform
         /// </summary>
         public readonly int RefreshRate;
 
+        /// <summary>
+        /// The index of the display mode as determined by the windowing backend.
+        /// </summary>
         public readonly int Index;
 
+        /// <summary>
+        /// The index of the display this mode belongs to as determined by the windowing backend.
+        /// </summary>
         public readonly int DisplayIndex;
 
         public DisplayMode(string format, Size size, int bitsPerPixel, int refreshRate, int index, int displayIndex)
@@ -45,8 +51,6 @@ namespace osu.Framework.Platform
             DisplayIndex = displayIndex;
         }
 
-        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}";
-
-        public bool Equals(DisplayMode other) => Index == other.Index && DisplayIndex == other.DisplayIndex;
+        public override string ToString() => $"Size: {Size}, BitsPerPixel: {BitsPerPixel}, RefreshRate: {RefreshRate}, Format: {Format}, Index: {Index}, DisplayIndex: {DisplayIndex}";
     }
 }
