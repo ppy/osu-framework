@@ -40,8 +40,6 @@ namespace osu.Framework.Tests.Threading
         [Test]
         public void EnsureEventualDisposalWithStuckTasks()
         {
-            bool running = true;
-
             ManualResetEventSlim exited = new ManualResetEventSlim();
 
             Task.Run(() =>
@@ -50,7 +48,7 @@ namespace osu.Framework.Tests.Threading
                 {
                     Task.Factory.StartNew(() =>
                     {
-                        while (running)
+                        while (!exited.IsSet)
                             Thread.Sleep(100);
                     }, default, TaskCreationOptions.HideScheduler, taskScheduler);
                 }
@@ -59,7 +57,6 @@ namespace osu.Framework.Tests.Threading
             });
 
             Assert.That(exited.Wait(30000));
-            running = false;
         }
     }
 }
