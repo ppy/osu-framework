@@ -184,10 +184,11 @@ namespace osu.Framework.Platform.Sdl
             get => SdlWindowHandle == IntPtr.Zero ? initialWindowState : windowFlags.ToWindowState();
             set
             {
-                initialWindowState = value;
-
                 if (SdlWindowHandle == IntPtr.Zero)
+                {
+                    initialWindowState = value;
                     return;
+                }
 
                 commandScheduler.Add(() =>
                 {
