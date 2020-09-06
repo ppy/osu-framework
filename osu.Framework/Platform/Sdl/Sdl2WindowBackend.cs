@@ -76,7 +76,14 @@ namespace osu.Framework.Platform.Sdl
 
         public override Point Position
         {
-            get => SdlWindowHandle == IntPtr.Zero ? position : windowPosition;
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return position;
+
+                SDL.SDL_GetWindowPosition(SdlWindowHandle, out var x, out var y);
+                return new Point(x, y);
+            }
             set
             {
                 position = value;
@@ -89,7 +96,14 @@ namespace osu.Framework.Platform.Sdl
 
         public override Size Size
         {
-            get => SdlWindowHandle == IntPtr.Zero ? size : windowSize;
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return size;
+
+                SDL.SDL_GetWindowSize(SdlWindowHandle, out var w, out var h);
+                return new Size(w, h);
+            }
             set
             {
                 size = value;
@@ -116,7 +130,7 @@ namespace osu.Framework.Platform.Sdl
             switch (windowFlags.ToWindowState())
             {
                 case WindowState.Normal:
-                    value = w / (float)windowSize.Width;
+                    value = w / (float)Size.Width;
                     break;
 
                 case WindowState.Fullscreen:
@@ -278,30 +292,6 @@ namespace osu.Framework.Platform.Sdl
 
         private SDL.SDL_WindowFlags windowFlags => SdlWindowHandle == IntPtr.Zero ? 0 : (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle);
 
-        private Point windowPosition
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return position;
-
-                SDL.SDL_GetWindowPosition(SdlWindowHandle, out var x, out var y);
-                return new Point(x, y);
-            }
-        }
-
-        private Size windowSize
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return Size.Empty;
-
-                SDL.SDL_GetWindowSize(SdlWindowHandle, out var w, out var h);
-                return new Size(w, h);
-            }
-        }
-
         private SDL.SDL_DisplayMode windowDisplayMode
         {
             get
@@ -396,7 +386,7 @@ namespace osu.Framework.Platform.Sdl
 
             previousPolledPoint = new Point(x, y);
 
-            var pos = windowFlags.ToWindowState() == WindowState.Normal ? windowPosition : windowDisplayBounds.Location;
+            var pos = windowFlags.ToWindowState() == WindowState.Normal ? Position : windowDisplayBounds.Location;
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
