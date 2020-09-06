@@ -138,6 +138,7 @@ namespace osu.Framework.Platform.Sdl
                     break;
 
                 case WindowState.FullscreenBorderless:
+                    // SDL_GetDesktopDisplayMode gets the native display mode, and is used for *borderless* fullscreen
                     SDL.SDL_GetDesktopDisplayMode(windowDisplayIndex, out var mode);
                     value = w / (float)mode.w;
                     break;
@@ -299,6 +300,7 @@ namespace osu.Framework.Platform.Sdl
                 if (SdlWindowHandle == IntPtr.Zero)
                     return default;
 
+                // SDL_GetWindowDisplayMode gets the resolution currently assigned to the window for *exclusive* fullscreen
                 SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode);
                 return mode;
             }
