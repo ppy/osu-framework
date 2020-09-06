@@ -31,6 +31,7 @@ namespace osu.Framework.Platform
 
         protected abstract IntPtr CreateContext();
         protected abstract void MakeCurrent(IntPtr context);
+        protected abstract IntPtr GetProcAddress(string symbol);
 
         public abstract void SwapBuffers();
 
@@ -117,8 +118,6 @@ namespace osu.Framework.Platform
 
             pointsInfo.SetValue(bindings, entryPointsInstance);
         }
-
-        protected abstract IntPtr GetProcAddress(string symbol);
 
         private string getVersionNumberSubstring(string version)
         {
