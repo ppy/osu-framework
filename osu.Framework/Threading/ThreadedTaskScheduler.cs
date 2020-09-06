@@ -87,7 +87,7 @@ namespace osu.Framework.Threading
             tasks.CompleteAdding();
 
             foreach (var thread in threads)
-                thread.Join();
+                thread.Join(TimeSpan.FromSeconds(10));
 
             tasks.Dispose();
         }

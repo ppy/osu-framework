@@ -36,5 +36,30 @@ namespace osu.Framework.Tests.Threading
 
             Assert.AreEqual(target_count, runCount);
         }
+
+        [Test]
+        public void EnsureEventualDisposalWithStuckTasks()
+        {
+            bool running = true;
+
+            ManualResetEventSlim exited = new ManualResetEventSlim();
+
+            Task.Run(() =>
+            {
+                using (var taskScheduler = new ThreadedTaskScheduler(4, "test"))
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        while (running)
+                            Thread.Sleep(100);
+                    }, default, TaskCreationOptions.HideScheduler, taskScheduler);
+                }
+
+                exited.Set();
+            });
+
+            Assert.That(exited.Wait(30000));
+            running = false;
+        }
     }
 }
