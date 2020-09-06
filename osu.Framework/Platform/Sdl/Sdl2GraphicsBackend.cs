@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.Sdl
 {
     internal class Sdl2GraphicsBackend : PassthroughGraphicsBackend
     {
-        internal IntPtr SdlWindowHandle;
+        private IntPtr sdlWindowHandle;
 
         public override bool VerticalSync
         {
@@ -16,18 +16,18 @@ namespace osu.Framework.Platform.Sdl
             set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
         }
 
-        protected override IntPtr CreateContext() => SDL.SDL_GL_CreateContext(SdlWindowHandle);
+        protected override IntPtr CreateContext() => SDL.SDL_GL_CreateContext(sdlWindowHandle);
 
-        protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(SdlWindowHandle, context);
+        protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);
 
-        public override void SwapBuffers() => SDL.SDL_GL_SwapWindow(SdlWindowHandle);
+        public override void SwapBuffers() => SDL.SDL_GL_SwapWindow(sdlWindowHandle);
 
         protected override IntPtr GetProcAddress(string symbol) => SDL.SDL_GL_GetProcAddress(symbol);
 
         public override void Initialise(IWindowBackend windowBackend)
         {
             if (windowBackend is Sdl2WindowBackend sdlWindowBackend)
-                SdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
+                sdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
             else
                 throw new ArgumentException("Unsupported window backend.", nameof(windowBackend));
 
