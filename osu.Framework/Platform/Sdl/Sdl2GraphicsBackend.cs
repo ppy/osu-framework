@@ -6,7 +6,7 @@ using SDL2;
 
 namespace osu.Framework.Platform.Sdl
 {
-    internal class Sdl2GraphicsBackend : PassthroughGraphicsBackend
+    public class Sdl2GraphicsBackend : PassthroughGraphicsBackend
     {
         private IntPtr sdlWindowHandle;
 

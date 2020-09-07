@@ -17,7 +17,7 @@ namespace osu.Framework.Platform
     /// Implementation of <see cref="IGraphicsBackend"/> that force-loads OpenGL
     /// endpoints into osuTK's bindings.
     /// </summary>
-    internal abstract class PassthroughGraphicsBackend : IGraphicsBackend
+    public abstract class PassthroughGraphicsBackend : IGraphicsBackend
     {
         internal IntPtr Context;
 
