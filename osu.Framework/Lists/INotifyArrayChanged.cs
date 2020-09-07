@@ -5,8 +5,14 @@ using System;
 
 namespace osu.Framework.Lists
 {
-    internal interface INotifyArrayChanged
+    /// <summary>
+    /// Provides an event for notifying about array elements changing.
+    /// </summary>
+    public interface INotifyArrayChanged
     {
+        /// <summary>
+        /// Invoked when an element of an array is changed.
+        /// </summary>
         event Action ArrayElementChanged;
     }
 }
