@@ -260,7 +260,7 @@ namespace osu.Framework.Platform.Sdl
                 commandScheduler.Add(() =>
                 {
                     var closest = closestDisplayMode(value);
-                    var wasFullscreen = windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    var wasFullscreen = windowFlags.ToWindowState() == WindowState.Fullscreen;
                     if (wasFullscreen)
                         SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
