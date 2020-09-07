@@ -15,19 +15,20 @@ namespace osu.Framework.Platform
     /// </summary>
     public abstract class WindowBackend : IWindowBackend
     {
-        public virtual string Title { get; set; }
-        public virtual bool Visible { get; set; }
-        public virtual Point Position { get; set; }
-        public virtual Size Size { get; set; }
-        public virtual Size ClientSize { get; set; }
-        public virtual bool CursorVisible { get; set; }
-        public virtual bool CursorConfined { get; set; }
-        public virtual WindowState WindowState { get; set; }
-        public virtual bool Exists { get; protected set; }
+        public abstract string Title { get; set; }
+        public abstract bool Visible { get; set; }
+        public abstract Point Position { get; set; }
+        public abstract Size Size { get; set; }
+        public abstract Size ClientSize { get; }
+        public abstract bool CursorVisible { get; set; }
+        public abstract bool CursorConfined { get; set; }
+        public abstract WindowState WindowState { get; set; }
+        public abstract bool Exists { get; protected set; }
+        public abstract Display CurrentDisplay { get; set; }
+        public abstract DisplayMode CurrentDisplayMode { get; set; }
+
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
         public virtual Display PrimaryDisplay => Displays.First();
-        public virtual Display CurrentDisplay { get; set; }
-        public virtual DisplayMode CurrentDisplayMode { get; set; }
 
         #region Events
 
@@ -81,10 +82,10 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        public virtual void Create() => throw new NotImplementedException();
+        public abstract void Create();
 
-        public virtual void Run() => throw new NotImplementedException();
+        public abstract void Run();
 
-        public virtual void Close() => throw new NotImplementedException();
+        public abstract void Close();
     }
 }
