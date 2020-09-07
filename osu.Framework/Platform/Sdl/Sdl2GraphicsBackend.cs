@@ -6,6 +6,9 @@ using SDL2;
 
 namespace osu.Framework.Platform.Sdl
 {
+    /// <summary>
+    /// Implementation of <see cref="PassthroughGraphicsBackend"/> that uses SDL's OpenGL bindings.
+    /// </summary>
     public class Sdl2GraphicsBackend : PassthroughGraphicsBackend
     {
         private IntPtr sdlWindowHandle;
