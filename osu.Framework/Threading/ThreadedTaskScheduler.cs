@@ -52,7 +52,14 @@ namespace osu.Framework.Threading
         /// </summary>
         private void processTasks()
         {
-            foreach (var t in tasks.GetConsumingEnumerable()) TryExecuteTask(t);
+            try
+            {
+                foreach (var t in tasks.GetConsumingEnumerable()) TryExecuteTask(t);
+            }
+            catch (ObjectDisposedException)
+            {
+                // tasks may have been disposed. there's no easy way to check on this other than catch for it.
+            }
         }
 
         /// <summary>
@@ -87,7 +94,7 @@ namespace osu.Framework.Threading
             tasks.CompleteAdding();
 
             foreach (var thread in threads)
-                thread.Join();
+                thread.Join(TimeSpan.FromSeconds(10));
 
             tasks.Dispose();
         }
