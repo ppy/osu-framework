@@ -4,7 +4,6 @@
 using System;
 using ManagedBass;
 using osu.Framework.Audio.Track;
-using osuTK;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -60,7 +59,7 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        private double bassFreq => MathHelper.Clamp(initialFrequency * AggregateFrequency.Value, 100, 100000);
+        private double bassFreq => Math.Clamp(initialFrequency * AggregateFrequency.Value, 100, 100000);
 
         public override bool Looping
         {

@@ -360,7 +360,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Represents one of boudaries of lifetime interval.
+    /// Represents one of boundaries of lifetime interval.
     /// </summary>
     public enum LifetimeBoundaryKind
     {

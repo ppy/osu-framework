@@ -29,6 +29,7 @@ namespace osu.Framework.Testing
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
         private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
+        private readonly Dictionary<string, bool> syntaxExclusionMap = new Dictionary<string, bool>();
 
         private Solution solution;
 
@@ -264,19 +265,30 @@ namespace osu.Framework.Testing
 
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
-                // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
-                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass?.Name.Contains(exclude_attribute_name) ?? false))
-                {
-                    logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
-                    return;
-                }
-
                 var reference = TypeReference.FromSymbol(typeSymbol);
 
                 if (typeInheritsFromGame(reference))
                 {
                     logger.Add($"Type {typeSymbol.Name} inherits from game and is marked for exclusion.");
                     return;
+                }
+
+                // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
+                // When multiple types exist in one file, the exclusion attribute may be omitted from some types, causing references to those types to indirectly compile explicitly excluded types.
+                // If this type hasn't been seen before, do a manual pass over all its syntaxes to determine if an exclusion attribute is present anywhere in the file.
+                if (!referenceMap.ContainsKey(reference))
+                {
+                    foreach (var syntax in typeSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (!syntaxExclusionMap.TryGetValue(syntax.SyntaxTree.FilePath, out bool containsExclusion))
+                            containsExclusion = syntaxExclusionMap[syntax.SyntaxTree.FilePath] = syntax.SyntaxTree.ToString().Contains(exclude_attribute_name);
+
+                        if (containsExclusion)
+                        {
+                            logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
+                            return;
+                        }
+                    }
                 }
 
                 result.Add(reference);
@@ -494,6 +506,7 @@ namespace osu.Framework.Testing
         {
             compilationCache.Clear();
             semanticModelCache.Clear();
+            syntaxExclusionMap.Clear();
         }
 
         /// <summary>

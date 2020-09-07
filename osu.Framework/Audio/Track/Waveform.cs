@@ -341,7 +341,7 @@ namespace osu.Framework.Audio.Track
             public double HighIntensity;
 
             /// <summary>
-            /// Cconstructs a <see cref="Point"/>.
+            /// Constructs a <see cref="Point"/>.
             /// </summary>
             /// <param name="channels">The number of channels that contain data.</param>
             public Point(int channels)
