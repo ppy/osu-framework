@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
     [ExcludeFromDynamicCompile]
     public abstract partial class CompositeDrawable : Drawable
     {
-        #region Contruction and disposal
+        #region Construction and disposal
 
         /// <summary>
         /// Constructs a <see cref="CompositeDrawable"/> that stores children.
