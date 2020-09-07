@@ -49,8 +49,7 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 title = value;
-                if (SdlWindowHandle != IntPtr.Zero)
-                    commandScheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, $"{value} (SDL)"));
+                commandScheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, $"{value} (SDL)"));
             }
         }
 
@@ -87,8 +86,7 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 position = value;
-                if (SdlWindowHandle != IntPtr.Zero)
-                    commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+                commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
             }
         }
 
@@ -107,8 +105,7 @@ namespace osu.Framework.Platform.Sdl
             set
             {
                 size = value;
-                if (SdlWindowHandle != IntPtr.Zero)
-                    commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
+                commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
             }
         }
 
