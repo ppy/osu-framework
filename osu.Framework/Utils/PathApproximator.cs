@@ -59,19 +59,23 @@ namespace osu.Framework.Utils
                 {
                     var subBezier = new Vector2[p + 1];
                     subBezier[0] = points[i];
+
                     // Destructively insert the knot p-1 times via Boehm's algorithm.
                     for (int j = 0; j < p - 1; j++)
                     {
                         subBezier[j + 1] = points[i + 1];
+
                         for (int k = 1; k < p - j; k++)
                         {
                             int l = Math.Min(k, n - p - i);
                             points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
                         }
                     }
+
                     subBezier[p] = points[i + 1];
                     toFlatten.Push(subBezier);
                 }
+
                 toFlatten.Push(points[(n - p)..]);
                 // Reverse the stack so elements can be accessed in order.
                 toFlatten = new Stack<Vector2[]>(toFlatten);
