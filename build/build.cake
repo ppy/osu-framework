@@ -256,7 +256,6 @@ Task("DeployNativeLibs")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorDeployProperties")
     .IsDependentOn("PackNativeLibs")
-    .IsDependentOn("PackTemplate")
     .IsDependentOn("Publish");
 
 RunTarget(target);;
