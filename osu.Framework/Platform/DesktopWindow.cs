@@ -119,6 +119,31 @@ namespace osu.Framework.Platform
             Moved += onMoved;
         }
 
+        public override void CycleMode()
+        {
+            var currentValue = WindowMode.Value;
+
+            do
+            {
+                switch (currentValue)
+                {
+                    case Configuration.WindowMode.Windowed:
+                        currentValue = Configuration.WindowMode.Borderless;
+                        break;
+
+                    case Configuration.WindowMode.Borderless:
+                        currentValue = Configuration.WindowMode.Fullscreen;
+                        break;
+
+                    case Configuration.WindowMode.Fullscreen:
+                        currentValue = Configuration.WindowMode.Windowed;
+                        break;
+                }
+            } while (!SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
+
+            WindowMode.Value = currentValue;
+        }
+
         protected override void UpdateWindowMode(WindowMode mode)
         {
             base.UpdateWindowMode(mode);
