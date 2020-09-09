@@ -196,6 +196,10 @@ namespace osu.Framework.Platform.Sdl
                             break;
 
                         case WindowState.Fullscreen:
+                            // set window display mode again, just in case if it changed from the last time we were fullscreen.
+                            var fullscreenMode = windowDisplayMode;
+                            SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
+
                             SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                             break;
 
@@ -299,7 +303,12 @@ namespace osu.Framework.Platform.Sdl
                     return default;
 
                 // SDL_GetWindowDisplayMode gets the resolution currently assigned to the window for *exclusive* fullscreen
-                SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode);
+                if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
+                    return mode;
+
+                // SDL_GetWindowDisplayMode can fail if the window was shown fullscreen on a different (especially larger) window before.
+                // if that happens, fall back to first mode for the current display.
+                SDL.SDL_GetDisplayMode(CurrentDisplay.Index, 0, out mode);
                 return mode;
             }
         }
