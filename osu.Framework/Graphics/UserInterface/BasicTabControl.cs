@@ -61,13 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.RelativeSizeAxes = Axes.None;
                     Foreground.AutoSizeAxes = Axes.Both;
 
-                    Foreground.Children = new[]
-                    {
-                        new SpriteText
-                        {
-                            Text = "…",
-                        }
-                    };
+                    Foreground.Child = new SpriteText { Text = "…" };
                 }
             }
         }
