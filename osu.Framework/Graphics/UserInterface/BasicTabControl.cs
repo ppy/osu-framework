@@ -44,8 +44,31 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Menu.Anchor = Anchor.TopRight;
                 Menu.Origin = Anchor.TopRight;
+
                 Header.Anchor = Anchor.TopRight;
                 Header.Origin = Anchor.TopRight;
+            }
+
+            protected override DropdownHeader CreateHeader() => new BasicTabControlDropdownHeader();
+
+            public class BasicTabControlDropdownHeader : BasicDropdownHeader
+            {
+                public BasicTabControlDropdownHeader()
+                {
+                    RelativeSizeAxes = Axes.None;
+                    AutoSizeAxes = Axes.X;
+
+                    Foreground.RelativeSizeAxes = Axes.None;
+                    Foreground.AutoSizeAxes = Axes.Both;
+
+                    Foreground.Children = new[]
+                    {
+                        new SpriteText
+                        {
+                            Text = "…",
+                        }
+                    };
+                }
             }
         }
     }

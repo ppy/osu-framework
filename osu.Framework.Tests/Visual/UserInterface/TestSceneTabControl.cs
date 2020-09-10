@@ -28,6 +28,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private StyledMultilineTabControl multilineTabControl;
         private StyledTabControl simpleTabcontrol;
         private StyledTabControl simpleTabcontrolNoSwitchOnRemove;
+        private BasicTabControl<TestEnum?> basicTabControl;
 
         public TestSceneTabControl()
         {
@@ -82,6 +83,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Size = new Vector2(200, 30)
                     },
+                    basicTabControl = new BasicTabControl<TestEnum?>
+                    {
+                        Size = new Vector2(200, 20)
+                    }
                 }
             });
 
@@ -92,6 +97,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 multilineTabControl.AddItem(item);
                 switchingTabControl.AddItem(item);
                 withoutDropdownTabControl.AddItem(item);
+                basicTabControl.AddItem(item);
             }
 
             items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
