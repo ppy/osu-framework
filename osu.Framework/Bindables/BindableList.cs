@@ -598,6 +598,19 @@ namespace osu.Framework.Bindables
             them.addWeakReference(weakReference);
         }
 
+        /// <summary>
+        /// Bind an action to <see cref="CollectionChanged"/> with the option of running the bound action once immediately
+        /// with an <see cref="NotifyCollectionChangedAction.Add"/> event for the entire contents of this <see cref="BindableList{T}"/>.
+        /// </summary>
+        /// <param name="onChange">The action to perform when this <see cref="BindableList{T}"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
+        public void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false)
+        {
+            CollectionChanged += onChange;
+            if (runOnceImmediately)
+                onChange(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, collection));
+        }
+
         private void addWeakReference(WeakReference<BindableList<T>> weakReference)
         {
             bindings ??= new LockedWeakList<BindableList<T>>();
