@@ -75,6 +75,33 @@ namespace osu.Framework.Tests.Bindables
 
         #endregion
 
+        #region BindCollectionChanged
+
+        [Test]
+        public void TestBindCollectionChangedWithoutRunningImmediately()
+        {
+            var list = new BindableList<int> { 1 };
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.BindCollectionChanged((_, args) => triggeredArgs = args);
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
+        [Test]
+        public void TestBindCollectionChangedWithRunImmediately()
+        {
+            var list = new BindableList<int>();
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.BindCollectionChanged((_, args) => triggeredArgs = args, true);
+
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(list));
+        }
+
+        #endregion
+
         #region list[index]
 
         [Test]
