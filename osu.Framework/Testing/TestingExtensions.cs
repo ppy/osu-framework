@@ -19,16 +19,28 @@ namespace osu.Framework.Testing
                 case T found:
                     yield return found;
 
-                    break;
-
-                case CompositeDrawable composite:
-                    foreach (var child in composite.InternalChildren)
+                    if (found is CompositeDrawable foundComposite)
                     {
-                        foreach (var found in child.ChildrenOfType<T>())
-                            yield return found;
+                        foreach (var foundChild in handleComposite(foundComposite))
+                            yield return foundChild;
                     }
 
                     break;
+
+                case CompositeDrawable composite:
+                    foreach (var found in handleComposite(composite))
+                        yield return found;
+
+                    break;
+            }
+
+            static IEnumerable<T> handleComposite(CompositeDrawable composite)
+            {
+                foreach (var child in composite.InternalChildren)
+                {
+                    foreach (var found in child.ChildrenOfType<T>())
+                        yield return found;
+                }
             }
         }
     }
