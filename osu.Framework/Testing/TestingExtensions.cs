@@ -12,7 +12,7 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Find all children recursively of a specific type. As this is expensive and dangerous, it should only be used for testing purposes.
         /// </summary>
-        public static IEnumerable<T> ChildrenOfType<T>(this Drawable drawable) where T : Drawable
+        public static IEnumerable<T> ChildrenOfType<T>(this Drawable drawable)
         {
             switch (drawable)
             {
