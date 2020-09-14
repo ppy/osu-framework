@@ -14,27 +14,10 @@ namespace osu.Framework.Testing
         /// </summary>
         public static IEnumerable<T> ChildrenOfType<T>(this Drawable drawable) where T : Drawable
         {
-            switch (drawable)
-            {
-                case T found:
-                    yield return found;
+            if (drawable is T match)
+                yield return match;
 
-                    if (found is CompositeDrawable foundComposite)
-                    {
-                        foreach (var foundChild in handleComposite(foundComposite))
-                            yield return foundChild;
-                    }
-
-                    break;
-
-                case CompositeDrawable composite:
-                    foreach (var found in handleComposite(composite))
-                        yield return found;
-
-                    break;
-            }
-
-            static IEnumerable<T> handleComposite(CompositeDrawable composite)
+            if (drawable is CompositeDrawable composite)
             {
                 foreach (var child in composite.InternalChildren)
                 {
