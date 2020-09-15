@@ -44,7 +44,43 @@ namespace osu.Framework.Audio.Sample
                 if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
                     byte[] data = store.Get(name);
-                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
+
+                    // Parse WAV files to workaround BASS issue with empty WAV files
+                    // (WAV header magic == 0x46464952)
+                    if (data != null && data.Length > 0 && BitConverter.ToInt32(data, 0x00) == 0x46464952)
+                    {
+                        int position = 0x0C;
+                        // iterate over the WAV sections
+                        while (position < data.Length - 0x08)
+                        {
+                            // parse the section header
+                            var magic = BitConverter.ToInt32(data, position + 0x00);
+                            var size = BitConverter.ToInt32(data, position + 0x04);
+
+                            // look for the "data" section ("data" header magic == 0x61746164)
+                            if (magic == 0x61746164)
+                            {
+                                // if the size of the section is zero, pass no data to BASS, so the sample is empty
+                                if (size == 0)
+                                    sample = sampleCache[name] = new SampleBass(Array.Empty<byte>(), PendingActions, PlaybackConcurrency);
+
+                                break;
+                            }
+
+                            // skip the current section, as it's not "data"
+                            position += size;
+                            // in the case of odd-sized sections, there is an additional unaccounted byte at the end of the data that also needs to be skipped
+                            position += size % 2;
+                            // the size field doesn't take the header into account, skip that as well
+                            position += 0x08;
+                        }
+
+                        // in case we haven't set the sample as empty, let BASS handle it as usual
+                        if(sample == null)
+                            sample = sampleCache[name] = new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    }
+                    else
+                        sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
                 }
 
                 if (sample != null)
