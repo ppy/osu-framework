@@ -12,6 +12,9 @@ using osuTK;
 
 namespace osu.Framework.Platform
 {
+    /// <summary>
+    /// Implementation of <see cref="Window"/> used for desktop platforms.
+    /// </summary>
     public class DesktopWindow : Window
     {
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -58,10 +61,10 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Initialises a window for desktop platforms.
-        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="PassthroughGraphicsBackend"/>.
+        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="Sdl2GraphicsBackend"/>.
         /// </summary>
         public DesktopWindow()
-            : base(new Sdl2WindowBackend(), new PassthroughGraphicsBackend())
+            : base(new Sdl2WindowBackend(), new Sdl2GraphicsBackend())
         {
         }
 
@@ -114,6 +117,31 @@ namespace osu.Framework.Platform
 
             Resized += onResized;
             Moved += onMoved;
+        }
+
+        public override void CycleMode()
+        {
+            var currentValue = WindowMode.Value;
+
+            do
+            {
+                switch (currentValue)
+                {
+                    case Configuration.WindowMode.Windowed:
+                        currentValue = Configuration.WindowMode.Borderless;
+                        break;
+
+                    case Configuration.WindowMode.Borderless:
+                        currentValue = Configuration.WindowMode.Fullscreen;
+                        break;
+
+                    case Configuration.WindowMode.Fullscreen:
+                        currentValue = Configuration.WindowMode.Windowed;
+                        break;
+                }
+            } while (!SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
+
+            WindowMode.Value = currentValue;
         }
 
         protected override void UpdateWindowMode(WindowMode mode)
