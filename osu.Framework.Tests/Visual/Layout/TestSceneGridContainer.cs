@@ -797,7 +797,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 grid.Content[1][1] = new SpriteText { Text = new LocalisedString("test") };
             });
             assertContentChangeEventWasFired();
-            AddAssert("[1][1] cell contains a SpriteText", () => grid.Content[1][1].GetType(), Is.TypeOf<SpriteText>());
+            AddAssert("[1][1] cell contains a SpriteText", () => grid.Content[1][1], Is.TypeOf<SpriteText>());
 
             AddStep("Replace top line with [SpriteText][null]", () =>
             {
@@ -805,7 +805,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 grid.Content[0] = new Drawable[] { new SpriteText { Text = new LocalisedString("test") }, null };
             });
             assertContentChangeEventWasFired();
-            AddAssert("[0][0] cell contains a SpriteText", () => grid.Content[0][0].GetType(), Is.TypeOf<SpriteText>());
+            AddAssert("[0][0] cell contains a SpriteText", () => grid.Content[0][0], Is.TypeOf<SpriteText>());
             AddAssert("[0][1] cell contains null", () => grid.Content[0][1], Is.Null);
 
             void assertContentChangeEventWasFired() => AddAssert("Content change event was fired", () => gridContentChangeEventWasFired);

@@ -45,8 +45,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddUntilStep("wait for texture load", () => (texture = (TextureWithRefCount)avatar1.Texture) != null && avatar2.Texture != null);
 
-            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL, Is.EqualTo(avatar2.Texture.TextureGL));
-            AddAssert("textures have different refcount textures", () => avatar1.Texture, Is.Not.EqualTo(avatar2.Texture));
+            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL, () => Is.EqualTo(avatar2.Texture.TextureGL));
+            AddAssert("textures have different refcount textures", () => avatar1.Texture, () => Is.Not.EqualTo(avatar2.Texture));
 
             AddStep("dispose children", () =>
             {

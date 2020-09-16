@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("dropdown is open", () => testDropdown.Menu.State, Is.EqualTo(MenuState.Open));
 
             AddRepeatStep("add item", () => testDropdown.AddDropdownItem("test " + i++), items_to_add);
-            AddAssert("item count is correct", () => testDropdown.Items.Count(), Is.EqualTo(items_to_add * 2));
+            AddAssert("item count is correct", () => testDropdown.Items.Count(), () => Is.EqualTo(items_to_add * 2));
 
             AddStep($"Set dropdown1 height to {explicit_height}", () =>
             {
@@ -93,15 +93,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert($"dropdown1 height is {explicit_height}", () => testDropdown.Menu.Height, Is.EqualTo(explicit_height));
 
             AddStep($"Set dropdown1 height to {float.PositiveInfinity}", () => testDropdown.Menu.MaxHeight = float.PositiveInfinity);
-            AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height, Is.EqualTo(calculatedHeight));
+            AddAssert("dropdown1 height is calculated automatically", () => testDropdown.Menu.Height, () => Is.EqualTo(calculatedHeight));
 
             AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State, Is.EqualTo(MenuState.Closed));
-            AddAssert("item 13 is selected", () => testDropdown.Current.Value, Is.EqualTo(testDropdown.Items.ElementAt(13)));
+            AddAssert("item 13 is selected", () => testDropdown.Current.Value, () => Is.EqualTo(testDropdown.Items.ElementAt(13)));
 
             AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => testDropdown.Current.Value, Is.EqualTo(testDropdown.Items.ElementAt(15)));
+            AddAssert("item 15 is selected", () => testDropdown.Current.Value, () => Is.EqualTo(testDropdown.Items.ElementAt(15)));
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
             AddAssert("dropdown1 is open", () => testDropdown.Menu.State, Is.EqualTo(MenuState.Open));
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("label shows 'invalid'", () => testDropdown.Header.Label, Is.EqualTo("invalid"));
 
             AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => testDropdown.Current.Value, Is.EqualTo(testDropdown.Items.ElementAt(2)));
+            AddAssert("item 2 is selected", () => testDropdown.Current.Value, () => Is.EqualTo(testDropdown.Items.ElementAt(2)));
 
             AddStep("clear bindable list", () => bindableList.Clear());
             AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
@@ -166,7 +166,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdown.Header, Key.Down);
             });
 
-            AddAssert("Next item is selected", () => testDropdown.SelectedIndex, Is.EqualTo(previousIndex + 1));
+            AddAssert("Next item is selected", () => testDropdown.SelectedIndex, () => Is.EqualTo(previousIndex + 1));
 
             AddStep("Select previous item", () =>
             {
@@ -174,7 +174,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdown.Header, Key.Up);
             });
 
-            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex, Is.EqualTo(Math.Max(0, previousIndex - 1)));
+            AddAssert("Previous item is selected", () => testDropdown.SelectedIndex, () => Is.EqualTo(Math.Max(0, previousIndex - 1)));
 
             AddStep("Select last item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
@@ -211,7 +211,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.Down);
             });
 
-            AddAssert("Next item is preselected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(previousIndex + 1));
+            AddAssert("Next item is preselected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(previousIndex + 1));
 
             AddStep("Preselect previous item", () =>
             {
@@ -219,7 +219,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.Up);
             });
 
-            AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(Math.Max(0, previousIndex - 1)));
+            AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(Math.Max(0, previousIndex - 1)));
 
             AddStep("Preselect last visible item", () =>
             {
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
 
-            AddAssert("Last visible item preselected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(lastVisibleIndexOnTheCurrentPage));
+            AddAssert("Last visible item preselected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(lastVisibleIndexOnTheCurrentPage));
 
             AddStep("Preselect last visible item on the next page", () =>
             {
@@ -237,7 +237,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
 
-            AddAssert("Last visible item on the next page preselected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(lastVisibleIndexOnTheNextPage));
+            AddAssert("Last visible item on the next page preselected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(lastVisibleIndexOnTheNextPage));
 
             AddStep("Preselect first visible item", () =>
             {
@@ -245,7 +245,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
 
-            AddAssert("First visible item preselected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(firstVisibleIndexOnTheCurrentPage));
+            AddAssert("First visible item preselected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(firstVisibleIndexOnTheCurrentPage));
 
             AddStep("Preselect first visible item on the previous page", () =>
             {
@@ -254,9 +254,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
 
-            AddAssert("First visible item on the previous page selected", () => testDropdownMenu.PreselectedIndex, Is.EqualTo(firstVisibleIndexOnThePreviousPage));
+            AddAssert("First visible item on the previous page selected", () => testDropdownMenu.PreselectedIndex, () => Is.EqualTo(firstVisibleIndexOnThePreviousPage));
 
-            AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item, Is.EqualTo(testDropdownMenu.Menu.DrawableMenuItems.First().Item));
+            AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item, () => Is.EqualTo(testDropdownMenu.Menu.DrawableMenuItems.First().Item));
 
             AddStep("Preselect last item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
@@ -276,7 +276,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Preselect first item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
 
-            AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item, Is.EqualTo(testDropdownMenu.Menu.DrawableMenuItems.First().Item));
+            AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item, () => Is.EqualTo(testDropdownMenu.Menu.DrawableMenuItems.First().Item));
 
             AddStep("Discard preselection", () => performKeypress(testDropdownMenu.Menu, Key.Escape));
 

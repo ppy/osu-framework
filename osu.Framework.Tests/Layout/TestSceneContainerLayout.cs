@@ -336,7 +336,7 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child invalidated", () => invalidated);
 
             // Final check to make sure that the correct invalidation occurred
-            AddAssert("child size matches parent", () => child.DrawSize, Is.EqualTo(parent.Size));
+            AddAssert("child size matches parent", () => child.DrawSize, () => Is.EqualTo(parent.Size));
         }
 
         /// <summary>

@@ -108,25 +108,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             pushAndEnsureCurrent(() => screen1 = new TestScreen());
 
-            AddAssert("baseScreen suspended to screen1", () => baseScreen.SuspendedTo, Is.EqualTo(screen1));
-            AddAssert("screen1 entered from baseScreen", () => screen1.EnteredFrom, Is.EqualTo(baseScreen));
+            AddAssert("baseScreen suspended to screen1", () => baseScreen.SuspendedTo, () => Is.EqualTo(screen1));
+            AddAssert("screen1 entered from baseScreen", () => screen1.EnteredFrom, () => Is.EqualTo(baseScreen));
 
             // we don't support pushing a screen that has been entered
             AddStep("bad push", () => Assert.Throws(typeof(ScreenStack.ScreenAlreadyEnteredException), () => screen1.Push(screen1)));
 
             pushAndEnsureCurrent(() => screen2 = new TestScreen(), () => screen1);
 
-            AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo, Is.EqualTo(screen2));
-            AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom, Is.EqualTo(screen1));
+            AddAssert("screen1 suspended to screen2", () => screen1.SuspendedTo, () => Is.EqualTo(screen2));
+            AddAssert("screen2 entered from screen1", () => screen2.EnteredFrom, () => Is.EqualTo(screen1));
 
-            AddAssert("ensure child", () => screen1.GetChildScreen(), Is.EqualTo(screen2));
-            AddAssert("ensure parent 1", () => screen1.GetParentScreen(), Is.EqualTo(baseScreen));
-            AddAssert("ensure parent 2", () => screen2.GetParentScreen(), Is.EqualTo(screen1));
+            AddAssert("ensure child", () => screen1.GetChildScreen(), () => Is.EqualTo(screen2));
+            AddAssert("ensure parent 1", () => screen1.GetParentScreen(), () => Is.EqualTo(baseScreen));
+            AddAssert("ensure parent 2", () => screen2.GetParentScreen(), () => Is.EqualTo(screen1));
 
             AddStep("pop", () => screen2.Exit());
 
-            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom, Is.EqualTo(screen2));
-            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo, Is.EqualTo(screen1));
+            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom, () => Is.EqualTo(screen2));
+            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo, () => Is.EqualTo(screen1));
             AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd, Is.Not.EqualTo(double.MaxValue));
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen(), Is.Null);
@@ -135,8 +135,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("pop", () => screen1.Exit());
 
-            AddAssert("baseScreen resumed from screen1", () => baseScreen.ResumedFrom, Is.EqualTo(screen1));
-            AddAssert("screen1 exited to baseScreen", () => screen1.ExitedTo, Is.EqualTo(baseScreen));
+            AddAssert("baseScreen resumed from screen1", () => baseScreen.ResumedFrom, () => Is.EqualTo(screen1));
+            AddAssert("screen1 exited to baseScreen", () => screen1.ExitedTo, () => Is.EqualTo(baseScreen));
             AddAssert("screen1 has lifetime end", () => screen1.LifetimeEnd, Is.Not.EqualTo(double.MaxValue));
             AddUntilStep("screen1 is removed", () => screen1.Parent == null);
         }
@@ -153,13 +153,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("bad exit", () => Assert.Throws(typeof(ScreenStack.ScreenHasChildException), () => screen1.Exit()));
             AddStep("exit", () => screen3.Exit());
 
-            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo, Is.EqualTo(screen2));
+            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo, () => Is.EqualTo(screen2));
             AddAssert("screen2 not resumed from screen3", () => screen2.ResumedFrom, Is.Null);
-            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo, Is.EqualTo(screen1));
-            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom, Is.EqualTo(screen2));
+            AddAssert("screen2 exited to screen1", () => screen2.ExitedTo, () => Is.EqualTo(screen1));
+            AddAssert("screen1 resumed from screen2", () => screen1.ResumedFrom, () => Is.EqualTo(screen2));
 
-            AddAssert("screen3 has lifetime end", () => screen3.LifetimeEnd, Is.Not.EqualTo(double.MaxValue));
-            AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd, Is.Not.EqualTo(double.MaxValue));
+            AddAssert("screen3 has lifetime end", () => screen3.LifetimeEnd, () => Is.Not.EqualTo(double.MaxValue));
+            AddAssert("screen2 has lifetime end", () => screen2.LifetimeEnd, () => Is.Not.EqualTo(double.MaxValue));
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
 
             AddAssert("ensure child gone", () => screen1.GetChildScreen(), Is.Null);
@@ -175,7 +175,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreenSlow screen1 = null;
 
             AddStep("push slow", () => baseScreen.Push(screen1 = new TestScreenSlow()));
-            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, Is.EqualTo(screen1));
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, () => Is.EqualTo(screen1));
             AddAssert("ensure not current", () => !screen1.IsCurrentScreen());
             AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("ensure current", () => screen1.IsCurrentScreen());
@@ -329,7 +329,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("ensure screen2 not current", () => !screen2.IsCurrentScreen());
 
             // but the stack has a different idea of "current"
-            AddAssert("ensure screen2 is current at the stack", () => stack.CurrentScreen, Is.EqualTo(screen2));
+            AddAssert("ensure screen2 is current at the stack", () => stack.CurrentScreen, () => Is.EqualTo(screen2));
 
             if (suspendImmediately)
                 AddUntilStep("screen1's suspending fired", () => screen1.SuspendedTo == screen2);
@@ -349,10 +349,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             else
             {
                 AddUntilStep("ensure screen2 is current", () => screen2.IsCurrentScreen());
-                AddAssert("screen2's entered fired", () => screen2.EnteredFrom, Is.EqualTo(screen1));
+                AddAssert("screen2's entered fired", () => screen2.EnteredFrom, () => Is.EqualTo(screen1));
                 AddStep("exit 2", () => screen2.Exit());
                 AddUntilStep("ensure screen1 is current", () => screen1.IsCurrentScreen());
-                AddAssert("screen2's exited fired", () => screen2.ExitedTo, Is.EqualTo(screen1));
+                AddAssert("screen2's exited fired", () => screen2.ExitedTo, () => Is.EqualTo(screen1));
             }
 
             AddAssert("order is correct", () => order.SequenceEqual(order.OrderBy(i => i)));
@@ -387,12 +387,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             // important to note we are pushing to the stack here, unlike the failing case above.
             AddStep("push second slow", () => stack.Push(screen2 = new TestScreenSlow()));
 
-            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, Is.EqualTo(screen1));
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, () => Is.EqualTo(screen1));
 
             AddAssert("screen1 is not current", () => !screen1.IsCurrentScreen());
             AddAssert("screen2 is not current", () => !screen2.IsCurrentScreen());
 
-            AddAssert("screen2 is current to stack", () => stack.CurrentScreen, Is.EqualTo(screen2));
+            AddAssert("screen2 is current to stack", () => stack.CurrentScreen, () => Is.EqualTo(screen2));
 
             AddAssert("screen1 not registered suspend", () => screen1.SuspendedTo, Is.Null);
             AddAssert("screen2 not registered entered", () => screen2.EnteredFrom, Is.Null);
@@ -417,8 +417,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("screen1 is not current", () => !screen1.IsCurrentScreen());
             AddUntilStep("screen2 is current", () => screen2.IsCurrentScreen());
 
-            AddAssert("screen1 registered suspend", () => screen1.SuspendedTo, Is.EqualTo(screen2));
-            AddAssert("screen2 registered entered", () => screen2.EnteredFrom, Is.EqualTo(screen1));
+            AddAssert("screen1 registered suspend", () => screen1.SuspendedTo, () => Is.EqualTo(screen2));
+            AddAssert("screen2 registered entered", () => screen2.EnteredFrom, () => Is.EqualTo(screen1));
         }
 
         [Test]
@@ -441,7 +441,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("ensure notcurrent", () => !screen1.IsCurrentScreen());
             AddStep("allow load", () => screen1.AllowLoad.Set());
             AddUntilStep("ensure current", () => screen1.IsCurrentScreen());
-            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, Is.EqualTo(screen1));
+            AddAssert("base screen registered suspend", () => baseScreen.SuspendedTo, () => Is.EqualTo(screen1));
         }
 
         [Test]
@@ -458,7 +458,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("block exit", () => screen3.Exiting = () => true);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 3 still current", () => screen3.IsCurrentScreen());
-            AddAssert("screen 3 exited fired", () => screen3.ExitedTo, Is.EqualTo(screen2));
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo, () => Is.EqualTo(screen2));
             AddAssert("screen 2 resumed not fired", () => screen2.ResumedFrom, Is.Null);
             AddAssert("screen 3 doesn't have lifetime end", () => screen3.LifetimeEnd, Is.EqualTo(double.MaxValue));
             AddAssert("screen 2 valid for resume", () => screen2.ValidForResume);
@@ -467,9 +467,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("don't block exit", () => screen3.Exiting = () => false);
             AddStep("make screen 1 current", () => screen1.MakeCurrent());
             AddAssert("screen 1 current", () => screen1.IsCurrentScreen());
-            AddAssert("screen 3 exited fired", () => screen3.ExitedTo, Is.EqualTo(screen2));
-            AddAssert("screen 2 exited fired", () => screen2.ExitedTo, Is.EqualTo(screen1));
-            AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom, Is.EqualTo(screen2));
+            AddAssert("screen 3 exited fired", () => screen3.ExitedTo, () => Is.EqualTo(screen2));
+            AddAssert("screen 2 exited fired", () => screen2.ExitedTo, () => Is.EqualTo(screen1));
+            AddAssert("screen 1 resumed fired", () => screen1.ResumedFrom, () => Is.EqualTo(screen2));
             AddAssert("screen 1 doesn't have lifetime end", () => screen1.LifetimeEnd, Is.EqualTo(double.MaxValue));
             AddAssert("screen 3 has lifetime end", () => screen3.LifetimeEnd, Is.Not.EqualTo(double.MaxValue));
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
@@ -759,8 +759,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("exit slow", () => screen2.Exit());
             AddStep("allow load", () => screen2.AllowLoad.Set());
             AddUntilStep("wait for screen 2 to load", () => screen2.LoadState >= LoadState.Ready);
-            AddAssert("screen 1 did receive suspending", () => screen1.SuspendedTo, Is.EqualTo(screen2));
-            AddAssert("screen 1 did receive resumed", () => screen1.ResumedFrom, Is.EqualTo(screen2));
+            AddAssert("screen 1 did receive suspending", () => screen1.SuspendedTo, () => Is.EqualTo(screen2));
+            AddAssert("screen 1 did receive resumed", () => screen1.ResumedFrom, () => Is.EqualTo(screen2));
         }
 
         /// <summary>

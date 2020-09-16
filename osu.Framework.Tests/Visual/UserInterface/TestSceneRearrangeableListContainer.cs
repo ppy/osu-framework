@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove item 50", () => list.Items.Remove(50));
 
-            AddAssert("scroll hasn't changed", () => list.ScrollPosition, Is.EqualTo(scrollPosition));
+            AddAssert("scroll hasn't changed", () => list.ScrollPosition, () => Is.EqualTo(scrollPosition));
         }
 
         [Test]

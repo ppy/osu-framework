@@ -259,11 +259,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Select tab 2", () => simpleTabcontrol.Current.Value = TestEnum.Test2);
             AddStep("Remove tab 2", () => simpleTabcontrol.RemoveItem(TestEnum.Test2));
-            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(TestEnum.Test3));
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, () => Is.EqualTo(TestEnum.Test3));
 
             AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.Last()));
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, () => Is.EqualTo(simpleTabcontrol.Items.Last()));
 
             AddStep("Remove all tabs", () =>
             {
@@ -291,13 +291,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.Last()));
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, () => Is.EqualTo(simpleTabcontrol.Items.Last()));
 
             AddStep("Set first tab unswitchable", () => ((StyledTabControl.TestTabItem)simpleTabcontrol.SwitchableTabs.First()).SetSwitchable(false));
 
             AddStep("Select first tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.First());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.First()));
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, () => Is.EqualTo(simpleTabcontrol.Items.First()));
         }
 
         [Test]
