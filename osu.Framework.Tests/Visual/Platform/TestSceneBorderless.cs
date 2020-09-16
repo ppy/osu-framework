@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -163,15 +164,15 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
-                AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
-                AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
+                AddAssert("check window location", () => window.Location, Is.EqualTo(display.Bounds.Location), desc1);
+                AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1), Is.EqualTo(display.Bounds.Size), desc2);
+                AddAssert("check current screen", () => window.CurrentDisplay.Value, Is.EqualTo(display));
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
+                AddAssert("check client size", () => window.ClientSize, Is.EqualTo(new Size(1280, 720)));
                 AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
-                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
+                AddAssert("check current screen", () => window.CurrentDisplay.Value, Is.EqualTo(display));
             }
         }
 
