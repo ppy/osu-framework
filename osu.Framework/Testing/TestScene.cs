@@ -5,22 +5,22 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using NUnit.Framework.Internal;
+using osu.Framework.Development;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Testing.Drawables.Steps;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
-using System.Threading.Tasks;
-using System.Threading;
-using NUnit.Framework.Constraints;
-using NUnit.Framework.Internal;
-using osu.Framework.Development;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Testing
 {
@@ -394,16 +394,11 @@ namespace osu.Framework.Testing
             });
         });
 
-        protected void AddAssert<T>(string description, Func<T> actual, IResolveConstraint constraint, string extendedDescription = null) => schedule(() =>
-        {
-            StepsContainer.Add(new AssertButton
-            {
-                Text = description,
-                ExtendedDescription = extendedDescription,
-                CallStack = new StackTrace(1),
-                Assertion = () => constraint.Resolve().ApplyTo(actual.Invoke()).IsSuccess
-            });
-        });
+        protected void AddAssert<T>(string description, Func<T> actual, IResolveConstraint constraint, string extendedDescription = null) =>
+            AddAssert(description, () => constraint.Resolve().ApplyTo(actual.Invoke()).IsSuccess, extendedDescription);
+
+        protected void AddAssert<T>(string description, Func<T> actual, Func<IResolveConstraint> constraint, string extendedDescription = null) =>
+            AddAssert(description, () => constraint.Invoke().Resolve().ApplyTo(actual.Invoke()).IsSuccess, extendedDescription);
 
         [Obsolete("Required types are now determined automatically.")] // can be removed 20201115
         public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
