@@ -75,19 +75,19 @@ namespace osu.Framework.Tests.Visual.Testing
             // Test browser:
             // [SetUp] -> [Test] -> [TearDown] -> [SetUp] -> [Test] -> [TearDown] -> ... -> {{ Run steps }}
             //
-            AddAssert("correct [SetUp] run count", () => setupRun == (DebugUtils.IsNUnitRunning ? testRunCount : testRunCountDummyRun));
+            AddAssert("correct [SetUp] run count", () => setupRun, Is.EqualTo(DebugUtils.IsNUnitRunning ? testRunCount : testRunCountDummyRun));
 
             // Under both nUnit and the test browser, this should be invoked once for all test methods _before_ any test steps are run.
-            AddAssert("correct [SetUpSteps] run count", () => setupStepsRun == testRunCount);
+            AddAssert("correct [SetUpSteps] run count", () => setupStepsRun, Is.EqualTo(testRunCount));
 
             // Under both nUnit and the test browser, this should be invoked once before each test method.
-            AddAssert("correct setup step run", () => setupStepsDummyRun == testRunCountDummyRun);
+            AddAssert("correct setup step run", () => setupStepsDummyRun, Is.EqualTo(testRunCountDummyRun));
 
             // Under both nUnit and the test browser, this should be invoked once for all test methods _before_ any test steps are run.
-            AddAssert("correct [TearDownSteps] run count", () => teardownStepsRun == testRunCount);
+            AddAssert("correct [TearDownSteps] run count", () => teardownStepsRun, Is.EqualTo(testRunCount));
 
             // Under both nUnit and the test browser, this should be invoked once _after_ each test method.
-            AddAssert("correct teardown step run", () => teardownStepsDummyRun == testRunCountDummyRun - 1);
+            AddAssert("correct teardown step run", () => teardownStepsDummyRun, Is.EqualTo(testRunCountDummyRun - 1));
 
             AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text == "set up second step") is SetUpStepButton);
 

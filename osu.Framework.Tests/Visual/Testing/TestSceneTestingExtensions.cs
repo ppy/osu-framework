@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual.Testing
                 Child = container = new Container { Child = new Box() };
             });
 
-            AddAssert("ChildrenOfType returns 2 children", () => container.ChildrenOfType<Drawable>().Count() == 2);
+            AddAssert("ChildrenOfType returns 2 children", () => container.ChildrenOfType<Drawable>().Count(), Is.EqualTo(2));
         }
     }
 }
