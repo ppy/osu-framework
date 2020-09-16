@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Layout
                 };
             });
 
-            AddAssert("zero inflation", () => box.InflationAmount == Vector2.Zero);
+            AddAssert("zero inflation", () => box.InflationAmount, Is.EqualTo(Vector2.Zero));
             AddStep("change edge smoothness", () => box.EdgeSmoothness = new Vector2(2));
             AddAssert("has inflation", () => box.InflationAmount.X > 0 && box.InflationAmount.Y > 0);
         }
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Layout
 
             AddStep("capture inflation", () => capturedInflation = box.InflationAmount);
             AddStep("change parent scale", () => parent.Scale = new Vector2(2));
-            AddAssert("inflation changed", () => box.InflationAmount != capturedInflation);
+            AddAssert("inflation changed", () => box.InflationAmount, Is.Not.EqualTo(capturedInflation));
         }
     }
 }

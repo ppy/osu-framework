@@ -53,11 +53,11 @@ namespace osu.Framework.Tests.Visual.Layout
 
             var expectedSize = new Vector2(container_width * value);
 
-            AddAssert("Check size before invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
-            AddAssert("Check size before invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
+            AddAssert("Check size before invalidate (1/2)", () => fitBox.DrawSize, Is.EqualTo(expectedSize));
+            AddAssert("Check size before invalidate (2/2)", () => fitBox.DrawSize, Is.EqualTo(expectedSize));
             AddStep("Invalidate", () => fitBox.Invalidate());
-            AddAssert("Check size after invalidate (1/2)", () => fitBox.DrawSize == expectedSize);
-            AddAssert("Check size after invalidate (2/2)", () => fitBox.DrawSize == expectedSize);
+            AddAssert("Check size after invalidate (1/2)", () => fitBox.DrawSize, Is.EqualTo(expectedSize));
+            AddAssert("Check size after invalidate (2/2)", () => fitBox.DrawSize, Is.EqualTo(expectedSize));
         }
     }
 }

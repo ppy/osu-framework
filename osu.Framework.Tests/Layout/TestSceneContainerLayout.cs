@@ -236,7 +236,7 @@ namespace osu.Framework.Tests.Layout
                     child.Y = 10;
             });
 
-            AddAssert("parent only invalidated with geometry", () => invalidation == Invalidation.MiscGeometry);
+            AddAssert("parent only invalidated with geometry", () => invalidation, Is.EqualTo(Invalidation.MiscGeometry));
         }
 
         [TestCase(Axes.X)]
@@ -268,7 +268,7 @@ namespace osu.Framework.Tests.Layout
                     child.Height = 10;
             });
 
-            AddAssert("parent only invalidated with size", () => invalidation == Invalidation.DrawSize);
+            AddAssert("parent only invalidated with size", () => invalidation, Is.EqualTo(Invalidation.DrawSize));
         }
 
         /// <summary>
@@ -336,7 +336,7 @@ namespace osu.Framework.Tests.Layout
             AddAssert("child invalidated", () => invalidated);
 
             // Final check to make sure that the correct invalidation occurred
-            AddAssert("child size matches parent", () => child.DrawSize == parent.Size);
+            AddAssert("child size matches parent", () => child.DrawSize, Is.EqualTo(parent.Size));
         }
 
         /// <summary>
