@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void checkCount(int count)
         {
-            AddAssert("Visible children: " + count, () => count == countSearchableText(search));
+            AddAssert("Visible children: " + count, () => count, Is.EqualTo(countSearchableText(search)));
         }
 
         private int countSearchableText(CompositeDrawable container)

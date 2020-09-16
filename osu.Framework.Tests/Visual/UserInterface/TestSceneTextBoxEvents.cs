@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("set text property once more", () => textBox.Text = "set property once more");
             AddStep("insert string via protected method", () => textBox.InsertString(" inserted string."));
-            AddAssert("no user text consumed event", () => textBox.UserConsumedTextQueue.Count == 0);
+            AddAssert("no user text consumed event", () => textBox.UserConsumedTextQueue.Count, Is.EqualTo(0));
         }
 
         [Test]

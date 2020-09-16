@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 int localI = i;
 
                 addItems(1);
-                AddAssert($"last item is \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().Last().Model == localI);
+                AddAssert($"last item is \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().Last().Model, Is.EqualTo(localI));
             }
         }
 
@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 int localI = i;
 
                 AddStep($"remove item \"{i}\"", () => list.Items.Remove(localI));
-                AddAssert($"first item is not \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().FirstOrDefault()?.Model != localI);
+                AddAssert($"first item is not \"{i}\"", () => list.ChildrenOfType<RearrangeableListItem<int>>().FirstOrDefault()?.Model, Is.Not.EqualTo(localI));
             }
         }
 
@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("remove item 50", () => list.Items.Remove(50));
 
-            AddAssert("scroll hasn't changed", () => list.ScrollPosition == scrollPosition);
+            AddAssert("scroll hasn't changed", () => list.ScrollPosition, Is.EqualTo(scrollPosition));
         }
 
         [Test]
@@ -262,7 +262,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add item 1", () => delayedList.Items.Add(1));
             AddStep("allow load", () => delayedList.AllowLoad.Release(100));
 
-            AddAssert("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
+            AddAssert("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count(), Is.EqualTo(1));
         }
 
         private void addDragSteps(int from, int to, int[] expectedSequence)

@@ -145,19 +145,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Set first tab", () => switchingTabControl.Current.Value = switchingTabControl.Items.First());
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.ElementAt(1));
+            AddAssert("Ensure second tab", () => switchingTabControl.Current.Value, Is.EqualTo(switchingTabControl.Items.ElementAt(1)));
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
+            AddAssert("Ensure first Tab", () => switchingTabControl.Current.Value, Is.EqualTo(switchingTabControl.Items.First()));
 
             AddStep("Switch backward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentPrevious)));
-            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.Last());
+            AddAssert("Ensure last tab", () => switchingTabControl.Current.Value, Is.EqualTo(switchingTabControl.Items.Last()));
 
             AddStep("Switch forward", () => platformActionContainer.TriggerPressed(new PlatformAction(PlatformActionType.DocumentNext)));
-            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value == switchingTabControl.Items.First());
+            AddAssert("Ensure first tab", () => switchingTabControl.Current.Value, Is.EqualTo(switchingTabControl.Items.First()));
 
             AddStep("Add all items", () => items.ForEach(item => removeAllTabControl.AddItem(item)));
-            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count == items.Length);
+            AddAssert("Ensure all items", () => removeAllTabControl.Items.Count, Is.EqualTo(items.Length));
 
             AddStep("Remove all items", () => removeAllTabControl.Clear());
             AddAssert("Ensure no items", () => !removeAllTabControl.Items.Any());
@@ -166,8 +166,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Remove all items", () => withoutDropdownTabControl.Clear());
             AddAssert("Ensure no items", () => !withoutDropdownTabControl.Items.Any());
 
-            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count() < items.Length);
-            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count() == items.Length);
+            AddAssert("Ensure not all items visible on singleline", () => simpleTabcontrol.VisibleItems.Count(), Is.LessThan(items.Length));
+            AddAssert("Ensure all items visible on multiline", () => multilineTabControl.VisibleItems.Count(), Is.EqualTo(items.Length));
         }
 
         [Test]
@@ -178,8 +178,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("change value to test0", () => simpleTabcontrol.Current.Value = TestEnum.Test0);
             AddStep("lease bindable", () => leased = simpleTabcontrol.Current.BeginLease(true));
             AddStep("change value to test1", () => leased.Value = TestEnum.Test1);
-            AddAssert("value changed", () => simpleTabcontrol.Current.Value == TestEnum.Test1);
-            AddAssert("tab changed", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test1);
+            AddAssert("value changed", () => simpleTabcontrol.Current.Value, Is.EqualTo(TestEnum.Test1));
+            AddAssert("tab changed", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(TestEnum.Test1));
             AddStep("end lease", () => leased.UnbindAll());
         }
 
@@ -206,7 +206,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = simpleTabcontrol;
             });
 
-            AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test2);
+            AddAssert("test2 selected", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(TestEnum.Test2));
         }
 
         [Test]
@@ -227,7 +227,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].Click());
-            AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
+            AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(TestEnum.Test0));
         }
 
         [TestCase(true)]
@@ -236,9 +236,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep($"Set autosort to {autoSort}", () => simpleTabcontrol.AutoSort = autoSort);
             AddStep("select item 1", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.ElementAt(1));
-            AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value == simpleTabcontrol.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => simpleTabcontrol.Current.Value, Is.EqualTo(simpleTabcontrol.Items.ElementAt(1)));
             AddStep("select item null", () => simpleTabcontrol.Current.Value = null);
-            AddAssert("null is selected", () => simpleTabcontrol.Current.Value == null);
+            AddAssert("null is selected", () => simpleTabcontrol.Current.Value, Is.EqualTo(null));
         }
 
         [Test]
@@ -259,18 +259,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Select tab 2", () => simpleTabcontrol.Current.Value = TestEnum.Test2);
             AddStep("Remove tab 2", () => simpleTabcontrol.RemoveItem(TestEnum.Test2));
-            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test3);
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(TestEnum.Test3));
 
             AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.Last()));
 
             AddStep("Remove all tabs", () =>
             {
                 var itemsForDelete = new List<TestEnum?>(simpleTabcontrol.Items);
                 itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
             });
-            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab, Is.EqualTo(null));
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Select tab 2", () => simpleTabcontrolNoSwitchOnRemove.Current.Value = TestEnum.Test2);
             AddStep("Remove tab 2", () => simpleTabcontrolNoSwitchOnRemove.RemoveItem(TestEnum.Test2));
-            AddAssert("Ensure has not switched", () => simpleTabcontrolNoSwitchOnRemove.SelectedTab.Value == TestEnum.Test2);
+            AddAssert("Ensure has not switched", () => simpleTabcontrolNoSwitchOnRemove.SelectedTab.Value, Is.EqualTo(TestEnum.Test2));
         }
 
         [Test]
@@ -291,13 +291,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Select last tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.Last());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.Last());
+            AddAssert("Ensure selection switches to previous tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.Last()));
 
             AddStep("Set first tab unswitchable", () => ((StyledTabControl.TestTabItem)simpleTabcontrol.SwitchableTabs.First()).SetSwitchable(false));
 
             AddStep("Select first tab", () => simpleTabcontrol.Current.Value = simpleTabcontrol.Items.First());
             AddStep("Remove selected tab", () => simpleTabcontrol.RemoveItem(simpleTabcontrol.SelectedTab.Value));
-            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value == simpleTabcontrol.Items.First());
+            AddAssert("Ensure selection switches to next tab", () => simpleTabcontrol.SelectedTab.Value, Is.EqualTo(simpleTabcontrol.Items.First()));
         }
 
         [Test]
@@ -318,8 +318,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 itemsForDelete.ForEach(item => simpleTabcontrol.RemoveItem(item));
             });
 
-            AddAssert("Unswitchable tab still present", () => simpleTabcontrol.Items.Count == 1);
-            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
+            AddAssert("Unswitchable tab still present", () => simpleTabcontrol.Items.Count, Is.EqualTo(1));
+            AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab, Is.Null);
         }
 
         [Test]

@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestAlwaysOpen()
         {
             AddStep("Click outside", () => InputManager.Click(MouseButton.Left));
-            AddAssert("Check AlwaysOpen = true", () => Menus.GetSubMenu(0).State == MenuState.Open);
+            AddAssert("Check AlwaysOpen = true", () => Menus.GetSubMenu(0).State, Is.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestHoverState()
         {
-            AddAssert("Check submenu closed", () => Menus.GetSubMenu(1)?.State != MenuState.Open);
+            AddAssert("Check submenu closed", () => Menus.GetSubMenu(1)?.State, Is.Not.EqualTo(MenuState.Open));
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetMenuItems()[0]));
             AddAssert("Check item hovered", () => Menus.GetMenuItems()[0].IsHovered);
         }
@@ -77,10 +77,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestTopLevelMenu()
         {
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(0).GetMenuItems()[0]));
-            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State != MenuState.Open);
-            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State != MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State, Is.Not.EqualTo(MenuState.Open));
+            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State, Is.Not.EqualTo(MenuState.Open));
             AddStep("Click item", () => InputManager.Click(MouseButton.Left));
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -91,9 +91,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestDoubleClick()
         {
             AddStep("Click item", () => ClickItem(0, 0));
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
             AddStep("Click item", () => ClickItem(0, 0));
-            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State != MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State, Is.Not.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -103,9 +103,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestInstantOpen()
         {
             AddStep("Click item", () => ClickItem(0, 1));
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
             AddStep("Click item", () => ClickItem(1, 0));
-            AddAssert("Check open", () => Menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(2).State, Is.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Click item", () => ClickItem(0, 0));
             AddStep("Click item", () => ClickItem(1, 0));
-            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State != MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(1)?.State, Is.Not.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -127,11 +127,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Click item", () => ClickItem(0, 1));
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[0]));
-            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check open", () => Menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State, Is.Not.EqualTo(MenuState.Open));
+            AddAssert("Check open", () => Menus.GetSubMenu(2).State, Is.EqualTo(MenuState.Open));
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(2).GetMenuItems()[0]));
-            AddAssert("Check closed", () => Menus.GetSubMenu(3)?.State != MenuState.Open);
-            AddAssert("Check open", () => Menus.GetSubMenu(3).State == MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(3)?.State, Is.Not.EqualTo(MenuState.Open));
+            AddAssert("Check open", () => Menus.GetSubMenu(3).State, Is.EqualTo(MenuState.Open));
         }
 
         /// <summary>
@@ -146,9 +146,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Get items", () => { currentItems = Menus.GetSubMenu(1).Items; });
 
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(0).GetMenuItems()[1]));
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
 
             AddAssert("Check new items", () => !Menus.GetSubMenu(1).Items.SequenceEqual(currentItems));
             AddAssert("Check closed", () =>
@@ -180,13 +180,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("Click item", () => ClickItem(0, 2));
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[0]));
-            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State, Is.Not.EqualTo(MenuState.Open));
+            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State, Is.Not.EqualTo(MenuState.Open));
 
             AddStep("Hover item", () => { InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[1]); });
 
-            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State != MenuState.Open);
-            AddAssert("Check open", () => Menus.GetSubMenu(2).State == MenuState.Open);
+            AddAssert("Check closed", () => Menus.GetSubMenu(2)?.State, Is.Not.EqualTo(MenuState.Open));
+            AddAssert("Check open", () => Menus.GetSubMenu(2).State, Is.EqualTo(MenuState.Open));
 
             AddAssert("Check closed", () =>
             {
@@ -224,7 +224,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 int menuIndex = i;
                 AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(menuIndex).GetMenuItems()[0]));
-                AddAssert("Check submenu open", () => Menus.GetSubMenu(menuIndex + 1).State == MenuState.Open);
+                AddAssert("Check submenu open", () => Menus.GetSubMenu(menuIndex + 1).State, Is.EqualTo(MenuState.Open));
                 AddStep("Click item", () => InputManager.Click(MouseButton.Left));
                 AddAssert("Check all open", () =>
                 {
@@ -335,21 +335,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestSelectedState()
         {
             AddStep("Click item", () => ClickItem(0, 2));
-            AddAssert("Check open", () => Menus.GetSubMenu(1).State == MenuState.Open);
+            AddAssert("Check open", () => Menus.GetSubMenu(1).State, Is.EqualTo(MenuState.Open));
 
             AddStep("Hover item", () => InputManager.MoveMouseTo(Menus.GetSubStructure(1).GetMenuItems()[1]));
-            AddAssert("Check closed 1", () => Menus.GetSubMenu(2)?.State != MenuState.Open);
+            AddAssert("Check closed 1", () => Menus.GetSubMenu(2)?.State, Is.Not.EqualTo(MenuState.Open));
             AddAssert("Check open", () => Menus.GetSubMenu(2).State == MenuState.Open);
-            AddAssert("Check selected index 1", () => Menus.GetSubStructure(1).GetSelectedIndex() == 1);
+            AddAssert("Check selected index 1", () => Menus.GetSubStructure(1).GetSelectedIndex(), Is.EqualTo(1));
 
             AddStep("Change selection", () => Menus.GetSubStructure(1).SetSelectedState(0, MenuItemState.Selected));
-            AddAssert("Check selected index", () => Menus.GetSubStructure(1).GetSelectedIndex() == 0);
+            AddAssert("Check selected index", () => Menus.GetSubStructure(1).GetSelectedIndex(), Is.EqualTo(0));
 
             AddStep("Change selection", () => Menus.GetSubStructure(1).SetSelectedState(2, MenuItemState.Selected));
-            AddAssert("Check selected index 2", () => Menus.GetSubStructure(1).GetSelectedIndex() == 2);
+            AddAssert("Check selected index 2", () => Menus.GetSubStructure(1).GetSelectedIndex(), Is.EqualTo(2));
 
             AddStep("Close menus", () => Menus.GetSubMenu(0).Close());
-            AddAssert("Check selected index 4", () => Menus.GetSubStructure(1).GetSelectedIndex() == -1);
+            AddAssert("Check selected index 4", () => Menus.GetSubStructure(1).GetSelectedIndex(), Is.EqualTo(-1));
         }
 
         #endregion

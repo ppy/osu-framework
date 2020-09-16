@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(button.ScreenSpaceDrawQuad.Centre);
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("action was executed", () => clickCount == 1);
+            AddAssert("action was executed", () => clickCount, Is.EqualTo(1));
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(button.ScreenSpaceDrawQuad.Centre);
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("action was not executed", () => clickCount == 0);
+            AddAssert("action was not executed", () => clickCount, Is.EqualTo(0));
         }
     }
 }

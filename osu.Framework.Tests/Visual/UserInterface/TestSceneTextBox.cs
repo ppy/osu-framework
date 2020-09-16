@@ -179,7 +179,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep(@"set number text", () => numbers.Text = @"1h2e3l4l5o6");
-            AddAssert(@"number text only numbers", () => numbers.Text == @"123456");
+            AddAssert(@"number text only numbers", () => numbers.Text, Is.EqualTo(@"123456"));
         }
 
         [TestCase(true, true)]
@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
-            AddAssert("ensure no commits", () => commitCount == 0);
+            AddAssert("ensure no commits", () => commitCount, Is.EqualTo(0));
 
             AddStep("click on textbox", () =>
             {
@@ -229,11 +229,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             if (commitOnFocusLost)
             {
-                AddAssert("ensure one commit", () => commitCount == 1);
-                AddAssert("ensure new text", () => wasNewText == changeText);
+                AddAssert("ensure one commit", () => commitCount, Is.EqualTo(1));
+                AddAssert("ensure new text", () => wasNewText, Is.EqualTo(changeText));
             }
             else
-                AddAssert("ensure no commits", () => commitCount == 0);
+                AddAssert("ensure no commits", () => commitCount, Is.EqualTo(0));
 
             AddStep("click on textbox", () =>
             {
@@ -252,8 +252,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             int expectedCount = 1 + (commitOnFocusLost ? 1 : 0);
 
-            AddAssert($"ensure {expectedCount} commit(s)", () => commitCount == expectedCount);
-            AddAssert("ensure new text", () => wasNewText == changeText);
+            AddAssert($"ensure {expectedCount} commit(s)", () => commitCount, Is.EqualTo(expectedCount));
+            AddAssert("ensure new text", () => wasNewText, Is.EqualTo(changeText));
         }
 
         [Test]
@@ -277,13 +277,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("insert three words", () => textBox.InsertString("some long text"));
             AddStep("delete last word", () => textBox.DeletePreviousWord());
-            AddAssert("two words remain", () => textBox.Text == "some long ");
+            AddAssert("two words remain", () => textBox.Text, Is.EqualTo("some long "));
             AddStep("delete last word", () => textBox.DeletePreviousWord());
-            AddAssert("one word remains", () => textBox.Text == "some ");
+            AddAssert("one word remains", () => textBox.Text, Is.EqualTo("some "));
             AddStep("delete last word", () => textBox.DeletePreviousWord());
-            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddAssert("text is empty", () => textBox.Text.Length, Is.EqualTo(0));
             AddStep("delete last word", () => textBox.DeletePreviousWord());
-            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddAssert("text is empty", () => textBox.Text.Length, Is.EqualTo(0));
         }
 
         [Test]
@@ -308,13 +308,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("insert three words", () => textBox.InsertString("some long text"));
             AddStep("move caret to start", () => textBox.MoveToStart());
             AddStep("delete first word", () => textBox.DeleteNextWord());
-            AddAssert("two words remain", () => textBox.Text == " long text");
+            AddAssert("two words remain", () => textBox.Text, Is.EqualTo(" long text"));
             AddStep("delete first word", () => textBox.DeleteNextWord());
-            AddAssert("one word remains", () => textBox.Text == " text");
+            AddAssert("one word remains", () => textBox.Text, Is.EqualTo(" text"));
             AddStep("delete first word", () => textBox.DeleteNextWord());
-            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddAssert("text is empty", () => textBox.Text.Length, Is.EqualTo(0));
             AddStep("delete first word", () => textBox.DeleteNextWord());
-            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddAssert("text is empty", () => textBox.Text.Length, Is.EqualTo(0));
         }
 
         /// <summary>

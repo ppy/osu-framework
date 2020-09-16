@@ -44,7 +44,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("lost focus", () => !overlayContainer.HasFocus);
-            AddAssert("not visible", () => overlayContainer.State.Value == Visibility.Hidden);
+            AddAssert("not visible", () => overlayContainer.State.Value, Is.EqualTo(Visibility.Hidden));
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ScrollVerticalBy(1);
             });
 
-            AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived == initialScrollCount);
+            AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived, Is.EqualTo(initialScrollCount));
 
             AddStep("scroll outside", () =>
             {
@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ScrollVerticalBy(1);
             });
 
-            AddAssert("scroll received by parent", () => parentContainer.ScrollReceived == ++initialScrollCount);
+            AddAssert("scroll received by parent", () => parentContainer.ScrollReceived, Is.EqualTo(++initialScrollCount));
         }
 
         private class TestFocusedOverlayContainer : FocusedOverlayContainer

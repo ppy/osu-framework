@@ -203,7 +203,7 @@ soft break with '\'";
                 markdownContainer.Text = "[link](/file)";
             });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("https://some.test.url/file"));
         }
 
         [Test]
@@ -212,13 +212,13 @@ soft break with '\'";
             AddStep("set content", () => markdownContainer.DocumentUrl = "https://some.test.url/some/path/2");
 
             AddStep("set 'file'", () => markdownContainer.Text = "[link](file)");
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("https://some.test.url/some/path/file"));
 
             AddStep("set './file'", () => markdownContainer.Text = "[link](./file)");
-            AddAssert("has correct link", () => markdownContainer.Links[1].Url == "https://some.test.url/some/path/file");
+            AddAssert("has correct link", () => markdownContainer.Links[1].Url, Is.EqualTo("https://some.test.url/some/path/file"));
 
             AddStep("set '../folder/file'", () => markdownContainer.Text = "[link](../folder/file)");
-            AddAssert("has correct link", () => markdownContainer.Links[2].Url == "https://some.test.url/some/folder/file");
+            AddAssert("has correct link", () => markdownContainer.Links[2].Url, Is.EqualTo("https://some.test.url/some/folder/file"));
         }
 
         [Test]
@@ -226,7 +226,7 @@ soft break with '\'";
         {
             AddStep("set content", () => { markdownContainer.Text = "[link](file)"; });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("file"));
         }
 
         [Test]
@@ -234,7 +234,7 @@ soft break with '\'";
         {
             AddStep("set content", () => { markdownContainer.Text = "[link](/file)"; });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("/file"));
         }
 
         [Test]
@@ -247,7 +247,7 @@ soft break with '\'";
                 markdownContainer.Text = "[link](file)";
             });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/path/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("https://some.test.url/some/path/file"));
         }
 
         [Test]
@@ -260,7 +260,7 @@ soft break with '\'";
                 markdownContainer.Text = "[link](/file)";
             });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/some/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("https://some.test.url/some/file"));
         }
 
         [Test]
@@ -273,7 +273,7 @@ soft break with '\'";
                 markdownContainer.Text = "[link](/../../../file)";
             });
 
-            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url, Is.EqualTo("https://some.test.url/file"));
         }
 
         private class TestMarkdownContainer : MarkdownContainer

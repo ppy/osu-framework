@@ -27,8 +27,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("update unrelated bindable", () => bindable.Value = "test2");
 
-            AddAssert("ensure current unbound", () => dropdown.Current.Value != bindable.Value);
-            AddAssert("ensure externals still bound", () => boundBindable.Value == bindable.Value);
+            AddAssert("ensure current unbound", () => dropdown.Current.Value, Is.Not.EqualTo(bindable.Value));
+            AddAssert("ensure externals still bound", () => boundBindable.Value, Is.EqualTo(bindable.Value));
         }
 
         [Test]
@@ -40,15 +40,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             var dropdown = new BasicDropdown<string> { Current = bindable };
 
             AddStep("add dropdown", () => Add(dropdown));
-            AddAssert("ensure current bound", () => dropdown.Current.Value == bindable.Value);
+            AddAssert("ensure current bound", () => dropdown.Current.Value, Is.EqualTo(bindable.Value));
 
             AddStep("change target", () => dropdown.Current = bindable2);
-            AddAssert("ensure current switched", () => dropdown.Current.Value == bindable2.Value);
-            AddAssert("ensure original intact", () => dropdown.Current.Value != bindable.Value);
+            AddAssert("ensure current switched", () => dropdown.Current.Value, Is.EqualTo(bindable2.Value));
+            AddAssert("ensure original intact", () => dropdown.Current.Value, Is.Not.EqualTo(bindable.Value));
 
             AddStep("change value", () => bindable2.Value = "test3");
-            AddAssert("ensure current bound", () => dropdown.Current.Value == bindable2.Value);
-            AddAssert("ensure original intact", () => dropdown.Current.Value != bindable.Value);
+            AddAssert("ensure current bound", () => dropdown.Current.Value, Is.EqualTo(bindable2.Value));
+            AddAssert("ensure original intact", () => dropdown.Current.Value, Is.Not.EqualTo(bindable.Value));
         }
 
         // TODO: add tests for other components
