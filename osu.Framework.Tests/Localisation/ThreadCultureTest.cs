@@ -80,7 +80,7 @@ namespace osu.Framework.Tests.Localisation
 
             AddStep("start new thread", () => new Thread(() => culture = Thread.CurrentThread.CurrentCulture) { IsBackground = true }.Start());
             AddUntilStep("wait for culture", () => culture != null);
-            AddAssert($"thread culture is {name}", () => culture.Name == name);
+            AddAssert($"thread culture is {name}", () => culture.Name, Is.EqualTo(name));
         }
     }
 }
