@@ -62,13 +62,13 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestStartFromCurrentTime()
         {
-            AddAssert("Video is near start", () => video.PlaybackPosition < 1000);
+            AddAssert("Video is near start", () => video.PlaybackPosition, Is.LessThan(1000));
 
             AddWaitStep("Wait some", 20);
 
             loadNewVideo();
 
-            AddAssert("Video is near start", () => video.PlaybackPosition < 1000);
+            AddAssert("Video is near start", () => video.PlaybackPosition, Is.LessThan(1000));
         }
 
         [Test]
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= video.Duration - 1000);
 
             AddWaitStep("Wait for playback", 10);
-            AddAssert("Not looped", () => video.PlaybackPosition >= video.Duration - 1000);
+            AddAssert("Not looped", () => video.PlaybackPosition, Is.GreaterThanOrEqualTo(video.Duration - 1000));
         }
 
         [Test]

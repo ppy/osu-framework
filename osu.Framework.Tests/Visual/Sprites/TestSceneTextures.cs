@@ -45,8 +45,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddUntilStep("wait for texture load", () => (texture = (TextureWithRefCount)avatar1.Texture) != null && avatar2.Texture != null);
 
-            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL == avatar2.Texture.TextureGL);
-            AddAssert("textures have different refcount textures", () => avatar1.Texture != avatar2.Texture);
+            AddAssert("textures share gl texture", () => avatar1.Texture.TextureGL, Is.EqualTo(avatar2.Texture.TextureGL));
+            AddAssert("textures have different refcount textures", () => avatar1.Texture, Is.Not.EqualTo(avatar2.Texture));
 
             AddStep("dispose children", () =>
             {
@@ -87,7 +87,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         private void assertAvailability(Func<Texture> textureFunc, bool available)
-            => AddAssert($"texture available = {available}", () => ((TextureWithRefCount)textureFunc()).IsDisposed == !available);
+            => AddAssert($"texture available = {available}", () => ((TextureWithRefCount)textureFunc()).IsDisposed, Is.EqualTo(!available));
 
         private Avatar addSprite(string url)
         {

@@ -24,7 +24,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size < max", () => display.Text.DrawWidth < 100);
+            AddAssert("size < max", () => display.Text.DrawWidth, Is.LessThan(100));
         }
 
         [TestCase(false)]
@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Truncate = truncate;
             });
 
-            AddAssert("size <= max", () => display.Text.DrawWidth <= 50);
+            AddAssert("size <= max", () => display.Text.DrawWidth, Is.LessThanOrEqualTo(50));
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size <= 40", () => display.Text.DrawWidth <= 40);
+            AddAssert("size <= 40", () => display.Text.DrawWidth, Is.LessThanOrEqualTo(40));
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 s.Text = "test";
             });
 
-            AddAssert("size == 50", () => display.Text.DrawWidth <= 50);
+            AddAssert("size == 50", () => display.Text.DrawWidth, Is.LessThanOrEqualTo(50));
         }
 
         [Test]
@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             }, Axes.Y);
 
             AddStep("set parent size", () => display.Width = 100);
-            AddAssert("size <= max", () => display.Text.DrawWidth <= 50);
+            AddAssert("size <= max", () => display.Text.DrawWidth, Is.LessThanOrEqualTo(50));
         }
 
         private void createTest(Action<SpriteText> initFunc, Axes autoSizeAxes = Axes.Both)

@@ -51,19 +51,19 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestFrameSeeking()
         {
-            AddAssert("frame count is correct", () => animation.FrameCount == TestAnimation.LOADABLE_FRAMES);
+            AddAssert("frame count is correct", () => animation.FrameCount, Is.EqualTo(TestAnimation.LOADABLE_FRAMES));
             AddUntilStep("wait for frames to pass", () => animation.CurrentFrameIndex > 10);
             AddStep("stop animation", () => animation.Stop());
             AddAssert("is stopped", () => !animation.IsPlaying);
 
             AddStep("goto frame 60", () => animation.GotoFrame(60));
-            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex, Is.EqualTo(60));
 
             AddStep("goto frame 30", () => animation.GotoFrame(30));
-            AddAssert("is at frame 30", () => animation.CurrentFrameIndex == 30);
+            AddAssert("is at frame 30", () => animation.CurrentFrameIndex, Is.EqualTo(30));
 
             AddStep("goto frame 60", () => animation.GotoFrame(60));
-            AddAssert("is at frame 60", () => animation.CurrentFrameIndex == 60);
+            AddAssert("is at frame 60", () => animation.CurrentFrameIndex, Is.EqualTo(60));
 
             AddStep("start animation", () => animation.Play());
             AddUntilStep("continues to frame 70", () => animation.CurrentFrameIndex == 70);
@@ -72,27 +72,27 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestStartFromCurrentTime()
         {
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation is near start", () => animation.PlaybackPosition, Is.LessThan(1000));
 
             AddWaitStep("Wait some", 20);
 
             loadNewAnimation();
 
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation is near start", () => animation.PlaybackPosition, Is.LessThan(1000));
         }
 
         [Test]
         public void TestStoppedAnimationIsAtZero()
         {
             loadNewAnimation(postLoadAction: a => a.Stop());
-            AddAssert("Animation is at start", () => animation.PlaybackPosition == 0);
+            AddAssert("Animation is at start", () => animation.PlaybackPosition, Is.EqualTo(0));
         }
 
         [Test]
         public void TestStoppedAnimationIsAtSpecifiedFrame()
         {
             loadNewAnimation(postLoadAction: a => a.GotoAndStop(2));
-            AddAssert("Animation is at specific frame", () => animation.PlaybackPosition == 500);
+            AddAssert("Animation is at specific frame", () => animation.PlaybackPosition, Is.EqualTo(500));
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("play", () => animation.Play());
 
-            AddAssert("time is near start", () => animation.CurrentFrameIndex < 2);
+            AddAssert("time is near start", () => animation.CurrentFrameIndex, Is.LessThan(2));
         }
 
         [Test]
@@ -114,13 +114,13 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             loadNewAnimation(false);
 
-            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition, Is.GreaterThan(1000));
         }
 
         [Test]
         public void TestSetCustomClockWithCurrentTime()
         {
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation is near start", () => animation.PlaybackPosition, Is.LessThan(1000));
 
             AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
 
@@ -130,7 +130,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
 
-            AddAssert("Animation continued playing at current position", () => animation.PlaybackPosition - posBefore < 1000);
+            AddAssert("Animation continued playing at current position", () => animation.PlaybackPosition - posBefore, Is.LessThan(1000));
         }
 
         [Test]
@@ -138,13 +138,13 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             loadNewAnimation(false);
 
-            AddAssert("Animation is near start", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation is near start", () => animation.PlaybackPosition, Is.LessThan(1000));
 
             AddUntilStep("Animation is not near start", () => animation.PlaybackPosition > 1000);
 
             AddStep("Set custom clock", () => animation.Clock = new FramedOffsetClock(null) { Offset = 10000 });
 
-            AddAssert("Animation is not near start", () => animation.PlaybackPosition > 1000);
+            AddAssert("Animation is not near start", () => animation.PlaybackPosition, Is.GreaterThan(1000));
         }
 
         [Test]
@@ -171,7 +171,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Animation seeked", () => animation.PlaybackPosition >= animation.Duration - 1000);
 
             AddWaitStep("Wait for playback", 10);
-            AddAssert("Not looped", () => animation.PlaybackPosition >= animation.Duration - 1000);
+            AddAssert("Not looped", () => animation.PlaybackPosition, Is.GreaterThanOrEqualTo(animation.Duration - 1000));
         }
 
         [Test]
@@ -196,7 +196,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 a.FadeInFromZero(10).Then().FadeOutFromOne(1000);
             });
 
-            AddAssert("Is visible", () => animation.Alpha > 0);
+            AddAssert("Is visible", () => animation.Alpha, Is.GreaterThan(0));
         }
 
         [Test]
@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 a.PlaybackPosition = -10000;
             });
 
-            AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
+            AddAssert("Animation is at beginning", () => animation.PlaybackPosition, Is.LessThan(1000));
         }
 
         [Test]
@@ -228,7 +228,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             // Note: We won't get PlaybackPosition=0 here because the test runner increments the clock by at least 200ms per step, so 1000 is a safe value.
-            AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
+            AddAssert("animation restarted from 0", () => animation.PlaybackPosition, Is.LessThan(1000));
         }
 
         [TestCase(0)]
@@ -243,7 +243,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("load animation", () => animationContainer.Child = animation);
 
-            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
+            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex, Is.EqualTo(frame));
         }
 
         [Test]
@@ -254,8 +254,8 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("animation is playing", () => animation.CurrentFrameIndex > 0);
 
             AddStep("clear frames", () => animation.ClearFrames());
-            AddAssert("animation duration is 0", () => animation.Duration == 0);
-            AddAssert("animation is at start", () => animation.CurrentFrameIndex == 0);
+            AddAssert("animation duration is 0", () => animation.Duration, Is.EqualTo(0));
+            AddAssert("animation is at start", () => animation.CurrentFrameIndex, Is.EqualTo(0));
         }
 
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)

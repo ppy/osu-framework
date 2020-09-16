@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -47,7 +48,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 });
             }
 
-            AddAssert("(0, 0) has no inflation", () => boxes[0].InflationAmount == Vector2.Zero);
+            AddAssert("(0, 0) has no inflation", () => boxes[0].InflationAmount, Is.EqualTo(Vector2.Zero));
             AddAssert("(1, 0) has inflation only in y", () => boxes[1].InflationAmount.X == 0 && boxes[1].InflationAmount.Y > 0);
             AddAssert("(2, 0) has inflation only in x", () => boxes[2].InflationAmount.X > 0 && boxes[2].InflationAmount.Y == 0);
             AddAssert("(0, 1) has inflation in x and y", () => boxes[3].InflationAmount.X > 0 && boxes[3].InflationAmount.Y > 0);
