@@ -49,9 +49,9 @@ namespace osu.Framework.Tests.Visual.Input
             AddStep("press 2", () => InputManager.PressButton(MouseButton.Button2));
             AddStep("release 1", () => InputManager.ReleaseButton(MouseButton.Button1));
             AddStep("release 2", () => InputManager.ReleaseButton(MouseButton.Button2));
-            AddAssert("box 1 was pressed", () => box1.HitCount == 1);
-            AddAssert("box 2 was pressed", () => box2.HitCount == 1);
-            AddAssert("box 3 not pressed", () => box3.HitCount == 0);
+            AddAssert("box 1 was pressed", () => box1.HitCount, Is.EqualTo(1));
+            AddAssert("box 2 was pressed", () => box2.HitCount, Is.EqualTo(1));
+            AddAssert("box 3 not pressed", () => box3.HitCount, Is.EqualTo(0));
         }
 
         [Test]
