@@ -17,6 +17,7 @@ using osuTK;
 using osuTK.Graphics;
 using System.Threading.Tasks;
 using System.Threading;
+using NUnit.Framework.Constraints;
 using NUnit.Framework.Internal;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Sprites;
@@ -390,6 +391,17 @@ namespace osu.Framework.Testing
                 ExtendedDescription = extendedDescription,
                 CallStack = new StackTrace(1),
                 Assertion = assert,
+            });
+        });
+
+        protected void AddAssert<T>(string description, Func<T> actual, IResolveConstraint constraint, string extendedDescription = null) => schedule(() =>
+        {
+            StepsContainer.Add(new AssertButton
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                CallStack = new StackTrace(1),
+                Assertion = () => constraint.Resolve().ApplyTo(actual.Invoke()).IsSuccess
             });
         });
 
