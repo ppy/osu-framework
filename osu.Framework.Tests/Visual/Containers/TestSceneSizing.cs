@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             // Upon LoadComplete(), one invalidation occurs which causes autosize to recompute
             // Since nothing has changed since the previous frame, the size of the child should remain the same
-            AddAssert("size is the same after one frame", () => child.Size == initialSize);
+            AddAssert("size is the same after one frame", () => child.Size, Is.EqualTo(initialSize));
         }
 
         private void addCrosshair()

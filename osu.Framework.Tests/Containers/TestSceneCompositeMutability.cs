@@ -112,7 +112,7 @@ namespace osu.Framework.Tests.Containers
             }
 
             AddUntilStep("wait for result", () => hasResult);
-            AddAssert("thrown", () => thrown == shouldThrow);
+            AddAssert("thrown", () => thrown, Is.EqualTo(shouldThrow));
 
             AddStep("allow load completion", () =>
             {

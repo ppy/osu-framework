@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -64,29 +65,29 @@ namespace osu.Framework.Tests.Visual.Containers
             AddWaitStep("wait for boxes", 5);
 
             // ensure uncached is always updating children.
-            AddAssert("box 0 count > 0", () => boxes[0].Count > 0);
+            AddAssert("box 0 count > 0", () => boxes[0].Count, Is.GreaterThan(0));
             AddAssert("even box counts equal", () =>
                 boxes[0].Count == boxes[2].Count &&
                 boxes[2].Count == boxes[4].Count &&
                 boxes[4].Count == boxes[6].Count);
 
             // ensure cached is never updating children.
-            AddAssert("box 1 count is 1", () => boxes[1].Count == 1);
+            AddAssert("box 1 count is 1", () => boxes[1].Count, Is.EqualTo(1));
 
             // ensure rotation changes are invalidating cache (for now).
-            AddAssert("box 2 count > 0", () => boxes[2].Count > 0);
-            AddAssert("box 3 count is less than box 2 count", () => boxes[3].Count < boxes[2].Count);
+            AddAssert("box 2 count > 0", () => boxes[2].Count, Is.GreaterThan(0));
+            AddAssert("box 3 count is less than box 2 count", () => boxes[3].Count, Is.LessThan(boxes[2].Count));
 
             // ensure cached with only translation is never updating children.
-            AddAssert("box 5 count is 1", () => boxes[1].Count == 1);
+            AddAssert("box 5 count is 1", () => boxes[1].Count, Is.EqualTo(1));
 
             // ensure a parent scaling is invalidating cache.
-            AddAssert("box 5 count is less than box 6 count", () => boxes[5].Count < boxes[6].Count);
+            AddAssert("box 5 count is less than box 6 count", () => boxes[5].Count, Is.LessThan(boxes[6].Count));
 
             // ensure we don't break on colour invalidations (due to blanket invalidation logic in Drawable.Invalidate).
-            AddAssert("box 7 count equals box 8 count", () => boxes[7].Count == boxes[8].Count);
+            AddAssert("box 7 count equals box 8 count", () => boxes[7].Count, Is.EqualTo(boxes[8].Count));
 
-            AddAssert("box 10 count is 1", () => boxes[10].Count == 1);
+            AddAssert("box 10 count is 1", () => boxes[10].Count, Is.EqualTo(1));
         }
 
         private class ContainingBox : Container<CountingBox>

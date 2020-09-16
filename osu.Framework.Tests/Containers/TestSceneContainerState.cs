@@ -318,7 +318,7 @@ namespace osu.Framework.Tests.Containers
                 container.ScheduleAfterChildren(checkCount);
             });
 
-            AddAssert("correct count", () => count == 2);
+            AddAssert("correct count", () => count, Is.EqualTo(2));
 
             AddStep("perform test", () =>
             {
@@ -327,7 +327,7 @@ namespace osu.Framework.Tests.Containers
                 container.ScheduleAfterChildren(checkCount);
             });
 
-            AddAssert("correct count", () => count == 2);
+            AddAssert("correct count", () => count, Is.EqualTo(2));
         }
 
         [Test]
@@ -349,7 +349,7 @@ namespace osu.Framework.Tests.Containers
                 };
             });
 
-            AddAssert("1 alive child", () => container.AliveChildren.Count == 1);
+            AddAssert("1 alive child", () => container.AliveChildren.Count, Is.EqualTo(1));
             AddAssert("alive child contained", () => container.AliveChildren.Contains(aliveChild));
             AddAssert("non-alive child not contained", () => !container.AliveChildren.Contains(nonAliveChild));
         }

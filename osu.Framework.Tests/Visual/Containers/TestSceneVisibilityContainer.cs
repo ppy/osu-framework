@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("hide", () => testContainer.Hide());
             checkHidden();
 
-            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+            AddAssert("fire count is 2", () => testContainer.FireCount, Is.EqualTo(2));
         }
 
         [TestCase(true)]
@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("hide", () => testContainer.Hide());
             checkHidden();
 
-            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+            AddAssert("fire count is 2", () => testContainer.FireCount, Is.EqualTo(2));
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("create container", () => Child = testContainer =
                 new TestVisibilityContainer(false) { State = { Value = Visibility.Hidden } });
 
-            AddAssert("alpha above zero", () => testContainer.Alpha > 0);
+            AddAssert("alpha above zero", () => testContainer.Alpha, Is.GreaterThan(0));
 
             checkHidden(false);
         }
@@ -103,23 +103,23 @@ namespace osu.Framework.Tests.Visual.Containers
             checkHidden();
             AddAssert("box doesn't have transforms", () => !visibility.BoxHasTransforms);
 
-            AddAssert("fire count is 2", () => testContainer.FireCount == 2);
+            AddAssert("fire count is 2", () => testContainer.FireCount, Is.EqualTo(2));
         }
 
         private void checkHidden(bool instant = false)
         {
-            AddAssert("is hidden", () => testContainer.State.Value == Visibility.Hidden);
+            AddAssert("is hidden", () => testContainer.State.Value, Is.EqualTo(Visibility.Hidden));
             if (instant)
-                AddAssert("alpha zero", () => testContainer.Alpha == 0);
+                AddAssert("alpha zero", () => testContainer.Alpha, Is.EqualTo(0));
             else
                 AddUntilStep("alpha zero", () => testContainer.Alpha == 0);
         }
 
         private void checkVisible(bool instant = false)
         {
-            AddAssert("is visible", () => testContainer.State.Value == Visibility.Visible);
+            AddAssert("is visible", () => testContainer.State.Value, Is.EqualTo(Visibility.Visible));
             if (instant)
-                AddAssert("alpha one", () => testContainer.Alpha == 1);
+                AddAssert("alpha one", () => testContainer.Alpha, Is.EqualTo(1));
             else
                 AddUntilStep("wait alpha one", () => testContainer.Alpha == 1);
         }
