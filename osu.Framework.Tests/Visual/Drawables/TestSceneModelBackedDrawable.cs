@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         public void TestEmptyDefaultState()
         {
             AddStep("setup", () => createModelBackedDrawable(false));
-            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable == null);
+            AddAssert("nothing shown", () => backedDrawable.DisplayedDrawable, Is.Null);
         }
 
         [Test]
@@ -170,7 +170,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
         {
             if (hasIntermediate)
-                AddAssert("no drawable visible", () => backedDrawable.DisplayedDrawable == null);
+                AddAssert("no drawable visible", () => backedDrawable.DisplayedDrawable, Is.Null);
             else
                 AddUntilStep("last drawable visible", () => backedDrawable.DisplayedDrawable == getLastFunc());
         }

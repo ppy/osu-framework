@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddAssert("blended additively", () => blended.DrawColourInfo.Blending == BlendingParameters.Additive);
+            AddAssert("blended additively", () => blended.DrawColourInfo.Blending, Is.EqualTo(BlendingParameters.Additive));
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddAssert("blended additively", () => blended.DrawColourInfo.Blending == BlendingParameters.Additive);
+            AddAssert("blended additively", () => blended.DrawColourInfo.Blending, Is.EqualTo(BlendingParameters.Additive));
         }
     }
 }

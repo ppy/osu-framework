@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("wait some loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Any());
 
             // due to thread yielding all should be loaded straight after any are loaded.
-            AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count() == panel_count);
+            AddAssert("check all loaded", () => flow.Children.OfType<DelayedTestBoxAsync>().Count(), Is.EqualTo(panel_count));
         }
 
         public class DelayedTestBox : Box

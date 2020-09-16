@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             resetWithNewPool(() => new TestPool(TimePerAction, pool_size));
 
             for (int i = 0; i < 3; i++)
-                AddAssert("check drawable is in ready state", () => pool.Get().LoadState == LoadState.Ready);
+                AddAssert("check drawable is in ready state", () => pool.Get().LoadState, Is.EqualTo(LoadState.Ready));
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("consumed drawables report returned to pool", () => consumed.All(d => d.IsInPool));
             AddAssert("consumed drawables not disposed", () => consumed.All(d => !d.IsDisposed));
 
-            AddAssert("consumed less than pool size", () => consumed.Count < pool_size);
+            AddAssert("consumed less than pool size", () => consumed.Count, Is.LessThan(pool_size));
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("all returned to pool", () => pool.CountAvailable == consumed.Count);
 
-            AddAssert("pool grew in size", () => pool.CountAvailable > pool_size);
+            AddAssert("pool grew in size", () => pool.CountAvailable, Is.GreaterThan(pool_size));
 
             AddAssert("consumed drawables report returned to pool", () => consumed.All(d => d.IsInPool));
             AddAssert("consumed drawables not disposed", () => consumed.All(d => !d.IsDisposed));
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("consume item", () => first = consumeDrawable());
 
-            AddAssert("pool is empty", () => pool.CountAvailable == 0);
+            AddAssert("pool is empty", () => pool.CountAvailable, Is.EqualTo(0));
 
             AddStep("consume and return another item", () =>
             {
@@ -141,14 +141,14 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("consume item", () => drawable = consumeDrawable());
 
-            AddAssert("prepare was run", () => drawable.PreparedCount == 1);
+            AddAssert("prepare was run", () => drawable.PreparedCount, Is.EqualTo(1));
             AddUntilStep("free was run", () => drawable.FreedCount == 1);
 
             AddStep("consume item", () => drawable2 = consumeDrawable());
 
             AddAssert("is same item", () => ReferenceEquals(drawable, drawable2));
 
-            AddAssert("prepare was run", () => drawable2.PreparedCount == 2);
+            AddAssert("prepare was run", () => drawable2.PreparedCount, Is.EqualTo(2));
             AddUntilStep("free was run", () => drawable2.FreedCount == 2);
         }
 
@@ -195,7 +195,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     consumeDrawable();
             });
 
-            AddAssert("pool saturated", () => pool.CountAvailable == 0);
+            AddAssert("pool saturated", () => pool.CountAvailable, Is.EqualTo(0));
 
             AddUntilStep("pool size returned to correct maximum", () => pool.CountAvailable == maxPoolSize);
             AddUntilStep("count in pool is correct", () => consumed.Count(d => d.IsInPool) == maxPoolSize);

@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddWaitStep("wait some more", 10);
 
             AddUntilStep("more loaded", () => loaded > loadCount1);
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count(), Is.LessThan(panel_count / 4));
 
             AddStep("Remove all panels", () => flow.Clear(false));
 

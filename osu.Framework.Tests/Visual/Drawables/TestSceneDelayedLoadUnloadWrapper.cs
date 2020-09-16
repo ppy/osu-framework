@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddWaitStep("wait for potential unload", 20);
 
-            AddAssert("load count hasn't changed", () => loadCount == 16);
+            AddAssert("load count hasn't changed", () => loadCount, Is.EqualTo(16));
         }
 
         [Test]
@@ -262,7 +262,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return loaded > loadCount1;
             });
 
-            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded() < panel_count / 4);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded(), Is.LessThan(panel_count / 4));
             AddUntilStep("wait some unloaded", () => childrenWithAvatarsLoaded() < loadCount2);
         }
 
@@ -302,7 +302,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("wait some loaded", () => childrenWithAvatarsLoaded() > 5);
             AddStep("expire wrappers", () => wrappers.ForEach(w => w.Expire()));
-            AddAssert("all unloaded", () => childrenWithAvatarsLoaded() == 0);
+            AddAssert("all unloaded", () => childrenWithAvatarsLoaded(), Is.EqualTo(0));
         }
 
         [Test]
@@ -405,7 +405,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             // Check that the child is disposed when its async-load completes while the DLUW is masked away.
-            AddAssert("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddAssert("wait for load to begin", () => child?.LoadState, Is.EqualTo(LoadState.Loading));
             AddStep("scroll to end", () => scrollContainer.ScrollToEnd(false));
             AddStep("allow load", () => child.AllowLoad.Set());
             AddUntilStep("drawable disposed", () => child.IsDisposed);
@@ -415,7 +415,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("store child", () => lastChild = child);
             AddStep("scroll to start", () => scrollContainer.ScrollToStart(false));
             AddWaitStep("wait some frames", 2);
-            AddAssert("child not loaded", () => lastChild.LoadState != LoadState.Loaded);
+            AddAssert("child not loaded", () => lastChild.LoadState, Is.Not.EqualTo(LoadState.Loaded));
         }
 
         public class TestScrollContainer : BasicScrollContainer

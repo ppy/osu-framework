@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -31,7 +32,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Add(box);
 
-            AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
+            AddAssert("Box is loaded", () => box.LoadState, Is.GreaterThanOrEqualTo(LoadState.Ready));
             AddAssert("Box is present", () => box.IsPresent);
             AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
         }
@@ -46,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             Add(box);
 
-            AddAssert("Box is loaded", () => box.LoadState >= LoadState.Ready);
+            AddAssert("Box is loaded", () => box.LoadState, Is.GreaterThanOrEqualTo(LoadState.Ready));
             AddAssert("Box is present", () => !box.IsPresent);
             AddAssert("Box has valid draw matrix", () => checkDrawInfo(box.DrawInfo));
         }
