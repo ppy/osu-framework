@@ -351,6 +351,8 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            RecycleSchedulers();
+
             // ensure any async disposals are completed before we begin to rip components out.
             // if we were to not wait, async disposals may throw unexpected exceptions.
             AsyncDisposalQueue.WaitForEmpty();
