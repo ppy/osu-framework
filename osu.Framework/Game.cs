@@ -343,7 +343,7 @@ namespace osu.Framework
         {
         }
 
-        public bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(PlatformAction action)
         {
             switch (action.ActionType)
             {
@@ -355,7 +355,7 @@ namespace osu.Framework
             return false;
         }
 
-        public void OnReleased(PlatformAction action)
+        public virtual void OnReleased(PlatformAction action)
         {
         }
 
