@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -244,29 +243,6 @@ namespace osu.Framework.Tests.Containers
             });
 
             AddUntilStep("container has no children", () => container.Count == 0);
-        }
-
-        private class DelayedLoadDrawable : CompositeDrawable
-        {
-            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim();
-
-            public bool HasCleared { get; private set; }
-
-            public DelayedLoadDrawable()
-            {
-                InternalChild = new Box();
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
-                    throw new TimeoutException();
-
-                ClearInternal();
-
-                HasCleared = true;
-            }
         }
 
         [Test]
