@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
                 ClearInternal(false);
-                DisposeChildAsync(Content);
+                Content.Dispose();
                 Content = null;
 
                 timeHidden = 0;

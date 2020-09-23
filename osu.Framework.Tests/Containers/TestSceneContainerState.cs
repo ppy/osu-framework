@@ -210,37 +210,6 @@ namespace osu.Framework.Tests.Containers
         }
 
         [Test]
-        public void TestAsyncLoadClearWhileAsyncDisposing()
-        {
-            Container safeContainer = null;
-            DelayedLoadDrawable drawable = null;
-
-            // We are testing a disposal deadlock scenario. When the test runner exits, it will attempt to dispose the game hierarchy,
-            // and will fall into the deadlocked state itself. For this reason an intermediate "safe" container is used, which is
-            // removed from the hierarchy immediately after use and is thus not disposed when the test runner exits.
-            // This does NOT free up the LoadComponentAsync thread pool for use by other tests - that thread is in a deadlocked state forever.
-            AddStep("add safe container", () => Add(safeContainer = new Container()));
-
-            // Get the drawable into an async loading state
-            AddStep("begin async load", () =>
-            {
-                safeContainer.LoadComponentAsync(drawable = new DelayedLoadDrawable(), _ => { });
-                Remove(safeContainer);
-            });
-
-            AddUntilStep("wait until loading", () => drawable.LoadState == LoadState.Loading);
-
-            // Make the async disposal queue attempt to dispose the drawable
-            AddStep("enqueue async disposal", () => AsyncDisposalQueue.Enqueue(drawable));
-            AddWaitStep("wait for disposal task to run", 10);
-
-            // Clear the contents of the drawable, causing a second async disposal
-            AddStep("allow load", () => drawable.AllowLoad.Set());
-
-            AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
-        }
-
-        [Test]
         public void TestExpireChildAfterLoad()
         {
             Container container = null;

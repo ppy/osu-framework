@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -116,11 +115,6 @@ namespace osu.Framework.Tests.Visual.Drawables
                 child = null;
             });
 
-            // Wait for all drawables to get disposed
-            DisposalMarker disposalMarker = null;
-            AddStep("add disposal marker", () => AsyncDisposalQueue.Enqueue(disposalMarker = new DisposalMarker()));
-            AddUntilStep("wait for drawables to dispose", () => disposalMarker.Disposed);
-
             // Induce the collection of drawables
             AddStep("invoke GC", () =>
             {
@@ -134,16 +128,6 @@ namespace osu.Framework.Tests.Visual.Drawables
         private class NonFlattenedContainer : Container
         {
             protected override bool CanBeFlattened => false;
-        }
-
-        private class DisposalMarker : IDisposable
-        {
-            public bool Disposed { get; private set; }
-
-            public void Dispose()
-            {
-                Disposed = true;
-            }
         }
     }
 }
