@@ -137,7 +137,6 @@ namespace osu.Framework.Lists
         /// </summary>
         /// <param name="checkValidity">Whether only the valid items of this <see cref="WeakList{T}"/> should be enumerated.
         /// If <c>false</c>, the user must check the validity of <see cref="Enumerator.Current"/> prior to usage.</param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Enumerator getEnumeratorNoTrim(bool checkValidity = false) => new Enumerator(this, checkValidity);
 
