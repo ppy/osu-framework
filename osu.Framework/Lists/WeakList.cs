@@ -132,6 +132,12 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// Creates a new <see cref="Enumerator"/> over this <see cref="WeakList{T}"/>.
+        /// </summary>
+        /// <param name="onlyValid">Whether only the valid items of this <see cref="WeakList{T}"/> should be enumerated.
+        /// If <c>false</c>, the user must check the validity of <see cref="Enumerator.Current"/> prior to usage.</param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Enumerator getEnumeratorNoTrim(bool onlyValid = false) => new Enumerator(this, onlyValid);
 
@@ -141,18 +147,18 @@ namespace osu.Framework.Lists
         public struct Enumerator : IEnumerator<T>
         {
             private WeakList<T> weakList;
-            private readonly bool onlyValid;
+            private readonly bool checkValidity;
 
             /// <summary>
             /// Creates a new <see cref="Enumerator"/>.
             /// </summary>
             /// <param name="weakList">The <see cref="WeakList{T}"/> to enumerate over.</param>
-            /// <param name="onlyValid">Whether only the valid items in <paramref name="weakList"/> should be enumerated.
-            /// If <c>false</c>, the user is expected to check the validity of <see cref="Current"/> prior to usage.</param>
-            internal Enumerator(WeakList<T> weakList, bool onlyValid)
+            /// <param name="checkValidity">Whether only the valid items in <paramref name="weakList"/> should be enumerated.
+            /// If <c>false</c>, the user must check the validity of <see cref="Current"/> prior to usage.</param>
+            internal Enumerator(WeakList<T> weakList, bool checkValidity)
             {
                 this.weakList = weakList;
-                this.onlyValid = onlyValid;
+                this.checkValidity = checkValidity;
 
                 CurrentItemIndex = -1; // The first MoveNext() should bring the iterator to the start
                 currentItem = default;
@@ -179,7 +185,7 @@ namespace osu.Framework.Lists
                         continue;
                     }
 
-                    if (onlyValid && Current == null)
+                    if (checkValidity && Current == null)
                     {
                         // If the object can't be retrieved, mark the reference for removal.
                         // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
