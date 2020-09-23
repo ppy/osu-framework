@@ -221,7 +221,7 @@ namespace osu.Framework.Lists
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool CheckEquals(T obj, int hashCode)
-                => currentItem.ObjectHashCode == hashCode && currentItem.Reference?.TryGetTarget(out _) == true;
+                => currentItem.ObjectHashCode == hashCode;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool CheckEquals(WeakReference<T> weakReference)
