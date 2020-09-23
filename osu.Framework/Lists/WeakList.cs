@@ -186,6 +186,8 @@ namespace osu.Framework.Lists
                         continue;
                     }
 
+                    currentItem = weakList.list[index];
+
                     if (checkValidity)
                     {
                         if ((currentObject = getCurrentObject()) == null)
@@ -197,7 +199,6 @@ namespace osu.Framework.Lists
                         }
                     }
 
-                    currentItem = weakList.list[index];
                     return true;
                 }
             }
