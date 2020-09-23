@@ -36,7 +36,7 @@ namespace osu.Framework.Lists
 
         public bool Remove(T item)
         {
-            int hashCode = item?.GetHashCode() ?? 0;
+            int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
             var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
@@ -85,7 +85,7 @@ namespace osu.Framework.Lists
 
         public bool Contains(T item)
         {
-            int hashCode = item?.GetHashCode() ?? 0;
+            int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
             var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
@@ -135,11 +135,11 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Creates a new <see cref="Enumerator"/> over this <see cref="WeakList{T}"/>.
         /// </summary>
-        /// <param name="onlyValid">Whether only the valid items of this <see cref="WeakList{T}"/> should be enumerated.
+        /// <param name="checkValidity">Whether only the valid items of this <see cref="WeakList{T}"/> should be enumerated.
         /// If <c>false</c>, the user must check the validity of <see cref="Enumerator.Current"/> prior to usage.</param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Enumerator getEnumeratorNoTrim(bool onlyValid = false) => new Enumerator(this, onlyValid);
+        private Enumerator getEnumeratorNoTrim(bool checkValidity = false) => new Enumerator(this, checkValidity);
 
         /// <summary>
         /// A <see cref="WeakList{T}"/> enumerator.
@@ -162,6 +162,7 @@ namespace osu.Framework.Lists
 
                 CurrentItemIndex = -1; // The first MoveNext() should bring the iterator to the start
                 currentItem = default;
+                currentObject = null;
             }
 
             public bool MoveNext()
@@ -185,12 +186,15 @@ namespace osu.Framework.Lists
                         continue;
                     }
 
-                    if (checkValidity && Current == null)
+                    if (checkValidity)
                     {
-                        // If the object can't be retrieved, mark the reference for removal.
-                        // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
-                        weakList.RemoveAt(CurrentItemIndex);
-                        continue;
+                        if ((currentObject = getCurrentObject()) == null)
+                        {
+                            // If the object can't be retrieved, mark the reference for removal.
+                            // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
+                            weakList.RemoveAt(CurrentItemIndex);
+                            continue;
+                        }
                     }
 
                     currentItem = weakList.list[index];
@@ -202,27 +206,29 @@ namespace osu.Framework.Lists
             {
                 CurrentItemIndex = -1;
                 currentItem = default;
+                currentObject = null;
             }
 
-            public readonly T Current
+            public readonly T Current => checkValidity ? currentObject : getCurrentObject();
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private readonly T getCurrentObject()
             {
-                get
-                {
-                    T current = null;
-                    currentItem.Reference?.TryGetTarget(out current);
-                    return current;
-                }
+                T obj = null;
+                currentItem.Reference?.TryGetTarget(out obj);
+                return obj;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool CheckEquals(T obj, int hashCode)
-                => currentItem.ObjectHashCode == hashCode && Current == obj;
+                => currentItem.ObjectHashCode == hashCode && currentItem.Reference?.TryGetTarget(out _) == true;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool CheckEquals(WeakReference<T> weakReference)
                 => currentItem.Reference == weakReference;
 
             private InvalidatableWeakReference currentItem;
+            private T currentObject;
 
             internal int CurrentItemIndex { get; private set; }
 
@@ -232,6 +238,7 @@ namespace osu.Framework.Lists
             {
                 weakList = null;
                 currentItem = default;
+                currentObject = null;
             }
         }
 
@@ -248,7 +255,7 @@ namespace osu.Framework.Lists
             public InvalidatableWeakReference([CanBeNull] T reference)
             {
                 Reference = new WeakReference<T>(reference);
-                ObjectHashCode = reference?.GetHashCode() ?? 0;
+                ObjectHashCode = reference == null ? 0 : EqualityComparer<T>.Default.GetHashCode(reference);
             }
 
             public InvalidatableWeakReference([CanBeNull] WeakReference<T> weakReference)
@@ -258,7 +265,7 @@ namespace osu.Framework.Lists
                 if (Reference == null || !Reference.TryGetTarget(out var target))
                     ObjectHashCode = 0;
                 else
-                    ObjectHashCode = target.GetHashCode();
+                    ObjectHashCode = EqualityComparer<T>.Default.GetHashCode(target);
             }
         }
     }
