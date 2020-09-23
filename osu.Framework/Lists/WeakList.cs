@@ -36,14 +36,15 @@ namespace osu.Framework.Lists
 
         public bool Remove(T item)
         {
+            int hashCode = item?.GetHashCode() ?? 0;
             var enumerator = GetEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current != item)
+                if (enumerator.CurrentItem.ObjectHashCode != hashCode)
                     continue;
 
-                RemoveAt(enumerator.CurrentOffset);
+                RemoveAt(enumerator.CurrentItemIndex);
                 return true;
             }
 
@@ -56,10 +57,10 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentReference != weakReference)
+                if (enumerator.CurrentItem.Reference != weakReference)
                     continue;
 
-                RemoveAt(enumerator.CurrentOffset);
+                RemoveAt(enumerator.CurrentItemIndex);
                 return true;
             }
 
@@ -84,11 +85,12 @@ namespace osu.Framework.Lists
 
         public bool Contains(T item)
         {
+            int hashCode = item?.GetHashCode() ?? 0;
             var enumerator = GetEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current == item)
+                if (enumerator.CurrentItem.ObjectHashCode == hashCode)
                     return true;
             }
 
@@ -101,7 +103,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentReference == weakReference)
+                if (enumerator.CurrentItem.Reference == weakReference)
                     return true;
             }
 
@@ -136,24 +138,22 @@ namespace osu.Framework.Lists
         public struct Enumerator : IEnumerator<T>
         {
             private WeakList<T> weakList;
-            private T currentObject;
 
             internal Enumerator(WeakList<T> weakList)
             {
                 this.weakList = weakList;
 
-                CurrentOffset = -1; // The first MoveNext() should bring the iterator to the start
-                CurrentReference = null;
-                currentObject = null;
+                CurrentItemIndex = -1; // The first MoveNext() should bring the iterator to the start
+                CurrentItem = default;
             }
 
             public bool MoveNext()
             {
                 while (true)
                 {
-                    ++CurrentOffset;
+                    ++CurrentItemIndex;
 
-                    int index = weakList.listStart + CurrentOffset;
+                    int index = weakList.listStart + CurrentItemIndex;
 
                     // Check whether we're still within the valid range of the list.
                     if (index >= weakList.listEnd)
@@ -169,39 +169,45 @@ namespace osu.Framework.Lists
                     }
 
                     // Check whether the object can be retrieved.
-                    if (!weakReference.TryGetTarget(out currentObject))
-                    {
-                        // If the object can't be retrieved, mark the reference for removal.
-                        // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
-                        weakList.RemoveAt(CurrentOffset);
-                        continue;
-                    }
+                    // if (!weakReference.TryGetTarget(out currentObject))
+                    // {
+                    //     // If the object can't be retrieved, mark the reference for removal.
+                    //     // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
+                    //     weakList.RemoveAt(CurrentOffset);
+                    //     continue;
+                    // }
 
-                    CurrentReference = weakReference;
+                    CurrentItem = weakList.list[index];
                     return true;
                 }
             }
 
             public void Reset()
             {
-                CurrentOffset = -1;
-                CurrentReference = null;
-                currentObject = null;
+                CurrentItemIndex = -1;
+                CurrentItem = default;
             }
 
-            public readonly T Current => currentObject;
+            public readonly T Current
+            {
+                get
+                {
+                    T current = null;
+                    CurrentItem.Reference?.TryGetTarget(out current);
+                    return current;
+                }
+            }
 
-            internal WeakReference<T> CurrentReference { get; private set; }
+            internal InvalidatableWeakReference CurrentItem { get; private set; }
 
-            internal int CurrentOffset { get; private set; }
+            internal int CurrentItemIndex { get; private set; }
 
             readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {
                 weakList = null;
-                currentObject = null;
-                CurrentReference = null;
+                CurrentItem = default;
             }
         }
 
@@ -210,14 +216,25 @@ namespace osu.Framework.Lists
             [CanBeNull]
             public readonly WeakReference<T> Reference;
 
+            /// <summary>
+            /// Hash code of the target of <see cref="Reference"/>.
+            /// </summary>
+            public readonly int ObjectHashCode;
+
             public InvalidatableWeakReference([CanBeNull] T reference)
-                : this(new WeakReference<T>(reference))
             {
+                Reference = new WeakReference<T>(reference);
+                ObjectHashCode = reference?.GetHashCode() ?? 0;
             }
 
             public InvalidatableWeakReference([CanBeNull] WeakReference<T> weakReference)
             {
                 Reference = weakReference;
+
+                if (Reference == null || !Reference.TryGetTarget(out var target))
+                    ObjectHashCode = 0;
+                else
+                    ObjectHashCode = target.GetHashCode();
             }
         }
     }
