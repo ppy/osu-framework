@@ -37,7 +37,7 @@ namespace osu.Framework.Lists
         public bool Remove(T item)
         {
             int hashCode = item?.GetHashCode() ?? 0;
-            var enumerator = GetEnumeratorNoTrim();
+            var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
@@ -53,7 +53,7 @@ namespace osu.Framework.Lists
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            var enumerator = GetEnumeratorNoTrim();
+            var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
@@ -86,7 +86,7 @@ namespace osu.Framework.Lists
         public bool Contains(T item)
         {
             int hashCode = item?.GetHashCode() ?? 0;
-            var enumerator = GetEnumeratorNoTrim();
+            var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
@@ -99,7 +99,7 @@ namespace osu.Framework.Lists
 
         public bool Contains(WeakReference<T> weakReference)
         {
-            var enumerator = GetEnumeratorNoTrim();
+            var enumerator = getEnumeratorNoTrim();
 
             while (enumerator.MoveNext())
             {
@@ -125,15 +125,15 @@ namespace osu.Framework.Lists
             listStart = 0;
             listEnd = list.Count;
 
-            return GetEnumeratorNoTrim(true);
+            return getEnumeratorNoTrim(true);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Enumerator GetEnumeratorNoTrim(bool onlyValid = false) => new Enumerator(this, onlyValid);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Enumerator getEnumeratorNoTrim(bool onlyValid = false) => new Enumerator(this, onlyValid);
 
         /// <summary>
         /// A <see cref="WeakList{T}"/> enumerator.
