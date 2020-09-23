@@ -34,13 +34,13 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public override Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
         {
+            var tex = base.Get(name, wrapModeS, wrapModeT);
+
+            if (tex?.TextureGL == null)
+                return null;
+
             lock (referenceCountLock)
             {
-                var tex = base.Get(name, wrapModeS, wrapModeT);
-
-                if (tex?.TextureGL == null)
-                    return null;
-
                 if (!referenceCounts.TryGetValue(tex.LookupKey, out TextureWithRefCount.ReferenceCount count))
                     referenceCounts[tex.LookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(tex));
 
