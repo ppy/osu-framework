@@ -74,7 +74,7 @@ namespace osu.Framework.Lists
         {
             private readonly WeakList<T> list;
 
-            private WeakList<T>.Enumerator listEnumerator;
+            private WeakList<T>.ValidItemsEnumerator listEnumerator;
 
             private readonly bool lockTaken;
 
