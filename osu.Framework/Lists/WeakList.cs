@@ -41,7 +41,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentItem.ObjectHashCode != hashCode)
+                if (!enumerator.CheckEquals(item, hashCode))
                     continue;
 
                 RemoveAt(enumerator.CurrentItemIndex);
@@ -57,7 +57,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentItem.Reference != weakReference)
+                if (!enumerator.CheckEquals(weakReference))
                     continue;
 
                 RemoveAt(enumerator.CurrentItemIndex);
@@ -90,7 +90,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentItem.ObjectHashCode == hashCode)
+                if (enumerator.CheckEquals(item, hashCode))
                     return true;
             }
 
@@ -103,7 +103,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CurrentItem.Reference == weakReference)
+                if (enumerator.CheckEquals(weakReference))
                     return true;
             }
 
@@ -125,26 +125,37 @@ namespace osu.Framework.Lists
             listStart = 0;
             listEnd = list.Count;
 
-            return GetEnumeratorNoTrim();
+            return GetEnumeratorNoTrim(true);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Enumerator GetEnumeratorNoTrim() => new Enumerator(this);
+        internal Enumerator GetEnumeratorNoTrim(bool onlyValid = false) => new Enumerator(this, onlyValid);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <summary>
+        /// A <see cref="WeakList{T}"/> enumerator.
+        /// </summary>
         public struct Enumerator : IEnumerator<T>
         {
             private WeakList<T> weakList;
+            private readonly bool onlyValid;
 
-            internal Enumerator(WeakList<T> weakList)
+            /// <summary>
+            /// Creates a new <see cref="Enumerator"/>.
+            /// </summary>
+            /// <param name="weakList">The <see cref="WeakList{T}"/> to enumerate over.</param>
+            /// <param name="onlyValid">Whether only the valid items in <paramref name="weakList"/> should be enumerated.
+            /// If <c>false</c>, the user is expected to check the validity of <see cref="Current"/> prior to usage.</param>
+            internal Enumerator(WeakList<T> weakList, bool onlyValid)
             {
                 this.weakList = weakList;
+                this.onlyValid = onlyValid;
 
                 CurrentItemIndex = -1; // The first MoveNext() should bring the iterator to the start
-                CurrentItem = default;
+                currentItem = default;
             }
 
             public bool MoveNext()
@@ -168,16 +179,15 @@ namespace osu.Framework.Lists
                         continue;
                     }
 
-                    // Check whether the object can be retrieved.
-                    // if (!weakReference.TryGetTarget(out currentObject))
-                    // {
-                    //     // If the object can't be retrieved, mark the reference for removal.
-                    //     // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
-                    //     weakList.RemoveAt(CurrentOffset);
-                    //     continue;
-                    // }
+                    if (onlyValid && Current == null)
+                    {
+                        // If the object can't be retrieved, mark the reference for removal.
+                        // The removal will occur on the _next_ enumeration (see: GetEnumerator()).
+                        weakList.RemoveAt(CurrentItemIndex);
+                        continue;
+                    }
 
-                    CurrentItem = weakList.list[index];
+                    currentItem = weakList.list[index];
                     return true;
                 }
             }
@@ -185,7 +195,7 @@ namespace osu.Framework.Lists
             public void Reset()
             {
                 CurrentItemIndex = -1;
-                CurrentItem = default;
+                currentItem = default;
             }
 
             public readonly T Current
@@ -193,12 +203,20 @@ namespace osu.Framework.Lists
                 get
                 {
                     T current = null;
-                    CurrentItem.Reference?.TryGetTarget(out current);
+                    currentItem.Reference?.TryGetTarget(out current);
                     return current;
                 }
             }
 
-            internal InvalidatableWeakReference CurrentItem { get; private set; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool CheckEquals(T obj, int hashCode)
+                => currentItem.ObjectHashCode == hashCode && Current == obj;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly bool CheckEquals(WeakReference<T> weakReference)
+                => currentItem.Reference == weakReference;
+
+            private InvalidatableWeakReference currentItem;
 
             internal int CurrentItemIndex { get; private set; }
 
@@ -207,7 +225,7 @@ namespace osu.Framework.Lists
             public void Dispose()
             {
                 weakList = null;
-                CurrentItem = default;
+                currentItem = default;
             }
         }
 
