@@ -1,10 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
 {
@@ -35,12 +36,14 @@ namespace osu.Framework.Lists
 
         public bool Remove(T item)
         {
-            int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
+            int hashCode = EqualityComparer<T>.Default.GetHashCode(item);
 
             for (int i = listStart; i < listEnd; i++)
             {
+                var reference = list[i].Reference;
+
                 // Check if the object is valid.
-                if (list[i].Reference == null)
+                if (reference == null)
                     continue;
 
                 // Compare by hash code (fast).
@@ -48,7 +51,7 @@ namespace osu.Framework.Lists
                     continue;
 
                 // Compare by object equality (slow).
-                if (!list[i].Reference.TryGetTarget(out var target) || target != item)
+                if (!reference.TryGetTarget(out var target) || target != item)
                     continue;
 
                 RemoveAt(i - listStart);
@@ -91,12 +94,14 @@ namespace osu.Framework.Lists
 
         public bool Contains(T item)
         {
-            int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
+            int hashCode = EqualityComparer<T>.Default.GetHashCode(item);
 
             for (int i = listStart; i < listEnd; i++)
             {
+                var reference = list[i].Reference;
+
                 // Check if the object is valid.
-                if (list[i].Reference == null)
+                if (reference == null)
                     continue;
 
                 // Compare by hash code (fast).
@@ -104,7 +109,7 @@ namespace osu.Framework.Lists
                     continue;
 
                 // Compare by object equality (slow).
-                if (!list[i].Reference.TryGetTarget(out var target) || target != item)
+                if (!reference.TryGetTarget(out var target) || target != item)
                     continue;
 
                 return true;
@@ -147,10 +152,9 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        internal readonly struct InvalidatableWeakReference
+        private readonly struct InvalidatableWeakReference
         {
-            [CanBeNull]
-            public readonly WeakReference<T> Reference;
+            public readonly WeakReference<T>? Reference;
 
             /// <summary>
             /// Hash code of the target of <see cref="Reference"/>.
@@ -160,17 +164,13 @@ namespace osu.Framework.Lists
             public InvalidatableWeakReference(T reference)
             {
                 Reference = new WeakReference<T>(reference);
-                ObjectHashCode = reference == null ? 0 : EqualityComparer<T>.Default.GetHashCode(reference);
+                ObjectHashCode = EqualityComparer<T>.Default.GetHashCode(reference);
             }
 
             public InvalidatableWeakReference(WeakReference<T> weakReference)
             {
                 Reference = weakReference;
-
-                if (Reference == null || !Reference.TryGetTarget(out var target))
-                    ObjectHashCode = 0;
-                else
-                    ObjectHashCode = EqualityComparer<T>.Default.GetHashCode(target);
+                ObjectHashCode = !weakReference.TryGetTarget(out var target) ? 0 : EqualityComparer<T>.Default.GetHashCode(target);
             }
         }
     }

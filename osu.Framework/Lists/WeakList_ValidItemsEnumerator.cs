@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -11,9 +13,9 @@ namespace osu.Framework.Lists
         /// <summary>
         /// An enumerator over only the valid items of a <see cref="WeakList{T}"/>.
         /// </summary>
-        public struct ValidItemsEnumerator : IEnumerator<T>
+        public struct ValidItemsEnumerator : IEnumerator<T?>
         {
-            private WeakList<T> weakList;
+            private readonly WeakList<T> weakList;
             private int currentItemIndex;
 
             /// <summary>
@@ -58,13 +60,12 @@ namespace osu.Framework.Lists
                 Current = null;
             }
 
-            public T Current { get; private set; }
+            public T? Current { get; private set; }
 
-            readonly object IEnumerator.Current => Current;
+            readonly object? IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                weakList = null;
                 Current = null;
             }
         }
