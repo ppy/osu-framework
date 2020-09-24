@@ -218,6 +218,21 @@ namespace osu.Framework.Platform
         public event Action<char> KeyTyped;
 
         /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        public event Action<JoystickAxisInput> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButtonInput> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButtonInput> JoystickButtonUp;
+
+        /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
@@ -244,6 +259,9 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
         protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected virtual void OnJoystickAxisChanged(JoystickAxisInput evt) => JoystickAxisChanged?.Invoke(evt);
+        protected virtual void OnJoystickButtonDown(JoystickButtonInput evt) => JoystickButtonDown?.Invoke(evt);
+        protected virtual void OnJoystickButtonUp(JoystickButtonInput evt) => JoystickButtonUp?.Invoke(evt);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
@@ -330,6 +348,9 @@ namespace osu.Framework.Platform
             WindowBackend.KeyDown += OnKeyDown;
             WindowBackend.KeyUp += OnKeyUp;
             WindowBackend.KeyTyped += OnKeyTyped;
+            WindowBackend.JoystickAxisChanged += OnJoystickAxisChanged;
+            WindowBackend.JoystickButtonDown += OnJoystickButtonDown;
+            WindowBackend.JoystickButtonUp += OnJoystickButtonUp;
             WindowBackend.MouseDown += OnMouseDown;
             WindowBackend.MouseUp += OnMouseUp;
             WindowBackend.MouseMove += OnMouseMove;

@@ -51,6 +51,9 @@ namespace osu.Framework.Platform
         public event Action<KeyboardKeyInput> KeyDown;
         public event Action<KeyboardKeyInput> KeyUp;
         public event Action<char> KeyTyped;
+        public event Action<JoystickAxisInput> JoystickAxisChanged;
+        public event Action<JoystickButtonInput> JoystickButtonDown;
+        public event Action<JoystickButtonInput> JoystickButtonUp;
         public event Action<string> DragDrop;
         public event Action<Display> DisplayChanged;
 
@@ -77,6 +80,9 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
         protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected virtual void OnJoystickAxisChanged(JoystickAxisInput evt) => JoystickAxisChanged?.Invoke(evt);
+        protected virtual void OnJoystickButtonDown(JoystickButtonInput evt) => JoystickButtonDown?.Invoke(evt);
+        protected virtual void OnJoystickButtonUp(JoystickButtonInput evt) => JoystickButtonUp?.Invoke(evt);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
 

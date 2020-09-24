@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
+using osu.Framework.Input;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Threading;
 using osuTK;
@@ -24,12 +25,15 @@ namespace osu.Framework.Platform.Sdl
     {
         private const int default_width = 1366;
         private const int default_height = 768;
+        private const float deadzone_threshold = 0.075f;
 
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
 
         private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
+
+        private readonly Dictionary<int, IntPtr> joysticks = new Dictionary<int, IntPtr>();
 
         #region Internal Properties
 
@@ -343,7 +347,7 @@ namespace osu.Framework.Platform.Sdl
 
         public Sdl2WindowBackend()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
         }
 
         #region IWindowBackend.Methods
@@ -525,14 +529,44 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
         {
+            switch (evtCdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
+                    joysticks[instanceID] = controller;
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+                    SDL.SDL_GameControllerClose(joysticks[evtCdevice.which]);
+                    joysticks.Remove(evtCdevice.which);
+                    break;
+            }
         }
 
         private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
         {
+            var button = joystickButtonFromEvent((SDL.SDL_GameControllerButton)evtCbutton.button);
+
+            switch (evtCbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+                    break;
+            }
         }
 
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis)
         {
+            var axisSource = joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis);
+            var scaled = Math.Clamp((float)evtCaxis.axisValue / short.MaxValue, -1f, 1f);
+            var value = Math.Abs(scaled) < deadzone_threshold ? 0 : scaled;
+
+            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxisInput(new JoystickAxis(axisSource, value))));
         }
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
@@ -714,6 +748,58 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_BUTTON_X2:
                     return MouseButton.Button2;
+            }
+        }
+
+        private JoystickButton joystickButtonFromEvent(SDL.SDL_GameControllerButton button)
+        {
+            switch (button)
+            {
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
+                    return JoystickButton.Hat1Up;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                    return JoystickButton.Hat1Down;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                    return JoystickButton.Hat1Left;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                    return JoystickButton.Hat1Right;
+
+                default:
+                    return JoystickButton.FirstButton + (int)button;
+            }
+        }
+
+        private JoystickAxisSource joystickAxisSourceFromEvent(SDL.SDL_GameControllerAxis axis)
+        {
+            switch (axis)
+            {
+                default:
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
+                    return JoystickAxisSource.Axis1;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
+                    return JoystickAxisSource.Axis2;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+                    return JoystickAxisSource.Axis3;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
+                    return JoystickAxisSource.Axis4;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
+                    return JoystickAxisSource.Axis5;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+                    return JoystickAxisSource.Axis6;
             }
         }
 

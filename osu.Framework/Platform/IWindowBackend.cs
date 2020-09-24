@@ -182,6 +182,21 @@ namespace osu.Framework.Platform
         event Action<char> KeyTyped;
 
         /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        event Action<JoystickAxisInput> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        event Action<JoystickButtonInput> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        event Action<JoystickButtonInput> JoystickButtonUp;
+
+        /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
         event Action<string> DragDrop;
