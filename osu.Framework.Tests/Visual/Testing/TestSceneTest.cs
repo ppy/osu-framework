@@ -38,7 +38,12 @@ namespace osu.Framework.Tests.Visual.Testing
             if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
                 return;
 
-            AddSetupStep("set up dummy", () => setupStepsDummyRun++);
+            AddStep(new SingleStepButton(true)
+            {
+                Name = "set up dummy",
+                Action = () => setupStepsDummyRun++
+            });
+
             AddStep("set up second step", () => { });
             setupStepsRun++;
         }
