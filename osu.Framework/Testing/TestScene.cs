@@ -292,27 +292,11 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
-        public StepButton AddSetupStep(string description, Action action)
-        {
-            var step = new SetUpStepButton
-            {
-                Text = description,
-                Action = action
-            };
-
-            AddStep(step);
-
-            return step;
-        }
-
         private bool addStepsAsSetupSteps;
 
         public StepButton AddStep(string description, Action action)
         {
-            if (addStepsAsSetupSteps)
-                return AddSetupStep(description, action);
-
-            var step = new SingleStepButton
+            var step = new SingleStepButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 Action = action
@@ -344,7 +328,7 @@ namespace osu.Framework.Testing
 
         protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(action, invocationCount)
+            StepsContainer.Add(new RepeatStepButton(action, invocationCount, addStepsAsSetupSteps)
             {
                 Text = description,
             });
@@ -360,7 +344,7 @@ namespace osu.Framework.Testing
 
         protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
-            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
+            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Until",
             });
@@ -368,7 +352,7 @@ namespace osu.Framework.Testing
 
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
+            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Wait",
             });
@@ -384,7 +368,7 @@ namespace osu.Framework.Testing
 
         protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
         {
-            StepsContainer.Add(new AssertButton
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 ExtendedDescription = extendedDescription,
