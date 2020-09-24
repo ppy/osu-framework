@@ -6,7 +6,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
@@ -16,9 +15,7 @@ namespace osu.Framework.Graphics.Textures
     public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
-
         private readonly object retrievalLock = new object();
-        private readonly ReaderWriterLockSlim textureLock = new ReaderWriterLockSlim();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -64,11 +61,7 @@ namespace osu.Framework.Graphics.Textures
             if (Atlas != null)
             {
                 if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
-                {
-                    Logger.Log(
-                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
-                        LoggingTarget.Performance);
-                }
+                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
             }
 
             glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
@@ -93,8 +86,7 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) =>
-            Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -119,32 +111,20 @@ namespace osu.Framework.Graphics.Textures
             this.LogIfNonBackgroundThread(key);
 
             // Check if the texture exists in the cache.
-            textureLock.EnterReadLock();
-
-            try
+            lock (textureCache)
             {
                 if (textureCache.TryGetValue(key, out var tex))
                     return tex;
-            }
-            finally
-            {
-                textureLock.ExitReadLock();
             }
 
             // Take an exclusive lock on retrieval of the texture.
             lock (retrievalLock)
             {
-                // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again
-                textureLock.EnterReadLock();
-
-                try
+                // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
+                lock (textureCache)
                 {
                     if (textureCache.TryGetValue(key, out var tex))
                         return tex;
-                }
-                finally
-                {
-                    textureLock.ExitReadLock();
                 }
 
                 try
@@ -153,16 +133,8 @@ namespace osu.Framework.Graphics.Textures
                     if (tex != null)
                         tex.LookupKey = key;
 
-                    textureLock.EnterWriteLock();
-
-                    try
-                    {
+                    lock (textureCache)
                         textureCache[key] = tex;
-                    }
-                    finally
-                    {
-                        textureLock.ExitWriteLock();
-                    }
 
                     return tex;
                 }
@@ -181,45 +153,17 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="texture">The texture to purge from the cache.</param>
         protected void Purge(Texture texture)
         {
-            textureLock.EnterUpgradeableReadLock();
-
-            try
+            lock (textureCache)
             {
-                if (!textureCache.TryGetValue(texture.LookupKey, out var tex))
-                    return;
-
-                // we are doing this locally as right now, Textures don't dispose the underlying texture (leaving it to GC finalizers).
-                // in the case of a purge operation we are pretty sure this is the intended behaviour.
-                tex?.TextureGL?.Dispose();
-                tex?.Dispose();
-
-                textureLock.EnterWriteLock();
-
-                try
+                if (textureCache.TryGetValue(texture.LookupKey, out var tex))
                 {
-                    textureCache.Remove(texture.LookupKey);
+                    // we are doing this locally as right now, Textures don't dispose the underlying texture (leaving it to GC finalizers).
+                    // in the case of a purge operation we are pretty sure this is the intended behaviour.
+                    tex?.TextureGL?.Dispose();
+                    tex?.Dispose();
                 }
-                finally
-                {
-                    textureLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                textureLock.ExitUpgradeableReadLock();
-            }
-        }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            try
-            {
-                textureLock?.Dispose();
-            }
-            catch
-            {
+                textureCache.Remove(texture.LookupKey);
             }
         }
     }
