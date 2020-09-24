@@ -36,14 +36,22 @@ namespace osu.Framework.Lists
         public bool Remove(T item)
         {
             int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
-            var enumerator = new AllItemsEnumerator(this);
 
-            while (enumerator.MoveNext())
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (!enumerator.CheckEquals(item, hashCode))
+                // Check if the object is valid.
+                if (list[i].Reference == null)
                     continue;
 
-                RemoveAt(enumerator.CurrentItemIndex - listStart);
+                // Compare by hash code (fast).
+                if (list[i].ObjectHashCode != hashCode)
+                    continue;
+
+                // Compare by object equality (slow).
+                if (!list[i].Reference.TryGetTarget(out var target) || target != item)
+                    continue;
+
+                RemoveAt(i - listStart);
                 return true;
             }
 
@@ -52,14 +60,13 @@ namespace osu.Framework.Lists
 
         public bool Remove(WeakReference<T> weakReference)
         {
-            var enumerator = new AllItemsEnumerator(this);
-
-            while (enumerator.MoveNext())
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (!enumerator.CheckEquals(weakReference))
+                // Check if the object is valid.
+                if (list[i].Reference != weakReference)
                     continue;
 
-                RemoveAt(enumerator.CurrentItemIndex - listStart);
+                RemoveAt(i - listStart);
                 return true;
             }
 
@@ -85,12 +92,22 @@ namespace osu.Framework.Lists
         public bool Contains(T item)
         {
             int hashCode = item == null ? 0 : EqualityComparer<T>.Default.GetHashCode(item);
-            var enumerator = new AllItemsEnumerator(this);
 
-            while (enumerator.MoveNext())
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (enumerator.CheckEquals(item, hashCode))
-                    return true;
+                // Check if the object is valid.
+                if (list[i].Reference == null)
+                    continue;
+
+                // Compare by hash code (fast).
+                if (list[i].ObjectHashCode != hashCode)
+                    continue;
+
+                // Compare by object equality (slow).
+                if (!list[i].Reference.TryGetTarget(out var target) || target != item)
+                    continue;
+
+                return true;
             }
 
             return false;
@@ -98,11 +115,10 @@ namespace osu.Framework.Lists
 
         public bool Contains(WeakReference<T> weakReference)
         {
-            var enumerator = new AllItemsEnumerator(this);
-
-            while (enumerator.MoveNext())
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (enumerator.CheckEquals(weakReference))
+                // Check if the object is valid.
+                if (list[i].Reference == weakReference)
                     return true;
             }
 
