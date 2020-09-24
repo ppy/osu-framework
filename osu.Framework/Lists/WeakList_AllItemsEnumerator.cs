@@ -51,8 +51,17 @@ namespace osu.Framework.Lists
             public readonly T Current => throw new NotImplementedException("This enumerator doesn't support retrieving the current item.");
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly bool CheckEquals(int hashCode)
-                => weakList.list[CurrentItemIndex].ObjectHashCode == hashCode;
+            public readonly bool CheckEquals(T obj, int hashCode)
+            {
+                if (weakList.list[CurrentItemIndex].ObjectHashCode != hashCode)
+                    return false;
+
+                T target = null;
+                if (weakList.list[CurrentItemIndex].Reference?.TryGetTarget(out target) != true)
+                    return false;
+
+                return target == obj;
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly bool CheckEquals(WeakReference<T> weakReference)

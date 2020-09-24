@@ -40,7 +40,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (!enumerator.CheckEquals(hashCode))
+                if (!enumerator.CheckEquals(item, hashCode))
                     continue;
 
                 RemoveAt(enumerator.CurrentItemIndex - listStart);
@@ -89,7 +89,7 @@ namespace osu.Framework.Lists
 
             while (enumerator.MoveNext())
             {
-                if (enumerator.CheckEquals(hashCode))
+                if (enumerator.CheckEquals(item, hashCode))
                     return true;
             }
 
