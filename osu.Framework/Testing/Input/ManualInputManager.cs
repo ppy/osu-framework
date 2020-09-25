@@ -64,12 +64,25 @@ namespace osu.Framework.Testing.Input
             handler.EnqueueInput(input);
         }
 
+        /// <summary>
+        /// Press a key down. Release with <see cref="ReleaseKey"/>.
+        /// </summary>
+        /// <remarks>
+        /// To press and release a key immediately, use <see cref="Key"/>.
+        /// </remarks>
+        /// <param name="key">The key to press.</param>
         public void PressKey(Key key) => Input(new KeyboardKeyInput(key, true));
+
+        /// <summary>
+        /// Release a pressed key.
+        /// </summary>
+        /// <param name="key">The key to release.</param>
         public void ReleaseKey(Key key) => Input(new KeyboardKeyInput(key, false));
 
         /// <summary>
         /// Press and release the specified key.
         /// </summary>
+        /// <param name="key">The key to press and release.</param>
         public void Key(Key key)
         {
             PressKey(key);
@@ -88,13 +101,26 @@ namespace osu.Framework.Testing.Input
         /// <summary>
         /// Press and release the specified button.
         /// </summary>
+        /// <param name="button">The button to press and release.</param>
         public void Click(MouseButton button)
         {
             PressButton(button);
             ReleaseButton(button);
         }
 
+        /// <summary>
+        /// Press a mouse button down. Release with <see cref="ReleaseButton"/>.
+        /// </summary>
+        /// <remarks>
+        /// To press and release a mouse button immediately, use <see cref="Click"/>.
+        /// </remarks>
+        /// <param name="button">The button to press.</param>
         public void PressButton(MouseButton button) => Input(new MouseButtonInput(button, true));
+
+        /// <summary>
+        /// Release a pressed mouse button.
+        /// </summary>
+        /// <param name="button">The button to release.</param>
         public void ReleaseButton(MouseButton button) => Input(new MouseButtonInput(button, false));
 
         public void PressJoystickButton(JoystickButton button) => Input(new JoystickButtonInput(button, true));
