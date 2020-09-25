@@ -568,8 +568,10 @@ namespace osu.Framework.Testing
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStepButton
+                    CurrentTest.AddStep(new SingleStepButton(true)
                     {
+                        Text = "[SetUp]",
+                        LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
                 }
@@ -597,7 +599,7 @@ namespace osu.Framework.Testing
                     // stop once one actual step has been run.
                     return true;
 
-                if (!(s is SetUpStepButton) && !(s is LabelStep))
+                if (!s.IsSetupStep && !(s is LabelStep))
                     actualStepCount++;
 
                 return false;
