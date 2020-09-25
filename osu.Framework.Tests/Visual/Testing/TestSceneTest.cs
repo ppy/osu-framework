@@ -38,7 +38,12 @@ namespace osu.Framework.Tests.Visual.Testing
             if (DebugUtils.IsNUnitRunning && TestContext.CurrentContext.Test.MethodName == nameof(TestConstructor))
                 return;
 
-            AddSetupStep("set up dummy", () => setupStepsDummyRun++);
+            AddStep(new SingleStepButton(true)
+            {
+                Name = "set up dummy",
+                Action = () => setupStepsDummyRun++
+            });
+
             AddStep("set up second step", () => { });
             setupStepsRun++;
         }
@@ -89,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Testing
             // Under both nUnit and the test browser, this should be invoked once _after_ each test method.
             AddAssert("correct teardown step run", () => teardownStepsDummyRun == testRunCountDummyRun - 1);
 
-            AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text == "set up second step") is SetUpStepButton);
+            AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text == "set up second step").IsSetupStep);
 
             testRunCount++;
         }

@@ -30,7 +30,8 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         private Stopwatch elapsedTime;
 
-        public UntilStepButton(Func<bool> waitUntilTrueDelegate)
+        public UntilStepButton(Func<bool> waitUntilTrueDelegate, bool isSetupStep = false)
+            : base(isSetupStep)
         {
             updateText();
             LightColour = Color4.Sienna;
