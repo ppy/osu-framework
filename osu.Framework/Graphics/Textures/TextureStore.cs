@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.Textures
     public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        private readonly object retrievalLock = new object();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -109,26 +110,41 @@ namespace osu.Framework.Graphics.Textures
 
             this.LogIfNonBackgroundThread(key);
 
+            // Check if the texture exists in the cache.
             lock (textureCache)
             {
-                // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(key, out var tex))
+                if (textureCache.TryGetValue(key, out var tex))
+                    return tex;
+            }
+
+            // Take an exclusive lock on retrieval of the texture.
+            lock (retrievalLock)
+            {
+                // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
+                lock (textureCache)
                 {
-                    try
-                    {
-                        tex = getTexture(name, wrapModeS, wrapModeT);
-                        if (tex != null)
-                            tex.LookupKey = key;
-                        textureCache[key] = tex;
-                    }
-                    catch (TextureTooLargeForGLException)
-                    {
-                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                    }
+                    if (textureCache.TryGetValue(key, out var tex))
+                        return tex;
                 }
 
-                return tex;
+                try
+                {
+                    var tex = getTexture(name, wrapModeS, wrapModeT);
+                    if (tex != null)
+                        tex.LookupKey = key;
+
+                    lock (textureCache)
+                        textureCache[key] = tex;
+
+                    return tex;
+                }
+                catch (TextureTooLargeForGLException)
+                {
+                    Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                }
             }
+
+            return null;
         }
 
         /// <summary>
