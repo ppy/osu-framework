@@ -345,7 +345,7 @@ namespace osu.Framework.Platform.Sdl
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
-        private void enqueueJoystickAxisInput(int instanceID, JoystickAxisSource axisSource, short axisValue)
+        private void enqueueJoystickAxisInput(int instanceID, SDL.SDL_GameControllerAxis gcAxis, JoystickAxisSource axisSource, short axisValue)
         {
             var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
             var value = Math.Abs(clamped) < deadzone_threshold ? 0 : Math.Sign(clamped) * (Math.Abs(clamped) - deadzone_threshold) / (1f - deadzone_threshold);
@@ -358,6 +358,11 @@ namespace osu.Framework.Platform.Sdl
 
                 if (value == 0 && directionButton != 0 || value < 0 && directionButton == positiveButton || value > 0 && directionButton == negativeButton)
                 {
+                    if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+                        eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(JoystickButton.GamePadLeftTrigger, false)));
+                    else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                        eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(JoystickButton.GamePadRightTrigger, false)));
+
                     eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(directionButton, false)));
                     axisDirectionButtons[instanceID][(int)axisSource] = 0;
                 }
@@ -369,6 +374,11 @@ namespace osu.Framework.Platform.Sdl
                 }
                 else if (value > 0 && directionButton != positiveButton)
                 {
+                    if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
+                        eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(JoystickButton.GamePadLeftTrigger, true)));
+                    else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
+                        eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(JoystickButton.GamePadRightTrigger, true)));
+
                     eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(positiveButton, true)));
                     axisDirectionButtons[instanceID][(int)axisSource] = positiveButton;
                 }
@@ -603,7 +613,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(evtCaxis.which, joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis), evtCaxis.axisValue);
+            enqueueJoystickAxisInput(evtCaxis.which, (SDL.SDL_GameControllerAxis)evtCaxis.axis, joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis), evtCaxis.axisValue);
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
@@ -667,7 +677,7 @@ namespace osu.Framework.Platform.Sdl
             if (bindings.ContainsKey(evtJaxis.which) && bindings[evtJaxis.which].GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
                 return;
 
-            enqueueJoystickAxisInput(evtJaxis.which, JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
+            enqueueJoystickAxisInput(evtJaxis.which, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID, JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
