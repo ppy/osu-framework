@@ -23,7 +23,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -336,6 +336,22 @@ namespace osu.Framework
         }
 
         public void OnReleased(FrameworkAction action)
+        {
+        }
+
+        public virtual bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.Exit:
+                    Host.Window?.Close();
+                    return true;
+            }
+
+            return false;
+        }
+
+        public virtual void OnReleased(PlatformAction action)
         {
         }
 
