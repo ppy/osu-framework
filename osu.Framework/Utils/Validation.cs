@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Runtime.CompilerServices;
 using osuTK;
 using osu.Framework.Graphics;
 
@@ -23,5 +24,34 @@ namespace osu.Framework.Utils
         /// <param name="toCheck">The <see cref="MarginPadding"/> to check.</param>
         /// <returns>False if either component of <paramref name="toCheck"/> are Infinity or NaN, true otherwise. </returns>
         public static bool IsFinite(MarginPadding toCheck) => float.IsFinite(toCheck.Top) && float.IsFinite(toCheck.Bottom) && float.IsFinite(toCheck.Left) && float.IsFinite(toCheck.Right);
+
+        /// <summary>
+        /// Returns whether the provided generic type <typeparamref name="T"/> is a numeric type, i.e. one of the following types:
+        /// <list type="bullet">
+        /// <item><description><see cref="sbyte"/></description></item>
+        /// <item><description><see cref="byte"/></description></item>
+        /// <item><description><see cref="short"/></description></item>
+        /// <item><description><see cref="ushort"/></description></item>
+        /// <item><description><see cref="int"/></description></item>
+        /// <item><description><see cref="uint"/></description></item>
+        /// <item><description><see cref="long"/></description></item>
+        /// <item><description><see cref="ulong"/></description></item>
+        /// <item><description><see cref="float"/></description></item>
+        /// <item><description><see cref="double"/></description></item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="T">The generic type to check with</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNumericType<T>() =>
+            typeof(T) == typeof(sbyte)
+            || typeof(T) == typeof(byte)
+            || typeof(T) == typeof(short)
+            || typeof(T) == typeof(ushort)
+            || typeof(T) == typeof(int)
+            || typeof(T) == typeof(uint)
+            || typeof(T) == typeof(long)
+            || typeof(T) == typeof(ulong)
+            || typeof(T) == typeof(float)
+            || typeof(T) == typeof(double);
     }
 }

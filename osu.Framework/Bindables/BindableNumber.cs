@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
 {
@@ -23,7 +23,7 @@ namespace osu.Framework.Bindables
             // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
             // Just a pointer comparison for reference types, or constant for value types.
             // The check will become NOP after optimization.
-            if (!isSupportedType())
+            if (!Validation.IsNumericType<T>())
             {
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
@@ -162,7 +162,7 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                Debug.Assert(isSupportedType());
+                Debug.Assert(Validation.IsNumericType<T>());
 
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MinValue;
@@ -194,7 +194,7 @@ namespace osu.Framework.Bindables
         {
             get
             {
-                Debug.Assert(isSupportedType());
+                Debug.Assert(Validation.IsNumericType<T>());
 
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MaxValue;
@@ -226,6 +226,8 @@ namespace osu.Framework.Bindables
         {
             get
             {
+                Debug.Assert(Validation.IsNumericType<T>());
+
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)(sbyte)1;
                 if (typeof(T) == typeof(byte))
@@ -348,7 +350,7 @@ namespace osu.Framework.Bindables
         public void Set<TNewValue>(TNewValue val) where TNewValue : struct,
             IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
-            Debug.Assert(isSupportedType());
+            Debug.Assert(Validation.IsNumericType<T>());
 
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code paths for other types will be eliminated.
@@ -377,7 +379,7 @@ namespace osu.Framework.Bindables
         public void Add<TNewValue>(TNewValue val) where TNewValue : struct,
             IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
-            Debug.Assert(isSupportedType());
+            Debug.Assert(Validation.IsNumericType<T>());
 
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
@@ -460,18 +462,5 @@ namespace osu.Framework.Bindables
 
         private static T clamp(T value, T minValue, T maxValue)
             => max(minValue, min(maxValue, value));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool isSupportedType() =>
-            typeof(T) == typeof(sbyte)
-            || typeof(T) == typeof(byte)
-            || typeof(T) == typeof(short)
-            || typeof(T) == typeof(ushort)
-            || typeof(T) == typeof(int)
-            || typeof(T) == typeof(uint)
-            || typeof(T) == typeof(long)
-            || typeof(T) == typeof(ulong)
-            || typeof(T) == typeof(float)
-            || typeof(T) == typeof(double);
     }
 }
