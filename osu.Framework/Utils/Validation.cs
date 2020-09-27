@@ -26,19 +26,7 @@ namespace osu.Framework.Utils
         public static bool IsFinite(MarginPadding toCheck) => float.IsFinite(toCheck.Top) && float.IsFinite(toCheck.Bottom) && float.IsFinite(toCheck.Left) && float.IsFinite(toCheck.Right);
 
         /// <summary>
-        /// Returns whether the provided generic type <typeparamref name="T"/> is a numeric type, i.e. one of the following types:
-        /// <list type="bullet">
-        /// <item><description><see cref="sbyte"/></description></item>
-        /// <item><description><see cref="byte"/></description></item>
-        /// <item><description><see cref="short"/></description></item>
-        /// <item><description><see cref="ushort"/></description></item>
-        /// <item><description><see cref="int"/></description></item>
-        /// <item><description><see cref="uint"/></description></item>
-        /// <item><description><see cref="long"/></description></item>
-        /// <item><description><see cref="ulong"/></description></item>
-        /// <item><description><see cref="float"/></description></item>
-        /// <item><description><see cref="double"/></description></item>
-        /// </list>
+        /// Returns whether the provided generic type <typeparamref name="T"/> is a numeric type (except for <see cref="decimal"/>, <c>false</c> is returned for it).
         /// </summary>
         /// <typeparam name="T">The generic type to check with</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
