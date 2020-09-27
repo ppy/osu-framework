@@ -1833,7 +1833,7 @@ namespace osu.Framework.Graphics.Containers
                     baseSize = newSize;
                 }
                 else
-                    this.TransformTo(this.PopulateTransform(new AutoSizeTransform { Rewindable = false }, newSize, duration, easing));
+                    this.TransformTo(this.PopulateTransform(new AutoSizeTransform(newSize) { Rewindable = false }, duration, easing));
             }
         }
 
@@ -1852,8 +1852,8 @@ namespace osu.Framework.Graphics.Containers
 
         private class AutoSizeTransform : TransformCustom<Vector2, CompositeDrawable>
         {
-            public AutoSizeTransform()
-                : base(nameof(baseSize))
+            public AutoSizeTransform(Vector2 newSize)
+                : base(nameof(baseSize), newSize)
             {
             }
         }
