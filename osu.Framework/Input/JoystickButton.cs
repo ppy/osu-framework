@@ -283,6 +283,21 @@ namespace osu.Framework.Input
         Hat1Right = FirstHatRight,
         Hat2Right,
         Hat3Right,
-        Hat4Right
+        Hat4Right,
+        GamePadA = Button1,
+        GamePadB = Button2,
+        GamePadX = Button3,
+        GamePadY = Button4,
+        GamePadBack = Button5,
+        GamePadGuide = Button6,
+        GamePadStart = Button7,
+        GamePadLeftStick = Button8,
+        GamePadRightStick = Button9,
+        GamePadLeftShoulder = Button10,
+        GamePadRightShoulder = Button11,
+        GamePadDPadUp = Hat1Up,
+        GamePadDPadDown = Hat1Down,
+        GamePadDPadLeft = Hat1Left,
+        GamePadDPadRight = Hat1Right,
     }
 }

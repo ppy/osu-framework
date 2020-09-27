@@ -33,6 +33,7 @@ namespace osu.Framework.Platform.Sdl
         private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
 
+        private readonly Dictionary<int, ControllerBindings> bindings = new Dictionary<int, ControllerBindings>();
         private readonly Dictionary<int, IntPtr> joysticks = new Dictionary<int, IntPtr>();
 
         #region Internal Properties
@@ -535,18 +536,24 @@ namespace osu.Framework.Platform.Sdl
                     var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
                     var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
                     joysticks[instanceID] = controller;
+                    bindings[instanceID] = new ControllerBindings(controller);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
                     SDL.SDL_GameControllerClose(joysticks[evtCdevice.which]);
+                    bindings.Remove(evtCdevice.which);
                     joysticks.Remove(evtCdevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                    bindings[evtCdevice.which] = new ControllerBindings(joysticks[evtCdevice.which]);
                     break;
             }
         }
 
         private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
         {
-            var button = joystickButtonFromEvent((SDL.SDL_GameControllerButton)evtCbutton.button);
+            var button = joystickButtonFromGameController((SDL.SDL_GameControllerButton)evtCbutton.button);
 
             switch (evtCbutton.type)
             {
@@ -571,10 +578,42 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
+            // if the joystick was detected as a game controller, allow the SDL_ControllerDeviceEvent to handle it instead
+            if (SDL.SDL_IsGameController(evtJdevice.which) == SDL.SDL_bool.SDL_TRUE)
+                return;
+
+            switch (evtJdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
+                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
+                    joysticks[instanceID] = joystick;
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    SDL.SDL_JoystickClose(joysticks[evtJdevice.which]);
+                    joysticks.Remove(evtJdevice.which);
+                    break;
+            }
         }
 
         private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
         {
+            if (bindings.ContainsKey(evtJbutton.which) && bindings[evtJbutton.which].GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
+                return;
+
+            var button = JoystickButton.FirstButton + evtJbutton.button;
+
+            switch (evtJbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+                    break;
+            }
         }
 
         private void handleJoyHatEvent(SDL.SDL_JoyHatEvent evtJhat)
@@ -751,27 +790,58 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private JoystickButton joystickButtonFromEvent(SDL.SDL_GameControllerButton button)
+        private JoystickButton joystickButtonFromGameController(SDL.SDL_GameControllerButton button)
         {
             switch (button)
             {
+                default:
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
                     return 0;
 
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
+                    return JoystickButton.GamePadA;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
+                    return JoystickButton.GamePadB;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
+                    return JoystickButton.GamePadX;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
+                    return JoystickButton.GamePadY;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK:
+                    return JoystickButton.GamePadBack;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE:
+                    return JoystickButton.GamePadGuide;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START:
+                    return JoystickButton.GamePadStart;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
+                    return JoystickButton.GamePadLeftStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+                    return JoystickButton.GamePadRightStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    return JoystickButton.GamePadLeftShoulder;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    return JoystickButton.GamePadRightShoulder;
+
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
-                    return JoystickButton.Hat1Up;
+                    return JoystickButton.GamePadDPadUp;
 
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-                    return JoystickButton.Hat1Down;
+                    return JoystickButton.GamePadDPadDown;
 
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-                    return JoystickButton.Hat1Left;
+                    return JoystickButton.GamePadDPadLeft;
 
                 case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-                    return JoystickButton.Hat1Right;
-
-                default:
-                    return JoystickButton.FirstButton + (int)button;
+                    return JoystickButton.GamePadDPadRight;
             }
         }
 
@@ -800,6 +870,47 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
                     return JoystickAxisSource.Axis6;
+            }
+        }
+
+        /// <summary>
+        /// Keeps a lookup of button/axis bindings as defined by the SDL GameController API.
+        /// Primarily used for reverse lookups to determine whether a physical button has no logical mapping.
+        /// </summary>
+        protected readonly struct ControllerBindings
+        {
+            public readonly SDL.SDL_GameControllerButtonBind[] ButtonBindings;
+            public readonly SDL.SDL_GameControllerButtonBind[] AxisBindings;
+
+            public SDL.SDL_GameControllerButton GetButtonForIndex(byte index)
+            {
+                for (var i = 0; i < ButtonBindings.Length; i++)
+                {
+                    if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == index)
+                        return (SDL.SDL_GameControllerButton)i;
+                }
+
+                return SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID;
+            }
+
+            public SDL.SDL_GameControllerAxis GetAxisForIndex(byte index)
+            {
+                for (var i = 0; i < AxisBindings.Length; i++)
+                {
+                    if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.button == index)
+                        return (SDL.SDL_GameControllerAxis)i;
+                }
+
+                return SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID;
+            }
+
+            public ControllerBindings(IntPtr controller)
+            {
+                ButtonBindings = Enumerable.Range(0, (int)SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MAX)
+                                           .Select(i => SDL.SDL_GameControllerGetBindForButton(controller, (SDL.SDL_GameControllerButton)i)).ToArray();
+
+                AxisBindings = Enumerable.Range(0, (int)SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_MAX)
+                                         .Select(i => SDL.SDL_GameControllerGetBindForAxis(controller, (SDL.SDL_GameControllerAxis)i)).ToArray();
             }
         }
 
