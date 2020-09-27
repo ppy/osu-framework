@@ -204,8 +204,8 @@ namespace osu.Framework.Graphics.Transforms
     internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
         where T : class, ITransformable
     {
-        public TransformCustom(string propertyOrFieldName, string grouping = null)
-            : base(propertyOrFieldName, grouping)
+        public TransformCustom(string propertyOrFieldName, TValue newValue, string grouping = null)
+            : base(propertyOrFieldName, grouping, newValue)
         {
         }
     }
