@@ -303,6 +303,7 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (Transform t in toFlush)
             {
+                t.ReadValues();
                 t.Apply(t.EndTime);
                 t.OnComplete?.Invoke();
             }

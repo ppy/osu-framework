@@ -289,6 +289,7 @@ namespace osu.Framework.Graphics.Transforms
 
             if (Clock == null)
             {
+                transform.ReadValues();
                 transform.Apply(transform.EndTime);
                 transform.OnComplete?.Invoke();
                 return;
