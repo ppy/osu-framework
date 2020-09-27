@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Transforms
                 t.OnAbort = null;
                 t.OnComplete = null;
 
-                if (!t.HasStartValue)
+                if (!t.HasReadValues)
                     t.TargetTransformable.RemoveTransform(t);
             }
 

@@ -185,7 +185,10 @@ namespace osu.Framework.Graphics.Transforms
 
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
-        protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+        protected override void ReadValues(T d)
+        {
+            StartValue = accessor.Read(d);
+        }
     }
 
     internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>

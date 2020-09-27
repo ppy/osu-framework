@@ -100,7 +100,7 @@ namespace osu.Framework.Benchmarks
                 throw new NotImplementedException();
             }
 
-            protected override void ReadIntoStartValue(Box d)
+            protected override void ReadValues(Box d)
             {
                 throw new NotImplementedException();
             }

@@ -142,10 +142,10 @@ namespace osu.Framework.Graphics.Transforms
                     }
                 }
 
-                if (!t.HasStartValue)
+                if (!t.HasReadValues)
                 {
-                    t.ReadIntoStartValue();
-                    t.HasStartValue = true;
+                    t.ReadValues();
+                    t.HasReadValues = true;
                 }
 
                 if (!t.AppliedToEnd)
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.Transforms
 
                             t.AppliedToEnd = false;
                             t.Applied = false;
-                            t.HasStartValue = false;
+                            t.HasReadValues = false;
 
                             t.IsLooping = true;
 

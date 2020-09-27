@@ -35,6 +35,6 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         protected override void Apply(T d, double time) => targetBindable.Value = valueAt(time);
-        protected override void ReadIntoStartValue(T d) => StartValue = targetBindable.Value;
+        protected override void ReadValues(T d) => StartValue = targetBindable.Value;
     }
 }

@@ -50,9 +50,9 @@ namespace osu.Framework.Graphics.Transforms
 
         public abstract void Apply(double time);
 
-        public abstract void ReadIntoStartValue();
+        public abstract void ReadValues();
 
-        internal bool HasStartValue;
+        internal bool HasReadValues;
 
         public Action OnComplete;
 
@@ -101,11 +101,11 @@ namespace osu.Framework.Graphics.Transforms
             Applied = true;
         }
 
-        public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
+        public sealed override void ReadValues() => ReadValues(Target);
 
         protected abstract void Apply(T d, double time);
 
-        protected abstract void ReadIntoStartValue(T d);
+        protected abstract void ReadValues(T d);
 
         public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
     }
