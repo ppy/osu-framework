@@ -662,6 +662,10 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyAxisEvent(SDL.SDL_JoyAxisEvent evtJaxis)
         {
+            // if this axis exists in the controller bindings, skip it
+            if (bindings.ContainsKey(evtJaxis.which) && bindings[evtJaxis.which].GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
+                return;
+
             enqueueJoystickAxisInput(evtJaxis.which, JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
