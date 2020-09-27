@@ -30,7 +30,7 @@ namespace osu.Framework.Utils
         /// </summary>
         /// <typeparam name="T">The generic type to check with</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNumericType<T>() =>
+        internal static bool IsNumericType<T>() =>
             typeof(T) == typeof(sbyte)
             || typeof(T) == typeof(byte)
             || typeof(T) == typeof(short)
