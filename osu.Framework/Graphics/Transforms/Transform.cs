@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Transforms
     public abstract class Transform<TValue> : Transform
     {
         public TValue StartValue { get; protected set; }
-        public TValue EndValue { get; protected internal set; }
+        public TValue EndValue { get; protected set; }
     }
 
     public abstract class Transform<TValue, TEasing, T> : Transform<TValue>

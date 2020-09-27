@@ -103,7 +103,27 @@ namespace osu.Framework.Graphics
         public static Transform<TValue, TEasing, TThis> MakeTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, in TEasing easing, string grouping = null)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
-            => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName, grouping), newValue, duration, easing);
+            => t.PopulateTransform(new TransformCustom<TValue, TEasing, TThis>(propertyOrFieldName, grouping, newValue), duration, easing);
+
+        /// <summary>
+        /// Creates a <see cref="Transform{TValue, T}"/> for smoothly changing <paramref name="propertyOrFieldName"/>
+        /// over time using the given <paramref name="easing"/> for tweening.
+        /// <see cref="PopulateTransform{TValue, TEasing, TThis}"/> is invoked as part of this method.
+        /// </summary>
+        /// <typeparam name="TThis">The type of the <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> can be applied to.</typeparam>
+        /// <typeparam name="TValue">The value type which is being transformed.</typeparam>
+        /// <typeparam name="TEasing">The type of easing.</typeparam>
+        /// <param name="t">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
+        /// <param name="propertyOrFieldName">The property or field name of the member ot <typeparamref name="TThis"/> to transform.</param>
+        /// <param name="offset">The offset value to transform to from current value.</param>
+        /// <param name="duration">The transform duration.</param>
+        /// <param name="easing">The transform easing to be used for tweening.</param>
+        /// <param name="grouping">An optional grouping specification to be used when the same property may be touched by multiple transform types.</param>
+        /// <returns>The resulting <see cref="Transform{TValue, T}"/>.</returns>
+        public static Transform<TValue, TEasing, TThis> MakeOffsetTransform<TThis, TEasing, TValue>(this TThis t, string propertyOrFieldName, TValue offset, double duration, in TEasing easing, string grouping = null)
+            where TThis : class, ITransformable
+            where TEasing : IEasingFunction
+            => t.PopulateTransform(new TransformOffset<TValue, TEasing, TThis>(propertyOrFieldName, grouping, offset), duration, easing);
 
         /// <summary>
         /// Populates a newly created <see cref="Transform{TValue, T}"/> with necessary values.
@@ -120,7 +140,7 @@ namespace osu.Framework.Graphics
         public static Transform<TValue, DefaultEasingFunction, TThis> PopulateTransform<TValue, TThis>(this TThis t, Transform<TValue, DefaultEasingFunction, TThis> transform, TValue newValue,
                                                                                                        double duration = 0, Easing easing = Easing.None)
             where TThis : class, ITransformable
-            => t.PopulateTransform(transform, newValue, duration, new DefaultEasingFunction(easing));
+            => t.PopulateTransform(transform, duration, new DefaultEasingFunction(easing));
 
         /// <summary>
         /// Populates a newly created <see cref="Transform{TValue, T}"/> with necessary values.
@@ -131,12 +151,10 @@ namespace osu.Framework.Graphics
         /// <typeparam name="TEasing">The type of easing.</typeparam>
         /// <param name="t">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
         /// <param name="transform">The transform to populate.</param>
-        /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>The populated <paramref name="transform"/>.</returns>
-        public static Transform<TValue, TEasing, TThis> PopulateTransform<TValue, TEasing, TThis>(this TThis t, Transform<TValue, TEasing, TThis> transform, TValue newValue, double duration,
-                                                                                                  in TEasing easing)
+        public static Transform<TValue, TEasing, TThis> PopulateTransform<TValue, TEasing, TThis>(this TThis t, Transform<TValue, TEasing, TThis> transform, double duration, in TEasing easing)
             where TThis : class, ITransformable
             where TEasing : IEasingFunction
         {
@@ -152,7 +170,6 @@ namespace osu.Framework.Graphics
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
-            transform.EndValue = newValue;
             transform.Easing = easing;
 
             return transform;
@@ -666,8 +683,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToOffset<T, TEasing>(this T drawable, Vector2 offset, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.MoveTo(((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position) + offset, duration,
-                easing);
+            => drawable.TransformTo(drawable.MakeOffsetTransform(nameof(drawable.Position), offset, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
@@ -747,7 +763,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> TransformBindableTo<T, TValue, TEasing>(this T drawable, [NotNull] Bindable<TValue> bindable, TValue newValue, double duration, in TEasing easing)
             where T : class, ITransformable
             where TEasing : IEasingFunction
-            => drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, TEasing, T>(bindable), newValue, duration, easing));
+            => drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, TEasing, T>(bindable, newValue), duration, easing));
 
         #endregion
     }

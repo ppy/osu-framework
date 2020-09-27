@@ -13,11 +13,14 @@ namespace osu.Framework.Graphics.Transforms
         public override string TargetMember { get; }
 
         private readonly Bindable<TValue> targetBindable;
+        private readonly TValue newValue;
+
         private readonly InterpolationFunc<TValue, TEasing> interpolationFunc;
 
-        public TransformBindable(Bindable<TValue> targetBindable)
+        public TransformBindable(Bindable<TValue> targetBindable, TValue newValue)
         {
             this.targetBindable = targetBindable;
+            this.newValue = newValue;
 
             // Lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
             interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
@@ -35,6 +38,11 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         protected override void Apply(T d, double time) => targetBindable.Value = valueAt(time);
-        protected override void ReadValues(T d) => StartValue = targetBindable.Value;
+
+        protected override void ReadValues(T d)
+        {
+            StartValue = targetBindable.Value;
+            EndValue = newValue;
+        }
     }
 }

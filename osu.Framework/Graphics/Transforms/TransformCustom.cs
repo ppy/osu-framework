@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly string targetGrouping;
 
+        private readonly TValue newValue;
+
         private delegate TValue ReadFunc(T transformable);
 
         private delegate void WriteFunc(T transformable, TValue value);
@@ -188,14 +190,15 @@ namespace osu.Framework.Graphics.Transforms
         protected override void ReadValues(T d)
         {
             StartValue = accessor.Read(d);
+            EndValue = newValue;
         }
     }
 
     internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
         where T : class, ITransformable
     {
-        public TransformCustom(string propertyOrFieldName)
-            : base(propertyOrFieldName)
+        public TransformCustom(string propertyOrFieldName, string grouping = null)
+            : base(propertyOrFieldName, grouping)
         {
         }
     }
