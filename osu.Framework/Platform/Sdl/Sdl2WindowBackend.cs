@@ -607,20 +607,25 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
-            // if the joystick was detected as a game controller, allow the SDL_ControllerDeviceEvent to handle it instead
-            if (SDL.SDL_IsGameController(evtJdevice.which) == SDL.SDL_bool.SDL_TRUE)
-                return;
-
             switch (evtJdevice.type)
             {
                 case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
                     var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
+
+                    // if the joystick is already opened, ignore it
+                    if (joysticks.ContainsKey(instanceID))
+                        break;
+
+                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
                     axisDirectionButtons[instanceID] = new JoystickButton[(int)JoystickAxisSource.AxisCount];
                     joysticks[instanceID] = joystick;
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    // if the joystick is already closed, ignore it
+                    if (!joysticks.ContainsKey(evtJdevice.which))
+                        break;
+
                     SDL.SDL_JoystickClose(joysticks[evtJdevice.which]);
                     axisDirectionButtons.Remove(evtJdevice.which);
                     joysticks.Remove(evtJdevice.which);
