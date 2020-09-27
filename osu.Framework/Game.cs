@@ -23,11 +23,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework
 {
-    public abstract class Game :
-        Container,
-        IKeyBindingHandler<FrameworkAction>,
-        IKeyBindingHandler<PlatformAction>,
-        IHandleGlobalKeyboardInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
