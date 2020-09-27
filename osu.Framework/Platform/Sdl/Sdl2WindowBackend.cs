@@ -635,7 +635,8 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
         {
-            if (bindings.ContainsKey(evtJbutton.which) && bindings[evtJbutton.which].GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
+            // if we have bindings, ignore all other button presses
+            if (bindings.ContainsKey(evtJbutton.which))
                 return;
 
             var button = JoystickButton.FirstButton + evtJbutton.button;
