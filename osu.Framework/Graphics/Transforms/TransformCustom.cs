@@ -162,7 +162,14 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
         /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
-        public TransformCustom(string propertyOrFieldName, string grouping = null)
+        /// <param name="newValue">The value to transform to.</param>
+        public TransformCustom(string propertyOrFieldName, string grouping, TValue newValue)
+            : this(propertyOrFieldName, grouping)
+        {
+            this.newValue = newValue;
+        }
+
+        protected TransformCustom(string propertyOrFieldName, string grouping)
         {
             TargetMember = propertyOrFieldName;
             targetGrouping = grouping;
