@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Containers
                 if (currentTargetPos != finalPos)
                 {
                     if (LayoutDuration > 0)
-                        d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                        d.TransformTo(d.PopulateTransform(new FlowTransform(finalPos) { Rewindable = false }, LayoutDuration, LayoutEasing));
                     else
                     {
                         if (existingTransform != null) d.ClearTransforms(false, nameof(FlowTransform));
@@ -220,8 +220,8 @@ namespace osu.Framework.Graphics.Containers
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
-            public FlowTransform()
-                : base(nameof(Position))
+            public FlowTransform(Vector2 newPosition)
+                : base(nameof(Position), newPosition)
             {
             }
         }
