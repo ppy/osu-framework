@@ -105,10 +105,11 @@ namespace osu.Framework.Graphics
                 total_count.Value--;
 
                 Dispose(isDisposing);
-
                 UnbindAllBindables();
 
-                Parent = null;
+                // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
+                parent = null;
+                ChildID = 0;
 
                 OnUpdate = null;
                 Invalidated = null;

@@ -39,12 +39,16 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
         }
 
+        public readonly bool IsSetupStep;
+
         protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        protected StepButton()
+        protected StepButton(bool isSetupStep = false)
         {
+            IsSetupStep = isSetupStep;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Box

@@ -42,6 +42,23 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
+        public void RemoveAllStaggered()
+        {
+            init();
+
+            if (ItemCount == 0)
+                return;
+
+            weakList.Remove(objects[ItemCount / 2]);
+
+            for (int i = 1; i < ItemCount / 2; i++)
+            {
+                weakList.Remove(objects[ItemCount / 2 - i]);
+                weakList.Remove(objects[ItemCount / 2 + i]);
+            }
+        }
+
+        [Benchmark]
         public void Clear()
         {
             init();

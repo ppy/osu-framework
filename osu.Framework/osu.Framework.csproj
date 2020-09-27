@@ -36,14 +36,14 @@
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.161" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.165" />
     <PackageReference Include="StbiSharp" Version="1.0.12" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.15" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2020.909.0" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2020.923.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.7.0">
