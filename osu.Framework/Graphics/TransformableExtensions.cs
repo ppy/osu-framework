@@ -133,12 +133,11 @@ namespace osu.Framework.Graphics
         /// <typeparam name="TValue">The value type which is being transformed.</typeparam>
         /// <param name="t">The <see cref="ITransformable"/> the <see cref="Transform{TValue, T}"/> will be applied to.</param>
         /// <param name="transform">The transform to populate.</param>
-        /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>The populated <paramref name="transform"/>.</returns>
-        public static Transform<TValue, DefaultEasingFunction, TThis> PopulateTransform<TValue, TThis>(this TThis t, Transform<TValue, DefaultEasingFunction, TThis> transform, TValue newValue,
-                                                                                                       double duration = 0, Easing easing = Easing.None)
+        public static Transform<TValue, DefaultEasingFunction, TThis> PopulateTransform<TValue, TThis>(this TThis t, Transform<TValue, DefaultEasingFunction, TThis> transform, double duration = 0,
+                                                                                                       Easing easing = Easing.None)
             where TThis : class, ITransformable
             => t.PopulateTransform(transform, duration, new DefaultEasingFunction(easing));
 
