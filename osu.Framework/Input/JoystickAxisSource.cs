@@ -21,5 +21,6 @@ namespace osu.Framework.Input
         Axis14,
         Axis15,
         Axis16,
+        AxisCount,
     }
 }
