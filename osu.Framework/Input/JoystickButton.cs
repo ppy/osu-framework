@@ -296,7 +296,7 @@ namespace osu.Framework.Input
         GamePadStart = Button10,
         GamePadLeftStick = Button11,
         GamePadRightStick = Button12,
-        GamePadGuide = Button6,
+        GamePadGuide = Button13,
         GamePadDPadUp = Hat1Up,
         GamePadDPadDown = Hat1Down,
         GamePadDPadLeft = Hat1Left,
