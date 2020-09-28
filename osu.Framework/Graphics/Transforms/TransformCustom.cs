@@ -148,7 +148,6 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
-        private readonly InterpolationFunc<TValue, TEasing> interpolationFunc;
 
         /// <summary>
         /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
@@ -167,10 +166,6 @@ namespace osu.Framework.Graphics.Transforms
 
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
-
-            // Lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
-            interpolationFunc = (double d, TValue value, TValue tValue, double time, double endTime, in TEasing type)
-                => Interpolation.ValueAt(d, value, tValue, time, endTime, in type);
         }
 
         private TValue valueAt(double time)
@@ -178,7 +173,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }
