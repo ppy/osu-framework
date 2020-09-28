@@ -351,38 +351,49 @@ namespace osu.Framework.Platform.Sdl
             if (!controllers.TryGetValue(instanceID, out var state))
                 return;
 
-            var directionButton = state.AxisDirectionButtons[(int)axisSource];
-            var negativeButton = JoystickButton.FirstAxisNegative + (int)axisSource;
-            var positiveButton = JoystickButton.FirstAxisPositive + (int)axisSource;
+            var index = (int)axisSource;
 
-            if (value == 0 && directionButton != 0 || value < 0 && directionButton == positiveButton || value > 0 && directionButton == negativeButton)
+            // determine which directional buttons are used for this axis
+            var negativeButton = JoystickButton.FirstAxisNegative + index;
+            var positiveButton = JoystickButton.FirstAxisPositive + index;
+            var currentButton = state.AxisDirectionButtons[index];
+            var expectedButton = value < 0 ? negativeButton : value > 0 ? positiveButton : 0;
+
+            // if a directional button is pressed and does not match that for the new axis direction, release it
+            if (currentButton != 0 && expectedButton != currentButton)
             {
+                // also release trigger buttons if appropriate
                 if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(JoystickButton.GamePadLeftTrigger, false)));
+                    enqueueJoystickButtonInput(JoystickButton.GamePadLeftTrigger, false);
                 else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(JoystickButton.GamePadRightTrigger, false)));
+                    enqueueJoystickButtonInput(JoystickButton.GamePadRightTrigger, false);
 
-                eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(directionButton, false)));
-                state.AxisDirectionButtons[(int)axisSource] = 0;
+                enqueueJoystickButtonInput(currentButton, false);
+                state.AxisDirectionButtons[index] = currentButton = 0;
             }
 
-            if (value < 0 && directionButton != negativeButton)
+            // if we expect a directional button to be pressed, and it is not, press it
+            if (expectedButton != 0 && expectedButton != currentButton)
             {
-                eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(negativeButton, true)));
-                state.AxisDirectionButtons[(int)axisSource] = negativeButton;
-            }
-            else if (value > 0 && directionButton != positiveButton)
-            {
+                // also press trigger buttons if appropriate
                 if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(JoystickButton.GamePadLeftTrigger, true)));
+                    enqueueJoystickButtonInput(JoystickButton.GamePadLeftTrigger, true);
                 else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(JoystickButton.GamePadRightTrigger, true)));
+                    enqueueJoystickButtonInput(JoystickButton.GamePadRightTrigger, true);
 
-                eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(positiveButton, true)));
-                state.AxisDirectionButtons[(int)axisSource] = positiveButton;
+                enqueueJoystickButtonInput(expectedButton, true);
+                state.AxisDirectionButtons[index] = expectedButton;
             }
 
             eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxisInput(new JoystickAxis(axisSource, value))));
+        }
+
+        private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
+        {
+            if (isPressed)
+                eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+            else
+                eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
         }
 
         #endregion
@@ -600,11 +611,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtCbutton.type)
             {
                 case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
-                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+                    enqueueJoystickButtonInput(button, true);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
-                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+                    enqueueJoystickButtonInput(button, false);
                     break;
             }
         }
@@ -649,11 +660,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtJbutton.type)
             {
                 case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
-                    eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+                    enqueueJoystickButtonInput(button, true);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYBUTTONUP:
-                    eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+                    enqueueJoystickButtonInput(button, false);
                     break;
             }
         }
