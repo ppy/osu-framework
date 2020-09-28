@@ -303,6 +303,12 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (Transform t in toFlush)
             {
+                if (!t.HasStartValue)
+                {
+                    t.ReadIntoStartValue();
+                    t.HasStartValue = true;
+                }
+
                 t.Apply(t.EndTime);
                 t.OnComplete?.Invoke();
             }

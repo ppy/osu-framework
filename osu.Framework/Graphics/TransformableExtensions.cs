@@ -11,6 +11,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics
 {
@@ -666,8 +667,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveToOffset<T, TEasing>(this T drawable, Vector2 offset, double duration, in TEasing easing)
             where T : Drawable
             where TEasing : IEasingFunction
-            => drawable.MoveTo(((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position) + offset, duration,
-                easing);
+            => drawable.TransformTo(drawable.PopulateTransform(new PositionOffsetTransform<TEasing>(offset), default, duration, easing));
 
         /// <summary>
         /// Smoothly adjusts <see cref="IContainer.RelativeChildSize"/> over time.
@@ -750,5 +750,34 @@ namespace osu.Framework.Graphics
             => drawable.TransformTo(drawable.PopulateTransform(new TransformBindable<TValue, TEasing, T>(bindable), newValue, duration, easing));
 
         #endregion
+
+        private class PositionOffsetTransform<TEasing> : Transform<Vector2, TEasing, Drawable>
+            where TEasing : IEasingFunction
+        {
+            private readonly Vector2 offset;
+
+            public override string TargetMember => nameof(Drawable.Position);
+
+            public PositionOffsetTransform(Vector2 offset)
+            {
+                this.offset = offset;
+            }
+
+            private Vector2 positionAt(double time)
+            {
+                if (time < StartTime) return StartValue;
+                if (time >= EndTime) return EndValue;
+
+                return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            }
+
+            protected override void Apply(Drawable d, double time) => d.Position = positionAt(time);
+
+            protected override void ReadIntoStartValue(Drawable d)
+            {
+                StartValue = d.Position;
+                EndValue = d.Position + offset;
+            }
+        }
     }
 }
