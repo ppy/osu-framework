@@ -289,7 +289,12 @@ namespace osu.Framework.Graphics.Transforms
 
             if (Clock == null)
             {
-                transform.ReadIntoStartValue();
+                if (!transform.HasStartValue)
+                {
+                    transform.ReadIntoStartValue();
+                    transform.HasStartValue = true;
+                }
+
                 transform.Apply(transform.EndTime);
                 transform.OnComplete?.Invoke();
                 return;
