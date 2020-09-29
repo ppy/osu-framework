@@ -3,12 +3,16 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
+using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using SixLabors.ImageSharp.PixelFormats;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Platform
 {
@@ -149,6 +153,18 @@ namespace osu.Framework.Platform
             base.UpdateWindowMode(mode);
 
             ConfineMouseMode.TriggerChange();
+        }
+
+        public virtual void SetIconFromStream(Stream stream)
+        {
+            var iconGroup = new IconGroup(stream);
+
+            // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
+            var bytes = iconGroup.LoadRawIcon(256, 256);
+            if (bytes == null)
+                return;
+
+            WindowBackend.SetIcon(Image.Load<Rgba32>(bytes));
         }
 
         private void onResized()
