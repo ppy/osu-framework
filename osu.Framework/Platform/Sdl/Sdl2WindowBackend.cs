@@ -281,9 +281,62 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
+        public override IntPtr WindowHandle
+        {
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return IntPtr.Zero;
+
+                var wmInfo = windowWmInfo;
+
+                // Window handle is selected per subsystem as defined at:
+                // https://wiki.libsdl.org/SDL_SysWMinfo
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
+                        return wmInfo.info.win.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                        return wmInfo.info.x11.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB:
+                        return wmInfo.info.dfb.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_COCOA:
+                        return wmInfo.info.cocoa.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                        return wmInfo.info.uikit.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                        return wmInfo.info.wl.shell_surface;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_ANDROID:
+                        return wmInfo.info.android.window;
+
+                    default:
+                        return IntPtr.Zero;
+                }
+            }
+        }
+
         #endregion
 
         #region Convenience Wrappers
+
+        private SDL.SDL_SysWMinfo windowWmInfo
+        {
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return default;
+
+                var wmInfo = new SDL.SDL_SysWMinfo();
+                SDL.SDL_GetWindowWMInfo(SdlWindowHandle, ref wmInfo);
+                return wmInfo;
+            }
+        }
 
         private int windowDisplayIndex => SdlWindowHandle == IntPtr.Zero ? 0 : SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
 

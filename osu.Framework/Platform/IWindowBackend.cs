@@ -84,6 +84,11 @@ namespace osu.Framework.Platform
         /// </summary>
         DisplayMode CurrentDisplayMode { get; set; }
 
+        /// <summary>
+        /// Gets the native window handle as provided by the operating system.
+        /// </summary>
+        IntPtr WindowHandle { get; }
+
         #endregion
 
         #region Events

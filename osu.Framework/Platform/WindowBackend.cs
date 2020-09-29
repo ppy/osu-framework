@@ -17,6 +17,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public abstract class WindowBackend : IWindowBackend
     {
+        #region Properties
+
         public abstract string Title { get; set; }
         public abstract bool Visible { get; set; }
         public abstract Point Position { get; set; }
@@ -31,6 +33,9 @@ namespace osu.Framework.Platform
 
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
         public virtual Display PrimaryDisplay => Displays.First();
+        public virtual IntPtr WindowHandle { get; } = IntPtr.Zero;
+
+        #endregion
 
         #region Events
 
