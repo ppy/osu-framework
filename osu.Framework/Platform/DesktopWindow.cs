@@ -21,6 +21,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public class DesktopWindow : Window
     {
+        private const int default_icon_size = 256;
+
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly BindableSize sizeWindowed = new BindableSize();
         private readonly BindableDouble windowPositionX = new BindableDouble();
@@ -155,12 +157,12 @@ namespace osu.Framework.Platform
             ConfineMouseMode.TriggerChange();
         }
 
-        public virtual void SetIconFromStream(Stream stream)
-        {
-            var iconGroup = new IconGroup(stream);
+        public virtual void SetIconFromStream(Stream stream) => SetIconFromGroup(new IconGroup(stream));
 
+        internal virtual void SetIconFromGroup(IconGroup iconGroup)
+        {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
-            var bytes = iconGroup.LoadRawIcon(256, 256);
+            var bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
             if (bytes == null)
                 return;
 
