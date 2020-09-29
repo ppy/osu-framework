@@ -4,6 +4,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -79,7 +80,7 @@ namespace osu.Framework.Platform.Windows.Native
             }
         }
 
-        private int findClosestEntry(int width, int height)
+        private int findClosestEntry(int width, int height, bool requireRawData)
         {
             int requested = Math.Min(width, height);
             int closest = -1;
@@ -87,6 +88,10 @@ namespace osu.Framework.Platform.Windows.Native
             for (int i = 0; i < iconDir.Count; i++)
             {
                 var entry = iconDir.Entries[i];
+
+                if (requireRawData && !entry.HasRawData)
+                    continue;
+
                 if (entry.Width == width && entry.Height == height)
                     return i;
 
@@ -100,11 +105,20 @@ namespace osu.Framework.Platform.Windows.Native
             return closest;
         }
 
+        /// <summary>
+        /// Attempts to create a Windows-specific icon matching the requested dimensions as closely as possible.
+        /// Will return null if a matching size could not be found.
+        /// </summary>
+        /// <param name="width">The desired width, in pixels.</param>
+        /// <param name="height">The desired height, in pixels</param>
+        /// <returns>An <see cref="Icon"/> instance, or null if a valid size could not be found.</returns>
+        /// <exception cref="InvalidOperationException">If the native icon handle could not be created.</exception>
+        [CanBeNull]
         public Icon CreateIcon(int width, int height)
         {
-            int closest = findClosestEntry(width, height);
+            int closest = findClosestEntry(width, height, false);
             if (closest < 0)
-                throw new InvalidOperationException($"Couldn't find icon to match width {width} and height {height}.");
+                return null;
 
             var entry = iconDir.Entries[closest];
             IntPtr hIcon = IntPtr.Zero;
@@ -117,6 +131,26 @@ namespace osu.Framework.Platform.Windows.Native
                 throw new InvalidOperationException("Couldn't create native icon handle.");
 
             return new Icon(hIcon, width, height);
+        }
+
+        /// <summary>
+        /// Attempts to load the raw PNG data from a supported icon, matching the requested dimensions as closely as possible.
+        /// Not all icons in a .ico file are stored as raw PNG data. Will return null if a matching raw PNG could not be found.
+        /// </summary>
+        /// <param name="width">The desired width, in pixels.</param>
+        /// <param name="height">The desired height, in pixels</param>
+        /// <returns>A byte array of raw PNG data, or null if a valid size could not be found.</returns>
+        [CanBeNull]
+        public byte[] LoadRawIcon(int width, int height)
+        {
+            int closest = findClosestEntry(width, height, true);
+            if (closest < 0)
+                return null;
+
+            var entry = iconDir.Entries[closest];
+            var span = new ReadOnlySpan<byte>(data, (int)entry.ImageOffset, (int)entry.BytesInResource);
+
+            return span.ToArray();
         }
 
         [DllImport("user32.dll")]
