@@ -12,6 +12,9 @@ using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 using SDL2;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -385,6 +388,22 @@ namespace osu.Framework.Platform.Sdl
         }
 
         public override void Close() => commandScheduler.Add(() => Exists = false);
+
+        public override unsafe void SetIcon(Image<Rgba32> image)
+        {
+            var data = image.GetPixelSpan().ToArray();
+            var imageSize = image.Size();
+
+            commandScheduler.Add(() =>
+            {
+                IntPtr surface;
+                fixed (Rgba32* ptr = data)
+                    surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
+
+                SDL.SDL_SetWindowIcon(SdlWindowHandle, surface);
+                SDL.SDL_FreeSurface(surface);
+            });
+        }
 
         private void pollMouse()
         {

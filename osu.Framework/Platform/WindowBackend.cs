@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Input.StateChanges;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -82,10 +84,16 @@ namespace osu.Framework.Platform
 
         #endregion
 
+        #region Methods
+
         public abstract void Create();
 
         public abstract void Run();
 
         public abstract void Close();
+
+        public abstract void SetIcon(Image<Rgba32> image);
+
+        #endregion
     }
 }

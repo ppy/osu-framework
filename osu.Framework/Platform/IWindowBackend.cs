@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input.StateChanges;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -209,6 +211,12 @@ namespace osu.Framework.Platform
         /// Requests that the window close.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Attempts to set the window's icon to the specified image.
+        /// </summary>
+        /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
+        void SetIcon(Image<Rgba32> image);
 
         #endregion
     }
