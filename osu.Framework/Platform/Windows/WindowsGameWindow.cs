@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using osu.Framework.Platform.Windows.Native;
-using osuTK.Input;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -16,17 +15,6 @@ namespace osu.Framework.Platform.Windows
         private IconGroup iconGroup;
         private Icon smallIcon;
         private Icon largeIcon;
-
-        protected override void OnKeyDown(object sender, KeyboardKeyEventArgs e)
-        {
-            if (e.Key == Key.F4 && e.Alt)
-            {
-                Implementation.Exit();
-                return;
-            }
-
-            base.OnKeyDown(sender, e);
-        }
 
         public override void SetIconFromStream(Stream stream)
         {

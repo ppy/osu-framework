@@ -2,8 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -47,6 +51,11 @@ namespace osu.Framework.Platform.Windows
 
         protected override IWindow CreateWindow() =>
             !UseSdl ? (IWindow)new WindowsGameWindow() : new DesktopWindow();
+
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
+        {
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), new PlatformAction(PlatformActionType.Exit))
+        }).ToList();
 
         protected override void Dispose(bool isDisposing)
         {

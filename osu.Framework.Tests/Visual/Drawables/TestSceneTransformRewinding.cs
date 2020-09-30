@@ -408,6 +408,36 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(750, box => box.Y == 0.375f);
         }
 
+        [Test]
+        public void TestMoveToOffsetRespectsRelevantTransforms()
+        {
+            boxTest(box =>
+            {
+                box.MoveToY(0.25f, 250);
+                box.Delay(500).MoveToOffset(new Vector2(0, 0.25f), 250);
+            });
+
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.25f);
+            checkAtTime(500, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.5f);
+        }
+
+        [Test]
+        public void TestMoveToOffsetRespectsTransformsOrder()
+        {
+            boxTest(box =>
+            {
+                box.Delay(500).MoveToOffset(new Vector2(0, 0.25f), 250);
+                box.MoveToY(0.25f, 250);
+            });
+
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.25f);
+            checkAtTime(500, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.5f);
+        }
+
         private Box box;
 
         private void checkAtTime(double time, Func<Box, bool> assert)
