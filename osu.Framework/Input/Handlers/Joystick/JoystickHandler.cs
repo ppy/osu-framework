@@ -22,24 +22,20 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (e.NewValue)
                 {
-                    window.JoystickButtonDown += handleJoystickButtonEvent;
-                    window.JoystickButtonUp += handleJoystickButtonEvent;
-                    window.JoystickAxisChanged += handleJoystickAxisChangedEvent;
+                    window.JoystickButtonDown += enqueueJoystickEvent;
+                    window.JoystickButtonUp += enqueueJoystickEvent;
+                    window.JoystickAxisChanged += enqueueJoystickEvent;
                 }
                 else
                 {
-                    window.JoystickButtonDown -= handleJoystickButtonEvent;
-                    window.JoystickButtonUp -= handleJoystickButtonEvent;
-                    window.JoystickAxisChanged -= handleJoystickAxisChangedEvent;
+                    window.JoystickButtonDown -= enqueueJoystickEvent;
+                    window.JoystickButtonUp -= enqueueJoystickEvent;
+                    window.JoystickAxisChanged -= enqueueJoystickEvent;
                 }
             }, true);
 
             return true;
         }
-
-        private void handleJoystickAxisChangedEvent(JoystickAxisInput evt) => enqueueJoystickEvent(evt);
-
-        private void handleJoystickButtonEvent(JoystickButtonInput evt) => enqueueJoystickEvent(evt);
 
         private void enqueueJoystickEvent(IInput evt)
         {
