@@ -345,19 +345,18 @@ namespace osu.Framework.Platform.Sdl
 
         private void enqueueJoystickAxisInput(int instanceID, SDL.SDL_GameControllerAxis gcAxis, JoystickAxisSource axisSource, short axisValue)
         {
+            // SDL reports axis values in the range short.MinValue to short.MaxValue
+            // We scale and clamp it to the range of -1f to 1f, then rescale it such that
+            // the edge of the deadzone is considered the "new zero"
             var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            var value = Math.Abs(clamped) < deadzone_threshold ? 0 : Math.Sign(clamped) * (Math.Abs(clamped) - deadzone_threshold) / (1f - deadzone_threshold);
+            var value = rescaleByDeadzone(clamped);
 
             if (!controllers.TryGetValue(instanceID, out var state))
                 return;
 
-            var index = (int)axisSource;
-
-            // determine which directional buttons are used for this axis
-            var negativeButton = JoystickButton.FirstAxisNegative + index;
-            var positiveButton = JoystickButton.FirstAxisPositive + index;
+            int index = (int)axisSource;
             var currentButton = state.AxisDirectionButtons[index];
-            var expectedButton = value < 0 ? negativeButton : value > 0 ? positiveButton : 0;
+            var expectedButton = getAxisButtonForInput(index, value);
 
             // if a directional button is pressed and does not match that for the new axis direction, release it
             if (currentButton != 0 && expectedButton != currentButton)
@@ -394,6 +393,28 @@ namespace osu.Framework.Platform.Sdl
                 eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
             else
                 eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+        }
+
+        private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)
+        {
+            if (axisValue > 0)
+                return JoystickButton.FirstAxisPositive + axisIndex;
+
+            if (axisValue < 0)
+                return JoystickButton.FirstAxisNegative + axisIndex;
+
+            return 0;
+        }
+
+        private static float rescaleByDeadzone(float axisValue)
+        {
+            var absoluteValue = Math.Abs(axisValue);
+
+            if (absoluteValue < deadzone_threshold)
+                return 0;
+
+            var absoluteRescaled = (absoluteValue - deadzone_threshold) / (1f - deadzone_threshold);
+            return Math.Sign(axisValue) * absoluteRescaled;
         }
 
         #endregion
