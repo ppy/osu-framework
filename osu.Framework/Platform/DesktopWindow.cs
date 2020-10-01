@@ -11,6 +11,7 @@ using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 
@@ -157,7 +158,22 @@ namespace osu.Framework.Platform
             ConfineMouseMode.TriggerChange();
         }
 
-        public virtual void SetIconFromStream(Stream stream) => SetIconFromGroup(new IconGroup(stream));
+        public virtual void SetIconFromStream(Stream stream)
+        {
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+
+                var imageInfo = Image.Identify(ms);
+
+                if (imageInfo != null)
+                    SetIconFromImage(Image.Load<Rgba32>(ms.GetBuffer()));
+                else if (IconGroup.TryParse(ms.GetBuffer(), out var iconGroup))
+                    SetIconFromGroup(iconGroup);
+            }
+        }
+
+        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => WindowBackend.SetIcon(iconImage);
 
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
@@ -166,7 +182,7 @@ namespace osu.Framework.Platform
             if (bytes == null)
                 return;
 
-            WindowBackend.SetIcon(Image.Load<Rgba32>(bytes));
+            SetIconFromImage(Image.Load<Rgba32>(bytes));
         }
 
         private void onResized()
