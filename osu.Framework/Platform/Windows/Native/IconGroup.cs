@@ -58,7 +58,7 @@ namespace osu.Framework.Platform.Windows.Native
         public IconGroup(Stream stream)
         {
             if (stream == null || stream.Length == 0)
-                throw new ArgumentException("Invalid icon stream.", nameof(stream));
+                throw new ArgumentException("Missing icon stream.", nameof(stream));
 
             using (var ms = new MemoryStream())
             {
@@ -70,7 +70,7 @@ namespace osu.Framework.Platform.Windows.Native
         public IconGroup(byte[] data)
         {
             if (data == null || data.Length == 0)
-                throw new ArgumentException("Invalid icon data.", nameof(data));
+                throw new ArgumentException("Missing icon data.", nameof(data));
 
             using (var ms = new MemoryStream(data))
                 loadMemoryStream(ms);
@@ -84,11 +84,11 @@ namespace osu.Framework.Platform.Windows.Native
             var reader = new BinaryReader(stream);
             iconDir.Reserved = reader.ReadUInt16();
             if (iconDir.Reserved != 0)
-                throw new ArgumentException("Invalid icon data.", nameof(data));
+                throw new ArgumentException("Invalid icon format.", nameof(stream));
 
             iconDir.Type = reader.ReadUInt16();
             if (iconDir.Type != 1)
-                throw new ArgumentException("Invalid icon data.", nameof(data));
+                throw new ArgumentException("Invalid icon format.", nameof(stream));
 
             iconDir.Count = reader.ReadUInt16();
             iconDir.Entries = new IconDirEntry[iconDir.Count];
