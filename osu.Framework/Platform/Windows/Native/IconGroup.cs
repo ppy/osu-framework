@@ -37,8 +37,8 @@ namespace osu.Framework.Platform.Windows.Native
 
         private const uint lr_defaultcolor = 0x00000000;
 
-        private readonly IconDir iconDir;
-        private readonly byte[] data;
+        private IconDir iconDir;
+        private byte[] data;
 
         public static bool TryParse(byte[] data, out IconGroup iconGroup)
         {
@@ -55,41 +55,57 @@ namespace osu.Framework.Platform.Windows.Native
             return false;
         }
 
+        public IconGroup(Stream stream)
+        {
+            if (stream == null || stream.Length == 0)
+                throw new ArgumentException("Invalid icon stream.", nameof(stream));
+
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                loadMemoryStream(ms);
+            }
+        }
+
         public IconGroup(byte[] data)
         {
             if (data == null || data.Length == 0)
                 throw new ArgumentException("Invalid icon data.", nameof(data));
 
-            this.data = data;
-
             using (var ms = new MemoryStream(data))
+                loadMemoryStream(ms);
+        }
+
+        private void loadMemoryStream(MemoryStream stream)
+        {
+            data = stream.ToArray();
+            stream.Position = 0;
+
+            var reader = new BinaryReader(stream);
+            iconDir.Reserved = reader.ReadUInt16();
+            if (iconDir.Reserved != 0)
+                throw new ArgumentException("Invalid icon data.", nameof(data));
+
+            iconDir.Type = reader.ReadUInt16();
+            if (iconDir.Type != 1)
+                throw new ArgumentException("Invalid icon data.", nameof(data));
+
+            iconDir.Count = reader.ReadUInt16();
+            iconDir.Entries = new IconDirEntry[iconDir.Count];
+
+            for (int i = 0; i < iconDir.Count; i++)
             {
-                var reader = new BinaryReader(ms);
-                iconDir.Reserved = reader.ReadUInt16();
-                if (iconDir.Reserved != 0)
-                    throw new ArgumentException("Invalid icon data.", nameof(data));
-
-                iconDir.Type = reader.ReadUInt16();
-                if (iconDir.Type != 1)
-                    throw new ArgumentException("Invalid icon data.", nameof(data));
-
-                iconDir.Count = reader.ReadUInt16();
-                iconDir.Entries = new IconDirEntry[iconDir.Count];
-
-                for (int i = 0; i < iconDir.Count; i++)
+                iconDir.Entries[i] = new IconDirEntry
                 {
-                    iconDir.Entries[i] = new IconDirEntry
-                    {
-                        Width = reader.ReadByte(),
-                        Height = reader.ReadByte(),
-                        ColourCount = reader.ReadByte(),
-                        Reserved = reader.ReadByte(),
-                        Planes = reader.ReadUInt16(),
-                        BitCount = reader.ReadUInt16(),
-                        BytesInResource = reader.ReadUInt32(),
-                        ImageOffset = reader.ReadUInt32()
-                    };
-                }
+                    Width = reader.ReadByte(),
+                    Height = reader.ReadByte(),
+                    ColourCount = reader.ReadByte(),
+                    Reserved = reader.ReadByte(),
+                    Planes = reader.ReadUInt16(),
+                    BitCount = reader.ReadUInt16(),
+                    BytesInResource = reader.ReadUInt32(),
+                    ImageOffset = reader.ReadUInt32()
+                };
             }
         }
 
