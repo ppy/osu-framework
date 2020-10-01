@@ -15,6 +15,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private EventQueuesTextBox textBox;
 
+        private const string default_text = "some default text";
+
         [SetUpSteps]
         public void SetUpSteps()
         {
@@ -23,7 +25,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 CommitOnFocusLost = true,
                 ReleaseFocusOnCommit = false,
                 Size = new Vector2(200, 40),
-                Text = "some default text",
+                Text = default_text,
             });
 
             AddStep("focus textbox", () =>
@@ -37,6 +39,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 textBox.MoveToEnd();
                 textBox.CaretMovedQueue.Dequeue();
             });
+        }
+
+        [Test]
+        public void TestCommitIsNewTextSecondTime()
+        {
+            AddStep("add handler to reset on commit", () => textBox.OnCommit += (sender, isNew) =>
+            {
+                if (!isNew)
+                    return;
+
+                textBox.Text = default_text;
+            });
+
+            AddStep("insert text", () => textBox.InsertString("temporary text"));
+            AddStep("press enter key for committing text", () => InputManager.Key(Key.Enter));
+            AddAssert("text committed event raised with new", () => textBox.CommittedTextQueue.Dequeue());
+            AddAssert("text is restored to default by event", () => textBox.Text == default_text);
+
+            AddStep("insert text", () => textBox.InsertString("temporary text"));
+            AddStep("press enter key for committing text", () => InputManager.Key(Key.Enter));
+            AddAssert("text committed event raised with new", () => textBox.CommittedTextQueue.Dequeue());
+            AddAssert("text is restored to default by event", () => textBox.Text == default_text);
         }
 
         [Test]
