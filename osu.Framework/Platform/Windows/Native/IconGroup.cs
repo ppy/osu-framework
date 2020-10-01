@@ -40,25 +40,38 @@ namespace osu.Framework.Platform.Windows.Native
         private readonly IconDir iconDir;
         private readonly byte[] data;
 
-        public IconGroup(Stream stream)
+        public static bool TryParse(byte[] data, out IconGroup iconGroup)
         {
-            if (stream == null || stream.Length == 0)
-                throw new ArgumentException("Invalid icon stream.", nameof(stream));
-
-            using (var ms = new MemoryStream())
+            try
             {
-                stream.CopyTo(ms);
-                data = ms.GetBuffer();
-                ms.Position = 0;
+                iconGroup = new IconGroup(data);
+                return true;
+            }
+            catch (Exception)
+            {
+            }
 
+            iconGroup = null;
+            return false;
+        }
+
+        public IconGroup(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                throw new ArgumentException("Invalid icon data.", nameof(data));
+
+            this.data = data;
+
+            using (var ms = new MemoryStream(data))
+            {
                 var reader = new BinaryReader(ms);
                 iconDir.Reserved = reader.ReadUInt16();
                 if (iconDir.Reserved != 0)
-                    throw new ArgumentException("Invalid icon stream.", nameof(stream));
+                    throw new ArgumentException("Invalid icon data.", nameof(data));
 
                 iconDir.Type = reader.ReadUInt16();
                 if (iconDir.Type != 1)
-                    throw new ArgumentException("Invalid icon stream.", nameof(stream));
+                    throw new ArgumentException("Invalid icon data.", nameof(data));
 
                 iconDir.Count = reader.ReadUInt16();
                 iconDir.Entries = new IconDirEntry[iconDir.Count];
