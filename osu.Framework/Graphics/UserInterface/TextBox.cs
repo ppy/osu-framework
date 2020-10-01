@@ -734,8 +734,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string lastCommitText;
 
-        private bool hasNewComittableText => text != lastCommitText;
-
         private void killFocus()
         {
             var manager = GetContainingInputManager();
@@ -756,10 +754,11 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
             }
 
-            OnTextCommitted(hasNewComittableText);
-            OnCommit?.Invoke(this, hasNewComittableText);
-
+            bool isNew = text != lastCommitText;
             lastCommitText = text;
+
+            OnTextCommitted(isNew);
+            OnCommit?.Invoke(this, isNew);
         }
 
         protected override void OnKeyUp(KeyUpEvent e)
