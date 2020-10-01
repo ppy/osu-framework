@@ -163,6 +163,7 @@ namespace osu.Framework.Platform
             using (var ms = new MemoryStream())
             {
                 stream.CopyTo(ms);
+                ms.Position = 0;
 
                 var imageInfo = Image.Identify(ms);
 
