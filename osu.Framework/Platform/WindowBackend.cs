@@ -30,10 +30,10 @@ namespace osu.Framework.Platform
         public abstract bool Exists { get; protected set; }
         public abstract Display CurrentDisplay { get; set; }
         public abstract DisplayMode CurrentDisplayMode { get; set; }
+        public abstract IntPtr WindowHandle { get; }
 
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
         public virtual Display PrimaryDisplay => Displays.First();
-        public virtual IntPtr WindowHandle { get; } = IntPtr.Zero;
 
         #endregion
 
