@@ -84,7 +84,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
-        public OnCommitHandler OnCommit;
+        /// <summary>
+        /// Fired whenever text is committed via a user action.
+        /// This usually happens on pressing enter, but can also be triggered on focus loss automatically, via <see cref="CommitOnFocusLost"/>.
+        /// </summary>
+        public event OnCommitHandler OnCommit;
 
         private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 

@@ -223,13 +223,6 @@ namespace osu.Framework.Testing
                             {
                                 searchTextBox = new TestBrowserTextBox
                                 {
-                                    OnCommit = delegate
-                                    {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
-                                                                         .FirstOrDefault(b => b.MatchingFilter)?.TestType;
-                                        if (firstTest != null)
-                                            LoadTest(firstTest);
-                                    },
                                     Height = 25,
                                     RelativeSizeAxes = Axes.X,
                                     PlaceholderText = "type to search",
@@ -251,6 +244,14 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
+            };
+
+            searchTextBox.OnCommit += delegate
+            {
+                var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
+                                                 .FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                if (firstTest != null)
+                    LoadTest(firstTest);
             };
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
