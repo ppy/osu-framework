@@ -7,7 +7,6 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
-using osu.Framework.Input.StateChanges;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
