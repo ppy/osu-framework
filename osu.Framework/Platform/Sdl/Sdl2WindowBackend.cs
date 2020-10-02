@@ -440,15 +440,15 @@ namespace osu.Framework.Platform.Sdl
                 state.AxisDirectionButtons[index] = expectedButton;
             }
 
-            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxisInput(new JoystickAxis(axisSource, value))));
+            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, value)));
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
         {
             if (isPressed)
-                eventScheduler.Add(() => OnJoystickButtonDown(new JoystickButtonInput(button, true)));
+                eventScheduler.Add(() => OnJoystickButtonDown(button));
             else
-                eventScheduler.Add(() => OnJoystickButtonUp(new JoystickButtonInput(button, false)));
+                eventScheduler.Add(() => OnJoystickButtonUp(button));
         }
 
         private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)

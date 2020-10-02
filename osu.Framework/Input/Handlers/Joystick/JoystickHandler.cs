@@ -22,15 +22,15 @@ namespace osu.Framework.Input.Handlers.Joystick
             {
                 if (e.NewValue)
                 {
-                    window.JoystickButtonDown += enqueueJoystickEvent;
-                    window.JoystickButtonUp += enqueueJoystickEvent;
-                    window.JoystickAxisChanged += enqueueJoystickEvent;
+                    window.JoystickButtonDown += enqueueJoystickButtonDown;
+                    window.JoystickButtonUp += enqueueJoystickButtonUp;
+                    window.JoystickAxisChanged += enqueueJoystickAxisChanged;
                 }
                 else
                 {
-                    window.JoystickButtonDown -= enqueueJoystickEvent;
-                    window.JoystickButtonUp -= enqueueJoystickEvent;
-                    window.JoystickAxisChanged -= enqueueJoystickEvent;
+                    window.JoystickButtonDown -= enqueueJoystickButtonDown;
+                    window.JoystickButtonUp -= enqueueJoystickButtonUp;
+                    window.JoystickAxisChanged -= enqueueJoystickAxisChanged;
                 }
             }, true);
 
@@ -42,5 +42,11 @@ namespace osu.Framework.Input.Handlers.Joystick
             PendingInputs.Enqueue(evt);
             FrameStatistics.Increment(StatisticsCounterType.JoystickEvents);
         }
+
+        private void enqueueJoystickButtonDown(JoystickButton button) => enqueueJoystickEvent(new JoystickButtonInput(button, true));
+
+        private void enqueueJoystickButtonUp(JoystickButton button) => enqueueJoystickEvent(new JoystickButtonInput(button, false));
+
+        private void enqueueJoystickAxisChanged(JoystickAxis axis) => enqueueJoystickEvent(new JoystickAxisInput(axis));
     }
 }
