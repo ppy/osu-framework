@@ -185,32 +185,32 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        public event Action<MouseScrollRelativeInput> MouseWheel;
+        public event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        public event Action<MousePositionAbsoluteInput> MouseMove;
+        public event Action<Vector2> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        public event Action<MouseButtonInput> MouseDown;
+        public event Action<MouseButton> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        public event Action<MouseButtonInput> MouseUp;
+        public event Action<MouseButton> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<KeyboardKeyInput> KeyDown;
+        public event Action<Key> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        public event Action<KeyboardKeyInput> KeyUp;
+        public event Action<Key> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
@@ -237,12 +237,12 @@ namespace osu.Framework.Platform
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
         protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
-        protected virtual void OnMouseMove(MousePositionAbsoluteInput evt) => MouseMove?.Invoke(evt);
-        protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
-        protected virtual void OnMouseUp(MouseButtonInput evt) => MouseUp?.Invoke(evt);
-        protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
-        protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
+        protected virtual void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
+        protected virtual void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected virtual void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+        protected virtual void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
+        protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
+        protected virtual void OnKeyUp(Key key) => KeyUp?.Invoke(key);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
 

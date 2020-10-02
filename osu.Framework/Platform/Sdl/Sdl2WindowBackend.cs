@@ -398,7 +398,7 @@ namespace osu.Framework.Platform.Sdl
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * scale, ry * scale) }));
+            eventScheduler.Add(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
         }
 
         #endregion
@@ -556,7 +556,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            eventScheduler.Add(() => OnMouseWheel(new MouseScrollRelativeInput { Delta = new Vector2(evtWheel.x, evtWheel.y) }));
+            eventScheduler.Add(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
@@ -565,17 +565,17 @@ namespace osu.Framework.Platform.Sdl
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    eventScheduler.Add(() => OnMouseDown(new MouseButtonInput(button, true)));
+                    eventScheduler.Add(() => OnMouseDown(button));
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    eventScheduler.Add(() => OnMouseUp(new MouseButtonInput(button, false)));
+                    eventScheduler.Add(() => OnMouseUp(button));
                     break;
             }
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * scale, evtMotion.y * scale) }));
+            eventScheduler.Add(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -603,11 +603,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    eventScheduler.Add(() => OnKeyDown(new KeyboardKeyInput(key, true)));
+                    eventScheduler.Add(() => OnKeyDown(key));
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
-                    eventScheduler.Add(() => OnKeyUp(new KeyboardKeyInput(key, false)));
+                    eventScheduler.Add(() => OnKeyUp(key));
                     break;
             }
         }

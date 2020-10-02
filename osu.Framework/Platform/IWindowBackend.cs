@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input.StateChanges;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Platform
 {
@@ -149,32 +151,32 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        event Action<MouseScrollRelativeInput> MouseWheel;
+        event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        event Action<MousePositionAbsoluteInput> MouseMove;
+        event Action<Vector2> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        event Action<MouseButtonInput> MouseDown;
+        event Action<MouseButton> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        event Action<MouseButtonInput> MouseUp;
+        event Action<MouseButton> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        event Action<KeyboardKeyInput> KeyDown;
+        event Action<Key> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        event Action<KeyboardKeyInput> KeyUp;
+        event Action<Key> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
