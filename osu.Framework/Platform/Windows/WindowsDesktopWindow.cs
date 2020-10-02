@@ -14,7 +14,7 @@ namespace osu.Framework.Platform.Windows
         private const int icon_small = 0;
 
         private const int large_icon_size = 256;
-        private const int small_icon_size = 24;
+        private const int small_icon_size = 16;
 
         private Icon smallIcon;
         private Icon largeIcon;
