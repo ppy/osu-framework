@@ -33,5 +33,10 @@ namespace osu.Framework.Audio.Sample
         /// States if this sample should repeat.
         /// </summary>
         bool Looping { get; set; }
+
+        /// <summary>
+        /// The length of the underlying sample, in milliseconds.
+        /// </summary>
+        double Length { get; }
     }
 }

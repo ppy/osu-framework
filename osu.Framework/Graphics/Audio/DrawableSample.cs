@@ -38,6 +38,8 @@ namespace osu.Framework.Graphics.Audio
             set => channel.Looping = value;
         }
 
+        public double Length => channel.Length;
+
         public ChannelAmplitudes CurrentAmplitudes => channel.CurrentAmplitudes;
     }
 }
