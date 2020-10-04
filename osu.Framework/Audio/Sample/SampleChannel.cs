@@ -56,6 +56,11 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsAlive => base.IsAlive && !Played;
 
+        /// <summary>
+        /// The length of the underlying <see cref="Sample"/>, in milliseconds.
+        /// </summary>
+        public double Length => Sample.Length;
+
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
     }
 }
