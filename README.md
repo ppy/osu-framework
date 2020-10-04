@@ -58,7 +58,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 [GDEdit](https://github.com/gd-edit/GDE) - A third-party Geometry Dash editor.
 
-[holotrack](https://github.com/holotrack/holotrack) - An OpenCV-based facial recognition software for Live2D
+[Vignette](https://github.com/vignette-project/vignette) - An OpenCV-based facial recognition software for Live2D
 
 [IWBTM](https://github.com/EVAST9919/iwbtm) - A platform game with level editor based off of "I Wanna..." games
 
