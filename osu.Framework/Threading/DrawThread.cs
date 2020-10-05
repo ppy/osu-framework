@@ -50,7 +50,7 @@ namespace osu.Framework.Threading
         {
             base.Cleanup();
 
-            host.Window.ClearCurrent();
+            host.Window?.ClearCurrent();
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
