@@ -23,13 +23,13 @@ namespace osu.Framework.Input.Handlers.Keyboard
             {
                 if (e.NewValue)
                 {
-                    window.KeyDown += handleKeyDown;
-                    window.KeyUp += handleKeyUp;
+                    window.KeyDown += handleKeyPress;
+                    window.KeyUp += handleKeyPress;
                 }
                 else
                 {
-                    window.KeyDown -= handleKeyDown;
-                    window.KeyUp -= handleKeyUp;
+                    window.KeyDown -= handleKeyPress;
+                    window.KeyUp -= handleKeyPress;
                 }
             }, true);
 
@@ -42,8 +42,6 @@ namespace osu.Framework.Input.Handlers.Keyboard
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
-        private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));
-
-        private void handleKeyUp(TKKey key) => enqueueInput(new KeyboardKeyInput(key, false));
+        private void handleKeyPress(KeyPressInputArgs args) => enqueueInput(new KeyboardKeyInput(args.Key, args.Pressed));
     }
 }

@@ -19,7 +19,7 @@ namespace osu.Framework.Input
 
         protected virtual void HandleKeyPress(object sender, osuTK.KeyPressEventArgs e) => pending += e.KeyChar;
 
-        protected virtual void HandleKeyTyped(char c) => pending += c;
+        protected virtual void HandleKeyTyped(KeyTypedInputArgs args) => pending += args.Character;
 
         public bool ImeActive => false;
 

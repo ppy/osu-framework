@@ -150,37 +150,37 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        event Action<Vector2, bool> MouseWheel;
+        event Action<MouseWheelInputArgs> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        event Action<Vector2> MouseMove;
+        event Action<MouseMoveInputArgs> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        event Action<MouseButton> MouseDown;
+        event Action<MouseButtonInputArgs> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        event Action<MouseButton> MouseUp;
+        event Action<MouseButtonInputArgs> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        event Action<Key> KeyDown;
+        event Action<KeyPressInputArgs> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        event Action<Key> KeyUp;
+        event Action<KeyPressInputArgs> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
         /// </summary>
-        event Action<char> KeyTyped;
+        event Action<KeyTypedInputArgs> KeyTyped;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.

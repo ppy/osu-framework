@@ -397,7 +397,7 @@ namespace osu.Framework.Platform.Sdl
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            eventScheduler.Add(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
+            eventScheduler.Add(() => OnMouseMove(new MouseMoveInputArgs(new Vector2(rx * scale, ry * scale))));
         }
 
         #endregion
@@ -555,7 +555,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            eventScheduler.Add(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
+            eventScheduler.Add(() => OnMouseWheel(new MouseWheelInputArgs(new Vector2(evtWheel.x, evtWheel.y), false)));
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
@@ -564,17 +564,17 @@ namespace osu.Framework.Platform.Sdl
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    eventScheduler.Add(() => OnMouseDown(button));
+                    eventScheduler.Add(() => OnMouseDown(new MouseButtonInputArgs(button, true)));
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    eventScheduler.Add(() => OnMouseUp(button));
+                    eventScheduler.Add(() => OnMouseUp(new MouseButtonInputArgs(button, false)));
                     break;
             }
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            eventScheduler.Add(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
+            eventScheduler.Add(() => OnMouseMove(new MouseMoveInputArgs(new Vector2(evtMotion.x * scale, evtMotion.y * scale))));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -585,7 +585,7 @@ namespace osu.Framework.Platform.Sdl
             string text = Marshal.PtrToStringAnsi(ptr) ?? "";
 
             foreach (char c in text)
-                eventScheduler.Add(() => OnKeyTyped(c));
+                eventScheduler.Add(() => OnKeyTyped(new KeyTypedInputArgs(c)));
         }
 
         private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -602,11 +602,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    eventScheduler.Add(() => OnKeyDown(key));
+                    eventScheduler.Add(() => OnKeyDown(new KeyPressInputArgs(key, true)));
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
-                    eventScheduler.Add(() => OnKeyUp(key));
+                    eventScheduler.Add(() => OnKeyUp(new KeyPressInputArgs(key, false)));
                     break;
             }
         }
