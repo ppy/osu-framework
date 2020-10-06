@@ -25,15 +25,15 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (e.NewValue)
                 {
                     window.MouseMove += handleMouseMove;
-                    window.MouseDown += handleMouseButton;
-                    window.MouseUp += handleMouseButton;
+                    window.MouseDown += handleMouseDown;
+                    window.MouseUp += handleMouseUp;
                     window.MouseWheel += handleMouseWheel;
                 }
                 else
                 {
                     window.MouseMove -= handleMouseMove;
-                    window.MouseDown -= handleMouseButton;
-                    window.MouseUp -= handleMouseButton;
+                    window.MouseDown -= handleMouseDown;
+                    window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
                 }
             }, true);
@@ -47,10 +47,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
-        private void handleMouseMove(MouseMoveInputArgs args) => enqueueInput(new MousePositionAbsoluteInput { Position = args.Position });
+        private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
 
-        private void handleMouseButton(MouseButtonInputArgs args) => enqueueInput(new MouseButtonInput(args.Button, args.Pressed));
+        private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
 
-        private void handleMouseWheel(MouseWheelInputArgs args) => enqueueInput(new MouseScrollRelativeInput { Delta = args.Delta, IsPrecise = args.Precise });
+        private void handleMouseUp(MouseButton button) => enqueueInput(new MouseButtonInput(button, false));
+
+        private void handleMouseWheel(Vector2 delta, bool precise) => enqueueInput(new MouseScrollRelativeInput { Delta = delta, IsPrecise = precise });
     }
 }
