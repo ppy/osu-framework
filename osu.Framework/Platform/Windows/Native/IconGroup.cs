@@ -119,18 +119,14 @@ namespace osu.Framework.Platform.Windows.Native
         /// <param name="bpp">The maximum desired bit depth.</param>
         /// <param name="requireRawData">If true, only icon entries that provide raw PNG data will be considered.</param>
         /// <returns>The index of the icon in the icon directory, or -1 if a valid icon could not be found.</returns>
-        private int findClosestEntry(int width, int height, int bpp, bool requireRawData)
-        {
-            var results = Enumerable.Range(0, iconDir.Count)
-                                    .Where(i => iconDir.Entries[i].Width <= width && iconDir.Entries[i].Height <= height && iconDir.Entries[i].BitCount <= bpp)
-                                    .Where(i => iconDir.Entries[i].HasRawData || !requireRawData)
-                                    .OrderByDescending(i => iconDir.Entries[i].Width)
-                                    .ThenByDescending(i => iconDir.Entries[i].Height)
-                                    .ThenByDescending(i => iconDir.Entries[i].BitCount)
-                                    .Take(1).ToArray();
-
-            return results.Length == 0 ? -1 : results[0];
-        }
+        private int findClosestEntry(int width, int height, int bpp, bool requireRawData) =>
+            Enumerable.Range(0, iconDir.Count)
+                      .Where(i => iconDir.Entries[i].Width <= width && iconDir.Entries[i].Height <= height && iconDir.Entries[i].BitCount <= bpp)
+                      .Where(i => iconDir.Entries[i].HasRawData || !requireRawData)
+                      .OrderByDescending(i => iconDir.Entries[i].Width)
+                      .ThenByDescending(i => iconDir.Entries[i].Height)
+                      .ThenByDescending(i => iconDir.Entries[i].BitCount)
+                      .DefaultIfEmpty(-1).First();
 
         /// <summary>
         /// Attempts to create a Windows-specific icon matching the requested dimensions as closely as possible.
