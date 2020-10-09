@@ -104,7 +104,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
-        event Func<bool> CloseRequested;
+        event Action CloseRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
