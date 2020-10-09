@@ -87,5 +87,7 @@ namespace osu.Framework.Platform
         public abstract void Run();
 
         public abstract void Close();
+
+        public abstract void RequestClose();
     }
 }

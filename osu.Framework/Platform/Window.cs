@@ -304,7 +304,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Attempts to close the window.
         /// </summary>
-        public void Close() => WindowBackend.Close();
+        public void Close() => WindowBackend.RequestClose();
 
         /// <summary>
         /// Creates the concrete window implementation and initialises the graphics backend.
@@ -371,7 +371,7 @@ namespace osu.Framework.Platform
         private void handleCloseRequested()
         {
             if (!OnExitRequested())
-                Close();
+                WindowBackend.Close();
         }
 
         #endregion

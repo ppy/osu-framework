@@ -388,6 +388,8 @@ namespace osu.Framework.Platform.Sdl
 
         public override void Close() => commandScheduler.Add(() => Exists = false);
 
+        public override void RequestClose() => eventScheduler.Add(OnCloseRequested);
+
         private void pollMouse()
         {
             SDL.SDL_GetGlobalMouseState(out var x, out var y);
@@ -501,8 +503,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) =>
-            eventScheduler.Add(OnCloseRequested);
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
