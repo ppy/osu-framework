@@ -365,6 +365,8 @@ namespace osu.Framework.Platform.Sdl
             while (Exists)
             {
                 commandScheduler.Update();
+                if (!Exists)
+                    break;
 
                 processEvents();
 
@@ -376,10 +378,10 @@ namespace osu.Framework.Platform.Sdl
                 OnUpdate();
             }
 
+            OnClosed();
+
             if (SdlWindowHandle != IntPtr.Zero)
                 SDL.SDL_DestroyWindow(SdlWindowHandle);
-
-            OnClosed();
 
             SDL.SDL_Quit();
         }
@@ -690,7 +692,6 @@ namespace osu.Framework.Platform.Sdl
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                    eventScheduler.Add(OnClosed);
                     break;
             }
         }
