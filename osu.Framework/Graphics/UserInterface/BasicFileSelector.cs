@@ -19,6 +19,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override FilePiece CreateFilePiece(FileInfo file) => new BasicFilePiece(file);
 
+        protected override void NotifySelectionError()
+        {
+            this.FlashColour(Colour4.Red, 300);
+        }
+
         private class BasicFilePiece : FilePiece
         {
             public BasicFilePiece(FileInfo file)

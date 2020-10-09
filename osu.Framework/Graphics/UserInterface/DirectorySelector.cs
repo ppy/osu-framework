@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
             catch (Exception)
             {
                 CurrentPath.Value = directory.OldValue;
-                this.FlashColour(Colour4.Red, 300);
+                NotifySelectionError();
             }
         }
 
@@ -100,6 +100,10 @@ namespace osu.Framework.Graphics.UserInterface
                 if ((dir.Attributes & FileAttributes.Hidden) == 0)
                     yield return CreateDirectoryPiece(dir);
             }
+        }
+
+        protected virtual void NotifySelectionError()
+        {
         }
     }
 }
