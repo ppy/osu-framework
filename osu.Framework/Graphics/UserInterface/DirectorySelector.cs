@@ -17,8 +17,16 @@ namespace osu.Framework.Graphics.UserInterface
         private FillFlowContainer directoryFlow;
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
+
+        /// <summary>
+        /// Create the breadcrumb part of the control.
+        /// </summary>
         protected abstract DirectoryListingBreadcumb CreateBreadcrumb();
         protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+
+        /// <summary>
+        /// Create the directory item that resolves the parent directory.
+        /// </summary>
         protected abstract DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory);
 
         [Cached]
@@ -93,6 +101,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Creates entries for a given directory.
+        /// </summary>
         protected virtual IEnumerable<DirectoryListingItem> GetEntriesForPath(DirectoryInfo path)
         {
             foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
@@ -102,6 +113,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Called when an error has occured. Usually happens when trying to access protected directories.
+        /// </summary>
         protected virtual void NotifySelectionError()
         {
         }

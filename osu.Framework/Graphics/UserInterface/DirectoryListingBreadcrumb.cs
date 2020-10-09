@@ -13,7 +13,14 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DirectoryListingBreadcumb : CompositeDrawable
     {
+        /// <summary>
+        /// Create a directory item in the breadcrumb trail.
+        /// </summary>
         protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+
+        /// <summary>
+        /// Create the root directory item in the breadcrumb trail.
+        /// </summary>
         protected abstract DirectoryListingDirectory CreateRootDirectoryItem();
 
         [Resolved]

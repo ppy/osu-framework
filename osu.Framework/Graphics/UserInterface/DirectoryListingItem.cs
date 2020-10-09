@@ -11,8 +11,20 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class DirectoryListingItem : CompositeDrawable
     {
         private readonly string displayName;
+
+        /// <summary>
+        /// Gets or sets the font size of this <see cref="DirectoryListingItem"/>'s icon and text.
+        /// </summary>
         protected const float FONT_SIZE = 16;
+
+        /// <summary>
+        /// The display name of this <see cref="DirectoryListingItem"/> to fallback to when a display name is not provided.
+        /// </summary>
         protected abstract string FallbackName { get; }
+
+        /// <summary>
+        /// The icon of this <see cref="DirectoryListingItem"/> to use.
+        /// </summary>
         protected abstract IconUsage? Icon { get; }
         protected FillFlowContainer Flow;
 
