@@ -9,12 +9,12 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicDirectoryPiece : DirectoryPiece
     {
         protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar)
-                ? FontAwesome.Solid.Database
-                : FontAwesome.Regular.Folder;
+            ? FontAwesome.Solid.Database
+            : FontAwesome.Regular.Folder;
 
-            public BasicDirectoryPiece(DirectoryInfo directory, string displayName = null)
-                : base(directory, displayName)
-            {
-            }
+        public BasicDirectoryPiece(DirectoryInfo directory, string displayName = null)
+            : base(directory, displayName)
+        {
+        }
     }
 }

@@ -11,44 +11,44 @@ namespace osu.Framework.Graphics.UserInterface
     public class BasicDirectoryCurrentDisplay : DirectoryCurrentDisplay
     {
         protected override DirectoryPiece CreateComputerPiece() => new ComputerPiece();
-            protected override DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
+        protected override DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
 
-            public BasicDirectoryCurrentDisplay()
+        public BasicDirectoryCurrentDisplay()
+        {
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
+        }
+
+        protected class ComputerPiece : CurrentDisplayPiece
+        {
+            protected override IconUsage? Icon => null;
+
+            public ComputerPiece()
+                : base(null, "Computer")
             {
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
+            }
+        }
+
+        protected class CurrentDisplayPiece : BasicDirectoryPiece
+        {
+            protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
+
+            public CurrentDisplayPiece(DirectoryInfo directory, string displayName = null)
+                : base(directory, displayName)
+            {
             }
 
-            protected class ComputerPiece : CurrentDisplayPiece
+            [BackgroundDependencyLoader]
+            private void load()
             {
-                protected override IconUsage? Icon => null;
-
-                public ComputerPiece()
-                    : base(null, "Computer")
+                Flow.Add(new SpriteIcon
                 {
-                }
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    Icon = FontAwesome.Solid.ChevronRight,
+                    Size = new Vector2(FONT_SIZE / 2)
+                });
             }
-
-            protected class CurrentDisplayPiece : BasicDirectoryPiece
-            {
-                protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
-
-                public CurrentDisplayPiece(DirectoryInfo directory, string displayName = null)
-                    : base(directory, displayName)
-                {
-                }
-
-                [BackgroundDependencyLoader]
-                private void load()
-                {
-                    Flow.Add(new SpriteIcon
-                    {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Icon = FontAwesome.Solid.ChevronRight,
-                        Size = new Vector2(FONT_SIZE / 2)
-                    });
-                }
-            }
+        }
     }
 }
