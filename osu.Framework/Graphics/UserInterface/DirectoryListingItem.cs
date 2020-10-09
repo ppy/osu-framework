@@ -11,7 +11,6 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class DirectoryListingItem : CompositeDrawable
     {
         private readonly string displayName;
-        public const float HEIGHT = 20;
         protected const float FONT_SIZE = 16;
         protected abstract string FallbackName { get; }
         protected abstract IconUsage? Icon { get; }
