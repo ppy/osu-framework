@@ -156,7 +156,11 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private ScheduledDelegate scheduledGenerate;
 
-        protected Waveform ResampledWaveform { get; private set; }
+        private List<Waveform.Point> resampledPoints;
+        private int resampledChannels;
+        private double resampledMaxHighIntensity;
+        private double resampledMaxMidIntensity;
+        private double resampledMaxLowIntensity;
 
         private void generate()
         {
@@ -173,8 +177,24 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
-                    ResampledWaveform = w.Result;
-                    Schedule(() => Invalidate(Invalidation.DrawNode));
+                    var points = w.Result.GetPoints();
+                    var channels = w.Result.GetChannels();
+                    var maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                    var maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                    var maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+
+                    Schedule(() =>
+                    {
+                        resampledPoints = points;
+                        resampledChannels = channels;
+                        resampledMaxHighIntensity = maxHighIntensity;
+                        resampledMaxMidIntensity = maxMidIntensity;
+                        resampledMaxLowIntensity = maxLowIntensity;
+
+                        OnWaveformRegenerated(w.Result);
+
+                        Invalidate(Invalidation.DrawNode);
+                    });
                 }, token);
             });
         }
@@ -184,6 +204,14 @@ namespace osu.Framework.Graphics.Audio
             cancelSource?.Cancel();
             cancelSource?.Dispose();
             cancelSource = null;
+        }
+
+        /// <summary>
+        /// Invoked when the waveform has been regenerated.
+        /// </summary>
+        /// <param name="waveform">The new <see cref="Waveform"/> to be displayed.</param>
+        protected virtual void OnWaveformRegenerated(Waveform waveform)
+        {
         }
 
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode(this);
@@ -226,18 +254,16 @@ namespace osu.Framework.Graphics.Audio
                 shader = Source.shader;
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
-                points = Source.ResampledWaveform?.GetPoints();
-                channels = Source.ResampledWaveform?.GetChannels() ?? 0;
+
+                points = Source.resampledPoints?.ToList();
+                channels = Source.resampledChannels;
+                highMax = Source.resampledMaxHighIntensity;
+                midMax = Source.resampledMaxMidIntensity;
+                lowMax = Source.resampledMaxLowIntensity;
+
                 lowColour = Source.lowColour ?? DrawColourInfo.Colour;
                 midColour = Source.midColour ?? DrawColourInfo.Colour;
                 highColour = Source.highColour ?? DrawColourInfo.Colour;
-
-                if (points?.Any() == true)
-                {
-                    highMax = points.Max(p => p.HighIntensity);
-                    midMax = points.Max(p => p.MidIntensity);
-                    lowMax = points.Max(p => p.LowIntensity);
-                }
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
