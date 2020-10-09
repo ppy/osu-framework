@@ -17,9 +17,9 @@ namespace osu.Framework.Graphics.UserInterface
         private FillFlowContainer directoryFlow;
 
         protected abstract ScrollContainer<Drawable> CreateScrollContainer();
-        protected abstract DirectoryCurrentDisplay CreateDirectoryCurrentDisplay();
-        protected abstract DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null);
-        protected abstract DirectoryPiece CreateParentDirectoryPiece(DirectoryInfo directory);
+        protected abstract DirectoryListingBreadcumb CreateBreadcrumb();
+        protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory);
 
         [Cached]
         public readonly Bindable<DirectoryInfo> CurrentPath = new Bindable<DirectoryInfo>();
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     new Drawable[]
                     {
-                        CreateDirectoryCurrentDisplay()
+                        CreateBreadcrumb()
                     },
                     new Drawable[]
                     {
@@ -77,11 +77,11 @@ namespace osu.Framework.Graphics.UserInterface
                     var drives = DriveInfo.GetDrives();
 
                     foreach (var drive in drives)
-                        directoryFlow.Add(CreateDirectoryPiece(drive.RootDirectory));
+                        directoryFlow.Add(CreateDirectoryItem(drive.RootDirectory));
                 }
                 else
                 {
-                    directoryFlow.Add(CreateParentDirectoryPiece(CurrentPath.Value.Parent));
+                    directoryFlow.Add(CreateParentDirectoryItem(CurrentPath.Value.Parent));
 
                     directoryFlow.AddRange(GetEntriesForPath(CurrentPath.Value));
                 }
@@ -93,12 +93,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected virtual IEnumerable<DirectoryDisplayPiece> GetEntriesForPath(DirectoryInfo path)
+        protected virtual IEnumerable<DirectoryListingItem> GetEntriesForPath(DirectoryInfo path)
         {
             foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
             {
                 if ((dir.Attributes & FileAttributes.Hidden) == 0)
-                    yield return CreateDirectoryPiece(dir);
+                    yield return CreateDirectoryItem(dir);
             }
         }
 

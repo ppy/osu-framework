@@ -11,10 +11,10 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryCurrentDisplay : CompositeDrawable
+    public abstract class DirectoryListingBreadcumb : CompositeDrawable
     {
-        protected abstract DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null);
-        protected abstract DirectoryPiece CreateComputerPiece();
+        protected abstract DirectoryListingDirectory CreateDirectoryPiece(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectoryListingDirectory CreateComputerPiece();
 
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             flow.Clear();
 
-            List<DirectoryPiece> pathPieces = new List<DirectoryPiece>();
+            List<DirectoryListingDirectory> pathPieces = new List<DirectoryListingDirectory>();
 
             DirectoryInfo ptr = dir.NewValue;
 

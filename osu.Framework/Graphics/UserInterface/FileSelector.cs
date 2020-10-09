@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -15,7 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class FileSelector : DirectorySelector
     {
         private readonly string[] validFileExtensions;
-        protected abstract FilePiece CreateFilePiece(FileInfo file);
+        protected abstract DirectoryListingFile CreateFileItem(FileInfo file);
 
         [Cached]
         public readonly Bindable<FileInfo> CurrentFile = new Bindable<FileInfo>();
@@ -26,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
             this.validFileExtensions = validFileExtensions ?? Array.Empty<string>();
         }
 
-        protected override IEnumerable<DirectoryDisplayPiece> GetEntriesForPath(DirectoryInfo path)
+        protected override IEnumerable<DirectoryListingItem> GetEntriesForPath(DirectoryInfo path)
         {
             foreach (var dir in base.GetEntriesForPath(path))
                 yield return dir;
@@ -39,18 +38,18 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (var file in files.OrderBy(d => d.Name))
             {
                 if ((file.Attributes & FileAttributes.Hidden) == 0)
-                    yield return CreateFilePiece(file);
+                    yield return CreateFileItem(file);
             }
         }
 
-        protected abstract class FilePiece : DirectoryDisplayPiece
+        protected abstract class DirectoryListingFile : DirectoryListingItem
         {
             protected readonly FileInfo File;
 
             [Resolved]
             private Bindable<FileInfo> currentFile { get; set; }
 
-            public FilePiece(FileInfo file)
+            public DirectoryListingFile(FileInfo file)
             {
                 File = file;
             }

@@ -8,11 +8,11 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDirectorySelector : DirectorySelector
     {
-        protected override DirectoryCurrentDisplay CreateDirectoryCurrentDisplay() => new BasicDirectoryCurrentDisplay();
+        protected override DirectoryListingBreadcumb CreateBreadcrumb() => new BasicDirectoryListingBreadcrumb();
 
-        protected override DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new BasicDirectoryPiece(directory, displayName);
+        protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectoryListingDirectory(directory, displayName);
 
-        protected override DirectoryPiece CreateParentDirectoryPiece(DirectoryInfo directory) => new BasicDirectoryParentPiece(directory);
+        protected override DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectoryListingParentDirectory(directory);
 
         protected override ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
 

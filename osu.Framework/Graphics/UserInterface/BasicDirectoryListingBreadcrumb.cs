@@ -8,12 +8,12 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectoryCurrentDisplay : DirectoryCurrentDisplay
+    public class BasicDirectoryListingBreadcrumb : DirectoryListingBreadcumb
     {
-        protected override DirectoryPiece CreateComputerPiece() => new ComputerPiece();
-        protected override DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
+        protected override DirectoryListingDirectory CreateComputerPiece() => new ComputerPiece();
+        protected override DirectoryListingDirectory CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
 
-        public BasicDirectoryCurrentDisplay()
+        public BasicDirectoryListingBreadcrumb()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected class CurrentDisplayPiece : BasicDirectoryPiece
+        protected class CurrentDisplayPiece : BasicDirectoryListingDirectory
         {
             protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
 

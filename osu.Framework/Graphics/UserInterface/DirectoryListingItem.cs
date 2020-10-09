@@ -8,7 +8,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryDisplayPiece : CompositeDrawable
+    public abstract class DirectoryListingItem : CompositeDrawable
     {
         private readonly string displayName;
         public const float HEIGHT = 20;
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract IconUsage? Icon { get; }
         protected FillFlowContainer Flow;
 
-        protected DirectoryDisplayPiece(string displayName = null)
+        protected DirectoryListingItem(string displayName = null)
         {
             this.displayName = displayName;
         }

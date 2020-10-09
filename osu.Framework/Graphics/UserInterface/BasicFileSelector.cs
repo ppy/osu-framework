@@ -9,22 +9,22 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicFileSelector : FileSelector
     {
-        protected override DirectoryCurrentDisplay CreateDirectoryCurrentDisplay() => new BasicDirectoryCurrentDisplay();
+        protected override DirectoryListingBreadcumb CreateBreadcrumb() => new BasicDirectoryListingBreadcrumb();
 
-        protected override DirectoryPiece CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new BasicDirectoryPiece(directory, displayName);
+        protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectoryListingDirectory(directory, displayName);
 
-        protected override DirectoryPiece CreateParentDirectoryPiece(DirectoryInfo directory) => new BasicDirectoryParentPiece(directory);
+        protected override DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectoryListingParentDirectory(directory);
 
         protected override ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
 
-        protected override FilePiece CreateFilePiece(FileInfo file) => new BasicFilePiece(file);
+        protected override DirectoryListingFile CreateFileItem(FileInfo file) => new BasicFilePiece(file);
 
         protected override void NotifySelectionError()
         {
             this.FlashColour(Colour4.Red, 300);
         }
 
-        private class BasicFilePiece : FilePiece
+        private class BasicFilePiece : DirectoryListingFile
         {
             public BasicFilePiece(FileInfo file)
                 : base(file)
