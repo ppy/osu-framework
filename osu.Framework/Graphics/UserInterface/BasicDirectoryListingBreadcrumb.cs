@@ -10,8 +10,8 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDirectoryListingBreadcrumb : DirectoryListingBreadcumb
     {
-        protected override DirectoryListingDirectory CreateComputerPiece() => new ComputerPiece();
-        protected override DirectoryListingDirectory CreateDirectoryPiece(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
+        protected override DirectoryListingDirectory CreateRootDirectoryItem() => new ComputerPiece();
+        protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
 
         public BasicDirectoryListingBreadcrumb()
         {

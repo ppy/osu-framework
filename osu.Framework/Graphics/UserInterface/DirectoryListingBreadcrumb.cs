@@ -13,8 +13,8 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DirectoryListingBreadcumb : CompositeDrawable
     {
-        protected abstract DirectoryListingDirectory CreateDirectoryPiece(DirectoryInfo directory, string displayName = null);
-        protected abstract DirectoryListingDirectory CreateComputerPiece();
+        protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectoryListingDirectory CreateRootDirectoryItem();
 
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
@@ -47,13 +47,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             while (ptr != null)
             {
-                pathPieces.Insert(0, CreateDirectoryPiece(ptr));
+                pathPieces.Insert(0, CreateDirectoryItem(ptr));
                 ptr = ptr.Parent;
             }
 
             flow.ChildrenEnumerable = new Drawable[]
             {
-                CreateComputerPiece(),
+                CreateRootDirectoryItem(),
             }.Concat(pathPieces);
         }
     }
