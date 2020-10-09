@@ -355,6 +355,11 @@ namespace osu.Framework.Platform
         /// </summary>
         public void MakeCurrent() => GraphicsBackend.MakeCurrent();
 
+        /// <summary>
+        /// Requests that the current context be cleared.
+        /// </summary>
+        public void ClearCurrent() => GraphicsBackend.ClearCurrent();
+
         public virtual void CycleMode()
         {
         }

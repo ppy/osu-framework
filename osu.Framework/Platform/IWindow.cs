@@ -106,5 +106,15 @@ namespace osu.Framework.Platform
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
         DisplayMode CurrentDisplayMode { get; }
+
+        /// <summary>
+        /// Makes this window the current graphics context, if appropriate for the driver.
+        /// </summary>
+        new void MakeCurrent();
+
+        /// <summary>
+        /// Clears the current graphics context, if appropriate for the driver.
+        /// </summary>
+        void ClearCurrent();
     }
 }
