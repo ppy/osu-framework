@@ -16,6 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override DirectoryPiece CreateParentDirectoryPiece(DirectoryInfo directory) => new BasicDirectoryParentPiece(directory);
 
         protected override ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
+
         protected override FilePiece CreateFilePiece(FileInfo file) => new BasicFilePiece(file);
 
         private class BasicFilePiece : FilePiece
