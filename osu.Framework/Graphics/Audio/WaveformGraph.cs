@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private IReadOnlyList<Waveform.Point> points;
+            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
 
             private Vector2 drawSize;
             private int channels;
@@ -255,7 +255,11 @@ namespace osu.Framework.Graphics.Audio
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
 
-                points = Source.resampledPoints?.ToList();
+                points.Clear();
+
+                if (Source.resampledPoints != null)
+                    points.AddRange(Source.resampledPoints);
+
                 channels = Source.resampledChannels;
                 highMax = Source.resampledMaxHighIntensity;
                 midMax = Source.resampledMaxMidIntensity;
