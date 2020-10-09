@@ -501,12 +501,8 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit)
-        {
-            // TODO: handle OnCloseRequested()
-            // we currently have a deadlock issue where GameHost blocks
-            Exists = false;
-        }
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) =>
+            eventScheduler.Add(OnCloseRequested);
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
