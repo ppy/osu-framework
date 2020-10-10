@@ -277,6 +277,8 @@ namespace osu.Framework.Platform
 
             focused.ValueChanged += evt =>
             {
+                isActive.Value = evt.NewValue;
+
                 if (evt.NewValue)
                     OnFocusGained();
                 else
