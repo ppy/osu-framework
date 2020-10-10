@@ -367,6 +367,7 @@ namespace osu.Framework.Platform.Sdl
             while (Exists)
             {
                 commandScheduler.Update();
+
                 if (!Exists)
                     break;
 
