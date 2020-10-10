@@ -202,12 +202,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = "Default Text",
                     CommitOnFocusLost = commitOnFocusLost,
                     Size = new Vector2(500, 30),
-                    OnCommit = (_, newText) =>
-                    {
-                        commitCount++;
-                        wasNewText = newText;
-                    }
                 });
+
+                textBox.OnCommit += (_, newText) =>
+                {
+                    commitCount++;
+                    wasNewText = newText;
+                };
             });
 
             AddAssert("ensure no commits", () => commitCount == 0);

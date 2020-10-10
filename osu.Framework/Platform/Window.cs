@@ -277,6 +277,8 @@ namespace osu.Framework.Platform
 
             focused.ValueChanged += evt =>
             {
+                isActive.Value = evt.NewValue;
+
                 if (evt.NewValue)
                     OnFocusGained();
                 else
@@ -354,6 +356,11 @@ namespace osu.Framework.Platform
         /// May not be required for some backends.
         /// </summary>
         public void MakeCurrent() => GraphicsBackend.MakeCurrent();
+
+        /// <summary>
+        /// Requests that the current context be cleared.
+        /// </summary>
+        public void ClearCurrent() => GraphicsBackend.ClearCurrent();
 
         public virtual void CycleMode()
         {
