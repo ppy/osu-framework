@@ -55,7 +55,6 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            scheduler = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
             total_count.Value++;
 
             AddLayout(drawInfoBacking);
@@ -439,13 +438,23 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnUnbindAllBindables;
 
-        private readonly Lazy<Scheduler> scheduler;
+        private Scheduler scheduler;
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected internal Scheduler Scheduler => scheduler.Value;
+        protected internal Scheduler Scheduler
+        {
+            get
+            {
+                if (scheduler != null)
+                    return scheduler;
+
+                lock (loadLock)
+                    return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+            }
+        }
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -473,9 +482,9 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return true;
 
-            if (scheduler.IsValueCreated)
+            if (scheduler != null)
             {
-                int amountScheduledTasks = scheduler.Value.Update();
+                int amountScheduledTasks = scheduler.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -1392,7 +1401,7 @@ namespace osu.Framework.Graphics
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
-            if (scheduler.IsValueCreated) scheduler.Value.UpdateClock(this.clock);
+            scheduler?.UpdateClock(this.clock);
         }
 
         /// <summary>
