@@ -306,7 +306,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Attempts to close the window.
         /// </summary>
-        public void Close() => WindowBackend.Close();
+        public void Close() => WindowBackend.RequestClose();
 
         /// <summary>
         /// Creates the concrete window implementation and initialises the graphics backend.
@@ -327,7 +327,7 @@ namespace osu.Framework.Platform
             WindowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
             WindowBackend.Closed += OnExited;
-            WindowBackend.CloseRequested += OnExitRequested;
+            WindowBackend.CloseRequested += handleCloseRequested;
             WindowBackend.Update += OnUpdate;
             WindowBackend.KeyDown += OnKeyDown;
             WindowBackend.KeyUp += OnKeyUp;
@@ -368,6 +368,12 @@ namespace osu.Framework.Platform
 
         public virtual void SetupWindow(FrameworkConfigManager config)
         {
+        }
+
+        private void handleCloseRequested()
+        {
+            if (!OnExitRequested())
+                WindowBackend.Close();
         }
 
         #endregion

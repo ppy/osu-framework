@@ -355,6 +355,8 @@ namespace osu.Framework.Platform.Sdl
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                                         WindowState.ToFlags();
 
+            SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+
             SdlWindowHandle = SDL.SDL_CreateWindow($"{title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
             cachedScale.Invalidate();
             Exists = true;
@@ -366,6 +368,9 @@ namespace osu.Framework.Platform.Sdl
             {
                 commandScheduler.Update();
 
+                if (!Exists)
+                    break;
+
                 processEvents();
 
                 if (!mouseInWindow)
@@ -376,15 +381,17 @@ namespace osu.Framework.Platform.Sdl
                 OnUpdate();
             }
 
+            OnClosed();
+
             if (SdlWindowHandle != IntPtr.Zero)
                 SDL.SDL_DestroyWindow(SdlWindowHandle);
-
-            OnClosed();
 
             SDL.SDL_Quit();
         }
 
         public override void Close() => commandScheduler.Add(() => Exists = false);
+
+        public override void RequestClose() => eventScheduler.Add(OnCloseRequested);
 
         private void pollMouse()
         {
@@ -499,12 +506,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit)
-        {
-            // TODO: handle OnCloseRequested()
-            // we currently have a deadlock issue where GameHost blocks
-            Exists = false;
-        }
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
@@ -690,7 +692,6 @@ namespace osu.Framework.Platform.Sdl
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                    eventScheduler.Add(OnClosed);
                     break;
             }
         }
