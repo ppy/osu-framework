@@ -17,8 +17,6 @@ namespace osu.Framework.Platform
     /// </summary>
     public abstract class WindowBackend : IWindowBackend
     {
-        #region Properties
-
         public abstract string Title { get; set; }
         public abstract bool Visible { get; set; }
         public abstract Point Position { get; set; }
@@ -34,10 +32,6 @@ namespace osu.Framework.Platform
 
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
         public virtual Display PrimaryDisplay => Displays.First();
-
-        #endregion
-
-        #region Events
 
         public event Action Update;
         public event Action<Size> Resized;
@@ -61,7 +55,15 @@ namespace osu.Framework.Platform
         public event Action<string> DragDrop;
         public event Action<Display> DisplayChanged;
 
-        #endregion
+        public abstract void Create();
+
+        public abstract void Run();
+
+        public abstract void Close();
+
+        public abstract void RequestClose();
+
+        public abstract void SetIcon(Image<Rgba32> image);
 
         #region Event Invocation
 
@@ -86,20 +88,6 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
-
-        #endregion
-
-        #region Methods
-
-        public abstract void Create();
-
-        public abstract void Run();
-
-        public abstract void Close();
-
-        public abstract void RequestClose();
-
-        public abstract void SetIcon(Image<Rgba32> image);
 
         #endregion
     }
