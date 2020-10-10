@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// The icon of this <see cref="DirectoryListingItem"/> to use.
         /// </summary>
         protected abstract IconUsage? Icon { get; }
+
         protected FillFlowContainer Flow;
 
         protected DirectoryListingItem(string displayName = null)

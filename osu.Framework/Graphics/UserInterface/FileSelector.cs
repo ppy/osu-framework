@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Cached]
         public readonly Bindable<FileInfo> CurrentFile = new Bindable<FileInfo>();
 
-        public FileSelector(string initialPath = null, string[] validFileExtensions = null)
+        protected FileSelector(string initialPath = null, string[] validFileExtensions = null)
             : base(initialPath)
         {
             this.validFileExtensions = validFileExtensions ?? Array.Empty<string>();
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
             [Resolved]
             private Bindable<FileInfo> currentFile { get; set; }
 
-            public DirectoryListingFile(FileInfo file)
+            protected DirectoryListingFile(FileInfo file)
             {
                 File = file;
             }

@@ -21,7 +21,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Create the breadcrumb part of the control.
         /// </summary>
-        protected abstract DirectoryListingBreadcumb CreateBreadcrumb();
+        protected abstract DirectoryListingBreadcrumb CreateBreadcrumb();
+
         protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Cached]
         public readonly Bindable<DirectoryInfo> CurrentPath = new Bindable<DirectoryInfo>();
 
-        public DirectorySelector(string initialPath = null)
+        protected DirectorySelector(string initialPath = null)
         {
             CurrentPath.Value = new DirectoryInfo(initialPath ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

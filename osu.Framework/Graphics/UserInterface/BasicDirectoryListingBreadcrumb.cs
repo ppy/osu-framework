@@ -8,7 +8,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectoryListingBreadcrumb : DirectoryListingBreadcumb
+    public class BasicDirectoryListingBreadcrumb : DirectoryListingBreadcrumb
     {
         protected override DirectoryListingDirectory CreateRootDirectoryItem() => new ComputerPiece();
         protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);

@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
 
-        public DirectoryListingDirectory(DirectoryInfo directory, string displayName = null)
+        protected DirectoryListingDirectory(DirectoryInfo directory, string displayName = null)
             : base(displayName)
         {
             Directory = directory;

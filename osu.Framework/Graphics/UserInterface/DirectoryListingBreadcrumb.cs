@@ -11,7 +11,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryListingBreadcumb : CompositeDrawable
+    public abstract class DirectoryListingBreadcrumb : CompositeDrawable
     {
         /// <summary>
         /// Create a directory item in the breadcrumb trail.

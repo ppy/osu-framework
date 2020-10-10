@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicFileSelector : FileSelector
     {
-        protected override DirectoryListingBreadcumb CreateBreadcrumb() => new BasicDirectoryListingBreadcrumb();
+        protected override DirectoryListingBreadcrumb CreateBreadcrumb() => new BasicDirectoryListingBreadcrumb();
 
         protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectoryListingDirectory(directory, displayName);
 
