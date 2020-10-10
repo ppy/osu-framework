@@ -26,8 +26,13 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(24, 24);
             largeIcon = iconGroup.CreateIcon(256, 256);
 
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
-            SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
+            // CreateIcon was changed to return null rather than throwing exceptions
+            // Since we have no fallback method of generating icons, we skip if the icon can't be found
+            if (smallIcon != null)
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)0, smallIcon.Handle);
+
+            if (largeIcon != null)
+                SendMessage(WindowInfo.Handle, seticon_message, (IntPtr)1, largeIcon.Handle);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
