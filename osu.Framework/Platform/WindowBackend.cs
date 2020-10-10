@@ -42,7 +42,7 @@ namespace osu.Framework.Platform
         public event Action Update;
         public event Action<Size> Resized;
         public event Action<WindowState> WindowStateChanged;
-        public event Func<bool> CloseRequested;
+        public event Action CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
         public event Action FocusGained;
@@ -68,7 +68,7 @@ namespace osu.Framework.Platform
         protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized(Size size) => Resized?.Invoke(size);
         protected virtual void OnWindowStateChanged(WindowState windowState) => WindowStateChanged?.Invoke(windowState);
-        protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
+        protected virtual void OnCloseRequested() => CloseRequested?.Invoke();
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
         protected virtual void OnFocusGained() => FocusGained?.Invoke();
@@ -96,6 +96,8 @@ namespace osu.Framework.Platform
         public abstract void Run();
 
         public abstract void Close();
+
+        public abstract void RequestClose();
 
         public abstract void SetIcon(Image<Rgba32> image);
 

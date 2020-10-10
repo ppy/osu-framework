@@ -111,7 +111,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
-        event Func<bool> CloseRequested;
+        event Action CloseRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
@@ -213,9 +213,14 @@ namespace osu.Framework.Platform
         void Run();
 
         /// <summary>
-        /// Requests that the window close.
+        /// Forcefully tells the window to close.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Requests that the window close.
+        /// </summary>
+        void RequestClose();
 
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
