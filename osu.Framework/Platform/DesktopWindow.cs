@@ -3,12 +3,17 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
+using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Platform
 {
@@ -17,6 +22,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public class DesktopWindow : Window
     {
+        private const int default_icon_size = 256;
+
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly BindableSize sizeWindowed = new BindableSize();
         private readonly BindableDouble windowPositionX = new BindableDouble();
@@ -149,6 +156,34 @@ namespace osu.Framework.Platform
             base.UpdateWindowMode(mode);
 
             ConfineMouseMode.TriggerChange();
+        }
+
+        public virtual void SetIconFromStream(Stream stream)
+        {
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                ms.Position = 0;
+
+                var imageInfo = Image.Identify(ms);
+
+                if (imageInfo != null)
+                    SetIconFromImage(Image.Load<Rgba32>(ms.GetBuffer()));
+                else if (IconGroup.TryParse(ms.GetBuffer(), out var iconGroup))
+                    SetIconFromGroup(iconGroup);
+            }
+        }
+
+        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => WindowBackend.SetIcon(iconImage);
+
+        internal virtual void SetIconFromGroup(IconGroup iconGroup)
+        {
+            // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
+            var bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
+            if (bytes == null)
+                return;
+
+            SetIconFromImage(Image.Load<Rgba32>(bytes));
         }
 
         private void onResized()
