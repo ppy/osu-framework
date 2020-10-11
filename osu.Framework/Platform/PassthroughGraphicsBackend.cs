@@ -83,6 +83,8 @@ namespace osu.Framework.Platform
 
         public void MakeCurrent() => MakeCurrent(Context);
 
+        public void ClearCurrent() => MakeCurrent(IntPtr.Zero);
+
         private void loadTKBindings()
         {
             loadEntryPoints(new osuTK.Graphics.OpenGL.GL());

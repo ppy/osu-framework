@@ -59,6 +59,13 @@ namespace osu.Framework.Audio.Sample
 
         private int loadSample(byte[] data)
         {
+            int handle = getSampleHandle(data);
+            Length = Bass.ChannelBytes2Seconds(handle, data.Length) * 1000;
+            return handle;
+        }
+
+        private int getSampleHandle(byte[] data)
+        {
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 
             if (RuntimeInfo.SupportsJIT)

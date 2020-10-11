@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using osuTK;
 using osuTK.Input;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -83,6 +85,11 @@ namespace osu.Framework.Platform
         /// </summary>
         DisplayMode CurrentDisplayMode { get; set; }
 
+        /// <summary>
+        /// Gets the native window handle as provided by the operating system.
+        /// </summary>
+        IntPtr WindowHandle { get; }
+
         #endregion
 
         #region Events
@@ -105,7 +112,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
-        event Func<bool> CloseRequested;
+        event Action CloseRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
@@ -207,9 +214,20 @@ namespace osu.Framework.Platform
         void Run();
 
         /// <summary>
-        /// Requests that the window close.
+        /// Forcefully tells the window to close.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Requests that the window close.
+        /// </summary>
+        void RequestClose();
+
+        /// <summary>
+        /// Attempts to set the window's icon to the specified image.
+        /// </summary>
+        /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
+        void SetIcon(Image<Rgba32> image);
 
         #endregion
     }

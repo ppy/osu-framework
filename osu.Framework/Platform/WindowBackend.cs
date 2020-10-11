@@ -7,6 +7,8 @@ using System.Drawing;
 using System.Linq;
 using osuTK;
 using osuTK.Input;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -27,16 +29,15 @@ namespace osu.Framework.Platform
         public abstract bool Exists { get; protected set; }
         public abstract Display CurrentDisplay { get; set; }
         public abstract DisplayMode CurrentDisplayMode { get; set; }
+        public abstract IntPtr WindowHandle { get; }
 
         public virtual IEnumerable<Display> Displays => Enumerable.Empty<Display>();
         public virtual Display PrimaryDisplay => Displays.First();
 
-        #region Events
-
         public event Action Update;
         public event Action<Size> Resized;
         public event Action<WindowState> WindowStateChanged;
-        public event Func<bool> CloseRequested;
+        public event Action CloseRequested;
         public event Action Closed;
         public event Action FocusLost;
         public event Action FocusGained;
@@ -55,14 +56,22 @@ namespace osu.Framework.Platform
         public event Action<string> DragDrop;
         public event Action<Display> DisplayChanged;
 
-        #endregion
+        public abstract void Create();
+
+        public abstract void Run();
+
+        public abstract void Close();
+
+        public abstract void RequestClose();
+
+        public abstract void SetIcon(Image<Rgba32> image);
 
         #region Event Invocation
 
         protected virtual void OnUpdate() => Update?.Invoke();
         protected virtual void OnResized(Size size) => Resized?.Invoke(size);
         protected virtual void OnWindowStateChanged(WindowState windowState) => WindowStateChanged?.Invoke(windowState);
-        protected virtual bool OnCloseRequested() => CloseRequested?.Invoke() ?? false;
+        protected virtual void OnCloseRequested() => CloseRequested?.Invoke();
         protected virtual void OnClosed() => Closed?.Invoke();
         protected virtual void OnFocusLost() => FocusLost?.Invoke();
         protected virtual void OnFocusGained() => FocusGained?.Invoke();
@@ -82,11 +91,5 @@ namespace osu.Framework.Platform
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
 
         #endregion
-
-        public abstract void Create();
-
-        public abstract void Run();
-
-        public abstract void Close();
     }
 }
