@@ -47,10 +47,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
-            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
+            var childComparer = new ChildComparer(this);
 
-            internalChildren = new SortedList<Drawable>(new ChildComparer(this));
-            aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
+            internalChildren = new SortedList<Drawable>(childComparer);
+            aliveInternalChildren = new SortedList<Drawable>(childComparer);
 
             AddLayout(childrenSizeDependencies);
         }
@@ -625,9 +625,23 @@ namespace osu.Framework.Graphics.Containers
 
         #region Updating (per-frame periodic)
 
-        private Lazy<Scheduler> schedulerAfterChildren;
+        private Scheduler schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren.Value;
+        /// <summary>
+        /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
+        /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
+        /// </summary>
+        protected internal Scheduler SchedulerAfterChildren
+        {
+            get
+            {
+                if (schedulerAfterChildren != null)
+                    return schedulerAfterChildren;
+
+                lock (LoadLock)
+                    return schedulerAfterChildren ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+            }
+        }
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -824,7 +838,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
 
-            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.UpdateClock(Clock);
+            schedulerAfterChildren?.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -866,9 +880,9 @@ namespace osu.Framework.Graphics.Containers
                     updateChild(aliveInternalChildren[i]);
             }
 
-            if (schedulerAfterChildren.IsValueCreated)
+            if (schedulerAfterChildren != null)
             {
-                int amountScheduledTasks = schedulerAfterChildren.Value.Update();
+                int amountScheduledTasks = schedulerAfterChildren.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 

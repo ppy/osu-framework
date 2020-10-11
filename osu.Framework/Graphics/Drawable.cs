@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics
         private void dispose(bool isDisposing)
         {
             //we can't dispose if we are mid-load, else our children may get in a bad state.
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (IsDisposed)
                     return;
@@ -216,7 +216,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal Thread LoadThread { get; private set; }
 
-        private readonly object loadLock = new object();
+        internal readonly object LoadLock = new object();
 
         private static readonly StopwatchClock perf_clock = new StopwatchClock(true);
 
@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether the load was successful.</returns>
         internal bool LoadFromAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (IsDisposed)
                     return false;
@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics
         /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
                     throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (loadLock)
+                lock (LoadLock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
