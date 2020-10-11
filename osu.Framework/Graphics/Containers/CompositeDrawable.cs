@@ -628,8 +628,8 @@ namespace osu.Framework.Graphics.Containers
         private Scheduler schedulerAfterChildren;
 
         /// <summary>
-        /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
-        /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
+        /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="UpdateAfterChildren"/>s calls.
+        /// The tasks are invoked at the beginning of the <see cref="UpdateAfterChildren"/> method before anything else.
         /// </summary>
         protected internal Scheduler SchedulerAfterChildren
         {
