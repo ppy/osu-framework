@@ -216,18 +216,18 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Load the provided components.
+        /// Load the provided components. Any components which could not be loaded will be removed from the provided list.
         /// </summary>
         private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            foreach (var c in components)
+            for (var i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
                     break;
 
-                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
-                    components.Remove(c);
+                if (!components[i].LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components.Remove(components[i--]);
             }
         }
 
