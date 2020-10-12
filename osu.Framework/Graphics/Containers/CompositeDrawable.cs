@@ -296,6 +296,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             OnAutoSize = null;
+            Dependencies = null;
             schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
