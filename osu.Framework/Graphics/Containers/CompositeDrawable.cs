@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
 
             loadingComponents ??= new WeakList<Drawable>();
 
-            var loadables = components.ToArray();
+            var loadables = components.ToList();
 
             foreach (var d in loadables)
             {
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var exception = loaded.Exception?.AsSingular();
 
-                if (!loaded.Result.Any())
+                if (loadables.Count == 0)
                     return;
 
                 if (linkedSource.Token.IsCancellationRequested)
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                             ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
-                            onLoaded?.Invoke(loaded.Result);
+                            onLoaded?.Invoke(loadables);
                     }
                     finally
                     {
@@ -212,28 +212,23 @@ namespace osu.Framework.Graphics.Containers
                 throw new ObjectDisposedException(ToString());
 
             // ReSharper disable once IteratorMethodResultIsIgnored (we don't care about the results here).
-            loadComponents(components.ToArray(), Dependencies, false);
+            loadComponents(components.ToList(), Dependencies, false);
         }
 
         /// <summary>
         /// Load the provided components.
         /// </summary>
-        /// <returns>The successfully loaded components.</returns>
-        private IReadOnlyList<TLoadable> loadComponents<TLoadable>(IReadOnlyList<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+        private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            List<TLoadable> loaded = new List<TLoadable>();
-
             foreach (var c in components)
             {
                 if (cancellation.IsCancellationRequested)
                     break;
 
-                if (c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
-                    loaded.Add(c);
+                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components.Remove(c);
             }
-
-            return loaded;
         }
 
         [BackgroundDependencyLoader(true)]
