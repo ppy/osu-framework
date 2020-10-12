@@ -49,8 +49,10 @@ namespace osu.Framework.Graphics.Containers
         {
             schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
 
-            internalChildren = new SortedList<Drawable>(new ChildComparer(this));
-            aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
+            var childComparer = new ChildComparer(this);
+
+            internalChildren = new SortedList<Drawable>(childComparer);
+            aliveInternalChildren = new SortedList<Drawable>(childComparer);
 
             AddLayout(childrenSizeDependencies);
         }
