@@ -34,7 +34,7 @@ namespace osu.Framework.Platform.Sdl
         private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
 
-        private readonly Dictionary<int, Sdl2ControllerState> controllers = new Dictionary<int, Sdl2ControllerState>();
+        private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
 
         #region Internal Properties
 
@@ -622,7 +622,7 @@ namespace osu.Framework.Platform.Sdl
                     var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
                     var joystick = SDL.SDL_GameControllerGetJoystick(controller);
                     var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerState(joystick, controller);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, controller);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -669,7 +669,7 @@ namespace osu.Framework.Platform.Sdl
                         break;
 
                     var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerState(joystick, IntPtr.Zero);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, IntPtr.Zero);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
