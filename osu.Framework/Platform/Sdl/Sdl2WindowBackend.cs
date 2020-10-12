@@ -1006,22 +1006,22 @@ namespace osu.Framework.Platform.Sdl
                     return 0;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
-                    return JoystickAxisSource.Axis1;
+                    return JoystickAxisSource.GamePadLeftStickX;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
-                    return JoystickAxisSource.Axis2;
+                    return JoystickAxisSource.GamePadLeftStickY;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-                    return JoystickAxisSource.Axis3;
+                    return JoystickAxisSource.GamePadLeftTrigger;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
-                    return JoystickAxisSource.Axis4;
+                    return JoystickAxisSource.GamePadRightStickX;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
-                    return JoystickAxisSource.Axis5;
+                    return JoystickAxisSource.GamePadRightStickY;
 
                 case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-                    return JoystickAxisSource.Axis6;
+                    return JoystickAxisSource.GamePadRightTrigger;
             }
         }
 

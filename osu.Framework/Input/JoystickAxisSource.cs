@@ -22,5 +22,12 @@ namespace osu.Framework.Input
         Axis15,
         Axis16,
         AxisCount,
+
+        GamePadLeftStickX = Axis1,
+        GamePadLeftStickY = Axis2,
+        GamePadLeftTrigger = Axis3,
+        GamePadRightStickX = Axis4,
+        GamePadRightStickY = Axis5,
+        GamePadRightTrigger = Axis6,
     }
 }
