@@ -30,5 +30,10 @@ namespace osu.Framework.Platform
         /// Makes the graphics backend the current context, if appropriate for the driver.
         /// </summary>
         void MakeCurrent();
+
+        /// <summary>
+        /// Clears the current context, if appropriate for the driver.
+        /// </summary>
+        void ClearCurrent();
     }
 }

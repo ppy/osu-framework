@@ -19,6 +19,14 @@ namespace osu.Framework.Bindables
         void BindTo(IBindableList<T> them);
 
         /// <summary>
+        /// Bind an action to <see cref="INotifyCollectionChanged.CollectionChanged"/> with the option of running the bound action once immediately
+        /// with an <see cref="NotifyCollectionChangedAction.Add"/> event for the entire contents of this <see cref="BindableList{T}"/>.
+        /// </summary>
+        /// <param name="onChange">The action to perform when this <see cref="BindableList{T}"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
+        void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false);
+
+        /// <summary>
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>

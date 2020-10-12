@@ -185,32 +185,32 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        public event Action<MouseScrollRelativeInput> MouseWheel;
+        public event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        public event Action<MousePositionAbsoluteInput> MouseMove;
+        public event Action<Vector2> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        public event Action<MouseButtonInput> MouseDown;
+        public event Action<MouseButton> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        public event Action<MouseButtonInput> MouseUp;
+        public event Action<MouseButton> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        public event Action<KeyboardKeyInput> KeyDown;
+        public event Action<Key> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        public event Action<KeyboardKeyInput> KeyUp;
+        public event Action<Key> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
@@ -252,12 +252,12 @@ namespace osu.Framework.Platform
         protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
         protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
         protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(MouseScrollRelativeInput evt) => MouseWheel?.Invoke(evt);
-        protected virtual void OnMouseMove(MousePositionAbsoluteInput evt) => MouseMove?.Invoke(evt);
-        protected virtual void OnMouseDown(MouseButtonInput evt) => MouseDown?.Invoke(evt);
-        protected virtual void OnMouseUp(MouseButtonInput evt) => MouseUp?.Invoke(evt);
-        protected virtual void OnKeyDown(KeyboardKeyInput evt) => KeyDown?.Invoke(evt);
-        protected virtual void OnKeyUp(KeyboardKeyInput evt) => KeyUp?.Invoke(evt);
+        protected virtual void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
+        protected virtual void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected virtual void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+        protected virtual void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
+        protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
+        protected virtual void OnKeyUp(Key key) => KeyUp?.Invoke(key);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
         protected virtual void OnJoystickAxisChanged(JoystickAxisInput evt) => JoystickAxisChanged?.Invoke(evt);
         protected virtual void OnJoystickButtonDown(JoystickButtonInput evt) => JoystickButtonDown?.Invoke(evt);
@@ -295,6 +295,8 @@ namespace osu.Framework.Platform
 
             focused.ValueChanged += evt =>
             {
+                isActive.Value = evt.NewValue;
+
                 if (evt.NewValue)
                     OnFocusGained();
                 else
@@ -322,7 +324,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Attempts to close the window.
         /// </summary>
-        public void Close() => WindowBackend.Close();
+        public void Close() => WindowBackend.RequestClose();
 
         /// <summary>
         /// Creates the concrete window implementation and initialises the graphics backend.
@@ -343,7 +345,7 @@ namespace osu.Framework.Platform
             WindowBackend.MouseLeft += () => cursorInWindow.Value = false;
 
             WindowBackend.Closed += OnExited;
-            WindowBackend.CloseRequested += OnExitRequested;
+            WindowBackend.CloseRequested += handleCloseRequested;
             WindowBackend.Update += OnUpdate;
             WindowBackend.KeyDown += OnKeyDown;
             WindowBackend.KeyUp += OnKeyUp;
@@ -376,12 +378,23 @@ namespace osu.Framework.Platform
         /// </summary>
         public void MakeCurrent() => GraphicsBackend.MakeCurrent();
 
+        /// <summary>
+        /// Requests that the current context be cleared.
+        /// </summary>
+        public void ClearCurrent() => GraphicsBackend.ClearCurrent();
+
         public virtual void CycleMode()
         {
         }
 
         public virtual void SetupWindow(FrameworkConfigManager config)
         {
+        }
+
+        private void handleCloseRequested()
+        {
+            if (!OnExitRequested())
+                WindowBackend.Close();
         }
 
         #endregion

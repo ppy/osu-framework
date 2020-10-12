@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -61,7 +62,11 @@ namespace osu.Framework.Graphics.Textures
             if (Atlas != null)
             {
                 if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
-                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
+                {
+                    Logger.Log(
+                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
+                        LoggingTarget.Performance);
+                }
             }
 
             glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
@@ -86,7 +91,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) =>
+            Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -111,21 +117,15 @@ namespace osu.Framework.Graphics.Textures
             this.LogIfNonBackgroundThread(key);
 
             // Check if the texture exists in the cache.
-            lock (textureCache)
-            {
-                if (textureCache.TryGetValue(key, out var tex))
-                    return tex;
-            }
+            if (TryGetCached(key, out var cached))
+                return cached;
 
             // Take an exclusive lock on retrieval of the texture.
             lock (retrievalLock)
             {
                 // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
-                lock (textureCache)
-                {
-                    if (textureCache.TryGetValue(key, out var tex))
-                        return tex;
-                }
+                if (TryGetCached(key, out cached))
+                    return cached;
 
                 try
                 {
@@ -133,10 +133,7 @@ namespace osu.Framework.Graphics.Textures
                     if (tex != null)
                         tex.LookupKey = key;
 
-                    lock (textureCache)
-                        textureCache[key] = tex;
-
-                    return tex;
+                    return CacheAndReturnTexture(key, tex);
                 }
                 catch (TextureTooLargeForGLException)
                 {
@@ -145,6 +142,31 @@ namespace osu.Framework.Graphics.Textures
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Attempts to retrieve an existing cached texture.
+        /// </summary>
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The returned texture. Null if the texture did not exist in the cache.</param>
+        /// <returns>Whether a cached texture was retrieved.</returns>
+        protected virtual bool TryGetCached([NotNull] string lookupKey, [CanBeNull] out Texture texture)
+        {
+            lock (textureCache)
+                return textureCache.TryGetValue(lookupKey, out texture);
+        }
+
+        /// <summary>
+        /// Caches and returns the given texture.
+        /// </summary>
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The texture to be cached and returned.</param>
+        /// <returns>The texture to be returned.</returns>
+        [CanBeNull]
+        protected virtual Texture CacheAndReturnTexture([NotNull] string lookupKey, [CanBeNull] Texture texture)
+        {
+            lock (textureCache)
+                return textureCache[lookupKey] = texture;
         }
 
         /// <summary>
