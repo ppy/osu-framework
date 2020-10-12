@@ -84,9 +84,26 @@ namespace osu.Framework.Graphics.Containers
 
         private WeakList<Drawable> loadingComponents;
 
-        private static readonly ThreadedTaskScheduler threaded_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        private static ThreadedTaskScheduler threadedScheduler;
 
-        private static readonly ThreadedTaskScheduler long_load_scheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        private static ThreadedTaskScheduler longLoadScheduler;
+
+        static CompositeDrawable()
+        {
+            RecycleSchedulers();
+        }
+
+        /// <summary>
+        /// todo
+        /// </summary>
+        internal static void RecycleSchedulers()
+        {
+            threadedScheduler?.Dispose();
+            threadedScheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+
+            longLoadScheduler?.Dispose();
+            longLoadScheduler = new ThreadedTaskScheduler(4, nameof(LoadComponentsAsync));
+        }
 
         /// <summary>
         /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asynchronously. <see cref="Dependencies"/>
@@ -159,7 +176,7 @@ namespace osu.Framework.Graphics.Containers
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = components.Any(c => c.IsLongRunning) ? longLoadScheduler : threadedScheduler;
 
             return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
             {
