@@ -640,7 +640,7 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
         {
-            var button = joystickButtonFromGameController((SDL.SDL_GameControllerButton)evtCbutton.button);
+            var button = ((SDL.SDL_GameControllerButton)evtCbutton.button).ToJoystickButton();
 
             switch (evtCbutton.type)
             {
@@ -655,7 +655,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis), evtCaxis.axisValue);
+            enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
@@ -878,89 +878,6 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_BUTTON_X2:
                     return MouseButton.Button2;
-            }
-        }
-
-        private JoystickButton joystickButtonFromGameController(SDL.SDL_GameControllerButton button)
-        {
-            switch (button)
-            {
-                default:
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
-                    return 0;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
-                    return JoystickButton.GamePadA;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
-                    return JoystickButton.GamePadB;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
-                    return JoystickButton.GamePadX;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
-                    return JoystickButton.GamePadY;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK:
-                    return JoystickButton.GamePadBack;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE:
-                    return JoystickButton.GamePadGuide;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START:
-                    return JoystickButton.GamePadStart;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
-                    return JoystickButton.GamePadLeftStick;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-                    return JoystickButton.GamePadRightStick;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-                    return JoystickButton.GamePadLeftShoulder;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-                    return JoystickButton.GamePadRightShoulder;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
-                    return JoystickButton.GamePadDPadUp;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-                    return JoystickButton.GamePadDPadDown;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-                    return JoystickButton.GamePadDPadLeft;
-
-                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-                    return JoystickButton.GamePadDPadRight;
-            }
-        }
-
-        private JoystickAxisSource joystickAxisSourceFromEvent(SDL.SDL_GameControllerAxis axis)
-        {
-            switch (axis)
-            {
-                default:
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID:
-                    return 0;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
-                    return JoystickAxisSource.GamePadLeftStickX;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
-                    return JoystickAxisSource.GamePadLeftStickY;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
-                    return JoystickAxisSource.GamePadLeftTrigger;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
-                    return JoystickAxisSource.GamePadRightStickX;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
-                    return JoystickAxisSource.GamePadRightStickY;
-
-                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
-                    return JoystickAxisSource.GamePadRightTrigger;
             }
         }
 
