@@ -18,6 +18,29 @@ namespace osu.Framework.Tests.Containers
     public class TestSceneLoadComponentAsync : FrameworkTestScene
     {
         [Test]
+        public void TestEnumerableOnlyInvokedOnce()
+        {
+            int invocationCount = 0;
+
+            IEnumerable<AsyncChildLoadingComposite> composite = getEnumerableComponent(() =>
+            {
+                invocationCount++;
+                return new AsyncChildLoadingComposite();
+            });
+
+            AddStep("load async", () => LoadComponentsAsync(composite, AddRange));
+
+            AddUntilStep("component loaded", () => Children.Count == 1);
+
+            AddAssert("invocation count is 1", () => invocationCount == 1);
+        }
+
+        private IEnumerable<AsyncChildLoadingComposite> getEnumerableComponent(Func<AsyncChildLoadingComposite> createComponent)
+        {
+            yield return createComponent();
+        }
+
+        [Test]
         public void TestUnpublishedChildDisposal()
         {
             AsyncChildLoadingComposite composite = null;
