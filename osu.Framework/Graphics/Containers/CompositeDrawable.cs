@@ -154,8 +154,6 @@ namespace osu.Framework.Graphics.Containers
             loadingComponents ??= new WeakList<Drawable>();
 
             var loadables = components.ToArray();
-            if (loadables.Length == 0)
-                return Task.CompletedTask;
 
             foreach (var d in loadables)
             {
@@ -168,6 +166,9 @@ namespace osu.Framework.Graphics.Containers
             return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
                 var exception = loaded.Exception?.AsSingular();
+
+                if (!loaded.Result.Any())
+                    return;
 
                 if (linkedSource.Token.IsCancellationRequested)
                 {
