@@ -493,7 +493,7 @@ namespace osu.Framework.Graphics.Containers
                 t.Parent = null;
 
                 if (disposeChildren)
-                    DisposeChildAsync(t);
+                    t.Dispose();
 
                 Trace.Assert(t.Parent == null);
             }
@@ -787,7 +787,7 @@ namespace osu.Framework.Graphics.Containers
                 RemoveInternal(child);
 
                 if (child.DisposeOnDeathRemoval)
-                    DisposeChildAsync(child);
+                    child.Dispose();
 
                 removed = true;
             }
@@ -804,16 +804,6 @@ namespace osu.Framework.Graphics.Containers
 
             foreach (Drawable child in internalChildren)
                 child.UnbindAllBindablesSubTree();
-        }
-
-        /// <summary>
-        /// Unbinds a child's bindings synchronously and queues an asynchronous disposal of the child.
-        /// </summary>
-        /// <param name="drawable">The child to dispose.</param>
-        internal void DisposeChildAsync(Drawable drawable)
-        {
-            drawable.UnbindAllBindablesSubTree();
-            AsyncDisposalQueue.Enqueue(drawable);
         }
 
         internal override void UpdateClock(IFrameBasedClock clock)

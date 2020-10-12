@@ -336,7 +336,7 @@ namespace osu.Framework.Screens
                 foreach (var s in exited)
                 {
                     RemoveInternal(s);
-                    DisposeChildAsync(s);
+                    s.Dispose();
                 }
 
                 exited.Clear();
