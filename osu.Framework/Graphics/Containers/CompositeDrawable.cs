@@ -153,19 +153,21 @@ namespace osu.Framework.Graphics.Containers
 
             loadingComponents ??= new WeakList<Drawable>();
 
-            foreach (var d in components)
+            var loadables = components.ToArray();
+
+            foreach (var d in loadables)
             {
                 loadingComponents.Add(d);
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
-            return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
-                var exception = t.Exception?.AsSingular();
+                var exception = loaded.Exception?.AsSingular();
 
-                if (!components.Any())
+                if (!loaded.Result.Any())
                     return;
 
                 if (linkedSource.Token.IsCancellationRequested)
@@ -182,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                             ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
-                            onLoaded?.Invoke(components);
+                            onLoaded?.Invoke(loaded.Result);
                     }
                     finally
                     {
@@ -209,20 +211,29 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            loadComponents(ref components, Dependencies, false);
+            // ReSharper disable once IteratorMethodResultIsIgnored (we don't care about the results here).
+            loadComponents(components.ToArray(), Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+        /// <summary>
+        /// Load the provided components.
+        /// </summary>
+        /// <returns>The successfully loaded components.</returns>
+        private IReadOnlyList<TLoadable> loadComponents<TLoadable>(IReadOnlyList<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
+            List<TLoadable> loaded = new List<TLoadable>();
+
             foreach (var c in components)
             {
                 if (cancellation.IsCancellationRequested)
-                    return;
+                    break;
 
-                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
-                    components = components.Except(c.Yield());
+                if (c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    loaded.Add(c);
             }
+
+            return loaded;
         }
 
         [BackgroundDependencyLoader(true)]
