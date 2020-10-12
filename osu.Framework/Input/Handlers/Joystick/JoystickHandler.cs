@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -9,6 +10,10 @@ namespace osu.Framework.Input.Handlers.Joystick
 {
     public class JoystickHandler : InputHandler
     {
+        private const float deadzone_threshold = 0.075f;
+
+        private readonly JoystickButton[] axisDirectionButtons = new JoystickButton[(int)JoystickAxisSource.AxisCount];
+
         public override bool IsActive => true;
 
         public override int Priority => 0;
@@ -47,6 +52,68 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private void enqueueJoystickButtonUp(JoystickButton button) => enqueueJoystickEvent(new JoystickButtonInput(button, false));
 
-        private void enqueueJoystickAxisChanged(JoystickAxis axis) => enqueueJoystickEvent(new JoystickAxisInput(axis));
+        /// <summary>
+        /// Enqueues a <see cref="JoystickAxisInput"/> taking into account the axis deadzone.
+        /// Also enqueues <see cref="JoystickButtonInput"/> events depending on whether the axis has changed direction.
+        /// </summary>
+        private void enqueueJoystickAxisChanged(JoystickAxis axis)
+        {
+            var value = rescaleByDeadzone(axis.Value);
+
+            int index = (int)axis.Source;
+            var currentButton = axisDirectionButtons[index];
+            var expectedButton = getAxisButtonForInput(index, value);
+
+            // if a directional button is pressed and does not match that for the new axis direction, release it
+            if (currentButton != 0 && expectedButton != currentButton)
+            {
+                // also release trigger buttons if appropriate
+                if (axis.Source == JoystickAxisSource.GamePadLeftTrigger)
+                    enqueueJoystickButtonUp(JoystickButton.GamePadLeftTrigger);
+                else if (axis.Source == JoystickAxisSource.GamePadRightTrigger)
+                    enqueueJoystickButtonUp(JoystickButton.GamePadRightTrigger);
+
+                enqueueJoystickButtonUp(currentButton);
+                axisDirectionButtons[index] = currentButton = 0;
+            }
+
+            // if we expect a directional button to be pressed, and it is not, press it
+            if (expectedButton != 0 && expectedButton != currentButton)
+            {
+                // also press trigger buttons if appropriate
+                if (axis.Source == JoystickAxisSource.GamePadLeftTrigger)
+                    enqueueJoystickButtonDown(JoystickButton.GamePadLeftTrigger);
+                else if (axis.Source == JoystickAxisSource.GamePadRightTrigger)
+                    enqueueJoystickButtonDown(JoystickButton.GamePadRightTrigger);
+
+                enqueueJoystickButtonDown(expectedButton);
+                axisDirectionButtons[index] = expectedButton;
+            }
+
+            enqueueJoystickEvent(new JoystickAxisInput(new JoystickAxis(axis.Source, value)));
+        }
+
+        private static float rescaleByDeadzone(float axisValue)
+        {
+            var absoluteValue = Math.Abs(axisValue);
+
+            if (absoluteValue < deadzone_threshold)
+                return 0;
+
+            // rescale the given axis value such that the edge of the deadzone is considered the "new zero".
+            var absoluteRescaled = (absoluteValue - deadzone_threshold) / (1f - deadzone_threshold);
+            return Math.Sign(axisValue) * absoluteRescaled;
+        }
+
+        private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)
+        {
+            if (axisValue > 0)
+                return JoystickButton.FirstAxisPositive + axisIndex;
+
+            if (axisValue < 0)
+                return JoystickButton.FirstAxisNegative + axisIndex;
+
+            return 0;
+        }
     }
 }

@@ -10,7 +10,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Input;
-using osu.Framework.Input.StateChanges;
 using osuTK;
 using osuTK.Input;
 using osuTK.Platform;

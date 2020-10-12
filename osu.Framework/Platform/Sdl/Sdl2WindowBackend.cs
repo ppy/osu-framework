@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
 using osu.Framework.Input;
-using osu.Framework.Input.StateChanges;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -28,7 +27,6 @@ namespace osu.Framework.Platform.Sdl
     {
         private const int default_width = 1366;
         private const int default_height = 768;
-        private const float deadzone_threshold = 0.075f;
 
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
@@ -399,48 +397,11 @@ namespace osu.Framework.Platform.Sdl
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
-        private void enqueueJoystickAxisInput(int instanceID, SDL.SDL_GameControllerAxis gcAxis, JoystickAxisSource axisSource, short axisValue)
+        private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
         {
-            // SDL reports axis values in the range short.MinValue to short.MaxValue
-            // We scale and clamp it to the range of -1f to 1f, then rescale it such that
-            // the edge of the deadzone is considered the "new zero"
+            // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
             var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            var value = rescaleByDeadzone(clamped);
-
-            if (!controllers.TryGetValue(instanceID, out var state))
-                return;
-
-            int index = (int)axisSource;
-            var currentButton = state.AxisDirectionButtons[index];
-            var expectedButton = getAxisButtonForInput(index, value);
-
-            // if a directional button is pressed and does not match that for the new axis direction, release it
-            if (currentButton != 0 && expectedButton != currentButton)
-            {
-                // also release trigger buttons if appropriate
-                if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    enqueueJoystickButtonInput(JoystickButton.GamePadLeftTrigger, false);
-                else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    enqueueJoystickButtonInput(JoystickButton.GamePadRightTrigger, false);
-
-                enqueueJoystickButtonInput(currentButton, false);
-                state.AxisDirectionButtons[index] = currentButton = 0;
-            }
-
-            // if we expect a directional button to be pressed, and it is not, press it
-            if (expectedButton != 0 && expectedButton != currentButton)
-            {
-                // also press trigger buttons if appropriate
-                if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT)
-                    enqueueJoystickButtonInput(JoystickButton.GamePadLeftTrigger, true);
-                else if (gcAxis == SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT)
-                    enqueueJoystickButtonInput(JoystickButton.GamePadRightTrigger, true);
-
-                enqueueJoystickButtonInput(expectedButton, true);
-                state.AxisDirectionButtons[index] = expectedButton;
-            }
-
-            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, value)));
+            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
@@ -449,28 +410,6 @@ namespace osu.Framework.Platform.Sdl
                 eventScheduler.Add(() => OnJoystickButtonDown(button));
             else
                 eventScheduler.Add(() => OnJoystickButtonUp(button));
-        }
-
-        private static JoystickButton getAxisButtonForInput(int axisIndex, float axisValue)
-        {
-            if (axisValue > 0)
-                return JoystickButton.FirstAxisPositive + axisIndex;
-
-            if (axisValue < 0)
-                return JoystickButton.FirstAxisNegative + axisIndex;
-
-            return 0;
-        }
-
-        private static float rescaleByDeadzone(float axisValue)
-        {
-            var absoluteValue = Math.Abs(axisValue);
-
-            if (absoluteValue < deadzone_threshold)
-                return 0;
-
-            var absoluteRescaled = (absoluteValue - deadzone_threshold) / (1f - deadzone_threshold);
-            return Math.Sign(axisValue) * absoluteRescaled;
         }
 
         #endregion
@@ -683,7 +622,7 @@ namespace osu.Framework.Platform.Sdl
                     var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
                     var joystick = SDL.SDL_GameControllerGetJoystick(controller);
                     var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerState(instanceID, joystick, controller);
+                    controllers[instanceID] = new Sdl2ControllerState(joystick, controller);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -716,7 +655,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
-            enqueueJoystickAxisInput(evtCaxis.which, (SDL.SDL_GameControllerAxis)evtCaxis.axis, joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis), evtCaxis.axisValue);
+            enqueueJoystickAxisInput(joystickAxisSourceFromEvent((SDL.SDL_GameControllerAxis)evtCaxis.axis), evtCaxis.axisValue);
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
@@ -730,7 +669,7 @@ namespace osu.Framework.Platform.Sdl
                         break;
 
                     var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerState(instanceID, joystick, IntPtr.Zero);
+                    controllers[instanceID] = new Sdl2ControllerState(joystick, IntPtr.Zero);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
@@ -778,7 +717,7 @@ namespace osu.Framework.Platform.Sdl
             if (controllers.TryGetValue(evtJaxis.which, out var state) && state.GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
                 return;
 
-            enqueueJoystickAxisInput(evtJaxis.which, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID, JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
+            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input;
-using osu.Framework.Input.StateChanges;
 using osuTK;
 using osuTK.Input;
 using SixLabors.ImageSharp;
