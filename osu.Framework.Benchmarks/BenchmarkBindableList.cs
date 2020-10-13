@@ -9,7 +9,7 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkBindableList
     {
-        private BindableList<int> list = new BindableList<int>();
+        private readonly BindableList<int> list = new BindableList<int>();
 
         [GlobalSetup]
         public void GlobalSetup()
