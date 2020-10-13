@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private readonly Dictionary<string, int> lastAppliedTransformIndices = new Dictionary<string, int>();
 
-        private int? lastAppliedTransforIndexMin;
+        private int? lastAppliedTransformIndexMin;
 
         /// <summary>
         /// All <see cref="Transform.TargetMember"/>s which are handled by this tracker.
@@ -335,7 +335,7 @@ namespace osu.Framework.Graphics.Transforms
         private int getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
-                return lastAppliedTransforIndexMin ?? 0;
+                return lastAppliedTransformIndexMin ?? 0;
 
             if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
                 return val;
@@ -353,7 +353,7 @@ namespace osu.Framework.Graphics.Transforms
             lastAppliedTransformIndices[targetMember] = index;
 
             // this is safe because it's guaranteed we call this function with an equal or higher value for the targetMember.
-            lastAppliedTransforIndexMin = Math.Min(lastAppliedTransforIndexMin ?? int.MaxValue, index);
+            lastAppliedTransformIndexMin = Math.Min(lastAppliedTransformIndexMin ?? int.MaxValue, index);
         }
 
         /// <summary>
@@ -363,7 +363,7 @@ namespace osu.Framework.Graphics.Transforms
         {
             foreach (var tracked in targetMembers)
                 lastAppliedTransformIndices[tracked] = 0;
-            lastAppliedTransforIndexMin = null;
+            lastAppliedTransformIndexMin = null;
         }
     }
 }
