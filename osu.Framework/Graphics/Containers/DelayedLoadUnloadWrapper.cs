@@ -60,7 +60,6 @@ namespace osu.Framework.Graphics.Containers
 
         public override Drawable Content => base.Content ?? (Content = createContentFunction());
 
-        private bool contentLoaded;
         private ScheduledDelegate scheduledLifetimeUpdate;
 
         protected override void EndDelayedLoad(Drawable content)
@@ -76,11 +75,9 @@ namespace osu.Framework.Graphics.Containers
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             Game.Schedule(() =>
             {
-                Debug.Assert(!contentLoaded);
+                DelayedLoadCompleted = true;
+
                 Debug.Assert(unloadSchedule == null);
-
-                contentLoaded = true;
-
                 unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
                 Debug.Assert(unloadSchedule != null);
 
@@ -121,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
             if (!ShouldUnloadContent)
                 return;
 
-            Debug.Assert(contentLoaded);
+            Debug.Assert(DelayedLoadCompleted);
 
             // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
             ClearInternal(false);
@@ -132,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
             CancelTasks();
 
-            contentLoaded = false;
+            DelayedLoadTriggered = DelayedLoadCompleted = false;
         }
     }
 }

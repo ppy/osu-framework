@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -62,7 +61,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool ShouldLoadContent => timeVisible > timeBeforeLoad;
 
-        private Task loadTask;
         private ScheduledDelegate scheduledAddition;
 
         protected override void Update()
@@ -83,24 +81,26 @@ namespace osu.Framework.Graphics.Containers
 
         protected void BeginDelayedLoad()
         {
-            if (loadTask != null) throw new InvalidOperationException("Load is already started!");
+            if (DelayedLoadTriggered || DelayedLoadCompleted)
+                throw new InvalidOperationException("Load has already started!");
 
+            DelayedLoadTriggered = true;
             DelayedLoadStarted?.Invoke(Content);
 
             // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
-            loadTask = LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler);
+            LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler);
         }
 
         protected virtual void EndDelayedLoad(Drawable content)
         {
             timeVisible = 0;
-            loadTask = null;
 
             // This code is running on the game's scheduler, while this DLW may have been async disposed, so the addition is scheduled locally to prevent adding to disposed DLWs.
             scheduledAddition = Schedule(() =>
             {
                 AddInternal(content);
                 DelayedLoadComplete?.Invoke(content);
+                DelayedLoadCompleted = true;
             });
         }
 
@@ -113,7 +113,6 @@ namespace osu.Framework.Graphics.Containers
         protected virtual void CancelTasks()
         {
             isIntersectingCache.Invalidate();
-            loadTask = null;
 
             scheduledAddition?.Cancel();
             scheduledAddition = null;
@@ -133,9 +132,12 @@ namespace osu.Framework.Graphics.Containers
         /// True if the load task for our content has been started.
         /// Will remain true even after load is completed.
         /// </summary>
-        protected bool DelayedLoadTriggered => loadTask != null;
+        protected bool DelayedLoadTriggered;
 
-        public bool DelayedLoadCompleted => InternalChildren.Count > 0;
+        /// <summary>
+        /// True if the content has been added to the drawable hierarchy.
+        /// </summary>
+        public bool DelayedLoadCompleted { get; protected set; }
 
         private readonly LayoutValue optimisingContainerCache = new LayoutValue(Invalidation.Parent);
         private readonly LayoutValue isIntersectingCache = new LayoutValue(Invalidation.All);
