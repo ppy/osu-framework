@@ -211,7 +211,6 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            // ReSharper disable once IteratorMethodResultIsIgnored (we don't care about the results here).
             loadComponents(components.ToList(), Dependencies, false);
         }
 
