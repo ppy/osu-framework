@@ -639,11 +639,11 @@ namespace osu.Framework.Bindables
 
         #region IEnumerable
 
-        public IEnumerator<T> GetEnumerator()
-            => collection.GetEnumerator();
+        public List<T>.Enumerator GetEnumerator() => collection.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion IEnumerable
 
