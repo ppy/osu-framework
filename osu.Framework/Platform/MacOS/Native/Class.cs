@@ -15,6 +15,15 @@ namespace osu.Framework.Platform.MacOS.Native
         private static extern IntPtr class_replaceMethod(IntPtr classHandle, IntPtr selector, IntPtr method, string types);
 
         [DllImport(Cocoa.LIB_OBJ_C)]
+        private static extern IntPtr class_getInstanceMethod(IntPtr classHandle, IntPtr selector);
+
+        [DllImport(Cocoa.LIB_OBJ_C)]
+        private static extern IntPtr method_getImplementation(IntPtr method);
+
+        [DllImport(Cocoa.LIB_OBJ_C)]
+        private static extern void method_exchangeImplementations(IntPtr method1, IntPtr method2);
+
+        [DllImport(Cocoa.LIB_OBJ_C)]
         private static extern IntPtr objc_getClass(string name);
 
         public static IntPtr Get(string name)
@@ -28,5 +37,17 @@ namespace osu.Framework.Platform.MacOS.Native
 
         public static void RegisterMethod(IntPtr handle, Delegate d, string selector, string typeString) =>
             class_replaceMethod(handle, Selector.Get(selector), Marshal.GetFunctionPointerForDelegate(d), typeString);
+
+        public static IntPtr SwizzleMethod(IntPtr classHandle, string selector, string typeString, Delegate d)
+        {
+            var targetSelector = Selector.Get(selector);
+            var targetMethod = class_getInstanceMethod(classHandle, targetSelector);
+            var newMethodImplementation = Marshal.GetFunctionPointerForDelegate(d);
+            var newSelector = Selector.Get($"orig_{selector}");
+            class_replaceMethod(classHandle, newSelector, newMethodImplementation, typeString);
+            var newMethod = class_getInstanceMethod(classHandle, newSelector);
+            method_exchangeImplementations(targetMethod, newMethod);
+            return newSelector;
+        }
     }
 }

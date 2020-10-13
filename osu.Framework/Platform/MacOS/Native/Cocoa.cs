@@ -69,6 +69,13 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        public static extern float SendFloat_i386(IntPtr receiver, IntPtr selector);
+
+        // On x64 using selector that return CGFloat give you 64 bit == double
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern double SendFloat_x64(IntPtr receiver, IntPtr selector);
+
         public static IntPtr AppKitLibrary;
 
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]
@@ -109,5 +116,7 @@ namespace osu.Framework.Platform.MacOS.Native
             IntPtr ptr = dlsym(handle, symbol);
             return ptr == IntPtr.Zero ? IntPtr.Zero : Marshal.ReadIntPtr(ptr);
         }
+
+        public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
     }
 }
