@@ -19,7 +19,7 @@ namespace osu.Framework.Platform
     /// Implementation of <see cref="IWindow"/> that provides bindables and
     /// delegates responsibility to window and graphics backends.
     /// </summary>
-    public class Window : IWindow
+    public abstract class Window : IWindow
     {
         protected readonly IWindowBackend WindowBackend;
         protected readonly IGraphicsBackend GraphicsBackend;
@@ -247,17 +247,13 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        #region Constructors
+        protected abstract IWindowBackend CreateWindowBackend();
+        protected abstract IGraphicsBackend CreateGraphicsBackend();
 
-        /// <summary>
-        /// Creates a new <see cref="Window"/> using the specified window and graphics backends.
-        /// </summary>
-        /// <param name="windowBackend">The <see cref="IWindowBackend"/> to use.</param>
-        /// <param name="graphicsBackend">The <see cref="IGraphicsBackend"/> to use.</param>
-        public Window(IWindowBackend windowBackend, IGraphicsBackend graphicsBackend)
+        protected Window()
         {
-            WindowBackend = windowBackend;
-            GraphicsBackend = graphicsBackend;
+            WindowBackend = CreateWindowBackend();
+            GraphicsBackend = CreateGraphicsBackend();
 
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
@@ -292,10 +288,6 @@ namespace osu.Framework.Platform
                     OnMouseLeft();
             };
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Starts the window's run loop.
@@ -374,8 +366,6 @@ namespace osu.Framework.Platform
             if (!OnExitRequested())
                 WindowBackend.Close();
         }
-
-        #endregion
 
         #region Bindable Handling
 

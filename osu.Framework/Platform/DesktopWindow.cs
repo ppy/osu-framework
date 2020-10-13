@@ -19,6 +19,7 @@ namespace osu.Framework.Platform
 {
     /// <summary>
     /// Implementation of <see cref="Window"/> used for desktop platforms.
+    /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="Sdl2GraphicsBackend"/> by default.
     /// </summary>
     public class DesktopWindow : Window
     {
@@ -66,14 +67,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// Initialises a window for desktop platforms.
-        /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="Sdl2GraphicsBackend"/>.
-        /// </summary>
-        public DesktopWindow()
-            : base(new Sdl2WindowBackend(), new Sdl2GraphicsBackend())
-        {
-        }
+        protected override IWindowBackend CreateWindowBackend() => new Sdl2WindowBackend();
+        protected override IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
