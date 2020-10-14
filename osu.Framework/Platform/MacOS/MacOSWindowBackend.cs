@@ -8,6 +8,10 @@ using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
+    /// <summary>
+    /// A macOS-specific subclass of <see cref="Sdl2WindowBackend"/> that performs additional logic
+    /// that SDL does not provide.
+    /// </summary>
     public class MacOSWindowBackend : Sdl2WindowBackend
     {
         private static readonly IntPtr sel_hasprecisescrollingdeltas = Selector.Get("hasPreciseScrollingDeltas");
@@ -17,31 +21,39 @@ namespace osu.Framework.Platform.MacOS
 
         private delegate void ScrollWheelDelegate(IntPtr handle, IntPtr selector, IntPtr theEvent); // v@:@
 
-        private IntPtr swizzledScrollWheel;
+        private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
         public override void Create()
         {
             base.Create();
 
+            // replace [SDLView scrollWheel:(NSEvent *)] with our own version
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
-            swizzledScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+            originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
         }
 
-        private void scrollWheel(IntPtr handle, IntPtr selector, IntPtr theEvent)
+        /// <summary>
+        /// Swizzled replacement of [SDLView scrollWheel:(NSEvent *)] that checks for precise scrolling deltas.
+        /// </summary>
+        private void scrollWheel(IntPtr receiver, IntPtr selector, IntPtr theEvent)
         {
-            var hasPrecise = Cocoa.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) && Cocoa.SendBool(theEvent, sel_hasprecisescrollingdeltas);
+            var hasPrecise = Cocoa.SendBool(theEvent, sel_respondstoselector_, sel_hasprecisescrollingdeltas) &&
+                             Cocoa.SendBool(theEvent, sel_hasprecisescrollingdeltas);
 
-            if (hasPrecise)
+            if (!hasPrecise)
             {
-                const float scale_factor = 0.1f;
-                var scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
-                var scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
-                OnMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true);
+                // calls the unswizzled [SDLView scrollWheel:(NSEvent *)] method if this is a regular scroll wheel event
+                Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+                return;
             }
-            else
-                Cocoa.SendVoid(handle, swizzledScrollWheel, theEvent);
+
+            // according to osuTK, 0.1f is the scaling factor expected to be returned by CGEventSourceGetPixelsPerLine
+            const float scale_factor = 0.1f;
+            var scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
+            var scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
+            ScheduleEvent(() => OnMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
     }
 }
