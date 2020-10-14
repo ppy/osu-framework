@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -61,6 +62,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool ShouldLoadContent => timeVisible > timeBeforeLoad;
 
+        private CancellationTokenSource cancellationTokenSource;
         private ScheduledDelegate scheduledAddition;
 
         protected override void Update()
@@ -87,8 +89,10 @@ namespace osu.Framework.Graphics.Containers
             DelayedLoadTriggered = true;
             DelayedLoadStarted?.Invoke(Content);
 
+            cancellationTokenSource = new CancellationTokenSource();
+
             // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
-            LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler);
+            LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler, cancellation: cancellationTokenSource.Token);
         }
 
         protected virtual void EndDelayedLoad(Drawable content)
@@ -113,6 +117,9 @@ namespace osu.Framework.Graphics.Containers
         protected virtual void CancelTasks()
         {
             isIntersectingCache.Invalidate();
+
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = null;
 
             scheduledAddition?.Cancel();
             scheduledAddition = null;
