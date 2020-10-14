@@ -24,6 +24,9 @@ namespace osu.Framework.Tests.Visual.Drawables
         private FillFlowContainer<Container> flow;
         private TestScrollContainer scroll;
 
+        [Resolved]
+        private Game game { get; set; }
+
         [SetUp]
         public void SetUp() => Schedule(() =>
         {
@@ -100,6 +103,44 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("scroll to start", () => scroll.ScrollToStart());
 
             AddUntilStep("references restored", () => references.Count() == 16);
+        }
+
+        [Test]
+        public void TestTasksCanceledDuringLoadSequence()
+        {
+            var references = new WeakList<TestBox>();
+
+            AddStep("populate panels", () =>
+            {
+                references.Clear();
+
+                for (int i = 0; i < 16; i++)
+                {
+                    DelayedLoadUnloadWrapper loadUnloadWrapper;
+
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Child = loadUnloadWrapper = new DelayedLoadUnloadWrapper(() =>
+                        {
+                            var content = new TestBox { RelativeSizeAxes = Axes.Both };
+                            references.Add(content);
+                            return content;
+                        }, 0),
+                    });
+
+                    // cancel load tasks after the delayed load has started.
+                    loadUnloadWrapper.DelayedLoadStarted += _ => game.Schedule(() => loadUnloadWrapper.UnbindAllBindables());
+                }
+            });
+
+            AddStep("remove all panels", () => flow.Clear(false));
+
+            AddUntilStep("references lost", () =>
+            {
+                GC.Collect();
+                return !references.Any();
+            });
         }
 
         [Test]
