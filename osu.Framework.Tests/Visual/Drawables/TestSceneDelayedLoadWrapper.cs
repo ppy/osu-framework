@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -16,17 +17,16 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneDelayedLoadWrapper : FrameworkTestScene
     {
+        private FillFlowContainer<Container> flow;
+        private TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll;
+        private int loaded;
+
         private const int panel_count = 2048;
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void TestManyChildren(bool instant)
+        [SetUpSteps]
+        public void SetUpSteps()
         {
-            FillFlowContainer<Container> flow = null;
-            TestSceneDelayedLoadUnloadWrapper.TestScrollContainer scroll = null;
-            int loaded = 0;
-
-            AddStep("create children", () =>
+            AddStep("create scroll container", () =>
             {
                 loaded = 0;
 
@@ -45,7 +45,15 @@ namespace osu.Framework.Tests.Visual.Drawables
                         }
                     }
                 };
+            });
+        }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestManyChildren(bool instant)
+        {
+            AddStep("create children", () =>
+            {
                 for (int i = 1; i < panel_count; i++)
                 {
                     flow.Add(new Container
