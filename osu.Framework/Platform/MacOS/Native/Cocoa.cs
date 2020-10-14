@@ -40,12 +40,6 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern uint SendUint(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern bool SendBool(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
@@ -55,16 +49,10 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern bool SendBool(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, uint arg);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);

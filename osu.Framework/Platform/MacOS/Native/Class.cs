@@ -9,16 +9,10 @@ namespace osu.Framework.Platform.MacOS.Native
     internal static class Class
     {
         [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern IntPtr class_getName(IntPtr handle);
-
-        [DllImport(Cocoa.LIB_OBJ_C)]
         private static extern IntPtr class_replaceMethod(IntPtr classHandle, IntPtr selector, IntPtr method, string types);
 
         [DllImport(Cocoa.LIB_OBJ_C)]
         private static extern IntPtr class_getInstanceMethod(IntPtr classHandle, IntPtr selector);
-
-        [DllImport(Cocoa.LIB_OBJ_C)]
-        private static extern IntPtr method_getImplementation(IntPtr method);
 
         [DllImport(Cocoa.LIB_OBJ_C)]
         private static extern void method_exchangeImplementations(IntPtr method1, IntPtr method2);

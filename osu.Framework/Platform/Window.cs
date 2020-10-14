@@ -247,7 +247,14 @@ namespace osu.Framework.Platform
 
         #endregion
 
+        /// <summary>
+        /// Creates an instance of <see cref="IWindowBackend"/> for the platform.
+        /// </summary>
         protected abstract IWindowBackend CreateWindowBackend();
+
+        /// <summary>
+        /// Creates an instance of <see cref="IGraphicsBackend"/> for the platform.
+        /// </summary>
         protected abstract IGraphicsBackend CreateGraphicsBackend();
 
         protected Window()
