@@ -125,8 +125,12 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(DelayedLoadCompleted);
 
             // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
-            ClearInternal(false);
-            DisposeChildAsync(Content);
+            if (!Content.IsDisposed)
+            {
+                ClearInternal(false);
+                DisposeChildAsync(Content);
+            }
+
             Content = null;
 
             timeHidden = 0;
