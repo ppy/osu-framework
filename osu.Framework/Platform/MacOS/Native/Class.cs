@@ -29,26 +29,28 @@ namespace osu.Framework.Platform.MacOS.Native
             return id;
         }
 
-        public static void RegisterMethod(IntPtr handle, Delegate d, string selector, string typeString) =>
-            class_replaceMethod(handle, Selector.Get(selector), Marshal.GetFunctionPointerForDelegate(d), typeString);
+        public static void RegisterMethod(IntPtr handle, Delegate action, string selector, string typeString) =>
+            class_replaceMethod(handle, Selector.Get(selector), Marshal.GetFunctionPointerForDelegate(action), typeString);
 
         /// <summary>
         /// Performs method swizzling for a given selector, using a given delegate implementation.
+        /// </summary>
+        /// <remarks>
         /// This essentially adds a new Objective-C method, then swaps the implementation with an existing one.
         /// Returns a selector to the newly registered method, which has the original implementation of
         /// <paramref name="selector"/> before swizzling.
         /// https://nshipster.com/method-swizzling/
-        /// </summary>
+        /// </remarks>
         /// <param name="classHandle">The Objective-C class which should have a method swizzled.</param>
         /// <param name="selector">The selector to swizzle.</param>
         /// <param name="typeString">The type encoding of the selector.</param>
-        /// <param name="d">The delegate to use as the new implementation.</param>
+        /// <param name="action">The delegate to use as the new implementation.</param>
         /// <returns>A selector for the newly registered method, containing the old implementation.</returns>
-        public static IntPtr SwizzleMethod(IntPtr classHandle, string selector, string typeString, Delegate d)
+        public static IntPtr SwizzleMethod(IntPtr classHandle, string selector, string typeString, Delegate action)
         {
             var targetSelector = Selector.Get(selector);
             var targetMethod = class_getInstanceMethod(classHandle, targetSelector);
-            var newMethodImplementation = Marshal.GetFunctionPointerForDelegate(d);
+            var newMethodImplementation = Marshal.GetFunctionPointerForDelegate(action);
             var newSelector = Selector.Get($"orig_{selector}");
             class_replaceMethod(classHandle, newSelector, newMethodImplementation, typeString);
             var newMethod = class_getInstanceMethod(classHandle, newSelector);

@@ -51,8 +51,10 @@ namespace osu.Framework.Platform.MacOS
 
             // according to osuTK, 0.1f is the scaling factor expected to be returned by CGEventSourceGetPixelsPerLine
             const float scale_factor = 0.1f;
-            var scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
-            var scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
+
+            float scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
+            float scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
+
             ScheduleEvent(() => OnMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
     }
