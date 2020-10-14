@@ -34,11 +34,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override double LifetimeStart
         {
-            get => base.Content?.LifetimeStart ?? lifetimeStart;
+            get => Content?.LifetimeStart ?? lifetimeStart;
             set
             {
-                if (base.Content != null)
-                    base.Content.LifetimeStart = value;
+                if (Content != null)
+                    Content.LifetimeStart = value;
                 lifetimeStart = value;
             }
         }
@@ -47,11 +47,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override double LifetimeEnd
         {
-            get => base.Content?.LifetimeEnd ?? lifetimeEnd;
+            get => Content?.LifetimeEnd ?? lifetimeEnd;
             set
             {
-                if (base.Content != null)
-                    base.Content.LifetimeEnd = value;
+                if (Content != null)
+                    Content.LifetimeEnd = value;
                 lifetimeEnd = value;
             }
         }
