@@ -97,6 +97,55 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestManyChildrenFunction(bool instant)
+        {
+            AddStep("create children", () =>
+            {
+                for (int i = 1; i < panel_count; i++)
+                {
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Children = new Drawable[]
+                        {
+                            new DelayedLoadWrapper(() => new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Children = new Drawable[]
+                                {
+                                    new TestBox(() => loaded++) { RelativeSizeAxes = Axes.Both }
+                                }
+                            }, instant ? 0 : 500),
+                            new SpriteText { Text = i.ToString() },
+                        }
+                    });
+                }
+            });
+
+            var childrenWithAvatarsLoaded = new Func<IEnumerable<Drawable>>(() => flow.Children.Where(c => c.Children.OfType<DelayedLoadWrapper>().First().Content?.IsLoaded ?? false));
+
+            int loadCount1 = 0;
+
+            AddUntilStep("wait for load", () => loaded > 0);
+
+            AddStep("scroll down", () =>
+            {
+                loadCount1 = loaded;
+                scroll.ScrollToEnd();
+            });
+
+            AddWaitStep("wait some more", 10);
+
+            AddUntilStep("more loaded", () => loaded > loadCount1);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded().Count() < panel_count / 4);
+
+            AddStep("Remove all panels", () => flow.Clear(false));
+
+            AddUntilStep("repeating schedulers removed", () => !scroll.Scheduler.HasPendingTasks);
+        }
+
         public class TestBox : Container
         {
             private readonly Action onLoadAction;

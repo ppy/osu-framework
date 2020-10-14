@@ -21,6 +21,8 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         protected Game Game { get; private set; }
 
+        private readonly Func<Drawable> createFunc;
+
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
         /// </summary>
@@ -28,12 +30,27 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
         /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
         public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
+            : this(timeBeforeLoad)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
-            this.timeBeforeLoad = timeBeforeLoad;
+        }
 
-            RelativeSizeAxes = content.RelativeSizeAxes;
-            AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+        /// <summary>
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
+        /// This constructor is preferred due to avoiding construction of the loadable content until a load is actually triggered.
+        /// </summary>
+        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will begin on the next Update call.</remarks>
+        /// <param name="createFunc">A function which created future content.</param>
+        /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
+        public DelayedLoadWrapper(Func<Drawable> createFunc, double timeBeforeLoad = 500)
+            : this(timeBeforeLoad)
+        {
+            this.createFunc = createFunc;
+        }
+
+        private DelayedLoadWrapper(double timeBeforeLoad)
+        {
+            this.timeBeforeLoad = timeBeforeLoad;
 
             AddLayout(optimisingContainerCache);
             AddLayout(isIntersectingCache);
@@ -41,17 +58,38 @@ namespace osu.Framework.Graphics.Containers
 
         public override double LifetimeStart
         {
-            get => Content.LifetimeStart;
+            get => Content?.LifetimeStart ?? base.LifetimeStart;
             set => Content.LifetimeStart = value;
         }
 
         public override double LifetimeEnd
         {
-            get => Content.LifetimeEnd;
+            get => Content?.LifetimeEnd ?? base.LifetimeEnd;
             set => Content.LifetimeEnd = value;
         }
 
-        public virtual Drawable Content { get; protected set; }
+        private Drawable content;
+
+        public Drawable Content
+        {
+            get => content;
+            protected set
+            {
+                if (content == value)
+                    return;
+
+                content = value;
+
+                if (content == null)
+                    return;
+
+                AutoSizeAxes = Axes.None;
+                RelativeSizeAxes = Axes.None;
+
+                RelativeSizeAxes = content.RelativeSizeAxes;
+                AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+            }
+        }
 
         /// <summary>
         /// The amount of time on-screen in milliseconds before we begin a load of children.
@@ -84,6 +122,8 @@ namespace osu.Framework.Graphics.Containers
         protected void BeginDelayedLoad()
         {
             if (loadTask != null) throw new InvalidOperationException("Load is already started!");
+
+            Content ??= createFunc();
 
             DelayedLoadStarted?.Invoke(Content);
 

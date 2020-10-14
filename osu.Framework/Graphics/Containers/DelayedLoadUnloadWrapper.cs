@@ -12,13 +12,11 @@ namespace osu.Framework.Graphics.Containers
 {
     public class DelayedLoadUnloadWrapper : DelayedLoadWrapper
     {
-        private readonly Func<Drawable> createContentFunction;
         private readonly double timeBeforeUnload;
 
         public DelayedLoadUnloadWrapper(Func<Drawable> createContentFunction, double timeBeforeLoad = 500, double timeBeforeUnload = 1000)
-            : base(createContentFunction(), timeBeforeLoad)
+            : base(createContentFunction, timeBeforeLoad)
         {
-            this.createContentFunction = createContentFunction;
             this.timeBeforeUnload = timeBeforeUnload;
 
             AddLayout(unloadClockBacking);
@@ -57,8 +55,6 @@ namespace osu.Framework.Graphics.Containers
                 lifetimeEnd = value;
             }
         }
-
-        public override Drawable Content => base.Content ?? (Content = createContentFunction());
 
         private bool contentLoaded;
         private ScheduledDelegate scheduledLifetimeUpdate;
