@@ -153,19 +153,21 @@ namespace osu.Framework.Graphics.Containers
 
             loadingComponents ??= new WeakList<Drawable>();
 
-            foreach (var d in components)
+            var loadables = components.ToList();
+
+            foreach (var d in loadables)
             {
                 loadingComponents.Add(d);
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
-            return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
-                var exception = t.Exception?.AsSingular();
+                var exception = loaded.Exception?.AsSingular();
 
-                if (!components.Any())
+                if (loadables.Count == 0)
                     return;
 
                 if (linkedSource.Token.IsCancellationRequested)
@@ -182,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                             ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
-                            onLoaded?.Invoke(components);
+                            onLoaded?.Invoke(loadables);
                     }
                     finally
                     {
@@ -209,19 +211,22 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            loadComponents(ref components, Dependencies, false);
+            loadComponents(components.ToList(), Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+        /// <summary>
+        /// Load the provided components. Any components which could not be loaded will be removed from the provided list.
+        /// </summary>
+        private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            foreach (var c in components)
+            for (var i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
-                    return;
+                    break;
 
-                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
-                    components = components.Except(c.Yield());
+                if (!components[i].LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components.Remove(components[i--]);
             }
         }
 
