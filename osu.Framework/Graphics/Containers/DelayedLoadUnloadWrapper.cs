@@ -131,8 +131,8 @@ namespace osu.Framework.Graphics.Containers
                 if (isDisposed)
                     return;
 
-                // checkForUnload() is the only method that can set this to false. If it happens it means this delegate has somehow run twice without having been cancelled.
-                Debug.Assert(DelayedLoadCompleted);
+                // Guard against multiple executions of checkForUnload() without an intermediate load having started.
+                Debug.Assert(DelayedLoadTriggered);
 
                 // This code can be expensive, so only run if we haven't yet loaded.
                 if (IsIntersecting)
@@ -140,18 +140,28 @@ namespace osu.Framework.Graphics.Containers
                 else
                     timeHidden += unloadClock.ElapsedFrameTime;
 
+                // Don't unload if we don't need to.
                 if (!ShouldUnloadContent)
                     return;
 
-                // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
-                ClearInternal(false);
-                DisposeChildAsync(Content);
-                Content = null;
+                // We need to dispose the content, taking into account what we know at this point in time:
+                // 1: The DLUW has not been disposed. Consequently, neither has the content.
+                // 2: The content has finished loading.
+                // 3: The content may not have been added to the hierarchy (e.g. if this DLUW is hidden). This is dependent upon the value of DelayedLoadCompleted.
+                if (DelayedLoadCompleted)
+                    ClearInternal(); // Content added, remove AND dispose.
+                else
+                    DisposeChildAsync(Content); // Content not added, only need to dispose.
 
+                Content = null;
                 timeHidden = 0;
 
+                // This has two important roles:
+                // 1. Stopping this delegate from executing multiple times.
+                // 2. If DelayedLoadCompleted = false (content not yet added to hierarchy), prevents the now disposed content from being added (e.g. if this DLUW becomes visible again).
                 CancelTasks();
 
+                // And finally, allow another load to take place.
                 DelayedLoadTriggered = DelayedLoadCompleted = false;
             }
         }
