@@ -17,10 +17,26 @@ namespace osu.Framework.Utils
 {
     public static class Interpolation
     {
-        public static double Lerp(double start, double final, double amount) => start + (final - start) * amount;
+        /// <summary>
+        /// Interpolates between two values (start and final).
+        /// </summary>
+        /// <param name="start">The start value.</param>
+        /// <param name="final">The end value.</param>
+        /// <param name="amount">The amount to interpolate.</param>
+        /// <returns>The interpolated value.</returns>
+        public static double Lerp(double start, double final, double amount) => Lerp<double>(start, final, amount);
 
         /// <summary>
-        /// Interpolates between 2 values (start and final) using a given base and exponent.
+        /// Interpolates between two values (start and final).
+        /// </summary>
+        /// <param name="start">The start value.</param>
+        /// <param name="final">The end value.</param>
+        /// <param name="amount">The amount to interpolate.</param>
+        /// <returns>The interpolated value.</returns>
+        public static T Lerp<T>(T start, T final, double amount) => ValueAt(amount, start, final, 0, 1);
+
+        /// <summary>
+        /// Interpolates between two values (start and final) using a given base and exponent.
         /// </summary>
         /// <param name="start">The start value.</param>
         /// <param name="final">The end value.</param>
@@ -28,6 +44,17 @@ namespace osu.Framework.Utils
         /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
         /// <returns></returns>
         public static double Damp(double start, double final, double @base, double exponent)
+            => Damp<double>(start, final, @base, exponent);
+
+        /// <summary>
+        /// Interpolates between two values (start and final) using a given base and exponent.
+        /// </summary>
+        /// <param name="start">The start value.</param>
+        /// <param name="final">The end value.</param>
+        /// <param name="base">The base of the exponential. The valid range is [0, 1], where smaller values mean that the final value is achieved more quickly, and values closer to 1 results in slow convergence to the final value.</param>
+        /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
+        /// <returns></returns>
+        public static T Damp<T>(T start, T final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)
                 throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
