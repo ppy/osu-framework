@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Content must have finished loading, but not necessarily added to the hierarchy.
                     Debug.Assert(DelayedLoadTriggered);
+                    Debug.Assert(Content.LoadState >= LoadState.Ready);
 
                     Debug.Assert(unloadSchedule == null);
                     unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
@@ -138,6 +139,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Guard against multiple executions of checkForUnload() without an intermediate load having started.
                 Debug.Assert(DelayedLoadTriggered);
+                Debug.Assert(Content.LoadState >= LoadState.Ready);
 
                 // This code can be expensive, so only run if we haven't yet loaded.
                 if (IsIntersecting)
@@ -154,9 +156,15 @@ namespace osu.Framework.Graphics.Containers
                 // 2: The content has finished loading.
                 // 3: The content may not have been added to the hierarchy (e.g. if this DLUW is hidden). This is dependent upon the value of DelayedLoadCompleted.
                 if (DelayedLoadCompleted)
+                {
+                    Debug.Assert(Content.LoadState == LoadState.Loaded);
                     ClearInternal(); // Content added, remove AND dispose.
+                }
                 else
+                {
+                    Debug.Assert(Content.LoadState == LoadState.Ready);
                     DisposeChildAsync(Content); // Content not added, only need to dispose.
+                }
 
                 Content = null;
                 timeHidden = 0;
