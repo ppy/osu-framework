@@ -445,7 +445,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Form.ContainsKey("testkey2"));
             Assert.IsTrue(responseObject.Form["testkey2"] == "testval2");
 
-            Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary="));
+            Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary=", StringComparison.Ordinal));
         }
 
         [Test, Retry(5)]
