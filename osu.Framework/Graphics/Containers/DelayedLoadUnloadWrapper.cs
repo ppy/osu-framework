@@ -76,10 +76,14 @@ namespace osu.Framework.Graphics.Containers
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             scheduledUnloadCheckRegistration = Game.Schedule(() =>
             {
+                // Since this code is running on the game scheduler, it needs to be safe against a potential simultaneous async disposal.
                 lock (disposalLock)
                 {
                     if (isDisposed)
                         return;
+
+                    // Content must have finished loading, but not necessarily added to the hierarchy.
+                    Debug.Assert(DelayedLoadTriggered);
 
                     Debug.Assert(unloadSchedule == null);
                     unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
@@ -126,6 +130,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void checkForUnload()
         {
+            // Since this code is running on the game scheduler, it needs to be safe against a potential simultaneous async disposal.
             lock (disposalLock)
             {
                 if (isDisposed)
