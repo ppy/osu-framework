@@ -76,15 +76,22 @@ namespace osu.Framework.Graphics.Containers
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             Game.Schedule(() =>
             {
-                Debug.Assert(!contentLoaded);
-                Debug.Assert(unloadSchedule == null);
+                // This code is running on the game's scheduler meanwhile an async disposal may have already been triggered from elsewhere in the hierarchy.
+                lock (disposalLock)
+                {
+                    if (isDisposed)
+                        return;
 
-                contentLoaded = true;
+                    Debug.Assert(!contentLoaded);
+                    Debug.Assert(unloadSchedule == null);
 
-                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
-                Debug.Assert(unloadSchedule != null);
+                    contentLoaded = true;
 
-                total_loaded.Value++;
+                    unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
+                    Debug.Assert(unloadSchedule != null);
+
+                    total_loaded.Value++;
+                }
             });
         }
 
