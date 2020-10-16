@@ -84,8 +84,14 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                foreach (var manager in managers)
-                    manager.Dispose();
+                for (int i = managers.Count - 1; i >= 0; i--)
+                {
+                    var m = managers[i];
+
+                    m.Dispose();
+                    m.Update();
+                }
+
                 managers.Clear();
             }
 
