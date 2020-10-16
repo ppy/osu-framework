@@ -81,7 +81,9 @@ namespace osu.Framework.Graphics.Containers
                     if (isDisposed)
                         return;
 
-                    DelayedLoadCompleted = true;
+                    // See DLW: The load callback is scheduled onto the game scheduler, so the local scheduler runs first (on the same game frame).
+                    // This scheduled delegate will only execute on the NEXT game frame.
+                    Debug.Assert(DelayedLoadCompleted);
 
                     Debug.Assert(unloadSchedule == null);
                     unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
