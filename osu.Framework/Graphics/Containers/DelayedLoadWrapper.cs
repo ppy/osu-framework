@@ -104,6 +104,12 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            CancelTasks();
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
