@@ -135,6 +135,9 @@ namespace osu.Framework.Graphics.Containers
                 if (isDisposed)
                     return;
 
+                // checkForUnload() is the only method that can set this to false. If it happens it means this delegate has somehow run twice without having been cancelled.
+                Debug.Assert(DelayedLoadCompleted);
+
                 // This code can be expensive, so only run if we haven't yet loaded.
                 if (IsIntersecting)
                     timeHidden = 0;
@@ -143,8 +146,6 @@ namespace osu.Framework.Graphics.Containers
 
                 if (!ShouldUnloadContent)
                     return;
-
-                Debug.Assert(DelayedLoadCompleted);
 
                 // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
                 ClearInternal(false);
