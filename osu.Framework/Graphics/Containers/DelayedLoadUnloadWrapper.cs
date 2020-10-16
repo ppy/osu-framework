@@ -88,6 +88,17 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
+        private readonly object disposalLock = new object();
+        private bool isDisposed;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            lock (disposalLock)
+                isDisposed = true;
+
+            base.Dispose(isDisposing);
+        }
+
         protected override void CancelTasks()
         {
             base.CancelTasks();
@@ -110,8 +121,6 @@ namespace osu.Framework.Graphics.Containers
 
         private void checkForUnload()
         {
-            Debug.Assert(!IsDisposed);
-
             // This code can be expensive, so only run if we haven't yet loaded.
             if (IsIntersecting)
                 timeHidden = 0;
@@ -123,16 +132,23 @@ namespace osu.Framework.Graphics.Containers
 
             Debug.Assert(contentLoaded);
 
-            // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
-            ClearInternal(false);
-            DisposeChildAsync(Content);
-            Content = null;
+            // This code is running on the game's scheduler meanwhile an async disposal may have already been triggered from elsewhere in the hierarchy.
+            lock (disposalLock)
+            {
+                if (isDisposed)
+                    return;
 
-            timeHidden = 0;
+                // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
+                ClearInternal(false);
+                DisposeChildAsync(Content);
+                Content = null;
 
-            CancelTasks();
+                timeHidden = 0;
 
-            contentLoaded = false;
+                CancelTasks();
+
+                contentLoaded = false;
+            }
         }
     }
 }
