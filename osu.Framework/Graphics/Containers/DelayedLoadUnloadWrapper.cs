@@ -130,23 +130,21 @@ namespace osu.Framework.Graphics.Containers
 
         private void checkForUnload()
         {
-            Debug.Assert(!IsDisposed);
-
-            // This code can be expensive, so only run if we haven't yet loaded.
-            if (IsIntersecting)
-                timeHidden = 0;
-            else
-                timeHidden += unloadClock.ElapsedFrameTime;
-
-            if (!ShouldUnloadContent)
-                return;
-
-            Debug.Assert(DelayedLoadCompleted);
-
             lock (disposalLock)
             {
                 if (isDisposed)
                     return;
+
+                // This code can be expensive, so only run if we haven't yet loaded.
+                if (IsIntersecting)
+                    timeHidden = 0;
+                else
+                    timeHidden += unloadClock.ElapsedFrameTime;
+
+                if (!ShouldUnloadContent)
+                    return;
+
+                Debug.Assert(DelayedLoadCompleted);
 
                 // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
                 ClearInternal(false);
