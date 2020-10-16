@@ -76,14 +76,31 @@ namespace osu.Framework.Graphics.Containers
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             scheduledUnloadCheckRegistration = Game.Schedule(() =>
             {
-                DelayedLoadCompleted = true;
+                lock (disposalLock)
+                {
+                    if (isDisposed)
+                        return;
 
-                Debug.Assert(unloadSchedule == null);
-                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
-                Debug.Assert(unloadSchedule != null);
+                    DelayedLoadCompleted = true;
 
-                total_loaded.Value++;
+                    Debug.Assert(unloadSchedule == null);
+                    unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
+                    Debug.Assert(unloadSchedule != null);
+
+                    total_loaded.Value++;
+                }
             });
+        }
+
+        private readonly object disposalLock = new object();
+        private bool isDisposed;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            lock (disposalLock)
+                isDisposed = true;
+
+            base.Dispose(isDisposing);
         }
 
         protected override void CancelTasks()
@@ -124,20 +141,22 @@ namespace osu.Framework.Graphics.Containers
 
             Debug.Assert(DelayedLoadCompleted);
 
-            // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
-            if (!Content.IsDisposed)
+            lock (disposalLock)
             {
+                if (isDisposed)
+                    return;
+
+                // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
                 ClearInternal(false);
                 DisposeChildAsync(Content);
+                Content = null;
+
+                timeHidden = 0;
+
+                CancelTasks();
+
+                DelayedLoadTriggered = DelayedLoadCompleted = false;
             }
-
-            Content = null;
-
-            timeHidden = 0;
-
-            CancelTasks();
-
-            DelayedLoadTriggered = DelayedLoadCompleted = false;
         }
     }
 }

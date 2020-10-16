@@ -114,6 +114,12 @@ namespace osu.Framework.Graphics.Containers
             CancelTasks();
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            CancelTasks();
+        }
+
         protected virtual void CancelTasks()
         {
             isIntersectingCache.Invalidate();
