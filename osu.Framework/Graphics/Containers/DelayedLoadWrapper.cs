@@ -103,8 +103,9 @@ namespace osu.Framework.Graphics.Containers
             scheduledAddition = Schedule(() =>
             {
                 AddInternal(content);
-                DelayedLoadComplete?.Invoke(content);
+
                 DelayedLoadCompleted = true;
+                DelayedLoadComplete?.Invoke(content);
             });
         }
 
