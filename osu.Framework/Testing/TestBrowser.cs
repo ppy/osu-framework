@@ -63,7 +63,7 @@ namespace osu.Framework.Testing
             assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
             {
                 Debug.Assert(n.FullName != null);
-                return n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace);
+                return n.FullName.StartsWith("osu", StringComparison.Ordinal) || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace, StringComparison.Ordinal);
             }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
@@ -488,7 +488,7 @@ namespace osu.Framework.Testing
                 if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
 
-                if (name.StartsWith("Test"))
+                if (name.StartsWith("Test", StringComparison.Ordinal))
                     name = name.Substring(4);
 
                 int runCount = 1;
