@@ -446,7 +446,7 @@ namespace osu.Framework.Platform.Sdl
 
         public override void Close() => commandScheduler.Add(() => Exists = false);
 
-        public override void RequestClose() => eventScheduler.Add(OnCloseRequested);
+        public override void RequestClose() => ScheduleEvent(OnCloseRequested);
 
         public override unsafe void SetIcon(Image<Rgba32> image)
         {
@@ -476,12 +476,18 @@ namespace osu.Framework.Platform.Sdl
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            eventScheduler.Add(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
+            ScheduleEvent(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
         }
 
         #endregion
 
         #region SDL Event Handling
+
+        /// <summary>
+        /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
+        /// </summary>
+        /// <param name="action">The <see cref="Action"/> to execute.</param>
+        protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
 
         private void processEvents()
         {
@@ -586,7 +592,7 @@ namespace osu.Framework.Platform.Sdl
                 case SDL.SDL_EventType.SDL_DROPFILE:
                     var str = SDL.UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
-                        eventScheduler.Add(() => OnDragDrop(str));
+                        ScheduleEvent(() => OnDragDrop(str));
 
                     break;
             }
@@ -629,7 +635,7 @@ namespace osu.Framework.Platform.Sdl
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            eventScheduler.Add(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
+            ScheduleEvent(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
@@ -638,17 +644,17 @@ namespace osu.Framework.Platform.Sdl
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    eventScheduler.Add(() => OnMouseDown(button));
+                    ScheduleEvent(() => OnMouseDown(button));
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    eventScheduler.Add(() => OnMouseUp(button));
+                    ScheduleEvent(() => OnMouseUp(button));
                     break;
             }
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            eventScheduler.Add(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
+            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -659,7 +665,7 @@ namespace osu.Framework.Platform.Sdl
             string text = Marshal.PtrToStringAnsi(ptr) ?? "";
 
             foreach (char c in text)
-                eventScheduler.Add(() => OnKeyTyped(c));
+                ScheduleEvent(() => OnKeyTyped(c));
         }
 
         private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -676,11 +682,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    eventScheduler.Add(() => OnKeyDown(key));
+                    ScheduleEvent(() => OnKeyDown(key));
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
-                    eventScheduler.Add(() => OnKeyUp(key));
+                    ScheduleEvent(() => OnKeyUp(key));
                     break;
             }
         }
@@ -694,7 +700,7 @@ namespace osu.Framework.Platform.Sdl
             {
                 lastWindowState = currentState;
                 cachedScale.Invalidate();
-                eventScheduler.Add(() => OnWindowStateChanged(currentState));
+                ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
 
             if (lastDisplayIndex != displayIndex)
@@ -702,17 +708,17 @@ namespace osu.Framework.Platform.Sdl
                 lastDisplayIndex = displayIndex;
                 currentDisplay = null;
                 cachedScale.Invalidate();
-                eventScheduler.Add(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
+                ScheduleEvent(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
             }
 
             switch (evtWindow.windowEvent)
             {
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                    eventScheduler.Add(OnShown);
+                    ScheduleEvent(OnShown);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
-                    eventScheduler.Add(OnHidden);
+                    ScheduleEvent(OnHidden);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
@@ -722,7 +728,7 @@ namespace osu.Framework.Platform.Sdl
                     {
                         position = eventPos;
                         cachedScale.Invalidate();
-                        eventScheduler.Add(() => OnMoved(eventPos));
+                        ScheduleEvent(() => OnMoved(eventPos));
                     }
 
                     break;
@@ -734,7 +740,7 @@ namespace osu.Framework.Platform.Sdl
                     {
                         size = eventSize;
                         cachedScale.Invalidate();
-                        eventScheduler.Add(() => OnResized(eventSize));
+                        ScheduleEvent(() => OnResized(eventSize));
                     }
 
                     break;
@@ -746,20 +752,20 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                     mouseInWindow = true;
-                    eventScheduler.Add(OnMouseEntered);
+                    ScheduleEvent(OnMouseEntered);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
                     mouseInWindow = false;
-                    eventScheduler.Add(OnMouseLeft);
+                    ScheduleEvent(OnMouseLeft);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                    eventScheduler.Add(OnFocusGained);
+                    ScheduleEvent(OnFocusGained);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                    eventScheduler.Add(OnFocusLost);
+                    ScheduleEvent(OnFocusLost);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:

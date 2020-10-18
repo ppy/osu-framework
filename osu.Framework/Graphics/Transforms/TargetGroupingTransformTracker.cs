@@ -333,7 +333,17 @@ namespace osu.Framework.Graphics.Transforms
         private int getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
-                return lastAppliedTransformIndices.Values.Min();
+            {
+                int min = int.MaxValue;
+
+                foreach (int i in lastAppliedTransformIndices.Values)
+                {
+                    if (i < min)
+                        min = i;
+                }
+
+                return min;
+            }
 
             if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
                 return val;

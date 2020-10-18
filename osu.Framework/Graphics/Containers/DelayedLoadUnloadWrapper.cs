@@ -56,8 +56,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool contentLoaded;
         private ScheduledDelegate scheduledLifetimeUpdate;
+        private ScheduledDelegate scheduledUnloadCheckRegistration;
 
         protected override void EndDelayedLoad(Drawable content)
         {
@@ -70,18 +70,36 @@ namespace osu.Framework.Graphics.Containers
             });
 
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
-            Game.Schedule(() =>
+            scheduledUnloadCheckRegistration = Game.Schedule(() =>
             {
-                Debug.Assert(!contentLoaded);
-                Debug.Assert(unloadSchedule == null);
+                // Since this code is running on the game scheduler, it needs to be safe against a potential simultaneous async disposal.
+                lock (disposalLock)
+                {
+                    if (isDisposed)
+                        return;
 
-                contentLoaded = true;
+                    // Content must have finished loading, but not necessarily added to the hierarchy.
+                    Debug.Assert(DelayedLoadTriggered);
+                    Debug.Assert(Content.LoadState >= LoadState.Ready);
 
-                unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
-                Debug.Assert(unloadSchedule != null);
+                    Debug.Assert(unloadSchedule == null);
+                    unloadSchedule = Game.Scheduler.AddDelayed(checkForUnload, 0, true);
+                    Debug.Assert(unloadSchedule != null);
 
-                total_loaded.Value++;
+                    total_loaded.Value++;
+                }
             });
+        }
+
+        private readonly object disposalLock = new object();
+        private bool isDisposed;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            lock (disposalLock)
+                isDisposed = true;
+
+            base.Dispose(isDisposing);
         }
 
         protected override void CancelTasks()
@@ -98,6 +116,9 @@ namespace osu.Framework.Graphics.Containers
 
             scheduledLifetimeUpdate?.Cancel();
             scheduledLifetimeUpdate = null;
+
+            scheduledUnloadCheckRegistration?.Cancel();
+            scheduledUnloadCheckRegistration = null;
         }
 
         private readonly LayoutValue<IFrameBasedClock> unloadClockBacking = new LayoutValue<IFrameBasedClock>(Invalidation.Parent);
@@ -106,29 +127,52 @@ namespace osu.Framework.Graphics.Containers
 
         private void checkForUnload()
         {
-            Debug.Assert(!IsDisposed);
+            // Since this code is running on the game scheduler, it needs to be safe against a potential simultaneous async disposal.
+            lock (disposalLock)
+            {
+                if (isDisposed)
+                    return;
 
-            // This code can be expensive, so only run if we haven't yet loaded.
-            if (IsIntersecting)
+                // Guard against multiple executions of checkForUnload() without an intermediate load having started.
+                Debug.Assert(DelayedLoadTriggered);
+                Debug.Assert(Content.LoadState >= LoadState.Ready);
+
+                // This code can be expensive, so only run if we haven't yet loaded.
+                if (IsIntersecting)
+                    timeHidden = 0;
+                else
+                    timeHidden += unloadClock.ElapsedFrameTime;
+
+                // Don't unload if we don't need to.
+                if (!ShouldUnloadContent)
+                    return;
+
+                // We need to dispose the content, taking into account what we know at this point in time:
+                // 1: The DLUW has not been disposed. Consequently, neither has the content.
+                // 2: The content has finished loading.
+                // 3: The content may not have been added to the hierarchy (e.g. if this DLUW is hidden). This is dependent upon the value of DelayedLoadCompleted.
+                if (DelayedLoadCompleted)
+                {
+                    Debug.Assert(Content.LoadState == LoadState.Loaded);
+                    ClearInternal(); // Content added, remove AND dispose.
+                }
+                else
+                {
+                    Debug.Assert(Content.LoadState == LoadState.Ready);
+                    DisposeChildAsync(Content); // Content not added, only need to dispose.
+                }
+
+                Content = null;
                 timeHidden = 0;
-            else
-                timeHidden += unloadClock.ElapsedFrameTime;
 
-            if (!ShouldUnloadContent)
-                return;
+                // This has two important roles:
+                // 1. Stopping this delegate from executing multiple times.
+                // 2. If DelayedLoadCompleted = false (content not yet added to hierarchy), prevents the now disposed content from being added (e.g. if this DLUW becomes visible again).
+                CancelTasks();
 
-            Debug.Assert(contentLoaded);
-
-            // The content may not be part of our hierarchy, so it needs to be disposed manually. To prevent double-queuing of disposals, clear does not dispose.
-            ClearInternal(false);
-            DisposeChildAsync(Content);
-            Content = null;
-
-            timeHidden = 0;
-
-            CancelTasks();
-
-            contentLoaded = false;
+                // And finally, allow another load to take place.
+                DelayedLoadTriggered = DelayedLoadCompleted = false;
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace osu.Framework.Platform.MacOS
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new MacOSGameWindow() : new DesktopWindow();
+            !UseSdl ? (IWindow)new MacOSGameWindow() : new MacOSDesktopWindow();
 
         public override string UserStoragePath
         {
