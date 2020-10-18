@@ -154,14 +154,14 @@ namespace osu.Framework.Threading
                 if (exitCompleted)
                     return;
 
+                MakeCurrent();
+
                 if (exitRequested)
                 {
                     PerformExit();
                     exitCompleted = true;
                     return;
                 }
-
-                MakeCurrent();
 
                 Monitor?.NewFrame();
 
