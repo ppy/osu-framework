@@ -1842,7 +1842,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTransform = !Transforms.Any() ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
+            var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
             {
