@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Shaders
                     if (string.IsNullOrEmpty(line))
                         continue;
 
-                    if (line.StartsWith("#version")) // the version directive has to appear before anything else in the shader
+                    if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
                         shaderCodes.Add(line);
                         continue;

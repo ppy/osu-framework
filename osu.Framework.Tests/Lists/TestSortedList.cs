@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Lists;
 using NUnit.Framework;
@@ -82,6 +83,23 @@ namespace osu.Framework.Tests.Lists
             };
 
             Assert.IsTrue(list.IndexOf(10) >= 0);
+        }
+
+        [Test]
+        public void TestCollectionModifiedException()
+        {
+            var list = new SortedList<int>(Comparer<int>.Default)
+            {
+                10,
+                10,
+                10,
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                foreach (var _ in list)
+                    list.RemoveAt(list.Count - 1);
+            });
         }
     }
 }

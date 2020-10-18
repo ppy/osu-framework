@@ -115,6 +115,20 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
+        [Test]
+        public void TestWaveformAlpha()
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1)
+            {
+                Waveform = waveform,
+                Alpha = 0.5f,
+            });
+
+            AddUntilStep("wait for load", () => graph.Regenerated);
+        }
+
         private void startStop()
         {
             if (track.IsRunning)
@@ -154,7 +168,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.Both,
                         Resolution = resolution,
-                        Colour = new Color4(232, 78, 6, 255),
+                        BaseColour = new Color4(232, 78, 6, 255),
                         LowColour = new Color4(255, 232, 100, 255),
                         MidColour = new Color4(255, 153, 19, 255),
                         HighColour = new Color4(255, 46, 7, 255),

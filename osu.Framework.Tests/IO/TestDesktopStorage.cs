@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.IO
             {
                 var basePath = storage.GetFullPath(string.Empty);
 
-                Assert.IsTrue(basePath.EndsWith(guid));
+                Assert.IsTrue(basePath.EndsWith(guid, StringComparison.Ordinal));
 
                 Assert.Throws<ArgumentException>(() => storage.GetFullPath("../"));
                 Assert.Throws<ArgumentException>(() => storage.GetFullPath(".."));
