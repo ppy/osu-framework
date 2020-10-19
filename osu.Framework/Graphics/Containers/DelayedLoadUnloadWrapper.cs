@@ -12,13 +12,11 @@ namespace osu.Framework.Graphics.Containers
 {
     public class DelayedLoadUnloadWrapper : DelayedLoadWrapper
     {
-        private readonly Func<Drawable> createContentFunction;
         private readonly double timeBeforeUnload;
 
         public DelayedLoadUnloadWrapper(Func<Drawable> createContentFunction, double timeBeforeLoad = 500, double timeBeforeUnload = 1000)
-            : base(createContentFunction(), timeBeforeLoad)
+            : base(createContentFunction, timeBeforeLoad)
         {
-            this.createContentFunction = createContentFunction;
             this.timeBeforeUnload = timeBeforeUnload;
 
             AddLayout(unloadClockBacking);
@@ -32,46 +30,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool ShouldUnloadContent => timeBeforeUnload == 0 || timeHidden > timeBeforeUnload;
 
-        private double lifetimeStart = double.MinValue;
-
-        public override double LifetimeStart
-        {
-            get => base.Content?.LifetimeStart ?? lifetimeStart;
-            set
-            {
-                if (base.Content != null)
-                    base.Content.LifetimeStart = value;
-                lifetimeStart = value;
-            }
-        }
-
-        private double lifetimeEnd = double.MaxValue;
-
-        public override double LifetimeEnd
-        {
-            get => base.Content?.LifetimeEnd ?? lifetimeEnd;
-            set
-            {
-                if (base.Content != null)
-                    base.Content.LifetimeEnd = value;
-                lifetimeEnd = value;
-            }
-        }
-
-        public override Drawable Content => base.Content ?? (Content = createContentFunction());
-
-        private ScheduledDelegate scheduledLifetimeUpdate;
         private ScheduledDelegate scheduledUnloadCheckRegistration;
 
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
-
-            scheduledLifetimeUpdate = Schedule(() =>
-            {
-                content.LifetimeStart = lifetimeStart;
-                content.LifetimeEnd = lifetimeEnd;
-            });
 
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             scheduledUnloadCheckRegistration = Game.Schedule(() =>
@@ -117,9 +80,6 @@ namespace osu.Framework.Graphics.Containers
 
                 total_loaded.Value--;
             }
-
-            scheduledLifetimeUpdate?.Cancel();
-            scheduledLifetimeUpdate = null;
 
             scheduledUnloadCheckRegistration?.Cancel();
             scheduledUnloadCheckRegistration = null;
