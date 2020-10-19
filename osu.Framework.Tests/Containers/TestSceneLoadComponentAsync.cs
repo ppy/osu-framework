@@ -25,7 +25,11 @@ namespace osu.Framework.Tests.Containers
             IEnumerable<AsyncChildLoadingComposite> composite = getEnumerableComponent(() =>
             {
                 invocationCount++;
-                return new AsyncChildLoadingComposite();
+
+                var result = new AsyncChildLoadingComposite();
+                result.AllowChildLoad();
+
+                return result;
             });
 
             AddStep("load async", () => LoadComponentsAsync(composite, AddRange));
