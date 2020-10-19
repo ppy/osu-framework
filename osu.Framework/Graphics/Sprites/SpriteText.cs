@@ -416,7 +416,11 @@ namespace osu.Framework.Graphics.Sprites
         #region Characters
 
         private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence, InvalidationSource.Parent);
-        private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
+
+        /// <summary>
+        /// Glyph list to be passed to <see cref="TextBuilder"/>.
+        /// </summary>
+        protected readonly List<TextBuilderGlyph> CharactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
         /// The characters in local space.
@@ -426,7 +430,7 @@ namespace osu.Framework.Graphics.Sprites
             get
             {
                 computeCharacters();
-                return charactersBacking;
+                return CharactersBacking;
             }
         }
 
@@ -446,7 +450,7 @@ namespace osu.Framework.Graphics.Sprites
             if (charactersCache.IsValid)
                 return;
 
-            charactersBacking.Clear();
+            CharactersBacking.Clear();
 
             Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
@@ -572,17 +576,17 @@ namespace osu.Framework.Graphics.Sprites
 
             if (AllowMultiline)
             {
-                return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, CharactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
             if (Truncate)
             {
-                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+                return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, CharactersBacking,
                     excludeCharacters, FallbackCharacter);
             }
 
-            return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
+            return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, CharactersBacking,
                 excludeCharacters, FallbackCharacter);
         }
 
