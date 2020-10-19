@@ -30,44 +30,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected bool ShouldUnloadContent => timeBeforeUnload == 0 || timeHidden > timeBeforeUnload;
 
-        private double lifetimeStart = double.MinValue;
-
-        public override double LifetimeStart
-        {
-            get => Content?.LifetimeStart ?? lifetimeStart;
-            set
-            {
-                if (Content != null)
-                    Content.LifetimeStart = value;
-                lifetimeStart = value;
-            }
-        }
-
-        private double lifetimeEnd = double.MaxValue;
-
-        public override double LifetimeEnd
-        {
-            get => Content?.LifetimeEnd ?? lifetimeEnd;
-            set
-            {
-                if (Content != null)
-                    Content.LifetimeEnd = value;
-                lifetimeEnd = value;
-            }
-        }
-
-        private ScheduledDelegate scheduledLifetimeUpdate;
         private ScheduledDelegate scheduledUnloadCheckRegistration;
 
         protected override void EndDelayedLoad(Drawable content)
         {
             base.EndDelayedLoad(content);
-
-            scheduledLifetimeUpdate = Schedule(() =>
-            {
-                content.LifetimeStart = lifetimeStart;
-                content.LifetimeEnd = lifetimeEnd;
-            });
 
             // Scheduled for another frame since Update() may not have run yet and thus OptimisingContainer may not be up-to-date
             scheduledUnloadCheckRegistration = Game.Schedule(() =>
@@ -113,9 +80,6 @@ namespace osu.Framework.Graphics.Containers
 
                 total_loaded.Value--;
             }
-
-            scheduledLifetimeUpdate?.Cancel();
-            scheduledLifetimeUpdate = null;
 
             scheduledUnloadCheckRegistration?.Cancel();
             scheduledUnloadCheckRegistration = null;
