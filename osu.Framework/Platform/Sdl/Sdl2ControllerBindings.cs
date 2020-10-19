@@ -39,7 +39,11 @@ namespace osu.Framework.Platform.Sdl
         public void PopulateBindings()
         {
             if (ControllerHandle == IntPtr.Zero)
+            {
+                ButtonBindings = Array.Empty<SDL.SDL_GameControllerButtonBind>();
+                AxisBindings = Array.Empty<SDL.SDL_GameControllerButtonBind>();
                 return;
+            }
 
             ButtonBindings = Enumerable.Range(0, (int)SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_MAX)
                                        .Select(i => SDL.SDL_GameControllerGetBindForButton(ControllerHandle, (SDL.SDL_GameControllerButton)i)).ToArray();
