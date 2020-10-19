@@ -84,8 +84,18 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                foreach (var manager in managers)
-                    manager.Dispose();
+                // AudioManagers are iterated over backwards since disposal will unregister and remove them from the list.
+                for (int i = managers.Count - 1; i >= 0; i--)
+                {
+                    var m = managers[i];
+
+                    m.Dispose();
+
+                    // Audio component disposal (including the AudioManager itself) is scheduled and only runs when the AudioThread updates.
+                    // But the AudioThread won't run another update since it's exiting, so an update must be performed manually in order to finish the disposal.
+                    m.Update();
+                }
+
                 managers.Clear();
             }
 
