@@ -27,6 +27,7 @@ namespace osu.Framework.Text
 
         private readonly char[] neverFixedWidthCharacters;
         private readonly char fallbackCharacter;
+        private readonly char fixedWidthReferenceCharacter;
         private readonly ITexturedGlyphLookupStore store;
         private readonly FontUsage font;
         private readonly bool useFontSizeAsHeight;
@@ -50,8 +51,9 @@ namespace osu.Framework.Text
         /// <param name="characterList">That list to contain all resulting <see cref="TextBuilderGlyph"/>s.</param>
         /// <param name="neverFixedWidthCharacters">The characters for which fixed width should never be applied.</param>
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
+        /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
         public TextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth = float.MaxValue, bool useFontSizeAsHeight = true, Vector2 startOffset = default, Vector2 spacing = default,
-                           List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?')
+                           List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
         {
             this.store = store;
             this.font = font;
@@ -63,6 +65,7 @@ namespace osu.Framework.Text
             Characters = characterList ?? new List<TextBuilderGlyph>();
             this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();
             this.fallbackCharacter = fallbackCharacter;
+            this.fixedWidthReferenceCharacter = fixedWidthReferenceCharacter;
 
             currentPos = startOffset;
         }
@@ -275,7 +278,7 @@ namespace osu.Framework.Text
 
         private readonly Cached<float> constantWidthCache = new Cached<float>();
 
-        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph('m')?.Width ?? 0;
+        private float getConstantWidth() => constantWidthCache.IsValid ? constantWidthCache.Value : constantWidthCache.Value = getTexturedGlyph(fixedWidthReferenceCharacter)?.Width ?? 0;
 
         private bool tryCreateGlyph(char character, out TextBuilderGlyph glyph)
         {

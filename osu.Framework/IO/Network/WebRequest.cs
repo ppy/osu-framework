@@ -231,7 +231,7 @@ namespace osu.Framework.IO.Network
         {
             var url = Url;
 
-            if (!AllowInsecureRequests && !url.StartsWith(@"https://"))
+            if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
                 url = @"https://" + url.Replace(@"http://", @"");

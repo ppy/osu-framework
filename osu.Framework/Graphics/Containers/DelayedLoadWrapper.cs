@@ -2,7 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading.Tasks;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics.Primitives;
@@ -16,10 +16,16 @@ namespace osu.Framework.Graphics.Containers
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer{T}"/>.
     /// </summary>
+    /// <remarks>
+    /// <see cref="LifetimeStart"/> and <see cref="LifetimeEnd"/> are propagated from the wrapper to the content on content load.
+    /// After load, the content's lifetime is preferred, meaning any changes to content's lifetime post-load will be respected.
+    /// </remarks>
     public class DelayedLoadWrapper : CompositeDrawable
     {
         [Resolved]
         protected Game Game { get; private set; }
+
+        private readonly Func<Drawable> createFunc;
 
         /// <summary>
         /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
@@ -28,30 +34,80 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="content">The <see cref="Drawable"/> to be loaded.</param>
         /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
         public DelayedLoadWrapper(Drawable content, double timeBeforeLoad = 500)
+            : this(timeBeforeLoad)
         {
             Content = content ?? throw new ArgumentNullException(nameof(content), $@"{nameof(DelayedLoadWrapper)} required non-null {nameof(content)}.");
-            this.timeBeforeLoad = timeBeforeLoad;
+        }
 
-            RelativeSizeAxes = content.RelativeSizeAxes;
-            AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+        /// <summary>
+        /// Creates a <see cref="Container"/> that will asynchronously load the given <see cref="Drawable"/> with a delay.
+        /// This constructor is preferred due to avoiding construction of the loadable content until a load is actually triggered.
+        /// </summary>
+        /// <remarks>If <see cref="timeBeforeLoad"/> is set to 0, the loading process will begin on the next Update call.</remarks>
+        /// <param name="createFunc">A function which created future content.</param>
+        /// <param name="timeBeforeLoad">The delay in milliseconds before loading can begin.</param>
+        public DelayedLoadWrapper(Func<Drawable> createFunc, double timeBeforeLoad = 500)
+            : this(timeBeforeLoad)
+        {
+            this.createFunc = createFunc;
+        }
+
+        private DelayedLoadWrapper(double timeBeforeLoad)
+        {
+            this.timeBeforeLoad = timeBeforeLoad;
 
             AddLayout(optimisingContainerCache);
             AddLayout(isIntersectingCache);
         }
 
+        private double lifetimeStart = double.MinValue;
+
         public override double LifetimeStart
         {
-            get => Content.LifetimeStart;
-            set => Content.LifetimeStart = value;
+            get => Content?.LifetimeStart ?? lifetimeStart;
+            set
+            {
+                if (Content != null)
+                    Content.LifetimeStart = value;
+                lifetimeStart = value;
+            }
         }
+
+        private double lifetimeEnd = double.MaxValue;
 
         public override double LifetimeEnd
         {
-            get => Content.LifetimeEnd;
-            set => Content.LifetimeEnd = value;
+            get => Content?.LifetimeEnd ?? lifetimeEnd;
+            set
+            {
+                if (Content != null)
+                    Content.LifetimeEnd = value;
+                lifetimeEnd = value;
+            }
         }
 
-        public virtual Drawable Content { get; protected set; }
+        private Drawable content;
+
+        public Drawable Content
+        {
+            get => content;
+            protected set
+            {
+                if (content == value)
+                    return;
+
+                content = value;
+
+                if (content == null)
+                    return;
+
+                AutoSizeAxes = Axes.None;
+                RelativeSizeAxes = Axes.None;
+
+                RelativeSizeAxes = content.RelativeSizeAxes;
+                AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
+            }
+        }
 
         /// <summary>
         /// The amount of time on-screen in milliseconds before we begin a load of children.
@@ -62,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool ShouldLoadContent => timeVisible > timeBeforeLoad;
 
-        private Task loadTask;
+        private CancellationTokenSource cancellationTokenSource;
         private ScheduledDelegate scheduledAddition;
 
         protected override void Update()
@@ -83,25 +139,41 @@ namespace osu.Framework.Graphics.Containers
 
         protected void BeginDelayedLoad()
         {
-            if (loadTask != null) throw new InvalidOperationException("Load is already started!");
+            if (DelayedLoadTriggered || DelayedLoadCompleted)
+                throw new InvalidOperationException("Load has already started!");
 
+            Content ??= createFunc();
+
+            DelayedLoadTriggered = true;
             DelayedLoadStarted?.Invoke(Content);
 
+            cancellationTokenSource = new CancellationTokenSource();
+
             // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
-            loadTask = LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler);
+            LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler, cancellation: cancellationTokenSource.Token);
         }
 
         protected virtual void EndDelayedLoad(Drawable content)
         {
             timeVisible = 0;
-            loadTask = null;
 
             // This code is running on the game's scheduler, while this DLW may have been async disposed, so the addition is scheduled locally to prevent adding to disposed DLWs.
             scheduledAddition = Schedule(() =>
             {
+                content.LifetimeStart = lifetimeStart;
+                content.LifetimeEnd = lifetimeEnd;
+
                 AddInternal(content);
+
+                DelayedLoadCompleted = true;
                 DelayedLoadComplete?.Invoke(content);
             });
+        }
+
+        internal override void UnbindAllBindables()
+        {
+            base.UnbindAllBindables();
+            CancelTasks();
         }
 
         protected override void Dispose(bool isDisposing)
@@ -113,7 +185,9 @@ namespace osu.Framework.Graphics.Containers
         protected virtual void CancelTasks()
         {
             isIntersectingCache.Invalidate();
-            loadTask = null;
+
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = null;
 
             scheduledAddition?.Cancel();
             scheduledAddition = null;
@@ -133,9 +207,12 @@ namespace osu.Framework.Graphics.Containers
         /// True if the load task for our content has been started.
         /// Will remain true even after load is completed.
         /// </summary>
-        protected bool DelayedLoadTriggered => loadTask != null;
+        protected bool DelayedLoadTriggered;
 
-        public bool DelayedLoadCompleted => InternalChildren.Count > 0;
+        /// <summary>
+        /// True if the content has been added to the drawable hierarchy.
+        /// </summary>
+        public bool DelayedLoadCompleted { get; protected set; }
 
         private readonly LayoutValue optimisingContainerCache = new LayoutValue(Invalidation.Parent);
         private readonly LayoutValue isIntersectingCache = new LayoutValue(Invalidation.All);

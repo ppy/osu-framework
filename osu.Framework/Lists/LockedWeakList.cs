@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -70,11 +72,11 @@ namespace osu.Framework.Lists
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public struct Enumerator : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T?>
         {
             private readonly WeakList<T> list;
 
-            private WeakList<T>.Enumerator listEnumerator;
+            private WeakList<T>.ValidItemsEnumerator listEnumerator;
 
             private readonly bool lockTaken;
 
@@ -92,9 +94,9 @@ namespace osu.Framework.Lists
 
             public void Reset() => listEnumerator.Reset();
 
-            public readonly T Current => listEnumerator.Current;
+            public readonly T? Current => listEnumerator.Current;
 
-            readonly object IEnumerator.Current => Current;
+            readonly object? IEnumerator.Current => Current;
 
             public void Dispose()
             {

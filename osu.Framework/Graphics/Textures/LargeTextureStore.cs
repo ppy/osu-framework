@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -23,28 +23,38 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
-        /// <summary>
-        /// Retrieves a texture.
-        /// This texture should only be assigned once, as reference counting is being used internally.
-        /// If you wish to use the same texture multiple times, call this method an equal number of times.
-        /// </summary>
-        /// <param name="name">The name of the texture.</param>
-        /// <param name="wrapModeS">The horizontal wrap mode of the texture.</param>
-        /// <param name="wrapModeT">The vertical wrap mode of the texture.</param>
-        /// <returns>The texture.</returns>
-        public override Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT)
+        protected override bool TryGetCached(string lookupKey, out Texture texture)
         {
             lock (referenceCountLock)
             {
-                var tex = base.Get(name, wrapModeS, wrapModeT);
+                if (base.TryGetCached(lookupKey, out var tex))
+                {
+                    texture = createTextureWithRefCount(lookupKey, tex);
+                    return true;
+                }
 
-                if (tex?.TextureGL == null)
-                    return null;
+                texture = null;
+                return false;
+            }
+        }
 
-                if (!referenceCounts.TryGetValue(tex.LookupKey, out TextureWithRefCount.ReferenceCount count))
-                    referenceCounts[tex.LookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(tex));
+        protected override Texture CacheAndReturnTexture(string lookupKey, Texture texture)
+        {
+            lock (referenceCountLock)
+                return createTextureWithRefCount(lookupKey, base.CacheAndReturnTexture(lookupKey, texture));
+        }
 
-                return new TextureWithRefCount(tex.TextureGL, count);
+        private TextureWithRefCount createTextureWithRefCount([NotNull] string lookupKey, [CanBeNull] Texture baseTexture)
+        {
+            if (baseTexture == null)
+                return null;
+
+            lock (referenceCountLock)
+            {
+                if (!referenceCounts.TryGetValue(lookupKey, out TextureWithRefCount.ReferenceCount count))
+                    referenceCounts[lookupKey] = count = new TextureWithRefCount.ReferenceCount(referenceCountLock, () => onAllReferencesLost(baseTexture));
+
+                return new TextureWithRefCount(baseTexture.TextureGL, count);
             }
         }
 

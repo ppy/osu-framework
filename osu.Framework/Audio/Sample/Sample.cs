@@ -7,6 +7,11 @@ namespace osu.Framework.Audio.Sample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
+        /// <summary>
+        /// The length in milliseconds of this <see cref="Sample"/>.
+        /// </summary>
+        public double Length { get; protected set; }
+
         protected readonly int PlaybackConcurrency;
 
         /// <summary>
