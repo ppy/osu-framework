@@ -117,12 +117,22 @@ namespace osu.Framework.Platform
                     return defaultEnabled.Concat(defaultDisabled);
 
                 default:
-                    return new InputHandler[]
+                    var enabled = new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
                         new JoystickHandler(),
                     };
+
+                    var disabled = new InputHandler[]
+                    {
+                        new RawMouseHandler(),
+                    };
+
+                    foreach (var h in disabled)
+                        h.Enabled.Value = false;
+
+                    return enabled.Concat(disabled);
             }
         }
 

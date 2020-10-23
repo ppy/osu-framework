@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -17,6 +18,9 @@ namespace osu.Framework.Tests.Visual.Input
 {
     public class TestSceneInputManager : FrameworkTestScene
     {
+        private string normalMouseHandlerName;
+        private string rawMouseHandlerName;
+
         public TestSceneInputManager()
         {
             Add(new Container
@@ -173,8 +177,12 @@ namespace osu.Framework.Tests.Visual.Input
         private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost host)
         {
+            bool usingSdl = host.Window is DesktopWindow;
+            normalMouseHandlerName = usingSdl ? nameof(MouseHandler) : nameof(OsuTKMouseHandler);
+            rawMouseHandlerName = usingSdl ? nameof(RawMouseHandler) : nameof(OsuTKRawMouseHandler);
+
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
             AddToggleStep("Toggle raw input", setRawInputConfig);
@@ -190,7 +198,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setRawInputConfig(bool x)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? nameof(OsuTKMouseHandler) : nameof(OsuTKRawMouseHandler));
+            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? normalMouseHandlerName : rawMouseHandlerName);
         }
 
         private void setConfineMouseModeConfig(bool x)
