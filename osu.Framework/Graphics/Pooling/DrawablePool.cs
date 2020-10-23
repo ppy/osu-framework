@@ -26,11 +26,6 @@ namespace osu.Framework.Graphics.Pooling
         private readonly int initialSize;
         private readonly int? maximumSize;
 
-        /// <summary>
-        /// The number of drawables currently available for consumption.
-        /// </summary>
-        public int CountAvailable => pool.Count;
-
         private readonly Stack<T> pool = new Stack<T>();
         private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 
@@ -82,7 +77,7 @@ namespace osu.Framework.Graphics.Pooling
 
             //TODO: check the drawable was sourced from this pool for safety.
             push((T)pooledDrawable);
-            countInUse--;
+            CountInUse--;
         }
 
         /// <summary>
@@ -100,11 +95,11 @@ namespace osu.Framework.Graphics.Pooling
                     LoadComponent(drawable);
             }
             else
-                countAvailable--;
+                CountAvailable--;
 
             setupAction?.Invoke(drawable);
             drawable.Assign();
-            countInUse++;
+            CountInUse++;
 
             return drawable;
         }
@@ -118,7 +113,7 @@ namespace osu.Framework.Graphics.Pooling
         {
             var drawable = CreateNewDrawable();
             drawable.SetPool(this);
-            countNewed++;
+            CountConstructed++;
 
             return drawable;
         }
@@ -138,7 +133,7 @@ namespace osu.Framework.Graphics.Pooling
             }
 
             pool.Push(poolableDrawable);
-            countAvailable++;
+            CountAvailable++;
 
             return true;
         }
@@ -147,50 +142,59 @@ namespace osu.Framework.Graphics.Pooling
         {
             base.Dispose(isDisposing);
 
-            countInUse = 0;
-            countNewed = 0;
-            countAvailable = 0;
+            CountInUse = 0;
+            CountConstructed = 0;
+            CountAvailable = 0;
 
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
         }
 
-        private int localCountInUse;
+        private int countInUse;
 
-        private int countInUse
+        /// <summary>
+        /// The number of drawables currently in use.
+        /// </summary>
+        public int CountInUse
         {
-            get => localCountInUse;
-            set
+            get => countInUse;
+            private set
             {
                 if (statistic != null)
-                    statistic.Value.CountInUse += value - localCountInUse;
-                localCountInUse = value;
+                    statistic.Value.CountInUse += value - countInUse;
+                countInUse = value;
             }
         }
 
-        private int localCountNewed;
+        private int countConstructed;
 
-        private int countNewed
+        /// <summary>
+        /// The total number of drawables constructed.
+        /// </summary>
+        public int CountConstructed
         {
-            get => localCountNewed;
-            set
+            get => countConstructed;
+            private set
             {
                 if (statistic != null)
-                    statistic.Value.CountNewed += value - localCountNewed;
-                localCountNewed = value;
+                    statistic.Value.CountConstructed += value - countConstructed;
+                countConstructed = value;
             }
         }
 
-        private int localCountAvailable;
+        private int countAvailable;
 
-        private int countAvailable
+        /// <summary>
+        /// The number of drawables currently available for consumption.
+        /// </summary>
+        public int CountAvailable
         {
-            get => localCountAvailable;
-            set
+            get => countAvailable;
+            private set
             {
                 if (statistic != null)
-                    statistic.Value.CountAvailable += value - localCountAvailable;
-                localCountAvailable = value;
+                    statistic.Value.CountAvailable += value - countAvailable;
+                countAvailable = value;
             }
         }
 
@@ -207,11 +211,11 @@ namespace osu.Framework.Graphics.Pooling
             public int CountInUse;
 
             /// <summary>
-            /// Total number of drawables newed (can exceed max count).
+            /// Total number of drawables constructed (can exceed the max count).
             /// </summary>
-            public int CountNewed;
+            public int CountConstructed;
 
-            public override string ToString() => $"{CountAvailable}/{CountNewed} ({CountInUse})";
+            public override string ToString() => $"{CountAvailable}/{CountConstructed} ({CountInUse})";
         }
     }
 }
