@@ -101,5 +101,36 @@ namespace osu.Framework.Tests.Lists
                     list.RemoveAt(list.Count - 1);
             });
         }
+
+        [Test]
+        public void TestSortAfterChangedComparer()
+        {
+            var list = new SortedList<TestObjectWithAdjustableComparer>
+            {
+                new TestObjectWithAdjustableComparer { Id = 0 },
+                new TestObjectWithAdjustableComparer { Id = 1 },
+                new TestObjectWithAdjustableComparer { Id = 2 },
+                new TestObjectWithAdjustableComparer { Id = 3 },
+            };
+
+            var first = list[0];
+            var last = list[^1];
+
+            // Reverse the list and re-sort.
+            for (int i = 0; i < list.Count; i++)
+                list[i].Id = list.Count - 1 - i;
+            list.Sort();
+
+            // Test that the list has been reversed.
+            Assert.That(list[0], Is.EqualTo(last));
+            Assert.That(list[^1], Is.EqualTo(first));
+        }
+
+        private class TestObjectWithAdjustableComparer : IComparable<TestObjectWithAdjustableComparer>
+        {
+            public int Id;
+
+            public int CompareTo(TestObjectWithAdjustableComparer other) => Id.CompareTo(other.Id);
+        }
     }
 }
