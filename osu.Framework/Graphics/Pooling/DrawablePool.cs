@@ -81,6 +81,8 @@ namespace osu.Framework.Graphics.Pooling
             CountInUse--;
         }
 
+        PoolableDrawable IDrawablePool.Get(Action<PoolableDrawable> setupAction) => Get(setupAction);
+
         /// <summary>
         /// Get a drawable from this pool.
         /// </summary>
