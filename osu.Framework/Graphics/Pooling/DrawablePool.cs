@@ -160,8 +160,10 @@ namespace osu.Framework.Graphics.Pooling
             get => countInUse;
             private set
             {
-                if (statistic != null)
-                    statistic.Value.CountInUse += value - countInUse;
+                if (statistic == null)
+                    return;
+
+                statistic.Value.CountInUse += value - countInUse;
                 countInUse = value;
             }
         }
@@ -176,8 +178,10 @@ namespace osu.Framework.Graphics.Pooling
             get => countConstructed;
             private set
             {
-                if (statistic != null)
-                    statistic.Value.CountConstructed += value - countConstructed;
+                if (statistic == null)
+                    return;
+
+                statistic.Value.CountConstructed += value - countConstructed;
                 countConstructed = value;
             }
         }
@@ -192,8 +196,10 @@ namespace osu.Framework.Graphics.Pooling
             get => countAvailable;
             private set
             {
-                if (statistic != null)
-                    statistic.Value.CountAvailable += value - countAvailable;
+                if (statistic == null)
+                    return;
+
+                statistic.Value.CountAvailable += value - countAvailable;
                 countAvailable = value;
             }
         }
