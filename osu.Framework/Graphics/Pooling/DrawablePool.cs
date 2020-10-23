@@ -72,6 +72,8 @@ namespace osu.Framework.Graphics.Pooling
             push((T)pooledDrawable);
         }
 
+        PoolableDrawable IDrawablePool.Get(Action<PoolableDrawable> setupAction) => Get(setupAction);
+
         /// <summary>
         /// Get a drawable from this pool.
         /// </summary>
