@@ -13,12 +13,12 @@ namespace osu.Framework.Tests.Graphics
     [TestFixture]
     public class LifetimeEntryManagerTest
     {
-        private readonly TestLifetimeEntryManager manager = new TestLifetimeEntryManager();
+        private TestLifetimeEntryManager manager;
 
         [SetUp]
         public void Setup()
         {
-            manager.ClearEntries();
+            manager = new TestLifetimeEntryManager();
         }
 
         [Test]
@@ -304,7 +304,6 @@ namespace osu.Framework.Tests.Graphics
             public new void ClearEntries()
             {
                 entries.Clear();
-                crossings.Clear();
                 base.ClearEntries();
             }
 
