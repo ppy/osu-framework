@@ -26,6 +26,8 @@ namespace osu.Framework.Platform
         public abstract Size ClientSize { get; }
         public abstract bool CursorVisible { get; set; }
         public abstract bool CursorConfined { get; set; }
+        public abstract bool RelativeMouseMode { get; set; }
+        public abstract Vector2 MousePosition { get; set; }
         public abstract WindowState WindowState { get; set; }
         public abstract bool Exists { get; protected set; }
         public abstract Display CurrentDisplay { get; set; }
@@ -49,6 +51,7 @@ namespace osu.Framework.Platform
         public event Action<Point> Moved;
         public event Action<Vector2, bool> MouseWheel;
         public event Action<Vector2> MouseMove;
+        public event Action<Vector2> MouseMoveRelative;
         public event Action<MouseButton> MouseDown;
         public event Action<MouseButton> MouseUp;
         public event Action<Key> KeyDown;
@@ -86,6 +89,7 @@ namespace osu.Framework.Platform
         protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
         protected virtual void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
         protected virtual void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected virtual void OnMouseMoveRelative(Vector2 delta) => MouseMoveRelative?.Invoke(delta);
         protected virtual void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
         protected virtual void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
         protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);

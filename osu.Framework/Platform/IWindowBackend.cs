@@ -56,6 +56,20 @@ namespace osu.Framework.Platform
         bool CursorConfined { get; set; }
 
         /// <summary>
+        /// Enables or disables relative mouse mode.
+        /// While relative mouse mode is disabled, <see cref="MouseMove"/> events will be fired.
+        /// While relative mouse mode is enabled, <see cref="MouseMoveRelative"/> events will be fired.
+        /// </summary>
+        bool RelativeMouseMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mouse position in unscaled display coordinates,
+        /// relative to the top left corner of the window.
+        /// Setting the mouse position will also disable <see cref="RelativeMouseMode"/>.
+        /// </summary>
+        Vector2 MousePosition { get; set; }
+
+        /// <summary>
         /// Returns or sets the window's current <see cref="WindowState"/>.
         /// </summary>
         WindowState WindowState { get; set; }
@@ -161,9 +175,18 @@ namespace osu.Framework.Platform
         event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
-        /// Invoked when the user moves the mouse cursor within the window.
+        /// Invoked when the user moves the mouse cursor, if relative mouse mode is disabled.
+        /// The <see cref="Vector2"/> provided is the position relative to the top left corner of the window,
+        /// with DPI scaling applied.
         /// </summary>
         event Action<Vector2> MouseMove;
+
+        /// <summary>
+        /// Invoked when the user moves the mouse cursor, if relative mouse mode is enabled.
+        /// The <see cref="Vector2"/> provided is the number of pixels the cursor has moved since the previous
+        /// <see cref="MouseMoveRelative"/> invocation.
+        /// </summary>
+        event Action<Vector2> MouseMoveRelative;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.

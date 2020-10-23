@@ -50,6 +50,11 @@ namespace osu.Framework.Platform
         bool CursorInWindow { get; }
 
         /// <summary>
+        /// Enables or disables relative mouse mode.
+        /// </summary>
+        bool RelativeMouseMode { get; set; }
+
+        /// <summary>
         /// Controls the state of the OS cursor.
         /// </summary>
         CursorState CursorState { get; set; }

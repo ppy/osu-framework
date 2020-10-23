@@ -51,6 +51,17 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool Exists => WindowBackend.Exists;
 
+        /// <summary>
+        /// Enables or disables relative mouse mode.
+        /// While relative mouse mode is disabled, <see cref="MouseMove"/> events will be fired.
+        /// While relative mouse mode is enabled, <see cref="MouseMoveRelative"/> events will be fired.
+        /// </summary>
+        public bool RelativeMouseMode
+        {
+            get => WindowBackend.RelativeMouseMode;
+            set => WindowBackend.RelativeMouseMode = value;
+        }
+
         public Display PrimaryDisplay => WindowBackend.PrimaryDisplay;
 
         public DisplayMode CurrentDisplayMode => WindowBackend.CurrentDisplayMode;
@@ -188,9 +199,18 @@ namespace osu.Framework.Platform
         public event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
-        /// Invoked when the user moves the mouse cursor within the window.
+        /// Invoked when the user moves the mouse cursor, if relative mouse mode is disabled.
+        /// The <see cref="Vector2"/> provided is the position relative to the top left corner of the window,
+        /// with DPI scaling applied.
         /// </summary>
         public event Action<Vector2> MouseMove;
+
+        /// <summary>
+        /// Invoked when the user moves the mouse cursor, if relative mouse mode is enabled.
+        /// The <see cref="Vector2"/> provided is the number of pixels the cursor has moved since the previous
+        /// <see cref="MouseMoveRelative"/> invocation.
+        /// </summary>
+        public event Action<Vector2> MouseMoveRelative;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
@@ -254,6 +274,7 @@ namespace osu.Framework.Platform
         protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
         protected virtual void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
         protected virtual void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected virtual void OnMouseMoveRelative(Vector2 delta) => MouseMoveRelative?.Invoke(delta);
         protected virtual void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
         protected virtual void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
         protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
@@ -355,6 +376,7 @@ namespace osu.Framework.Platform
             WindowBackend.MouseDown += OnMouseDown;
             WindowBackend.MouseUp += OnMouseUp;
             WindowBackend.MouseMove += OnMouseMove;
+            WindowBackend.MouseMoveRelative += OnMouseMoveRelative;
             WindowBackend.MouseWheel += OnMouseWheel;
             WindowBackend.DragDrop += OnDragDrop;
 

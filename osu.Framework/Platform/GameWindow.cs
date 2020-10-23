@@ -268,6 +268,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
 
+        public bool RelativeMouseMode { get; set; }
+
         private readonly BindableList<WindowMode> supportedWindowModes = new BindableList<WindowMode>();
 
         public IBindableList<WindowMode> SupportedWindowModes => supportedWindowModes;

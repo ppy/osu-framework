@@ -178,6 +178,37 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
+        private bool relativeMouseMode;
+
+        public override bool RelativeMouseMode
+        {
+            get => relativeMouseMode; // SdlWindowHandle == IntPtr.Zero ? relativeMouseMode : SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
+            set
+            {
+                relativeMouseMode = value;
+                commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+            }
+        }
+
+        public override Vector2 MousePosition
+        {
+            get
+            {
+                SDL.SDL_GetMouseState(out var x, out var y);
+                return new Vector2(x, y);
+            }
+            set
+            {
+                relativeMouseMode = false;
+                commandScheduler.Add(() =>
+                {
+                    Console.WriteLine($"window: {Position}|{Size}|{ClientSize}, warp: {value}");
+                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_WarpMouseInWindow(SdlWindowHandle, (int)value.X, (int)value.Y);
+                });
+            }
+        }
+
         private WindowState initialWindowState = WindowState.Normal;
         private WindowState lastWindowState;
 
@@ -446,7 +477,7 @@ namespace osu.Framework.Platform.Sdl
 
                 processEvents();
 
-                if (!mouseInWindow)
+                if (!mouseInWindow && !RelativeMouseMode)
                     pollMouse();
 
                 eventScheduler.Update();
@@ -745,8 +776,15 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
+        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
+        {
+            const int relative_threshold = 20;
+
+            if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
+                ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
+            else if (Math.Abs(evtMotion.xrel) < relative_threshold && Math.Abs(evtMotion.yrel) < relative_threshold)
+                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel, evtMotion.yrel)));
+        }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
