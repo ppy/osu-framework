@@ -70,6 +70,16 @@ namespace osu.Framework.Platform
         protected override IWindowBackend CreateWindowBackend() => new Sdl2WindowBackend();
         protected override IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
 
+        /// <summary>
+        /// Sets or gets the mouse position in unscaled screen coordinates, relative to the top left corner of the window.
+        /// Setting the mouse position will also disable <see cref="Window.RelativeMouseMode"/> if enabled.
+        /// </summary>
+        public Vector2 MousePosition
+        {
+            get => WindowBackend.MousePosition;
+            set => WindowBackend.MousePosition = value;
+        }
+
         public override void SetupWindow(FrameworkConfigManager config)
         {
             base.SetupWindow(config);
