@@ -122,6 +122,14 @@ namespace osu.Framework.Lists
 
         public int FindIndex(Predicate<T> match) => list.FindIndex(match);
 
+        /// <summary>
+        /// Re-sorts this <see cref="SortedList{T}"/> by the comparer.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to re-sort the <see cref="SortedList{T}"/> if the comparer result has changed.
+        /// </remarks>
+        public void Sort() => list.Sort(Comparer);
+
         public override string ToString() => $@"{GetType().ReadableName()} ({Count} items)";
 
         #region ICollection<T> Implementation
