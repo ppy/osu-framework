@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
@@ -160,8 +161,7 @@ namespace osu.Framework.Graphics.Pooling
             get => countInUse;
             private set
             {
-                if (statistic == null)
-                    return;
+                Debug.Assert(statistic != null);
 
                 statistic.Value.CountInUse += value - countInUse;
                 countInUse = value;
@@ -178,8 +178,7 @@ namespace osu.Framework.Graphics.Pooling
             get => countConstructed;
             private set
             {
-                if (statistic == null)
-                    return;
+                Debug.Assert(statistic != null);
 
                 statistic.Value.CountConstructed += value - countConstructed;
                 countConstructed = value;
@@ -196,8 +195,7 @@ namespace osu.Framework.Graphics.Pooling
             get => countAvailable;
             private set
             {
-                if (statistic == null)
-                    return;
+                Debug.Assert(statistic != null);
 
                 statistic.Value.CountAvailable += value - countAvailable;
                 countAvailable = value;
