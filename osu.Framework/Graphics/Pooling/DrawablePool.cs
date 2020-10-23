@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -19,6 +21,8 @@ namespace osu.Framework.Graphics.Pooling
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
     public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
+        private static readonly GlobalStatistic<DrawablePoolUsageStatistic> usage_statistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName());
+
         private readonly int initialSize;
         private readonly int? maximumSize;
 
@@ -28,6 +32,12 @@ namespace osu.Framework.Graphics.Pooling
         public int CountAvailable => pool.Count;
 
         private readonly Stack<T> pool = new Stack<T>();
+        private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
+
+        static DrawablePool()
+        {
+            usage_statistic.Value = new DrawablePoolUsageStatistic();
+        }
 
         /// <summary>
         /// Create a new pool instance.
@@ -38,6 +48,8 @@ namespace osu.Framework.Graphics.Pooling
         {
             this.maximumSize = maximumSize;
             this.initialSize = initialSize;
+
+            statistic = usage_statistic;
         }
 
         [BackgroundDependencyLoader]
@@ -70,6 +82,7 @@ namespace osu.Framework.Graphics.Pooling
 
             //TODO: check the drawable was sourced from this pool for safety.
             push((T)pooledDrawable);
+            countInUse--;
         }
 
         /// <summary>
@@ -86,9 +99,12 @@ namespace osu.Framework.Graphics.Pooling
                 if (LoadState >= LoadState.Loading)
                     LoadComponent(drawable);
             }
+            else
+                countAvailable--;
 
             setupAction?.Invoke(drawable);
             drawable.Assign();
+            countInUse++;
 
             return drawable;
         }
@@ -102,6 +118,7 @@ namespace osu.Framework.Graphics.Pooling
         {
             var drawable = CreateNewDrawable();
             drawable.SetPool(this);
+            countNewed++;
 
             return drawable;
         }
@@ -121,7 +138,80 @@ namespace osu.Framework.Graphics.Pooling
             }
 
             pool.Push(poolableDrawable);
+            countAvailable++;
+
             return true;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            countInUse = 0;
+            countNewed = 0;
+            countAvailable = 0;
+
+            // Disallow any further Gets/Returns to adjust the statistics.
+            statistic = null;
+        }
+
+        private int localCountInUse;
+
+        private int countInUse
+        {
+            get => localCountInUse;
+            set
+            {
+                if (statistic != null)
+                    statistic.Value.CountInUse += value - localCountInUse;
+                localCountInUse = value;
+            }
+        }
+
+        private int localCountNewed;
+
+        private int countNewed
+        {
+            get => localCountNewed;
+            set
+            {
+                if (statistic != null)
+                    statistic.Value.CountNewed += value - localCountNewed;
+                localCountNewed = value;
+            }
+        }
+
+        private int localCountAvailable;
+
+        private int countAvailable
+        {
+            get => localCountAvailable;
+            set
+            {
+                if (statistic != null)
+                    statistic.Value.CountAvailable += value - localCountAvailable;
+                localCountAvailable = value;
+            }
+        }
+
+        private class DrawablePoolUsageStatistic
+        {
+            /// <summary>
+            /// Total number of drawables available for use (in the pool).
+            /// </summary>
+            public int CountAvailable;
+
+            /// <summary>
+            /// Total number of drawables currently in use.
+            /// </summary>
+            public int CountInUse;
+
+            /// <summary>
+            /// Total number of drawables newed (can exceed max count).
+            /// </summary>
+            public int CountNewed;
+
+            public override string ToString() => $"{CountAvailable}/{CountNewed} ({CountInUse})";
         }
     }
 }
