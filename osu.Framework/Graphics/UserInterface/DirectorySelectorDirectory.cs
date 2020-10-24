@@ -8,7 +8,7 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryListingDirectory : DirectoryListingItem
+    public abstract class DirectorySelectorDirectory : DirectorySelectorItem
     {
         protected readonly DirectoryInfo Directory;
         protected override string FallbackName => Directory.Name;
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
 
-        protected DirectoryListingDirectory(DirectoryInfo directory, string displayName = null)
+        protected DirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
             : base(displayName)
         {
             Directory = directory;

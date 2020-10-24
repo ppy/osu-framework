@@ -9,11 +9,11 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicFileSelector : FileSelector
     {
-        protected override DirectoryListingBreadcrumb CreateBreadcrumb() => new BasicDirectoryListingBreadcrumb();
+        protected override DirectorySelectorBreadcrumbDisplay CreateBreadcrumb() => new BasicDirectorySelectorBreadcrumbDisplay();
 
-        protected override DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectoryListingDirectory(directory, displayName);
+        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BasicDirectorySelectorDirectory(directory, displayName);
 
-        protected override DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectoryListingParentDirectory(directory);
+        protected override DirectorySelectorDirectory CreateParentDirectoryItem(DirectoryInfo directory) => new BasicDirectorySelectorParentDirectory(directory);
 
         protected override ScrollContainer<Drawable> CreateScrollContainer() => new BasicScrollContainer();
 

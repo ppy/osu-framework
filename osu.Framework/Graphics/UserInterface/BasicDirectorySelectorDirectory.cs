@@ -6,13 +6,13 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectoryListingDirectory : DirectoryListingDirectory
+    public class BasicDirectorySelectorDirectory : DirectorySelectorDirectory
     {
         protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar)
             ? FontAwesome.Solid.Database
             : FontAwesome.Regular.Folder;
 
-        public BasicDirectoryListingDirectory(DirectoryInfo directory, string displayName = null)
+        public BasicDirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
             : base(directory, displayName)
         {
         }

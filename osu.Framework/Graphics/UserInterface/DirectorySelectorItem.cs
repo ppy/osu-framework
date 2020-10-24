@@ -8,28 +8,28 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryListingItem : CompositeDrawable
+    public abstract class DirectorySelectorItem : CompositeDrawable
     {
         private readonly string displayName;
 
         /// <summary>
-        /// Gets or sets the font size of this <see cref="DirectoryListingItem"/>'s icon and text.
+        /// Gets or sets the font size of this <see cref="DirectorySelectorItem"/>'s icon and text.
         /// </summary>
         protected const float FONT_SIZE = 16;
 
         /// <summary>
-        /// The display name of this <see cref="DirectoryListingItem"/> to fallback to when a display name is not provided.
+        /// The display name of this <see cref="DirectorySelectorItem"/> to fallback to when a display name is not provided.
         /// </summary>
         protected abstract string FallbackName { get; }
 
         /// <summary>
-        /// The icon of this <see cref="DirectoryListingItem"/> to use.
+        /// The icon of this <see cref="DirectorySelectorItem"/> to use.
         /// </summary>
         protected abstract IconUsage? Icon { get; }
 
         protected FillFlowContainer Flow;
 
-        protected DirectoryListingItem(string displayName = null)
+        protected DirectorySelectorItem(string displayName = null)
         {
             this.displayName = displayName;
         }

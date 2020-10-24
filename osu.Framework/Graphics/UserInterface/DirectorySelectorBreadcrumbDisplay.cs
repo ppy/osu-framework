@@ -11,17 +11,17 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DirectoryListingBreadcrumb : CompositeDrawable
+    public abstract class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
     {
         /// <summary>
         /// Create a directory item in the breadcrumb trail.
         /// </summary>
-        protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
         /// <summary>
         /// Create the root directory item in the breadcrumb trail.
         /// </summary>
-        protected abstract DirectoryListingDirectory CreateRootDirectoryItem();
+        protected abstract DirectorySelectorDirectory CreateRootDirectoryItem();
 
         [Resolved]
         private Bindable<DirectoryInfo> currentDirectory { get; set; }
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             flow.Clear();
 
-            List<DirectoryListingDirectory> pathPieces = new List<DirectoryListingDirectory>();
+            List<DirectorySelectorDirectory> pathPieces = new List<DirectorySelectorDirectory>();
 
             DirectoryInfo ptr = dir.NewValue;
 

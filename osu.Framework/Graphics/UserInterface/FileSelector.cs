@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
             this.validFileExtensions = validFileExtensions ?? Array.Empty<string>();
         }
 
-        protected override IEnumerable<DirectoryListingItem> GetEntriesForPath(DirectoryInfo path)
+        protected override IEnumerable<DirectorySelectorItem> GetEntriesForPath(DirectoryInfo path)
         {
             foreach (var dir in base.GetEntriesForPath(path))
                 yield return dir;
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected abstract class DirectoryListingFile : DirectoryListingItem
+        protected abstract class DirectoryListingFile : DirectorySelectorItem
         {
             protected readonly FileInfo File;
 

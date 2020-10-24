@@ -24,14 +24,14 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Create the breadcrumb part of the control.
         /// </summary>
-        protected abstract DirectoryListingBreadcrumb CreateBreadcrumb();
+        protected abstract DirectorySelectorBreadcrumbDisplay CreateBreadcrumb();
 
-        protected abstract DirectoryListingDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
+        protected abstract DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null);
 
         /// <summary>
         /// Create the directory item that resolves the parent directory.
         /// </summary>
-        protected abstract DirectoryListingDirectory CreateParentDirectoryItem(DirectoryInfo directory);
+        protected abstract DirectorySelectorDirectory CreateParentDirectoryItem(DirectoryInfo directory);
 
         [Cached]
         public readonly Bindable<DirectoryInfo> CurrentPath = new Bindable<DirectoryInfo>();
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates entries for a given directory.
         /// </summary>
-        protected virtual IEnumerable<DirectoryListingItem> GetEntriesForPath(DirectoryInfo path)
+        protected virtual IEnumerable<DirectorySelectorItem> GetEntriesForPath(DirectoryInfo path)
         {
             foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
             {

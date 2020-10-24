@@ -6,11 +6,11 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicDirectoryListingParentDirectory : BasicDirectoryListingDirectory
+    public class BasicDirectorySelectorParentDirectory : BasicDirectorySelectorDirectory
     {
         protected override IconUsage? Icon => FontAwesome.Solid.Folder;
 
-        public BasicDirectoryListingParentDirectory(DirectoryInfo directory)
+        public BasicDirectorySelectorParentDirectory(DirectoryInfo directory)
             : base(directory, "..")
         {
         }
