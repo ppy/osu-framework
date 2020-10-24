@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly T origin;
 
-        private readonly List<Transform> transforms = new List<Transform>();
+        private readonly List<Transform> transforms = new List<Transform>(1); // the most common usage of transforms sees one transform being added.
 
         private bool hasCompleted = true;
 

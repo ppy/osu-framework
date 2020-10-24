@@ -7,11 +7,14 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
-using osu.Framework.Input.StateChanges;
+using osu.Framework.Input;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
 using SDL2;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.PixelFormats;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 
@@ -30,6 +33,8 @@ namespace osu.Framework.Platform.Sdl
 
         private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
+
+        private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
 
         #region Internal Properties
 
@@ -278,9 +283,62 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
+        public override IntPtr WindowHandle
+        {
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return IntPtr.Zero;
+
+                var wmInfo = windowWmInfo;
+
+                // Window handle is selected per subsystem as defined at:
+                // https://wiki.libsdl.org/SDL_SysWMinfo
+                switch (wmInfo.subsystem)
+                {
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WINDOWS:
+                        return wmInfo.info.win.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_X11:
+                        return wmInfo.info.x11.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_DIRECTFB:
+                        return wmInfo.info.dfb.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_COCOA:
+                        return wmInfo.info.cocoa.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_UIKIT:
+                        return wmInfo.info.uikit.window;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_WAYLAND:
+                        return wmInfo.info.wl.shell_surface;
+
+                    case SDL.SDL_SYSWM_TYPE.SDL_SYSWM_ANDROID:
+                        return wmInfo.info.android.window;
+
+                    default:
+                        return IntPtr.Zero;
+                }
+            }
+        }
+
         #endregion
 
-        #region Convenience Wrappers
+        #region Convenience Functions
+
+        private SDL.SDL_SysWMinfo windowWmInfo
+        {
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return default;
+
+                var wmInfo = new SDL.SDL_SysWMinfo();
+                SDL.SDL_GetWindowWMInfo(SdlWindowHandle, ref wmInfo);
+                return wmInfo;
+            }
+        }
 
         private int windowDisplayIndex => SdlWindowHandle == IntPtr.Zero ? 0 : SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
 
@@ -339,11 +397,26 @@ namespace osu.Framework.Platform.Sdl
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
+        private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
+        {
+            // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
+            var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
+            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
+        }
+
+        private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
+        {
+            if (isPressed)
+                eventScheduler.Add(() => OnJoystickButtonDown(button));
+            else
+                eventScheduler.Add(() => OnJoystickButtonUp(button));
+        }
+
         #endregion
 
         public Sdl2WindowBackend()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
         }
 
         #region IWindowBackend.Methods
@@ -354,6 +427,8 @@ namespace osu.Framework.Platform.Sdl
                                         SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                                         WindowState.ToFlags();
+
+            SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
             SdlWindowHandle = SDL.SDL_CreateWindow($"{title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
             cachedScale.Invalidate();
@@ -366,6 +441,9 @@ namespace osu.Framework.Platform.Sdl
             {
                 commandScheduler.Update();
 
+                if (!Exists)
+                    break;
+
                 processEvents();
 
                 if (!mouseInWindow)
@@ -376,15 +454,33 @@ namespace osu.Framework.Platform.Sdl
                 OnUpdate();
             }
 
+            OnClosed();
+
             if (SdlWindowHandle != IntPtr.Zero)
                 SDL.SDL_DestroyWindow(SdlWindowHandle);
-
-            OnClosed();
 
             SDL.SDL_Quit();
         }
 
         public override void Close() => commandScheduler.Add(() => Exists = false);
+
+        public override void RequestClose() => ScheduleEvent(OnCloseRequested);
+
+        public override unsafe void SetIcon(Image<Rgba32> image)
+        {
+            var data = image.GetPixelSpan().ToArray();
+            var imageSize = image.Size();
+
+            commandScheduler.Add(() =>
+            {
+                IntPtr surface;
+                fixed (Rgba32* ptr = data)
+                    surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
+
+                SDL.SDL_SetWindowIcon(SdlWindowHandle, surface);
+                SDL.SDL_FreeSurface(surface);
+            });
+        }
 
         private void pollMouse()
         {
@@ -398,12 +494,18 @@ namespace osu.Framework.Platform.Sdl
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(rx * scale, ry * scale) }));
+            ScheduleEvent(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
         }
 
         #endregion
 
         #region SDL Event Handling
+
+        /// <summary>
+        /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
+        /// </summary>
+        /// <param name="action">The <see cref="Action"/> to execute.</param>
+        protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
 
         private void processEvents()
         {
@@ -499,12 +601,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit)
-        {
-            // TODO: handle OnCloseRequested()
-            // we currently have a deadlock issue where GameHost blocks
-            Exists = false;
-        }
+        private void handleQuitEvent(SDL.SDL_QuitEvent evtQuit) => RequestClose();
 
         private void handleDropEvent(SDL.SDL_DropEvent evtDrop)
         {
@@ -513,7 +610,7 @@ namespace osu.Framework.Platform.Sdl
                 case SDL.SDL_EventType.SDL_DROPFILE:
                     var str = SDL.UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
-                        eventScheduler.Add(() => OnDragDrop(str));
+                        ScheduleEvent(() => OnDragDrop(str));
 
                     break;
             }
@@ -525,22 +622,91 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
         {
+            switch (evtCdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
+                    var joystick = SDL.SDL_GameControllerGetJoystick(controller);
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, controller);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+                    SDL.SDL_GameControllerClose(controllers[evtCdevice.which].ControllerHandle);
+                    controllers.Remove(evtCdevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                    if (controllers.TryGetValue(evtCdevice.which, out var state))
+                        state.PopulateBindings();
+
+                    break;
+            }
         }
 
         private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
         {
+            var button = ((SDL.SDL_GameControllerButton)evtCbutton.button).ToJoystickButton();
+
+            switch (evtCbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                    enqueueJoystickButtonInput(button, true);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                    enqueueJoystickButtonInput(button, false);
+                    break;
+            }
         }
 
-        private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis)
-        {
-        }
+        private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
+            enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
+            switch (evtJdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
+
+                    // if the joystick is already opened, ignore it
+                    if (controllers.ContainsKey(instanceID))
+                        break;
+
+                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, IntPtr.Zero);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    // if the joystick is already closed, ignore it
+                    if (!controllers.ContainsKey(evtJdevice.which))
+                        break;
+
+                    SDL.SDL_JoystickClose(controllers[evtJdevice.which].JoystickHandle);
+                    controllers.Remove(evtJdevice.which);
+                    break;
+            }
         }
 
         private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
         {
+            // if this button exists in the controller bindings, skip it
+            if (controllers.TryGetValue(evtJbutton.which, out var state) && state.GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
+                return;
+
+            var button = JoystickButton.FirstButton + evtJbutton.button;
+
+            switch (evtJbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                    enqueueJoystickButtonInput(button, true);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    enqueueJoystickButtonInput(button, false);
+                    break;
+            }
         }
 
         private void handleJoyHatEvent(SDL.SDL_JoyHatEvent evtJhat)
@@ -553,10 +719,15 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyAxisEvent(SDL.SDL_JoyAxisEvent evtJaxis)
         {
+            // if this axis exists in the controller bindings, skip it
+            if (controllers.TryGetValue(evtJaxis.which, out var state) && state.GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
+                return;
+
+            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            eventScheduler.Add(() => OnMouseWheel(new MouseScrollRelativeInput { Delta = new Vector2(evtWheel.x, evtWheel.y) }));
+            ScheduleEvent(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
@@ -565,17 +736,17 @@ namespace osu.Framework.Platform.Sdl
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    eventScheduler.Add(() => OnMouseDown(new MouseButtonInput(button, true)));
+                    ScheduleEvent(() => OnMouseDown(button));
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    eventScheduler.Add(() => OnMouseUp(new MouseButtonInput(button, false)));
+                    ScheduleEvent(() => OnMouseUp(button));
                     break;
             }
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            eventScheduler.Add(() => OnMouseMove(new MousePositionAbsoluteInput { Position = new Vector2(evtMotion.x * scale, evtMotion.y * scale) }));
+            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -586,7 +757,7 @@ namespace osu.Framework.Platform.Sdl
             string text = Marshal.PtrToStringAnsi(ptr) ?? "";
 
             foreach (char c in text)
-                eventScheduler.Add(() => OnKeyTyped(c));
+                ScheduleEvent(() => OnKeyTyped(c));
         }
 
         private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -603,11 +774,11 @@ namespace osu.Framework.Platform.Sdl
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    eventScheduler.Add(() => OnKeyDown(new KeyboardKeyInput(key, true)));
+                    ScheduleEvent(() => OnKeyDown(key));
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
-                    eventScheduler.Add(() => OnKeyUp(new KeyboardKeyInput(key, false)));
+                    ScheduleEvent(() => OnKeyUp(key));
                     break;
             }
         }
@@ -621,7 +792,7 @@ namespace osu.Framework.Platform.Sdl
             {
                 lastWindowState = currentState;
                 cachedScale.Invalidate();
-                eventScheduler.Add(() => OnWindowStateChanged(currentState));
+                ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
 
             if (lastDisplayIndex != displayIndex)
@@ -629,17 +800,17 @@ namespace osu.Framework.Platform.Sdl
                 lastDisplayIndex = displayIndex;
                 currentDisplay = null;
                 cachedScale.Invalidate();
-                eventScheduler.Add(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
+                ScheduleEvent(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
             }
 
             switch (evtWindow.windowEvent)
             {
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                    eventScheduler.Add(OnShown);
+                    ScheduleEvent(OnShown);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
-                    eventScheduler.Add(OnHidden);
+                    ScheduleEvent(OnHidden);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
@@ -649,7 +820,7 @@ namespace osu.Framework.Platform.Sdl
                     {
                         position = eventPos;
                         cachedScale.Invalidate();
-                        eventScheduler.Add(() => OnMoved(eventPos));
+                        ScheduleEvent(() => OnMoved(eventPos));
                     }
 
                     break;
@@ -661,7 +832,7 @@ namespace osu.Framework.Platform.Sdl
                     {
                         size = eventSize;
                         cachedScale.Invalidate();
-                        eventScheduler.Add(() => OnResized(eventSize));
+                        ScheduleEvent(() => OnResized(eventSize));
                     }
 
                     break;
@@ -673,24 +844,23 @@ namespace osu.Framework.Platform.Sdl
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                     mouseInWindow = true;
-                    eventScheduler.Add(OnMouseEntered);
+                    ScheduleEvent(OnMouseEntered);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
                     mouseInWindow = false;
-                    eventScheduler.Add(OnMouseLeft);
+                    ScheduleEvent(OnMouseLeft);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                    eventScheduler.Add(OnFocusGained);
+                    ScheduleEvent(OnFocusGained);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                    eventScheduler.Add(OnFocusLost);
+                    ScheduleEvent(OnFocusLost);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
-                    eventScheduler.Add(OnClosed);
                     break;
             }
         }

@@ -47,10 +47,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected CompositeDrawable()
         {
-            schedulerAfterChildren = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
+            var childComparer = new ChildComparer(this);
 
-            internalChildren = new SortedList<Drawable>(new ChildComparer(this));
-            aliveInternalChildren = new SortedList<Drawable>(new ChildComparer(this));
+            internalChildren = new SortedList<Drawable>(childComparer);
+            aliveInternalChildren = new SortedList<Drawable>(childComparer);
 
             AddLayout(childrenSizeDependencies);
         }
@@ -153,19 +153,21 @@ namespace osu.Framework.Graphics.Containers
 
             loadingComponents ??= new WeakList<Drawable>();
 
-            foreach (var d in components)
+            var loadables = components.ToList();
+
+            foreach (var d in loadables)
             {
                 loadingComponents.Add(d);
                 d.OnLoadComplete += _ => loadingComponents.Remove(d);
             }
 
-            var taskScheduler = components.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
+            var taskScheduler = loadables.Any(c => c.IsLongRunning) ? long_load_scheduler : threaded_scheduler;
 
-            return Task.Factory.StartNew(() => loadComponents(ref components, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(t =>
+            return Task.Factory.StartNew(() => loadComponents(loadables, deps, true, linkedSource.Token), linkedSource.Token, TaskCreationOptions.HideScheduler, taskScheduler).ContinueWith(loaded =>
             {
-                var exception = t.Exception?.AsSingular();
+                var exception = loaded.Exception?.AsSingular();
 
-                if (!components.Any())
+                if (loadables.Count == 0)
                     return;
 
                 if (linkedSource.Token.IsCancellationRequested)
@@ -182,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                             ExceptionDispatchInfo.Capture(exception).Throw();
 
                         if (!linkedSource.Token.IsCancellationRequested)
-                            onLoaded?.Invoke(components);
+                            onLoaded?.Invoke(loadables);
                     }
                     finally
                     {
@@ -209,19 +211,22 @@ namespace osu.Framework.Graphics.Containers
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString());
 
-            loadComponents(ref components, Dependencies, false);
+            loadComponents(components.ToList(), Dependencies, false);
         }
 
-        private void loadComponents<TLoadable>(ref IEnumerable<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
+        /// <summary>
+        /// Load the provided components. Any components which could not be loaded will be removed from the provided list.
+        /// </summary>
+        private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            foreach (var c in components)
+            for (var i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
-                    return;
+                    break;
 
-                if (!c.LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
-                    components = components.Except(c.Yield());
+                if (!components[i].LoadFromAsync(Clock, dependencies, isDirectAsyncContext))
+                    components.Remove(components[i--]);
             }
         }
 
@@ -296,6 +301,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             OnAutoSize = null;
+            Dependencies = null;
             schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
@@ -593,6 +599,20 @@ namespace osu.Framework.Graphics.Containers
             ChildDepthChanged?.Invoke(child);
         }
 
+        /// <summary>
+        /// Sorts all children of this <see cref="CompositeDrawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to re-sort the children if the result of <see cref="Compare"/> has changed.
+        /// </remarks>
+        protected internal void SortInternal()
+        {
+            ensureChildMutationAllowed();
+
+            internalChildren.Sort();
+            aliveInternalChildren.Sort();
+        }
+
         private void ensureChildMutationAllowed()
         {
             switch (LoadState)
@@ -625,9 +645,23 @@ namespace osu.Framework.Graphics.Containers
 
         #region Updating (per-frame periodic)
 
-        private Lazy<Scheduler> schedulerAfterChildren;
+        private Scheduler schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren.Value;
+        /// <summary>
+        /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="UpdateAfterChildren"/>s calls.
+        /// The tasks are invoked at the beginning of the <see cref="UpdateAfterChildren"/> method before anything else.
+        /// </summary>
+        protected internal Scheduler SchedulerAfterChildren
+        {
+            get
+            {
+                if (schedulerAfterChildren != null)
+                    return schedulerAfterChildren;
+
+                lock (LoadLock)
+                    return schedulerAfterChildren ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+            }
+        }
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -824,7 +858,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
 
-            if (schedulerAfterChildren.IsValueCreated) schedulerAfterChildren.Value.UpdateClock(Clock);
+            schedulerAfterChildren?.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -866,9 +900,9 @@ namespace osu.Framework.Graphics.Containers
                     updateChild(aliveInternalChildren[i]);
             }
 
-            if (schedulerAfterChildren.IsValueCreated)
+            if (schedulerAfterChildren != null)
             {
-                int amountScheduledTasks = schedulerAfterChildren.Value.Update();
+                int amountScheduledTasks = schedulerAfterChildren.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -1822,7 +1856,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTransform = !Transforms.Any() ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
+            var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
             {
