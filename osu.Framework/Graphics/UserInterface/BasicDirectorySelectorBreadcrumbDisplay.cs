@@ -10,9 +10,9 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDirectorySelectorBreadcrumbDisplay : DirectorySelectorBreadcrumbDisplay
     {
-        protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new ComputerPiece();
+        protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new BreadcrumbDisplayComputer();
 
-        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new CurrentDisplayPiece(directory, displayName);
+        protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);
 
         public BasicDirectorySelectorBreadcrumbDisplay()
         {
@@ -20,21 +20,21 @@ namespace osu.Framework.Graphics.UserInterface
             AutoSizeAxes = Axes.Y;
         }
 
-        protected class ComputerPiece : CurrentDisplayPiece
+        protected class BreadcrumbDisplayComputer : BreadcrumbDisplayDirectory
         {
             protected override IconUsage? Icon => null;
 
-            public ComputerPiece()
+            public BreadcrumbDisplayComputer()
                 : base(null, "Computer")
             {
             }
         }
 
-        protected class CurrentDisplayPiece : BasicDirectorySelectorDirectory
+        protected class BreadcrumbDisplayDirectory : BasicDirectorySelectorDirectory
         {
             protected override IconUsage? Icon => Directory.Name.Contains(Path.DirectorySeparatorChar) ? base.Icon : null;
 
-            public CurrentDisplayPiece(DirectoryInfo directory, string displayName = null)
+            public BreadcrumbDisplayDirectory(DirectoryInfo directory, string displayName = null)
                 : base(directory, displayName)
             {
             }
