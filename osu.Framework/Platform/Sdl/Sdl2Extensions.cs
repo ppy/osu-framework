@@ -335,6 +335,9 @@ namespace osu.Framework.Platform.Sdl
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_PERIOD:
                     return Key.KeypadPeriod;
 
+                case SDL.SDL_Scancode.SDL_SCANCODE_NONUSBACKSLASH:
+                    return Key.NonUSBackSlash;
+
                 case SDL.SDL_Scancode.SDL_SCANCODE_F13:
                     return Key.F13;
 
