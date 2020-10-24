@@ -12,6 +12,9 @@ using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    /// <summary>
+    /// A component which allows a user to select a directory.
+    /// </summary>
     public abstract class DirectorySelector : CompositeDrawable
     {
         private FillFlowContainer directoryFlow;

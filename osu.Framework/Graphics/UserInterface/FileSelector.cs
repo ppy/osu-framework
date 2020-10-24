@@ -11,6 +11,9 @@ using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    /// <summary>
+    /// A component which allows a user to select a file.
+    /// </summary>
     public abstract class FileSelector : DirectorySelector
     {
         private readonly string[] validFileExtensions;
