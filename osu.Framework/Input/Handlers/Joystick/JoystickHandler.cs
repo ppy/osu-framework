@@ -67,12 +67,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             // if a directional button is pressed and does not match that for the new axis direction, release it
             if (currentButton != 0 && expectedButton != currentButton)
             {
-                // also release trigger buttons if appropriate
-                if (axis.Source == JoystickAxisSource.GamePadLeftTrigger)
-                    enqueueJoystickButtonUp(JoystickButton.GamePadLeftTrigger);
-                else if (axis.Source == JoystickAxisSource.GamePadRightTrigger)
-                    enqueueJoystickButtonUp(JoystickButton.GamePadRightTrigger);
-
                 enqueueJoystickButtonUp(currentButton);
                 axisDirectionButtons[index] = currentButton = 0;
             }
@@ -80,12 +74,6 @@ namespace osu.Framework.Input.Handlers.Joystick
             // if we expect a directional button to be pressed, and it is not, press it
             if (expectedButton != 0 && expectedButton != currentButton)
             {
-                // also press trigger buttons if appropriate
-                if (axis.Source == JoystickAxisSource.GamePadLeftTrigger)
-                    enqueueJoystickButtonDown(JoystickButton.GamePadLeftTrigger);
-                else if (axis.Source == JoystickAxisSource.GamePadRightTrigger)
-                    enqueueJoystickButtonDown(JoystickButton.GamePadRightTrigger);
-
                 enqueueJoystickButtonDown(expectedButton);
                 axisDirectionButtons[index] = expectedButton;
             }
