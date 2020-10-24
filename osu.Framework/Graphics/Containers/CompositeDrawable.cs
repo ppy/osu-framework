@@ -599,6 +599,20 @@ namespace osu.Framework.Graphics.Containers
             ChildDepthChanged?.Invoke(child);
         }
 
+        /// <summary>
+        /// Sorts all children of this <see cref="CompositeDrawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to re-sort the children if the result of <see cref="Compare"/> has changed.
+        /// </remarks>
+        protected internal void SortInternal()
+        {
+            ensureChildMutationAllowed();
+
+            internalChildren.Sort();
+            aliveInternalChildren.Sort();
+        }
+
         private void ensureChildMutationAllowed()
         {
             switch (LoadState)
@@ -1842,7 +1856,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None)
         {
-            var currentTransform = !Transforms.Any() ? null : Transforms.OfType<AutoSizeTransform>().FirstOrDefault();
+            var currentTransform = TransformsForTargetMember(nameof(baseSize)).FirstOrDefault() as AutoSizeTransform;
 
             if ((currentTransform?.EndValue ?? Size) != newSize)
             {
