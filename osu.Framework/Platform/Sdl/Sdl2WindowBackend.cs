@@ -754,7 +754,7 @@ namespace osu.Framework.Platform.Sdl
             if (ptr == IntPtr.Zero)
                 return;
 
-            string text = Marshal.PtrToStringAnsi(ptr) ?? "";
+            string text = Marshal.PtrToStringUTF8(ptr) ?? "";
 
             foreach (char c in text)
                 ScheduleEvent(() => OnKeyTyped(c));
