@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Input;
 using osuTK.Input;
 using SDL2;
 
@@ -478,6 +479,89 @@ namespace osu.Framework.Platform.Sdl
             }
 
             return 0;
+        }
+
+        public static JoystickAxisSource ToJoystickAxisSource(this SDL.SDL_GameControllerAxis axis)
+        {
+            switch (axis)
+            {
+                default:
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
+                    return JoystickAxisSource.GamePadLeftStickX;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
+                    return JoystickAxisSource.GamePadLeftStickY;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+                    return JoystickAxisSource.GamePadLeftTrigger;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
+                    return JoystickAxisSource.GamePadRightStickX;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
+                    return JoystickAxisSource.GamePadRightStickY;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+                    return JoystickAxisSource.GamePadRightTrigger;
+            }
+        }
+
+        public static JoystickButton ToJoystickButton(this SDL.SDL_GameControllerButton button)
+        {
+            switch (button)
+            {
+                default:
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
+                    return JoystickButton.GamePadA;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
+                    return JoystickButton.GamePadB;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
+                    return JoystickButton.GamePadX;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
+                    return JoystickButton.GamePadY;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK:
+                    return JoystickButton.GamePadBack;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE:
+                    return JoystickButton.GamePadGuide;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START:
+                    return JoystickButton.GamePadStart;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
+                    return JoystickButton.GamePadLeftStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+                    return JoystickButton.GamePadRightStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    return JoystickButton.GamePadLeftShoulder;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    return JoystickButton.GamePadRightShoulder;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
+                    return JoystickButton.GamePadDPadUp;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                    return JoystickButton.GamePadDPadDown;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                    return JoystickButton.GamePadDPadLeft;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                    return JoystickButton.GamePadDPadRight;
+            }
         }
     }
 }

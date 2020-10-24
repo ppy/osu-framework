@@ -9,6 +9,7 @@ using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
+using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
 using osuTK.Platform;
@@ -217,6 +218,21 @@ namespace osu.Framework.Platform
         public event Action<char> KeyTyped;
 
         /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        public event Action<JoystickAxis> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButton> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButton> JoystickButtonUp;
+
+        /// <summary>
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
@@ -243,6 +259,9 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
         protected virtual void OnKeyUp(Key key) => KeyUp?.Invoke(key);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected virtual void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
+        protected virtual void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
+        protected virtual void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
@@ -330,6 +349,9 @@ namespace osu.Framework.Platform
             WindowBackend.KeyDown += OnKeyDown;
             WindowBackend.KeyUp += OnKeyUp;
             WindowBackend.KeyTyped += OnKeyTyped;
+            WindowBackend.JoystickAxisChanged += OnJoystickAxisChanged;
+            WindowBackend.JoystickButtonDown += OnJoystickButtonDown;
+            WindowBackend.JoystickButtonUp += OnJoystickButtonUp;
             WindowBackend.MouseDown += OnMouseDown;
             WindowBackend.MouseUp += OnMouseUp;
             WindowBackend.MouseMove += OnMouseMove;

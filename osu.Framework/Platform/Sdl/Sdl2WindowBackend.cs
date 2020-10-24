@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
+using osu.Framework.Input;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -32,6 +33,8 @@ namespace osu.Framework.Platform.Sdl
 
         private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
+
+        private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
 
         #region Internal Properties
 
@@ -322,7 +325,7 @@ namespace osu.Framework.Platform.Sdl
 
         #endregion
 
-        #region Convenience Wrappers
+        #region Convenience Functions
 
         private SDL.SDL_SysWMinfo windowWmInfo
         {
@@ -394,11 +397,26 @@ namespace osu.Framework.Platform.Sdl
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 
+        private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
+        {
+            // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
+            var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
+            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
+        }
+
+        private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
+        {
+            if (isPressed)
+                eventScheduler.Add(() => OnJoystickButtonDown(button));
+            else
+                eventScheduler.Add(() => OnJoystickButtonUp(button));
+        }
+
         #endregion
 
         public Sdl2WindowBackend()
         {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
         }
 
         #region IWindowBackend.Methods
@@ -604,22 +622,91 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleControllerDeviceEvent(SDL.SDL_ControllerDeviceEvent evtCdevice)
         {
+            switch (evtCdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
+                    var joystick = SDL.SDL_GameControllerGetJoystick(controller);
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, controller);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+                    SDL.SDL_GameControllerClose(controllers[evtCdevice.which].ControllerHandle);
+                    controllers.Remove(evtCdevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                    if (controllers.TryGetValue(evtCdevice.which, out var state))
+                        state.PopulateBindings();
+
+                    break;
+            }
         }
 
         private void handleControllerButtonEvent(SDL.SDL_ControllerButtonEvent evtCbutton)
         {
+            var button = ((SDL.SDL_GameControllerButton)evtCbutton.button).ToJoystickButton();
+
+            switch (evtCbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                    enqueueJoystickButtonInput(button, true);
+                    break;
+
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                    enqueueJoystickButtonInput(button, false);
+                    break;
+            }
         }
 
-        private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis)
-        {
-        }
+        private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
+            enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
+            switch (evtJdevice.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
+                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
+
+                    // if the joystick is already opened, ignore it
+                    if (controllers.ContainsKey(instanceID))
+                        break;
+
+                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
+                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, IntPtr.Zero);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    // if the joystick is already closed, ignore it
+                    if (!controllers.ContainsKey(evtJdevice.which))
+                        break;
+
+                    SDL.SDL_JoystickClose(controllers[evtJdevice.which].JoystickHandle);
+                    controllers.Remove(evtJdevice.which);
+                    break;
+            }
         }
 
         private void handleJoyButtonEvent(SDL.SDL_JoyButtonEvent evtJbutton)
         {
+            // if this button exists in the controller bindings, skip it
+            if (controllers.TryGetValue(evtJbutton.which, out var state) && state.GetButtonForIndex(evtJbutton.button) != SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID)
+                return;
+
+            var button = JoystickButton.FirstButton + evtJbutton.button;
+
+            switch (evtJbutton.type)
+            {
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                    enqueueJoystickButtonInput(button, true);
+                    break;
+
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    enqueueJoystickButtonInput(button, false);
+                    break;
+            }
         }
 
         private void handleJoyHatEvent(SDL.SDL_JoyHatEvent evtJhat)
@@ -632,6 +719,11 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleJoyAxisEvent(SDL.SDL_JoyAxisEvent evtJaxis)
         {
+            // if this axis exists in the controller bindings, skip it
+            if (controllers.TryGetValue(evtJaxis.which, out var state) && state.GetAxisForIndex(evtJaxis.axis) != SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID)
+                return;
+
+            enqueueJoystickAxisInput(JoystickAxisSource.Axis1 + evtJaxis.axis, evtJaxis.axisValue);
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>

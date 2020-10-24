@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
 using SixLabors.ImageSharp;
@@ -53,6 +54,9 @@ namespace osu.Framework.Platform
         public event Action<Key> KeyDown;
         public event Action<Key> KeyUp;
         public event Action<char> KeyTyped;
+        public event Action<JoystickAxis> JoystickAxisChanged;
+        public event Action<JoystickButton> JoystickButtonDown;
+        public event Action<JoystickButton> JoystickButtonUp;
         public event Action<string> DragDrop;
         public event Action<Display> DisplayChanged;
 
@@ -87,6 +91,9 @@ namespace osu.Framework.Platform
         protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
         protected virtual void OnKeyUp(Key key) => KeyUp?.Invoke(key);
         protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected virtual void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
+        protected virtual void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
+        protected virtual void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
         protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
         protected virtual void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
 
