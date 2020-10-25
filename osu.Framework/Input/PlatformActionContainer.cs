@@ -61,7 +61,8 @@ namespace osu.Framework.Input
         ListEnd,
         Save,
         Undo,
-        Redo
+        Redo,
+        Exit
     }
 
     public enum PlatformActionMethod

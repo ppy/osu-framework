@@ -4,7 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using osu.Framework.Input.StateChanges;
+using osu.Framework.Input;
+using osuTK;
+using osuTK.Input;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Platform
 {
@@ -36,10 +40,9 @@ namespace osu.Framework.Platform
         Size Size { get; set; }
 
         /// <summary>
-        /// Returns the scale of window's drawable area.
-        /// In high-dpi environments this will be greater than one.
+        /// Returns the drawable area, after scaling.
         /// </summary>
-        float Scale { get; }
+        Size ClientSize { get; }
 
         /// <summary>
         /// Returns or sets the cursor's visibility within the window.
@@ -74,14 +77,19 @@ namespace osu.Framework.Platform
         Display PrimaryDisplay { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
         Display CurrentDisplay { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; set; }
+
+        /// <summary>
+        /// Gets the native window handle as provided by the operating system.
+        /// </summary>
+        IntPtr WindowHandle { get; }
 
         #endregion
 
@@ -95,17 +103,17 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked after the window has resized.
         /// </summary>
-        event Action Resized;
+        event Action<Size> Resized;
 
         /// <summary>
         /// Invoked after the window's state has changed.
         /// </summary>
-        event Action WindowStateChanged;
+        event Action<WindowState> WindowStateChanged;
 
         /// <summary>
         /// Invoked when the user attempts to close the window.
         /// </summary>
-        event Func<bool> CloseRequested;
+        event Action CloseRequested;
 
         /// <summary>
         /// Invoked when the window is about to close.
@@ -150,37 +158,52 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
-        event Action<MouseScrollRelativeInput> MouseWheel;
+        event Action<Vector2, bool> MouseWheel;
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
         /// </summary>
-        event Action<MousePositionAbsoluteInput> MouseMove;
+        event Action<Vector2> MouseMove;
 
         /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
-        event Action<MouseButtonInput> MouseDown;
+        event Action<MouseButton> MouseDown;
 
         /// <summary>
         /// Invoked when the user releases a mouse button.
         /// </summary>
-        event Action<MouseButtonInput> MouseUp;
+        event Action<MouseButton> MouseUp;
 
         /// <summary>
         /// Invoked when the user presses a key.
         /// </summary>
-        event Action<KeyboardKeyInput> KeyDown;
+        event Action<Key> KeyDown;
 
         /// <summary>
         /// Invoked when the user releases a key.
         /// </summary>
-        event Action<KeyboardKeyInput> KeyUp;
+        event Action<Key> KeyUp;
 
         /// <summary>
         /// Invoked when the user types a character.
         /// </summary>
         event Action<char> KeyTyped;
+
+        /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        event Action<JoystickAxis> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        event Action<JoystickButton> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        event Action<JoystickButton> JoystickButtonUp;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
@@ -207,9 +230,20 @@ namespace osu.Framework.Platform
         void Run();
 
         /// <summary>
-        /// Requests that the window close.
+        /// Forcefully tells the window to close.
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// Requests that the window close.
+        /// </summary>
+        void RequestClose();
+
+        /// <summary>
+        /// Attempts to set the window's icon to the specified image.
+        /// </summary>
+        /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
+        void SetIcon(Image<Rgba32> image);
 
         #endregion
     }

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
             layoutContent();
         }
 
-        private Drawable[][] content;
+        private GridContainerContent content;
 
         /// <summary>
         /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
@@ -37,18 +37,29 @@ namespace osu.Framework.Graphics.Containers
         /// Null elements are allowed to represent blank rows/cells.
         /// </para>
         /// </summary>
-        public Drawable[][] Content
+        public GridContainerContent Content
         {
             get => content;
             set
             {
-                if (content == value)
+                if (content?.Equals(value) == true)
                     return;
+
+                if (content != null)
+                    content.ArrayElementChanged -= onContentChange;
 
                 content = value;
 
-                cellContent.Invalidate();
+                onContentChange();
+
+                if (content != null)
+                    content.ArrayElementChanged += onContentChange;
             }
+        }
+
+        private void onContentChange()
+        {
+            cellContent.Invalidate();
         }
 
         private Dimension[] rowDimensions = Array.Empty<Dimension>();
@@ -131,8 +142,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellContent.IsValid)
                 return;
 
-            int requiredRows = Content?.Length ?? 0;
-            int requiredColumns = requiredRows == 0 ? 0 : Content.Max(c => c?.Length ?? 0);
+            int requiredRows = Content?.Count ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content?.Max(c => c?.Count ?? 0) ?? 0;
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
@@ -158,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     // Allow non-square grids
-                    if (c >= Content[r].Length)
+                    if (c >= Content[r].Count)
                         continue;
 
                     // Allow empty cells

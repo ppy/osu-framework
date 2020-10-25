@@ -36,8 +36,8 @@ namespace osu.Framework.Input
                     // confine cursor
                     if (Host.Window != null && Host.Window.CursorState.HasFlag(CursorState.Confined))
                     {
-                        float scale = (Host.Window as DesktopWindow)?.Scale ?? 1f;
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(Host.Window.Width * scale, Host.Window.Height * scale));
+                        var clientSize = Host.Window.ClientSize;
+                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(clientSize.Width, clientSize.Height));
                     }
 
                     break;

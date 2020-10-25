@@ -121,6 +121,7 @@ namespace osu.Framework.Platform
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
+                        new JoystickHandler(),
                     };
             }
         }

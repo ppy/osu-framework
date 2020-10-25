@@ -416,6 +416,10 @@ namespace osu.Framework.Graphics.Sprites
         #region Characters
 
         private readonly LayoutValue charactersCache = new LayoutValue(Invalidation.DrawSize | Invalidation.Presence, InvalidationSource.Parent);
+
+        /// <summary>
+        /// Glyph list to be passed to <see cref="TextBuilder"/>.
+        /// </summary>
         private readonly List<TextBuilderGlyph> charactersBacking = new List<TextBuilderGlyph>();
 
         /// <summary>
@@ -553,6 +557,11 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual char[] FixedWidthExcludeCharacters => null;
 
         /// <summary>
+        /// The character to use to calculate the fixed width width. Defaults to 'm'.
+        /// </summary>
+        protected virtual char FixedWidthReferenceCharacter => 'm';
+
+        /// <summary>
         /// The character to fallback to use if a character glyph lookup failed.
         /// </summary>
         protected virtual char FallbackCharacter => '?';
@@ -573,17 +582,17 @@ namespace osu.Framework.Graphics.Sprites
             if (AllowMultiline)
             {
                 return new MultilineTextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    excludeCharacters, FallbackCharacter);
+                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
             }
 
             if (Truncate)
             {
                 return new TruncatingTextBuilder(store, Font, builderMaxWidth, ellipsisString, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                    excludeCharacters, FallbackCharacter);
+                    excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
             }
 
             return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
-                excludeCharacters, FallbackCharacter);
+                excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
         }
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();

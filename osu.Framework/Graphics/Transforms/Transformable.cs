@@ -43,6 +43,14 @@ namespace osu.Framework.Graphics.Transforms
         public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
 
         /// <summary>
+        /// Retrieves the <see cref="Transform"/>s for a given target member.
+        /// </summary>
+        /// <param name="targetMember">The target member to find the <see cref="Transform"/>s for.</param>
+        /// <returns>An enumeration over the transforms for the target member.</returns>
+        public IEnumerable<Transform> TransformsForTargetMember(string targetMember) =>
+            getTrackerFor(targetMember)?.Transforms ?? Enumerable.Empty<Transform>();
+
+        /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
         /// Will return the current time value if no transforms are present.
         /// </summary>
@@ -289,6 +297,12 @@ namespace osu.Framework.Graphics.Transforms
 
             if (Clock == null)
             {
+                if (!transform.HasStartValue)
+                {
+                    transform.ReadIntoStartValue();
+                    transform.HasStartValue = true;
+                }
+
                 transform.Apply(transform.EndTime);
                 transform.OnComplete?.Invoke();
                 return;

@@ -96,7 +96,5 @@ namespace osu.Framework.Graphics.Audio
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
-
-        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
     }
 }
