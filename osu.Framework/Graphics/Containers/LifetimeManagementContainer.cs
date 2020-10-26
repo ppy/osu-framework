@@ -57,6 +57,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void ClearInternal(bool disposeChildren = true)
         {
+            manager.ClearEntries();
+
             foreach (var (_, entry) in drawableMap)
                 entry.Dispose();
             drawableMap.Clear();
