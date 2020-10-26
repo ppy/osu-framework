@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Contains all the currently-alive entries.
         /// </summary>
-        private readonly HashSet<LifetimeEntry> activeEntries = new HashSet<LifetimeEntry>();
+        private readonly List<LifetimeEntry> activeEntries = new List<LifetimeEntry>();
 
         /// <summary>
         /// Contains all entries that should come alive in the future.
@@ -254,7 +254,7 @@ namespace osu.Framework.Graphics.Performance
             }
 
             // Remove all newly-dead entries.
-            activeEntries.RemoveWhere(e => e.State != LifetimeEntryState.Current);
+            activeEntries.RemoveAll(e => e.State != LifetimeEntryState.Current);
 
             while (eventQueue.Count != 0)
             {
