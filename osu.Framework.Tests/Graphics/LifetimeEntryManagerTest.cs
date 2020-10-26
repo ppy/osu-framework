@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Graphics
             int updateTime = 0;
 
             manager.AddEntry(new LifetimeEntry { LifetimeStart = 0, LifetimeEnd = 1 });
-            manager.OnBoundaryCrossed += (entry, kind, direction) =>
+            manager.EntryCrossedBoundary += (entry, kind, direction) =>
             {
                 switch (kind)
                 {
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Graphics
 
             addEntry();
 
-            manager.OnBoundaryCrossed += (entry, kind, direction) => changeLifetime();
+            manager.EntryCrossedBoundary += (entry, kind, direction) => changeLifetime();
             manager.Update(0);
 
             int count = 1;
@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Graphics
 
             public TestLifetimeEntryManager()
             {
-                OnBoundaryCrossed += (entry, kind, direction) =>
+                EntryCrossedBoundary += (entry, kind, direction) =>
                 {
                     if (!crossings.ContainsKey(entry))
                         crossings[entry] = new List<(LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)>();

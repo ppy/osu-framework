@@ -11,8 +11,8 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Graphics.Performance
 {
     /// <summary>
-    /// Provides time-optimised updates for notifications of lifetime change notifications.
-    /// This is used in specialised <see cref="CompositeDrawable"/>s to optimise lifetime changes (see: <see cref="CompositeDrawable"/>).
+    /// Provides time-optimised updates for lifetime change notifications.
+    /// This is used in specialised <see cref="CompositeDrawable"/>s to optimise lifetime changes (see: <see cref="LifetimeManagementContainer"/>).
     /// </summary>
     /// <remarks>
     /// The time complexity of updating lifetimes is O(number of alive items).
@@ -22,17 +22,17 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes alive.
         /// </summary>
-        public event Action<LifetimeEntry> OnBecomeAlive;
+        public event Action<LifetimeEntry> EntryBecameAlive;
 
         /// <summary>
         /// Invoked immediately when a <see cref="LifetimeEntry"/> becomes dead.
         /// </summary>
-        public event Action<LifetimeEntry> OnBecomeDead;
+        public event Action<LifetimeEntry> EntryBecameDead;
 
         /// <summary>
         /// Invoked when a <see cref="LifetimeEntry"/> crosses a lifetime boundary.
         /// </summary>
-        public event Action<LifetimeEntry, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> OnBoundaryCrossed;
+        public event Action<LifetimeEntry, LifetimeBoundaryKind, LifetimeBoundaryCrossingDirection> EntryCrossedBoundary;
 
         /// <summary>
         /// Contains all the newly-added (but not yet processed) entries.
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Performance
                     removed = activeEntries.Remove(entry);
 
                     if (removed)
-                        OnBecomeDead?.Invoke(entry);
+                        EntryBecameDead?.Invoke(entry);
 
                     break;
 
@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.Performance
             foreach (var entry in activeEntries)
             {
                 entry.RequestLifetimeUpdate -= requestLifetimeUpdate;
-                OnBecomeDead?.Invoke(entry);
+                EntryBecameDead?.Invoke(entry);
                 entry.ChildId = 0;
             }
 
@@ -259,7 +259,7 @@ namespace osu.Framework.Graphics.Performance
             while (eventQueue.Count != 0)
             {
                 var (entry, kind, direction) = eventQueue.Dequeue();
-                OnBoundaryCrossed?.Invoke(entry, kind, direction);
+                EntryCrossedBoundary?.Invoke(entry, kind, direction);
             }
 
             return aliveChildrenChanged;
@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.Performance
                 if (mutateActiveEntries)
                     activeEntries.Add(entry);
 
-                OnBecomeAlive?.Invoke(entry);
+                EntryBecameAlive?.Invoke(entry);
                 aliveEntriesChanged = true;
             }
             else if (oldState == LifetimeEntryState.Current)
@@ -321,7 +321,7 @@ namespace osu.Framework.Graphics.Performance
                 if (mutateActiveEntries)
                     activeEntries.Remove(entry);
 
-                OnBecomeDead?.Invoke(entry);
+                EntryBecameDead?.Invoke(entry);
                 aliveEntriesChanged = true;
             }
 
