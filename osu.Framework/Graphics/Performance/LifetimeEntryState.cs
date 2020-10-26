@@ -3,18 +3,29 @@
 
 namespace osu.Framework.Graphics.Performance
 {
+    /// <summary>
+    /// The state of a <see cref="LifetimeEntry"/>.
+    /// </summary>
     public enum LifetimeEntryState
     {
-        /// Not yet loaded.
+        /// <summary>
+        /// The <see cref="LifetimeEntry"/> hasn't been processed within the <see cref="LifetimeEntryManager"/> yet.
+        /// </summary>
         New,
 
-        /// Currently dead and becomes alive in the future: current time &lt; <see cref="Drawable.LifetimeStart"/>.
+        /// <summary>
+        /// The <see cref="LifetimeEntry"/> is currently dead and becomes alive when current time &gt;= <see cref="LifetimeEntry.LifetimeStart"/>.
+        /// </summary>
         Future,
 
-        /// Currently alive.
+        /// <summary>
+        /// The <see cref="LifetimeEntry"/> is currently alive.
+        /// </summary>
         Current,
 
-        /// Currently dead and becomes alive if the clock is rewound: <see cref="Drawable.LifetimeEnd"/> &lt;= current time.
+        /// <summary>
+        /// The <see cref="LifetimeEntry"/> is currently dead and becomes alive when current time &lt; <see cref="LifetimeEntry.LifetimeEnd"/>.
+        /// </summary>
         Past,
     }
 }

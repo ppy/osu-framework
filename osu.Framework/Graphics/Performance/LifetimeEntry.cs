@@ -5,6 +5,12 @@ using System;
 
 namespace osu.Framework.Graphics.Performance
 {
+    /// <summary>
+    /// An object for a <see cref="LifetimeEntryManager"/> to consume, which provides a <see cref="LifetimeStart"/> and <see cref="LifetimeEnd"/>.
+    /// </summary>
+    /// <remarks>
+    /// Management of the object which the <see cref="LifetimeEntry"/> refers to is left up to the consumer.
+    /// </remarks>
     public class LifetimeEntry
     {
         private double lifetimeStart = double.MinValue;
@@ -47,6 +53,10 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
+        /// <summary>
+        /// Invoked when this <see cref="LifetimeEntry"/> is attached to a <see cref="LifetimeEntryManager"/> and either
+        /// <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> are changed.
+        /// </summary>
         internal event RequestLifetimeUpdateDelegate RequestLifetimeUpdate;
 
         /// <summary>
