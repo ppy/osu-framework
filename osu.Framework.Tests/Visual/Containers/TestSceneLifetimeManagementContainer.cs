@@ -264,6 +264,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;
+
+                // This is called from boundary crossing events and results in timing issues if the LTMC is not updated in time. Force an update here to prevent such issues.
+                container.UpdateSubTree();
                 checkAll();
             }
 
