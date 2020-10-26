@@ -30,22 +30,29 @@ namespace osu.Framework.Graphics.Containers
             manager.EntryCrossedBoundary += entryCrossedBoundary;
         }
 
-        protected internal override void AddInternal(Drawable drawable)
+        protected internal override void AddInternal(Drawable drawable) => AddInternal(drawable, true);
+
+        /// <summary>
+        /// Adds a <see cref="Drawable"/> to this <see cref="LifetimeManagementContainer"/>.
+        /// </summary>
+        /// <param name="drawable">The <see cref="Drawable"/> to add.</param>
+        /// <param name="withManagedLifetime">Whether the lifetime of <paramref name="drawable"/> should be managed by this <see cref="LifetimeManagementContainer"/>.</param>
+        protected internal void AddInternal(Drawable drawable, bool withManagedLifetime)
         {
             Trace.Assert(!drawable.RemoveWhenNotAlive, $"{nameof(RemoveWhenNotAlive)} is not supported for {nameof(LifetimeManagementContainer)}");
 
-            var entry = new DrawableLifetimeEntry(drawable);
-
-            manager.AddEntry(entry);
-            drawableMap[drawable] = entry;
-
             base.AddInternal(drawable);
+
+            if (withManagedLifetime)
+                manager.AddEntry(drawableMap[drawable] = new DrawableLifetimeEntry(drawable));
+            else
+                MakeChildAlive(drawable);
         }
 
         protected internal override bool RemoveInternal(Drawable drawable)
         {
             if (!drawableMap.TryGetValue(drawable, out var entry))
-                return false;
+                return base.RemoveInternal(drawable);
 
             manager.RemoveEntry(entry);
             drawableMap.Remove(drawable);
