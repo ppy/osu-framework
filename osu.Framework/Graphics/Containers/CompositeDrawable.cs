@@ -599,6 +599,20 @@ namespace osu.Framework.Graphics.Containers
             ChildDepthChanged?.Invoke(child);
         }
 
+        /// <summary>
+        /// Sorts all children of this <see cref="CompositeDrawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to re-sort the children if the result of <see cref="Compare"/> has changed.
+        /// </remarks>
+        protected internal void SortInternal()
+        {
+            ensureChildMutationAllowed();
+
+            internalChildren.Sort();
+            aliveInternalChildren.Sort();
+        }
+
         private void ensureChildMutationAllowed()
         {
             switch (LoadState)

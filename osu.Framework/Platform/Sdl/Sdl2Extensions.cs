@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Input;
 using osuTK.Input;
 using SDL2;
 
@@ -10,427 +11,430 @@ namespace osu.Framework.Platform.Sdl
     {
         public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
         {
-            switch (sdlKeysym.sym)
+            switch (sdlKeysym.scancode)
             {
                 default:
-                case SDL.SDL_Keycode.SDLK_UNKNOWN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_UNKNOWN:
                     return Key.Unknown;
 
-                case SDL.SDL_Keycode.SDLK_KP_COMMA:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_COMMA:
                     return Key.Comma;
 
-                case SDL.SDL_Keycode.SDLK_KP_TAB:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_TAB:
                     return Key.Tab;
 
-                case SDL.SDL_Keycode.SDLK_KP_BACKSPACE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_BACKSPACE:
                     return Key.BackSpace;
 
-                case SDL.SDL_Keycode.SDLK_KP_A:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_A:
                     return Key.A;
 
-                case SDL.SDL_Keycode.SDLK_KP_B:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_B:
                     return Key.B;
 
-                case SDL.SDL_Keycode.SDLK_KP_C:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_C:
                     return Key.C;
 
-                case SDL.SDL_Keycode.SDLK_KP_D:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_D:
                     return Key.D;
 
-                case SDL.SDL_Keycode.SDLK_KP_E:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_E:
                     return Key.E;
 
-                case SDL.SDL_Keycode.SDLK_KP_F:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_F:
                     return Key.F;
 
-                case SDL.SDL_Keycode.SDLK_KP_SPACE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_SPACE:
                     return Key.Space;
 
-                case SDL.SDL_Keycode.SDLK_KP_CLEAR:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_CLEAR:
                     return Key.Clear;
 
-                case SDL.SDL_Keycode.SDLK_RETURN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RETURN:
                     return Key.Enter;
 
-                case SDL.SDL_Keycode.SDLK_ESCAPE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE:
                     return Key.Escape;
 
-                case SDL.SDL_Keycode.SDLK_BACKSPACE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_BACKSPACE:
                     return Key.BackSpace;
 
-                case SDL.SDL_Keycode.SDLK_TAB:
+                case SDL.SDL_Scancode.SDL_SCANCODE_TAB:
                     return Key.Tab;
 
-                case SDL.SDL_Keycode.SDLK_SPACE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_SPACE:
                     return Key.Space;
 
-                case SDL.SDL_Keycode.SDLK_QUOTE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_APOSTROPHE:
                     return Key.Quote;
 
-                case SDL.SDL_Keycode.SDLK_COMMA:
+                case SDL.SDL_Scancode.SDL_SCANCODE_COMMA:
                     return Key.Comma;
 
-                case SDL.SDL_Keycode.SDLK_MINUS:
+                case SDL.SDL_Scancode.SDL_SCANCODE_MINUS:
                     return Key.Minus;
 
-                case SDL.SDL_Keycode.SDLK_PERIOD:
+                case SDL.SDL_Scancode.SDL_SCANCODE_PERIOD:
                     return Key.Period;
 
-                case SDL.SDL_Keycode.SDLK_SLASH:
+                case SDL.SDL_Scancode.SDL_SCANCODE_SLASH:
                     return Key.Slash;
 
-                case SDL.SDL_Keycode.SDLK_0:
+                case SDL.SDL_Scancode.SDL_SCANCODE_0:
                     return Key.Number0;
 
-                case SDL.SDL_Keycode.SDLK_1:
+                case SDL.SDL_Scancode.SDL_SCANCODE_1:
                     return Key.Number1;
 
-                case SDL.SDL_Keycode.SDLK_2:
+                case SDL.SDL_Scancode.SDL_SCANCODE_2:
                     return Key.Number2;
 
-                case SDL.SDL_Keycode.SDLK_3:
+                case SDL.SDL_Scancode.SDL_SCANCODE_3:
                     return Key.Number3;
 
-                case SDL.SDL_Keycode.SDLK_4:
+                case SDL.SDL_Scancode.SDL_SCANCODE_4:
                     return Key.Number4;
 
-                case SDL.SDL_Keycode.SDLK_5:
+                case SDL.SDL_Scancode.SDL_SCANCODE_5:
                     return Key.Number5;
 
-                case SDL.SDL_Keycode.SDLK_6:
+                case SDL.SDL_Scancode.SDL_SCANCODE_6:
                     return Key.Number6;
 
-                case SDL.SDL_Keycode.SDLK_7:
+                case SDL.SDL_Scancode.SDL_SCANCODE_7:
                     return Key.Number7;
 
-                case SDL.SDL_Keycode.SDLK_8:
+                case SDL.SDL_Scancode.SDL_SCANCODE_8:
                     return Key.Number8;
 
-                case SDL.SDL_Keycode.SDLK_9:
+                case SDL.SDL_Scancode.SDL_SCANCODE_9:
                     return Key.Number9;
 
-                case SDL.SDL_Keycode.SDLK_SEMICOLON:
+                case SDL.SDL_Scancode.SDL_SCANCODE_SEMICOLON:
                     return Key.Semicolon;
 
-                case SDL.SDL_Keycode.SDLK_EQUALS:
+                case SDL.SDL_Scancode.SDL_SCANCODE_EQUALS:
                     return Key.Plus;
 
-                case SDL.SDL_Keycode.SDLK_LEFTBRACKET:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LEFTBRACKET:
                     return Key.BracketLeft;
 
-                case SDL.SDL_Keycode.SDLK_BACKSLASH:
+                case SDL.SDL_Scancode.SDL_SCANCODE_BACKSLASH:
                     return Key.BackSlash;
 
-                case SDL.SDL_Keycode.SDLK_RIGHTBRACKET:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET:
                     return Key.BracketRight;
 
-                case SDL.SDL_Keycode.SDLK_BACKQUOTE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_GRAVE:
                     return Key.Tilde;
 
-                case SDL.SDL_Keycode.SDLK_a:
+                case SDL.SDL_Scancode.SDL_SCANCODE_A:
                     return Key.A;
 
-                case SDL.SDL_Keycode.SDLK_b:
+                case SDL.SDL_Scancode.SDL_SCANCODE_B:
                     return Key.B;
 
-                case SDL.SDL_Keycode.SDLK_c:
+                case SDL.SDL_Scancode.SDL_SCANCODE_C:
                     return Key.C;
 
-                case SDL.SDL_Keycode.SDLK_d:
+                case SDL.SDL_Scancode.SDL_SCANCODE_D:
                     return Key.D;
 
-                case SDL.SDL_Keycode.SDLK_e:
+                case SDL.SDL_Scancode.SDL_SCANCODE_E:
                     return Key.E;
 
-                case SDL.SDL_Keycode.SDLK_f:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F:
                     return Key.F;
 
-                case SDL.SDL_Keycode.SDLK_g:
+                case SDL.SDL_Scancode.SDL_SCANCODE_G:
                     return Key.G;
 
-                case SDL.SDL_Keycode.SDLK_h:
+                case SDL.SDL_Scancode.SDL_SCANCODE_H:
                     return Key.H;
 
-                case SDL.SDL_Keycode.SDLK_i:
+                case SDL.SDL_Scancode.SDL_SCANCODE_I:
                     return Key.I;
 
-                case SDL.SDL_Keycode.SDLK_j:
+                case SDL.SDL_Scancode.SDL_SCANCODE_J:
                     return Key.J;
 
-                case SDL.SDL_Keycode.SDLK_k:
+                case SDL.SDL_Scancode.SDL_SCANCODE_K:
                     return Key.K;
 
-                case SDL.SDL_Keycode.SDLK_l:
+                case SDL.SDL_Scancode.SDL_SCANCODE_L:
                     return Key.L;
 
-                case SDL.SDL_Keycode.SDLK_m:
+                case SDL.SDL_Scancode.SDL_SCANCODE_M:
                     return Key.M;
 
-                case SDL.SDL_Keycode.SDLK_n:
+                case SDL.SDL_Scancode.SDL_SCANCODE_N:
                     return Key.N;
 
-                case SDL.SDL_Keycode.SDLK_o:
+                case SDL.SDL_Scancode.SDL_SCANCODE_O:
                     return Key.O;
 
-                case SDL.SDL_Keycode.SDLK_p:
+                case SDL.SDL_Scancode.SDL_SCANCODE_P:
                     return Key.P;
 
-                case SDL.SDL_Keycode.SDLK_q:
+                case SDL.SDL_Scancode.SDL_SCANCODE_Q:
                     return Key.Q;
 
-                case SDL.SDL_Keycode.SDLK_r:
+                case SDL.SDL_Scancode.SDL_SCANCODE_R:
                     return Key.R;
 
-                case SDL.SDL_Keycode.SDLK_s:
+                case SDL.SDL_Scancode.SDL_SCANCODE_S:
                     return Key.S;
 
-                case SDL.SDL_Keycode.SDLK_t:
+                case SDL.SDL_Scancode.SDL_SCANCODE_T:
                     return Key.T;
 
-                case SDL.SDL_Keycode.SDLK_u:
+                case SDL.SDL_Scancode.SDL_SCANCODE_U:
                     return Key.U;
 
-                case SDL.SDL_Keycode.SDLK_v:
+                case SDL.SDL_Scancode.SDL_SCANCODE_V:
                     return Key.V;
 
-                case SDL.SDL_Keycode.SDLK_w:
+                case SDL.SDL_Scancode.SDL_SCANCODE_W:
                     return Key.W;
 
-                case SDL.SDL_Keycode.SDLK_x:
+                case SDL.SDL_Scancode.SDL_SCANCODE_X:
                     return Key.X;
 
-                case SDL.SDL_Keycode.SDLK_y:
+                case SDL.SDL_Scancode.SDL_SCANCODE_Y:
                     return Key.Y;
 
-                case SDL.SDL_Keycode.SDLK_z:
+                case SDL.SDL_Scancode.SDL_SCANCODE_Z:
                     return Key.Z;
 
-                case SDL.SDL_Keycode.SDLK_CAPSLOCK:
+                case SDL.SDL_Scancode.SDL_SCANCODE_CAPSLOCK:
                     return Key.CapsLock;
 
-                case SDL.SDL_Keycode.SDLK_F1:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F1:
                     return Key.F1;
 
-                case SDL.SDL_Keycode.SDLK_F2:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F2:
                     return Key.F2;
 
-                case SDL.SDL_Keycode.SDLK_F3:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F3:
                     return Key.F3;
 
-                case SDL.SDL_Keycode.SDLK_F4:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F4:
                     return Key.F4;
 
-                case SDL.SDL_Keycode.SDLK_F5:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F5:
                     return Key.F5;
 
-                case SDL.SDL_Keycode.SDLK_F6:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F6:
                     return Key.F6;
 
-                case SDL.SDL_Keycode.SDLK_F7:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F7:
                     return Key.F7;
 
-                case SDL.SDL_Keycode.SDLK_F8:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F8:
                     return Key.F8;
 
-                case SDL.SDL_Keycode.SDLK_F9:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F9:
                     return Key.F9;
 
-                case SDL.SDL_Keycode.SDLK_F10:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F10:
                     return Key.F10;
 
-                case SDL.SDL_Keycode.SDLK_F11:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F11:
                     return Key.F11;
 
-                case SDL.SDL_Keycode.SDLK_F12:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F12:
                     return Key.F12;
 
-                case SDL.SDL_Keycode.SDLK_PRINTSCREEN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_PRINTSCREEN:
                     return Key.PrintScreen;
 
-                case SDL.SDL_Keycode.SDLK_SCROLLLOCK:
+                case SDL.SDL_Scancode.SDL_SCANCODE_SCROLLLOCK:
                     return Key.ScrollLock;
 
-                case SDL.SDL_Keycode.SDLK_PAUSE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_PAUSE:
                     return Key.Pause;
 
-                case SDL.SDL_Keycode.SDLK_INSERT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_INSERT:
                     return Key.Insert;
 
-                case SDL.SDL_Keycode.SDLK_HOME:
+                case SDL.SDL_Scancode.SDL_SCANCODE_HOME:
                     return Key.Home;
 
-                case SDL.SDL_Keycode.SDLK_PAGEUP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP:
                     return Key.PageUp;
 
-                case SDL.SDL_Keycode.SDLK_DELETE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_DELETE:
                     return Key.Delete;
 
-                case SDL.SDL_Keycode.SDLK_END:
+                case SDL.SDL_Scancode.SDL_SCANCODE_END:
                     return Key.End;
 
-                case SDL.SDL_Keycode.SDLK_PAGEDOWN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN:
                     return Key.PageDown;
 
-                case SDL.SDL_Keycode.SDLK_RIGHT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RIGHT:
                     return Key.Right;
 
-                case SDL.SDL_Keycode.SDLK_LEFT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LEFT:
                     return Key.Left;
 
-                case SDL.SDL_Keycode.SDLK_DOWN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_DOWN:
                     return Key.Down;
 
-                case SDL.SDL_Keycode.SDLK_UP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_UP:
                     return Key.Up;
 
-                case SDL.SDL_Keycode.SDLK_NUMLOCKCLEAR:
+                case SDL.SDL_Scancode.SDL_SCANCODE_NUMLOCKCLEAR:
                     return Key.NumLock;
 
-                case SDL.SDL_Keycode.SDLK_KP_DIVIDE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_DIVIDE:
                     return Key.KeypadDivide;
 
-                case SDL.SDL_Keycode.SDLK_KP_MULTIPLY:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_MULTIPLY:
                     return Key.KeypadMultiply;
 
-                case SDL.SDL_Keycode.SDLK_KP_MINUS:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_MINUS:
                     return Key.KeypadMinus;
 
-                case SDL.SDL_Keycode.SDLK_KP_PLUS:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_PLUS:
                     return Key.KeypadPlus;
 
-                case SDL.SDL_Keycode.SDLK_KP_ENTER:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER:
                     return Key.KeypadEnter;
 
-                case SDL.SDL_Keycode.SDLK_KP_1:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_1:
                     return Key.Keypad1;
 
-                case SDL.SDL_Keycode.SDLK_KP_2:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_2:
                     return Key.Keypad2;
 
-                case SDL.SDL_Keycode.SDLK_KP_3:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_3:
                     return Key.Keypad3;
 
-                case SDL.SDL_Keycode.SDLK_KP_4:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_4:
                     return Key.Keypad4;
 
-                case SDL.SDL_Keycode.SDLK_KP_5:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_5:
                     return Key.Keypad5;
 
-                case SDL.SDL_Keycode.SDLK_KP_6:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_6:
                     return Key.Keypad6;
 
-                case SDL.SDL_Keycode.SDLK_KP_7:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_7:
                     return Key.Keypad7;
 
-                case SDL.SDL_Keycode.SDLK_KP_8:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_8:
                     return Key.Keypad8;
 
-                case SDL.SDL_Keycode.SDLK_KP_9:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_9:
                     return Key.Keypad9;
 
-                case SDL.SDL_Keycode.SDLK_KP_0:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_0:
                     return Key.Keypad0;
 
-                case SDL.SDL_Keycode.SDLK_KP_PERIOD:
+                case SDL.SDL_Scancode.SDL_SCANCODE_KP_PERIOD:
                     return Key.KeypadPeriod;
 
-                case SDL.SDL_Keycode.SDLK_F13:
+                case SDL.SDL_Scancode.SDL_SCANCODE_NONUSBACKSLASH:
+                    return Key.NonUSBackSlash;
+
+                case SDL.SDL_Scancode.SDL_SCANCODE_F13:
                     return Key.F13;
 
-                case SDL.SDL_Keycode.SDLK_F14:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F14:
                     return Key.F14;
 
-                case SDL.SDL_Keycode.SDLK_F15:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F15:
                     return Key.F15;
 
-                case SDL.SDL_Keycode.SDLK_F16:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F16:
                     return Key.F16;
 
-                case SDL.SDL_Keycode.SDLK_F17:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F17:
                     return Key.F17;
 
-                case SDL.SDL_Keycode.SDLK_F18:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F18:
                     return Key.F18;
 
-                case SDL.SDL_Keycode.SDLK_F19:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F19:
                     return Key.F19;
 
-                case SDL.SDL_Keycode.SDLK_F20:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F20:
                     return Key.F20;
 
-                case SDL.SDL_Keycode.SDLK_F21:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F21:
                     return Key.F21;
 
-                case SDL.SDL_Keycode.SDLK_F22:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F22:
                     return Key.F22;
 
-                case SDL.SDL_Keycode.SDLK_F23:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F23:
                     return Key.F23;
 
-                case SDL.SDL_Keycode.SDLK_F24:
+                case SDL.SDL_Scancode.SDL_SCANCODE_F24:
                     return Key.F24;
 
-                case SDL.SDL_Keycode.SDLK_MENU:
+                case SDL.SDL_Scancode.SDL_SCANCODE_MENU:
                     return Key.Menu;
 
-                case SDL.SDL_Keycode.SDLK_STOP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_STOP:
                     return Key.Stop;
 
-                case SDL.SDL_Keycode.SDLK_MUTE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_MUTE:
                     return Key.Mute;
 
-                case SDL.SDL_Keycode.SDLK_VOLUMEUP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_VOLUMEUP:
                     return Key.VolumeUp;
 
-                case SDL.SDL_Keycode.SDLK_VOLUMEDOWN:
+                case SDL.SDL_Scancode.SDL_SCANCODE_VOLUMEDOWN:
                     return Key.VolumeDown;
 
-                case SDL.SDL_Keycode.SDLK_CLEAR:
+                case SDL.SDL_Scancode.SDL_SCANCODE_CLEAR:
                     return Key.Clear;
 
-                case SDL.SDL_Keycode.SDLK_DECIMALSEPARATOR:
+                case SDL.SDL_Scancode.SDL_SCANCODE_DECIMALSEPARATOR:
                     return Key.KeypadDecimal;
 
-                case SDL.SDL_Keycode.SDLK_LCTRL:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LCTRL:
                     return Key.ControlLeft;
 
-                case SDL.SDL_Keycode.SDLK_LSHIFT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT:
                     return Key.ShiftLeft;
 
-                case SDL.SDL_Keycode.SDLK_LALT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LALT:
                     return Key.AltLeft;
 
-                case SDL.SDL_Keycode.SDLK_LGUI:
+                case SDL.SDL_Scancode.SDL_SCANCODE_LGUI:
                     return Key.WinLeft;
 
-                case SDL.SDL_Keycode.SDLK_RCTRL:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RCTRL:
                     return Key.ControlRight;
 
-                case SDL.SDL_Keycode.SDLK_RSHIFT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RSHIFT:
                     return Key.ShiftRight;
 
-                case SDL.SDL_Keycode.SDLK_RALT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RALT:
                     return Key.AltRight;
 
-                case SDL.SDL_Keycode.SDLK_RGUI:
+                case SDL.SDL_Scancode.SDL_SCANCODE_RGUI:
                     return Key.WinRight;
 
-                case SDL.SDL_Keycode.SDLK_AUDIONEXT:
+                case SDL.SDL_Scancode.SDL_SCANCODE_AUDIONEXT:
                     return Key.TrackNext;
 
-                case SDL.SDL_Keycode.SDLK_AUDIOPREV:
+                case SDL.SDL_Scancode.SDL_SCANCODE_AUDIOPREV:
                     return Key.TrackPrevious;
 
-                case SDL.SDL_Keycode.SDLK_AUDIOSTOP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_AUDIOSTOP:
                     return Key.Stop;
 
-                case SDL.SDL_Keycode.SDLK_AUDIOPLAY:
+                case SDL.SDL_Scancode.SDL_SCANCODE_AUDIOPLAY:
                     return Key.PlayPause;
 
-                case SDL.SDL_Keycode.SDLK_AUDIOMUTE:
+                case SDL.SDL_Scancode.SDL_SCANCODE_AUDIOMUTE:
                     return Key.Mute;
 
-                case SDL.SDL_Keycode.SDLK_SLEEP:
+                case SDL.SDL_Scancode.SDL_SCANCODE_SLEEP:
                     return Key.Sleep;
             }
         }
@@ -478,6 +482,89 @@ namespace osu.Framework.Platform.Sdl
             }
 
             return 0;
+        }
+
+        public static JoystickAxisSource ToJoystickAxisSource(this SDL.SDL_GameControllerAxis axis)
+        {
+            switch (axis)
+            {
+                default:
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX:
+                    return JoystickAxisSource.GamePadLeftStickX;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTY:
+                    return JoystickAxisSource.GamePadLeftStickY;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+                    return JoystickAxisSource.GamePadLeftTrigger;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTX:
+                    return JoystickAxisSource.GamePadRightStickX;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_RIGHTY:
+                    return JoystickAxisSource.GamePadRightStickY;
+
+                case SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+                    return JoystickAxisSource.GamePadRightTrigger;
+            }
+        }
+
+        public static JoystickButton ToJoystickButton(this SDL.SDL_GameControllerButton button)
+        {
+            switch (button)
+            {
+                default:
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_INVALID:
+                    return 0;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A:
+                    return JoystickButton.GamePadA;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_B:
+                    return JoystickButton.GamePadB;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_X:
+                    return JoystickButton.GamePadX;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_Y:
+                    return JoystickButton.GamePadY;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_BACK:
+                    return JoystickButton.GamePadBack;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_GUIDE:
+                    return JoystickButton.GamePadGuide;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_START:
+                    return JoystickButton.GamePadStart;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSTICK:
+                    return JoystickButton.GamePadLeftStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+                    return JoystickButton.GamePadRightStick;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    return JoystickButton.GamePadLeftShoulder;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    return JoystickButton.GamePadRightShoulder;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_UP:
+                    return JoystickButton.GamePadDPadUp;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+                    return JoystickButton.GamePadDPadDown;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+                    return JoystickButton.GamePadDPadLeft;
+
+                case SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+                    return JoystickButton.GamePadDPadRight;
+            }
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
 using SixLabors.ImageSharp;
@@ -188,6 +189,21 @@ namespace osu.Framework.Platform
         /// Invoked when the user types a character.
         /// </summary>
         event Action<char> KeyTyped;
+
+        /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        event Action<JoystickAxis> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        event Action<JoystickButton> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        event Action<JoystickButton> JoystickButtonUp;
 
         /// <summary>
         /// Invoked when the user drops a file into the window.
