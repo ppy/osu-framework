@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Graphics.Performance;
 
 namespace osu.Framework.Graphics.Containers
@@ -31,6 +32,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override void AddInternal(Drawable drawable)
         {
+            Trace.Assert(!drawable.RemoveWhenNotAlive, $"{nameof(RemoveWhenNotAlive)} is not supported for {nameof(LifetimeManagementContainer)}");
+
             var entry = new DrawableLifetimeEntry(drawable);
 
             manager.AddEntry(entry);
@@ -63,17 +66,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool CheckChildrenLife() => manager.Update(Time.Current);
 
-        private void entryBecameAlive(LifetimeEntry entry)
+        private void entryBecameAlive(LifetimeEntry entry) => MakeChildAlive(((DrawableLifetimeEntry)entry).Drawable);
+
+        private void entryBecameDead(LifetimeEntry entry)
         {
-            var drawable = ((DrawableLifetimeEntry)entry).Drawable;
-
-            if (drawable.Parent != this)
-                base.AddInternal(drawable);
-
-            MakeChildAlive(drawable);
+            bool removed = MakeChildDead(((DrawableLifetimeEntry)entry).Drawable);
+            Trace.Assert(!removed, $"{nameof(RemoveWhenNotAlive)} is not supported for children of {nameof(LifetimeManagementContainer)}");
         }
-
-        private void entryBecameDead(LifetimeEntry entry) => MakeChildDead(((DrawableLifetimeEntry)entry).Drawable);
 
         private void entryCrossedBoundary(LifetimeEntry entry, LifetimeBoundaryKind kind, LifetimeBoundaryCrossingDirection direction)
             => OnChildLifetimeBoundaryCrossed(new LifetimeBoundaryCrossedEvent(((DrawableLifetimeEntry)entry).Drawable, kind, direction));
