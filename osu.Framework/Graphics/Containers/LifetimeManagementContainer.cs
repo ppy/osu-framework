@@ -23,6 +23,11 @@ namespace osu.Framework.Graphics.Containers
         private readonly LifetimeEntryManager manager = new LifetimeEntryManager();
         private readonly Dictionary<Drawable, DrawableLifetimeEntry> drawableMap = new Dictionary<Drawable, DrawableLifetimeEntry>();
 
+        /// <summary>
+        /// List of drawables that do not have their lifetime managed by us, but still need to have their aliveness processed once.
+        /// </summary>
+        private readonly List<Drawable> unmanagedDrawablesToProcess = new List<Drawable>();
+
         public LifetimeManagementContainer()
         {
             manager.EntryBecameAlive += entryBecameAlive;
@@ -45,12 +50,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (withManagedLifetime)
                 manager.AddEntry(drawableMap[drawable] = new DrawableLifetimeEntry(drawable));
-            else
+            else if (drawable.LoadState >= LoadState.Ready)
                 MakeChildAlive(drawable);
+            else
+                unmanagedDrawablesToProcess.Add(drawable);
         }
 
         protected internal override bool RemoveInternal(Drawable drawable)
         {
+            unmanagedDrawablesToProcess.Remove(drawable);
+
             if (!drawableMap.TryGetValue(drawable, out var entry))
                 return base.RemoveInternal(drawable);
 
@@ -65,6 +74,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal override void ClearInternal(bool disposeChildren = true)
         {
             manager.ClearEntries();
+            unmanagedDrawablesToProcess.Clear();
 
             foreach (var (_, entry) in drawableMap)
                 entry.Dispose();
@@ -73,7 +83,16 @@ namespace osu.Framework.Graphics.Containers
             base.ClearInternal(disposeChildren);
         }
 
-        protected override bool CheckChildrenLife() => manager.Update(Time.Current);
+        protected override bool CheckChildrenLife()
+        {
+            bool aliveChanged = unmanagedDrawablesToProcess.Count > 0;
+
+            foreach (var d in unmanagedDrawablesToProcess)
+                MakeChildAlive(d);
+            unmanagedDrawablesToProcess.Clear();
+
+            return aliveChanged | manager.Update(Time.Current);
+        }
 
         private void entryBecameAlive(LifetimeEntry entry) => MakeChildAlive(((DrawableLifetimeEntry)entry).Drawable);
 
