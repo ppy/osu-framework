@@ -153,6 +153,28 @@ namespace osu.Framework.Tests.Graphics
         }
 
         [Test]
+        public void TestUpdateWithTimeRange()
+        {
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = -1, LifetimeEnd = 1 });
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 0, LifetimeEnd = 1 });
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 0, LifetimeEnd = 2 });
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 1, LifetimeEnd = 2 });
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 2, LifetimeEnd = 2 });
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 2, LifetimeEnd = 3 });
+
+            checkCountAliveAt(-3, -2, 0);
+            checkCountAliveAt(-3, -1, 1);
+
+            checkCountAliveAt(-2, 4, 6);
+            checkCountAliveAt(-1, 4, 6);
+            checkCountAliveAt(0, 4, 6);
+            checkCountAliveAt(1, 4, 4);
+            checkCountAliveAt(2, 4, 1);
+            checkCountAliveAt(3, 4, 0);
+            checkCountAliveAt(4, 4, 0);
+        }
+
+        [Test]
         public void TestFuzz()
         {
             var rng = new Random(2222);
@@ -242,21 +264,25 @@ namespace osu.Framework.Tests.Graphics
             }
         }
 
-        private void checkCountAliveAt(int time, int expectedCount)
+        private void checkCountAliveAt(int time, int expectedCount) => checkCountAliveAt(time, time, expectedCount);
+
+        private void checkCountAliveAt(int startTime, int endTime, int expectedCount)
         {
-            checkAlivenessAt(time);
+            checkAlivenessAt(startTime, endTime);
             Assert.That(manager.Entries.Count(entry => entry.State == LifetimeEntryState.Current), Is.EqualTo(expectedCount));
         }
 
-        private void checkAlivenessAt(int time)
+        private void checkAlivenessAt(int time) => checkAlivenessAt(time, time);
+
+        private void checkAlivenessAt(int startTime, int endTime)
         {
-            manager.Update(time);
+            manager.Update(startTime, endTime);
 
             for (int i = 0; i < manager.Entries.Count; i++)
             {
                 var entry = manager.Entries[i];
                 bool isAlive = entry.State == LifetimeEntryState.Current;
-                bool shouldBeAlive = time >= entry.LifetimeStart && time < entry.LifetimeEnd;
+                bool shouldBeAlive = endTime >= entry.LifetimeStart && startTime < entry.LifetimeEnd;
 
                 Assert.That(isAlive, Is.EqualTo(shouldBeAlive), $"Aliveness is invalid for entry {i}");
             }
