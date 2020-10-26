@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.Performance
 
             // Check for newly-added entries.
             foreach (var entry in newEntries)
-                aliveChildrenChanged |= updateChildEntry(startTime, endTime, entry, true, true);
+                aliveChildrenChanged |= updateChildEntry(entry, startTime, endTime, true, true);
             newEntries.Clear();
 
             // Check for newly alive entries when time is increased.
@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics.Performance
                     break;
 
                 futureEntries.Remove(entry);
-                aliveChildrenChanged |= updateChildEntry(startTime, endTime, entry, false, true);
+                aliveChildrenChanged |= updateChildEntry(entry, startTime, endTime, false, true);
             }
 
             // Check for newly alive entries when time is decreased.
@@ -243,14 +243,14 @@ namespace osu.Framework.Graphics.Performance
                     break;
 
                 pastEntries.Remove(entry);
-                aliveChildrenChanged |= updateChildEntry(startTime, endTime, entry, false, true);
+                aliveChildrenChanged |= updateChildEntry(entry, startTime, endTime, false, true);
             }
 
             // Checks for newly dead entries when time is increased/decreased.
             foreach (var entry in activeEntries)
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
-                aliveChildrenChanged |= updateChildEntry(startTime, endTime, entry, false, false);
+                aliveChildrenChanged |= updateChildEntry(entry, startTime, endTime, false, false);
             }
 
             // Remove all newly-dead entries.
@@ -265,27 +265,44 @@ namespace osu.Framework.Graphics.Performance
             return aliveChildrenChanged;
         }
 
-        private bool updateChildEntry(double startTime, double endTime, LifetimeEntry entry, bool fromLifetimeChange, bool mutateActive)
+        /// <summary>
+        /// Updates the state of a single <see cref="LifetimeEntry"/>.
+        /// </summary>
+        /// <param name="entry">The <see cref="LifetimeEntry"/> to update.</param>
+        /// <param name="startTime">The start of the time range.</param>
+        /// <param name="endTime">The end of the time range.</param>
+        /// <param name="isNewEntry">Whether <paramref name="entry"/> is part of the new entries set.
+        /// The state may be "new" or "past"/"future", in which case it will undergo further processing to return it to the correct set.</param>
+        /// <param name="mutateActiveEntries">Whether <see cref="activeEntries"/> should be mutated by this invocation.
+        /// If <c>false</c>, the caller is expected to handle mutation of <see cref="activeEntries"/> based on any changes to the entry's state.</param>
+        /// <returns>Whether the state of <paramref name="entry"/> has changed.</returns>
+        private bool updateChildEntry(LifetimeEntry entry, double startTime, double endTime, bool isNewEntry, bool mutateActiveEntries)
         {
             LifetimeEntryState oldState = entry.State;
 
+            // Past/future sets don't call this function unless a state change is guaranteed.
             Debug.Assert(!futureEntries.Contains(entry) && !pastEntries.Contains(entry));
+
+            // The entry can be in one of three states:
+            // 1. The entry was previously in the past/future sets but a lifetime change was requested. Its state is currently "past"/"future".
+            // 2. The entry is a completely new entry. Its state is currently "new".
+            // 3. The entry is currently-active. Its state is "current" but it's also in the active set.
             Debug.Assert(oldState != LifetimeEntryState.Current || activeEntries.Contains(entry));
 
             LifetimeEntryState newState = getState(entry, startTime, endTime);
-
             Debug.Assert(newState != LifetimeEntryState.New);
 
-            // If the state hasn't changed...
             if (newState == oldState)
             {
-                // Then we need to re-insert to future/past entries if updating from a lifetime change event.
-                if (fromLifetimeChange)
+                // If the state hasn't changed, then there's two possibilities:
+                // 1. The entry was in the past/future sets and a lifetime change was requested. The entry needs to be added back to the past/future sets.
+                // 2. The entry is and continues to remain active.
+                if (isNewEntry)
                     futureOrPastEntries(newState)?.Add(entry);
-                // Otherwise, we should only be here if we're updating the active entries.
                 else
                     Debug.Assert(newState == LifetimeEntryState.Current);
 
+                // In both cases, the entry doesn't need to be processed further as it's already in the correct state.
                 return false;
             }
 
@@ -293,7 +310,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (newState == LifetimeEntryState.Current)
             {
-                if (mutateActive)
+                if (mutateActiveEntries)
                     activeEntries.Add(entry);
 
                 OnBecomeAlive?.Invoke(entry);
@@ -301,7 +318,7 @@ namespace osu.Framework.Graphics.Performance
             }
             else if (oldState == LifetimeEntryState.Current)
             {
-                if (mutateActive)
+                if (mutateActiveEntries)
                     activeEntries.Remove(entry);
 
                 OnBecomeDead?.Invoke(entry);
@@ -315,21 +332,28 @@ namespace osu.Framework.Graphics.Performance
             return aliveEntriesChanged;
         }
 
-        private LifetimeEntryState getState(LifetimeEntry entry, double rangeStart, double rangeEnd)
+        /// <summary>
+        /// Retrieves the new state for an entry.
+        /// </summary>
+        /// <param name="entry">The <see cref="LifetimeEntry"/>.</param>
+        /// <param name="startTime">The start of the time range.</param>
+        /// <param name="endTime">The end of the time range.</param>
+        /// <returns>The state of <paramref name="entry"/>. Can be either <see cref="LifetimeEntryState.Past"/>, <see cref="LifetimeEntryState.Current"/>, or <see cref="LifetimeEntryState.Future"/>.</returns>
+        private LifetimeEntryState getState(LifetimeEntry entry, double startTime, double endTime)
         {
             // Consider a static entry and a moving time range:
             //                 [-----------Entry-----------]
-            // [----Range----]                                                    (not alive)
-            //   [----Range----]                                                  (alive)
-            //                               [----Range----]                      (alive)
-            //                                             [----Range----]        (not alive)
-            //                                              [----Range----]       (not alive)
-            //
+            // [----Range----] |                           |                      (not alive)
+            //   [----Range----]                           |                      (alive)
+            //                 |             [----Range----]                      (alive)
+            //                 |                           [----Range----]        (not alive)
+            //                 |                           | [----Range----]      (not alive)
+            //                 |                           |
 
-            if (rangeEnd < entry.LifetimeStart)
+            if (endTime < entry.LifetimeStart)
                 return LifetimeEntryState.Future;
 
-            if (rangeStart >= entry.LifetimeEnd)
+            if (startTime >= entry.LifetimeEnd)
                 return LifetimeEntryState.Past;
 
             return LifetimeEntryState.Current;
@@ -362,7 +386,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compare by <see cref="LifetimeEntry.LifetimeStart"/>.
+        /// Compares by <see cref="LifetimeEntry.LifetimeStart"/>.
         /// </summary>
         private sealed class LifetimeStartComparator : IComparer<LifetimeEntry>
         {
@@ -377,7 +401,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Compare by <see cref="LifetimeEntry.LifetimeEnd"/>.
+        /// Compares by <see cref="LifetimeEntry.LifetimeEnd"/>.
         /// </summary>
         private sealed class LifetimeEndComparator : IComparer<LifetimeEntry>
         {

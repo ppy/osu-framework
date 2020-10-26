@@ -9,6 +9,9 @@ namespace osu.Framework.Graphics.Performance
     {
         private double lifetimeStart = double.MinValue;
 
+        /// <summary>
+        /// The time at which this <see cref="LifetimeEntry"/> becomes alive in a <see cref="LifetimeEntryManager"/>.
+        /// </summary>
         public double LifetimeStart
         {
             get => lifetimeStart;
@@ -26,6 +29,9 @@ namespace osu.Framework.Graphics.Performance
 
         private double lifetimeEnd = double.MaxValue;
 
+        /// <summary>
+        /// The time at which this <see cref="LifetimeEntry"/> becomes dead in a <see cref="LifetimeEntryManager"/>.
+        /// </summary>
         public double LifetimeEnd
         {
             get => lifetimeEnd;
@@ -59,6 +65,9 @@ namespace osu.Framework.Graphics.Performance
         /// </summary>
         internal LifetimeEntryState State { get; set; }
 
+        /// <summary>
+        /// Uniquely identifies this <see cref="LifetimeEntry"/> in a <see cref="LifetimeEntryManager"/>.
+        /// </summary>
         internal ulong ChildId { get; set; }
     }
 
