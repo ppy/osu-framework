@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Performance
         /// <summary>
         /// Contains all the newly-added (but not yet processed) entries.
         /// </summary>
-        private readonly HashSet<LifetimeEntry> newEntries = new HashSet<LifetimeEntry>();
+        private readonly List<LifetimeEntry> newEntries = new List<LifetimeEntry>();
 
         /// <summary>
         /// Contains all the currently-alive entries.
@@ -162,10 +162,8 @@ namespace osu.Framework.Graphics.Performance
         {
             var futureOrPastSet = futureOrPastEntries(entry.State);
 
-            if (futureOrPastSet != null)
+            if (futureOrPastSet?.Remove(entry) == true)
             {
-                futureOrPastSet.Remove(entry);
-
                 // Since the entry is no-longer present inside this manager, it needs to be enqueued back into the new entry list to be processed in the next update.
                 newEntries.Add(entry);
             }
