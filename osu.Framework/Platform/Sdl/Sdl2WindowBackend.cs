@@ -475,7 +475,8 @@ namespace osu.Framework.Platform.Sdl
                 if (!Exists)
                     break;
 
-                processEvents();
+                if (SDL.SDL_PollEvent(out var evt) > 0)
+                    processEvent(evt);
 
                 if (!mouseInWindow && !RelativeMouseMode)
                     pollMouse();
@@ -538,97 +539,94 @@ namespace osu.Framework.Platform.Sdl
         /// <param name="action">The <see cref="Action"/> to execute.</param>
         protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
 
-        private void processEvents()
+        private void processEvent(SDL.SDL_Event evt)
         {
-            while (SDL.SDL_PollEvent(out var evt) > 0)
+            switch (evt.type)
             {
-                switch (evt.type)
-                {
-                    case SDL.SDL_EventType.SDL_QUIT:
-                    case SDL.SDL_EventType.SDL_APP_TERMINATING:
-                        handleQuitEvent(evt.quit);
-                        break;
+                case SDL.SDL_EventType.SDL_QUIT:
+                case SDL.SDL_EventType.SDL_APP_TERMINATING:
+                    handleQuitEvent(evt.quit);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                        handleWindowEvent(evt.window);
-                        break;
+                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                    handleWindowEvent(evt.window);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_KEYDOWN:
-                    case SDL.SDL_EventType.SDL_KEYUP:
-                        handleKeyboardEvent(evt.key);
-                        break;
+                case SDL.SDL_EventType.SDL_KEYDOWN:
+                case SDL.SDL_EventType.SDL_KEYUP:
+                    handleKeyboardEvent(evt.key);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_TEXTEDITING:
-                        handleTextEditingEvent(evt.edit);
-                        break;
+                case SDL.SDL_EventType.SDL_TEXTEDITING:
+                    handleTextEditingEvent(evt.edit);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_TEXTINPUT:
-                        handleTextInputEvent(evt.text);
-                        break;
+                case SDL.SDL_EventType.SDL_TEXTINPUT:
+                    handleTextInputEvent(evt.text);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                        handleMouseMotionEvent(evt.motion);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                    handleMouseMotionEvent(evt.motion);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                        handleMouseButtonEvent(evt.button);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                    handleMouseButtonEvent(evt.button);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                        handleMouseWheelEvent(evt.wheel);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                    handleMouseWheelEvent(evt.wheel);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYAXISMOTION:
-                        handleJoyAxisEvent(evt.jaxis);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYAXISMOTION:
+                    handleJoyAxisEvent(evt.jaxis);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYBALLMOTION:
-                        handleJoyBallEvent(evt.jball);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYBALLMOTION:
+                    handleJoyBallEvent(evt.jball);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYHATMOTION:
-                        handleJoyHatEvent(evt.jhat);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYHATMOTION:
+                    handleJoyHatEvent(evt.jhat);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_JOYBUTTONUP:
-                        handleJoyButtonEvent(evt.jbutton);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    handleJoyButtonEvent(evt.jbutton);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
-                        handleJoyDeviceEvent(evt.jdevice);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
+                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    handleJoyDeviceEvent(evt.jdevice);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
-                        handleControllerAxisEvent(evt.caxis);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
+                    handleControllerAxisEvent(evt.caxis);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
-                        handleControllerButtonEvent(evt.cbutton);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                    handleControllerButtonEvent(evt.cbutton);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
-                        handleControllerDeviceEvent(evt.cdevice);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                    handleControllerDeviceEvent(evt.cdevice);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_FINGERDOWN:
-                    case SDL.SDL_EventType.SDL_FINGERUP:
-                    case SDL.SDL_EventType.SDL_FINGERMOTION:
-                        handleTouchFingerEvent(evt.tfinger);
-                        break;
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                    handleTouchFingerEvent(evt.tfinger);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_DROPFILE:
-                    case SDL.SDL_EventType.SDL_DROPTEXT:
-                    case SDL.SDL_EventType.SDL_DROPBEGIN:
-                    case SDL.SDL_EventType.SDL_DROPCOMPLETE:
-                        handleDropEvent(evt.drop);
-                        break;
-                }
+                case SDL.SDL_EventType.SDL_DROPFILE:
+                case SDL.SDL_EventType.SDL_DROPTEXT:
+                case SDL.SDL_EventType.SDL_DROPBEGIN:
+                case SDL.SDL_EventType.SDL_DROPCOMPLETE:
+                    handleDropEvent(evt.drop);
+                    break;
             }
         }
 
