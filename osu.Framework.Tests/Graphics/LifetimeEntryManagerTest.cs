@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
 
 namespace osu.Framework.Tests.Graphics
