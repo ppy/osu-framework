@@ -222,11 +222,7 @@ namespace osu.Framework.Tests.Graphics
                 r = rng.Next(5);
 
                 if (l > r)
-                {
-                    var l1 = l;
-                    l = r;
-                    r = l1;
-                }
+                    (l, r) = (r, l);
 
                 ++r;
             }
