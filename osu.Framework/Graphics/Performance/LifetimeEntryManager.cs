@@ -161,7 +161,7 @@ namespace osu.Framework.Graphics.Performance
         private void requestLifetimeUpdate(LifetimeEntry entry, double lifetimeStart, double lifetimeEnd)
         {
             // Entries in the past/future sets need to be re-sorted to prevent the comparer from becoming unstable.
-            // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry must not be updated immediately.
+            // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry's state must not be updated immediately.
             //
             // In order to achieve the above, the entry is first removed from the past/future set (resolving the comparer stability issues)
             // and then re-queued back onto the new entries list to be re-processed in the next Update().
