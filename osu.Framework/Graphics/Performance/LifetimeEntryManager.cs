@@ -160,15 +160,24 @@ namespace osu.Framework.Graphics.Performance
         /// <param name="lifetimeEnd">The new end time.</param>
         private void requestLifetimeUpdate(LifetimeEntry entry, double lifetimeStart, double lifetimeEnd)
         {
+            // Entries in the past/future sets need to be re-sorted to prevent the comparer from becoming unstable.
+            // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry must not be updated immediately.
+            //
+            // In order to achieve the above, the entry is first removed from the past/future set (resolving the comparer stability issues)
+            // and then re-queued back onto the new entries list to be re-processed in the next Update().
+            //
+            // Note that this does not apply to entries that are in the current set, as they don't utilise a lifetime comparer.
+
             var futureOrPastSet = futureOrPastEntries(entry.State);
 
             if (futureOrPastSet?.Remove(entry) == true)
             {
-                // Since the entry is no-longer present inside this manager, it needs to be enqueued back into the new entry list to be processed in the next update.
+                // Enqueue the entry to be processed in the next Update().
                 newEntries.Add(entry);
             }
 
-            entry.UpdateLifetime(lifetimeStart, lifetimeEnd);
+            // Since the comparer has now been resolved, the lifetime update can proceed.
+            entry.SetLifetime(lifetimeStart, lifetimeEnd);
         }
 
         /// <summary>

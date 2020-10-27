@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Performance
                 if (RequestLifetimeUpdate != null)
                     RequestLifetimeUpdate.Invoke(this, value, lifetimeEnd);
                 else
-                    UpdateLifetime(value, lifetimeEnd);
+                    SetLifetime(value, lifetimeEnd);
             }
         }
 
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Performance
                 if (RequestLifetimeUpdate != null)
                     RequestLifetimeUpdate.Invoke(this, lifetimeStart, value);
                 else
-                    UpdateLifetime(lifetimeStart, value);
+                    SetLifetime(lifetimeStart, value);
             }
         }
 
@@ -57,14 +57,17 @@ namespace osu.Framework.Graphics.Performance
         /// Invoked when this <see cref="LifetimeEntry"/> is attached to a <see cref="LifetimeEntryManager"/> and either
         /// <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> are changed.
         /// </summary>
+        /// <remarks>
+        /// If this is handled, make sure to call <see cref="SetLifetime"/> to continue with the lifetime update.
+        /// </remarks>
         internal event RequestLifetimeUpdateDelegate RequestLifetimeUpdate;
 
         /// <summary>
         /// Updates the stored lifetimes of this <see cref="LifetimeEntry"/>.
         /// </summary>
-        /// <param name="start">The new <see cref="lifetimeStart"/> value.</param>
-        /// <param name="end">The new <see cref="lifetimeEnd"/> value.</param>
-        internal void UpdateLifetime(double start, double end)
+        /// <param name="start">The new <see cref="LifetimeStart"/> value.</param>
+        /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
+        internal void SetLifetime(double start, double end)
         {
             lifetimeStart = start;
             lifetimeEnd = Math.Max(start, end); // Negative intervals are undesired.
