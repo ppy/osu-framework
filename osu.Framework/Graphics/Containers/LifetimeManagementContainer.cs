@@ -91,7 +91,9 @@ namespace osu.Framework.Graphics.Containers
                 MakeChildAlive(d);
             unmanagedDrawablesToProcess.Clear();
 
-            return aliveChanged | manager.Update(Time.Current);
+            aliveChanged |= manager.Update(Time.Current);
+
+            return aliveChanged;
         }
 
         private void entryBecameAlive(LifetimeEntry entry) => MakeChildAlive(((DrawableLifetimeEntry)entry).Drawable);
