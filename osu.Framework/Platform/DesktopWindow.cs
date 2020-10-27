@@ -71,14 +71,13 @@ namespace osu.Framework.Platform
         protected override IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
 
         /// <summary>
-        /// Sets or gets the mouse position in unscaled screen coordinates, relative to the top left corner of the window.
-        /// Setting the mouse position will also disable <see cref="Window.RelativeMouseMode"/> if enabled.
+        /// Enables or disables <see cref="Window.RelativeMouseMode"/> based on the given <paramref name="position"/>.
+        /// If the position is within the window and relative mode is disabled, relative mode will be enabled.
+        /// If the position is outside the window and relative mode is enabled, relative mode will be disabled
+        /// and the mouse cursor will be warped to <paramref name="position"/>.
+        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in logical coordinates. If null, defaults to current position.</param>
         /// </summary>
-        public Vector2 MousePosition
-        {
-            get => WindowBackend.MousePosition;
-            set => WindowBackend.MousePosition = value;
-        }
+        public void UpdateRelativeMode(Vector2? position = null) => WindowBackend.UpdateRelativeMode(position);
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
@@ -112,6 +111,8 @@ namespace osu.Framework.Platform
                 WindowBackend.Size = evt.NewValue;
                 Size.Value = evt.NewValue;
             };
+
+            IsActive.ValueChanged += _ => UpdateRelativeMode();
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);

@@ -27,7 +27,6 @@ namespace osu.Framework.Platform
         public abstract bool CursorVisible { get; set; }
         public abstract bool CursorConfined { get; set; }
         public abstract bool RelativeMouseMode { get; set; }
-        public abstract Vector2 MousePosition { get; set; }
         public abstract WindowState WindowState { get; set; }
         public abstract bool Exists { get; protected set; }
         public abstract Display CurrentDisplay { get; set; }
@@ -72,6 +71,8 @@ namespace osu.Framework.Platform
         public abstract void RequestClose();
 
         public abstract void SetIcon(Image<Rgba32> image);
+
+        public abstract void UpdateRelativeMode(Vector2? position = null);
 
         #region Event Invocation
 

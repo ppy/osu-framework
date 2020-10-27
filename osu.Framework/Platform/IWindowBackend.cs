@@ -63,13 +63,6 @@ namespace osu.Framework.Platform
         bool RelativeMouseMode { get; set; }
 
         /// <summary>
-        /// Gets or sets the mouse position in unscaled display coordinates,
-        /// relative to the top left corner of the window.
-        /// Setting the mouse position will also disable <see cref="RelativeMouseMode"/>.
-        /// </summary>
-        Vector2 MousePosition { get; set; }
-
-        /// <summary>
         /// Returns or sets the window's current <see cref="WindowState"/>.
         /// </summary>
         WindowState WindowState { get; set; }
@@ -267,6 +260,15 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         void SetIcon(Image<Rgba32> image);
+
+        /// <summary>
+        /// Enables or disables <see cref="Window.RelativeMouseMode"/> based on the given <paramref name="position"/>.
+        /// If the position is within the window and relative mode is disabled, relative mode will be enabled.
+        /// If the position is outside the window and relative mode is enabled, relative mode will be disabled
+        /// and the mouse cursor will be warped to <paramref name="position"/>.
+        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in logical coordinates. If null, defaults to current position.</param>
+        /// </summary>
+        void UpdateRelativeMode(Vector2? position = null);
 
         #endregion
     }

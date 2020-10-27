@@ -182,30 +182,11 @@ namespace osu.Framework.Platform.Sdl
 
         public override bool RelativeMouseMode
         {
-            get => relativeMouseMode; // SdlWindowHandle == IntPtr.Zero ? relativeMouseMode : SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
+            get => relativeMouseMode;
             set
             {
                 relativeMouseMode = value;
-                commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-            }
-        }
-
-        public override Vector2 MousePosition
-        {
-            get
-            {
-                SDL.SDL_GetMouseState(out var x, out var y);
-                return new Vector2(x, y);
-            }
-            set
-            {
-                relativeMouseMode = false;
-                commandScheduler.Add(() =>
-                {
-                    Console.WriteLine($"window: {Position}|{Size}|{ClientSize}, warp: {value}");
-                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
-                    SDL.SDL_WarpMouseInWindow(SdlWindowHandle, (int)value.X, (int)value.Y);
-                });
+                UpdateRelativeMode();
             }
         }
 
@@ -478,10 +459,10 @@ namespace osu.Framework.Platform.Sdl
                 if (SDL.SDL_PollEvent(out var evt) > 0)
                     processEvent(evt);
 
-                if (!mouseInWindow && !RelativeMouseMode)
+                if (!mouseInWindow && SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
                     pollMouse();
 
-                eventScheduler.Update();
+                // eventScheduler.Update();
 
                 OnUpdate();
             }
@@ -514,6 +495,45 @@ namespace osu.Framework.Platform.Sdl
             });
         }
 
+        public override void UpdateRelativeMode(Vector2? position = null)
+        {
+            var flags = windowFlags;
+            bool hasFocus = flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS);
+            bool inWindow = flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS);
+            bool relativeEnabled = SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
+
+            if (!RelativeMouseMode || !hasFocus || !inWindow)
+            {
+                if (relativeEnabled)
+                    commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE));
+                return;
+            }
+
+            int x, y;
+
+            if (position == null)
+                SDL.SDL_GetMouseState(out x, out y);
+            else
+            {
+                // if we were passed a float position, round it away from 0 so that we assume it is outside the window
+                x = (int)Math.Round(position.Value.X, MidpointRounding.AwayFromZero);
+                y = (int)Math.Round(position.Value.Y, MidpointRounding.AwayFromZero);
+            }
+
+            inWindow = x >= 0 && y >= 0 && x < Size.Width && y < Size.Height;
+
+            if (relativeEnabled && !inWindow)
+            {
+                commandScheduler.Add(() =>
+                {
+                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_WarpMouseInWindow(SdlWindowHandle, x, y);
+                });
+            }
+            else if (!relativeEnabled && inWindow)
+                commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE));
+        }
+
         private void pollMouse()
         {
             SDL.SDL_GetGlobalMouseState(out var x, out var y);
@@ -537,7 +557,7 @@ namespace osu.Framework.Platform.Sdl
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
         /// </summary>
         /// <param name="action">The <see cref="Action"/> to execute.</param>
-        protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
+        protected void ScheduleEvent(Action action) => action.Invoke(); // FIXME: eventScheduler.Add(action);
 
         private void processEvent(SDL.SDL_Event evt)
         {

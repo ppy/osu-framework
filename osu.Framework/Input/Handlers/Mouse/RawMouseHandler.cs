@@ -20,8 +20,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private DesktopWindow window;
 
-        private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
-        private readonly IBindable<bool> windowActive = new BindableBool();
+        // private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
+        // private readonly IBindable<bool> windowActive = new BindableBool();
 
         public override bool Initialize(GameHost host)
         {
@@ -29,9 +29,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 return false;
 
             window = desktopWindow;
-            mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
-            windowActive.BindTo(window.IsActive);
-            windowActive.ValueChanged += _ => updateRelativeMouseMode();
+            // mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
+            // windowActive.BindTo(window.IsActive);
+            // windowActive.ValueChanged += _ => window.UpdateRelativeMode();
 
             Enabled.BindValueChanged(evt =>
             {
@@ -52,7 +52,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseWheel -= handleMouseWheel;
                 }
 
-                updateRelativeMouseMode();
+                window.RelativeMouseMode = evt.NewValue;
             });
 
             return true;
@@ -66,13 +66,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseMove(Vector2 position)
         {
-            if (windowActive.Value && !window.RelativeMouseMode && window.ClientRectangle.Contains((int)position.X, (int)position.Y))
-            {
-                enqueueInput(new MousePositionAbsoluteInput { Position = position });
-                window.RelativeMouseMode = true;
-                return;
-            }
-
             Console.WriteLine($"RawMouseHandler.handleMouseMove({position})");
 
             enqueueInput(new MousePositionAbsoluteInput { Position = position });
@@ -80,9 +73,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseMoveRelative(Vector2 delta)
         {
-            if (!window.RelativeMouseMode)
-                return;
-
             Console.WriteLine($"RawMouseHandler.handleMouseMoveRelative({delta})");
 
             enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
@@ -94,20 +84,14 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseWheel(Vector2 delta, bool precise) => enqueueInput(new MouseScrollRelativeInput { Delta = delta, IsPrecise = precise });
 
-        private void updateRelativeMouseMode() => window.RelativeMouseMode = windowActive.Value && Enabled.Value;
-
         public void FeedbackMousePositionChange(Vector2 position)
         {
-            if (!Enabled.Value || !window.RelativeMouseMode)
+            if (!Enabled.Value)
                 return;
 
             var clientSize = window.ClientRectangle.Size;
             float scale = clientSize.Width == 0 ? 1f : window.Size.Value.Width / (float)clientSize.Width;
-
-            if (position.X < 0 || position.Y < 0 || position.X > clientSize.Width || position.Y > clientSize.Height)
-            {
-                window.MousePosition = position * scale;
-            }
+            window.UpdateRelativeMode(position * scale);
         }
     }
 }
