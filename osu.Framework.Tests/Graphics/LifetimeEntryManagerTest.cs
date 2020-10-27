@@ -113,6 +113,7 @@ namespace osu.Framework.Tests.Graphics
             manager.Update(-1);
             checkCrossing(manager.Entries[0], 0, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward);
             checkCrossing(manager.Entries[1], 0, LifetimeBoundaryKind.End, LifetimeBoundaryCrossingDirection.Backward);
+            checkCrossing(manager.Entries[1], 1, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
             checkCrossing(manager.Entries[2], 0, LifetimeBoundaryKind.Start, LifetimeBoundaryCrossingDirection.Backward);
         }
 
