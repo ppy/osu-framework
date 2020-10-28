@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -64,19 +63,9 @@ namespace osu.Framework.Input.Handlers.Mouse
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
-        private void handleMouseMove(Vector2 position)
-        {
-            Console.WriteLine($"RawMouseHandler.handleMouseMove({position})");
+        private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
 
-            enqueueInput(new MousePositionAbsoluteInput { Position = position });
-        }
-
-        private void handleMouseMoveRelative(Vector2 delta)
-        {
-            Console.WriteLine($"RawMouseHandler.handleMouseMoveRelative({delta})");
-
-            enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
-        }
+        private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
 
