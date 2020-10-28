@@ -214,7 +214,6 @@ namespace osu.Framework.Screens
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             // while a parent still exists and exiting is not blocked, continue to iterate upwards.
-            IScreen firstScreen = CurrentScreen;
             IScreen exitSource = null;
 
             while (CurrentScreen != null)
