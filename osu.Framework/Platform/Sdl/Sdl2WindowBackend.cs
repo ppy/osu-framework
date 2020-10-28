@@ -31,7 +31,6 @@ namespace osu.Framework.Platform.Sdl
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
 
-        private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
 
         private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
@@ -338,6 +337,8 @@ namespace osu.Framework.Platform.Sdl
         #endregion
 
         #region Convenience Functions
+
+        private bool mouseInWindow => windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS);
 
         private SDL.SDL_SysWMinfo windowWmInfo
         {
@@ -905,12 +906,10 @@ namespace osu.Framework.Platform.Sdl
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                    mouseInWindow = true;
                     ScheduleEvent(OnMouseEntered);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                    mouseInWindow = false;
                     ScheduleEvent(OnMouseLeft);
                     break;
 
