@@ -338,6 +338,8 @@ namespace osu.Framework.Platform.Sdl
 
         #region Convenience Functions
 
+        private bool windowHasFocus => windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS);
+
         private bool mouseInWindow => windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS);
 
         private SDL.SDL_SysWMinfo windowWmInfo
@@ -496,44 +498,42 @@ namespace osu.Framework.Platform.Sdl
             });
         }
 
-        public override void UpdateRelativeMode(Vector2? position = null)
-        {
-            var flags = windowFlags;
-            bool hasFocus = flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS);
-            bool inWindow = flags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS);
-            bool relativeEnabled = SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
-
-            if (!RelativeMouseMode || !hasFocus || !inWindow)
+        public override void UpdateRelativeMode(Vector2? position = null) =>
+            ScheduleCommand(() =>
             {
-                if (relativeEnabled)
-                    commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE));
-                return;
-            }
+                bool relativeEnabled = SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
 
-            int x, y;
+                if (!RelativeMouseMode || !windowHasFocus || !mouseInWindow)
+                {
+                    if (relativeEnabled)
+                        SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
 
-            if (position == null)
-                SDL.SDL_GetMouseState(out x, out y);
-            else
-            {
-                // if we were passed a float position, round it away from 0 so that we assume it is outside the window
-                x = (int)Math.Round(position.Value.X, MidpointRounding.AwayFromZero);
-                y = (int)Math.Round(position.Value.Y, MidpointRounding.AwayFromZero);
-            }
+                    return;
+                }
 
-            inWindow = x >= 0 && y >= 0 && x < Size.Width && y < Size.Height;
+                int x, y;
 
-            if (relativeEnabled && !inWindow)
-            {
-                commandScheduler.Add(() =>
+                if (position == null)
+                    SDL.SDL_GetMouseState(out x, out y);
+                else
+                {
+                    x = (int)(position.Value.X / scale);
+                    y = (int)(position.Value.Y / scale);
+                }
+
+                // we use a padding around the window to ensure that a relative mode transition cannot occur while the mouse is over the window decorations
+                // this fixes an issue where mouse clicks could potentially be sent to the window decoration and thus block SDL_PollEvent
+                var relativeMargin = relativeEnabled ? -10 : 10;
+                bool inWindow = x >= relativeMargin && y >= relativeMargin && x < Size.Width - relativeMargin && y < Size.Height - relativeMargin;
+
+                if (relativeEnabled && !inWindow)
                 {
                     SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_WarpMouseInWindow(SdlWindowHandle, x, y);
-                });
-            }
-            else if (!relativeEnabled && inWindow)
-                commandScheduler.Add(() => SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE));
-        }
+                }
+                else if (!relativeEnabled && inWindow)
+                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
+            });
 
         private void pollMouse()
         {

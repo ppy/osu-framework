@@ -266,7 +266,7 @@ namespace osu.Framework.Platform
         /// If the position is within the window and relative mode is disabled, relative mode will be enabled.
         /// If the position is outside the window and relative mode is enabled, relative mode will be disabled
         /// and the mouse cursor will be warped to <paramref name="position"/>.
-        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in logical coordinates. If null, defaults to current position.</param>
+        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in scaled coordinates. If null, defaults to current position.</param>
         /// </summary>
         void UpdateRelativeMode(Vector2? position = null);
 

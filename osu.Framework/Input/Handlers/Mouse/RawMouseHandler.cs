@@ -89,9 +89,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!Enabled.Value)
                 return;
 
-            var clientSize = window.ClientRectangle.Size;
-            float scale = clientSize.Width == 0 ? 1f : window.Size.Value.Width / (float)clientSize.Width;
-            window.UpdateRelativeMode(position * scale);
+            window.UpdateRelativeMode(position);
         }
     }
 }
