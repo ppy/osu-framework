@@ -214,16 +214,27 @@ namespace osu.Framework.Screens
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             // while a parent still exists and exiting is not blocked, continue to iterate upwards.
-            IScreen exitSource = null;
+            IScreen exitCandidate = null;
 
             while (CurrentScreen != null)
             {
-                if (exitFrom(exitSource, shouldFireResumeEvent: false))
+                // the exit source is always the candidate from the previous loop, or null if this is the current screen.
+                IScreen exitSource = exitCandidate;
+                exitCandidate = CurrentScreen;
+
+                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false);
+
+                if (exitBlocked)
                 {
+                    // exit was blocked and no screen change has happened in this loop.
+                    // no resume event should be fired.
+                    if (exitSource == null)
+                        return;
+
                     // exit was blocked, but a nested exit operation may have succeeded (ie. a screen calling this.Exit() after blocking).
                     // in such a case, the MakeCurrent / resumeFrom flow would have already been performed.
                     // to avoid a duplicate resumeFrom event, only fire from here if it can be assured that the current screen is still the one which blocked the exit above.
-                    if (CurrentScreen == exitSource)
+                    if (CurrentScreen == exitCandidate)
                         resumeFrom(exitSource);
 
                     return;
@@ -231,11 +242,10 @@ namespace osu.Framework.Screens
 
                 if (CurrentScreen == target)
                 {
-                    resumeFrom(exitSource);
+                    // an exit was successful; resume from the "proposed" target (which was exited above).
+                    resumeFrom(exitCandidate);
                     return;
                 }
-
-                exitSource = CurrentScreen;
             }
         }
 
