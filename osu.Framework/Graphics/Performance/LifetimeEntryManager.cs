@@ -101,11 +101,13 @@ namespace osu.Framework.Graphics.Performance
                     break;
 
                 case LifetimeEntryState.Past:
-                    removed = pastEntries.Remove(entry);
+                    // Past entries may be found in the newEntries set after a lifetime change (see requestLifetimeUpdate).
+                    removed = pastEntries.Remove(entry) || newEntries.Remove(entry);
                     break;
 
                 case LifetimeEntryState.Future:
-                    removed = futureEntries.Remove(entry);
+                    // Future entries may be found in the newEntries set after a lifetime change (see requestLifetimeUpdate).
+                    removed = futureEntries.Remove(entry) || newEntries.Remove(entry);
                     break;
             }
 

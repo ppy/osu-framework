@@ -176,6 +176,30 @@ namespace osu.Framework.Tests.Graphics
         }
 
         [Test]
+        public void TestRemoveFutureAfterLifetimeChange()
+        {
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = 1, LifetimeEnd = 2 });
+            checkCountAliveAt(0, 0);
+
+            manager.Entries[0].LifetimeEnd = 3;
+            manager.RemoveEntry(manager.Entries[0]);
+
+            checkCountAliveAt(1, 0);
+        }
+
+        [Test]
+        public void TestRemovePastAfterLifetimeChange()
+        {
+            manager.AddEntry(new LifetimeEntry { LifetimeStart = -2, LifetimeEnd = -1 });
+            checkCountAliveAt(0, 0);
+
+            manager.Entries[0].LifetimeStart = -3;
+            manager.RemoveEntry(manager.Entries[0]);
+
+            checkCountAliveAt(-2, 0);
+        }
+
+        [Test]
         public void TestFuzz()
         {
             var rng = new Random(2222);
@@ -319,8 +343,13 @@ namespace osu.Framework.Tests.Graphics
 
             public new bool RemoveEntry(LifetimeEntry entry)
             {
-                entries.Remove(entry);
-                return base.RemoveEntry(entry);
+                if (base.RemoveEntry(entry))
+                {
+                    entries.Remove(entry);
+                    return true;
+                }
+
+                return false;
             }
 
             public new void ClearEntries()
