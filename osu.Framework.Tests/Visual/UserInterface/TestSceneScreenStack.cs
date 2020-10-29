@@ -840,6 +840,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Screen 2 clicked", () => screen2.ClickCount == 1 && screen2.IsLoaded);
         }
 
+        [Test]
+        public void TestMakeCurrentIntermediateResumes()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2)
+            {
+                Exiting = () => true
+            }, () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("make screen1 current", () => screen1.MakeCurrent());
+
+            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
+            AddAssert("screen2 resumed from screen3", () => screen2.ResumedFrom == screen3);
+        }
+
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)
         {
             inputManager.MoveMouseTo(screen);
