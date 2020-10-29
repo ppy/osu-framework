@@ -803,11 +803,9 @@ namespace osu.Framework.Platform.Sdl
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
         {
-            const int relative_threshold = 20;
-
             if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
                 ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
-            else if (Math.Abs(evtMotion.xrel) < relative_threshold && Math.Abs(evtMotion.yrel) < relative_threshold)
+            else
                 ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel, evtMotion.yrel)));
         }
 
