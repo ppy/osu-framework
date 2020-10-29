@@ -214,16 +214,24 @@ namespace osu.Framework.Screens
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             // while a parent still exists and exiting is not blocked, continue to iterate upwards.
-            IScreen firstScreen = CurrentScreen;
             IScreen exitSource = null;
 
             while (CurrentScreen != null)
             {
-                if (exitFrom(exitSource, shouldFireResumeEvent: false) || CurrentScreen == target)
+                if (exitFrom(exitSource, shouldFireResumeEvent: false))
                 {
-                    // don't fire the resume event if the first screen blocked the exit.
-                    if (CurrentScreen != firstScreen)
+                    // exit was blocked, but a nested exit operation may have succeeded (ie. a screen calling this.Exit() after blocking).
+                    // in such a case, the MakeCurrent / resumeFrom flow would have already been performed.
+                    // to avoid a duplicate resumeFrom event, only fire from here if it can be assured that the current screen is still the one which blocked the exit above.
+                    if (CurrentScreen == exitSource)
                         resumeFrom(exitSource);
+
+                    return;
+                }
+
+                if (CurrentScreen == target)
+                {
+                    resumeFrom(exitSource);
                     return;
                 }
 
