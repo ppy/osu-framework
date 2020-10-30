@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -19,8 +20,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private DesktopWindow window;
 
-        // private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
-        // private readonly IBindable<bool> windowActive = new BindableBool();
+        private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
         public override bool Initialize(GameHost host)
         {
@@ -28,9 +28,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 return false;
 
             window = desktopWindow;
-            // mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
-            // windowActive.BindTo(window.IsActive);
-            // windowActive.ValueChanged += _ => window.UpdateRelativeMode();
+            mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
 
             Enabled.BindValueChanged(evt =>
             {
@@ -65,7 +63,19 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
 
-        private void handleMouseMoveRelative(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
+        private void handleMouseMoveRelative(Vector2 delta)
+        {
+            float mappedInputMultiplier = 1f;
+
+            if (mapAbsoluteInputToWindow.Value)
+            {
+                const float base_size = 1024f;
+                int longestSide = Math.Max(window.Size.Value.Width, window.Size.Value.Height);
+                mappedInputMultiplier = longestSide / base_size;
+            }
+
+            enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value * mappedInputMultiplier });
+        }
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
 

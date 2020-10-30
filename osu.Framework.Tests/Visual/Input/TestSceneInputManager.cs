@@ -189,6 +189,8 @@ namespace osu.Framework.Tests.Visual.Input
             setRawInputConfig(false);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             setConfineMouseModeConfig(false);
+            AddToggleStep("Toggle MapAbsoluteInputToWindow", setMapAbsoluteConfig);
+            setMapAbsoluteConfig(false);
         }
 
         private void setCursorSensivityConfig(double x)
@@ -204,6 +206,11 @@ namespace osu.Framework.Tests.Visual.Input
         private void setConfineMouseModeConfig(bool x)
         {
             config.Set(FrameworkSetting.ConfineMouseMode, x ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+        }
+
+        private void setMapAbsoluteConfig(bool x)
+        {
+            config.Set(FrameworkSetting.MapAbsoluteInputToWindow, x);
         }
     }
 }

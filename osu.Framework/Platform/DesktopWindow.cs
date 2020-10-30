@@ -32,6 +32,7 @@ namespace osu.Framework.Platform
         private readonly Bindable<DisplayIndex> windowDisplayIndex = new Bindable<DisplayIndex>();
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
+        public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
         /// <summary>
         /// Gets or sets the window's position on the current screen given a relative value between 0 and 1.
@@ -127,6 +128,8 @@ namespace osu.Framework.Platform
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
             ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+
+            config.BindWith(FrameworkSetting.MapAbsoluteInputToWindow, MapAbsoluteInputToWindow);
 
             Resized += onResized;
             Moved += onMoved;
