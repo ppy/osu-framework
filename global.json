@@ -6,6 +6,6 @@
   },
   "msbuild-sdks": {
     "MSBuild.Sdk.Extras": "2.1.2",
-    "Microsoft.Build.Traversal": "2.1.1"
+    "Microsoft.Build.Traversal": "2.2.3"
   }
 }
