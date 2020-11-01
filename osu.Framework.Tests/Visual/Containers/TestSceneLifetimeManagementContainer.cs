@@ -7,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Timing;
 
@@ -263,6 +264,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;
+
+                // This is called from boundary crossing events and results in timing issues if the LTMC is not updated in time. Force an update here to prevent such issues.
+                container.UpdateSubTree();
                 checkAll();
             }
 
