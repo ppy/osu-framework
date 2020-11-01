@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
@@ -20,8 +19,10 @@ namespace osu.Framework.Testing
 
             if (drawable is CompositeDrawable composite)
             {
-                foreach (var child in composite.InternalChildren.ToArray())
+                for (var i = 0; i < composite.InternalChildren.Count; i++)
                 {
+                    var child = composite.InternalChildren[i];
+
                     foreach (var found in child.ChildrenOfType<T>())
                         yield return found;
                 }
