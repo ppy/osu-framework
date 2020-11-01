@@ -207,12 +207,19 @@ namespace osu.Framework.Audio.Track
                     filter[i] = (float)Blur.EvalGaussian(i, pointsPerGeneratedPoint);
                 }
 
-                for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
+                // we're keeping two indices: one for the original (fractional!) point we're generating based on,
+                // and one (integral) for the points we're going to be generating.
+                // it's important to avoid adding by pointsPerGeneratedPoint in a loop, as floating-point errors can result in
+                // drifting of the computed values in either direction - we multiply the generated index by pointsPerGeneratedPoint instead.
+                float originalPointIndex = 0;
+                int generatedPointIndex = 0;
+
+                while (originalPointIndex < points.Count)
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    int startIndex = (int)i - kernelWidth;
-                    int endIndex = (int)i + kernelWidth;
+                    int startIndex = (int)originalPointIndex - kernelWidth;
+                    int endIndex = (int)originalPointIndex + kernelWidth;
 
                     var point = new Point(channels);
                     float totalWeight = 0;
@@ -239,6 +246,9 @@ namespace osu.Framework.Audio.Track
                     point.HighIntensity /= totalWeight;
 
                     generatedPoints.Add(point);
+
+                    generatedPointIndex += 1;
+                    originalPointIndex = generatedPointIndex * pointsPerGeneratedPoint;
                 }
 
                 return new Waveform(null)

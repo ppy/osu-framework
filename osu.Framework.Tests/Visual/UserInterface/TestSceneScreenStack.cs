@@ -13,9 +13,9 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using osu.Framework.Utils;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Input;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -475,6 +475,42 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen 2 is not alive", () => !screen2.AsDrawable().IsAlive);
         }
 
+        [Test]
+        public void TestCallingExitFromBlockingExit()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            int screen1ResumedCount = 0;
+
+            bool blocking = true;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1)
+            {
+                Resumed = () => screen1ResumedCount++
+            });
+
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2)
+            {
+                Exiting = () =>
+                {
+                    if (blocking)
+                    {
+                        blocking = false;
+
+                        // ReSharper disable once AccessToModifiedClosure
+                        screen2.Exit();
+                        return true;
+                    }
+
+                    // this call should fail in a way the user can understand.
+                    return false;
+                }
+            }, () => screen1);
+
+            AddStep("make screen 1 current", () => screen1.MakeCurrent());
+            AddAssert("screen 1 resumed only once", () => screen1ResumedCount == 1);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestMakeCurrentMidwayExitBlocking(bool validForResume)
@@ -802,6 +838,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Click center of screen", () => clickScreen(inputManager, screen2));
             AddAssert("screen 1 not clicked", () => screen1.ClickCount == 1);
             AddAssert("Screen 2 clicked", () => screen2.ClickCount == 1 && screen2.IsLoaded);
+        }
+
+        [Test]
+        public void TestMakeCurrentIntermediateResumes()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2)
+            {
+                Exiting = () => true
+            }, () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("make screen1 current", () => screen1.MakeCurrent());
+
+            AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
+            AddAssert("screen2 resumed from screen3", () => screen2.ResumedFrom == screen3);
         }
 
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)
