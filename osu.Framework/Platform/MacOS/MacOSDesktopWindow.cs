@@ -10,6 +10,5 @@ namespace osu.Framework.Platform.MacOS
     public class MacOSDesktopWindow : DesktopWindow
     {
         protected override IWindowBackend CreateWindowBackend() => new MacOSWindowBackend();
-        protected override IGraphicsBackend CreateGraphicsBackend() => new MacOSGraphicsBackend();
     }
 }
