@@ -1,6 +1,6 @@
 # osu.Framework.Templates
 
-Templates to use when starting off with osu!framework. Create a fully-testable, cross-platform, and ready-for-git project using osu!framework using just two lines.
+Templates to use when starting off with osu!framework. Create a fully-testable, cross-platform, and ready-for-git project using osu!framework in just two lines.
 
 ## Usage
 
