@@ -25,7 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osuTK.iOS" Version="1.0.165" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
     <NativeLibs Include="$(MSBuildThisFileDirectory)\*.a" />
