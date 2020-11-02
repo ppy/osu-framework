@@ -54,7 +54,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 ## Developing a game using osu!framework
 
-If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support and testing setup are included!
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
 
 ## Projects that use osu!framework
 
