@@ -52,6 +52,10 @@ This framework is licensed under the [MIT licence](https://opensource.org/licens
 
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
 
+## Developing a game using osu!framework
+
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
+
 ## Projects that use osu!framework
 
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
