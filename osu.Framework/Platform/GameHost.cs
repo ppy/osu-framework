@@ -134,7 +134,15 @@ namespace osu.Framework.Platform
 
         public abstract string UserStoragePath { get; }
 
+        /// <summary>
+        /// The main storage as proposed by the host game.
+        /// </summary>
         public Storage Storage { get; protected set; }
+
+        /// <summary>
+        /// An auxiliary cache storage which is fixed in the default game directory.
+        /// </summary>
+        public Storage CacheStorage { get; protected set; }
 
         /// <summary>
         /// If caps-lock is enabled on the system, false if not overwritten by a subclass
@@ -522,6 +530,8 @@ namespace osu.Framework.Platform
                 Dependencies.CacheAs(this);
 
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+
+                CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
