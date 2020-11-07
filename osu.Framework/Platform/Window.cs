@@ -112,7 +112,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> Focused => focused;
 
-        private readonly BindableBool cursorInWindow = new BindableBool();
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
