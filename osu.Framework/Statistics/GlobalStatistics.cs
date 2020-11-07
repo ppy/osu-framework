@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Statistics
 {
@@ -63,6 +64,26 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
                 statistics.Add(stat);
+        }
+
+        public static void OutputToLog()
+        {
+            IGlobalStatistic[] statisticsSnapshot;
+
+            lock (statistics)
+                statisticsSnapshot = statistics.ToArray();
+
+            Logger.Log("----- Global Statistics -----", LoggingTarget.Performance);
+
+            foreach (var group in statisticsSnapshot.GroupBy(s => s.Group))
+            {
+                Logger.Log($"# {group.Key}", LoggingTarget.Performance);
+
+                foreach (var i in group)
+                    Logger.Log($"{i.Name.PadRight(30)}: {i.DisplayValue}", LoggingTarget.Performance);
+            }
+
+            Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
         }
     }
 }

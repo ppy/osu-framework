@@ -75,6 +75,9 @@ namespace osu.Framework.Graphics.Performance
         private void visibilityChanged(ValueChangedEvent<Visibility> state)
         {
             performanceLogging.Value = state.NewValue == Visibility.Visible;
+
+            if (state.NewValue == Visibility.Visible)
+                GlobalStatistics.OutputToLog();
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>
