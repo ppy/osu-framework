@@ -99,7 +99,6 @@ namespace osu.Framework.Graphics.Performance
         });
 
         private class StatisticsGroup : CompositeDrawable, IAlphabeticalSort
-
         {
             public string GroupName { get; }
 
