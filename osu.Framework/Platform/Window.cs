@@ -114,9 +114,6 @@ namespace osu.Framework.Platform
 
         private readonly BindableBool cursorInWindow = new BindableBool();
 
-        /// <summary>
-        /// Provides a read-only bindable that monitors the whether the cursor is in the window.
-        /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
         public IBindableList<WindowMode> SupportedWindowModes { get; }
