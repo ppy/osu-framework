@@ -662,8 +662,6 @@ namespace osu.Framework.Platform
 
 #pragma warning restore 0067
 
-        bool IWindow.CursorInWindow => CursorInWindow.Value;
-
         CursorState IWindow.CursorState
         {
             get => CursorState.Value;

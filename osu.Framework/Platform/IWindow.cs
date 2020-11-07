@@ -47,7 +47,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
-        bool CursorInWindow { get; }
+        IBindable<bool> CursorInWindow { get; }
 
         /// <summary>
         /// Controls the state of the OS cursor.
