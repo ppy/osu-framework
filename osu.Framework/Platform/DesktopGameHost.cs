@@ -98,6 +98,7 @@ namespace osu.Framework.Platform
             switch (Window)
             {
                 case GameWindow _:
+                {
                     var defaultEnabled = new InputHandler[]
                     {
                         new OsuTKMouseHandler(),
@@ -115,14 +116,27 @@ namespace osu.Framework.Platform
                         h.Enabled.Value = false;
 
                     return defaultEnabled.Concat(defaultDisabled);
+                }
 
                 default:
-                    return new InputHandler[]
+                {
+                    var defaultEnabled = new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
                         new JoystickHandler(),
                     };
+
+                    var defaultDisabled = new InputHandler[]
+                    {
+                        new OsuTKRawMouseHandler(),
+                    };
+
+                    foreach (var h in defaultDisabled)
+                        h.Enabled.Value = false;
+
+                    return defaultEnabled.Concat(defaultDisabled);
+                }
             }
         }
 
