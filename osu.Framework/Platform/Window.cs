@@ -684,9 +684,9 @@ namespace osu.Framework.Platform
         {
         }
 
-        public Point PointToClient(Point point) => point;
+        public virtual Point PointToClient(Point point) => point;
 
-        public Point PointToScreen(Point point) => point;
+        public virtual Point PointToScreen(Point point) => point;
 
         public Icon Icon { get; set; }
 

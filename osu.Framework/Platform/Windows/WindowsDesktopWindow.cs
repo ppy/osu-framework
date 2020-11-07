@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Platform.Windows.Native;
 
@@ -40,6 +41,24 @@ namespace osu.Framework.Platform.Windows
                 SendMessage(windowHandle, seticon_message, (IntPtr)icon_big, largeIcon.Handle);
             }
         }
+
+        public override Point PointToClient(Point point)
+        {
+            ScreenToClient(WindowBackend.WindowHandle, ref point);
+            return point;
+        }
+
+        public override Point PointToScreen(Point point)
+        {
+            ClientToScreen(WindowBackend.WindowHandle, ref point);
+            return point;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern bool ScreenToClient(IntPtr hWnd, ref Point point);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern bool ClientToScreen(IntPtr hWnd, ref Point point);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
