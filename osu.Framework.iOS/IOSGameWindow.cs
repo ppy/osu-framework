@@ -25,7 +25,7 @@ namespace osu.Framework.iOS
         {
             Resize += onResize;
             // for now, let's just say the cursor is always in the window.
-            CursorInWindow = true;
+            CursorInWindow.Value = true;
         }
 
         public override IGraphicsContext Context => GameView.GraphicsContext;
