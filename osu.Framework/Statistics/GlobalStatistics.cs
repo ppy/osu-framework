@@ -68,9 +68,14 @@ namespace osu.Framework.Statistics
 
         public static void OutputToLog()
         {
+            IGlobalStatistic[] statisticsSnapshot;
+
+            lock (statistics)
+                statisticsSnapshot = statistics.ToArray();
+
             Logger.Log("----- Global Statistics -----", LoggingTarget.Performance);
 
-            foreach (var group in GlobalStatistics.Statistics.GroupBy(s => s.Group))
+            foreach (var group in statisticsSnapshot.GroupBy(s => s.Group))
             {
                 Logger.Log($"# {group.Key}", LoggingTarget.Performance);
 
