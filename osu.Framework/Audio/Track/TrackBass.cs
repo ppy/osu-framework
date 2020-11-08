@@ -183,6 +183,8 @@ namespace osu.Framework.Audio.Track
 
         protected override void UpdateState()
         {
+            base.UpdateState();
+
             var running = isRunningState(Bass.ChannelIsActive(activeStream));
             var bytePosition = Bass.ChannelGetPosition(activeStream);
 
@@ -194,8 +196,6 @@ namespace osu.Framework.Audio.Track
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             bassAmplitudeProcessor?.Update();
-
-            base.UpdateState();
         }
 
         protected override void Dispose(bool disposing)
@@ -263,6 +263,9 @@ namespace osu.Framework.Audio.Track
 
         private bool startInternal()
         {
+            // ensure state is correct before starting.
+            UpdateState();
+
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
             if (Bass.ChannelGetPosition(activeStream) == byteLength)
                 return false;
