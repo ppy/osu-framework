@@ -426,11 +426,13 @@ namespace osu.Framework.Platform.Sdl
             SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                                         SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
                                         WindowState.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
             SdlWindowHandle = SDL.SDL_CreateWindow($"{title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
+
             cachedScale.Invalidate();
             Exists = true;
         }
