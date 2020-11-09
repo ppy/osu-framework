@@ -88,6 +88,9 @@ namespace osu.Framework.Audio.Sample
 
             EnqueueAction(() =>
             {
+                // ensure state is correct before starting.
+                UpdateState();
+
                 if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
                     Bass.ChannelPlay(channel, restart);
             });
