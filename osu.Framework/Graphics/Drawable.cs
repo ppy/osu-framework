@@ -1772,8 +1772,24 @@ namespace osu.Framework.Graphics
             if (source != InvalidationSource.Child && source != InvalidationSource.Parent && source != InvalidationSource.Self)
                 throw new InvalidOperationException($"A {nameof(Drawable)} can only be invalidated with a singular {nameof(source)} (child, parent, or self).");
 
-            if (LoadState < LoadState.Ready)
-                return false;
+            switch (LoadState)
+            {
+                default:
+                    return false;
+
+                case LoadState.Ready:
+                    // Allow invalidating from the load thread since parenting containers may still be in the loading state
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForInvalidationException(LoadState, "not on the load or update threads");
+
+                    break;
+
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForInvalidationException(LoadState, "not on the update thread");
+
+                    break;
+            }
 
             // Changes in the colour of children don't affect parents.
             if (source == InvalidationSource.Child)
@@ -2837,5 +2853,14 @@ namespace osu.Framework.Graphics
         /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.
         /// </summary>
         Fit,
+    }
+
+    public class InvalidThreadForInvalidationException : InvalidOperationException
+    {
+        public InvalidThreadForInvalidationException(LoadState loadState, string description)
+            : base($"Cannot invalidate a {loadState} {nameof(Drawable)} while {description}. "
+                   + $"Consider using {nameof(Drawable.Schedule)} to schedule the mutation operation.")
+        {
+        }
     }
 }
