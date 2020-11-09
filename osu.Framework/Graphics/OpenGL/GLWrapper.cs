@@ -19,7 +19,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -101,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            if (host.Window is GameWindow win)
+            if (host.Window is OsuTKWindow win)
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);

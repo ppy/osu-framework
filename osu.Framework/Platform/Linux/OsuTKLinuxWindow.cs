@@ -8,11 +8,11 @@ using osuTK;
 
 namespace osu.Framework.Platform.Linux
 {
-    public class LinuxGameWindow : DesktopGameWindow
+    public class OsuTKLinuxWindow : OsuTKDesktopWindow
     {
         public bool IsSdl { get; private set; }
 
-        public LinuxGameWindow()
+        public OsuTKLinuxWindow()
         {
             Load += OnLoad;
         }
