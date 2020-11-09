@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -32,7 +32,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             base.Initialize(host);
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
-            if (host.Window is DesktopGameWindow desktopWindow)
+            if (host.Window is OsuTKDesktopWindow desktopWindow)
             {
                 windowMode.BindTo(desktopWindow.WindowMode);
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
@@ -47,7 +47,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                         if (!host.Window.Visible || host.Window.WindowState == osuTK.WindowState.Minimized)
                             return;
 
-                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
+                        if ((MouseInWindow.Value || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
                         {
                             osuTK.Input.Mouse.GetStates(newRawStates);
 
