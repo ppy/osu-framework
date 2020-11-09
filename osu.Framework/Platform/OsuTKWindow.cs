@@ -55,10 +55,9 @@ namespace osu.Framework.Platform
 
         protected readonly Scheduler UpdateFrameScheduler = new Scheduler();
 
-        /// <summary>
-        /// Whether the OS cursor is currently contained within the game window.
-        /// </summary>
-        public bool CursorInWindow { get; protected set; }
+        private readonly BindableBool cursorInWindow = new BindableBool();
+
+        public IBindable<bool> CursorInWindow => cursorInWindow;
 
         /// <summary>
         /// Available resolutions for full-screen display.
@@ -113,8 +112,8 @@ namespace osu.Framework.Platform
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
 
-            MouseEnter += (sender, args) => CursorInWindow = true;
-            MouseLeave += (sender, args) => CursorInWindow = false;
+            MouseEnter += (sender, args) => cursorInWindow.Value = true;
+            MouseLeave += (sender, args) => cursorInWindow.Value = false;
 
             FocusedChanged += (o, e) => isActive.Value = Focused;
 

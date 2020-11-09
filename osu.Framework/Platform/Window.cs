@@ -112,11 +112,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> Focused => focused;
 
-        private readonly BindableBool cursorInWindow = new BindableBool();
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
 
-        /// <summary>
-        /// Provides a read-only bindable that monitors the whether the cursor is in the window.
-        /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
         public IBindableList<WindowMode> SupportedWindowModes { get; }
@@ -673,8 +670,6 @@ namespace osu.Framework.Platform
 
 #pragma warning restore 0067
 
-        bool IWindow.CursorInWindow => CursorInWindow.Value;
-
         CursorState IWindow.CursorState
         {
             get => CursorState.Value;
@@ -697,9 +692,9 @@ namespace osu.Framework.Platform
         {
         }
 
-        public Point PointToClient(Point point) => point;
+        public virtual Point PointToClient(Point point) => point;
 
-        public Point PointToScreen(Point point) => point;
+        public virtual Point PointToScreen(Point point) => point;
 
         public Icon Icon { get; set; }
 
