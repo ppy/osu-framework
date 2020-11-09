@@ -55,7 +55,7 @@ namespace osu.Framework.Platform
 
         protected readonly Scheduler UpdateFrameScheduler = new Scheduler();
 
-        private readonly BindableBool cursorInWindow = new BindableBool();
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
