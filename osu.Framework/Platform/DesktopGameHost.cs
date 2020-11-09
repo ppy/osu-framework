@@ -97,7 +97,7 @@ namespace osu.Framework.Platform
         {
             switch (Window)
             {
-                case GameWindow _:
+                case OsuTKWindow _:
                     var defaultEnabled = new InputHandler[]
                     {
                         new OsuTKMouseHandler(),

@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// A <see cref="Container"/> that is automatically cached and provides a <see cref="BindableSafeArea"/> representing
     /// the desired safe area margins. Should be used in conjunction with child <see cref="SafeAreaContainer"/>s.
     /// The root of the scenegraph contains an instance of this container, with <see cref="BindableSafeArea"/> automatically bound
-    /// to the host <see cref="GameWindow"/>'s <see cref="GameWindow.SafeAreaPadding"/>.
+    /// to the host <see cref="OsuTKWindow"/>'s <see cref="OsuTKWindow.SafeAreaPadding"/>.
     /// </summary>
     [Cached(typeof(ISafeArea))]
     public class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea
@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Initialises a <see cref="SafeAreaDefiningContainer"/> by optionally providing a custom <see cref="BindableSafeArea"/>.
-        /// If no such binding is provided, the container will default to <see cref="GameWindow.SafeAreaPadding"/>.
+        /// If no such binding is provided, the container will default to <see cref="OsuTKWindow.SafeAreaPadding"/>.
         /// </summary>
         /// <param name="safeArea">The custom <see cref="BindableSafeArea"/> to bind to, if required.</param>
         public SafeAreaDefiningContainer(BindableSafeArea safeArea = null)

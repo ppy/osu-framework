@@ -4,14 +4,14 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using GameWindow = osu.Framework.Platform.GameWindow;
 using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameWindow : GameWindow
+    public class AndroidGameWindow : OsuTKWindow
     {
         public override IGraphicsContext Context
             => View.GraphicsContext;

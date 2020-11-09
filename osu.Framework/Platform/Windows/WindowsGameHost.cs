@@ -50,7 +50,7 @@ namespace osu.Framework.Platform.Windows
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new WindowsGameWindow() : new WindowsDesktopWindow();
+            !UseSdl ? (IWindow)new OsuTKWindowsWindow() : new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {

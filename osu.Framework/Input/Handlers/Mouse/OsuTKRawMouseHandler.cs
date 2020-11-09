@@ -32,7 +32,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             base.Initialize(host);
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
-            if (host.Window is DesktopGameWindow desktopWindow)
+            if (host.Window is OsuTKDesktopWindow desktopWindow)
             {
                 windowMode.BindTo(desktopWindow.WindowMode);
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);

@@ -7,7 +7,7 @@ namespace osu.Framework.Platform.MacOS
     /// macOS-specific subclass of <see cref="DesktopWindow"/> that specifies a custom
     /// <see cref="IWindowBackend"/>.
     /// </summary>
-    public class MacOSDesktopWindow : DesktopWindow
+    public class MacOSWindow : DesktopWindow
     {
         protected override IWindowBackend CreateWindowBackend() => new MacOSWindowBackend();
     }

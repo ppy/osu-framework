@@ -8,7 +8,7 @@ using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
 {
-    internal class WindowsGameWindow : DesktopGameWindow
+    internal class OsuTKWindowsWindow : OsuTKDesktopWindow
     {
         private const int seticon_message = 0x0080;
 
