@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
         /// </summary>
-        public Bindable<bool> Visible { get; } = new BindableBool();
+        public Bindable<bool> Visible { get; } = new BindableBool(true);
 
         public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
@@ -363,10 +363,21 @@ namespace osu.Framework.Platform
             CurrentDisplay.ValueChanged += evt => WindowBackend.CurrentDisplay = evt.NewValue;
         }
 
+        private bool firstDraw = true;
+
         /// <summary>
         /// Requests that the graphics backend perform a buffer swap.
         /// </summary>
-        public void SwapBuffers() => GraphicsBackend.SwapBuffers();
+        public void SwapBuffers()
+        {
+            GraphicsBackend.SwapBuffers();
+
+            if (firstDraw)
+            {
+                WindowBackend.Visible = Visible.Value;
+                firstDraw = false;
+            }
+        }
 
         /// <summary>
         /// Requests that the graphics backend become the current context.
