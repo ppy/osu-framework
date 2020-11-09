@@ -28,6 +28,12 @@ namespace osu.Framework.Graphics.Pooling
         /// </summary>
         private bool waitingForPrepare;
 
+        /// <summary>
+        /// Whether <see cref="Drawable.LifetimeStart"/> and <see cref="Drawable.LifetimeEnd"/> should be reset to their default values
+        /// every time this <see cref="PoolableDrawable"/> is assigned to a new consumer.
+        /// </summary>
+        public virtual bool ResetLifetimeWhenAssigned => true;
+
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
         protected override void LoadComplete()
@@ -98,8 +104,11 @@ namespace osu.Framework.Graphics.Pooling
 
             IsInUse = true;
 
-            LifetimeStart = double.MinValue;
-            LifetimeEnd = double.MaxValue;
+            if (ResetLifetimeWhenAssigned)
+            {
+                LifetimeStart = double.MinValue;
+                LifetimeEnd = double.MaxValue;
+            }
 
             waitingForPrepare = true;
 
