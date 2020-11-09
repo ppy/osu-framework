@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using GameWindow = osu.Framework.Platform.GameWindow;
 using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameWindow : GameWindow
+    public class IOSGameWindow : OsuTKWindow
     {
         internal static IOSGameView GameView;
 

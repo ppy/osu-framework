@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private DesktopGameWindow window;
+        private OsuTKDesktopWindow window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as DesktopGameWindow;
+            window = host.Window as OsuTKDesktopWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             if (window == null)

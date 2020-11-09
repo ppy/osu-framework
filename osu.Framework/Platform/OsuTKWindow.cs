@@ -21,10 +21,10 @@ using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameWindow : IWindow
+    public abstract class OsuTKWindow : IWindow
     {
         /// <summary>
-        /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.
+        /// The <see cref="IGraphicsContext"/> associated with this <see cref="OsuTKWindow"/>.
         /// </summary>
         [NotNull]
         public abstract IGraphicsContext Context { get; }
@@ -36,7 +36,7 @@ namespace osu.Framework.Platform
         public event Func<bool> ExitRequested;
 
         /// <summary>
-        /// Invoked when the <see cref="GameWindow"/> has closed.
+        /// Invoked when the <see cref="OsuTKWindow"/> has closed.
         /// </summary>
         [CanBeNull]
         public event Action Exited;
@@ -69,7 +69,7 @@ namespace osu.Framework.Platform
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
         /// <summary>
-        /// Whether this <see cref="GameWindow"/> is active (in the foreground).
+        /// Whether this <see cref="OsuTKWindow"/> is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
@@ -95,9 +95,9 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
+        /// Creates a <see cref="OsuTKWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
-        protected GameWindow([NotNull] IGameWindow implementation)
+        protected OsuTKWindow([NotNull] IGameWindow implementation)
         {
             Implementation = implementation;
             Implementation.KeyDown += OnKeyDown;
@@ -162,11 +162,11 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Creates a <see cref="GameWindow"/> with given dimensions.
+        /// Creates a <see cref="OsuTKWindow"/> with given dimensions.
         /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
-        protected GameWindow(int width, int height)
-            : this(new osuTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+        protected OsuTKWindow(int width, int height)
+            : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 
@@ -573,18 +573,18 @@ namespace osu.Framework.Platform
         Default = 0,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>, but can still move anywhere.
+        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>, but can still move anywhere.
         /// </summary>
         Hidden = 1,
 
         /// <summary>
-        /// The OS cursor is confined to the <see cref="GameWindow"/> while the window is in focus.
+        /// The OS cursor is confined to the <see cref="OsuTKWindow"/> while the window is in focus.
         /// </summary>
         Confined = 2,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>.
-        /// It is confined to the <see cref="GameWindow"/> while the window is in focus and can move freely otherwise.
+        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>.
+        /// It is confined to the <see cref="OsuTKWindow"/> while the window is in focus and can move freely otherwise.
         /// </summary>
         HiddenAndConfined = Hidden | Confined,
     }
