@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class DesktopGameWindow : GameWindow
+    public abstract class OsuTKDesktopWindow : OsuTKWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -34,7 +34,7 @@ namespace osu.Framework.Platform
 
         public override IGraphicsContext Context => Implementation.Context;
 
-        protected new osuTK.GameWindow Implementation => (osuTK.GameWindow)base.Implementation;
+        protected new GameWindow Implementation => (GameWindow)base.Implementation;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Platform
                       .Where(x => x != null)
                       .Select(ExtensionMethods.ToDisplay);
 
-        protected DesktopGameWindow()
+        protected OsuTKDesktopWindow()
             : base(default_width, default_height)
         {
             Resize += OnResize;

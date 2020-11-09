@@ -91,7 +91,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
         /// </summary>
-        public Bindable<bool> Visible { get; } = new BindableBool();
+        public Bindable<bool> Visible { get; } = new BindableBool(true);
 
         public Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
 
@@ -112,11 +112,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public IBindable<bool> Focused => focused;
 
-        private readonly BindableBool cursorInWindow = new BindableBool();
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
 
-        /// <summary>
-        /// Provides a read-only bindable that monitors the whether the cursor is in the window.
-        /// </summary>
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
         public IBindableList<WindowMode> SupportedWindowModes { get; }
@@ -366,10 +363,21 @@ namespace osu.Framework.Platform
             CurrentDisplay.ValueChanged += evt => WindowBackend.CurrentDisplay = evt.NewValue;
         }
 
+        private bool firstDraw = true;
+
         /// <summary>
         /// Requests that the graphics backend perform a buffer swap.
         /// </summary>
-        public void SwapBuffers() => GraphicsBackend.SwapBuffers();
+        public void SwapBuffers()
+        {
+            GraphicsBackend.SwapBuffers();
+
+            if (firstDraw)
+            {
+                WindowBackend.Visible = Visible.Value;
+                firstDraw = false;
+            }
+        }
 
         /// <summary>
         /// Requests that the graphics backend become the current context.
@@ -662,8 +670,6 @@ namespace osu.Framework.Platform
 
 #pragma warning restore 0067
 
-        bool IWindow.CursorInWindow => CursorInWindow.Value;
-
         CursorState IWindow.CursorState
         {
             get => CursorState.Value;
@@ -686,9 +692,9 @@ namespace osu.Framework.Platform
         {
         }
 
-        public Point PointToClient(Point point) => point;
+        public virtual Point PointToClient(Point point) => point;
 
-        public Point PointToScreen(Point point) => point;
+        public virtual Point PointToScreen(Point point) => point;
 
         public Icon Icon { get; set; }
 

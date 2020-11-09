@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using GameWindow = osu.Framework.Platform.GameWindow;
 using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameWindow : GameWindow
+    public class IOSGameWindow : OsuTKWindow
     {
         internal static IOSGameView GameView;
 
@@ -24,8 +24,6 @@ namespace osu.Framework.iOS
         public override void SetupWindow(FrameworkConfigManager config)
         {
             Resize += onResize;
-            // for now, let's just say the cursor is always in the window.
-            CursorInWindow = true;
         }
 
         public override IGraphicsContext Context => GameView.GraphicsContext;

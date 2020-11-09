@@ -16,7 +16,7 @@ namespace osu.Framework.Platform.Linux
         }
 
         protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new LinuxGameWindow() : new DesktopWindow();
+            !UseSdl ? (IWindow)new OsuTKLinuxWindow() : new DesktopWindow();
 
         public override string UserStoragePath
         {
@@ -41,6 +41,6 @@ namespace osu.Framework.Platform.Linux
         }
 
         public override Clipboard GetClipboard() =>
-            Window is DesktopWindow || (Window as LinuxGameWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
+            Window is DesktopWindow || (Window as OsuTKLinuxWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
     }
 }
