@@ -10,8 +10,8 @@
             "args": [
                 "build",
                 "--no-restore",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "osu.Framework.Tests"
             ],
@@ -25,9 +25,9 @@
             "args": [
                 "build",
                 "--no-restore",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "osu.Framework.Tests"
             ],

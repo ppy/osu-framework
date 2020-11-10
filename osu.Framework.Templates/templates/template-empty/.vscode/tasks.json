@@ -8,8 +8,8 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "TemplateGame.Game.Tests"
             ],
@@ -22,9 +22,9 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "TemplateGame.Game.Tests"
             ],
@@ -37,8 +37,8 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "TemplateGame.Desktop"
             ],
@@ -50,9 +50,9 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
                 "/verbosity:m",
                 "TemplateGame.Desktop"
             ],
