@@ -10,7 +10,7 @@
                 "build",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "FlappyDon.Game.Tests"
             ],
             "group": "build",
@@ -25,7 +25,7 @@
                 "-p:Configuration=Release",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "FlappyDon.Game.Tests"
             ],
             "group": "build",
@@ -39,7 +39,7 @@
                 "build",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "FlappyDon.Desktop"
             ],
             "group": "build",
@@ -53,7 +53,7 @@
                 "-p:Configuration=Release",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "FlappyDon.Desktop"
             ],
             "group": "build",

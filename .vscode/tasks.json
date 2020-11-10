@@ -12,7 +12,7 @@
                 "--no-restore",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "osu.Framework.Tests"
             ],
             "group": "build",
@@ -28,7 +28,7 @@
                 "-p:Configuration=Release",
                 "-p:GenerateFullPaths=true",
                 "-m",
-                "/verbosity:m",
+                "-verbosity:m",
                 "osu.Framework.Tests"
             ],
             "group": "build",
