@@ -98,9 +98,6 @@ namespace osu.Framework.Graphics.Pooling
 
             IsInUse = true;
 
-            LifetimeStart = double.MinValue;
-            LifetimeEnd = double.MaxValue;
-
             waitingForPrepare = true;
 
             // prepare call is scheduled as it may contain user code dependent on the clock being updated.
