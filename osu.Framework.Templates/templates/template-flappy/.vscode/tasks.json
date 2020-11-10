@@ -8,9 +8,9 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
                 "FlappyDon.Game.Tests"
             ],
             "group": "build",
@@ -22,10 +22,10 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
                 "FlappyDon.Game.Tests"
             ],
             "group": "build",
@@ -37,9 +37,9 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
                 "FlappyDon.Desktop"
             ],
             "group": "build",
@@ -50,10 +50,10 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
                 "FlappyDon.Desktop"
             ],
             "group": "build",
