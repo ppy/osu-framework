@@ -100,8 +100,12 @@ namespace osu.Framework.Graphics.Pooling
             else
                 CountAvailable--;
 
+            drawable.LifetimeStart = double.MinValue;
+            drawable.LifetimeEnd = double.MaxValue;
+
             setupAction?.Invoke(drawable);
             drawable.Assign();
+
             CountInUse++;
 
             return drawable;
