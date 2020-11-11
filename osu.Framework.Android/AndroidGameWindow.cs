@@ -45,11 +45,6 @@ namespace osu.Framework.Android
             View.Run();
         }
 
-        public override void Run(double updateRate)
-        {
-            View.Run(updateRate);
-        }
-
         protected override DisplayDevice CurrentDisplayDevice
         {
             get => DisplayDevice.Default;
