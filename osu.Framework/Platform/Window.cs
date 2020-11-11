@@ -516,8 +516,6 @@ namespace osu.Framework.Platform
 
         public virtual Point PointToScreen(Point point) => point;
 
-        public Rectangle Bounds { get; set; }
-
         public void Dispose()
         {
         }
