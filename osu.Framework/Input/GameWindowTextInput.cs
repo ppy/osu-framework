@@ -37,18 +37,30 @@ namespace osu.Framework.Input
 
         public void Deactivate(object sender)
         {
-            if (window is DesktopWindow win)
-                win.KeyTyped -= HandleKeyTyped;
-            else
-                window.KeyPress -= HandleKeyPress;
+            switch (window)
+            {
+                case DesktopWindow win:
+                    win.KeyTyped -= HandleKeyTyped;
+                    break;
+
+                case OsuTKWindow tkWin:
+                    tkWin.KeyPress -= HandleKeyPress;
+                    break;
+            }
         }
 
         public void Activate(object sender)
         {
-            if (window is DesktopWindow win)
-                win.KeyTyped += HandleKeyTyped;
-            else
-                window.KeyPress += HandleKeyPress;
+            switch (window)
+            {
+                case DesktopWindow win:
+                    win.KeyTyped += HandleKeyTyped;
+                    break;
+
+                case OsuTKWindow tkWin:
+                    tkWin.KeyPress += HandleKeyPress;
+                    break;
+            }
         }
 
         private void imeCompose()

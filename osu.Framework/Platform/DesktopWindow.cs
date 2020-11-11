@@ -183,7 +183,7 @@ namespace osu.Framework.Platform
 
         private void onResized()
         {
-            if (WindowState.Value == Platform.WindowState.Normal)
+            if (WindowStateBindable.Value == WindowState.Normal)
             {
                 sizeWindowed.Value = WindowBackend.Size;
                 Size.Value = sizeWindowed.Value;
@@ -193,7 +193,7 @@ namespace osu.Framework.Platform
 
         private void onMoved(Point point)
         {
-            if (WindowState.Value == Platform.WindowState.Normal)
+            if (WindowStateBindable.Value == WindowState.Normal)
                 updateWindowPositionConfig();
         }
 
@@ -220,9 +220,9 @@ namespace osu.Framework.Platform
             }
 
             if (confine)
-                CursorState.Value |= Platform.CursorState.Confined;
+                CursorStateBindable.Value |= CursorState.Confined;
             else
-                CursorState.Value &= ~Platform.CursorState.Confined;
+                CursorStateBindable.Value &= ~CursorState.Confined;
         }
     }
 }
