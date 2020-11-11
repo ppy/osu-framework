@@ -82,14 +82,9 @@ namespace osu.Framework.Audio.Sample
 
                 relativeFrequencyHandler.SetChannel(channel);
                 bassAmplitudeProcessor?.SetChannel(channel);
-            });
 
-            InvalidateState();
-
-            EnqueueAction(() =>
-            {
                 // ensure state is correct before starting.
-                UpdateState();
+                InvalidateState();
 
                 if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
                     Bass.ChannelPlay(channel, restart);
