@@ -12,7 +12,6 @@ namespace osu.Framework.Platform
 {
     /// <summary>
     /// Interface representation of the game window, intended to hide any implementation-specific code.
-    /// Currently inherits from osuTK; this will be removed as part of the <see cref="OsuTKWindow"/> refactor.
     /// </summary>
     public interface IWindow : IDisposable
     {
