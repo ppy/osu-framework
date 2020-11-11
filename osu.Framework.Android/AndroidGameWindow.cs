@@ -7,7 +7,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.Android
 {
@@ -21,9 +20,9 @@ namespace osu.Framework.Android
         public override bool Focused
             => true;
 
-        public override WindowState WindowState
+        public override Platform.WindowState WindowState
         {
-            get => WindowState.Normal;
+            get => Platform.WindowState.Normal;
             set { }
         }
 
