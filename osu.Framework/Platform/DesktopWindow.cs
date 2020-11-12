@@ -216,43 +216,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void updateWindowStateAndSize()
-        {
-            switch (windowState)
-            {
-                case WindowState.Normal:
-                    Size = sizeWindowed.Value;
-
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-                    SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
-                    break;
-
-                case WindowState.Fullscreen:
-                    Size = sizeFullscreen.Value;
-
-                    // set window display mode again, just in case if it changed from the last time we were fullscreen.
-                    var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
-                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
-
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                    break;
-
-                case WindowState.FullscreenBorderless:
-                    Size = sizeFullscreen.Value;
-
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    break;
-
-                case WindowState.Maximised:
-                    SDL.SDL_MaximizeWindow(SdlWindowHandle);
-                    break;
-
-                case WindowState.Minimised:
-                    SDL.SDL_MinimizeWindow(SdlWindowHandle);
-                    break;
-            }
-        }
-
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
@@ -271,17 +234,17 @@ namespace osu.Framework.Platform
         public virtual Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay;
-        private int lastDisplayIndex = -1;
+        private int displayIndex = -1;
 
         /// <summary>
         /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
         public Display CurrentDisplay
         {
-            get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? 0 : windowDisplayIndex);
+            get => currentDisplay;
             set
             {
-                if (value.Index == windowDisplayIndex)
+                if (value.Index == displayIndex)
                     return;
 
                 int x = value.Bounds.Left + value.Bounds.Width / 2 - Size.Width / 2;
@@ -307,18 +270,8 @@ namespace osu.Framework.Platform
             {
                 currentDisplayMode = value;
 
-                commandScheduler.Add(() =>
-                {
-                    var closest = closestDisplayMode(value, windowDisplayIndex);
-                    var wasFullscreen = windowState == WindowState.Fullscreen;
-                    if (wasFullscreen)
-                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-
-                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closest);
-
-                    if (wasFullscreen)
-                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                });
+                // todo: proper handling of this, if we decide we want it.
+                updateWindowStateAndSize();
             }
         }
 
@@ -378,13 +331,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        private int windowDisplayIndex => SdlWindowHandle == IntPtr.Zero ? 0 : SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
-
         private Rectangle windowDisplayBounds
         {
             get
             {
-                SDL.SDL_GetDisplayBounds(windowDisplayIndex, out var rect);
+                SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
@@ -409,18 +360,17 @@ namespace osu.Framework.Platform
                     displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0,
                     displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0);
             }
-            set
+            set => commandScheduler.Add(() =>
             {
                 if (WindowMode.Value != Configuration.WindowMode.Windowed)
                     return;
-
                 var displayBounds = CurrentDisplay.Bounds;
                 var windowSize = sizeWindowed.Value;
                 var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
                 var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * value.Y);
 
                 Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
-            }
+            });
         }
 
         private bool firstDraw = true;
@@ -475,6 +425,8 @@ namespace osu.Framework.Platform
             MouseLeft += () => cursorInWindow.Value = false;
 
             graphicsBackend.Initialise(this);
+
+            updateWindowSpecifics();
         }
 
         /// <summary>
@@ -921,24 +873,7 @@ namespace osu.Framework.Platform
 
         private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
         {
-            Debug.Assert(SdlWindowHandle != IntPtr.Zero);
-
-            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle)).ToWindowState();
-
-            var displayIndex = windowDisplayIndex;
-
-            if (windowState != currentState)
-            {
-                windowState = currentState;
-                ScheduleEvent(() => OnWindowStateChanged(currentState));
-            }
-
-            if (lastDisplayIndex != displayIndex)
-            {
-                lastDisplayIndex = displayIndex;
-                currentDisplay = null;
-                ScheduleEvent(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
-            }
+            updateWindowSpecifics();
 
             switch (evtWindow.windowEvent)
             {
@@ -953,7 +888,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                     var newPosition = new Point(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !newPosition.Equals(Position))
+                    if (windowState == WindowState.Normal && !newPosition.Equals(Position))
                     {
                         position = newPosition;
                         ScheduleEvent(() => OnMoved(newPosition));
@@ -994,13 +929,76 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected void OnHidden()
+        /// <summary>
+        /// Should be run on a regular basis to check for external window state changes.
+        /// </summary>
+        private void updateWindowSpecifics()
         {
+            Debug.Assert(SdlWindowHandle != IntPtr.Zero);
+
+            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle)).ToWindowState();
+
+            if (windowState != currentState)
+            {
+                windowState = currentState;
+                ScheduleEvent(() => OnWindowStateChanged(currentState));
+            }
+
+            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
+
+            if (displayIndex != newDisplayIndex)
+            {
+                displayIndex = newDisplayIndex;
+                currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
+                ScheduleEvent(() => OnDisplayChanged(currentDisplay));
+            }
         }
 
-        protected void OnShown()
+        /// <summary>
+        /// Should be run after a local window state change, to propagate the correct SDL actions.
+        /// </summary>
+        private void updateWindowStateAndSize()
         {
+            switch (windowState)
+            {
+                case WindowState.Normal:
+                    Size = sizeWindowed.Value;
+
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
+                    break;
+
+                case WindowState.Fullscreen:
+                    Size = sizeFullscreen.Value;
+
+                    var fullscreenMode = closestDisplayMode(currentDisplayMode, displayIndex);
+
+                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    break;
+
+                case WindowState.FullscreenBorderless:
+                    Size = sizeFullscreen.Value;
+
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    break;
+
+                case WindowState.Maximised:
+                    SDL.SDL_MaximizeWindow(SdlWindowHandle);
+                    break;
+
+                case WindowState.Minimised:
+                    SDL.SDL_MinimizeWindow(SdlWindowHandle);
+                    break;
+            }
+
+            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
+                currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
         }
+
+        protected void OnHidden() { }
+
+        protected void OnShown() { }
 
         protected void OnWindowStateChanged(WindowState state) => WindowStateChanged?.Invoke(state);
 
@@ -1166,20 +1164,6 @@ namespace osu.Framework.Platform
         }
 
         #region SDL Helper functions
-
-        private SDL.SDL_DisplayMode getCurrentSDLDisplayMode()
-        {
-            if (SdlWindowHandle == IntPtr.Zero)
-                return default;
-
-            // SDL_GetWindowDisplayMode gets the resolution currently assigned to the window for *exclusive* fullscreen
-            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
-                return mode;
-
-            // SDL_GetWindowDisplayMode can fail if the window was shown fullscreen on a different (especially larger) window before.
-            // if that happens, fall back to closest mode for the current display.
-            return closestDisplayMode(CurrentDisplayMode, windowDisplayIndex);
-        }
 
         private static SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode, int index)
         {
