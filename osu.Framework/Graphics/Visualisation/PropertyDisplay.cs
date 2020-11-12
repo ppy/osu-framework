@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -20,6 +22,8 @@ namespace osu.Framework.Graphics.Visualisation
     internal class PropertyDisplay : Container
     {
         private readonly FillFlowContainer flow;
+
+        private Bindable<Drawable> inspectedDrawable;
 
         protected override Container<Drawable> Content => flow;
 
@@ -49,7 +53,20 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        public void UpdateFrom(Drawable source)
+        [BackgroundDependencyLoader]
+        private void load(Bindable<Drawable> inspected)
+        {
+            inspectedDrawable = inspected.GetBoundCopy();
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            inspectedDrawable.BindValueChanged(inspected => updateProperties(inspected.NewValue), true);
+        }
+
+        private void updateProperties(IDrawable source)
         {
             Clear();
 

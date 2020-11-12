@@ -299,7 +299,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (newHighlight == null)
             {
-                drawableInspector.UpdateFrom(null);
+                drawableInspector.InspectedDrawable.Value = null;
                 return;
             }
 
@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.Visualisation
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
-                drawableInspector.UpdateFrom(newHighlight.Target);
+                drawableInspector.InspectedDrawable.Value = newHighlight.Target;
             }
         }
 
