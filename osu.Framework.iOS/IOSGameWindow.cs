@@ -3,35 +3,39 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.iOS
 {
     public class IOSGameWindow : OsuTKWindow
     {
-        internal static IOSGameView GameView;
-
-        public IOSGameWindow()
-            : base(GameView)
-        {
-        }
+        [NotNull]
+        private readonly IOSGameView gameView;
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
             Resize += onResize;
         }
 
-        public override IGraphicsContext Context => GameView.GraphicsContext;
+        public IOSGameWindow([NotNull] IOSGameView gameView)
+            : base(gameView)
+        {
+            this.gameView = gameView;
+        }
+
+        public override IGraphicsContext Context => gameView.GraphicsContext;
 
         public override bool Focused => true;
 
-        public override Platform.WindowState WindowState
+        public override WindowState WindowState
         {
-            get => Platform.WindowState.Normal;
+            get => WindowState.Normal;
             set { }
         }
 
@@ -55,10 +59,10 @@ namespace osu.Framework.iOS
         {
             SafeAreaPadding.Value = new MarginPadding
             {
-                Top = (float)GameView.SafeArea.Top * GameView.Scale,
-                Left = (float)GameView.SafeArea.Left * GameView.Scale,
-                Bottom = (float)GameView.SafeArea.Bottom * GameView.Scale,
-                Right = (float)GameView.SafeArea.Right * GameView.Scale
+                Top = (float)gameView.SafeArea.Top * gameView.Scale,
+                Left = (float)gameView.SafeArea.Left * gameView.Scale,
+                Bottom = (float)gameView.SafeArea.Bottom * gameView.Scale,
+                Right = (float)gameView.SafeArea.Right * gameView.Scale
             };
         }
     }

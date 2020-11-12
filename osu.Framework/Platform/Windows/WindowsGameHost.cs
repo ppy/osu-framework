@@ -49,8 +49,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new OsuTKWindowsWindow() : new WindowsWindow();
+        protected override IWindow CreateWindow() => !UseSdl ? (IWindow)new OsuTKWindowsWindow() : new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {

@@ -64,14 +64,13 @@ namespace osu.Framework.iOS
         protected override void SetupForRun()
         {
             base.SetupForRun();
-            IOSGameWindow.GameView = gameView;
 
             AllowScreenSuspension.BindValueChanged(allow =>
                     InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
                 true);
         }
 
-        protected override IWindow CreateWindow() => new IOSGameWindow();
+        protected override IWindow CreateWindow() => new IOSGameWindow(gameView);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
