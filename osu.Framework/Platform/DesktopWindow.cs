@@ -482,15 +482,27 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Run()
         {
+            // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
+            SDL.SDL_SetEventFilter((_, eventPtr) =>
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                var e = (SDL.SDL_Event)Marshal.PtrToStructure(eventPtr, typeof(SDL.SDL_Event));
+
+                if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                {
+                    handleSDLEvent(e);
+                    return 0;
+                }
+
+                return 1;
+            }, IntPtr.Zero);
+
             while (Exists)
             {
                 commandScheduler.Update();
 
                 if (!Exists)
                     break;
-
-                // resize events aren't fired until the resize completes.
-                updateWindowSize();
 
                 pollSDLEvents();
 
@@ -631,94 +643,97 @@ namespace osu.Framework.Platform
         private void pollSDLEvents()
         {
             while (SDL.SDL_PollEvent(out var e) > 0)
+                handleSDLEvent(e);
+        }
+
+        private void handleSDLEvent(SDL.SDL_Event e)
+        {
+            switch (e.type)
             {
-                switch (e.type)
-                {
-                    case SDL.SDL_EventType.SDL_QUIT:
-                    case SDL.SDL_EventType.SDL_APP_TERMINATING:
-                        handleQuitEvent(e.quit);
-                        break;
+                case SDL.SDL_EventType.SDL_QUIT:
+                case SDL.SDL_EventType.SDL_APP_TERMINATING:
+                    handleQuitEvent(e.quit);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                        handleWindowEvent(e.window);
-                        break;
+                case SDL.SDL_EventType.SDL_WINDOWEVENT:
+                    handleWindowEvent(e.window);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_KEYDOWN:
-                    case SDL.SDL_EventType.SDL_KEYUP:
-                        handleKeyboardEvent(e.key);
-                        break;
+                case SDL.SDL_EventType.SDL_KEYDOWN:
+                case SDL.SDL_EventType.SDL_KEYUP:
+                    handleKeyboardEvent(e.key);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_TEXTEDITING:
-                        handleTextEditingEvent(e.edit);
-                        break;
+                case SDL.SDL_EventType.SDL_TEXTEDITING:
+                    handleTextEditingEvent(e.edit);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_TEXTINPUT:
-                        handleTextInputEvent(e.text);
-                        break;
+                case SDL.SDL_EventType.SDL_TEXTINPUT:
+                    handleTextInputEvent(e.text);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                        handleMouseMotionEvent(e.motion);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                    handleMouseMotionEvent(e.motion);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                        handleMouseButtonEvent(e.button);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                    handleMouseButtonEvent(e.button);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_MOUSEWHEEL:
-                        handleMouseWheelEvent(e.wheel);
-                        break;
+                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                    handleMouseWheelEvent(e.wheel);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYAXISMOTION:
-                        handleJoyAxisEvent(e.jaxis);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYAXISMOTION:
+                    handleJoyAxisEvent(e.jaxis);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYBALLMOTION:
-                        handleJoyBallEvent(e.jball);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYBALLMOTION:
+                    handleJoyBallEvent(e.jball);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYHATMOTION:
-                        handleJoyHatEvent(e.jhat);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYHATMOTION:
+                    handleJoyHatEvent(e.jhat);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_JOYBUTTONUP:
-                        handleJoyButtonEvent(e.jbutton);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_JOYBUTTONUP:
+                    handleJoyButtonEvent(e.jbutton);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
-                        handleJoyDeviceEvent(e.jdevice);
-                        break;
+                case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
+                case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
+                    handleJoyDeviceEvent(e.jdevice);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
-                        handleControllerAxisEvent(e.caxis);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERAXISMOTION:
+                    handleControllerAxisEvent(e.caxis);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
-                    case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
-                        handleControllerButtonEvent(e.cbutton);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONDOWN:
+                case SDL.SDL_EventType.SDL_CONTROLLERBUTTONUP:
+                    handleControllerButtonEvent(e.cbutton);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
-                        handleControllerDeviceEvent(e.cdevice);
-                        break;
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
+                case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
+                    handleControllerDeviceEvent(e.cdevice);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_FINGERDOWN:
-                    case SDL.SDL_EventType.SDL_FINGERUP:
-                    case SDL.SDL_EventType.SDL_FINGERMOTION:
-                        handleTouchFingerEvent(e.tfinger);
-                        break;
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                    handleTouchFingerEvent(e.tfinger);
+                    break;
 
-                    case SDL.SDL_EventType.SDL_DROPFILE:
-                    case SDL.SDL_EventType.SDL_DROPTEXT:
-                    case SDL.SDL_EventType.SDL_DROPBEGIN:
-                    case SDL.SDL_EventType.SDL_DROPCOMPLETE:
-                        handleDropEvent(e.drop);
-                        break;
-                }
+                case SDL.SDL_EventType.SDL_DROPFILE:
+                case SDL.SDL_EventType.SDL_DROPTEXT:
+                case SDL.SDL_EventType.SDL_DROPBEGIN:
+                case SDL.SDL_EventType.SDL_DROPCOMPLETE:
+                    handleDropEvent(e.drop);
+                    break;
             }
         }
 
