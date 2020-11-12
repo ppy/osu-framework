@@ -132,8 +132,6 @@ namespace osu.Framework.Platform
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
 
-        private Point previousPolledPoint = Point.Empty;
-
         private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
 
         private string title = string.Empty;
@@ -602,6 +600,8 @@ namespace osu.Framework.Platform
             });
         }
 
+        private Point previousPolledPoint = Point.Empty;
+
         private void pollMouse()
         {
             SDL.SDL_GetGlobalMouseState(out var x, out var y);
@@ -1045,7 +1045,25 @@ namespace osu.Framework.Platform
             RelativePosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
-            WindowMode.BindValueChanged(evt => UpdateWindowMode(evt.NewValue), true);
+            WindowMode.BindValueChanged(evt =>
+            {
+                switch (evt.NewValue)
+                {
+                    case Configuration.WindowMode.Fullscreen:
+                        WindowState = WindowState.Fullscreen;
+                        break;
+
+                    case Configuration.WindowMode.Borderless:
+                        WindowState = WindowState.FullscreenBorderless;
+                        break;
+
+                    case Configuration.WindowMode.Windowed:
+                        WindowState = WindowState.Normal;
+                        break;
+                }
+
+                ConfineMouseMode.TriggerChange();
+            }, true);
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
             ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
@@ -1074,26 +1092,6 @@ namespace osu.Framework.Platform
             } while (!SupportedWindowModes.Contains(currentValue) && currentValue != WindowMode.Value);
 
             WindowMode.Value = currentValue;
-        }
-
-        protected void UpdateWindowMode(WindowMode mode)
-        {
-            switch (mode)
-            {
-                case Configuration.WindowMode.Fullscreen:
-                    WindowState = WindowState.Fullscreen;
-                    break;
-
-                case Configuration.WindowMode.Borderless:
-                    WindowState = WindowState.FullscreenBorderless;
-                    break;
-
-                case Configuration.WindowMode.Windowed:
-                    WindowState = WindowState.Normal;
-                    break;
-            }
-
-            ConfineMouseMode.TriggerChange();
         }
 
         public void SetIconFromStream(Stream stream)
