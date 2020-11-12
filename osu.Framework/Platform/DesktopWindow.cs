@@ -88,20 +88,10 @@ namespace osu.Framework.Platform
             }
         }
 
-        private Size size = new Size(default_width, default_height);
-
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        public Size Size
-        {
-            get => size;
-            set
-            {
-                size = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
-            }
-        }
+        public Size Size { get; private set; } = new Size(default_width, default_height);
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
@@ -136,6 +126,7 @@ namespace osu.Framework.Platform
 
         private const int default_width = 1366;
         private const int default_height = 768;
+
         private const int default_icon_size = 256;
 
         private readonly Scheduler commandScheduler = new Scheduler();
@@ -220,51 +211,47 @@ namespace osu.Framework.Platform
         public WindowState WindowState
         {
             get => windowState;
-            set => commandScheduler.Add(() =>
+            set
             {
                 windowState = value;
-                updateSizeForCurrentState();
-
-                switch (value)
-                {
-                    case WindowState.Normal:
-                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-                        break;
-
-                    case WindowState.Fullscreen:
-                        // set window display mode again, just in case if it changed from the last time we were fullscreen.
-                        var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
-                        SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
-
-                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                        break;
-
-                    case WindowState.FullscreenBorderless:
-                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                        break;
-
-                    case WindowState.Maximised:
-                        SDL.SDL_MaximizeWindow(SdlWindowHandle);
-                        break;
-
-                    case WindowState.Minimised:
-                        SDL.SDL_MinimizeWindow(SdlWindowHandle);
-                        break;
-                }
-            });
+                commandScheduler.Add(updateWindowStateAndSize);
+            }
         }
 
-        private void updateSizeForCurrentState()
+        private void updateWindowStateAndSize()
         {
             switch (windowState)
             {
-                default:
+                case WindowState.Normal:
                     Size = sizeWindowed.Value;
+
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+
+                    SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
+                    break;
+
+                case WindowState.Fullscreen:
+                    Size = sizeFullscreen.Value;
+
+                    // set window display mode again, just in case if it changed from the last time we were fullscreen.
+                    var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
+                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
+
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
                 case WindowState.FullscreenBorderless:
-                case WindowState.Fullscreen:
                     Size = sizeFullscreen.Value;
+
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    break;
+
+                case WindowState.Maximised:
+                    SDL.SDL_MaximizeWindow(SdlWindowHandle);
+                    break;
+
+                case WindowState.Minimised:
+                    SDL.SDL_MinimizeWindow(SdlWindowHandle);
                     break;
             }
         }
@@ -272,7 +259,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
-        public Size ClientSize => new Size((int)(size.Width * scale), (int)(size.Height * scale));
+        public Size ClientSize => new Size((int)(Size.Width * scale), (int)(Size.Height * scale));
 
         private const float scale = 1; // TODO: figure if/when we need this.
 
@@ -303,6 +290,7 @@ namespace osu.Framework.Platform
                 int x = value.Bounds.Left + value.Bounds.Width / 2 - Size.Width / 2;
                 int y = value.Bounds.Top + value.Bounds.Height / 2 - Size.Height / 2;
 
+                // todo: this is wrong.
                 WindowState = WindowState.Normal;
                 Position = new Point(x, y);
             }
@@ -984,22 +972,14 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     var newSize = new Size(evtWindow.data1, evtWindow.data2);
 
-                    if (!newSize.Equals(size))
+                    if (!newSize.Equals(Size))
                     {
-                        size = newSize;
+                        Size = newSize;
 
-                        switch (currentState)
+                        if (currentState == WindowState.Normal)
                         {
-                            case WindowState.Fullscreen:
-                                sizeFullscreen.Value = newSize;
-                                break;
-
-                            case WindowState.Normal:
-                            {
-                                sizeWindowed.Value = newSize;
-                                updateWindowPositionConfig();
-                                break;
-                            }
+                            sizeWindowed.Value = newSize;
+                            updateWindowPositionConfig();
                         }
 
                         ScheduleEvent(() => OnResized());
@@ -1089,23 +1069,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
             windowDisplayIndexBindable.BindValueChanged(evt => CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
 
-            sizeFullscreen.ValueChanged += evt =>
-            {
-                if (evt.NewValue.IsEmpty || CurrentDisplay == null)
-                    return;
-
-                var mode = CurrentDisplay.FindDisplayMode(evt.NewValue);
-                if (mode.Size != Size.Empty)
-                    currentDisplayMode = mode;
-            };
-
-            sizeWindowed.ValueChanged += evt =>
-            {
-                if (evt.NewValue.IsEmpty)
-                    return;
-
-                Size = evt.NewValue;
-            };
+            sizeFullscreen.ValueChanged += evt => commandScheduler.Add(updateWindowStateAndSize);
+            sizeWindowed.ValueChanged += evt => commandScheduler.Add(updateWindowStateAndSize);
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
