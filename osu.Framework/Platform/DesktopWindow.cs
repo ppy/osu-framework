@@ -364,6 +364,7 @@ namespace osu.Framework.Platform
             {
                 if (WindowMode.Value != Configuration.WindowMode.Windowed)
                     return;
+
                 var displayBounds = CurrentDisplay.Bounds;
                 var windowSize = sizeWindowed.Value;
                 var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
