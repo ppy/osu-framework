@@ -320,7 +320,7 @@ namespace osu.Framework.Platform
         public string Title
         {
             get => OsuTKGameWindow.Title;
-            set => OsuTKGameWindow.Title = value;
+            set => OsuTKGameWindow.Title = $"{value} (legacy osuTK)";
         }
 
         public virtual bool Focused => OsuTKGameWindow.Focused;

@@ -145,7 +145,7 @@ namespace osu.Framework.Platform
             set
             {
                 title = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, $"{value} (SDL)"));
+                commandScheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, title));
             }
         }
 
@@ -467,7 +467,7 @@ namespace osu.Framework.Platform
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
-            SdlWindowHandle = SDL.SDL_CreateWindow($"{Title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SdlWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
 
