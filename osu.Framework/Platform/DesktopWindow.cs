@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Bindables;
-using osu.Framework.Caching;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
@@ -182,46 +181,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        private readonly Cached<float> cachedScale = new Cached<float>();
-
-        private float scale => validateScale();
-
-        private float validateScale(bool force = false)
-        {
-            if (SdlWindowHandle == IntPtr.Zero)
-                return 1f;
-
-            if (!force && cachedScale.IsValid)
-                return cachedScale.Value;
-
-            var w = ClientSize.Width;
-            float value = 1f;
-
-            switch (windowState)
-            {
-                case WindowState.Normal:
-                    value = w / (float)Size.Width;
-                    break;
-
-                case WindowState.Fullscreen:
-                    value = w / (float)windowDisplayMode.w;
-                    break;
-
-                case WindowState.FullscreenBorderless:
-                    // SDL_GetDesktopDisplayMode gets the native display mode, and is used for *borderless* fullscreen
-                    SDL.SDL_GetDesktopDisplayMode(windowDisplayIndex, out var mode);
-                    value = w / (float)mode.w;
-                    break;
-
-                case WindowState.Maximised:
-                case WindowState.Minimised:
-                    return 1f;
-            }
-
-            cachedScale.Value = value;
-            return value;
-        }
-
         private bool cursorVisible = true;
 
         /// <summary>
@@ -263,6 +222,9 @@ namespace osu.Framework.Platform
             get => windowState;
             set => commandScheduler.Add(() =>
             {
+                windowState = value;
+                updateSizeForCurrentState();
+
                 switch (value)
                 {
                     case WindowState.Normal:
@@ -292,20 +254,27 @@ namespace osu.Framework.Platform
             });
         }
 
+        private void updateSizeForCurrentState()
+        {
+            switch (windowState)
+            {
+                default:
+                    Size = sizeWindowed.Value;
+                    break;
+
+                case WindowState.FullscreenBorderless:
+                case WindowState.Fullscreen:
+                    Size = sizeFullscreen.Value;
+                    break;
+            }
+        }
+
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
-        public Size ClientSize
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return Size.Empty;
+        public Size ClientSize => new Size((int)(size.Width * scale), (int)(size.Height * scale));
 
-                SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
-                return new Size(w, h);
-            }
-        }
+        private const float scale = 1; // TODO: figure if/when we need this.
 
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
@@ -368,8 +337,6 @@ namespace osu.Framework.Platform
 
                     if (wasFullscreen)
                         SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-
-                    cachedScale.Invalidate();
                 });
             }
         }
@@ -438,23 +405,6 @@ namespace osu.Framework.Platform
             {
                 SDL.SDL_GetDisplayBounds(windowDisplayIndex, out var rect);
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
-            }
-        }
-
-        private SDL.SDL_DisplayMode windowDisplayMode
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return default;
-
-                // SDL_GetWindowDisplayMode gets the resolution currently assigned to the window for *exclusive* fullscreen
-                if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
-                    return mode;
-
-                // SDL_GetWindowDisplayMode can fail if the window was shown fullscreen on a different (especially larger) window before.
-                // if that happens, fall back to closest mode for the current display.
-                return closestDisplayMode(CurrentDisplayMode, windowDisplayIndex);
             }
         }
 
@@ -531,8 +481,6 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
             SdlWindowHandle = SDL.SDL_CreateWindow($"{Title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
-
-            cachedScale.Invalidate();
 
             Exists = true;
 
@@ -1002,7 +950,6 @@ namespace osu.Framework.Platform
             if (windowState != currentState)
             {
                 windowState = currentState;
-                cachedScale.Invalidate();
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
 
@@ -1010,7 +957,6 @@ namespace osu.Framework.Platform
             {
                 lastDisplayIndex = displayIndex;
                 currentDisplay = null;
-                cachedScale.Invalidate();
                 ScheduleEvent(() => OnDisplayChanged(Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay));
             }
 
@@ -1030,7 +976,6 @@ namespace osu.Framework.Platform
                     if (currentState == WindowState.Normal && !newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        cachedScale.Invalidate();
                         ScheduleEvent(() => OnMoved(newPosition));
                     }
 
@@ -1057,7 +1002,6 @@ namespace osu.Framework.Platform
                             }
                         }
 
-                        cachedScale.Invalidate();
                         ScheduleEvent(() => OnResized());
                     }
 
@@ -1280,6 +1224,20 @@ namespace osu.Framework.Platform
         }
 
         #region SDL Helper functions
+
+        private SDL.SDL_DisplayMode getCurrentSDLDisplayMode()
+        {
+            if (SdlWindowHandle == IntPtr.Zero)
+                return default;
+
+            // SDL_GetWindowDisplayMode gets the resolution currently assigned to the window for *exclusive* fullscreen
+            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
+                return mode;
+
+            // SDL_GetWindowDisplayMode can fail if the window was shown fullscreen on a different (especially larger) window before.
+            // if that happens, fall back to closest mode for the current display.
+            return closestDisplayMode(CurrentDisplayMode, windowDisplayIndex);
+        }
 
         private static SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode, int index)
         {
