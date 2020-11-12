@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -166,14 +167,14 @@ namespace osu.Framework.Platform
 
         private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
 
-        private string title = "";
+        private string title = string.Empty;
 
         /// <summary>
         /// Gets and sets the window title.
         /// </summary>
         public string Title
         {
-            get => SdlWindowHandle == IntPtr.Zero ? title : SDL.SDL_GetWindowTitle(SdlWindowHandle);
+            get => title;
             set
             {
                 title = value;
@@ -188,7 +189,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool Visible
         {
-            get => SdlWindowHandle == IntPtr.Zero ? visible : windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+            get => visible;
             set
             {
                 visible = value;
@@ -217,7 +218,7 @@ namespace osu.Framework.Platform
             var w = ClientSize.Width;
             float value = 1f;
 
-            switch (windowFlags.ToWindowState())
+            switch (windowState)
             {
                 case WindowState.Normal:
                     value = w / (float)Size.Width;
@@ -249,7 +250,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool CursorVisible
         {
-            get => SdlWindowHandle == IntPtr.Zero ? cursorVisible : SDL.SDL_ShowCursor(SDL.SDL_QUERY) == SDL.SDL_ENABLE;
+            get => cursorVisible;
             set
             {
                 cursorVisible = value;
@@ -265,7 +266,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public bool CursorConfined
         {
-            get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : SDL.SDL_GetWindowGrab(SdlWindowHandle) == SDL.SDL_bool.SDL_TRUE;
+            get => cursorConfined;
             set
             {
                 cursorConfined = value;
@@ -273,53 +274,43 @@ namespace osu.Framework.Platform
             }
         }
 
-        private WindowState initialWindowState = WindowState.Normal;
-        private WindowState lastWindowState;
+        private WindowState windowState = WindowState.Normal;
 
         /// <summary>
         /// Returns or sets the window's current <see cref="WindowState"/>.
         /// </summary>
         public WindowState WindowState
         {
-            get => SdlWindowHandle == IntPtr.Zero ? initialWindowState : windowFlags.ToWindowState();
-            set
+            get => windowState;
+            set => commandScheduler.Add(() =>
             {
-                if (SdlWindowHandle == IntPtr.Zero)
+                switch (value)
                 {
-                    initialWindowState = value;
-                    return;
+                    case WindowState.Normal:
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                        break;
+
+                    case WindowState.Fullscreen:
+                        // set window display mode again, just in case if it changed from the last time we were fullscreen.
+                        var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
+                        SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
+
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                        break;
+
+                    case WindowState.FullscreenBorderless:
+                        SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                        break;
+
+                    case WindowState.Maximised:
+                        SDL.SDL_MaximizeWindow(SdlWindowHandle);
+                        break;
+
+                    case WindowState.Minimised:
+                        SDL.SDL_MinimizeWindow(SdlWindowHandle);
+                        break;
                 }
-
-                commandScheduler.Add(() =>
-                {
-                    switch (value)
-                    {
-                        case WindowState.Normal:
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-                            break;
-
-                        case WindowState.Fullscreen:
-                            // set window display mode again, just in case if it changed from the last time we were fullscreen.
-                            var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
-                            SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
-
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
-                            break;
-
-                        case WindowState.FullscreenBorderless:
-                            SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                            break;
-
-                        case WindowState.Maximised:
-                            SDL.SDL_MaximizeWindow(SdlWindowHandle);
-                            break;
-
-                        case WindowState.Minimised:
-                            SDL.SDL_MinimizeWindow(SdlWindowHandle);
-                            break;
-                    }
-                });
-            }
+            });
         }
 
         /// <summary>
@@ -390,7 +381,7 @@ namespace osu.Framework.Platform
                 commandScheduler.Add(() =>
                 {
                     var closest = closestDisplayMode(value, windowDisplayIndex);
-                    var wasFullscreen = windowFlags.ToWindowState() == WindowState.Fullscreen;
+                    var wasFullscreen = windowState == WindowState.Fullscreen;
                     if (wasFullscreen)
                         SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
@@ -470,8 +461,6 @@ namespace osu.Framework.Platform
                 return new Rectangle(rect.x, rect.y, rect.w, rect.h);
             }
         }
-
-        private SDL.SDL_WindowFlags windowFlags => SdlWindowHandle == IntPtr.Zero ? 0 : (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle);
 
         private SDL.SDL_DisplayMode windowDisplayMode
         {
@@ -730,7 +719,7 @@ namespace osu.Framework.Platform
 
             previousPolledPoint = new Point(x, y);
 
-            var pos = windowFlags.ToWindowState() == WindowState.Normal ? Position : windowDisplayBounds.Location;
+            var pos = windowState == WindowState.Normal ? Position : windowDisplayBounds.Location;
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
@@ -1023,12 +1012,15 @@ namespace osu.Framework.Platform
 
         private void handleWindowEvent(SDL.SDL_WindowEvent evtWindow)
         {
-            var currentState = windowFlags.ToWindowState();
+            Debug.Assert(SdlWindowHandle != IntPtr.Zero);
+
+            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle)).ToWindowState();
+
             var displayIndex = windowDisplayIndex;
 
-            if (lastWindowState != currentState)
+            if (windowState != currentState)
             {
-                lastWindowState = currentState;
+                windowState = currentState;
                 cachedScale.Invalidate();
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
