@@ -90,13 +90,17 @@ namespace osu.Framework.Allocation
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
             {
                 foreach (var field in type.GetFields(activator_flags))
-                    perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
+                {
+                    perform(targetShadowModel, field, lastModel, t => t.shadowProp!.UnbindFrom(t.modelProp));
+                }
             }
 
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
             {
                 foreach (var field in type.GetFields(activator_flags))
-                    perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
+                {
+                    perform(targetShadowModel, field, newModel, t => t.shadowProp!.BindTo(t.modelProp));
+                }
             }
         }
 

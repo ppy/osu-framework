@@ -424,9 +424,11 @@ namespace osu.Framework.Tests.Text
             public ITexturedCharacterGlyph Get(string fontName, char character)
             {
                 if (string.IsNullOrEmpty(fontName))
-                    return glyphs.FirstOrDefault(g => g.glyph.Character == character).glyph;
+                {
+                    return glyphs.FirstOrDefault(g => g.glyph!.Character == character).glyph;
+                }
 
-                return glyphs.FirstOrDefault(g => g.font.FontName == fontName && g.glyph.Character == character).glyph;
+                return glyphs.FirstOrDefault(g => g.font!.FontName == fontName && g.glyph!.Character == character).glyph;
             }
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new System.NotImplementedException();

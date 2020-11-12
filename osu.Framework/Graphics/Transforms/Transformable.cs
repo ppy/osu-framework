@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics.Transforms
 
             return new ValueInvokeOnDisposal<(Transformable transformable, double delay, bool recursive, double newTransformDelay)>((this, delay, recursive, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                if (!Precision.AlmostEquals(sender.newTransformDelay!, sender.transformable!.TransformDelay))
                 {
                     throw new InvalidOperationException(
                         $"{nameof(sender.transformable.TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics.Transforms
 
             return new ValueInvokeOnDisposal<(Transformable transformable, double oldTransformDelay, double newTransformDelay)>((this, oldTransformDelay, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                if (!Precision.AlmostEquals(sender.newTransformDelay!, sender.transformable!.TransformDelay))
                 {
                     throw new InvalidOperationException(
                         $"{nameof(sender.transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
