@@ -17,7 +17,7 @@ namespace osu.Framework.Platform
         /// Initialises the graphics backend, given the current window backend.
         /// It is assumed that the window backend has been initialised.
         /// </summary>
-        /// <param name="window">The <see cref="IWindowBackend"/> to use.</param>
+        /// <param name="window">The <see cref="DesktopWindow"/> to use.</param>
         void Initialise(IWindow window);
 
         /// <summary>

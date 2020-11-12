@@ -29,7 +29,7 @@ namespace osu.Framework.Platform.Sdl
 
         public override void Initialise(IWindow window)
         {
-            if (!(window is Window sdlWindow))
+            if (!(window is DesktopWindow sdlWindow))
                 throw new ArgumentException("Unsupported window backend.", nameof(window));
 
             sdlWindowHandle = sdlWindow.SdlWindowHandle;

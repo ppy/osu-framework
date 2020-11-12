@@ -8,8 +8,7 @@ using osuTK;
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// macOS-specific subclass of <see cref="DesktopWindow"/> that specifies a custom
-    /// <see cref="IWindowBackend"/>.
+    /// macOS-specific subclass of <see cref="DesktopWindow"/>.
     /// </summary>
     public class MacOSWindow : DesktopWindow
     {
