@@ -162,7 +162,6 @@ namespace osu.Framework.Platform
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
 
-        private bool mouseInWindow;
         private Point previousPolledPoint = Point.Empty;
 
         private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
@@ -575,9 +574,9 @@ namespace osu.Framework.Platform
                 if (!Exists)
                     break;
 
-                processEvents();
+                pollSDLEvents();
 
-                if (!mouseInWindow)
+                if (!cursorInWindow.Value)
                     pollMouse();
 
                 eventScheduler.Update();
@@ -734,7 +733,10 @@ namespace osu.Framework.Platform
         /// <param name="action">The <see cref="Action"/> to execute.</param>
         protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
 
-        private void processEvents()
+        /// <summary>
+        /// Poll for all pending events.
+        /// </summary>
+        private void pollSDLEvents()
         {
             while (SDL.SDL_PollEvent(out var e) > 0)
             {
@@ -1073,12 +1075,12 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
-                    mouseInWindow = true;
+                    cursorInWindow.Value = true;
                     ScheduleEvent(OnMouseEntered);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
-                    mouseInWindow = false;
+                    cursorInWindow.Value = false;
                     ScheduleEvent(OnMouseLeft);
                     break;
 
