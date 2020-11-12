@@ -544,52 +544,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public void ClearCurrent() => graphicsBackend.ClearCurrent();
 
-        private bool boundsChanging;
-
-        private void windowBackend_Resized(Size size)
-        {
-            if (!boundsChanging)
-            {
-                boundsChanging = true;
-                Size = size;
-                boundsChanging = false;
-            }
-
-            OnResized();
-        }
-
-        private void windowBackend_Moved(Point point)
-        {
-            if (!boundsChanging)
-            {
-                boundsChanging = true;
-                Position = point;
-                boundsChanging = false;
-            }
-
-            OnMoved(point);
-        }
-
-        private void position_ValueChanged(ValueChangedEvent<Point> evt)
-        {
-            if (boundsChanging)
-                return;
-
-            boundsChanging = true;
-            Position = evt.NewValue;
-            boundsChanging = false;
-        }
-
-        private void size_ValueChanged(ValueChangedEvent<Size> evt)
-        {
-            if (boundsChanging)
-                return;
-
-            boundsChanging = true;
-            Size = evt.NewValue;
-            boundsChanging = false;
-        }
-
         private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
