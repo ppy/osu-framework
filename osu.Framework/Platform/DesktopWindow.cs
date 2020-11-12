@@ -352,7 +352,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public DisplayMode CurrentDisplayMode
         {
-            get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode, windowDisplayIndex, 0);
+            get => currentDisplayMode;
             set
             {
                 currentDisplayMode = value;
@@ -1039,9 +1039,24 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     var newSize = new Size(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !newSize.Equals(size))
+                    if (!newSize.Equals(size))
                     {
                         size = newSize;
+
+                        switch (currentState)
+                        {
+                            case WindowState.Fullscreen:
+                                sizeFullscreen.Value = newSize;
+                                break;
+
+                            case WindowState.Normal:
+                            {
+                                sizeWindowed.Value = newSize;
+                                updateWindowPositionConfig();
+                                break;
+                            }
+                        }
+
                         cachedScale.Invalidate();
                         ScheduleEvent(() => OnResized());
                     }
@@ -1137,7 +1152,7 @@ namespace osu.Framework.Platform
 
                 var mode = CurrentDisplay.FindDisplayMode(evt.NewValue);
                 if (mode.Size != Size.Empty)
-                    CurrentDisplayMode = mode;
+                    currentDisplayMode = mode;
             };
 
             sizeWindowed.ValueChanged += evt =>
@@ -1235,22 +1250,6 @@ namespace osu.Framework.Platform
         }
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
-
-        private void onResized()
-        {
-            if (WindowState == WindowState.Normal)
-            {
-                sizeWindowed.Value = Size;
-                Size = sizeWindowed.Value;
-                updateWindowPositionConfig();
-            }
-        }
-
-        private void onMoved(Point point)
-        {
-            if (WindowState == WindowState.Normal)
-                updateWindowPositionConfig();
-        }
 
         private void updateWindowPositionConfig()
         {
@@ -1413,7 +1412,9 @@ namespace osu.Framework.Platform
         #region Event Invocation
 
         protected void OnUpdate() => Update?.Invoke();
+
         protected void OnResized() => Resized?.Invoke();
+
         protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
         protected void OnExited() => Exited?.Invoke();
         protected void OnMouseEntered() => MouseEntered?.Invoke();
