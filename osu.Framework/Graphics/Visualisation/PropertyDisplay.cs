@@ -17,18 +17,15 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class PropertyDisplay : VisibilityContainer
+    internal class PropertyDisplay : Container
     {
         private readonly FillFlowContainer flow;
-
-        private const float width = 600;
 
         protected override Container<Drawable> Content => flow;
 
         public PropertyDisplay()
         {
-            Width = width;
-            RelativeSizeAxes = Axes.Y;
+            RelativeSizeAxes = Axes.Both;
 
             AddRangeInternal(new Drawable[]
             {
@@ -73,16 +70,6 @@ namespace osu.Framework.Graphics.Visualisation
                                .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
                                .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
                                .Select(m => new PropertyItem(m, source)));
-        }
-
-        protected override void PopIn()
-        {
-            this.ResizeWidthTo(width, 500, Easing.OutQuint);
-        }
-
-        protected override void PopOut()
-        {
-            this.ResizeWidthTo(0, 500, Easing.OutQuint);
         }
 
         private class PropertyItem : Container
