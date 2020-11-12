@@ -250,28 +250,28 @@ namespace osu.Framework.Platform
 
         #region Event Invocation
 
-        protected virtual void OnUpdate() => Update?.Invoke();
-        protected virtual void OnResized() => Resized?.Invoke();
-        protected virtual bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
-        protected virtual void OnExited() => Exited?.Invoke();
-        protected virtual void OnFocusLost() => FocusLost?.Invoke();
-        protected virtual void OnFocusGained() => FocusGained?.Invoke();
-        protected virtual void OnShown() => Shown?.Invoke();
-        protected virtual void OnHidden() => Hidden?.Invoke();
-        protected virtual void OnMouseEntered() => MouseEntered?.Invoke();
-        protected virtual void OnMouseLeft() => MouseLeft?.Invoke();
-        protected virtual void OnMoved(Point point) => Moved?.Invoke(point);
-        protected virtual void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
-        protected virtual void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
-        protected virtual void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
-        protected virtual void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
-        protected virtual void OnKeyDown(Key key) => KeyDown?.Invoke(key);
-        protected virtual void OnKeyUp(Key key) => KeyUp?.Invoke(key);
-        protected virtual void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected virtual void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
-        protected virtual void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
-        protected virtual void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
-        protected virtual void OnDragDrop(string file) => DragDrop?.Invoke(file);
+        protected void OnUpdate() => Update?.Invoke();
+        protected void OnResized() => Resized?.Invoke();
+        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
+        protected void OnExited() => Exited?.Invoke();
+        protected void OnFocusLost() => FocusLost?.Invoke();
+        protected void OnFocusGained() => FocusGained?.Invoke();
+        protected void OnShown() => Shown?.Invoke();
+        protected void OnHidden() => Hidden?.Invoke();
+        protected void OnMouseEntered() => MouseEntered?.Invoke();
+        protected void OnMouseLeft() => MouseLeft?.Invoke();
+        protected void OnMoved(Point point) => Moved?.Invoke(point);
+        protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
+        protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+        protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
+        protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
+        protected void OnKeyUp(Key key) => KeyUp?.Invoke(key);
+        protected void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
+        protected void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
+        protected void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
+        protected void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
 
