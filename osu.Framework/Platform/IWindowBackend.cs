@@ -17,6 +17,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public interface IWindowBackend
     {
+        //TODO: remove this interface
+
         #region Properties
 
         /// <summary>

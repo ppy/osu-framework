@@ -19,7 +19,7 @@ namespace osu.Framework.Platform
 {
     /// <summary>
     /// Implementation of <see cref="Window"/> used for desktop platforms.
-    /// Uses <see cref="Sdl2WindowBackend"/> and <see cref="Sdl2GraphicsBackend"/> by default.
+    /// Uses <see cref="Sdl2GraphicsBackend"/> by default.
     /// </summary>
     public class DesktopWindow : Window
     {
@@ -44,9 +44,9 @@ namespace osu.Framework.Platform
         {
             get
             {
-                var displayBounds = CurrentDisplay.Value.Bounds;
-                var windowX = Position.Value.X - displayBounds.X;
-                var windowY = Position.Value.Y - displayBounds.Y;
+                var displayBounds = CurrentDisplay.Bounds;
+                var windowX = Position.X - displayBounds.X;
+                var windowY = Position.Y - displayBounds.Y;
                 var windowSize = sizeWindowed.Value;
 
                 return new Vector2(
@@ -58,23 +58,22 @@ namespace osu.Framework.Platform
                 if (WindowMode.Value != Configuration.WindowMode.Windowed)
                     return;
 
-                var displayBounds = CurrentDisplay.Value.Bounds;
+                var displayBounds = CurrentDisplay.Bounds;
                 var windowSize = sizeWindowed.Value;
                 var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
                 var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * value.Y);
 
-                Position.Value = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+                Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
             }
         }
 
-        protected override IWindowBackend CreateWindowBackend() => new Sdl2WindowBackend();
         protected override IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
             base.SetupWindow(config);
 
-            CurrentDisplay.ValueChanged += evt =>
+            CurrentDisplayBindable.ValueChanged += evt =>
             {
                 windowDisplayIndex.Value = (DisplayIndex)evt.NewValue.Index;
                 windowPositionX.Value = 0.5;
@@ -82,16 +81,16 @@ namespace osu.Framework.Platform
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndex);
-            windowDisplayIndex.BindValueChanged(evt => CurrentDisplay.Value = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
+            windowDisplayIndex.BindValueChanged(evt => CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
 
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (evt.NewValue.IsEmpty || CurrentDisplay.Value == null)
+                if (evt.NewValue.IsEmpty || CurrentDisplay == null)
                     return;
 
-                var mode = CurrentDisplay.Value.FindDisplayMode(evt.NewValue);
-                if (mode.Size != System.Drawing.Size.Empty)
-                    WindowBackend.CurrentDisplayMode = mode;
+                var mode = CurrentDisplay.FindDisplayMode(evt.NewValue);
+                if (mode.Size != Size.Empty)
+                    CurrentDisplayMode = mode;
             };
 
             sizeWindowed.ValueChanged += evt =>
@@ -99,8 +98,7 @@ namespace osu.Framework.Platform
                 if (evt.NewValue.IsEmpty)
                     return;
 
-                WindowBackend.Size = evt.NewValue;
-                Size.Value = evt.NewValue;
+                Size = evt.NewValue;
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -169,7 +167,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => WindowBackend.SetIcon(iconImage);
+        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => SetIcon(iconImage);
 
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
@@ -183,17 +181,17 @@ namespace osu.Framework.Platform
 
         private void onResized()
         {
-            if (WindowStateBindable.Value == WindowState.Normal)
+            if (WindowState == WindowState.Normal)
             {
-                sizeWindowed.Value = WindowBackend.Size;
-                Size.Value = sizeWindowed.Value;
+                sizeWindowed.Value = Size;
+                Size = sizeWindowed.Value;
                 updateWindowPositionConfig();
             }
         }
 
         private void onMoved(Point point)
         {
-            if (WindowStateBindable.Value == WindowState.Normal)
+            if (WindowState == WindowState.Normal)
                 updateWindowPositionConfig();
         }
 

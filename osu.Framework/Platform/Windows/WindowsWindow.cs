@@ -31,7 +31,7 @@ namespace osu.Framework.Platform.Windows
             smallIcon = iconGroup.CreateIcon(small_icon_size, small_icon_size);
             largeIcon = iconGroup.CreateIcon(large_icon_size, large_icon_size);
 
-            var windowHandle = WindowBackend.WindowHandle;
+            var windowHandle = WindowHandle;
 
             if (windowHandle == IntPtr.Zero || largeIcon == null || smallIcon == null)
                 base.SetIconFromGroup(iconGroup);
@@ -44,13 +44,13 @@ namespace osu.Framework.Platform.Windows
 
         public override Point PointToClient(Point point)
         {
-            ScreenToClient(WindowBackend.WindowHandle, ref point);
+            ScreenToClient(WindowHandle, ref point);
             return point;
         }
 
         public override Point PointToScreen(Point point)
         {
-            ClientToScreen(WindowBackend.WindowHandle, ref point);
+            ClientToScreen(WindowHandle, ref point);
             return point;
         }
 
