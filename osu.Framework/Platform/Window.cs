@@ -8,8 +8,10 @@ using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
+using osu.Framework.Platform.Sdl;
 using osuTK;
 using osuTK.Input;
+using SDL2;
 
 namespace osu.Framework.Platform
 {
@@ -19,6 +21,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public abstract class Window : IWindow
     {
+        public IntPtr SdlWindowHandle { get; private set; }
+
         protected readonly IWindowBackend WindowBackend;
         protected readonly IGraphicsBackend GraphicsBackend;
 
@@ -46,7 +50,7 @@ namespace osu.Framework.Platform
         /// Returns true if window has been created.
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
-        public bool Exists => WindowBackend.Exists;
+        public bool Exists { get; set; }
 
         public Display PrimaryDisplay => WindowBackend.PrimaryDisplay;
 
@@ -337,9 +341,21 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Creates the concrete window implementation and initialises the graphics backend.
         /// </summary>
-        public void Create()
+        public virtual void Create()
         {
-            WindowBackend.Create();
+            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
+                                        WindowState.ToFlags();
+
+            SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+
+            SdlWindowHandle = SDL.SDL_CreateWindow($"{Title} (SDL)", Position.Value.X, Position.Value.Y, Size.Value.Width, Size.Value.Height, flags);
+
+            cachedScale.Invalidate();
+
+            Exists = true;
 
             WindowBackend.Resized += windowBackend_Resized;
             WindowBackend.WindowStateChanged += windowBackend_WindowStateChanged;

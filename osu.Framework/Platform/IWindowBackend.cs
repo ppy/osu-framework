@@ -220,11 +220,6 @@ namespace osu.Framework.Platform
         #region Methods
 
         /// <summary>
-        /// Creates the concrete window implementation.
-        /// </summary>
-        void Create();
-
-        /// <summary>
         /// Starts the event loop for the window.
         /// </summary>
         void Run();

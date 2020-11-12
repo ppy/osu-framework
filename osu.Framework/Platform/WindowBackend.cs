@@ -60,8 +60,6 @@ namespace osu.Framework.Platform
         public event Action<string> DragDrop;
         public event Action<Display> DisplayChanged;
 
-        public abstract void Create();
-
         public abstract void Run();
 
         public abstract void Close();
