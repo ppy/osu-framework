@@ -226,7 +226,6 @@ namespace osu.Framework.Platform
                     Size = sizeWindowed.Value;
 
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-
                     SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
                     break;
 
@@ -296,13 +295,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        private DisplayMode currentDisplayMode;
-        private readonly BindableSize sizeFullscreen = new BindableSize();
-        private readonly BindableSize sizeWindowed = new BindableSize();
-        private readonly BindableDouble windowPositionX = new BindableDouble();
-        private readonly BindableDouble windowPositionY = new BindableDouble();
-        private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
+
+        private DisplayMode currentDisplayMode;
 
         /// <summary>
         /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
@@ -431,6 +426,12 @@ namespace osu.Framework.Platform
         }
 
         private bool firstDraw = true;
+
+        private readonly BindableSize sizeFullscreen = new BindableSize();
+        private readonly BindableSize sizeWindowed = new BindableSize();
+        private readonly BindableDouble windowPositionX = new BindableDouble();
+        private readonly BindableDouble windowPositionY = new BindableDouble();
+        private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
         public DesktopWindow()
         {
