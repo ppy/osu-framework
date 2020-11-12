@@ -79,20 +79,60 @@ namespace osu.Framework.Platform
         public Bindable<Point> PositionBindable { get; } = new Bindable<Point>();
 
         /// <summary>
+        /// Returns or sets the window's position in screen space.
+        /// </summary>
+        public Point Position
+        {
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return PositionBindable.Value;
+
+                SDL.SDL_GetWindowPosition(SdlWindowHandle, out var x, out var y);
+                return new Point(x, y);
+            }
+            set
+            {
+                PositionBindable.Value = value;
+                commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+            }
+        }
+
+        /// <summary>
         /// Provides a bindable that controls the window's unscaled internal size.
         /// </summary>
-        public Bindable<Size> SizeBindable { get; } = new BindableSize();
+        public Bindable<Size> SizeBindable { get; } = new BindableSize(new Size(default_width, default_height));
 
-        public CursorState CursorState
+        /// <summary>
+        /// Returns or sets the window's internal size, before scaling.
+        /// </summary>
+        public Size Size
         {
-            get => CursorStateBindable.Value;
-            set => CursorStateBindable.Value = value;
+            get
+            {
+                if (SdlWindowHandle == IntPtr.Zero)
+                    return SizeBindable.Value;
+
+                SDL.SDL_GetWindowSize(SdlWindowHandle, out var w, out var h);
+                return new Size(w, h);
+            }
+            set
+            {
+                SizeBindable.Value = value;
+                commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
+            }
         }
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
         /// </summary>
         public Bindable<CursorState> CursorStateBindable { get; } = new Bindable<CursorState>();
+
+        public CursorState CursorState
+        {
+            get => CursorStateBindable.Value;
+            set => CursorStateBindable.Value = value;
+        }
 
         public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
 
@@ -109,268 +149,6 @@ namespace osu.Framework.Platform
         public IBindableList<WindowMode> SupportedWindowModes { get; }
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        #region Events
-
-        /// <summary>
-        /// Invoked once every window event loop.
-        /// </summary>
-        public event Action Update;
-
-        /// <summary>
-        /// Invoked after the window has resized.
-        /// </summary>
-        public event Action Resized;
-
-        /// <summary>
-        /// Invoked after the window's state has changed.
-        /// </summary>
-        public event Action<WindowState> WindowStateChanged;
-
-        /// <summary>
-        /// Invoked when the user attempts to close the window.
-        /// </summary>
-        public event Func<bool> ExitRequested;
-
-        /// <summary>
-        /// Invoked when the window is about to close.
-        /// </summary>
-        public event Action Exited;
-
-        /// <summary>
-        /// Invoked when the mouse cursor enters the window.
-        /// </summary>
-        public event Action MouseEntered;
-
-        /// <summary>
-        /// Invoked when the mouse cursor leaves the window.
-        /// </summary>
-        public event Action MouseLeft;
-
-        /// <summary>
-        /// Invoked when the window moves.
-        /// </summary>
-        public event Action<Point> Moved;
-
-        /// <summary>
-        /// Invoked when the user scrolls the mouse wheel over the window.
-        /// </summary>
-        public event Action<Vector2, bool> MouseWheel;
-
-        /// <summary>
-        /// Invoked when the user moves the mouse cursor within the window.
-        /// </summary>
-        public event Action<Vector2> MouseMove;
-
-        /// <summary>
-        /// Invoked when the user presses a mouse button.
-        /// </summary>
-        public event Action<MouseButton> MouseDown;
-
-        /// <summary>
-        /// Invoked when the user releases a mouse button.
-        /// </summary>
-        public event Action<MouseButton> MouseUp;
-
-        /// <summary>
-        /// Invoked when the user presses a key.
-        /// </summary>
-        public event Action<Key> KeyDown;
-
-        /// <summary>
-        /// Invoked when the user releases a key.
-        /// </summary>
-        public event Action<Key> KeyUp;
-
-        /// <summary>
-        /// Invoked when the user types a character.
-        /// </summary>
-        public event Action<char> KeyTyped;
-
-        /// <summary>
-        /// Invoked when a joystick axis changes.
-        /// </summary>
-        public event Action<JoystickAxis> JoystickAxisChanged;
-
-        /// <summary>
-        /// Invoked when the user presses a button on a joystick.
-        /// </summary>
-        public event Action<JoystickButton> JoystickButtonDown;
-
-        /// <summary>
-        /// Invoked when the user releases a button on a joystick.
-        /// </summary>
-        public event Action<JoystickButton> JoystickButtonUp;
-
-        /// <summary>
-        /// Invoked when the user drops a file into the window.
-        /// </summary>
-        public event Action<string> DragDrop;
-
-        #endregion
-
-        private bool firstDraw = true;
-
-        public DesktopWindow()
-        {
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
-
-            graphicsBackend = CreateGraphicsBackend();
-
-            SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
-
-            CursorStateBindable.ValueChanged += evt =>
-            {
-                CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
-            };
-
-            cursorInWindow.ValueChanged += evt =>
-            {
-                if (evt.NewValue)
-                    OnMouseEntered();
-                else
-                    OnMouseLeft();
-            };
-        }
-
-        /// <summary>
-        /// Creates the concrete window implementation and initialises the graphics backend.
-        /// </summary>
-        public virtual void Create()
-        {
-            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
-                                        WindowState.ToFlags();
-
-            SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
-
-            SdlWindowHandle = SDL.SDL_CreateWindow($"{Title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
-
-            cachedScale.Invalidate();
-
-            Exists = true;
-
-            MouseEntered += () => cursorInWindow.Value = true;
-            MouseLeft += () => cursorInWindow.Value = false;
-
-            graphicsBackend.Initialise(this);
-        }
-
-        /// <summary>
-        /// Starts the window's run loop.
-        /// </summary>
-        public void Run()
-        {
-            while (Exists)
-            {
-                commandScheduler.Update();
-
-                if (!Exists)
-                    break;
-
-                processEvents();
-
-                if (!mouseInWindow)
-                    pollMouse();
-
-                eventScheduler.Update();
-
-                OnUpdate();
-            }
-
-            OnExited();
-
-            if (SdlWindowHandle != IntPtr.Zero)
-                SDL.SDL_DestroyWindow(SdlWindowHandle);
-
-            SDL.SDL_Quit();
-        }
-
-        /// <summary>
-        /// Forcefully closes the window.
-        /// </summary>
-        public void Close() => commandScheduler.Add(() => Exists = false);
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void RequestClose() => ScheduleEvent(() =>
-        {
-            if (!OnExitRequested())
-                Close();
-        });
-
-        public void SwapBuffers()
-        {
-            graphicsBackend.SwapBuffers();
-
-            if (firstDraw)
-            {
-                Visible = true;
-                firstDraw = false;
-            }
-        }
-
-        /// <summary>
-        /// Requests that the graphics backend become the current context.
-        /// May not be required for some backends.
-        /// </summary>
-        public void MakeCurrent() => graphicsBackend.MakeCurrent();
-
-        /// <summary>
-        /// Requests that the current context be cleared.
-        /// </summary>
-        public void ClearCurrent() => graphicsBackend.ClearCurrent();
-
-        private bool boundsChanging;
-
-        private void windowBackend_Resized(Size size)
-        {
-            if (!boundsChanging)
-            {
-                boundsChanging = true;
-                Position = Position;
-                Size = size;
-                boundsChanging = false;
-            }
-
-            OnResized();
-        }
-
-        private void windowBackend_Moved(Point point)
-        {
-            if (!boundsChanging)
-            {
-                boundsChanging = true;
-                Position = point;
-                boundsChanging = false;
-            }
-
-            OnMoved(point);
-        }
-
-        private void position_ValueChanged(ValueChangedEvent<Point> evt)
-        {
-            if (boundsChanging)
-                return;
-
-            boundsChanging = true;
-            Position = evt.NewValue;
-            boundsChanging = false;
-        }
-
-        private void size_ValueChanged(ValueChangedEvent<Size> evt)
-        {
-            if (boundsChanging)
-                return;
-
-            boundsChanging = true;
-            Size = evt.NewValue;
-            boundsChanging = false;
-        }
 
         public virtual Point PointToClient(Point point) => point;
 
@@ -421,50 +199,6 @@ namespace osu.Framework.Platform
                     else
                         SDL.SDL_HideWindow(SdlWindowHandle);
                 });
-            }
-        }
-
-        private Point position = Point.Empty;
-
-        /// <summary>
-        /// Returns or sets the window's position in screen space.
-        /// </summary>
-        public Point Position
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return position;
-
-                SDL.SDL_GetWindowPosition(SdlWindowHandle, out var x, out var y);
-                return new Point(x, y);
-            }
-            set
-            {
-                position = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
-            }
-        }
-
-        private Size size = new Size(default_width, default_height);
-
-        /// <summary>
-        /// Returns or sets the window's internal size, before scaling.
-        /// </summary>
-        public Size Size
-        {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return size;
-
-                SDL.SDL_GetWindowSize(SdlWindowHandle, out var w, out var h);
-                return new Size(w, h);
-            }
-            set
-            {
-                size = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
             }
         }
 
@@ -627,8 +361,8 @@ namespace osu.Framework.Platform
                 if (value.Index == windowDisplayIndex)
                     return;
 
-                int x = value.Bounds.Left + value.Bounds.Width / 2 - size.Width / 2;
-                int y = value.Bounds.Top + value.Bounds.Height / 2 - size.Height / 2;
+                int x = value.Bounds.Left + value.Bounds.Width / 2 - Size.Width / 2;
+                int y = value.Bounds.Top + value.Bounds.Height / 2 - Size.Height / 2;
 
                 WindowState = WindowState.Normal;
                 Position = new Point(x, y);
@@ -713,8 +447,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        #endregion
-
         private SDL.SDL_SysWMinfo getWindowWMInfo
         {
             get
@@ -790,6 +522,169 @@ namespace osu.Framework.Platform
 
                 Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
             }
+        }
+
+        private bool firstDraw = true;
+
+        public DesktopWindow()
+        {
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
+
+            graphicsBackend = CreateGraphicsBackend();
+
+            SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
+
+            CursorStateBindable.ValueChanged += evt =>
+            {
+                CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
+                CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
+            };
+
+            cursorInWindow.ValueChanged += evt =>
+            {
+                if (evt.NewValue)
+                    OnMouseEntered();
+                else
+                    OnMouseLeft();
+            };
+        }
+
+        /// <summary>
+        /// Creates the concrete window implementation and initialises the graphics backend.
+        /// </summary>
+        public virtual void Create()
+        {
+            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
+                                        WindowState.ToFlags();
+
+            SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+
+            SdlWindowHandle = SDL.SDL_CreateWindow($"{Title} (SDL)", Position.X, Position.Y, Size.Width, Size.Height, flags);
+
+            cachedScale.Invalidate();
+
+            Exists = true;
+
+            MouseEntered += () => cursorInWindow.Value = true;
+            MouseLeft += () => cursorInWindow.Value = false;
+
+            graphicsBackend.Initialise(this);
+        }
+
+        /// <summary>
+        /// Starts the window's run loop.
+        /// </summary>
+        public void Run()
+        {
+            while (Exists)
+            {
+                commandScheduler.Update();
+
+                if (!Exists)
+                    break;
+
+                processEvents();
+
+                if (!mouseInWindow)
+                    pollMouse();
+
+                eventScheduler.Update();
+
+                OnUpdate();
+            }
+
+            OnExited();
+
+            if (SdlWindowHandle != IntPtr.Zero)
+                SDL.SDL_DestroyWindow(SdlWindowHandle);
+
+            SDL.SDL_Quit();
+        }
+
+        /// <summary>
+        /// Forcefully closes the window.
+        /// </summary>
+        public void Close() => commandScheduler.Add(() => Exists = false);
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        public void RequestClose() => ScheduleEvent(() =>
+        {
+            if (!OnExitRequested())
+                Close();
+        });
+
+        public void SwapBuffers()
+        {
+            graphicsBackend.SwapBuffers();
+
+            if (firstDraw)
+            {
+                Visible = true;
+                firstDraw = false;
+            }
+        }
+
+        /// <summary>
+        /// Requests that the graphics backend become the current context.
+        /// May not be required for some backends.
+        /// </summary>
+        public void MakeCurrent() => graphicsBackend.MakeCurrent();
+
+        /// <summary>
+        /// Requests that the current context be cleared.
+        /// </summary>
+        public void ClearCurrent() => graphicsBackend.ClearCurrent();
+
+        private bool boundsChanging;
+
+        private void windowBackend_Resized(Size size)
+        {
+            if (!boundsChanging)
+            {
+                boundsChanging = true;
+                Position = Position;
+                Size = size;
+                boundsChanging = false;
+            }
+
+            OnResized();
+        }
+
+        private void windowBackend_Moved(Point point)
+        {
+            if (!boundsChanging)
+            {
+                boundsChanging = true;
+                Position = point;
+                boundsChanging = false;
+            }
+
+            OnMoved(point);
+        }
+
+        private void position_ValueChanged(ValueChangedEvent<Point> evt)
+        {
+            if (boundsChanging)
+                return;
+
+            boundsChanging = true;
+            Position = evt.NewValue;
+            boundsChanging = false;
+        }
+
+        private void size_ValueChanged(ValueChangedEvent<Size> evt)
+        {
+            if (boundsChanging)
+                return;
+
+            boundsChanging = true;
+            Size = evt.NewValue;
+            boundsChanging = false;
         }
 
         private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
@@ -1159,9 +1054,9 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                     var eventPos = new Point(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !eventPos.Equals(position))
+                    if (currentState == WindowState.Normal && !eventPos.Equals(Position))
                     {
-                        position = eventPos;
+                        PositionBindable.Value = eventPos;
                         cachedScale.Invalidate();
                         ScheduleEvent(() => OnMoved(eventPos));
                     }
@@ -1171,9 +1066,9 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     var newSize = new Size(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !newSize.Equals(size))
+                    if (currentState == WindowState.Normal && !newSize.Equals(SizeBindable.Value))
                     {
-                        size = newSize;
+                        SizeBindable.Value = newSize;
                         cachedScale.Invalidate();
                         ScheduleEvent(() => OnResized());
                     }
@@ -1440,6 +1335,105 @@ namespace osu.Framework.Platform
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Invoked once every window event loop.
+        /// </summary>
+        public event Action Update;
+
+        /// <summary>
+        /// Invoked after the window has resized.
+        /// </summary>
+        public event Action Resized;
+
+        /// <summary>
+        /// Invoked after the window's state has changed.
+        /// </summary>
+        public event Action<WindowState> WindowStateChanged;
+
+        /// <summary>
+        /// Invoked when the user attempts to close the window.
+        /// </summary>
+        public event Func<bool> ExitRequested;
+
+        /// <summary>
+        /// Invoked when the window is about to close.
+        /// </summary>
+        public event Action Exited;
+
+        /// <summary>
+        /// Invoked when the mouse cursor enters the window.
+        /// </summary>
+        public event Action MouseEntered;
+
+        /// <summary>
+        /// Invoked when the mouse cursor leaves the window.
+        /// </summary>
+        public event Action MouseLeft;
+
+        /// <summary>
+        /// Invoked when the window moves.
+        /// </summary>
+        public event Action<Point> Moved;
+
+        /// <summary>
+        /// Invoked when the user scrolls the mouse wheel over the window.
+        /// </summary>
+        public event Action<Vector2, bool> MouseWheel;
+
+        /// <summary>
+        /// Invoked when the user moves the mouse cursor within the window.
+        /// </summary>
+        public event Action<Vector2> MouseMove;
+
+        /// <summary>
+        /// Invoked when the user presses a mouse button.
+        /// </summary>
+        public event Action<MouseButton> MouseDown;
+
+        /// <summary>
+        /// Invoked when the user releases a mouse button.
+        /// </summary>
+        public event Action<MouseButton> MouseUp;
+
+        /// <summary>
+        /// Invoked when the user presses a key.
+        /// </summary>
+        public event Action<Key> KeyDown;
+
+        /// <summary>
+        /// Invoked when the user releases a key.
+        /// </summary>
+        public event Action<Key> KeyUp;
+
+        /// <summary>
+        /// Invoked when the user types a character.
+        /// </summary>
+        public event Action<char> KeyTyped;
+
+        /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        public event Action<JoystickAxis> JoystickAxisChanged;
+
+        /// <summary>
+        /// Invoked when the user presses a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButton> JoystickButtonDown;
+
+        /// <summary>
+        /// Invoked when the user releases a button on a joystick.
+        /// </summary>
+        public event Action<JoystickButton> JoystickButtonUp;
+
+        /// <summary>
+        /// Invoked when the user drops a file into the window.
+        /// </summary>
+        public event Action<string> DragDrop;
 
         #endregion
 
