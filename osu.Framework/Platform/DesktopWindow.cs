@@ -89,7 +89,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private Size size;
+        private Size size = new Size(default_width, default_height);
 
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
