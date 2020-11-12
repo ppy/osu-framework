@@ -15,15 +15,13 @@ using SDL2;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
 
 namespace osu.Framework.Platform.Sdl
 {
     /// <summary>
     /// Implementation of <see cref="IWindowBackend"/> that uses libSDL2.
     /// </summary>
-    public class Sdl2WindowBackend : WindowBackend
+    public class Sdl2WindowBackend : IWindowBackend
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -44,11 +42,11 @@ namespace osu.Framework.Platform.Sdl
 
         #region IWindowBackend.Properties
 
-        public override bool Exists { get; protected set; }
+        public bool Exists { get; protected set; }
 
         private string title = "";
 
-        public override string Title
+        public string Title
         {
             get => SdlWindowHandle == IntPtr.Zero ? title : SDL.SDL_GetWindowTitle(SdlWindowHandle);
             set
@@ -60,7 +58,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool visible;
 
-        public override bool Visible
+        public bool Visible
         {
             get => SdlWindowHandle == IntPtr.Zero ? visible : windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
             set
@@ -78,7 +76,7 @@ namespace osu.Framework.Platform.Sdl
 
         private Point position = Point.Empty;
 
-        public override Point Position
+        public Point Position
         {
             get
             {
@@ -97,7 +95,7 @@ namespace osu.Framework.Platform.Sdl
 
         private Size size = new Size(default_width, default_height);
 
-        public override Size Size
+        public Size Size
         {
             get
             {
@@ -156,7 +154,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool cursorVisible = true;
 
-        public override bool CursorVisible
+        public bool CursorVisible
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorVisible : SDL.SDL_ShowCursor(SDL.SDL_QUERY) == SDL.SDL_ENABLE;
             set
@@ -168,7 +166,7 @@ namespace osu.Framework.Platform.Sdl
 
         private bool cursorConfined;
 
-        public override bool CursorConfined
+        public bool CursorConfined
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : SDL.SDL_GetWindowGrab(SdlWindowHandle) == SDL.SDL_bool.SDL_TRUE;
             set
@@ -181,7 +179,7 @@ namespace osu.Framework.Platform.Sdl
         private WindowState initialWindowState = WindowState.Normal;
         private WindowState lastWindowState;
 
-        public override WindowState WindowState
+        public WindowState WindowState
         {
             get => SdlWindowHandle == IntPtr.Zero ? initialWindowState : windowFlags.ToWindowState();
             set
@@ -224,7 +222,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public override Size ClientSize
+        public Size ClientSize
         {
             get
             {
@@ -236,12 +234,14 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public override IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
+        public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
+
+        public virtual Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay;
         private int lastDisplayIndex = -1;
 
-        public override Display CurrentDisplay
+        public Display CurrentDisplay
         {
             get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? 0 : windowDisplayIndex);
             set
@@ -259,7 +259,7 @@ namespace osu.Framework.Platform.Sdl
 
         private DisplayMode currentDisplayMode;
 
-        public override DisplayMode CurrentDisplayMode
+        public DisplayMode CurrentDisplayMode
         {
             get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode, windowDisplayIndex, 0);
             set
@@ -283,7 +283,7 @@ namespace osu.Framework.Platform.Sdl
             }
         }
 
-        public override IntPtr WindowHandle
+        public IntPtr WindowHandle
         {
             get
             {
@@ -421,7 +421,7 @@ namespace osu.Framework.Platform.Sdl
 
         #region IWindowBackend.Methods
 
-        public override void Run()
+        public void Run()
         {
             while (Exists)
             {
@@ -448,11 +448,11 @@ namespace osu.Framework.Platform.Sdl
             SDL.SDL_Quit();
         }
 
-        public override void Close() => commandScheduler.Add(() => Exists = false);
+        public void Close() => commandScheduler.Add(() => Exists = false);
 
-        public override void RequestClose() => ScheduleEvent(OnCloseRequested);
+        public void RequestClose() => ScheduleEvent(OnCloseRequested);
 
-        public override unsafe void SetIcon(Image<Rgba32> image)
+        public unsafe void SetIcon(Image<Rgba32> image)
         {
             var data = image.GetPixelSpan().ToArray();
             var imageSize = image.Size();
@@ -874,5 +874,54 @@ namespace osu.Framework.Platform.Sdl
         }
 
         #endregion
+
+        public event Action Update;
+        public event Action<Size> Resized;
+        public event Action<WindowState> WindowStateChanged;
+        public event Action CloseRequested;
+        public event Action Closed;
+        public event Action FocusLost;
+        public event Action FocusGained;
+        public event Action Shown;
+        public event Action Hidden;
+        public event Action MouseEntered;
+        public event Action MouseLeft;
+        public event Action<Point> Moved;
+        public event Action<Vector2, bool> MouseWheel;
+        public event Action<Vector2> MouseMove;
+        public event Action<MouseButton> MouseDown;
+        public event Action<MouseButton> MouseUp;
+        public event Action<Key> KeyDown;
+        public event Action<Key> KeyUp;
+        public event Action<char> KeyTyped;
+        public event Action<JoystickAxis> JoystickAxisChanged;
+        public event Action<JoystickButton> JoystickButtonDown;
+        public event Action<JoystickButton> JoystickButtonUp;
+        public event Action<string> DragDrop;
+        public event Action<Display> DisplayChanged;
+        protected void OnUpdate() => Update?.Invoke();
+        protected void OnResized(Size size) => Resized?.Invoke(size);
+        protected void OnWindowStateChanged(WindowState windowState) => WindowStateChanged?.Invoke(windowState);
+        protected void OnCloseRequested() => CloseRequested?.Invoke();
+        protected void OnClosed() => Closed?.Invoke();
+        protected void OnFocusLost() => FocusLost?.Invoke();
+        protected void OnFocusGained() => FocusGained?.Invoke();
+        protected void OnShown() => Shown?.Invoke();
+        protected void OnHidden() => Hidden?.Invoke();
+        protected void OnMouseEntered() => MouseEntered?.Invoke();
+        protected void OnMouseLeft() => MouseLeft?.Invoke();
+        protected void OnMoved(Point point) => Moved?.Invoke(point);
+        protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
+        protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+        protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
+        protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
+        protected void OnKeyUp(Key key) => KeyUp?.Invoke(key);
+        protected void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
+        protected void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
+        protected void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
+        protected void OnDragDrop(string file) => DragDrop?.Invoke(file);
+        protected void OnDisplayChanged(Display display) => DisplayChanged?.Invoke(display);
     }
 }
