@@ -32,24 +32,39 @@ namespace osu.Framework.Platform
     {
         internal IntPtr SdlWindowHandle { get; private set; } = IntPtr.Zero;
 
-        protected readonly IGraphicsBackend GraphicsBackend;
+        private readonly IGraphicsBackend graphicsBackend;
 
-        #region Properties
+        private bool focused;
+
+        /// <summary>
+        /// Whether the window currently has focus.
+        /// </summary>
+        public bool Focused
+        {
+            get => focused;
+            private set
+            {
+                if (value == focused)
+                    return;
+
+                isActive.Value = focused = value;
+            }
+        }
 
         /// <summary>
         /// Enables or disables vertical sync.
         /// </summary>
         public bool VerticalSync
         {
-            get => GraphicsBackend.VerticalSync;
-            set => GraphicsBackend.VerticalSync = value;
+            get => graphicsBackend.VerticalSync;
+            set => graphicsBackend.VerticalSync = value;
         }
 
         /// <summary>
         /// Returns true if window has been created.
         /// Returns false if the window has not yet been created, or has been closed.
         /// </summary>
-        public bool Exists { get; protected set; }
+        public bool Exists { get; private set; }
 
         public WindowMode DefaultWindowMode => Configuration.WindowMode.Windowed;
 
@@ -57,10 +72,6 @@ namespace osu.Framework.Platform
         /// Returns the window modes that the platform should support by default.
         /// </summary>
         protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>();
-
-        #endregion
-
-        #region Mutable Bindables
 
         /// <summary>
         /// Provides a bindable that controls the window's position.
@@ -87,30 +98,9 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
-        #endregion
-
-        #region Immutable Bindables
-
         private readonly BindableBool isActive = new BindableBool(true);
 
         public IBindable<bool> IsActive => isActive;
-
-        private bool focused;
-
-        /// <summary>
-        /// Whether the window currently has focus.
-        /// </summary>
-        public bool Focused
-        {
-            get => focused;
-            private set
-            {
-                if (value == focused)
-                    return;
-
-                isActive.Value = focused = value;
-            }
-        }
 
         private readonly BindableBool cursorInWindow = new BindableBool(true);
 
@@ -119,8 +109,6 @@ namespace osu.Framework.Platform
         public IBindableList<WindowMode> SupportedWindowModes { get; }
 
         public BindableSafeArea SafeAreaPadding { get; } = new BindableSafeArea();
-
-        #endregion
 
         #region Events
 
@@ -221,34 +209,13 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        #region Event Invocation
-
-        protected void OnUpdate() => Update?.Invoke();
-        protected void OnResized() => Resized?.Invoke();
-        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
-        protected void OnExited() => Exited?.Invoke();
-        protected void OnMouseEntered() => MouseEntered?.Invoke();
-        protected void OnMouseLeft() => MouseLeft?.Invoke();
-        protected void OnMoved(Point point) => Moved?.Invoke(point);
-        protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
-        protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
-        protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
-        protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
-        protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
-        protected void OnKeyUp(Key key) => KeyUp?.Invoke(key);
-        protected void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
-        protected void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
-        protected void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
-        protected void OnDragDrop(string file) => DragDrop?.Invoke(file);
-
-        #endregion
+        private bool firstDraw = true;
 
         public DesktopWindow()
         {
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
 
-            GraphicsBackend = CreateGraphicsBackend();
+            graphicsBackend = CreateGraphicsBackend();
 
             SupportedWindowModes = new BindableList<WindowMode>(DefaultSupportedWindowModes);
 
@@ -289,14 +256,56 @@ namespace osu.Framework.Platform
             MouseEntered += () => cursorInWindow.Value = true;
             MouseLeft += () => cursorInWindow.Value = false;
 
-            GraphicsBackend.Initialise(this);
+            graphicsBackend.Initialise(this);
         }
 
-        private bool firstDraw = true;
+        /// <summary>
+        /// Starts the window's run loop.
+        /// </summary>
+        public void Run()
+        {
+            while (Exists)
+            {
+                commandScheduler.Update();
+
+                if (!Exists)
+                    break;
+
+                processEvents();
+
+                if (!mouseInWindow)
+                    pollMouse();
+
+                eventScheduler.Update();
+
+                OnUpdate();
+            }
+
+            OnExited();
+
+            if (SdlWindowHandle != IntPtr.Zero)
+                SDL.SDL_DestroyWindow(SdlWindowHandle);
+
+            SDL.SDL_Quit();
+        }
+
+        /// <summary>
+        /// Forcefully closes the window.
+        /// </summary>
+        public void Close() => commandScheduler.Add(() => Exists = false);
+
+        /// <summary>
+        /// Attempts to close the window.
+        /// </summary>
+        public void RequestClose() => ScheduleEvent(() =>
+        {
+            if (!OnExitRequested())
+                Close();
+        });
 
         public void SwapBuffers()
         {
-            GraphicsBackend.SwapBuffers();
+            graphicsBackend.SwapBuffers();
 
             if (firstDraw)
             {
@@ -309,14 +318,12 @@ namespace osu.Framework.Platform
         /// Requests that the graphics backend become the current context.
         /// May not be required for some backends.
         /// </summary>
-        public void MakeCurrent() => GraphicsBackend.MakeCurrent();
+        public void MakeCurrent() => graphicsBackend.MakeCurrent();
 
         /// <summary>
         /// Requests that the current context be cleared.
         /// </summary>
-        public void ClearCurrent() => GraphicsBackend.ClearCurrent();
-
-        #region Bindable Handling
+        public void ClearCurrent() => graphicsBackend.ClearCurrent();
 
         private bool boundsChanging;
 
@@ -365,15 +372,9 @@ namespace osu.Framework.Platform
             boundsChanging = false;
         }
 
-        #endregion
-
         public virtual Point PointToClient(Point point) => point;
 
         public virtual Point PointToScreen(Point point) => point;
-
-        public void Dispose()
-        {
-        }
 
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -386,12 +387,6 @@ namespace osu.Framework.Platform
         private Point previousPolledPoint = Point.Empty;
 
         private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
-
-        #region Internal Properties
-
-        #endregion
-
-        #region IProperties
 
         private string title = "";
 
@@ -571,7 +566,7 @@ namespace osu.Framework.Platform
 
                         case WindowState.Fullscreen:
                             // set window display mode again, just in case if it changed from the last time we were fullscreen.
-                            var fullscreenMode = closestDisplayMode(currentDisplayMode);
+                            var fullscreenMode = closestDisplayMode(currentDisplayMode, windowDisplayIndex);
                             SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
 
                             SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
@@ -660,7 +655,7 @@ namespace osu.Framework.Platform
 
                 commandScheduler.Add(() =>
                 {
-                    var closest = closestDisplayMode(value);
+                    var closest = closestDisplayMode(value, windowDisplayIndex);
                     var wasFullscreen = windowFlags.ToWindowState() == WindowState.Fullscreen;
                     if (wasFullscreen)
                         SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
@@ -685,7 +680,7 @@ namespace osu.Framework.Platform
                 if (SdlWindowHandle == IntPtr.Zero)
                     return IntPtr.Zero;
 
-                var wmInfo = windowWmInfo;
+                var wmInfo = getWindowWMInfo;
 
                 // Window handle is selected per subsystem as defined at:
                 // https://wiki.libsdl.org/SDL_SysWMinfo
@@ -720,9 +715,7 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        #region Convenience Functions
-
-        private SDL.SDL_SysWMinfo windowWmInfo
+        private SDL.SDL_SysWMinfo getWindowWMInfo
         {
             get
             {
@@ -761,7 +754,7 @@ namespace osu.Framework.Platform
 
                 // SDL_GetWindowDisplayMode can fail if the window was shown fullscreen on a different (especially larger) window before.
                 // if that happens, fall back to closest mode for the current display.
-                return closestDisplayMode(CurrentDisplayMode);
+                return closestDisplayMode(CurrentDisplayMode, windowDisplayIndex);
             }
         }
 
@@ -799,33 +792,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        private SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode)
-        {
-            var targetMode = new SDL.SDL_DisplayMode { w = mode.Size.Width, h = mode.Size.Height, refresh_rate = mode.RefreshRate };
-            SDL.SDL_GetClosestDisplayMode(windowDisplayIndex, ref targetMode, out var closest);
-            return closest;
-        }
-
-        private static Display displayFromSDL(int displayIndex)
-        {
-            var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
-                                         .Select(modeIndex =>
-                                         {
-                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
-                                             return displayModeFromSDL(mode, displayIndex, modeIndex);
-                                         })
-                                         .ToArray();
-
-            SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
-            return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
-        }
-
-        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
-        {
-            SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
-            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
-        }
-
         private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
@@ -841,57 +807,11 @@ namespace osu.Framework.Platform
                 eventScheduler.Add(() => OnJoystickButtonUp(button));
         }
 
-        #endregion
-
-        #region IMethods
-
-        /// <summary>
-        /// Starts the window's run loop.
-        /// </summary>
-        public void Run()
-        {
-            while (Exists)
-            {
-                commandScheduler.Update();
-
-                if (!Exists)
-                    break;
-
-                processEvents();
-
-                if (!mouseInWindow)
-                    pollMouse();
-
-                eventScheduler.Update();
-
-                OnUpdate();
-            }
-
-            if (SdlWindowHandle != IntPtr.Zero)
-                SDL.SDL_DestroyWindow(SdlWindowHandle);
-
-            SDL.SDL_Quit();
-        }
-
-        /// <summary>
-        /// Forcefully closes the window.
-        /// </summary>
-        public void Close() => commandScheduler.Add(() => Exists = false);
-
-        /// <summary>
-        /// Attempts to close the window.
-        /// </summary>
-        public void RequestClose() => ScheduleEvent(() =>
-        {
-            if (!OnExitRequested())
-                Close();
-        });
-
         /// <summary>
         /// Attempts to set the window's icon to the specified image.
         /// </summary>
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
-        public unsafe void SetIcon(Image<Rgba32> image)
+        private unsafe void setSDLIcon(Image<Rgba32> image)
         {
             var data = image.GetPixelSpan().ToArray();
             var imageSize = image.Size();
@@ -921,8 +841,6 @@ namespace osu.Framework.Platform
 
             ScheduleEvent(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
         }
-
-        #endregion
 
         #region SDL Event Handling
 
@@ -1422,7 +1340,7 @@ namespace osu.Framework.Platform
             ConfineMouseMode.TriggerChange();
         }
 
-        public virtual void SetIconFromStream(Stream stream)
+        public void SetIconFromStream(Stream stream)
         {
             using (var ms = new MemoryStream())
             {
@@ -1438,8 +1356,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => SetIcon(iconImage);
-
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
@@ -1449,6 +1365,8 @@ namespace osu.Framework.Platform
 
             SetIconFromImage(Image.Load<Rgba32>(bytes));
         }
+
+        internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
         private void onResized()
         {
@@ -1492,6 +1410,64 @@ namespace osu.Framework.Platform
                 CursorStateBindable.Value |= CursorState.Confined;
             else
                 CursorStateBindable.Value &= ~CursorState.Confined;
+        }
+
+        #region SDL Helper functions
+
+        private static SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode, int index)
+        {
+            var targetMode = new SDL.SDL_DisplayMode { w = mode.Size.Width, h = mode.Size.Height, refresh_rate = mode.RefreshRate };
+            SDL.SDL_GetClosestDisplayMode(index, ref targetMode, out var closest);
+            return closest;
+        }
+
+        private static Display displayFromSDL(int displayIndex)
+        {
+            var displayModes = Enumerable.Range(0, SDL.SDL_GetNumDisplayModes(displayIndex))
+                                         .Select(modeIndex =>
+                                         {
+                                             SDL.SDL_GetDisplayMode(displayIndex, modeIndex, out var mode);
+                                             return displayModeFromSDL(mode, displayIndex, modeIndex);
+                                         })
+                                         .ToArray();
+
+            SDL.SDL_GetDisplayBounds(displayIndex, out var rect);
+            return new Display(displayIndex, SDL.SDL_GetDisplayName(displayIndex), new Rectangle(rect.x, rect.y, rect.w, rect.h), displayModes);
+        }
+
+        private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
+        {
+            SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
+            return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
+        }
+
+        #endregion
+
+        #region Event Invocation
+
+        protected void OnUpdate() => Update?.Invoke();
+        protected void OnResized() => Resized?.Invoke();
+        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
+        protected void OnExited() => Exited?.Invoke();
+        protected void OnMouseEntered() => MouseEntered?.Invoke();
+        protected void OnMouseLeft() => MouseLeft?.Invoke();
+        protected void OnMoved(Point point) => Moved?.Invoke(point);
+        protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
+        protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
+        protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
+        protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
+        protected void OnKeyUp(Key key) => KeyUp?.Invoke(key);
+        protected void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
+        protected void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
+        protected void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
+        protected void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
+        protected void OnDragDrop(string file) => DragDrop?.Invoke(file);
+
+        #endregion
+
+        public void Dispose()
+        {
         }
     }
 }
