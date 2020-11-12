@@ -94,6 +94,9 @@ namespace osu.Framework.Platform
 
         private bool focused;
 
+        /// <summary>
+        /// Whether the window currently has focus.
+        /// </summary>
         public bool Focused
         {
             get => focused;
@@ -127,6 +130,11 @@ namespace osu.Framework.Platform
         /// Invoked after the window has resized.
         /// </summary>
         public event Action Resized;
+
+        /// <summary>
+        /// Invoked after the window's state has changed.
+        /// </summary>
+        public event Action<WindowState> WindowStateChanged;
 
         /// <summary>
         /// Invoked when the user attempts to close the window.
@@ -429,6 +437,9 @@ namespace osu.Framework.Platform
 
         private bool visible;
 
+        /// <summary>
+        /// Enables or disables the window visibility.
+        /// </summary>
         public bool Visible
         {
             get => SdlWindowHandle == IntPtr.Zero ? visible : windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
@@ -447,6 +458,9 @@ namespace osu.Framework.Platform
 
         private Point position = Point.Empty;
 
+        /// <summary>
+        /// Returns or sets the window's position in screen space.
+        /// </summary>
         public Point Position
         {
             get
@@ -466,6 +480,9 @@ namespace osu.Framework.Platform
 
         private Size size = new Size(default_width, default_height);
 
+        /// <summary>
+        /// Returns or sets the window's internal size, before scaling.
+        /// </summary>
         public Size Size
         {
             get
@@ -525,6 +542,9 @@ namespace osu.Framework.Platform
 
         private bool cursorVisible = true;
 
+        /// <summary>
+        /// Returns or sets the cursor's visibility within the window.
+        /// </summary>
         public bool CursorVisible
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorVisible : SDL.SDL_ShowCursor(SDL.SDL_QUERY) == SDL.SDL_ENABLE;
@@ -537,6 +557,10 @@ namespace osu.Framework.Platform
 
         private bool cursorConfined;
 
+        /// <summary>
+        /// Returns or sets whether the cursor is confined to the window's
+        /// drawable area.
+        /// </summary>
         public bool CursorConfined
         {
             get => SdlWindowHandle == IntPtr.Zero ? cursorConfined : SDL.SDL_GetWindowGrab(SdlWindowHandle) == SDL.SDL_bool.SDL_TRUE;
@@ -550,6 +574,9 @@ namespace osu.Framework.Platform
         private WindowState initialWindowState = WindowState.Normal;
         private WindowState lastWindowState;
 
+        /// <summary>
+        /// Returns or sets the window's current <see cref="WindowState"/>.
+        /// </summary>
         public WindowState WindowState
         {
             get => SdlWindowHandle == IntPtr.Zero ? initialWindowState : windowFlags.ToWindowState();
@@ -593,6 +620,9 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Returns the drawable area, after scaling.
+        /// </summary>
         public Size ClientSize
         {
             get
@@ -605,13 +635,22 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Queries the physical displays and their supported resolutions.
+        /// </summary>
         public IEnumerable<Display> Displays => Enumerable.Range(0, SDL.SDL_GetNumVideoDisplays()).Select(displayFromSDL);
 
+        /// <summary>
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
+        /// </summary>
         public virtual Display PrimaryDisplay => Displays.First();
 
         private Display currentDisplay;
         private int lastDisplayIndex = -1;
 
+        /// <summary>
+        /// Gets or sets the <see cref="Display"/> that this window is currently on.
+        /// </summary>
         public Display CurrentDisplay
         {
             get => currentDisplay ??= Displays.ElementAtOrDefault(SdlWindowHandle == IntPtr.Zero ? 0 : windowDisplayIndex);
@@ -630,6 +669,9 @@ namespace osu.Framework.Platform
 
         private DisplayMode currentDisplayMode;
 
+        /// <summary>
+        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// </summary>
         public DisplayMode CurrentDisplayMode
         {
             get => SdlWindowHandle == IntPtr.Zero ? currentDisplayMode : displayModeFromSDL(windowDisplayMode, windowDisplayIndex, 0);
@@ -654,6 +696,9 @@ namespace osu.Framework.Platform
             }
         }
 
+        /// <summary>
+        /// Gets the native window handle as provided by the operating system.
+        /// </summary>
         public IntPtr WindowHandle
         {
             get
@@ -829,6 +874,10 @@ namespace osu.Framework.Platform
                 Close();
         });
 
+        /// <summary>
+        /// Attempts to set the window's icon to the specified image.
+        /// </summary>
+        /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         public unsafe void SetIcon(Image<Rgba32> image)
         {
             var data = image.GetPixelSpan().ToArray();
@@ -1236,10 +1285,7 @@ namespace osu.Framework.Platform
         {
         }
 
-        protected void OnWindowStateChanged(WindowState currentState)
-        {
-            // todo: implement?
-        }
+        protected void OnWindowStateChanged(WindowState state) => WindowStateChanged?.Invoke(state);
 
         protected void OnDisplayChanged(Display display) => CurrentDisplayBindable.Value = display;
 
