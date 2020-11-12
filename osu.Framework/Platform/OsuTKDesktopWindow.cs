@@ -34,7 +34,7 @@ namespace osu.Framework.Platform
 
         public override IGraphicsContext Context => Implementation.Context;
 
-        protected new GameWindow Implementation => (GameWindow)base.Implementation;
+        protected new GameWindow Implementation => (GameWindow)base.OsuTKGameWindow;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
