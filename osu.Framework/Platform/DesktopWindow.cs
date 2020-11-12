@@ -491,6 +491,9 @@ namespace osu.Framework.Platform
                 if (!Exists)
                     break;
 
+                // resize events aren't fired until the resize completes.
+                updateWindowSize();
+
                 pollSDLEvents();
 
                 if (!cursorInWindow.Value)
@@ -507,6 +510,25 @@ namespace osu.Framework.Platform
                 SDL.SDL_DestroyWindow(SdlWindowHandle);
 
             SDL.SDL_Quit();
+        }
+
+        private void updateWindowSize()
+        {
+            SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
+            var newSize = new Size(w, h);
+
+            if (!newSize.Equals(Size))
+            {
+                Size = newSize;
+
+                if (windowState == WindowState.Normal)
+                {
+                    sizeWindowed.Value = newSize;
+                    updateWindowPositionConfig();
+                }
+
+                ScheduleEvent(() => OnResized());
+            }
         }
 
         /// <summary>
@@ -924,22 +946,9 @@ namespace osu.Framework.Platform
 
                     break;
 
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    var newSize = new Size(evtWindow.data1, evtWindow.data2);
-
-                    if (!newSize.Equals(Size))
-                    {
-                        Size = newSize;
-
-                        if (currentState == WindowState.Normal)
-                        {
-                            sizeWindowed.Value = newSize;
-                            updateWindowPositionConfig();
-                        }
-
-                        ScheduleEvent(() => OnResized());
-                    }
-
+                    updateWindowSize();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
