@@ -74,52 +74,32 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IEnumerable<WindowMode> DefaultSupportedWindowModes => Enum.GetValues(typeof(WindowMode)).OfType<WindowMode>();
 
-        /// <summary>
-        /// Provides a bindable that controls the window's position.
-        /// </summary>
-        public Bindable<Point> PositionBindable { get; } = new Bindable<Point>();
+        private Point position;
 
         /// <summary>
         /// Returns or sets the window's position in screen space.
         /// </summary>
         public Point Position
         {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return PositionBindable.Value;
-
-                SDL.SDL_GetWindowPosition(SdlWindowHandle, out var x, out var y);
-                return new Point(x, y);
-            }
+            get => position;
             set
             {
-                PositionBindable.Value = value;
+                position = value;
                 commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
             }
         }
 
-        /// <summary>
-        /// Provides a bindable that controls the window's unscaled internal size.
-        /// </summary>
-        public Bindable<Size> SizeBindable { get; } = new BindableSize(new Size(default_width, default_height));
+        private Size size;
 
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
         public Size Size
         {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return SizeBindable.Value;
-
-                SDL.SDL_GetWindowSize(SdlWindowHandle, out var w, out var h);
-                return new Size(w, h);
-            }
+            get => size;
             set
             {
-                SizeBindable.Value = value;
+                size = value;
                 commandScheduler.Add(() => SDL.SDL_SetWindowSize(SdlWindowHandle, value.Width, value.Height));
             }
         }
@@ -635,7 +615,6 @@ namespace osu.Framework.Platform
             if (!boundsChanging)
             {
                 boundsChanging = true;
-                Position = Position;
                 Size = size;
                 boundsChanging = false;
             }
@@ -1046,13 +1025,13 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                    var eventPos = new Point(evtWindow.data1, evtWindow.data2);
+                    var newPosition = new Point(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !eventPos.Equals(Position))
+                    if (currentState == WindowState.Normal && !newPosition.Equals(Position))
                     {
-                        PositionBindable.Value = eventPos;
+                        position = newPosition;
                         cachedScale.Invalidate();
-                        ScheduleEvent(() => OnMoved(eventPos));
+                        ScheduleEvent(() => OnMoved(newPosition));
                     }
 
                     break;
@@ -1060,9 +1039,9 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     var newSize = new Size(evtWindow.data1, evtWindow.data2);
 
-                    if (currentState == WindowState.Normal && !newSize.Equals(SizeBindable.Value))
+                    if (currentState == WindowState.Normal && !newSize.Equals(size))
                     {
-                        SizeBindable.Value = newSize;
+                        size = newSize;
                         cachedScale.Invalidate();
                         ScheduleEvent(() => OnResized());
                     }
