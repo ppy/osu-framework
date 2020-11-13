@@ -24,14 +24,14 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        internal bool UseSdl { get; }
+        internal bool UseOsuTK { get; }
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
             : base(gameName, toolkitOptions)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
-            UseSdl = useSdl;
+            UseOsuTK = useOsuTK;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
@@ -54,7 +54,7 @@ namespace osu.Framework.Platform
 
         protected override void SetupToolkit()
         {
-            if (!UseSdl)
+            if (UseOsuTK)
                 base.SetupToolkit();
         }
 

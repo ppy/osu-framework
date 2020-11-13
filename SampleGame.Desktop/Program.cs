@@ -13,9 +13,9 @@ namespace SampleGame.Desktop
         [STAThread]
         public static void Main(string[] args)
         {
-            bool useOpenTK = args.Contains(@"--tk");
+            bool useOsuTK = args.Contains(@"--tk");
 
-            using (GameHost host = Host.GetSuitableHost(@"sample-game", useSdl: !useOpenTK))
+            using (GameHost host = Host.GetSuitableHost(@"sample-game", useOsuTK: useOsuTK))
             using (Game game = new SampleGameGame())
                 host.Run(game);
         }
