@@ -8,7 +8,7 @@ using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
 {
-    public class WindowsWindow : DesktopWindow
+    public class WindowsWindow : SDL2DesktopWindow
     {
         private const int seticon_message = 0x0080;
         private const int icon_big = 1;

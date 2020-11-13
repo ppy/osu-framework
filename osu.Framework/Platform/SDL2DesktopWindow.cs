@@ -27,7 +27,7 @@ namespace osu.Framework.Platform
     /// <summary>
     /// Default implementation of a desktop window, using SDL for windowing and graphics support.
     /// </summary>
-    public class DesktopWindow : IWindow
+    public class SDL2DesktopWindow : IWindow
     {
         internal IntPtr SdlWindowHandle { get; private set; } = IntPtr.Zero;
 
@@ -372,7 +372,7 @@ namespace osu.Framework.Platform
         private readonly BindableDouble windowPositionY = new BindableDouble();
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
-        public DesktopWindow()
+        public SDL2DesktopWindow()
         {
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
 

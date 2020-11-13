@@ -39,7 +39,7 @@ namespace osu.Framework.Input
         {
             switch (window)
             {
-                case DesktopWindow win:
+                case SDL2DesktopWindow win:
                     win.KeyTyped -= HandleKeyTyped;
                     break;
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Input
         {
             switch (window)
             {
-                case DesktopWindow win:
+                case SDL2DesktopWindow win:
                     win.KeyTyped += HandleKeyTyped;
                     break;
 
