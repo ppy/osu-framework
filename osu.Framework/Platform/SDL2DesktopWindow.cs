@@ -955,6 +955,7 @@ namespace osu.Framework.Platform
                     var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
                     Size = new Size(closestMode.w, closestMode.h);
 
+                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
