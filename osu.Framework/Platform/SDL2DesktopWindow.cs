@@ -83,7 +83,7 @@ namespace osu.Framework.Platform
             set
             {
                 position = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+                ScheduleCommand(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
             }
         }
 
@@ -144,7 +144,7 @@ namespace osu.Framework.Platform
             set
             {
                 title = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, title));
+                ScheduleCommand(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, title));
             }
         }
 
@@ -159,7 +159,7 @@ namespace osu.Framework.Platform
             set
             {
                 visible = value;
-                commandScheduler.Add(() =>
+                ScheduleCommand(() =>
                 {
                     if (value)
                         SDL.SDL_ShowWindow(SdlWindowHandle);
@@ -180,7 +180,7 @@ namespace osu.Framework.Platform
             set
             {
                 cursorVisible = value;
-                commandScheduler.Add(() => SDL.SDL_ShowCursor(value ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
+                ScheduleCommand(() => SDL.SDL_ShowCursor(value ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
             }
         }
 
@@ -196,7 +196,7 @@ namespace osu.Framework.Platform
             set
             {
                 cursorConfined = value;
-                commandScheduler.Add(() => SDL.SDL_SetWindowGrab(SdlWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL.SDL_SetWindowGrab(SdlWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
         }
 
@@ -211,7 +211,7 @@ namespace osu.Framework.Platform
             set
             {
                 windowState = value;
-                commandScheduler.Add(updateWindowStateAndSize);
+                ScheduleCommand(updateWindowStateAndSize);
             }
         }
 
@@ -238,22 +238,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Gets or sets the <see cref="Display"/> that this window is currently on.
         /// </summary>
-        public Display CurrentDisplay
-        {
-            get => currentDisplay;
-            set
-            {
-                if (value.Index == displayIndex)
-                    return;
-
-                int x = value.Bounds.Left + value.Bounds.Width / 2 - Size.Width / 2;
-                int y = value.Bounds.Top + value.Bounds.Height / 2 - Size.Height / 2;
-
-                // todo: this is wrong.
-                WindowState = WindowState.Normal;
-                Position = new Point(x, y);
-            }
-        }
+        public Display CurrentDisplay { get; private set; }
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
@@ -418,7 +403,7 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
-            updateWindowPositionFromConfig();
+            WindowMode.TriggerChange();
         }
 
         /// <summary>
@@ -489,7 +474,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Forcefully closes the window.
         /// </summary>
-        public void Close() => commandScheduler.Add(() => Exists = false);
+        public void Close() => ScheduleCommand(() => Exists = false);
 
         /// <summary>
         /// Attempts to close the window.
@@ -526,15 +511,15 @@ namespace osu.Framework.Platform
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
             var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            eventScheduler.Add(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
+            ScheduleEvent(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
         {
             if (isPressed)
-                eventScheduler.Add(() => OnJoystickButtonDown(button));
+                ScheduleEvent(() => OnJoystickButtonDown(button));
             else
-                eventScheduler.Add(() => OnJoystickButtonUp(button));
+                ScheduleEvent(() => OnJoystickButtonUp(button));
         }
 
         /// <summary>
@@ -546,7 +531,7 @@ namespace osu.Framework.Platform
             var data = image.GetPixelSpan().ToArray();
             var imageSize = image.Size();
 
-            commandScheduler.Add(() =>
+            ScheduleCommand(() =>
             {
                 IntPtr surface;
                 fixed (Rgba32* ptr = data)
@@ -580,7 +565,9 @@ namespace osu.Framework.Platform
         /// Adds an <see cref="Action"/> to the <see cref="Scheduler"/> expected to handle event callbacks.
         /// </summary>
         /// <param name="action">The <see cref="Action"/> to execute.</param>
-        protected void ScheduleEvent(Action action) => eventScheduler.Add(action);
+        protected void ScheduleEvent(Action action) => eventScheduler.Add(action, false);
+
+        protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
         /// <summary>
         /// Poll for all pending events.
@@ -1050,14 +1037,15 @@ namespace osu.Framework.Platform
                 if (windowStateChanging) return;
 
                 if (windowState == WindowState.Fullscreen)
-                    commandScheduler.Add(updateWindowStateAndSize);
+                    ScheduleCommand(updateWindowStateAndSize);
             };
+
             sizeWindowed.ValueChanged += evt =>
             {
                 if (windowStateChanging) return;
 
                 if (windowState == WindowState.Normal)
-                    commandScheduler.Add(updateWindowStateAndSize);
+                    ScheduleCommand(updateWindowStateAndSize);
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -1086,10 +1074,10 @@ namespace osu.Framework.Platform
                 }
 
                 ConfineMouseMode.TriggerChange();
-            }, true);
+            });
 
             config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-            ConfineMouseMode.BindValueChanged(confineMouseModeChanged, true);
+            ConfineMouseMode.BindValueChanged(confineMouseModeChanged);
         }
 
         public void CycleMode()
@@ -1171,11 +1159,22 @@ namespace osu.Framework.Platform
         private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
         {
             var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = refreshRate };
-            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var closest) != IntPtr.Zero)
-                return closest;
 
-            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var current) >= 0)
-                return current;
+            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var mode) != IntPtr.Zero)
+                return mode;
+
+            // fallback to current display's native bounds
+            targetMode.w = currentDisplay.Bounds.Width;
+            targetMode.h = currentDisplay.Bounds.Height;
+            targetMode.refresh_rate = 0;
+
+            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out mode) != IntPtr.Zero)
+                return mode;
+
+            // finally return the current mode if everything else fails.
+            // not sure this is required.
+            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out mode) >= 0)
+                return mode;
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
         }
