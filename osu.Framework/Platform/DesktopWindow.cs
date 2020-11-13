@@ -285,7 +285,7 @@ namespace osu.Framework.Platform
                 if (SdlWindowHandle == IntPtr.Zero)
                     return IntPtr.Zero;
 
-                var wmInfo = getWindowWMInfo;
+                var wmInfo = getWindowWMInfo();
 
                 // Window handle is selected per subsystem as defined at:
                 // https://wiki.libsdl.org/SDL_SysWMinfo
@@ -318,17 +318,14 @@ namespace osu.Framework.Platform
             }
         }
 
-        private SDL.SDL_SysWMinfo getWindowWMInfo
+        private SDL.SDL_SysWMinfo getWindowWMInfo()
         {
-            get
-            {
-                if (SdlWindowHandle == IntPtr.Zero)
-                    return default;
+            if (SdlWindowHandle == IntPtr.Zero)
+                return default;
 
-                var wmInfo = new SDL.SDL_SysWMinfo();
-                SDL.SDL_GetWindowWMInfo(SdlWindowHandle, ref wmInfo);
-                return wmInfo;
-            }
+            var wmInfo = new SDL.SDL_SysWMinfo();
+            SDL.SDL_GetWindowWMInfo(SdlWindowHandle, ref wmInfo);
+            return wmInfo;
         }
 
         private Rectangle windowDisplayBounds
