@@ -25,8 +25,7 @@ using Image = SixLabors.ImageSharp.Image;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Implementation of <see cref="IWindow"/> that provides bindables and
-    /// delegates responsibility to window and graphics backends.
+    /// Default implementation of a desktop window, using SDL for windowing and graphics support.
     /// </summary>
     public class DesktopWindow : IWindow
     {
@@ -397,7 +396,7 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Creates the concrete window implementation and initialises the graphics backend.
+        /// Creates the window and initialises the graphics backend.
         /// </summary>
         public virtual void Create()
         {
