@@ -340,38 +340,32 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// Gets or sets the window's position on the current screen given a relative value between 0 and 1.
-        /// The position is calculated with respect to the window's size such that:
-        ///   (0, 0) indicates that the window is aligned to the top left of the screen,
-        ///   (1, 1) indicates that the window is aligned to the bottom right of the screen, and
-        ///   (0.5, 0.5) indicates that the window is centred on the screen.
-        /// </summary>
-        protected Vector2 RelativePosition
+        private void updateWindowPositionFromConfig()
         {
-            get
-            {
-                var displayBounds = CurrentDisplay.Bounds;
-                var windowX = Position.X - displayBounds.X;
-                var windowY = Position.Y - displayBounds.Y;
-                var windowSize = sizeWindowed.Value;
+            if (WindowState != WindowState.Normal)
+                return;
 
-                return new Vector2(
-                    displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0,
-                    displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0);
-            }
-            set => commandScheduler.Add(() =>
-            {
-                if (WindowMode.Value != Configuration.WindowMode.Windowed)
-                    return;
+            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
-                var displayBounds = CurrentDisplay.Bounds;
-                var windowSize = sizeWindowed.Value;
-                var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * value.X);
-                var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * value.Y);
+            var displayBounds = CurrentDisplay.Bounds;
+            var windowSize = sizeWindowed.Value;
+            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
+            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
 
-                Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
-            });
+            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+        }
+
+        private void updateWindowPositionConfigFromCurrent()
+        {
+            var displayBounds = CurrentDisplay.Bounds;
+
+            var windowX = Position.X - displayBounds.X;
+            var windowY = Position.Y - displayBounds.Y;
+
+            var windowSize = sizeWindowed.Value;
+
+            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
+            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
         }
 
         private bool firstDraw = true;
@@ -428,6 +422,7 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
+            updateWindowPositionFromConfig();
         }
 
         /// <summary>
@@ -486,8 +481,9 @@ namespace osu.Framework.Platform
 
                 if (windowState == WindowState.Normal)
                 {
+                    windowStateChanging = true;
                     sizeWindowed.Value = newSize;
-                    updateWindowPositionConfig();
+                    windowStateChanging = false;
                 }
 
                 ScheduleEvent(() => OnResized());
@@ -892,7 +888,7 @@ namespace osu.Framework.Platform
                     if (windowState == WindowState.Normal && !newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        updateWindowPositionConfig();
+                        updateWindowPositionConfigFromCurrent();
                         ScheduleEvent(() => OnMoved(newPosition));
                     }
 
@@ -968,6 +964,8 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
+
+                    updateWindowPositionFromConfig();
                     break;
 
                 case WindowState.Fullscreen:
@@ -1036,6 +1034,11 @@ namespace osu.Framework.Platform
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
 
+        /// <summary>
+        /// Set to true during a state change operation to avoid bindable feedback.
+        /// </summary>
+        private bool windowStateChanging;
+
         public void SetupWindow(FrameworkConfigManager config)
         {
             CurrentDisplayBindable.ValueChanged += evt =>
@@ -1048,8 +1051,18 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
             windowDisplayIndexBindable.BindValueChanged(evt => CurrentDisplay = Displays.ElementAtOrDefault((int)evt.NewValue) ?? PrimaryDisplay, true);
 
-            sizeFullscreen.ValueChanged += evt => commandScheduler.Add(updateWindowStateAndSize);
-            sizeWindowed.ValueChanged += evt => commandScheduler.Add(updateWindowStateAndSize);
+            sizeFullscreen.ValueChanged += evt =>
+            {
+                if (windowStateChanging) return;
+
+                commandScheduler.Add(updateWindowStateAndSize);
+            };
+            sizeWindowed.ValueChanged += evt =>
+            {
+                if (windowStateChanging) return;
+
+                commandScheduler.Add(updateWindowStateAndSize);
+            };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowedSize, sizeWindowed);
@@ -1057,9 +1070,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
-            RelativePosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
-
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+
             WindowMode.BindValueChanged(evt =>
             {
                 switch (evt.NewValue)
@@ -1136,13 +1148,6 @@ namespace osu.Framework.Platform
         }
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
-
-        private void updateWindowPositionConfig()
-        {
-            var relativePosition = RelativePosition;
-            windowPositionX.Value = relativePosition.X;
-            windowPositionY.Value = relativePosition.Y;
-        }
 
         private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
         {
