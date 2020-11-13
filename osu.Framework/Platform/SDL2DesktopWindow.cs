@@ -1051,13 +1051,15 @@ namespace osu.Framework.Platform
             {
                 if (windowStateChanging) return;
 
-                commandScheduler.Add(updateWindowStateAndSize);
+                if (windowState == WindowState.Fullscreen)
+                    commandScheduler.Add(updateWindowStateAndSize);
             };
             sizeWindowed.ValueChanged += evt =>
             {
                 if (windowStateChanging) return;
 
-                commandScheduler.Add(updateWindowStateAndSize);
+                if (windowState == WindowState.Normal)
+                    commandScheduler.Add(updateWindowStateAndSize);
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
