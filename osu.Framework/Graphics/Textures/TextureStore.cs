@@ -114,8 +114,6 @@ namespace osu.Framework.Graphics.Textures
 
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
-            this.LogIfNonBackgroundThread(key);
-
             // Check if the texture exists in the cache.
             if (TryGetCached(key, out var cached))
                 return cached;
@@ -126,6 +124,8 @@ namespace osu.Framework.Graphics.Textures
                 // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
                 if (TryGetCached(key, out cached))
                     return cached;
+
+                this.LogIfNonBackgroundThread(key);
 
                 try
                 {
