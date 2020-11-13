@@ -35,14 +35,14 @@ namespace osu.Framework.Audio.Sample
 
             if (string.IsNullOrEmpty(name)) return null;
 
-            this.LogIfNonBackgroundThread(name);
-
             lock (sampleCache)
             {
                 SampleChannel channel = null;
 
                 if (!sampleCache.TryGetValue(name, out Sample sample))
                 {
+                    this.LogIfNonBackgroundThread(name);
+
                     byte[] data = store.Get(name);
                     sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
                 }
