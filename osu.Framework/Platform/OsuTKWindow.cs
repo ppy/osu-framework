@@ -76,7 +76,7 @@ namespace osu.Framework.Platform
 
         public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
 
-        public virtual Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
+        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
 
         /// <summary>
         /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
