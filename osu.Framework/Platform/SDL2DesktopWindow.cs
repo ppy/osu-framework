@@ -965,18 +965,16 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Fullscreen:
-                    Size = sizeFullscreen.Value;
+                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
+                    Size = new Size(closestMode.w, closestMode.h);
 
-                    var fullscreenMode = closestDisplayMode(currentDisplayMode, displayIndex);
-
-                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref fullscreenMode);
+                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
                 case WindowState.FullscreenBorderless:
-                    Size = sizeFullscreen.Value;
-
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    Size = CurrentDisplayMode.Size;
                     break;
 
                 case WindowState.Maximised:
@@ -1170,11 +1168,16 @@ namespace osu.Framework.Platform
 
         #region SDL Helper functions
 
-        private static SDL.SDL_DisplayMode closestDisplayMode(DisplayMode mode, int index)
+        private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
         {
-            var targetMode = new SDL.SDL_DisplayMode { w = mode.Size.Width, h = mode.Size.Height, refresh_rate = mode.RefreshRate };
-            SDL.SDL_GetClosestDisplayMode(index, ref targetMode, out var closest);
-            return closest;
+            var targetMode = new SDL.SDL_DisplayMode { w = size.Width, h = size.Height, refresh_rate = refreshRate };
+            if (SDL.SDL_GetClosestDisplayMode(displayIndex, ref targetMode, out var closest) != IntPtr.Zero)
+                return closest;
+
+            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var current) >= 0)
+                return current;
+
+            throw new InvalidOperationException("couldn't retrieve valid display mode");
         }
 
         private static Display displayFromSDL(int displayIndex)
