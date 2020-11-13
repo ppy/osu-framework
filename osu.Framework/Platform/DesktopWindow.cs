@@ -892,6 +892,7 @@ namespace osu.Framework.Platform
                     if (windowState == WindowState.Normal && !newPosition.Equals(Position))
                     {
                         position = newPosition;
+                        updateWindowPositionConfig();
                         ScheduleEvent(() => OnMoved(newPosition));
                     }
 
