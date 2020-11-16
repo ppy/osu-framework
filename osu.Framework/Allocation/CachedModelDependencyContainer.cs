@@ -90,31 +90,35 @@ namespace osu.Framework.Allocation
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
             {
                 foreach (var field in type.GetFields(activator_flags))
-                    perform(targetShadowModel, field, lastModel, t => t.shadowProp.UnbindFrom(t.modelProp));
+                {
+                    perform(targetShadowModel, field, lastModel, (shadowProp, modelProp) => shadowProp.UnbindFrom(modelProp));
+                }
             }
 
             foreach (var type in typeof(TModel).EnumerateBaseTypes())
             {
                 foreach (var field in type.GetFields(activator_flags))
-                    perform(targetShadowModel, field, newModel, t => t.shadowProp.BindTo(t.modelProp));
+                {
+                    perform(targetShadowModel, field, newModel, (shadowProp, modelProp) => shadowProp.BindTo(modelProp));
+                }
             }
         }
 
         /// <summary>
         /// Perform an arbitrary action across a shadow model and model.
         /// </summary>
-        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<(IBindable shadowProp, IBindable modelProp)> action)
+        private void perform(TModel targetShadowModel, MemberInfo member, TModel target, Action<IBindable, IBindable> action)
         {
             if (target == null) return;
 
             switch (member)
             {
                 case PropertyInfo pi:
-                    action(((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target)));
+                    action((IBindable)pi.GetValue(targetShadowModel), (IBindable)pi.GetValue(target));
                     break;
 
                 case FieldInfo fi:
-                    action(((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target)));
+                    action((IBindable)fi.GetValue(targetShadowModel), (IBindable)fi.GetValue(target));
                     break;
             }
         }

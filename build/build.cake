@@ -1,9 +1,6 @@
 using System.Threading;
 #addin "nuget:?package=CodeFileSanity&version=0.0.36"
-#addin "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2020.1.3"
-#tool "nuget:?package=NVika.MSBuild&version=1.0.1"
 #tool "nuget:?package=Python&version=3.7.2"
-var nVikaToolPath = GetFiles("./tools/NVika.MSBuild.*/tools/NVika.exe").First();
 var pythonPath = GetFiles("./tools/python.*/tools/python.exe").First();
 var waitressPath = pythonPath.GetDirectory().CombineWithFilePath("Scripts/waitress-serve.exe");
 
@@ -107,22 +104,15 @@ Task("Test")
         DotNetCoreVSTest(testAssemblies, settings);
     });
 
-// windows only because both inspectcore and nvika depend on net45
 Task("InspectCode")
-    .WithCriteria(IsRunningOnWindows())
     .IsDependentOn("Compile")
     .Does(() => {
         var inspectcodereport = tempDirectory.CombineWithFilePath("inspectcodereport.xml");
+        var cacheDir = tempDirectory.Combine("inspectcode");
 
-        InspectCode(desktopSlnf, new InspectCodeSettings {
-            CachesHome = tempDirectory.Combine("inspectcode"),
-            OutputFile = inspectcodereport,
-            ArgumentCustomization = args => args.Append("--verbosity=WARN")
-        });
-
-        int returnCode = StartProcess(nVikaToolPath, $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
-        if (returnCode != 0)
-            throw new Exception($"inspectcode failed with return code {returnCode}");
+        DotNetCoreTool(rootDirectory.FullPath,
+            "jb", $@"inspectcode ""{desktopSlnf}"" --output=""{inspectcodereport}"" --caches-home=""{cacheDir}"" --verbosity=WARN");
+        DotNetCoreTool(rootDirectory.FullPath, "nvika", $@"parsereport ""{inspectcodereport}"" --treatwarningsaserrors");
     });
 
 Task("CodeFileSanity")
