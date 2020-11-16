@@ -9,7 +9,6 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "--no-restore",
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
@@ -24,7 +23,6 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "--no-restore",
                 "-p:Configuration=Release",
                 "-p:GenerateFullPaths=true",
                 "-m",
@@ -33,16 +31,6 @@
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Restore",
-            "type": "shell",
-            "command": "dotnet",
-            "args": [
-                "restore",
-                "osu-framework.sln"
-            ],
-            "problemMatcher": []
         }
     ]
 }
