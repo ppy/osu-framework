@@ -325,7 +325,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != osuTK.WindowState.Minimized)
+            else if (Window.WindowState != WindowState.Minimised)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -574,10 +574,16 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        if (Window is DesktopWindow window)
-                            window.Update += windowUpdate;
-                        else
-                            Window.UpdateFrame += (o, e) => windowUpdate();
+                        switch (Window)
+                        {
+                            case DesktopWindow window:
+                                window.Update += windowUpdate;
+                                break;
+
+                            case OsuTKWindow tkWindow:
+                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                break;
+                        }
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;

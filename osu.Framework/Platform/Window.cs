@@ -3,16 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
@@ -78,15 +75,33 @@ namespace osu.Framework.Platform
         /// </summary>
         public Bindable<Size> Size { get; } = new BindableSize();
 
-        /// <summary>
-        /// Provides a bindable that controls the window's <see cref="WindowState"/>.
-        /// </summary>
-        public Bindable<WindowState> WindowState { get; } = new Bindable<WindowState>();
+        public Size ClientSize
+        {
+            get => Size.Value;
+            set => Size.Value = value;
+        }
+
+        public WindowState WindowState
+        {
+            get => WindowStateBindable.Value;
+            set => WindowStateBindable.Value = value;
+        }
+
+        public CursorState CursorState
+        {
+            get => CursorStateBindable.Value;
+            set => CursorStateBindable.Value = value;
+        }
 
         /// <summary>
-        /// Provides a bindable that controls the window's <see cref="CursorState"/>.
+        /// Provides a bindable that controls the window's <see cref="WindowStateBindable"/>.
         /// </summary>
-        public Bindable<CursorState> CursorState { get; } = new Bindable<CursorState>();
+        public Bindable<WindowState> WindowStateBindable { get; } = new Bindable<WindowState>();
+
+        /// <summary>
+        /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
+        /// </summary>
+        public Bindable<CursorState> CursorStateBindable { get; } = new Bindable<CursorState>();
 
         /// <summary>
         /// Provides a bindable that controls the window's visibility.
@@ -107,10 +122,7 @@ namespace osu.Framework.Platform
 
         private readonly BindableBool focused = new BindableBool();
 
-        /// <summary>
-        /// Provides a read-only bindable that monitors the window's focused state.
-        /// </summary>
-        public IBindable<bool> Focused => focused;
+        public bool Focused => focused.Value;
 
         private readonly BindableBool cursorInWindow = new BindableBool(true);
 
@@ -283,13 +295,13 @@ namespace osu.Framework.Platform
             Position.ValueChanged += position_ValueChanged;
             Size.ValueChanged += size_ValueChanged;
 
-            CursorState.ValueChanged += evt =>
+            CursorStateBindable.ValueChanged += evt =>
             {
-                WindowBackend.CursorVisible = !evt.NewValue.HasFlag(Platform.CursorState.Hidden);
-                WindowBackend.CursorConfined = evt.NewValue.HasFlag(Platform.CursorState.Confined);
+                WindowBackend.CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
+                WindowBackend.CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
             };
 
-            WindowState.ValueChanged += evt => WindowBackend.WindowState = evt.NewValue;
+            WindowStateBindable.ValueChanged += evt => WindowBackend.WindowState = evt.NewValue;
 
             Visible.ValueChanged += visible_ValueChanged;
 
@@ -365,9 +377,6 @@ namespace osu.Framework.Platform
 
         private bool firstDraw = true;
 
-        /// <summary>
-        /// Requests that the graphics backend perform a buffer swap.
-        /// </summary>
         public void SwapBuffers()
         {
             GraphicsBackend.SwapBuffers();
@@ -411,15 +420,15 @@ namespace osu.Framework.Platform
             switch (mode)
             {
                 case Configuration.WindowMode.Fullscreen:
-                    WindowBackend.WindowState = Platform.WindowState.Fullscreen;
+                    WindowBackend.WindowState = WindowState.Fullscreen;
                     break;
 
                 case Configuration.WindowMode.Borderless:
-                    WindowBackend.WindowState = Platform.WindowState.FullscreenBorderless;
+                    WindowBackend.WindowState = WindowState.FullscreenBorderless;
                     break;
 
                 case Configuration.WindowMode.Windowed:
-                    WindowBackend.WindowState = Platform.WindowState.Normal;
+                    WindowBackend.WindowState = WindowState.Normal;
                     break;
             }
         }
@@ -483,19 +492,19 @@ namespace osu.Framework.Platform
 
         private void windowBackend_WindowStateChanged(WindowState windowState)
         {
-            WindowState.Value = windowState;
+            WindowStateBindable.Value = windowState;
 
             switch (windowState)
             {
-                case Platform.WindowState.Fullscreen:
+                case WindowState.Fullscreen:
                     WindowMode.Value = Configuration.WindowMode.Fullscreen;
                     break;
 
-                case Platform.WindowState.FullscreenBorderless:
+                case WindowState.FullscreenBorderless:
                     WindowMode.Value = Configuration.WindowMode.Borderless;
                     break;
 
-                case Platform.WindowState.Normal:
+                case WindowState.Normal:
                     WindowMode.Value = Configuration.WindowMode.Windowed;
                     break;
             }
@@ -503,205 +512,12 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        #region Deprecated IGameWindow
-
-        public IWindowInfo WindowInfo => throw new NotImplementedException();
-
-        osuTK.WindowState INativeWindow.WindowState
-        {
-            get => WindowState.Value.ToOsuTK();
-            set => WindowState.Value = value.ToFramework();
-        }
-
-        public WindowBorder WindowBorder { get; set; }
-
-        public Rectangle Bounds
-        {
-            get => new Rectangle(X, Y, Width, Height);
-            set
-            {
-                Position.Value = value.Location;
-                Size.Value = value.Size;
-            }
-        }
-
-        public Point Location
-        {
-            get => Position.Value;
-            set => Position.Value = value;
-        }
-
-        Size INativeWindow.Size
-        {
-            get => Size.Value;
-            set => Size.Value = value;
-        }
-
-        public int X
-        {
-            get => Position.Value.X;
-            set => Position.Value = new Point(value, Position.Value.Y);
-        }
-
-        public int Y
-        {
-            get => Position.Value.Y;
-            set => Position.Value = new Point(Position.Value.X, value);
-        }
-
-        public int Width
-        {
-            get => Size.Value.Width;
-            set => Size.Value = new Size(value, Size.Value.Height);
-        }
-
-        public int Height
-        {
-            get => Size.Value.Height;
-            set => Size.Value = new Size(Size.Value.Width, value);
-        }
-
-        public Rectangle ClientRectangle
-        {
-            get => new Rectangle(Point.Empty, WindowBackend.ClientSize);
-            set
-            {
-            }
-        }
-
-        Size INativeWindow.ClientSize
-        {
-            get => WindowBackend.ClientSize;
-            set
-            {
-            }
-        }
-
-        public MouseCursor Cursor { get; set; }
-
-        public bool CursorVisible
-        {
-            get => WindowBackend.CursorVisible;
-            set => WindowBackend.CursorVisible = value;
-        }
-
-        public bool CursorGrabbed
-        {
-            get => WindowBackend.CursorConfined;
-            set => WindowBackend.CursorConfined = value;
-        }
-
-#pragma warning disable 0067
-
-        public event EventHandler<EventArgs> Move;
-
-        public event EventHandler<EventArgs> Resize;
-
-        public event EventHandler<CancelEventArgs> Closing;
-
-        event EventHandler<EventArgs> INativeWindow.Closed
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        public event EventHandler<EventArgs> Disposed;
-
-        public event EventHandler<EventArgs> IconChanged;
-
-        public event EventHandler<EventArgs> TitleChanged;
-
-        public event EventHandler<EventArgs> VisibleChanged;
-
-        public event EventHandler<EventArgs> FocusedChanged;
-
-        public event EventHandler<EventArgs> WindowBorderChanged;
-
-        public event EventHandler<EventArgs> WindowStateChanged;
-
-        event EventHandler<KeyboardKeyEventArgs> INativeWindow.KeyDown
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        public event EventHandler<KeyPressEventArgs> KeyPress;
-
-        event EventHandler<KeyboardKeyEventArgs> INativeWindow.KeyUp
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        public event EventHandler<EventArgs> MouseLeave;
-
-        public event EventHandler<EventArgs> MouseEnter;
-
-        event EventHandler<MouseButtonEventArgs> INativeWindow.MouseDown
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        event EventHandler<MouseButtonEventArgs> INativeWindow.MouseUp
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        event EventHandler<MouseMoveEventArgs> INativeWindow.MouseMove
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        event EventHandler<MouseWheelEventArgs> INativeWindow.MouseWheel
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
-        public event EventHandler<FileDropEventArgs> FileDrop;
-
-        public event EventHandler<EventArgs> Load;
-        public event EventHandler<EventArgs> Unload;
-        public event EventHandler<FrameEventArgs> UpdateFrame;
-        public event EventHandler<FrameEventArgs> RenderFrame;
-
-#pragma warning restore 0067
-
-        CursorState IWindow.CursorState
-        {
-            get => CursorState.Value;
-            set => CursorState.Value = value;
-        }
-
-        bool INativeWindow.Focused => Focused.Value;
-
-        bool INativeWindow.Visible
-        {
-            get => Visible.Value;
-            set => Visible.Value = value;
-        }
-
-        bool INativeWindow.Exists => Exists;
-
-        public void Run(double updateRate) => Run();
-
-        public void ProcessEvents()
-        {
-        }
-
         public virtual Point PointToClient(Point point) => point;
 
         public virtual Point PointToScreen(Point point) => point;
 
-        public Icon Icon { get; set; }
-
         public void Dispose()
         {
         }
-
-        #endregion
     }
 }

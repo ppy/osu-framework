@@ -3,18 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
     /// <summary>
     /// Interface representation of the game window, intended to hide any implementation-specific code.
-    /// Currently inherits from osuTK; this will be removed as part of the <see cref="OsuTKWindow"/> refactor.
     /// </summary>
-    public interface IWindow : IGameWindow
+    public interface IWindow : IDisposable
     {
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
@@ -53,6 +52,11 @@ namespace osu.Framework.Platform
         /// Controls the state of the OS cursor.
         /// </summary>
         CursorState CursorState { get; set; }
+
+        /// <summary>
+        /// Controls the state of the window.
+        /// </summary>
+        WindowState WindowState { get; set; }
 
         /// <summary>
         /// Controls the vertical sync mode of the screen.
@@ -110,11 +114,55 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Makes this window the current graphics context, if appropriate for the driver.
         /// </summary>
-        new void MakeCurrent();
+        void MakeCurrent();
 
         /// <summary>
         /// Clears the current graphics context, if appropriate for the driver.
         /// </summary>
         void ClearCurrent();
+
+        /// <summary>
+        /// Request close.
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// Start the window's run loop. Is a blocking call.
+        /// </summary>
+        void Run();
+
+        /// <summary>
+        /// Requests that the graphics backend perform a buffer swap.
+        /// </summary>
+        void SwapBuffers();
+
+        /// <summary>
+        /// Whether the window currently has focus.
+        /// </summary>
+        bool Focused { get; }
+
+        /// <summary>
+        /// Convert a window based coordinate to global screen space.
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Point PointToClient(Point point);
+
+        /// <summary>
+        /// Convert a screen based coordinate to local window space.
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Point PointToScreen(Point point);
+
+        /// <summary>
+        /// The client size of the window (excluding any window decoration/border).
+        /// </summary>
+        Size ClientSize { get; }
+
+        /// <summary>
+        /// The window title.
+        /// </summary>
+        string Title { get; set; }
     }
 }

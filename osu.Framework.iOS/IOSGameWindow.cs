@@ -8,7 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
-using WindowState = osuTK.WindowState;
 
 namespace osu.Framework.iOS
 {
@@ -30,9 +29,9 @@ namespace osu.Framework.iOS
 
         public override bool Focused => true;
 
-        public override WindowState WindowState
+        public override Platform.WindowState WindowState
         {
-            get => WindowState.Normal;
+            get => Platform.WindowState.Normal;
             set { }
         }
 
@@ -48,11 +47,6 @@ namespace osu.Framework.iOS
         };
 
         public override void Run()
-        {
-            // do nothing for iOS
-        }
-
-        public override void Run(double updateRate)
         {
             // do nothing for iOS
         }
