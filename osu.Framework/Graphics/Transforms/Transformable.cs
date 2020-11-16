@@ -236,17 +236,34 @@ namespace osu.Framework.Graphics.Transforms
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new ValueInvokeOnDisposal<(Transformable transformable, double delay, bool recursive, double newTransformDelay)>((this, delay, recursive, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
                 {
                     throw new InvalidOperationException(
-                        $"{nameof(sender.transformable.TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={sender.newTransformDelay} end={sender.transformable.TransformDelay})");
+                        $"{nameof(sender.Transformable.TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
                 }
 
-                AddDelay(-sender.delay, sender.recursive);
+                AddDelay(-sender.Delay, sender.Recursive);
             });
+        }
+
+        /// An ad-hoc struct used as a closure environment in <see cref="BeginDelayedSequence" />.
+        private readonly struct DelayedSequenceSender
+        {
+            public readonly Transformable Transformable;
+            public readonly double Delay;
+            public readonly bool Recursive;
+            public readonly double NewTransformDelay;
+
+            public DelayedSequenceSender(Transformable transformable, double delay, bool recursive, double newTransformDelay)
+            {
+                Transformable = transformable;
+                Delay = delay;
+                Recursive = recursive;
+                NewTransformDelay = newTransformDelay;
+            }
         }
 
         /// <summary>
@@ -261,17 +278,32 @@ namespace osu.Framework.Graphics.Transforms
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            return new ValueInvokeOnDisposal<(Transformable transformable, double oldTransformDelay, double newTransformDelay)>((this, oldTransformDelay, newTransformDelay), sender =>
+            return new ValueInvokeOnDisposal<AbsoluteSequenceSender>(new AbsoluteSequenceSender(this, oldTransformDelay, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(sender.newTransformDelay, sender.transformable.TransformDelay))
+                if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
                 {
                     throw new InvalidOperationException(
-                        $"{nameof(sender.transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={sender.newTransformDelay} end={sender.transformable.TransformDelay})");
+                        $"{nameof(sender.Transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
                 }
 
-                sender.transformable.TransformDelay = sender.oldTransformDelay;
+                sender.Transformable.TransformDelay = sender.OldTransformDelay;
             });
+        }
+
+        /// An ad-hoc struct used as a closure environment in <see cref="BeginAbsoluteSequence" />.
+        private readonly struct AbsoluteSequenceSender
+        {
+            public readonly Transformable Transformable;
+            public readonly double OldTransformDelay;
+            public readonly double NewTransformDelay;
+
+            public AbsoluteSequenceSender(Transformable transformable, double oldTransformDelay, double newTransformDelay)
+            {
+                Transformable = transformable;
+                OldTransformDelay = oldTransformDelay;
+                NewTransformDelay = newTransformDelay;
+            }
         }
 
         /// <summary>

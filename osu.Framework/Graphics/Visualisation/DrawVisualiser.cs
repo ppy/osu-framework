@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly TreeContainer treeContainer;
 
         private VisualisedDrawable highlightedTarget;
-        private readonly PropertyDisplay propertyDisplay;
+        private readonly DrawableInspector drawableInspector;
         private readonly InfoOverlay overlay;
         private InputManager inputManager;
 
@@ -72,28 +72,28 @@ namespace osu.Framework.Graphics.Visualisation
 
                             if (visualised != null)
                             {
-                                propertyDisplay.Show();
+                                drawableInspector.Show();
                                 setHighlight(visualised);
                             }
                         }
                     },
-                    ToggleProperties = delegate
+                    ToggleInspector = delegate
                     {
                         if (targetVisualiser == null)
                             return;
 
-                        propertyDisplay.ToggleVisibility();
+                        drawableInspector.ToggleVisibility();
 
-                        if (propertyDisplay.State.Value == Visibility.Visible)
+                        if (drawableInspector.State.Value == Visibility.Visible)
                             setHighlight(targetVisualiser);
                     },
                 },
                 new CursorContainer()
             };
 
-            propertyDisplay = treeContainer.PropertyDisplay;
+            drawableInspector = treeContainer.DrawableInspector;
 
-            propertyDisplay.State.ValueChanged += v =>
+            drawableInspector.State.ValueChanged += v =>
             {
                 switch (v.NewValue)
                 {
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Visualisation
             this.FadeOut(100);
 
             setHighlight(null);
-            propertyDisplay.Hide();
+            drawableInspector.Hide();
 
             recycleVisualisers();
         }
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualiser.HighlightTarget = d =>
             {
-                propertyDisplay.Show();
+                drawableInspector.Show();
 
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.Visualisation
             treeContainer.Target = null;
 
             if (Target == null)
-                propertyDisplay.Hide();
+                drawableInspector.Hide();
         }
 
         private VisualisedDrawable targetVisualiser;
@@ -299,17 +299,17 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (newHighlight == null)
             {
-                propertyDisplay.UpdateFrom(null);
+                drawableInspector.InspectedDrawable.Value = null;
                 return;
             }
 
             // Only update when property display is visible
-            if (propertyDisplay.State.Value == Visibility.Visible)
+            if (drawableInspector.State.Value == Visibility.Visible)
             {
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
-                propertyDisplay.UpdateFrom(newHighlight.Target);
+                drawableInspector.InspectedDrawable.Value = newHighlight.Target;
             }
         }
 
