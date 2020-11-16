@@ -303,7 +303,7 @@ namespace osu.Framework.Graphics.Containers
             int[] distributedIndices = Enumerable.Range(0, cellSizes.Length).Where(i => i >= dimensions.Length || dimensions[i].Mode == GridSizeMode.Distributed).ToArray();
 
             // The dimensions corresponding to all distributed cells
-            IEnumerable<(int i, Dimension dim)> distributedDimensions = distributedIndices.Select(i => (i, i >= dimensions.Length ? new Dimension() : dimensions[i]));
+            IEnumerable<DimensionEntry> distributedDimensions = distributedIndices.Select(i => new DimensionEntry(i, i >= dimensions.Length ? new Dimension() : dimensions[i]));
 
             // Total number of distributed cells
             int distributionCount = distributedIndices.Length;
@@ -315,18 +315,30 @@ namespace osu.Framework.Graphics.Containers
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
 
             // Write the sizes of distributed cells. Ordering is important to maximize excess at every step
-            foreach (var (i, dim) in distributedDimensions.OrderBy(d => d.dim.Range))
+            foreach (var entry in distributedDimensions.OrderBy(d => d.Dimension.Range))
             {
                 // Cells start off at their minimum size, and the total size should not exceed their maximum size
-                cellSizes[i] = Math.Min(dim.MaxSize, dim.MinSize + distributionSize);
+                cellSizes[entry.Index] = Math.Min(entry.Dimension.MaxSize, entry.Dimension.MinSize + distributionSize);
 
                 // If there's no excess, any further distributions are guaranteed to also have no excess, so this becomes a null-op
                 // If there is an excess, the excess should be re-distributed among all other n-1 distributed cells
                 if (--distributionCount > 0)
-                    distributionSize += Math.Max(0, distributionSize - dim.Range) / distributionCount;
+                    distributionSize += Math.Max(0, distributionSize - entry.Dimension.Range) / distributionCount;
             }
 
             return cellSizes;
+        }
+
+        private readonly struct DimensionEntry
+        {
+            public readonly int Index;
+            public readonly Dimension Dimension;
+
+            public DimensionEntry(int index, Dimension dimension)
+            {
+                Index = index;
+                Dimension = dimension;
+            }
         }
 
         /// <summary>
