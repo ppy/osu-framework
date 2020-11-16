@@ -12,13 +12,11 @@ namespace osu.Framework.Android
 {
     public class AndroidGameWindow : OsuTKWindow
     {
-        public override IGraphicsContext Context
-            => View.GraphicsContext;
+        private readonly AndroidGameView view;
 
-        internal static AndroidGameView View;
+        public override IGraphicsContext Context => view.GraphicsContext;
 
-        public override bool Focused
-            => true;
+        public override bool Focused => true;
 
         public override Platform.WindowState WindowState
         {
@@ -26,9 +24,10 @@ namespace osu.Framework.Android
             set { }
         }
 
-        public AndroidGameWindow()
-            : base(View)
+        public AndroidGameWindow(AndroidGameView view)
+            : base(view)
         {
+            this.view = view;
         }
 
         public override void SetupWindow(FrameworkConfigManager config)
@@ -42,7 +41,7 @@ namespace osu.Framework.Android
 
         public override void Run()
         {
-            View.Run();
+            view.Run();
         }
 
         protected override DisplayDevice CurrentDisplayDevice

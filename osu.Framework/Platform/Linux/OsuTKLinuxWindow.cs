@@ -22,7 +22,7 @@ namespace osu.Framework.Platform.Linux
             var implementationField = typeof(NativeWindow).GetField("implementation", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             Debug.Assert(implementationField != null, "Reflection is broken!");
 
-            var windowImpl = implementationField.GetValue(Implementation);
+            var windowImpl = implementationField.GetValue(OsuTKGameWindow);
             Debug.Assert(windowImpl != null);
 
             IsSdl = windowImpl.GetType().Name == "Sdl2NativeWindow";

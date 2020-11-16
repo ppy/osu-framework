@@ -32,9 +32,9 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        public override IGraphicsContext Context => Implementation.Context;
+        public override IGraphicsContext Context => OsuTKGameWindow.Context;
 
-        protected new GameWindow Implementation => (GameWindow)base.Implementation;
+        protected new GameWindow OsuTKGameWindow => (GameWindow)base.OsuTKGameWindow;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
@@ -306,8 +306,8 @@ namespace osu.Framework.Platform
 
         public override VSyncMode VSync
         {
-            get => Implementation.VSync;
-            set => Implementation.VSync = value;
+            get => OsuTKGameWindow.VSync;
+            set => OsuTKGameWindow.VSync = value;
         }
     }
 }

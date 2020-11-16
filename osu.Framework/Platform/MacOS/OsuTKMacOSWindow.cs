@@ -92,7 +92,7 @@ namespace osu.Framework.Platform.MacOS
                 var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
                 Debug.Assert(fieldImplementation != null, "Reflection is broken!");
 
-                var nativeWindow = fieldImplementation.GetValue(Implementation);
+                var nativeWindow = fieldImplementation.GetValue(OsuTKGameWindow);
                 Debug.Assert(nativeWindow != null, "Reflection is broken!");
 
                 var typeCocoaNativeWindow = nativeWindow.GetType();
