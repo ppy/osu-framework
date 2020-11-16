@@ -955,7 +955,11 @@ namespace osu.Framework.Platform
                     var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
                     Size = new Size(closestMode.w, closestMode.h);
 
+                    // not 100% sure if this is the best way to handle things, but without restoring windowed mode before changing the display resolution,
+                    // the GL context will not get the correct size. this is mentioned in multiple threads which seem to resolve by similar means.
+                    // See https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4 for one such discussion.
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+
                     SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
