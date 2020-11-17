@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Testing
@@ -361,25 +362,14 @@ namespace osu.Framework.Testing
             foreach (var s in sources)
                 computeExpansionFactors(directedGraph[s]);
 
+            // Invert the expansion factors such the changed file and the test will have the lowest values, and the centre of the graph will have the greatest values.
+            ulong maxExpansionFactor = sources.Select(s => directedGraph[s].ExpansionFactor).Max();
+            foreach (var (_, node) in directedGraph)
+                node.ExpansionFactor = Math.Min(node.ExpansionFactor, maxExpansionFactor - node.ExpansionFactor);
+
             var result = new HashSet<string>();
-
             foreach (var s in sources)
-            {
-                var node = directedGraph[s];
-
-                // This shouldn't be super tight (e.g. log_2), but tight enough that a significant number of nodes do get excluded.
-                double range = Math.Log(Math.Max(1, node.ExpansionFactor), 1.25d);
-
-                var exclusionRange = (
-                    min: range,
-                    max: node.ExpansionFactor - range);
-
-                // This covers for two cases: max < min, and relaxes the expansion for small hierarchies (100 intermediate nodes).
-                if (Math.Abs(exclusionRange.max - exclusionRange.min) < 100)
-                    exclusionRange = (double.MaxValue, double.MaxValue);
-
-                getReferencedFilesRecursive(directedGraph[s], result, exclusionRange);
-            }
+                getReferencedFilesRecursive(directedGraph[s], result);
 
             return result;
         }
@@ -403,22 +393,38 @@ namespace osu.Framework.Testing
             return true;
         }
 
-        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, (double min, double max) exclusionRange, HashSet<DirectedTypeNode> seenTypes = null,
-                                                 int level = 0)
+        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, HashSet<DirectedTypeNode> seenTypes = null, int level = 0, SortedList<ulong> childExpansions = null)
         {
-            // Expansion is allowed on either side of the non-expansion range, i.e. all values satisfying the condition (min < X < max) are discarded.
-            if (node.ExpansionFactor > exclusionRange.min && node.ExpansionFactor < exclusionRange.max)
-                return;
-
-            // A '.' is prepended since the logger trims lines.
-            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor}: {node}");
-
             // Don't go through duplicate nodes (multiple references from different types).
             seenTypes ??= new HashSet<DirectedTypeNode>();
             if (seenTypes.Contains(node))
                 return;
 
             seenTypes.Add(node);
+
+            // Concatenate the expansion factors from ourselves and the child.
+            var expansions = new SortedList<ulong>();
+            if (childExpansions != null)
+                expansions.AddRange(childExpansions);
+            expansions.AddRange(node.Parents.Where(p => p != node).Select(p => p.ExpansionFactor));
+
+            // Compute the "right bound" after which far outlier parents that expand too many nodes shouldn't be traversed.
+            // This is calculated as 3x the inter-quartile range (see: https://en.wikipedia.org/wiki/Outlier#Tukey's_fences).
+            double rightBound = double.PositiveInfinity;
+
+            if (expansions.Count > 1)
+            {
+                var q1 = getMedian(expansions.Take(expansions.Count / 2).ToList(), out var q1Centre);
+                var q3 = getMedian(expansions.Skip((int)Math.Ceiling(expansions.Count / 2f)).ToList(), out _);
+
+                rightBound = q3 + 3 * (q3 - q1);
+
+                // Finally, remove all left-bound elements as they would skew the results as parents are traversed.
+                expansions.RemoveRange(0, q1Centre);
+            }
+
+            // Output the current iteration to the log. A '.' is prepended since the logger trims lines.
+            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor} (rb: {rightBound}): {node}");
 
             // Add all the current type's locations to the resulting set.
             foreach (var location in node.Reference.Symbol.Locations)
@@ -430,7 +436,25 @@ namespace osu.Framework.Testing
 
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
-                getReferencedFilesRecursive(p, result, exclusionRange, seenTypes, level + 1);
+            {
+                // Right-bound outlier test - exclude parents greater than 3x IQR. Always expand left-bound parents as they are unlikely to cause compilation errors.
+                if (p.ExpansionFactor > rightBound)
+                    continue;
+
+                getReferencedFilesRecursive(p, result, seenTypes, level + 1, expansions);
+            }
+        }
+
+        private ulong getMedian(List<ulong> range, out int centre)
+        {
+            centre = range.Count / 2;
+
+            // If count is odd - return the middle element.
+            if (range.Count % 2 == 1)
+                return range[centre];
+
+            // If count is even, return the average of the two nearest elements (centre will be truncated).
+            return (range[centre] + range[(int)Math.Ceiling(range.Count / 2f)]) / 2;
         }
 
         private bool typeInheritsFromGame(TypeReference reference)
