@@ -453,8 +453,8 @@ namespace osu.Framework.Testing
             if (range.Count % 2 == 1)
                 return range[centre];
 
-            // If count is even, return the average of the two nearest elements (centre will be truncated).
-            return (range[centre] + range[(int)Math.Ceiling(range.Count / 2f)]) / 2;
+            // If count is even, return the average of the two nearest elements (centre is essentially the upper index).
+            return (range[centre - 1] + range[centre]) / 2;
         }
 
         private bool typeInheritsFromGame(TypeReference reference)
