@@ -125,50 +125,13 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                var newRequiredFiles = await referenceBuilder.GetReferencedFiles(targetType, changedFile);
-                foreach (var f in newRequiredFiles)
-                    requiredFiles.Add(f);
-
-                var requiredAssemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
-
-                var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-                // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
-                var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
-                {
-#if DEBUG
-                    "DEBUG",
-#endif
-#if TRACE
-                    "TRACE",
-#endif
-#if RELEASE
-                    "RELEASE",
-#endif
-                }, languageVersion: LanguageVersion.Latest);
-
-                var references = requiredAssemblies.Where(a => !string.IsNullOrEmpty(a))
-                                                   .Select(a => MetadataReference.CreateFromFile(a));
-
-                // ensure we don't duplicate the dynamic suffix.
-                string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
-
-                string assemblyVersion = $"{++currentVersion}.0.*";
-                string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
-
-                var compilation = CSharpCompilation.Create(
-                    dynamicNamespace,
-                    requiredFiles.Select(file => CSharpSyntaxTree.ParseText(File.ReadAllText(file, Encoding.UTF8), parseOptions, file, encoding: Encoding.UTF8))
-                                 // Compile the assembly with a new version so that it replaces the existing one
-                                 .Append(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions)),
-                    references,
-                    options
-                );
+                var files = await addRequiredFiles(targetType, changedFile);
+                var assemblies = await getRequiredAssemblies(targetType, changedFile);
 
                 using (var pdbStream = new MemoryStream())
                 using (var peStream = new MemoryStream())
                 {
-                    var compilationResult = compilation.Emit(peStream, pdbStream);
+                    var compilationResult = createCompilation(targetType, files, assemblies).Emit(peStream, pdbStream);
 
                     if (compilationResult.Success)
                     {
@@ -203,6 +166,55 @@ namespace osu.Framework.Testing
             {
                 isCompiling = false;
             }
+        }
+
+        private async Task<IEnumerable<string>> addRequiredFiles(Type targetType, string changedFile)
+        {
+            foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile))
+                requiredFiles.Add(f);
+            return requiredFiles;
+        }
+
+        private async Task<IEnumerable<MetadataReference>> getRequiredAssemblies(Type targetType, string changedFile)
+            => (await referenceBuilder.GetReferencedAssemblies(targetType, changedFile))
+               .Where(a => !string.IsNullOrEmpty(a))
+               .Select(a => MetadataReference.CreateFromFile(a));
+
+        private CSharpCompilation createCompilation(Type targetType, IEnumerable<string> files, IEnumerable<MetadataReference> assemblies)
+        {
+            // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
+            {
+#if DEBUG
+                "DEBUG",
+#endif
+#if TRACE
+                "TRACE",
+#endif
+#if RELEASE
+                "RELEASE",
+#endif
+            }, languageVersion: LanguageVersion.Latest);
+
+            // Add the syntax trees for all referenced files.
+            var syntaxTrees = new List<SyntaxTree>();
+            foreach (var f in files)
+                syntaxTrees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText(f, Encoding.UTF8), parseOptions, f, encoding: Encoding.UTF8));
+
+            // Add a syntax tree to define the new assembly version, such that it replaces any existing dynamic assembly.
+            string assemblyVersion = $"{++currentVersion}.0.*";
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions));
+
+            // Determine the new assembly name, ensuring that the dynamic suffix is not duplicated.
+            string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
+            string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
+
+            return CSharpCompilation.Create(
+                dynamicNamespace,
+                syntaxTrees,
+                assemblies,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            );
         }
 
         /// <summary>
