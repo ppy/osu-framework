@@ -144,6 +144,7 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
             config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
+            config.BindWith(FrameworkSetting.DevicePeriod, Audio.DevicePeriod);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);

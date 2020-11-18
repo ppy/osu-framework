@@ -32,6 +32,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
+            Set(FrameworkSetting.DevicePeriod, 10, 1, 60);
             Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
@@ -70,6 +71,7 @@ namespace osu.Framework.Configuration
         VolumeUniversal,
         VolumeEffect,
         VolumeMusic,
+        DevicePeriod,
 
         WindowedSize,
         WindowedPositionX,

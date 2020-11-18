@@ -60,6 +60,24 @@ namespace osu.Framework.Audio
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         /// <summary>
+        /// The device period in milliseconds
+        /// </summary>
+        /// <remarks>
+        /// The device period determines how often data is placed in the output
+        /// device's buffer. A shorter device period allows a smaller buffer
+        /// and lower latency but may use more CPU.
+        ///
+        /// A different period may be used by BASS if the requested one is too
+        /// short, too long, or needs rounding.
+        /// </remarks>
+        public readonly BindableInt DevicePeriod = new BindableInt(10)
+        {
+            // BASS default is 10 ms
+            MinValue = 1,
+            MaxValue = 60
+        };
+
+        /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
         public readonly BindableDouble VolumeSample = new BindableDouble(1)
@@ -115,6 +133,7 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += onDeviceChanged;
+            DevicePeriod.ValueChanged += onDevicePeriodChanged;
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
@@ -182,6 +201,11 @@ namespace osu.Framework.Audio
                 if (!IsCurrentDeviceValid())
                     setAudioDevice();
             });
+        }
+
+        private void onDevicePeriodChanged(ValueChangedEvent<int> args)
+        {
+            scheduler.Add(() => setDevicePeriod(args.NewValue));
         }
 
         /// <summary>
@@ -283,6 +307,17 @@ namespace osu.Framework.Audio
             return true;
         }
 
+        private void setDevicePeriod(int devicePeriod)
+        {
+            Logger.Log($@"Setting BASS device period to {devicePeriod}", level: LogLevel.Debug);
+            // BASS documentation: "Changes only affect subsequently initialized
+            // devices, not any that are already initialized." We thus re-init
+            // the current device.
+            int currentDevice = Bass.CurrentDevice;
+            setAudioDevice(0);
+            setAudioDevice(currentDevice);
+        }
+
         /// <summary>
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
         /// It can be overridden for unit testing.
@@ -291,6 +326,8 @@ namespace osu.Framework.Audio
         {
             if (Bass.CurrentDevice == device)
                 return true;
+
+            Bass.Configure(ManagedBass.Configuration.DevicePeriod, DevicePeriod.Value);
 
             // reduce latency to a known sane minimum.
             Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
