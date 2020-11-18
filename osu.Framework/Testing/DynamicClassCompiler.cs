@@ -175,7 +175,7 @@ namespace osu.Framework.Testing
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 .WithMetadataImportOptions(MetadataImportOptions.Internal);
 
-            // This is an internal property which allows the compiler to ignore accessibility.
+            // This is an internal property which allows the compiler to ignore accessibility checks.
             // https://www.strathweb.com/2018/10/no-internalvisibleto-no-problem-bypassing-c-visibility-rules-with-roslyn/
             var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic);
             Debug.Assert(topLevelBinderFlagsProperty != null);
@@ -205,13 +205,14 @@ namespace osu.Framework.Testing
             foreach (var f in files)
                 syntaxTrees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText(f, Encoding.UTF8), parseOptions, f, encoding: Encoding.UTF8));
 
-            // Add a syntax tree to define the new assembly version, such that it replaces any existing dynamic assembly.
+            // Add the new assembly version, such that it replaces any existing dynamic assembly.
             string assemblyVersion = $"{++currentVersion}.0.*";
             syntaxTrees.Add(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions));
 
             // Add a custom compiler attribute to allow ignoring access checks.
             syntaxTrees.Add(CSharpSyntaxTree.ParseText(ignores_access_checks_to_attribute_syntax, parseOptions));
 
+            // Ignore access checks for assemblies that have had their internal types referenced.
             var ignoreAccessChecksText = new StringBuilder();
             ignoreAccessChecksText.AppendLine("using System.Runtime.CompilerServices;");
             foreach (var asm in assemblies.Where(asm => asm.IgnoreAccessChecks))
