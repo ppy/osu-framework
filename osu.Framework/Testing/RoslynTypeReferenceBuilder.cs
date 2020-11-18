@@ -19,7 +19,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Testing
 {
-    public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
+    internal class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
         // The "Attribute" suffix disappears when used via a nuget package, so it is trimmed here.
         private static readonly string exclude_attribute_name = nameof(ExcludeFromDynamicCompileAttribute).Replace(nameof(Attribute), string.Empty);

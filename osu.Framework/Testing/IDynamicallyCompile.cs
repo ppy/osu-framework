@@ -6,7 +6,7 @@ namespace osu.Framework.Testing
     /// <summary>
     /// A class which can be recompiled at runtime to allow for rapid testing.
     /// </summary>
-    public interface IDynamicallyCompile
+    internal interface IDynamicallyCompile
     {
         /// <summary>
         /// A reference to the original instance which dynamic compilation was based on.

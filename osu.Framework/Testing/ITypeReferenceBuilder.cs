@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
-    public interface ITypeReferenceBuilder
+    internal interface ITypeReferenceBuilder
     {
         /// <summary>
         /// Initialises this <see cref="ITypeReferenceBuilder"/> with a given solution file.

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
-    public class EmptyTypeReferenceBuilder : ITypeReferenceBuilder
+    internal class EmptyTypeReferenceBuilder : ITypeReferenceBuilder
     {
         public Task Initialise(string solutionFile) => Task.CompletedTask;
 

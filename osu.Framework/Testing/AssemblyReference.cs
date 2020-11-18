@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace osu.Framework.Testing
 {
-    public readonly struct AssemblyReference
+    internal readonly struct AssemblyReference
     {
         public readonly Assembly Assembly;
         public readonly bool IgnoreAccessChecks;

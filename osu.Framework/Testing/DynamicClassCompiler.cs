@@ -16,7 +16,7 @@ using System.Text;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T> : IDisposable
+    internal class DynamicClassCompiler<T> : IDisposable
         where T : IDynamicallyCompile
     {
         public event Action CompilationStarted;
