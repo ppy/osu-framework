@@ -320,7 +320,7 @@ namespace osu.Framework.Testing
                 }
 
                 if (typeSymbol.DeclaredAccessibility == Accessibility.Internal)
-                    assembliesContainingReferencedInternalMembers.Add(typeSymbol.ContainingAssembly.ToDisplayString());
+                    assembliesContainingReferencedInternalMembers.Add(typeSymbol.ContainingAssembly.Name);
 
                 result.Add(reference);
             }
