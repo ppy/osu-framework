@@ -125,13 +125,15 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                var files = await addRequiredFiles(targetType, changedFile);
-                var assemblies = await getRequiredAssemblies(targetType, changedFile);
+                foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile))
+                    requiredFiles.Add(f);
+
+                var assemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
 
                 using (var pdbStream = new MemoryStream())
                 using (var peStream = new MemoryStream())
                 {
-                    var compilationResult = createCompilation(targetType, files, assemblies).Emit(peStream, pdbStream);
+                    var compilationResult = createCompilation(targetType, requiredFiles, assemblies).Emit(peStream, pdbStream);
 
                     if (compilationResult.Success)
                     {
@@ -168,19 +170,21 @@ namespace osu.Framework.Testing
             }
         }
 
-        private async Task<IEnumerable<string>> addRequiredFiles(Type targetType, string changedFile)
+        private CSharpCompilationOptions createCompilationOptions()
         {
-            foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile))
-                requiredFiles.Add(f);
-            return requiredFiles;
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithMetadataImportOptions(MetadataImportOptions.Internal);
+
+            // This is an internal property which allows the compiler to ignore accessibility.
+            // https://www.strathweb.com/2018/10/no-internalvisibleto-no-problem-bypassing-c-visibility-rules-with-roslyn/
+            var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic);
+            Debug.Assert(topLevelBinderFlagsProperty != null);
+            topLevelBinderFlagsProperty.SetValue(options, (uint)1 << 22);
+
+            return options;
         }
 
-        private async Task<IEnumerable<MetadataReference>> getRequiredAssemblies(Type targetType, string changedFile)
-            => (await referenceBuilder.GetReferencedAssemblies(targetType, changedFile))
-               .Where(a => !string.IsNullOrEmpty(a))
-               .Select(a => MetadataReference.CreateFromFile(a));
-
-        private CSharpCompilation createCompilation(Type targetType, IEnumerable<string> files, IEnumerable<MetadataReference> assemblies)
+        private CSharpCompilation createCompilation(Type targetType, IEnumerable<string> files, IEnumerable<AssemblyReference> assemblies)
         {
             // ReSharper disable once RedundantExplicitArrayCreation this doesn't compile when the array is empty
             var parseOptions = new CSharpParseOptions(preprocessorSymbols: new string[]
@@ -205,6 +209,15 @@ namespace osu.Framework.Testing
             string assemblyVersion = $"{++currentVersion}.0.*";
             syntaxTrees.Add(CSharpSyntaxTree.ParseText($"using System.Reflection; [assembly: AssemblyVersion(\"{assemblyVersion}\")]", parseOptions));
 
+            // Add a custom compiler attribute to allow ignoring access checks.
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText(ignores_access_checks_to_attribute_syntax, parseOptions));
+
+            var ignoreAccessChecksText = new StringBuilder();
+            ignoreAccessChecksText.AppendLine("using System.Runtime.CompilerServices;");
+            foreach (var asm in assemblies.Where(asm => asm.IgnoreAccessChecks))
+                ignoreAccessChecksText.AppendLine($"[assembly: IgnoresAccessChecksTo(\"{asm.Assembly.GetName().Name}\")]");
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText(ignoreAccessChecksText.ToString(), parseOptions));
+
             // Determine the new assembly name, ensuring that the dynamic suffix is not duplicated.
             string assemblyNamespace = targetType.Assembly.GetName().Name?.Replace(".Dynamic", "");
             string dynamicNamespace = $"{assemblyNamespace}.Dynamic";
@@ -212,8 +225,8 @@ namespace osu.Framework.Testing
             return CSharpCompilation.Create(
                 dynamicNamespace,
                 syntaxTrees,
-                assemblies,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                assemblies.Select(asm => asm.GetReference()),
+                createCompilationOptions()
             );
         }
 
@@ -258,5 +271,19 @@ namespace osu.Framework.Testing
         }
 
         #endregion
+
+        private const string ignores_access_checks_to_attribute_syntax =
+            @"namespace System.Runtime.CompilerServices
+              {
+                  [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+                  public class IgnoresAccessChecksToAttribute : Attribute
+                  {
+                      public IgnoresAccessChecksToAttribute(string assemblyName)
+                      {
+                          AssemblyName = assemblyName;
+                      }
+                      public string AssemblyName { get; }
+                  }
+              }";
     }
 }

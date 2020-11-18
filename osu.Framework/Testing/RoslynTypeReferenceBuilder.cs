@@ -23,6 +23,7 @@ namespace osu.Framework.Testing
     {
         // The "Attribute" suffix disappears when used via a nuget package, so it is trimmed here.
         private static readonly string exclude_attribute_name = nameof(ExcludeFromDynamicCompileAttribute).Replace(nameof(Attribute), string.Empty);
+        private const string jetbrains_annotations_namespace = "JetBrains.Annotations";
 
         private readonly Logger logger;
 
@@ -31,6 +32,7 @@ namespace osu.Framework.Testing
         private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
         private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
         private readonly Dictionary<string, bool> syntaxExclusionMap = new Dictionary<string, bool>();
+        private readonly HashSet<string> assembliesContainingReferencedInternalMembers = new HashSet<string>();
 
         private Solution solution;
 
@@ -58,17 +60,42 @@ namespace osu.Framework.Testing
             return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
         }
 
-        public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
+        public async Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
         {
             // Todo: This is temporary, and is potentially missing assemblies.
 
-            var assemblies = new HashSet<string>();
+            var assemblies = new HashSet<AssemblyReference>();
 
-            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
-                assemblies.Add(ass.Location);
-            assemblies.Add(typeof(JetBrains.Annotations.NotNullAttribute).Assembly.Location);
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
+                addReference(asm, false);
+            addReference(typeof(JetBrains.Annotations.NotNullAttribute).Assembly, true);
 
             return assemblies;
+
+            void addReference(Assembly assembly, bool force)
+            {
+                if (string.IsNullOrEmpty(assembly.Location))
+                    return;
+
+                Type[] loadedTypes;
+
+                try
+                {
+                    loadedTypes = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    loadedTypes = e.Types;
+                }
+
+                // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
+                // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
+                if (!force && loadedTypes?.Any(t => t?.Namespace == jetbrains_annotations_namespace) == true)
+                    return;
+
+                bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i) == true);
+                assemblies.Add(new AssemblyReference(assembly, containsReferencedInternalMember));
+            }
         });
 
         public void Reset()
@@ -291,6 +318,9 @@ namespace osu.Framework.Testing
                         }
                     }
                 }
+
+                if (typeSymbol.DeclaredAccessibility == Accessibility.Internal)
+                    assembliesContainingReferencedInternalMembers.Add(typeSymbol.ContainingAssembly.ToDisplayString());
 
                 result.Add(reference);
             }
