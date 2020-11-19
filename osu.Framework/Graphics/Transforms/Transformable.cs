@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children. True by default.</param>
-        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
+        /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public IDisposable BeginDelayedSequence(double delay, bool recursive = true)
         {
             if (delay == 0)
@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="newTransformStartTime">The new value for <see cref="TransformStartTime"/>.</param>
         /// <param name="recursive">Whether this should be applied to all children. True by default.</param>
-        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
+        /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public virtual IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
