@@ -38,7 +38,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.165" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.25" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.40" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
