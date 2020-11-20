@@ -158,7 +158,7 @@ namespace FlappyDon.Game.Elements
                 crossedThresholdCount++;
 
                 // Alert the observer that the threshold was crossed in this update loop
-                ThresholdCrossed(crossedThresholdCount);
+                ThresholdCrossed?.Invoke(crossedThresholdCount);
             }
 
             // Spawn a new pipe when sufficient distance has passed
