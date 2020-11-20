@@ -392,8 +392,11 @@ namespace osu.Framework.Tests.Bindables
             drawable.Dispose();
             valueChanged = false;
 
-            drawable.SetValue(2);
-            Assert.IsFalse(valueChanged, "unbound correctly");
+            bindable.Value = 2;
+            Assert.IsTrue(valueChanged, "bound correctly");
+
+            drawable.SetValue(3);
+            Assert.IsTrue(valueChanged, "bound correctly");
         }
 
         [Test]
