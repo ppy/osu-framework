@@ -139,10 +139,8 @@ namespace FlappyDon.Game.Elements
                 }
             }
 
-            while (obstaclesToRemove.Count > 0)
+            while (obstaclesToRemove.TryPop(out var obstacle))
             {
-                var obstacle = obstaclesToRemove.Pop();
-
                 RemoveInternal(obstacle);
 
                 // Increase the obstacle count, which will reset threshold detection
