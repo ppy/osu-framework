@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
-    public interface ITypeReferenceBuilder
+    internal interface ITypeReferenceBuilder
     {
         /// <summary>
         /// Initialises this <see cref="ITypeReferenceBuilder"/> with a given solution file.
@@ -29,7 +29,7 @@ namespace osu.Framework.Testing
         /// <param name="testType">The <see cref="Type"/>.</param>
         /// <param name="changedFile">The file.</param>
         /// <returns>The file names containing all assemblies referenced between <paramref name="testType"/> and <paramref name="changedFile"/>.</returns>
-        Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile);
+        Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile);
 
         /// <summary>
         /// Resets this <see cref="ITypeReferenceBuilder"/>.
