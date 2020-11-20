@@ -298,6 +298,8 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
+                            // ReSharper disable once MethodSupportsCancellation
+                            // Does not compile for netstandard with CS1501: No overload for method 'ReadAsStreamAsync' takes 1 arguments
                             postContent = await formData.ReadAsStreamAsync();
                         }
 
