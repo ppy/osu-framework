@@ -162,7 +162,7 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types ?? Enumerable.Empty<Type>();
+                return e.Types;
             }
         }
 

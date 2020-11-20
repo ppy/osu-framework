@@ -387,6 +387,8 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
+            // ReSharper disable once MethodSupportsCancellation
+            // Does not compile for netstandard with CS1501: No overload for method 'ReadAsStreamAsync' takes 1 arguments
             using (var responseStream = await response.Content.ReadAsStreamAsync())
             {
                 reportForwardProgress();

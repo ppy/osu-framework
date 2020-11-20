@@ -249,8 +249,6 @@ namespace osu.Framework.Platform
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            Debug.Assert(args.Exception != null);
-
             args.Exception.Data["unhandled"] = "unobserved";
             handleException(args.Exception);
         }

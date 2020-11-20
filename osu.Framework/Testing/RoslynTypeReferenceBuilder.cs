@@ -90,7 +90,7 @@ namespace osu.Framework.Testing
 
                 // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
                 // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
-                if (!force && loadedTypes?.Any(t => t?.Namespace == jetbrains_annotations_namespace) == true)
+                if (!force && loadedTypes.Any(t => t?.Namespace == jetbrains_annotations_namespace) == true)
                     return;
 
                 bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i) == true);
