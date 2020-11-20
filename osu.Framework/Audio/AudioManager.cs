@@ -60,7 +60,7 @@ namespace osu.Framework.Audio
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         /// <summary>
-        /// The device period in milliseconds
+        /// The device update period in milliseconds
         /// </summary>
         /// <remarks>
         /// The device period determines how often data is placed in the output
@@ -70,11 +70,38 @@ namespace osu.Framework.Audio
         /// A different period may be used by BASS if the requested one is too
         /// short, too long, or needs rounding.
         /// </remarks>
-        public readonly BindableInt DevicePeriod = new BindableInt(10)
+        public readonly BindableInt DeviceUpdatePeriod = new BindableInt(10)
         {
             // BASS default is 10 ms
             MinValue = 1,
             MaxValue = 60
+        };
+
+        /// <summary>
+        /// The device buffer size in milliseconds.
+        /// </summary>
+        public readonly BindableInt DeviceBufferSize = new BindableInt(10)
+        {
+            // BASS default is 30ms on Windows, 40ms on Linux and Android.
+            // This value needs to be a multiple of--and at least double--the
+            // device update period. BASS will round up the buffer size to
+            // make that happen.
+            MinValue = 2,
+            MaxValue = 480
+        };
+
+        /// <summary>
+        /// The playback buffer size in milliseconds.
+        /// </summary>
+        /// <remarks>
+        /// If this setting is changed at runtime, it will only apply to newly
+        /// created BASS channels.
+        /// </remarks>
+        public readonly BindableInt PlaybackBufferSize = new BindableInt(100)
+        {
+            // BASS default is 500 ms.
+            MinValue = 10,
+            MaxValue = 5000
         };
 
         /// <summary>
@@ -133,7 +160,9 @@ namespace osu.Framework.Audio
             thread.RegisterManager(this);
 
             AudioDevice.ValueChanged += onDeviceChanged;
-            DevicePeriod.ValueChanged += onDevicePeriodChanged;
+            DeviceUpdatePeriod.BindValueChanged(onDeviceUpdatePeriodChanged, true);
+            DeviceBufferSize.BindValueChanged(onDeviceBufferChanged, true);
+            PlaybackBufferSize.BindValueChanged(onPlaybackBufferChanged, true);
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
@@ -203,9 +232,31 @@ namespace osu.Framework.Audio
             });
         }
 
-        private void onDevicePeriodChanged(ValueChangedEvent<int> args)
+        private void onDeviceUpdatePeriodChanged(ValueChangedEvent<int> args)
         {
-            scheduler.Add(() => setDevicePeriod(args.NewValue));
+            scheduler.Add(() => {
+                int deviceUpdatePeriod = args.NewValue;
+                Logger.Log($@"Setting BASS device update period to {deviceUpdatePeriod}ms", level: LogLevel.Debug);
+                ReinitBass();
+            });
+        }
+
+        private void onDeviceBufferChanged(ValueChangedEvent<int> args)
+        {
+            scheduler.Add(() => {
+                int deviceBufferMs = args.NewValue;
+                Logger.Log($@"Setting BASS device buffer length to {deviceBufferMs}ms", level: LogLevel.Debug);
+                ReinitBass();
+            });
+        }
+
+        private void onPlaybackBufferChanged(ValueChangedEvent<int> args)
+        {
+            scheduler.Add(() => {
+                int playbackBufferMs = args.NewValue;
+                Logger.Log($@"Setting BASS playback buffer length to {playbackBufferMs}ms", level: LogLevel.Debug);
+                ReinitBass();
+            });
         }
 
         /// <summary>
@@ -307,12 +358,10 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        private void setDevicePeriod(int devicePeriod)
-        {
-            Logger.Log($@"Setting BASS device period to {devicePeriod}", level: LogLevel.Debug);
-            // BASS documentation: "Changes only affect subsequently initialized
-            // devices, not any that are already initialized." We thus re-init
-            // the current device.
+        /// <summary>
+        /// Reinitialize Bass. This is needed after some configuration changes.
+        /// </summary>
+        private void ReinitBass() {
             int currentDevice = Bass.CurrentDevice;
             setAudioDevice(0);
             setAudioDevice(currentDevice);
@@ -327,11 +376,10 @@ namespace osu.Framework.Audio
             if (Bass.CurrentDevice == device)
                 return true;
 
-            Bass.Configure(ManagedBass.Configuration.DevicePeriod, DevicePeriod.Value);
-
-            // reduce latency to a known sane minimum.
-            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, 10);
-            Bass.Configure(ManagedBass.Configuration.PlaybackBufferLength, 100);
+            // set latency to what is configured.
+            Bass.Configure(ManagedBass.Configuration.DevicePeriod, DeviceUpdatePeriod.Value);
+            Bass.Configure(ManagedBass.Configuration.DeviceBufferLength, DeviceBufferSize.Value);
+            Bass.Configure(ManagedBass.Configuration.PlaybackBufferLength, PlaybackBufferSize.Value);
 
             // this likely doesn't help us but also doesn't seem to cause any issues or any cpu increase.
             Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
