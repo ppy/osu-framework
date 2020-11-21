@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            if (host != null && host.TryGetTarget(out GameHost h))
+            if (host != null && host.TryGetTarget(out _))
             {
                 lock (pending_disposal_actions)
                     pending_disposal_actions.Add(new PendingDisposal(disposalAction));
