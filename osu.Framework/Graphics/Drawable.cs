@@ -151,6 +151,10 @@ namespace osu.Framework.Graphics
                                      .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
                                      .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
+                // Delegates to unbind properties are intentionally not generated.
+                // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
+                // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
+
                 unbind_action_cache[type] = target =>
                 {
                     foreach (var a in actions)
