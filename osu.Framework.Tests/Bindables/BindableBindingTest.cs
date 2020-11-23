@@ -390,11 +390,12 @@ namespace osu.Framework.Tests.Bindables
             Assert.IsTrue(valueChanged, "bound correctly");
 
             drawable.Dispose();
-            valueChanged = false;
 
+            valueChanged = false;
             bindable.Value = 2;
             Assert.IsTrue(valueChanged, "bound correctly");
 
+            valueChanged = false;
             drawable.SetValue(3);
             Assert.IsTrue(valueChanged, "bound correctly");
         }
