@@ -153,6 +153,30 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestPrepareOnlyOnceOnMultipleUsages()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+            TestDrawable drawable2 = null;
+
+            AddStep("consume item", () => drawable = consumeDrawable(false));
+
+            AddAssert("prepare was not run", () => drawable.PreparedCount == 0);
+            AddUntilStep("free was not run", () => drawable.FreedCount == 0);
+
+            AddStep("manually return drawable", () => pool.Return(drawable));
+            AddUntilStep("free was run", () => drawable.FreedCount == 1);
+
+            AddStep("consume item", () => drawable2 = consumeDrawable());
+
+            AddAssert("is same item", () => ReferenceEquals(drawable, drawable2));
+
+            AddAssert("prepare was only run once", () => drawable2.PreparedCount == 1);
+            AddUntilStep("free was run", () => drawable2.FreedCount == 2);
+        }
+
+        [Test]
         public void TestUsePoolableDrawableWithoutPool()
         {
             TestDrawable drawable = null;
@@ -218,7 +242,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private static int displayCount;
 
-        private TestDrawable consumeDrawable()
+        private TestDrawable consumeDrawable(bool addToHierarchy = true)
         {
             var drawable = pool.Get(d =>
             {
@@ -227,7 +251,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             consumed.Add(drawable);
-            Add(drawable);
+            if (addToHierarchy)
+                Add(drawable);
 
             return drawable;
         }
