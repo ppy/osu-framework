@@ -32,7 +32,6 @@ namespace osu.Framework.Graphics.Shapes
         {
             public HexagonDrawNode(Hexagon source) : base(source)
             {
-
             }
 
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
@@ -46,7 +45,6 @@ namespace osu.Framework.Graphics.Shapes
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
                 DrawTriangle(Texture, drawingHex.FarDownTriangle, DrawColourInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height), TextureCoords);
-
             }
 
             protected override void BlitOpaqueInterior(Action<TexturedVertex2D> vertexAction)
