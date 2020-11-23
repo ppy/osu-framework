@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -27,6 +28,8 @@ namespace osu.Framework.Graphics.Pooling
         /// A flag to keep the drawable present to guarantee the prepare call can be performed as a scheduled call.
         /// </summary>
         private bool waitingForPrepare;
+
+        private ScheduledDelegate scheduledPrepare;
 
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
@@ -102,11 +105,12 @@ namespace osu.Framework.Graphics.Pooling
 
             // prepare call is scheduled as it may contain user code dependent on the clock being updated.
             // must use Scheduler.Add, not Schedule as we may have the wrong clock at this point in load.
-            Scheduler.Add(() =>
+            scheduledPrepare?.Cancel();
+            scheduledPrepare = Scheduler.AddDelayed(() =>
             {
                 PrepareForUse();
                 waitingForPrepare = false;
-            });
+            }, 0);
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
