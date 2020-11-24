@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Pooling
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            if (invalidation.HasFlag(Invalidation.Parent))
+            if (source != InvalidationSource.Child && invalidation.HasFlag(Invalidation.Parent))
             {
                 if (IsInUse && Parent == null)
                     Return();

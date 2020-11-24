@@ -233,6 +233,22 @@ namespace osu.Framework.Tests.Visual.Drawables
             Assert.DoesNotThrow(() => new TestPool(100, 1).Get());
         }
 
+        /// <summary>
+        /// Tests that when a child of a pooled drawable receives a parent invalidation, the parent pooled drawable is not returned.
+        /// A parent invalidation can happen on the child if it's added to the hierarchy of the parent.
+        /// </summary>
+        [Test]
+        public void TestParentInvalidationFromChildDoesNotReturnPooledParent()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+
+            AddStep("consume item", () => drawable = consumeDrawable(false));
+            AddStep("add child", () => drawable.AddChild(Empty()));
+            AddAssert("not freed", () => drawable.FreedCount == 0);
+        }
+
         protected override void Update()
         {
             base.Update();
@@ -329,6 +345,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     },
                 };
             }
+
+            public void AddChild(Drawable drawable) => AddInternal(drawable);
 
             public new bool IsDisposed => base.IsDisposed;
 
