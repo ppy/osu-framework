@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Pooling
 
         /// <summary>
         /// Perform any initialisation on new usage of this drawable.
+        /// This is scheduled to the first update frame and may not be run if this is never reached.
         /// </summary>
         protected virtual void PrepareForUse()
         {
@@ -69,6 +70,7 @@ namespace osu.Framework.Graphics.Pooling
 
         /// <summary>
         /// Perform any clean-up required before returning this drawable to a pool.
+        /// This is called regardless of whether <see cref="PrepareForUse"/> was executed.
         /// </summary>
         protected virtual void FreeAfterUse()
         {
