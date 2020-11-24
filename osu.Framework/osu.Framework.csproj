@@ -46,7 +46,7 @@
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2020.923.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.7.0">
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.8.0">
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
     </PackageReference>
   </ItemGroup>
