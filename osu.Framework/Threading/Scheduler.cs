@@ -198,6 +198,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
+        /// <remarks>If scheduled, the task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>The scheduled task, or <c>null</c> if the task was executed immediately.</returns>
@@ -221,6 +222,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
+        /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The scheduled delegate to add.</param>
         /// <exception cref="InvalidOperationException">Thrown when attempting to add a scheduled delegate that has been already completed.</exception>
         public void Add(ScheduledDelegate task)
@@ -238,7 +240,7 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// Add a task which will be run after a specified delay.
+        /// Add a task which will be run after a specified delay from the current clock time.
         /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <param name="timeUntilRun">Milliseconds until run.</param>
@@ -258,6 +260,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
         /// </summary>
+        /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The work to be done.</param>
         /// <returns>Whether this is the first queue attempt of this work.</returns>
         public bool AddOnce(Action task)
