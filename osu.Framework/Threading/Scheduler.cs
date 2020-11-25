@@ -200,20 +200,22 @@ namespace osu.Framework.Threading
         /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
-        /// <returns>Whether we could run without scheduling</returns>
-        public bool Add(Action task, bool forceScheduled = true)
+        /// <returns>The scheduled task, or <c>null</c> if the task was executed immediately.</returns>
+        public ScheduledDelegate Add(Action task, bool forceScheduled = true)
         {
             if (!forceScheduled && IsMainThread)
             {
                 //We are on the main thread already - don't need to schedule.
                 task.Invoke();
-                return true;
+                return null;
             }
 
-            lock (queueLock)
-                runQueue.Enqueue(new ScheduledDelegate(task));
+            var del = new ScheduledDelegate(task);
 
-            return false;
+            lock (queueLock)
+                runQueue.Enqueue(del);
+
+            return del;
         }
 
         /// <summary>
@@ -241,6 +243,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The work to be done.</param>
         /// <param name="timeUntilRun">Milliseconds until run.</param>
         /// <param name="repeat">Whether this task should repeat.</param>
+        /// <returns>The scheduled task.</returns>
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
             // We are locking here already to make sure we have no concurrent access to currentTime
