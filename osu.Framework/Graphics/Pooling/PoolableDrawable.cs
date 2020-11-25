@@ -108,11 +108,11 @@ namespace osu.Framework.Graphics.Pooling
             // prepare call is scheduled as it may contain user code dependent on the clock being updated.
             // must use Scheduler.Add, not Schedule as we may have the wrong clock at this point in load.
             scheduledPrepare?.Cancel();
-            scheduledPrepare = Scheduler.AddDelayed(() =>
+            scheduledPrepare = Scheduler.Add(() =>
             {
                 PrepareForUse();
                 waitingForPrepare = false;
-            }, 0);
+            });
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
