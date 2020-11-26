@@ -262,7 +262,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("add item 1", () => delayedList.Items.Add(1));
             AddStep("allow load", () => delayedList.AllowLoad.Release(100));
 
-            AddAssert("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
+            AddUntilStep("only one item", () => delayedList.ChildrenOfType<BasicRearrangeableListItem<int>>().Count() == 1);
         }
 
         private void addDragSteps(int from, int to, int[] expectedSequence)
