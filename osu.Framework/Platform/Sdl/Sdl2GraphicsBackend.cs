@@ -27,14 +27,13 @@ namespace osu.Framework.Platform.Sdl
 
         protected override IntPtr GetProcAddress(string symbol) => SDL.SDL_GL_GetProcAddress(symbol);
 
-        public override void Initialise(IWindowBackend windowBackend)
+        public override void Initialise(IWindow window)
         {
-            if (windowBackend is Sdl2WindowBackend sdlWindowBackend)
-                sdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
-            else
-                throw new ArgumentException("Unsupported window backend.", nameof(windowBackend));
+            if (!(window is SDL2DesktopWindow sdlWindow))
+                throw new ArgumentException("Unsupported window backend.", nameof(window));
 
-            base.Initialise(windowBackend);
+            sdlWindowHandle = sdlWindow.SdlWindowHandle;
+            base.Initialise(window);
         }
     }
 }

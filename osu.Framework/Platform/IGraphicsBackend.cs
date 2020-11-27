@@ -17,8 +17,8 @@ namespace osu.Framework.Platform
         /// Initialises the graphics backend, given the current window backend.
         /// It is assumed that the window backend has been initialised.
         /// </summary>
-        /// <param name="windowBackend">The <see cref="IWindowBackend"/> to use.</param>
-        void Initialise(IWindowBackend windowBackend);
+        /// <param name="window">The <see cref="IWindow"/> being used for display.</param>
+        void Initialise(IWindow window);
 
         /// <summary>
         /// Performs a backbuffer swap immediately if <see cref="VerticalSync"/> is false,

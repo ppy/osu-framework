@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -27,6 +28,8 @@ namespace osu.Framework.Graphics.Pooling
         /// A flag to keep the drawable present to guarantee the prepare call can be performed as a scheduled call.
         /// </summary>
         private bool waitingForPrepare;
+
+        private ScheduledDelegate scheduledPrepare;
 
         public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
@@ -59,6 +62,7 @@ namespace osu.Framework.Graphics.Pooling
 
         /// <summary>
         /// Perform any initialisation on new usage of this drawable.
+        /// This is scheduled to the first update frame and may not be run if this is never reached.
         /// </summary>
         protected virtual void PrepareForUse()
         {
@@ -66,6 +70,7 @@ namespace osu.Framework.Graphics.Pooling
 
         /// <summary>
         /// Perform any clean-up required before returning this drawable to a pool.
+        /// This is called regardless of whether <see cref="PrepareForUse"/> was executed.
         /// </summary>
         protected virtual void FreeAfterUse()
         {
@@ -102,7 +107,8 @@ namespace osu.Framework.Graphics.Pooling
 
             // prepare call is scheduled as it may contain user code dependent on the clock being updated.
             // must use Scheduler.Add, not Schedule as we may have the wrong clock at this point in load.
-            Scheduler.Add(() =>
+            scheduledPrepare?.Cancel();
+            scheduledPrepare = Scheduler.Add(() =>
             {
                 PrepareForUse();
                 waitingForPrepare = false;
@@ -111,7 +117,7 @@ namespace osu.Framework.Graphics.Pooling
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            if (invalidation.HasFlag(Invalidation.Parent))
+            if (source != InvalidationSource.Child && invalidation.HasFlag(Invalidation.Parent))
             {
                 if (IsInUse && Parent == null)
                     Return();

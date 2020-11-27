@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -41,6 +42,11 @@ namespace FlappyDon.Game.Elements
         /// in order to correctly call the event handler once per threshold.
         /// </summary>
         private int crossedThresholdCount;
+
+        /// <summary>
+        /// A collection holding all the obstacles to remove during the update step.
+        /// </summary>
+        private Stack<Drawable> obstaclesToRemove = new Stack<Drawable>();
 
         /// <summary>
         /// A counter that keeps track of the number of pipes spawned in order to track
@@ -127,12 +133,19 @@ namespace FlappyDon.Game.Elements
 
                 if (obstacle.Position.X + obstacle.DrawWidth < 0.0f)
                 {
-                    RemoveInternal(obstacle);
-
-                    // Increase the obstacle count, which will reset threshold detection
-                    // for the pipe after this one.
-                    obstacleCount++;
+                    // Add the obstacle to the stack to remove later
+                    // because InternalChildren can't be updated while being enumerated.
+                    obstaclesToRemove.Push(obstacle);
                 }
+            }
+
+            while (obstaclesToRemove.TryPop(out var obstacle))
+            {
+                RemoveInternal(obstacle);
+
+                // Increase the obstacle count, which will reset threshold detection
+                // for the pipe after this one.
+                obstacleCount++;
             }
 
             // When we cross the threshold, increment the score counter, and call the event handler
@@ -143,7 +156,7 @@ namespace FlappyDon.Game.Elements
                 crossedThresholdCount++;
 
                 // Alert the observer that the threshold was crossed in this update loop
-                ThresholdCrossed(crossedThresholdCount);
+                ThresholdCrossed?.Invoke(crossedThresholdCount);
             }
 
             // Spawn a new pipe when sufficient distance has passed

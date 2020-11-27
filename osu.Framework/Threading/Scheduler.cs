@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Extensions;
 using osu.Framework.Timing;
 
@@ -198,30 +199,35 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
+        /// <remarks>If scheduled, the task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
-        /// <returns>Whether we could run without scheduling</returns>
-        public bool Add(Action task, bool forceScheduled = true)
+        /// <returns>The scheduled task, or <c>null</c> if the task was executed immediately.</returns>
+        [CanBeNull]
+        public ScheduledDelegate Add([NotNull] Action task, bool forceScheduled = true)
         {
             if (!forceScheduled && IsMainThread)
             {
                 //We are on the main thread already - don't need to schedule.
                 task.Invoke();
-                return true;
+                return null;
             }
 
-            lock (queueLock)
-                runQueue.Enqueue(new ScheduledDelegate(task));
+            var del = new ScheduledDelegate(task);
 
-            return false;
+            lock (queueLock)
+                runQueue.Enqueue(del);
+
+            return del;
         }
 
         /// <summary>
         /// Add a task to be scheduled.
         /// </summary>
+        /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The scheduled delegate to add.</param>
         /// <exception cref="InvalidOperationException">Thrown when attempting to add a scheduled delegate that has been already completed.</exception>
-        public void Add(ScheduledDelegate task)
+        public void Add([NotNull] ScheduledDelegate task)
         {
             if (task.Completed)
                 throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
@@ -236,12 +242,14 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// Add a task which will be run after a specified delay.
+        /// Add a task which will be run after a specified delay from the current clock time.
         /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <param name="timeUntilRun">Milliseconds until run.</param>
         /// <param name="repeat">Whether this task should repeat.</param>
-        public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
+        /// <returns>The scheduled task.</returns>
+        [NotNull]
+        public ScheduledDelegate AddDelayed([NotNull] Action task, double timeUntilRun, bool repeat = false)
         {
             // We are locking here already to make sure we have no concurrent access to currentTime
             lock (queueLock)
@@ -255,9 +263,10 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
         /// </summary>
+        /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
         /// <param name="task">The work to be done.</param>
         /// <returns>Whether this is the first queue attempt of this work.</returns>
-        public bool AddOnce(Action task)
+        public bool AddOnce([NotNull] Action task)
         {
             lock (queueLock)
             {
