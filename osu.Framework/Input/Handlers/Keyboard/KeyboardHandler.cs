@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is DesktopWindow window))
+            if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>

@@ -453,7 +453,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is DesktopWindow win)
+                    if (Window is SDL2DesktopWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
@@ -598,7 +598,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case DesktopWindow window:
+                            case SDL2DesktopWindow window:
                                 window.Update += windowUpdate;
                                 break;
 
