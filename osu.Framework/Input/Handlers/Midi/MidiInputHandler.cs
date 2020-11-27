@@ -67,6 +67,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
                     if (inputs.All(i => i.Id != key))
                     {
+                        value.CloseAsync().Wait();
                         value.MessageReceived -= onMidiMessageReceived;
                         openedDevices.Remove(key);
 

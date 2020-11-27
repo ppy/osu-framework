@@ -28,12 +28,18 @@ namespace osu.Framework.Tests.Threading
 
             int invocations = 0;
 
-            scheduler.Add(() => invocations++, forceScheduled);
+            var del = scheduler.Add(() => invocations++, forceScheduled);
 
             if (fromMainThread && !forceScheduled)
+            {
                 Assert.AreEqual(1, invocations);
+                Assert.That(del, Is.Null);
+            }
             else
+            {
                 Assert.AreEqual(0, invocations);
+                Assert.That(del, Is.Not.Null);
+            }
 
             scheduler.Update();
             Assert.AreEqual(1, invocations);

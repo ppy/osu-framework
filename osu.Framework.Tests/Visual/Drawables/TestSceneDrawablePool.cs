@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
+using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -247,6 +249,30 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("consume item", () => drawable = consumeDrawable(false));
             AddStep("add child", () => drawable.AddChild(Empty()));
             AddAssert("not freed", () => drawable.FreedCount == 0);
+        }
+
+        [Test]
+        public void TestDrawablePreparedWhenClockRewound()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+
+            AddStep("consume item and rewind clock", () =>
+            {
+                var clock = new ManualClock { CurrentTime = Time.Current };
+
+                Add(new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Clock = new FramedClock(clock),
+                    Child = drawable = consumeDrawable(false)
+                });
+
+                clock.CurrentTime = 0;
+            });
+
+            AddAssert("child prepared", () => drawable.PreparedCount == 1);
         }
 
         protected override void Update()
