@@ -23,6 +23,32 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestBindWhileDisabled()
+        {
+            Bindable<string> bindable1 = new Bindable<string> { Disabled = true };
+            Bindable<string> bindable2 = new Bindable<string>("different");
+
+            bindable1.BindTo(bindable2);
+
+            Assert.AreEqual(false, bindable1.Disabled);
+            Assert.AreEqual("different", bindable1.Value);
+            Assert.AreEqual(bindable2.Value, bindable1.Value);
+        }
+
+        [Test]
+        public void TestBindToDisabled()
+        {
+            Bindable<string> bindable1 = new Bindable<string>();
+            Bindable<string> bindable2 = new Bindable<string>("different") { Disabled = true };
+
+            bindable1.BindTo(bindable2);
+
+            Assert.AreEqual(true, bindable1.Disabled);
+            Assert.AreEqual("different", bindable1.Value);
+            Assert.AreEqual(bindable2.Value, bindable1.Value);
+        }
+
+        [Test]
         public void TestPropagation()
         {
             Bindable<string> bindable1 = new Bindable<string>("default");
