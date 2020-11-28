@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
@@ -406,13 +407,17 @@ namespace osu.Framework.Platform
             WindowMode.TriggerChange();
         }
 
+        // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+        [UsedImplicitly]
+        private SDL.SDL_EventFilter eventFilterDelegate;
+
         /// <summary>
         /// Starts the window's run loop.
         /// </summary>
         public void Run()
         {
             // polling via SDL_PollEvent blocks on resizes (https://stackoverflow.com/a/50858339)
-            SDL.SDL_SetEventFilter((_, eventPtr) =>
+            SDL.SDL_SetEventFilter(eventFilterDelegate = (_, eventPtr) =>
             {
                 // ReSharper disable once PossibleNullReferenceException
                 var e = (SDL.SDL_Event)Marshal.PtrToStructure(eventPtr, typeof(SDL.SDL_Event));
