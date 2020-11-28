@@ -190,9 +190,9 @@ namespace osu.Framework.Bindables
             if (Bindings?.Contains(them) == true)
                 throw new InvalidOperationException($"This bindable is already bound to the requested bindable ({them}).");
 
-            Value = them.Value;
-            Default = them.Default;
-            Disabled = them.Disabled;
+            SetValue(Value, them.Value);
+            SetDefaultValue(Default, them.Default);
+            SetDisabled(them.Disabled);
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);

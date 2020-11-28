@@ -60,7 +60,7 @@ namespace osu.Framework.Bindables
         /// <param name="precision">The new precision.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the precision is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetPrecision(T precision, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetPrecision(T precision, bool updateCurrentValue = true, BindableNumber<T> source = null)
         {
             this.precision = precision;
             TriggerPrecisionChange(source);
@@ -111,7 +111,7 @@ namespace osu.Framework.Bindables
         /// <param name="minValue">The new minimum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMinValue(T minValue, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetMinValue(T minValue, bool updateCurrentValue = true, BindableNumber<T> source = null)
         {
             this.minValue = minValue;
             TriggerMinValueChange(source);
@@ -143,7 +143,7 @@ namespace osu.Framework.Bindables
         /// <param name="maxValue">The new maximum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetMaxValue(T maxValue, bool updateCurrentValue = true, BindableNumber<T> source = null)
         {
             this.maxValue = maxValue;
             TriggerMaxValueChange(source);
@@ -322,9 +322,9 @@ namespace osu.Framework.Bindables
         {
             if (them is BindableNumber<T> other)
             {
-                Precision = other.Precision;
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
+                SetPrecision(other.Precision);
+                SetMinValue(other.MinValue);
+                SetMaxValue(other.MaxValue);
 
                 if (MinValue.CompareTo(MaxValue) > 0)
                 {
