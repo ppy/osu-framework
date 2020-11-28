@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
@@ -407,6 +408,7 @@ namespace osu.Framework.Platform
         }
 
         // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
+        [UsedImplicitly]
         private SDL.SDL_EventFilter eventFilterDelegate;
 
         /// <summary>
