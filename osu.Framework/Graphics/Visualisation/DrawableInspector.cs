@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private const float width = 600;
 
-        private readonly FillFlowContainer content;
+        private readonly GridContainer content;
         private readonly TabControl<Tab> inspectorTabControl;
         private readonly Container tabContentContainer;
         private readonly PropertyDisplay propertyDisplay;
@@ -29,33 +30,41 @@ namespace osu.Framework.Graphics.Visualisation
             Width = width;
             RelativeSizeAxes = Axes.Y;
 
-            Child = content = new FillFlowContainer
+            Child = content = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Children = new Drawable[]
+                RowDimensions = new[]
                 {
-                    inspectorTabControl = new BasicTabControl<Tab>
+                    new Dimension(GridSizeMode.AutoSize),
+                    new Dimension()
+                },
+                ColumnDimensions = new[] { new Dimension() },
+                Content = new[]
+                {
+                    new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        Height = 20,
-                        Margin = new MarginPadding
+                        inspectorTabControl = new BasicTabControl<Tab>
                         {
-                            Horizontal = 10,
-                            Vertical = 5
+                            RelativeSizeAxes = Axes.X,
+                            Height = 20,
+                            Margin = new MarginPadding
+                            {
+                                Horizontal = 10,
+                                Vertical = 5
+                            },
+                            Items = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList()
                         },
-                        Items = Enum.GetValues(typeof(Tab)).Cast<Tab>().ToList()
-                    },
-                    tabContentContainer = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Children = new Drawable[]
+                        tabContentContainer = new Container
                         {
-                            propertyDisplay = new PropertyDisplay(),
-                            transformDisplay = new TransformDisplay()
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                propertyDisplay = new PropertyDisplay(),
+                                transformDisplay = new TransformDisplay()
+                            }
                         }
                     }
-                }
+                }.Invert()
             };
         }
 
