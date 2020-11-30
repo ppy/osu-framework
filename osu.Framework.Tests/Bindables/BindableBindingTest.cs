@@ -377,7 +377,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestUnbindOnDrawableDisposeProperty()
+        public void TestUnbindOnDrawableDoNotDisposeDelegatingProperty()
         {
             var bindable = new Bindable<int>();
 
@@ -390,9 +390,30 @@ namespace osu.Framework.Tests.Bindables
             Assert.IsTrue(valueChanged, "bound correctly");
 
             drawable.Dispose();
+
+            valueChanged = false;
+            bindable.Value = 2;
+            Assert.IsTrue(valueChanged, "bound correctly");
+
+            valueChanged = false;
+            drawable.SetValue(3);
+            Assert.IsTrue(valueChanged, "bound correctly");
+        }
+
+        [Test]
+        public void TestUnbindOnDrawableDisposeAutoProperty()
+        {
+            bool valueChanged = false;
+            var drawable = new TestDrawable3();
+            drawable.Bindable.ValueChanged += _ => valueChanged = true;
+
+            drawable.Bindable.Value = 1;
+            Assert.IsTrue(valueChanged, "bound correctly");
+
+            drawable.Dispose();
             valueChanged = false;
 
-            drawable.SetValue(2);
+            drawable.Bindable.Value = 2;
             Assert.IsFalse(valueChanged, "unbound correctly");
         }
 
@@ -497,6 +518,17 @@ namespace osu.Framework.Tests.Bindables
             }
 
             public void SetValue(int value) => bindable.Value = value;
+        }
+
+        private class TestDrawable3 : Drawable
+        {
+            public Bindable<int> Bindable { get; } = new Bindable<int>();
+
+            public TestDrawable3()
+            {
+                // because we are run outside of a game instance but need the cached disposal methods.
+                Load(new FramedClock(), new DependencyContainer());
+            }
         }
     }
 }

@@ -83,7 +83,7 @@ namespace osu.Framework.Platform
 
             // Changing the CurrentDisplay bindable should update the position of the window accordingly.
             // Note that this must be done on the windowing thread to avoid potential deadlocks or strange behaviour.
-            CurrentDisplay.ValueChanged += evt =>
+            CurrentDisplayBindable.ValueChanged += evt =>
                 UpdateFrameScheduler.Add(() => CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)evt.NewValue.Index));
         }
 

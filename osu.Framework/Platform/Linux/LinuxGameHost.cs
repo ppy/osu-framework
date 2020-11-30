@@ -10,13 +10,12 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useOsuTK)
         {
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new OsuTKLinuxWindow() : new DesktopWindow();
+        protected override IWindow CreateWindow() => UseOsuTK ? (IWindow)new OsuTKLinuxWindow() : new SDL2DesktopWindow();
 
         public override string UserStoragePath
         {
@@ -41,6 +40,6 @@ namespace osu.Framework.Platform.Linux
         }
 
         public override Clipboard GetClipboard() =>
-            Window is DesktopWindow || (Window as OsuTKLinuxWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
+            Window is SDL2DesktopWindow || (Window as OsuTKLinuxWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
     }
 }
