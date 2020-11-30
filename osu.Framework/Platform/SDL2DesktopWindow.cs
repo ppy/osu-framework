@@ -219,9 +219,9 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
-        public Size ClientSize => new Size((int)(Size.Width * scale), (int)(Size.Height * scale));
+        public Size ClientSize => new Size(Size.Width, Size.Height);
 
-        private const float scale = 1; // TODO: figure if/when we need this.
+        public float Scale = 1;
 
         /// <summary>
         /// Queries the physical displays and their supported resolutions.
@@ -461,6 +461,9 @@ namespace osu.Framework.Platform
             SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
             var newSize = new Size(w, h);
 
+            SDL.SDL_GetWindowSize(SdlWindowHandle, out var actualW, out var _);
+            Scale = (float)w / actualW;
+
             if (!newSize.Equals(Size))
             {
                 Size = newSize;
@@ -561,7 +564,7 @@ namespace osu.Framework.Platform
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            ScheduleEvent(() => OnMouseMove(new Vector2(rx * scale, ry * scale)));
+            ScheduleEvent(() => OnMouseMove(new Vector2(rx * Scale, ry * Scale)));
         }
 
         #region SDL Event Handling
@@ -819,7 +822,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * scale, evtMotion.y * scale)));
+            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
