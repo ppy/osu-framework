@@ -19,7 +19,7 @@ namespace osu.Framework.Tests.Audio
         {
             var manager = new AudioCollectionManager<AdjustableAudioComponent>();
 
-            // add a huge amount of items to be added in the queue
+            // add a huge amount of items to the queue
             for (int i = 0; i < 10000; i++) manager.AddItem(new TestingAdjustableAudioComponent());
 
             // in a seperate thread start processing the queue
