@@ -12,31 +12,24 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class AudioCollectionManagerTest
     {
-        private class TestingAdjustableAudioComponent : AdjustableAudioComponent
-        {
-
-        }
+        private class TestingAdjustableAudioComponent : AdjustableAudioComponent {}
 
         [Test]
         public void TestDisposalWhileItemsAreAddedDoesNotThrowInvalidOperationException()
         {
             var manager = new AudioCollectionManager<AdjustableAudioComponent>();
 
-            var components = new List<TestingAdjustableAudioComponent>();
-            for (int i = 0; i < 10000; i++)
-            {
-                var component = new TestingAdjustableAudioComponent();
-                components.Add(component);
-                manager.AddItem(component);
-            }
+            // add a huge amount of items to be added in the queue
+            for (int i = 0; i < 10000; i++) manager.AddItem(new TestingAdjustableAudioComponent());
 
+            // in a seperate thread start processing the queue
             new Thread(() => manager.Update()).Start();
- 
-            Thread.Sleep(2);
-            Assert.DoesNotThrow(() =>
-            {
-                manager.Dispose();
-            });
+
+            // wait a little for beginning of the update to start
+            Thread.Sleep(4);
+
+            // the
+            Assert.DoesNotThrow(() => manager.Dispose());
         }
     }
 }
