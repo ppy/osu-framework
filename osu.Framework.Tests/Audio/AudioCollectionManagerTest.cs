@@ -28,7 +28,6 @@ namespace osu.Framework.Tests.Audio
             // wait a little for beginning of the update to start
             Thread.Sleep(4);
 
-            // the
             Assert.DoesNotThrow(() => manager.Dispose());
         }
     }
