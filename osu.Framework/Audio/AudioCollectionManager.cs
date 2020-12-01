@@ -49,13 +49,13 @@ namespace osu.Framework.Audio
             }
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
             // we need to queue disposal of our Items before enqueueing the main dispose.
             foreach (var i in Items)
                 i.Dispose();
 
-            base.Dispose();
+            base.Dispose(disposing);
         }
     }
 }
