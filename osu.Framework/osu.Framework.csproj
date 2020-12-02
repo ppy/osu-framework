@@ -50,7 +50,4 @@
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Platform\Sdl" />
-  </ItemGroup>
 </Project>
