@@ -151,9 +151,12 @@ namespace osu.Framework.Graphics.OpenGL
                 if (item.RemainingFrameDelay-- == 0)
                 {
                     item.Action();
+
                     lock (pending_disposal_actions)
-                        pending_disposal_actions.Remove(item);
-                    i--;
+                    {
+                        Debug.Assert(i == 0);
+                        pending_disposal_actions.RemoveAt(i--);
+                    }
                 }
             }
         }
