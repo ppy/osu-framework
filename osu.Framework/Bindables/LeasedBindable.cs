@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace osu.Framework.Bindables
@@ -67,8 +66,6 @@ namespace osu.Framework.Bindables
                 if (source != null)
                     checkValid();
 
-                if (EqualityComparer<T>.Default.Equals(Value, value)) return;
-
                 SetValue(base.Value, value, true);
             }
         }
@@ -81,8 +78,6 @@ namespace osu.Framework.Bindables
                 if (source != null)
                     checkValid();
 
-                if (EqualityComparer<T>.Default.Equals(Default, value)) return;
-
                 SetDefaultValue(base.Default, value, true);
             }
         }
@@ -94,8 +89,6 @@ namespace osu.Framework.Bindables
             {
                 if (source != null)
                     checkValid();
-
-                if (Disabled == value) return;
 
                 SetDisabled(value, true);
             }

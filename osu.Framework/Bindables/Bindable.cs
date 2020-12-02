@@ -53,8 +53,6 @@ namespace osu.Framework.Bindables
                 // if a lease is active, disabled can *only* be changed by that leased bindable.
                 throwIfLeased();
 
-                if (disabled == value) return;
-
                 SetDisabled(value);
             }
         }
@@ -63,6 +61,8 @@ namespace osu.Framework.Bindables
         {
             if (!bypassChecks)
                 throwIfLeased();
+
+            if (disabled == value) return;
 
             disabled = value;
             TriggerDisabledChange(source ?? this, true, bypassChecks);
@@ -92,14 +92,14 @@ namespace osu.Framework.Bindables
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
 
-                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
-
                 SetValue(this.value, value);
             }
         }
 
         internal void SetValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
+            if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+
             this.value = value;
             TriggerValueChange(previousValue, source ?? this, true, bypassChecks);
         }
@@ -118,14 +118,14 @@ namespace osu.Framework.Bindables
                 if (Disabled)
                     throw new InvalidOperationException($"Can not set default value to \"{value.ToString()}\" as bindable is disabled.");
 
-                if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
-
                 SetDefaultValue(defaultValue, value);
             }
         }
 
         internal void SetDefaultValue(T previousValue, T value, bool bypassChecks = false, Bindable<T> source = null)
         {
+            if (EqualityComparer<T>.Default.Equals(defaultValue, value)) return;
+
             defaultValue = value;
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
