@@ -1245,7 +1245,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
-        public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
+        public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
             var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
             if (!recursive)

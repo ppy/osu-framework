@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
 
             displaysDropdown.Items = window.Displays;
-            displaysDropdown.Current.BindTo(window.CurrentDisplay);
+            displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
@@ -113,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 });
             });
 
-            AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplay.ToString()));
+            AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
         }

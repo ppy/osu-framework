@@ -244,7 +244,7 @@ namespace osu.Framework.Platform
         {
             var exception = (Exception)args.ExceptionObject;
             exception.Data["unhandled"] = "unhandled";
-            handleException(exception);
+            handleException(sender, exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
@@ -252,19 +252,41 @@ namespace osu.Framework.Platform
             Debug.Assert(args.Exception != null);
 
             args.Exception.Data["unhandled"] = "unobserved";
-            handleException(args.Exception);
+            handleException(sender, args.Exception);
         }
 
-        private void handleException(Exception exception)
+        private void handleException(object sender, Exception exception)
         {
             if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
 
                 var captured = ExceptionDispatchInfo.Capture(exception);
+                var thrownEvent = new ManualResetEventSlim(false);
 
                 //we want to throw this exception on the input thread to interrupt window and also headless execution.
-                InputThread.Scheduler.Add(() => { captured.Throw(); });
+                InputThread.Scheduler.Add(() =>
+                {
+                    try
+                    {
+                        captured.Throw();
+                    }
+                    finally
+                    {
+                        thrownEvent.Set();
+                    }
+                });
+
+                // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
+                // To avoid this, the exceptioning thread will be paused until the rethrow takes place.
+                // Importantly, this is bypassed for GameThread sources in two situations where deadlocks can occur:
+                // 1. When the exceptioning thread is already the input thread.
+                // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                if (!(sender is GameThread)
+                    || (sender != InputThread && executionMode.Value == ExecutionMode.MultiThreaded))
+                {
+                    thrownEvent.Wait();
+                }
 
                 // schedule an exit to the input thread.
                 // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
@@ -431,7 +453,7 @@ namespace osu.Framework.Platform
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is DesktopWindow win)
+                    if (Window is SDL2DesktopWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
@@ -576,7 +598,7 @@ namespace osu.Framework.Platform
                     {
                         switch (Window)
                         {
-                            case DesktopWindow window:
+                            case SDL2DesktopWindow window:
                                 window.Update += windowUpdate;
                                 break;
 
