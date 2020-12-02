@@ -20,6 +20,12 @@ namespace osu.Framework.Platform.Windows
         private Icon smallIcon;
         private Icon largeIcon;
 
+        public WindowsWindow()
+        {
+            // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
+            SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+        }
+
         /// <summary>
         /// On Windows, SDL will use the same image for both large and small icons (scaled as necessary).
         /// This can look bad if scaling down a large image, so we use the Windows API directly so as
@@ -52,6 +58,16 @@ namespace osu.Framework.Platform.Windows
         {
             ClientToScreen(WindowHandle, ref point);
             return point;
+        }
+
+        [DllImport("SHCore.dll", SetLastError = true)]
+        internal static extern bool SetProcessDpiAwareness(ProcessDpiAwareness awareness);
+
+        internal enum ProcessDpiAwareness
+        {
+            Process_DPI_Unaware = 0,
+            Process_System_DPI_Aware = 1,
+            Process_Per_Monitor_DPI_Aware = 2
         }
 
         [DllImport("user32.dll", SetLastError = true)]
