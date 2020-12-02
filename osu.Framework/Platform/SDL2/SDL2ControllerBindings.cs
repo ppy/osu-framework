@@ -5,13 +5,13 @@ using System;
 using System.Linq;
 using SDL2;
 
-namespace osu.Framework.Platform.Sdl
+namespace osu.Framework.Platform.SDL2
 {
     /// <summary>
     /// Maintain a copy of the SDL-provided bindings for the given controller.
     /// Used to determine whether a given event's joystick button or axis is unmapped.
     /// </summary>
-    public class Sdl2ControllerBindings
+    public class SDL2ControllerBindings
     {
         public readonly IntPtr JoystickHandle;
         public readonly IntPtr ControllerHandle;
@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Sdl
         /// </summary>
         public SDL.SDL_GameControllerButtonBind[] AxisBindings;
 
-        public Sdl2ControllerBindings(IntPtr joystickHandle, IntPtr controllerHandle)
+        public SDL2ControllerBindings(IntPtr joystickHandle, IntPtr controllerHandle)
         {
             JoystickHandle = joystickHandle;
             ControllerHandle = controllerHandle;
