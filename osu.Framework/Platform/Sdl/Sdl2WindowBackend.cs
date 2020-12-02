@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Caching;
@@ -13,10 +12,10 @@ using osuTK;
 using osuTK.Input;
 using SDL2;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform.Sdl
 {
@@ -470,7 +469,10 @@ namespace osu.Framework.Platform.Sdl
 
         public override unsafe void SetIcon(Image<Rgba32> image)
         {
-            var data = image.GetPixelSpan().ToArray();
+            if (!image.TryGetSinglePixelSpan(out var pixelSpan))
+                return;
+
+            var data = pixelSpan.ToArray();
             var imageSize = image.Size();
 
             commandScheduler.Add(() =>

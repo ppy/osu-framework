@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,14 +32,14 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
-using SixLabors.Memory;
+using SixLabors.ImageSharp.Memory;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -436,7 +435,10 @@ namespace osu.Framework.Platform
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
-                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                    bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
+                    Debug.Assert(result);
+
+                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelSpan));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();

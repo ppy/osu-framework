@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
@@ -17,8 +18,8 @@ using osu.Framework.Lists;
 using osu.Framework.Platform;
 using osuTK;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -518,15 +519,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private unsafe void initializeLevel(int level, int width, int height)
+        private void initializeLevel(int level, int width, int height)
         {
             using (var image = new Image<Rgba32>(width, height))
             {
-                fixed (void* buffer = &MemoryMarshal.GetReference(image.GetPixelSpan()))
-                {
-                    updateMemoryUsage(level, (long)width * height * 4);
-                    GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)buffer);
-                }
+                bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
+                Debug.Assert(result);
+
+                updateMemoryUsage(level, (long)width * height * 4);
+                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelSpan));
             }
         }
     }

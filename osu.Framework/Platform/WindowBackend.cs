@@ -3,13 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using osu.Framework.Input;
 using osuTK;
 using osuTK.Input;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {

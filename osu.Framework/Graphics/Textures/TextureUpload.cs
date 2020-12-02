@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using StbiSharp;
 
@@ -37,7 +36,16 @@ namespace osu.Framework.Graphics.Textures
         public RectangleI Bounds { get; set; }
 
         // ReSharper disable once MergeConditionalExpression (can't merge; compile error)
-        public ReadOnlySpan<Rgba32> Data => image != null ? image.GetPixelSpan() : Span<Rgba32>.Empty;
+        public ReadOnlySpan<Rgba32> Data
+        {
+            get
+            {
+                if (image == null || !image.TryGetSinglePixelSpan(out var pixelSpan))
+                    return ReadOnlySpan<Rgba32>.Empty;
+
+                return pixelSpan;
+            }
+        }
 
         public int Width => image?.Width ?? 0;
 

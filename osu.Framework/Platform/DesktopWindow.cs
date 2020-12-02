@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using osu.Framework.Bindables;
@@ -13,6 +12,7 @@ using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Point = System.Drawing.Point;
 using Image = SixLabors.ImageSharp.Image;
 
 namespace osu.Framework.Platform

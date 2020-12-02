@@ -13,7 +13,6 @@ using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -145,7 +144,9 @@ namespace osu.Framework.IO.Stores
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
-            var dest = image.GetPixelSpan();
+            bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
+            Debug.Assert(result);
+
             var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
@@ -158,7 +159,7 @@ namespace osu.Framework.IO.Stores
                 int writeOffset = y * character.Width;
 
                 for (int x = 0; x < character.Width; x++)
-                    dest[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelSpan[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);

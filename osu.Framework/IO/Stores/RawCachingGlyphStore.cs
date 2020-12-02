@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
@@ -10,9 +11,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.Primitives;
 
 namespace osu.Framework.IO.Stores
 {
@@ -106,7 +105,8 @@ namespace osu.Framework.IO.Stores
             if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
                 source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
 
-            var dest = image.GetPixelSpan();
+            bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
+            Debug.Assert(result);
 
             source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
             source.Read(readBuffer, 0, pageWidth * character.Height);
@@ -121,7 +121,7 @@ namespace osu.Framework.IO.Stores
                 int readOffset = y * pageWidth + character.X;
 
                 for (int x = 0; x < character.Width; x++)
-                    dest[writeOffset + x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
+                    pixelSpan[writeOffset + x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
             }
 
             return new TextureUpload(image);
