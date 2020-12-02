@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             IsInitialized = true;
 
-            host.UpdateThread.Scheduler.AddDelayed(checkPendingDisposals, 0, true);
+            reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
         }
 
         private static readonly List<PendingDisposal> pending_disposal_actions = new List<PendingDisposal>();
