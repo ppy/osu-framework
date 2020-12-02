@@ -260,6 +260,7 @@ namespace osu.Framework.Platform
             if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+                TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
 
                 var captured = ExceptionDispatchInfo.Capture(exception);
                 var thrownEvent = new ManualResetEventSlim(false);
