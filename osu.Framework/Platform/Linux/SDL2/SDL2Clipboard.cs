@@ -8,7 +8,7 @@ namespace osu.Framework.Platform.Linux.SDL2
 {
     public class SDL2Clipboard : Clipboard
     {
-        private const string lib = "libSDL2-2.0.so.0";
+        private const string lib = "libSDL2.so";
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_free", ExactSpelling = true)]
         internal static extern void SDL_free(IntPtr ptr);
