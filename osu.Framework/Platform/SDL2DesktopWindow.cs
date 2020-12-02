@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -19,9 +18,11 @@ using osuTK;
 using osuTK.Input;
 using SDL2;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -536,7 +537,10 @@ namespace osu.Framework.Platform
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
-            var data = image.GetPixelSpan().ToArray();
+            if (!image.TryGetSinglePixelSpan(out var pixelSpan))
+                return;
+
+            var data = pixelSpan.ToArray();
             var imageSize = image.Size();
 
             ScheduleCommand(() =>
