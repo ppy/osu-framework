@@ -35,7 +35,6 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public RectangleI Bounds { get; set; }
 
-        // ReSharper disable once MergeConditionalExpression (can't merge; compile error)
         public ReadOnlySpan<Rgba32> Data
         {
             get
