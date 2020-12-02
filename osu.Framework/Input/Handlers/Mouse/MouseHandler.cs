@@ -17,7 +17,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is Window window))
+            if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>

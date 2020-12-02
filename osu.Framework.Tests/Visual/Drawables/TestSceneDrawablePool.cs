@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
+using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -153,6 +155,30 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        public void TestPrepareOnlyOnceOnMultipleUsages()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+            TestDrawable drawable2 = null;
+
+            AddStep("consume item", () => drawable = consumeDrawable(false));
+
+            AddAssert("prepare was not run", () => drawable.PreparedCount == 0);
+            AddUntilStep("free was not run", () => drawable.FreedCount == 0);
+
+            AddStep("manually return drawable", () => pool.Return(drawable));
+            AddUntilStep("free was run", () => drawable.FreedCount == 1);
+
+            AddStep("consume item", () => drawable2 = consumeDrawable());
+
+            AddAssert("is same item", () => ReferenceEquals(drawable, drawable2));
+
+            AddAssert("prepare was only run once", () => drawable2.PreparedCount == 1);
+            AddUntilStep("free was run", () => drawable2.FreedCount == 2);
+        }
+
+        [Test]
         public void TestUsePoolableDrawableWithoutPool()
         {
             TestDrawable drawable = null;
@@ -209,6 +235,46 @@ namespace osu.Framework.Tests.Visual.Drawables
             Assert.DoesNotThrow(() => new TestPool(100, 1).Get());
         }
 
+        /// <summary>
+        /// Tests that when a child of a pooled drawable receives a parent invalidation, the parent pooled drawable is not returned.
+        /// A parent invalidation can happen on the child if it's added to the hierarchy of the parent.
+        /// </summary>
+        [Test]
+        public void TestParentInvalidationFromChildDoesNotReturnPooledParent()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+
+            AddStep("consume item", () => drawable = consumeDrawable(false));
+            AddStep("add child", () => drawable.AddChild(Empty()));
+            AddAssert("not freed", () => drawable.FreedCount == 0);
+        }
+
+        [Test]
+        public void TestDrawablePreparedWhenClockRewound()
+        {
+            resetWithNewPool(() => new TestPool(TimePerAction, 1));
+
+            TestDrawable drawable = null;
+
+            AddStep("consume item and rewind clock", () =>
+            {
+                var clock = new ManualClock { CurrentTime = Time.Current };
+
+                Add(new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Clock = new FramedClock(clock),
+                    Child = drawable = consumeDrawable(false)
+                });
+
+                clock.CurrentTime = 0;
+            });
+
+            AddAssert("child prepared", () => drawable.PreparedCount == 1);
+        }
+
         protected override void Update()
         {
             base.Update();
@@ -218,7 +284,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private static int displayCount;
 
-        private TestDrawable consumeDrawable()
+        private TestDrawable consumeDrawable(bool addToHierarchy = true)
         {
             var drawable = pool.Get(d =>
             {
@@ -227,7 +293,8 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             consumed.Add(drawable);
-            Add(drawable);
+            if (addToHierarchy)
+                Add(drawable);
 
             return drawable;
         }
@@ -304,6 +371,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                     },
                 };
             }
+
+            public void AddChild(Drawable drawable) => AddInternal(drawable);
 
             public new bool IsDisposed => base.IsDisposed;
 
