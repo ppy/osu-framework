@@ -12,7 +12,7 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Input;
-using osu.Framework.Platform.Sdl;
+using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 using osu.Framework.Threading;
 using osuTK;
@@ -30,7 +30,7 @@ namespace osu.Framework.Platform
     /// </summary>
     public class SDL2DesktopWindow : IWindow
     {
-        internal IntPtr SdlWindowHandle { get; private set; } = IntPtr.Zero;
+        internal IntPtr SDLWindowHandle { get; private set; } = IntPtr.Zero;
 
         private readonly IGraphicsBackend graphicsBackend;
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Platform
             set
             {
                 position = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowPosition(SdlWindowHandle, value.X, value.Y));
+                ScheduleCommand(() => SDL.SDL_SetWindowPosition(SDLWindowHandle, value.X, value.Y));
             }
         }
 
@@ -132,7 +132,7 @@ namespace osu.Framework.Platform
         private readonly Scheduler commandScheduler = new Scheduler();
         private readonly Scheduler eventScheduler = new Scheduler();
 
-        private readonly Dictionary<int, Sdl2ControllerBindings> controllers = new Dictionary<int, Sdl2ControllerBindings>();
+        private readonly Dictionary<int, SDL2ControllerBindings> controllers = new Dictionary<int, SDL2ControllerBindings>();
 
         private string title = string.Empty;
 
@@ -145,7 +145,7 @@ namespace osu.Framework.Platform
             set
             {
                 title = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowTitle(SdlWindowHandle, title));
+                ScheduleCommand(() => SDL.SDL_SetWindowTitle(SDLWindowHandle, title));
             }
         }
 
@@ -163,9 +163,9 @@ namespace osu.Framework.Platform
                 ScheduleCommand(() =>
                 {
                     if (value)
-                        SDL.SDL_ShowWindow(SdlWindowHandle);
+                        SDL.SDL_ShowWindow(SDLWindowHandle);
                     else
-                        SDL.SDL_HideWindow(SdlWindowHandle);
+                        SDL.SDL_HideWindow(SDLWindowHandle);
                 });
             }
         }
@@ -197,7 +197,7 @@ namespace osu.Framework.Platform
             set
             {
                 cursorConfined = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowGrab(SdlWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+                ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
         }
 
@@ -267,7 +267,7 @@ namespace osu.Framework.Platform
         {
             get
             {
-                if (SdlWindowHandle == IntPtr.Zero)
+                if (SDLWindowHandle == IntPtr.Zero)
                     return IntPtr.Zero;
 
                 var wmInfo = getWindowWMInfo();
@@ -305,11 +305,11 @@ namespace osu.Framework.Platform
 
         private SDL.SDL_SysWMinfo getWindowWMInfo()
         {
-            if (SdlWindowHandle == IntPtr.Zero)
+            if (SDLWindowHandle == IntPtr.Zero)
                 return default;
 
             var wmInfo = new SDL.SDL_SysWMinfo();
-            SDL.SDL_GetWindowWMInfo(SdlWindowHandle, ref wmInfo);
+            SDL.SDL_GetWindowWMInfo(SDLWindowHandle, ref wmInfo);
             return wmInfo;
         }
 
@@ -394,7 +394,7 @@ namespace osu.Framework.Platform
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
-            SdlWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+            SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
 
@@ -450,18 +450,18 @@ namespace osu.Framework.Platform
 
             OnExited();
 
-            if (SdlWindowHandle != IntPtr.Zero)
-                SDL.SDL_DestroyWindow(SdlWindowHandle);
+            if (SDLWindowHandle != IntPtr.Zero)
+                SDL.SDL_DestroyWindow(SDLWindowHandle);
 
             SDL.SDL_Quit();
         }
 
         private void updateWindowSize()
         {
-            SDL.SDL_GL_GetDrawableSize(SdlWindowHandle, out var w, out var h);
+            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
             var newSize = new Size(w, h);
 
-            SDL.SDL_GetWindowSize(SdlWindowHandle, out var actualW, out var _);
+            SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
             Scale = (float)w / actualW;
 
             if (!newSize.Equals(Size))
@@ -545,7 +545,7 @@ namespace osu.Framework.Platform
                 fixed (Rgba32* ptr = data)
                     surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 
-                SDL.SDL_SetWindowIcon(SdlWindowHandle, surface);
+                SDL.SDL_SetWindowIcon(SDLWindowHandle, surface);
                 SDL.SDL_FreeSurface(surface);
             });
         }
@@ -704,7 +704,7 @@ namespace osu.Framework.Platform
                     var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
                     var joystick = SDL.SDL_GameControllerGetJoystick(controller);
                     var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, controller);
+                    controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -751,7 +751,7 @@ namespace osu.Framework.Platform
                         break;
 
                     var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new Sdl2ControllerBindings(joystick, IntPtr.Zero);
+                    controllers[instanceID] = new SDL2ControllerBindings(joystick, IntPtr.Zero);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
@@ -923,9 +923,9 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
-            Debug.Assert(SdlWindowHandle != IntPtr.Zero);
+            Debug.Assert(SDLWindowHandle != IntPtr.Zero);
 
-            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SdlWindowHandle)).ToWindowState();
+            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
 
             if (windowState != currentState)
             {
@@ -933,7 +933,7 @@ namespace osu.Framework.Platform
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
 
-            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SdlWindowHandle);
+            int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
             if (displayIndex != newDisplayIndex)
             {
@@ -953,8 +953,8 @@ namespace osu.Framework.Platform
                 case WindowState.Normal:
                     Size = sizeWindowed.Value;
 
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-                    SDL.SDL_SetWindowSize(SdlWindowHandle, Size.Width, Size.Height);
+                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
                     updateWindowPositionFromConfig();
                     break;
@@ -966,27 +966,27 @@ namespace osu.Framework.Platform
                     // not 100% sure if this is the best way to handle things, but without restoring windowed mode before changing the display resolution,
                     // the GL context will not get the correct size. this is mentioned in multiple threads which seem to resolve by similar means.
                     // See https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4 for one such discussion.
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
-                    SDL.SDL_SetWindowDisplayMode(SdlWindowHandle, ref closestMode);
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                    SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
+                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                     break;
 
                 case WindowState.FullscreenBorderless:
-                    SDL.SDL_SetWindowFullscreen(SdlWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
                     Size = CurrentDisplayMode.Size;
                     break;
 
                 case WindowState.Maximised:
-                    SDL.SDL_MaximizeWindow(SdlWindowHandle);
+                    SDL.SDL_MaximizeWindow(SDLWindowHandle);
                     break;
 
                 case WindowState.Minimised:
-                    SDL.SDL_MinimizeWindow(SdlWindowHandle);
+                    SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
 
-            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out var mode) >= 0)
+            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
         }
 
@@ -1026,7 +1026,7 @@ namespace osu.Framework.Platform
 
         #endregion
 
-        protected virtual IGraphicsBackend CreateGraphicsBackend() => new Sdl2GraphicsBackend();
+        protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
         /// <summary>
         /// Set to true during a state change operation to avoid bindable feedback.
@@ -1186,7 +1186,7 @@ namespace osu.Framework.Platform
 
             // finally return the current mode if everything else fails.
             // not sure this is required.
-            if (SDL.SDL_GetWindowDisplayMode(SdlWindowHandle, out mode) >= 0)
+            if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out mode) >= 0)
                 return mode;
 
             throw new InvalidOperationException("couldn't retrieve valid display mode");
