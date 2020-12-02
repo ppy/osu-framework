@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.Sdl;
 using osu.Framework.Platform.Windows.Native;
@@ -537,16 +538,15 @@ namespace osu.Framework.Platform
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
-            if (!image.TryGetSinglePixelSpan(out var pixelSpan))
-                return;
-
-            var data = pixelSpan.ToArray();
+            var pixelMemory = image.GetContiguousPixelMemory();
             var imageSize = image.Size();
 
             ScheduleCommand(() =>
             {
+                var pixelSpan = pixelMemory.Span;
+
                 IntPtr surface;
-                fixed (Rgba32* ptr = data)
+                fixed (Rgba32* ptr = pixelSpan)
                     surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 
                 SDL.SDL_SetWindowIcon(SdlWindowHandle, surface);

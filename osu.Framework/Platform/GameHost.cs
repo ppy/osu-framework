@@ -21,6 +21,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -457,10 +458,8 @@ namespace osu.Framework.Platform
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
-                    bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
-                    Debug.Assert(result);
-
-                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelSpan));
+                    using (var pixels = image.GetContiguousPixelSpan())
+                        GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixels.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();

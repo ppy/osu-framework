@@ -14,8 +14,8 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
@@ -236,18 +236,18 @@ namespace osu.Framework.Graphics.Performance
             var column = new Image<Rgba32>(1, HEIGHT);
             var fullBackground = new Image<Rgba32>(WIDTH, HEIGHT);
 
-            bool result = column.TryGetSinglePixelSpan(out var pixelSpan);
-            Debug.Assert(result);
-
-            addArea(null, null, HEIGHT, pixelSpan, amount_ms_steps);
-
-            for (int i = 0; i < HEIGHT; i++)
+            using (var pixels = column.GetContiguousPixelSpan())
             {
-                for (int k = 0; k < WIDTH; k++)
-                    fullBackground[k, i] = column[0, i];
-            }
+                addArea(null, null, HEIGHT, pixels.Span, amount_ms_steps);
 
-            addArea(null, null, HEIGHT, pixelSpan, amount_count_steps);
+                for (int i = 0; i < HEIGHT; i++)
+                {
+                    for (int k = 0; k < WIDTH; k++)
+                        fullBackground[k, i] = column[0, i];
+                }
+
+                addArea(null, null, HEIGHT, pixels.Span, amount_count_steps);
+            }
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
             Schedule(() =>

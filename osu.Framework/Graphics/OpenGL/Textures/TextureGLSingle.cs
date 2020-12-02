@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using osu.Framework.Development;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using osuTK.Graphics.ES30;
@@ -523,11 +523,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             using (var image = new Image<Rgba32>(width, height))
             {
-                bool result = image.TryGetSinglePixelSpan(out var pixelSpan);
-                Debug.Assert(result);
-
-                updateMemoryUsage(level, (long)width * height * 4);
-                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelSpan));
+                using (var pixels = image.GetContiguousPixelSpan())
+                {
+                    updateMemoryUsage(level, (long)width * height * 4);
+                    GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,
+                        ref MemoryMarshal.GetReference(pixels.Span));
+                }
             }
         }
     }

@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
@@ -35,16 +36,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public RectangleI Bounds { get; set; }
 
-        public ReadOnlySpan<Rgba32> Data
-        {
-            get
-            {
-                if (image == null || !image.TryGetSinglePixelSpan(out var pixelSpan))
-                    return ReadOnlySpan<Rgba32>.Empty;
-
-                return pixelSpan;
-            }
-        }
+        public ReadOnlySpan<Rgba32> Data => pixelMemory.Span;
 
         public int Width => image?.Width ?? 0;
 
@@ -54,6 +46,8 @@ namespace osu.Framework.Graphics.Textures
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
         private readonly Image<Rgba32> image;
+
+        private ContiguousPixelMemory<Rgba32> pixelMemory;
 
         /// <summary>
         /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
@@ -65,6 +59,8 @@ namespace osu.Framework.Graphics.Textures
 
             if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
                 throw new TextureTooLargeForGLException();
+
+            pixelMemory = image.GetContiguousPixelMemory();
         }
 
         /// <summary>
@@ -123,7 +119,9 @@ namespace osu.Framework.Graphics.Textures
             if (!disposed)
             {
                 disposed = true;
+
                 image?.Dispose();
+                pixelMemory.Dispose();
             }
         }
 
