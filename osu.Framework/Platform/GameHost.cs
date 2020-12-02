@@ -294,7 +294,8 @@ namespace osu.Framework.Platform
                     if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
                         return;
 
-                    thrownEvent.Wait();
+                    // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                    thrownEvent.Wait(TimeSpan.FromSeconds(10));
                 }
             }
 
