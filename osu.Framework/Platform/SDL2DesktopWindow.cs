@@ -887,7 +887,8 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    updateWindowSize();
+                    if (windowState == WindowState.Normal)
+                        updateWindowSize();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
