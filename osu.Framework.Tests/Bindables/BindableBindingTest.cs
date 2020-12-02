@@ -23,6 +23,26 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestBindToEquivalent()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("same");
+            Bindable<string> bindable2 = new Bindable<string>("same");
+
+            bool changed1 = false, changed2 = false;
+            bindable1.ValueChanged += _ => changed1 = true;
+            bindable1.DefaultChanged += _ => changed1 = true;
+            bindable1.DisabledChanged += _ => changed1 = true;
+            bindable2.ValueChanged += _ => changed2 = true;
+            bindable2.DefaultChanged += _ => changed2 = true;
+            bindable2.DisabledChanged += _ => changed2 = true;
+
+            bindable1.BindTo(bindable2);
+
+            Assert.AreEqual(false, changed1);
+            Assert.AreEqual(false, changed2);
+        }
+
+        [Test]
         public void TestBindWhileDisabled()
         {
             Bindable<string> bindable1 = new Bindable<string> { Disabled = true };
