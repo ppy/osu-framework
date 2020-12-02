@@ -4,9 +4,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Platform.Linux.Sdl
+namespace osu.Framework.Platform.Linux.SDL2
 {
-    public class SdlClipboard : Clipboard
+    public class SDL2Clipboard : Clipboard
     {
         private const string lib = "libSDL2-2.0.so.0";
 
