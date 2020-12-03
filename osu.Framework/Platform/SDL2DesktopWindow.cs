@@ -971,7 +971,7 @@ namespace osu.Framework.Platform
 
                 case WindowState.FullscreenBorderless:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = CurrentDisplayMode.Size;
+                    Size = currentDisplay.Bounds.Size;
                     break;
 
                 case WindowState.Maximised:
