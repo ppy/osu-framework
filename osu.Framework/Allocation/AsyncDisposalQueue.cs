@@ -43,28 +43,33 @@ namespace osu.Framework.Allocation
 
             runTask = Task.Run(() =>
             {
-                IDisposable[] itemsToDispose;
-
-                lock (disposal_queue)
+                try
                 {
-                    itemsToDispose = disposal_queue.ToArray();
-                    disposal_queue.Clear();
+                    IDisposable[] itemsToDispose;
+
+                    lock (disposal_queue)
+                    {
+                        itemsToDispose = disposal_queue.ToArray();
+                        disposal_queue.Clear();
+                    }
+
+                    for (int i = 0; i < itemsToDispose.Length; i++)
+                    {
+                        ref var item = ref itemsToDispose[i];
+
+                        last_disposal.Value = item.ToString();
+                        item.Dispose();
+
+                        item = null;
+                    }
                 }
-
-                for (int i = 0; i < itemsToDispose.Length; i++)
+                finally
                 {
-                    ref var item = ref itemsToDispose[i];
-
-                    last_disposal.Value = item.ToString();
-                    item.Dispose();
-
-                    item = null;
-                }
-
-                lock (disposal_queue)
-                {
-                    if (Interlocked.Decrement(ref runningTasks) == 0)
-                        processing_reset_event.Set();
+                    lock (disposal_queue)
+                    {
+                        if (Interlocked.Decrement(ref runningTasks) == 0)
+                            processing_reset_event.Set();
+                    }
                 }
             });
         }

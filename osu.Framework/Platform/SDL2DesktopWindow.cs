@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -19,9 +19,11 @@ using osuTK;
 using osuTK.Input;
 using SDL2;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -536,13 +538,15 @@ namespace osu.Framework.Platform
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
-            var data = image.GetPixelSpan().ToArray();
+            var pixelMemory = image.CreateReadOnlyPixelMemory();
             var imageSize = image.Size();
 
             ScheduleCommand(() =>
             {
+                var pixelSpan = pixelMemory.Span;
+
                 IntPtr surface;
-                fixed (Rgba32* ptr = data)
+                fixed (Rgba32* ptr = pixelSpan)
                     surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 
                 SDL.SDL_SetWindowIcon(SDLWindowHandle, surface);
@@ -887,7 +891,8 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    updateWindowSize();
+                    if (windowState == WindowState.Normal)
+                        updateWindowSize();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -920,6 +925,11 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
+            // this method is potentially called from another thread (see event filter usage).
+            // this flag ensures such calls don't interfere with a user-requested screen mode change.
+            if (isChangingWindowState)
+                return;
+
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
 
             var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
@@ -945,6 +955,8 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
+            isChangingWindowState = true;
+
             switch (windowState)
             {
                 case WindowState.Normal:
@@ -971,7 +983,7 @@ namespace osu.Framework.Platform
 
                 case WindowState.FullscreenBorderless:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = CurrentDisplayMode.Size;
+                    Size = currentDisplay.Bounds.Size;
                     break;
 
                 case WindowState.Maximised:
@@ -985,6 +997,8 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
+
+            isChangingWindowState = false;
         }
 
         protected void OnHidden() { }
@@ -1029,6 +1043,8 @@ namespace osu.Framework.Platform
         /// Set to true during a state change operation to avoid bindable feedback.
         /// </summary>
         private bool windowStateChanging;
+
+        private bool isChangingWindowState;
 
         public void SetupWindow(FrameworkConfigManager config)
         {
