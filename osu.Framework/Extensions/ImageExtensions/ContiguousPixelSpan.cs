@@ -5,6 +5,7 @@
 
 using System;
 using System.Buffers;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Extensions.ImageExtensions
@@ -19,10 +20,18 @@ namespace osu.Framework.Extensions.ImageExtensions
 
         private readonly IMemoryOwner<TPixel>? owner;
 
-        internal ContiguousPixelSpan(Span<TPixel> span, IMemoryOwner<TPixel>? owner)
+        internal ContiguousPixelSpan(Image<TPixel> image)
         {
-            Span = span;
-            this.owner = owner;
+            if (image.TryGetSinglePixelSpan(out var span))
+            {
+                owner = null;
+                Span = span;
+            }
+            else
+            {
+                owner = image.CreateContiguousMemory();
+                Span = owner.Memory.Span;
+            }
         }
 
         public void Dispose()

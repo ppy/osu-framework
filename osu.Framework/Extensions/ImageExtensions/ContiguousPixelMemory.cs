@@ -5,6 +5,7 @@
 
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -21,8 +22,16 @@ namespace osu.Framework.Extensions.ImageExtensions
         {
             this.image = image;
 
-            memory = null;
-            owner = null;
+            if (image.TryGetSinglePixelSpan(out _))
+            {
+                owner = null;
+                memory = null;
+            }
+            else
+            {
+                owner = image.CreateContiguousMemory();
+                memory = owner.Memory;
+            }
         }
 
         /// <summary>
@@ -40,13 +49,7 @@ namespace osu.Framework.Extensions.ImageExtensions
                 if (image.TryGetSinglePixelSpan(out var pixelSpan))
                     return pixelSpan;
 
-                // Only allocate contiguous memory if not already allocated.
-                if (memory == null)
-                {
-                    owner = image.CreateContiguousMemory();
-                    memory = owner.Memory;
-                }
-
+                Debug.Assert(memory != null);
                 return memory.Value.Span;
             }
         }

@@ -22,13 +22,7 @@ namespace osu.Framework.Extensions.ImageExtensions
         /// <returns>The <see cref="ContiguousPixelSpan{TPixel}"/>.</returns>
         public static ContiguousPixelSpan<TPixel> GetContiguousPixelSpan<TPixel>(this Image<TPixel> image)
             where TPixel : unmanaged, IPixel<TPixel>
-        {
-            if (image.TryGetSinglePixelSpan(out var span))
-                return new ContiguousPixelSpan<TPixel>(span, null);
-
-            var contiguousOwner = image.CreateContiguousMemory();
-            return new ContiguousPixelSpan<TPixel>(contiguousOwner.Memory.Span, contiguousOwner);
-        }
+            => new ContiguousPixelSpan<TPixel>(image);
 
         /// <summary>
         /// A struct that can be stored, containing a contiguous memory buffer from the pixels of an <see cref="Image{TPixel}"/>.
