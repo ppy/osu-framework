@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
@@ -22,7 +23,7 @@ namespace osu.Framework.Graphics.Pooling
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
     public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
-        private static readonly GlobalStatistic<DrawablePoolUsageStatistic> usage_statistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName());
+        private readonly GlobalStatistic<DrawablePoolUsageStatistic> usageStatistic;
 
         private readonly int initialSize;
         private readonly int? maximumSize;
@@ -30,10 +31,8 @@ namespace osu.Framework.Graphics.Pooling
         private readonly Stack<T> pool = new Stack<T>();
         private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 
-        static DrawablePool()
-        {
-            usage_statistic.Value = new DrawablePoolUsageStatistic();
-        }
+        // ReSharper disable once StaticMemberInGenericType (this is intentional, we want a separate count per type).
+        private static int poolInstanceID;
 
         /// <summary>
         /// Create a new pool instance.
@@ -45,7 +44,12 @@ namespace osu.Framework.Graphics.Pooling
             this.maximumSize = maximumSize;
             this.initialSize = initialSize;
 
-            statistic = usage_statistic;
+            int id = Interlocked.Increment(ref poolInstanceID);
+
+            usageStatistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName() + $"`{id}");
+            usageStatistic.Value = new DrawablePoolUsageStatistic();
+
+            statistic = usageStatistic;
         }
 
         [BackgroundDependencyLoader]
@@ -154,6 +158,7 @@ namespace osu.Framework.Graphics.Pooling
 
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
+            GlobalStatistics.Remove(usageStatistic);
         }
 
         private int countInUse;
