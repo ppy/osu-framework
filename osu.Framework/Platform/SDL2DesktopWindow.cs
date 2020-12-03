@@ -891,7 +891,8 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    updateWindowSize();
+                    if (windowState == WindowState.Normal)
+                        updateWindowSize();
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -924,6 +925,11 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
+            // this method is potentially called from another thread (see event filter usage).
+            // this flag ensures such calls don't interfere with a user-requested screen mode change.
+            if (isChangingWindowState)
+                return;
+
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
 
             var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
@@ -949,6 +955,8 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
+            isChangingWindowState = true;
+
             switch (windowState)
             {
                 case WindowState.Normal:
@@ -975,7 +983,7 @@ namespace osu.Framework.Platform
 
                 case WindowState.FullscreenBorderless:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = CurrentDisplayMode.Size;
+                    Size = currentDisplay.Bounds.Size;
                     break;
 
                 case WindowState.Maximised:
@@ -989,6 +997,8 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
+
+            isChangingWindowState = false;
         }
 
         protected void OnHidden() { }
@@ -1033,6 +1043,8 @@ namespace osu.Framework.Platform
         /// Set to true during a state change operation to avoid bindable feedback.
         /// </summary>
         private bool windowStateChanging;
+
+        private bool isChangingWindowState;
 
         public void SetupWindow(FrameworkConfigManager config)
         {
