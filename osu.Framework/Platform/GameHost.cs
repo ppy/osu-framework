@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,14 +32,15 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
-using SixLabors.Memory;
+using SixLabors.ImageSharp.Memory;
+using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -455,7 +455,9 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
+                int width = Window.ClientSize.Width;
+                int height = Window.ClientSize.Height;
+                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
 
                 DrawThread.Scheduler.Add(() =>
                 {
@@ -464,7 +466,7 @@ namespace osu.Framework.Platform
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
-                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -473,6 +475,7 @@ namespace osu.Framework.Platform
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
                 await Task.Run(completionEvent.Wait);
 
+                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
 
                 return image;

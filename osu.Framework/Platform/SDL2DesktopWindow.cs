@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
@@ -19,9 +19,11 @@ using osuTK;
 using osuTK.Input;
 using SDL2;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -536,13 +538,15 @@ namespace osu.Framework.Platform
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
-            var data = image.GetPixelSpan().ToArray();
+            var pixelMemory = image.CreateReadOnlyPixelMemory();
             var imageSize = image.Size();
 
             ScheduleCommand(() =>
             {
+                var pixelSpan = pixelMemory.Span;
+
                 IntPtr surface;
-                fixed (Rgba32* ptr = data)
+                fixed (Rgba32* ptr = pixelSpan)
                     surface = SDL.SDL_CreateRGBSurfaceFrom(new IntPtr(ptr), imageSize.Width, imageSize.Height, 32, imageSize.Width * 4, 0xff, 0xff00, 0xff0000, 0xff000000);
 
                 SDL.SDL_SetWindowIcon(SDLWindowHandle, surface);
