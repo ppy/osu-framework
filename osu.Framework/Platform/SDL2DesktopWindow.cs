@@ -891,11 +891,6 @@ namespace osu.Framework.Platform
                         updateWindowSize();
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-                    break;
-
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                     cursorInWindow.Value = true;
                     ScheduleEvent(OnMouseEntered);
@@ -906,10 +901,12 @@ namespace osu.Framework.Platform
                     ScheduleEvent(OnMouseLeft);
                     break;
 
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
                     ScheduleEvent(OnFocusGained);
                     break;
 
+                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
                     ScheduleEvent(OnFocusLost);
                     break;
@@ -982,7 +979,7 @@ namespace osu.Framework.Platform
 
                 case WindowState.FullscreenBorderless:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = CurrentDisplayMode.Size;
+                    Size = currentDisplay.Bounds.Size;
                     break;
 
                 case WindowState.Maximised:
