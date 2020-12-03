@@ -3,7 +3,7 @@
 
 using System;
 using System.IO;
-using osu.Framework.Platform.Linux.Sdl;
+using osu.Framework.Platform.Linux.SDL2;
 using osuTK;
 
 namespace osu.Framework.Platform.Linux
@@ -40,6 +40,6 @@ namespace osu.Framework.Platform.Linux
         }
 
         public override Clipboard GetClipboard() =>
-            Window is SDL2DesktopWindow || (Window as OsuTKLinuxWindow)?.IsSdl == true ? (Clipboard)new SdlClipboard() : new LinuxClipboard();
+            Window is SDL2DesktopWindow || (Window as OsuTKLinuxWindow)?.IsSDL2 == true ? (Clipboard)new SDL2Clipboard() : new LinuxClipboard();
     }
 }

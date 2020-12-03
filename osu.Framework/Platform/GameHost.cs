@@ -260,6 +260,7 @@ namespace osu.Framework.Platform
             if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+                TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
 
                 var captured = ExceptionDispatchInfo.Capture(exception);
                 var thrownEvent = new ManualResetEventSlim(false);
@@ -278,19 +279,24 @@ namespace osu.Framework.Platform
                 });
 
                 // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
-                // To avoid this, the exceptioning thread will be paused until the rethrow takes place.
-                // Importantly, this is bypassed for GameThread sources in two situations where deadlocks can occur:
-                // 1. When the exceptioning thread is already the input thread.
-                // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
-                if (!(sender is GameThread)
-                    || (sender != InputThread && executionMode.Value == ExecutionMode.MultiThreaded))
-                {
-                    thrownEvent.Wait();
-                }
+                // To avoid this, pause the exceptioning thread until the rethrow takes place.
+                waitForThrow();
 
                 // schedule an exit to the input thread.
                 // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
                 PerformExit(false);
+
+                void waitForThrow()
+                {
+                    // This is bypassed for GameThread sources in two situations where deadlocks can occur:
+                    // 1. When the exceptioning thread is the input thread.
+                    // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                    if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                        return;
+
+                    // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                    thrownEvent.Wait(TimeSpan.FromSeconds(10));
+                }
             }
 
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);

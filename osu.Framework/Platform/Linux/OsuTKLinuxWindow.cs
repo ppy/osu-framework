@@ -10,7 +10,7 @@ namespace osu.Framework.Platform.Linux
 {
     public class OsuTKLinuxWindow : OsuTKDesktopWindow
     {
-        public bool IsSdl { get; private set; }
+        public bool IsSDL2 { get; private set; }
 
         public OsuTKLinuxWindow()
         {
@@ -25,7 +25,7 @@ namespace osu.Framework.Platform.Linux
             var windowImpl = implementationField.GetValue(OsuTKGameWindow);
             Debug.Assert(windowImpl != null);
 
-            IsSdl = windowImpl.GetType().Name == "Sdl2NativeWindow";
+            IsSDL2 = windowImpl.GetType().Name == "Sdl2NativeWindow";
         }
     }
 }
