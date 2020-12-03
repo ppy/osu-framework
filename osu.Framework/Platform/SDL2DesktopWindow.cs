@@ -538,7 +538,7 @@ namespace osu.Framework.Platform
         /// <param name="image">An <see cref="Image{Rgba32}"/> to set as the window icon.</param>
         private unsafe void setSDLIcon(Image<Rgba32> image)
         {
-            var pixelMemory = image.GetContiguousPixelMemory();
+            var pixelMemory = image.CreateReadOnlyPixelMemory();
             var imageSize = image.Size();
 
             ScheduleCommand(() =>

@@ -523,7 +523,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             using (var image = new Image<Rgba32>(width, height))
             {
-                using (var pixels = image.GetContiguousPixelSpan())
+                using (var pixels = image.CreateReadOnlyPixelSpan())
                 {
                     updateMemoryUsage(level, (long)width * height * 4);
                     GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte,

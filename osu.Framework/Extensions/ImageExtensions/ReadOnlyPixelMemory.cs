@@ -11,14 +11,14 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Extensions.ImageExtensions
 {
-    public struct ContiguousPixelMemory<TPixel> : IDisposable
+    public struct ReadOnlyPixelMemory<TPixel> : IDisposable
         where TPixel : unmanaged, IPixel<TPixel>
     {
         private Image<TPixel>? image;
         private Memory<TPixel>? memory;
         private IMemoryOwner<TPixel>? owner;
 
-        internal ContiguousPixelMemory(Image<TPixel> image)
+        internal ReadOnlyPixelMemory(Image<TPixel> image)
         {
             this.image = image;
 

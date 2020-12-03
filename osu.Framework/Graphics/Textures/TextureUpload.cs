@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         private readonly Image<Rgba32> image;
 
-        private ContiguousPixelMemory<Rgba32> pixelMemory;
+        private ReadOnlyPixelMemory<Rgba32> pixelMemory;
 
         /// <summary>
         /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Textures
             if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
                 throw new TextureTooLargeForGLException();
 
-            pixelMemory = image.GetContiguousPixelMemory();
+            pixelMemory = image.CreateReadOnlyPixelMemory();
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Extensions.ImageExtensions
 {
-    public readonly ref struct ContiguousPixelSpan<TPixel>
+    public readonly ref struct ReadOnlyPixelSpan<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {
         /// <summary>
@@ -20,7 +20,7 @@ namespace osu.Framework.Extensions.ImageExtensions
 
         private readonly IMemoryOwner<TPixel>? owner;
 
-        internal ContiguousPixelSpan(Image<TPixel> image)
+        internal ReadOnlyPixelSpan(Image<TPixel> image)
         {
             if (image.TryGetSinglePixelSpan(out var span))
             {
