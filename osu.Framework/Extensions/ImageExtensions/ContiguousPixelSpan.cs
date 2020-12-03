@@ -16,7 +16,7 @@ namespace osu.Framework.Extensions.ImageExtensions
         /// <summary>
         /// The span of pixels.
         /// </summary>
-        public readonly Span<TPixel> Span;
+        public readonly ReadOnlySpan<TPixel> Span;
 
         private readonly IMemoryOwner<TPixel>? owner;
 

@@ -37,7 +37,7 @@ namespace osu.Framework.Extensions.ImageExtensions
         /// <summary>
         /// The span of pixels.
         /// </summary>
-        public Span<TPixel> Span
+        public ReadOnlySpan<TPixel> Span
         {
             get
             {

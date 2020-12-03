@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
 using SharpFNT;
@@ -102,26 +101,23 @@ namespace osu.Framework.IO.Stores
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
-            using (var pixels = image.GetContiguousPixelSpan())
+            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
+                source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+
+            source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
+            source.Read(readBuffer, 0, pageWidth * character.Height);
+
+            // the spritesheet may have unused pixels trimmed
+            int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
+            int readableWidth = Math.Min(character.Width, pageWidth - character.X);
+
+            for (int y = 0; y < character.Height; y++)
             {
-                if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
-                    source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+                var pixelRowSpan = image.GetPixelRowSpan(y);
+                int readOffset = y * pageWidth + character.X;
 
-                source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
-                source.Read(readBuffer, 0, pageWidth * character.Height);
-
-                // the spritesheet may have unused pixels trimmed
-                int readableHeight = Math.Min(character.Height, page.Size.Height - character.Y);
-                int readableWidth = Math.Min(character.Width, pageWidth - character.X);
-
-                for (int y = 0; y < character.Height; y++)
-                {
-                    int writeOffset = y * character.Width;
-                    int readOffset = y * pageWidth + character.X;
-
-                    for (int x = 0; x < character.Width; x++)
-                        pixels.Span[writeOffset + x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
-                }
+                for (int x = 0; x < character.Width; x++)
+                    pixelRowSpan[x] = new Rgba32(255, 255, 255, x < readableWidth && y < readableHeight ? readBuffer[readOffset + x] : (byte)0);
             }
 
             return new TextureUpload(image);

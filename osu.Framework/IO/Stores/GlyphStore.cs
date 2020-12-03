@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
@@ -144,23 +143,19 @@ namespace osu.Framework.IO.Stores
             LoadedGlyphCount++;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
+            var source = page.Data;
 
-            using (var pixels = image.GetContiguousPixelSpan())
+            // the spritesheet may have unused pixels trimmed
+            int readableHeight = Math.Min(character.Height, page.Height - character.Y);
+            int readableWidth = Math.Min(character.Width, page.Width - character.X);
+
+            for (int y = 0; y < character.Height; y++)
             {
-                var source = page.Data;
+                var pixelRowSpan = image.GetPixelRowSpan(y);
+                int readOffset = (character.Y + y) * page.Width + character.X;
 
-                // the spritesheet may have unused pixels trimmed
-                int readableHeight = Math.Min(character.Height, page.Height - character.Y);
-                int readableWidth = Math.Min(character.Width, page.Width - character.X);
-
-                for (int y = 0; y < character.Height; y++)
-                {
-                    int readOffset = (character.Y + y) * page.Width + character.X;
-                    int writeOffset = y * character.Width;
-
-                    for (int x = 0; x < character.Width; x++)
-                        pixels.Span[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
-                }
+                for (int x = 0; x < character.Width; x++)
+                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);
