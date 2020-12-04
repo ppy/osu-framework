@@ -13,18 +13,39 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestDisposalWhileItemsAreAddedDoesNotThrowInvalidOperationException()
         {
-            var manager = new AudioCollectionManager<AdjustableAudioComponent>();
+            var manager = new TestAudioCollectionManager();
+
+            var threadExecutionFinished = new ManualResetEventSlim();
+            var updateLoopStarted = new ManualResetEventSlim();
 
             // add a huge amount of items to the queue
-            for (int i = 0; i < 10000; i++) manager.AddItem(new TestingAdjustableAudioComponent());
+            for (int i = 0; i < 10000; i++)
+                manager.AddItem(new TestingAdjustableAudioComponent());
 
-            // in a seperate thread start processing the queue
-            new Thread(() => manager.Update()).Start();
+            // in a separate thread start processing the queue
+            var thread = new Thread(() =>
+            {
+                while (!manager.IsDisposed)
+                {
+                    manager.Update();
+                    updateLoopStarted.Set();
+                }
 
-            // wait a little for beginning of the update to start
-            Thread.Sleep(4);
+                threadExecutionFinished.Set();
+            });
+
+            thread.Start();
+
+            Assert.IsTrue(updateLoopStarted.Wait(1000));
 
             Assert.DoesNotThrow(() => manager.Dispose());
+
+            Assert.IsTrue(threadExecutionFinished.Wait(1000));
+        }
+
+        private class TestAudioCollectionManager : AudioCollectionManager<AdjustableAudioComponent>
+        {
+            public new bool IsDisposed => base.IsDisposed;
         }
 
         private class TestingAdjustableAudioComponent : AdjustableAudioComponent
