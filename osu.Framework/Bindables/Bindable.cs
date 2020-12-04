@@ -199,7 +199,7 @@ namespace osu.Framework.Bindables
 
             if (!EqualityComparer<T>.Default.Equals(Value, them.Value))
             {
-                // The value of the other bindable has been rejected from being set here, propagate the updated value to them.
+                // The value of the other bindable has been rejected from being set here, propagate the updated value to them instead, to keep synchronisation.
                 them.SetValue(them.Value, Value, false, this);
             }
         }
