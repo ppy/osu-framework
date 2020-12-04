@@ -36,11 +36,11 @@ namespace osu.Framework.Tests.Audio
 
             thread.Start();
 
-            Assert.IsTrue(updateLoopStarted.Wait(1000));
+            Assert.IsTrue(updateLoopStarted.Wait(10000));
 
             Assert.DoesNotThrow(() => manager.Dispose());
 
-            Assert.IsTrue(threadExecutionFinished.Wait(1000));
+            Assert.IsTrue(threadExecutionFinished.Wait(10000));
         }
 
         private class TestAudioCollectionManager : AudioCollectionManager<AdjustableAudioComponent>
