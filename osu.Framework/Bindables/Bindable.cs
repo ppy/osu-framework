@@ -196,6 +196,12 @@ namespace osu.Framework.Bindables
 
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
+
+            if (!EqualityComparer<T>.Default.Equals(Value, them.Value))
+            {
+                // The value of the other bindable has been rejected from being set here, propagate the updated value to them.
+                them.SetValue(them.Value, Value, false, this);
+            }
         }
 
         /// <summary>
