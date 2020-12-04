@@ -334,6 +334,31 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestBindWithUpstreamRejection()
+        {
+            Bindable<string> bindable1 = new Bindable<string>("rejected value");
+            Bindable<string> bindable2 = new Bindable<string>();
+
+            int changed1 = 0, changed2 = 0;
+
+            bindable1.ValueChanged += v => changed1++;
+            bindable2.ValueChanged += v =>
+            {
+                bindable2.Value = "accepted value";
+                changed2++;
+            };
+
+            bindable2.BindTo(bindable1);
+
+            Assert.AreEqual("accepted value", bindable1.Value);
+            Assert.AreEqual(bindable1.Value, bindable2.Value);
+
+            // bindable1 should only receive the final value changed, skipping the intermediary (overidden) one.
+            Assert.AreEqual(1, changed1);
+            Assert.AreEqual(2, changed2);
+        }
+
+        [Test]
         public void TestUnbindOnDrawableDispose()
         {
             var drawable = new TestDrawable();
