@@ -51,7 +51,7 @@ namespace osu.Framework.Audio
 
         protected override void Dispose(bool disposing)
         {
-            // make the items queue their disposal, so they get disposed when <see cref="UpdateChildren"/> updates them.
+            // make the items queue their disposal, so they get disposed when UpdateChildren updates them.
             foreach (var i in Items)
                 i.Dispose();
 
