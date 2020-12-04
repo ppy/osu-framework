@@ -5,9 +5,9 @@ using osu.Framework.Input;
 using osuTK.Input;
 using SDL2;
 
-namespace osu.Framework.Platform.Sdl
+namespace osu.Framework.Platform.SDL2
 {
-    public static class Sdl2Extensions
+    public static class SDL2Extensions
     {
         public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
         {
