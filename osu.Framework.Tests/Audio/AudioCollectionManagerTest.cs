@@ -27,8 +27,8 @@ namespace osu.Framework.Tests.Audio
             {
                 while (!manager.IsDisposed)
                 {
-                    manager.Update();
                     updateLoopStarted.Set();
+                    manager.Update();
                 }
 
                 threadExecutionFinished.Set();
