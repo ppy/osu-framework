@@ -23,13 +23,12 @@ namespace osu.Framework.Graphics.Pooling
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
     public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
-        private readonly GlobalStatistic<DrawablePoolUsageStatistic> usageStatistic;
+        private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 
         private readonly int initialSize;
         private readonly int? maximumSize;
 
         private readonly Stack<T> pool = new Stack<T>();
-        private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
 
         // ReSharper disable once StaticMemberInGenericType (this is intentional, we want a separate count per type).
         private static int poolInstanceID;
@@ -46,10 +45,8 @@ namespace osu.Framework.Graphics.Pooling
 
             int id = Interlocked.Increment(ref poolInstanceID);
 
-            usageStatistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName() + $"`{id}");
-            usageStatistic.Value = new DrawablePoolUsageStatistic();
-
-            statistic = usageStatistic;
+            statistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName() + $"`{id}");
+            statistic.Value = new DrawablePoolUsageStatistic();
         }
 
         [BackgroundDependencyLoader]
@@ -156,9 +153,10 @@ namespace osu.Framework.Graphics.Pooling
             CountConstructed = 0;
             CountAvailable = 0;
 
+            GlobalStatistics.Remove(statistic);
+
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
-            GlobalStatistics.Remove(usageStatistic);
         }
 
         private int countInUse;
