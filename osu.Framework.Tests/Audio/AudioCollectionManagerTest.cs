@@ -10,10 +10,6 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class AudioCollectionManagerTest
     {
-        private class TestingAdjustableAudioComponent : AdjustableAudioComponent
-        {
-        }
-
         [Test]
         public void TestDisposalWhileItemsAreAddedDoesNotThrowInvalidOperationException()
         {
@@ -29,6 +25,10 @@ namespace osu.Framework.Tests.Audio
             Thread.Sleep(4);
 
             Assert.DoesNotThrow(() => manager.Dispose());
+        }
+
+        private class TestingAdjustableAudioComponent : AdjustableAudioComponent
+        {
         }
     }
 }
