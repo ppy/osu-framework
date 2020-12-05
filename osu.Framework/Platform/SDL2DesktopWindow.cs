@@ -963,6 +963,8 @@ namespace osu.Framework.Platform
                     Size = sizeWindowed.Value;
 
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
+
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
                     updateWindowPositionFromConfig();
