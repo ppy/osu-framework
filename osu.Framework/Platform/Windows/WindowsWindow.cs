@@ -22,8 +22,15 @@ namespace osu.Framework.Platform.Windows
 
         public WindowsWindow()
         {
-            // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-            SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+            try
+            {
+                // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
+                SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+            }
+            catch
+            {
+                // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+            }
         }
 
         /// <summary>
