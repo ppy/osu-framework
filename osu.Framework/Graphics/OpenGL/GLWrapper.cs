@@ -112,26 +112,53 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
 
             IsInitialized = true;
+
+            reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
+        }
+
+        private static readonly List<PendingDisposal> pending_disposal_actions = new List<PendingDisposal>();
+
+        private class PendingDisposal
+        {
+            public int RemainingFrameDelay = MAX_DRAW_NODES;
+
+            public readonly Action Action;
+
+            public PendingDisposal(Action action)
+            {
+                Action = action;
+            }
         }
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            int frameCount = 0;
-
-            if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            if (host != null && host.TryGetTarget(out _))
+            {
+                lock (pending_disposal_actions)
+                    pending_disposal_actions.Add(new PendingDisposal(disposalAction));
+            }
             else
                 disposalAction.Invoke();
+        }
 
-            void scheduleNextDisposal() => reset_scheduler.Add(() =>
+        private static void checkPendingDisposals()
+        {
+            // use for loop to avoid need for locking
+            for (var i = 0; i < pending_disposal_actions.Count; i++)
             {
-                // There may be a number of DrawNodes queued to be drawn
-                // Disposal should only take place after
-                if (frameCount++ >= MAX_DRAW_NODES)
-                    disposalAction.Invoke();
-                else
-                    scheduleNextDisposal();
-            });
+                var item = pending_disposal_actions[i];
+
+                if (item.RemainingFrameDelay-- == 0)
+                {
+                    item.Action();
+
+                    lock (pending_disposal_actions)
+                    {
+                        Debug.Assert(i == 0);
+                        pending_disposal_actions.RemoveAt(i--);
+                    }
+                }
+            }
         }
 
         private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
