@@ -564,7 +564,7 @@ namespace osu.Framework.Platform
 
             previousPolledPoint = new Point(x, y);
 
-            var pos = windowState == WindowState.Normal ? Position : windowDisplayBounds.Location;
+            var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
