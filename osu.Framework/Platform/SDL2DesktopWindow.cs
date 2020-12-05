@@ -880,7 +880,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                     var newPosition = new Point(evtWindow.data1, evtWindow.data2);
 
-                    if (windowState == WindowState.Normal && !newPosition.Equals(Position))
+                    if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
                         position = newPosition;
                         updateWindowPositionConfigFromCurrent();
@@ -891,7 +891,7 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    if (windowState == WindowState.Normal)
+                    if (WindowMode.Value == Configuration.WindowMode.Windowed)
                         updateWindowSize();
                     break;
 
