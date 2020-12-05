@@ -1096,7 +1096,16 @@ namespace osu.Framework.Platform
                         break;
 
                     case Configuration.WindowMode.Windowed:
-                        WindowState = WindowState.Normal;
+                        // todo: this will cause WindowState value to stay at Fullscreen/Borderless for a whole frame
+                        // but is required for taking correct actions based on whether the window is maximised or not.
+                        ScheduleCommand(() =>
+                        {
+                            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+
+                            var sdlWindowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+                            Debug.Assert(sdlWindowState == WindowState.Maximised || sdlWindowState == WindowState.Normal);
+                            WindowState = sdlWindowState;
+                        });
                         break;
                 }
 
