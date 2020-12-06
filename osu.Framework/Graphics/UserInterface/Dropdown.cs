@@ -211,17 +211,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.RelativeSizeAxes = Axes.X;
 
-            Header.Action = () =>
-            {
-                if (!Current.Disabled)
-                    Menu.Toggle();
-            };
+            Header.Action = Menu.Toggle;
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
             Current.DisabledChanged += disabled =>
             {
-                Header.Disabled.Value = disabled;
+                Header.Enabled.Value = !disabled;
                 if (disabled && Menu.State == MenuState.Open)
                     Menu.State = MenuState.Closed;
             };
