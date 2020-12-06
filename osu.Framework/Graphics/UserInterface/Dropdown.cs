@@ -183,7 +183,11 @@ namespace osu.Framework.Graphics.UserInterface
             get => selectedItem;
             set
             {
+                if (Current.Disabled)
+                    return;
+
                 selectedItem = value;
+
                 if (value != null)
                     Current.Value = value.Value;
             }
@@ -207,7 +211,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             Menu.RelativeSizeAxes = Axes.X;
 
-            Header.Action = Menu.Toggle;
+            Header.Action = () =>
+            {
+                if (!Current.Disabled)
+                    Menu.Toggle();
+            };
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
