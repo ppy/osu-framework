@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = testDropdown = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(200, 70),
+                    Position = new Vector2(50, 50),
                     Items = testItems
                 }
             });
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = testDropdownMenu = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(400, 70),
+                    Position = new Vector2(250, 50),
                     Items = testItems
                 }
             });
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Add(bindableDropdown = new TestDropdown
             {
                 Width = 150,
-                Position = new Vector2(600, 70),
+                Position = new Vector2(450, 50),
                 ItemSource = bindableList
             });
 
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = emptyDropdown = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(800, 70),
+                    Position = new Vector2(650, 50),
                 }
             });
         }
