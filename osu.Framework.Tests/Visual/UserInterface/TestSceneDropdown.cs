@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));
 
             AddStep("clear bindable list", () => bindableList.Clear());
-            AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
             AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
 
             AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }));
@@ -278,7 +278,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertDropdownIsClosed(testDropdownMenu);
             assertLastItemSelected();
 
-            AddStep($"Click {emptyDropdown}", () => toggleDropdownViaClick(emptyDropdown));
+            toggleDropdownViaClick(emptyDropdown, "empty dropdown");
             AddStep("Preselect next item when empty", () => performKeypress(emptyDropdown.Menu, Key.Down));
             AddStep("Preselect previous item when empty", () => performKeypress(emptyDropdown.Menu, Key.Up));
             AddStep("Preselect first visible item when empty", () => performKeypress(emptyDropdown.Menu, Key.PageUp));
