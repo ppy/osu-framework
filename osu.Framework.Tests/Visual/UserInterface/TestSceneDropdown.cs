@@ -79,7 +79,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var i = items_to_add;
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown is open", () => testDropdown.Menu.State == MenuState.Open);
 
             AddRepeatStep("add item", () => testDropdown.AddDropdownItem("test " + i++), items_to_add);
@@ -103,10 +103,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
             AddAssert("item 15 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(15));
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu));
+            toggleDropdownViaClick(testDropdownMenu, "dropdown2");
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => testDropdownMenu.Menu.State == MenuState.Open);
@@ -202,8 +202,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             if (cleanSelection)
                 AddStep("Clean selection", () => testDropdownMenu.Current.Value = null);
 
-            clickKeyboardPreselectionDropdown();
-            assertDropdownIsOpen();
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
 
             AddStep("Preselect next item", () =>
             {
@@ -267,11 +267,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             assertLastItemSelected();
 
-            assertDropdownIsClosed();
+            assertDropdownIsClosed(testDropdownMenu);
 
-            clickKeyboardPreselectionDropdown();
+            toggleDropdownViaClick(testDropdownMenu);
 
-            assertDropdownIsOpen();
+            assertDropdownIsOpen(testDropdownMenu);
 
             AddStep("Preselect first item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
@@ -280,7 +280,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("Discard preselection", () => performKeypress(testDropdownMenu.Menu, Key.Escape));
 
-            assertDropdownIsClosed();
+            assertDropdownIsClosed(testDropdownMenu);
 
             assertLastItemSelected();
 
@@ -312,13 +312,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Preselect last item when empty",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerEmptyDropdown, emptyDropdown));
 
-            void clickKeyboardPreselectionDropdown() => AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(testDropdownMenu));
-
-            void assertDropdownIsOpen() => AddAssert("dropdown is open", () => testDropdownMenu.Menu.State == MenuState.Open);
-
             void assertLastItemSelected() => AddAssert("Last item selected", () => testDropdownMenu.SelectedItem == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
-
-            void assertDropdownIsClosed() => AddAssert("dropdown is closed", () => testDropdownMenu.Menu.State == MenuState.Closed);
         }
 
         [Test]
@@ -330,11 +324,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("null is selected", () => testDropdown.Current.Value == null);
         }
 
-        private void toggleDropdownViaClick(TestDropdown dropdown)
+        private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
             InputManager.Click(MouseButton.Left);
-        }
+        });
+
+        private void assertDropdownIsOpen(TestDropdown dropdown) => AddAssert("dropdown is open", () => dropdown.Menu.State == MenuState.Open);
+
+        private void assertDropdownIsClosed(TestDropdown dropdown) => AddAssert("dropdown is closed", () => dropdown.Menu.State == MenuState.Closed);
 
         private class TestDropdown : BasicDropdown<string>
         {
