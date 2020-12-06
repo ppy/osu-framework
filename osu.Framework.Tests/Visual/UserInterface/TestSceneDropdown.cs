@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown, disabledDropdown;
         private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection, platformActionContainerEmptyDropdown;
         private readonly BindableList<string> bindableList = new BindableList<string>();
 
@@ -70,6 +70,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 {
                     Width = 150,
                     Position = new Vector2(650, 50),
+                }
+            });
+
+            Add(disabledDropdown = new TestDropdown
+            {
+                Width = 150,
+                Position = new Vector2(50, 350),
+                Items = testItems,
+                Current =
+                {
+                    Value = testItems[3],
+                    Disabled = true
                 }
             });
         }
@@ -286,6 +298,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("item 1 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(1));
             AddStep("select item null", () => testDropdown.Current.Value = null);
             AddAssert("null is selected", () => testDropdown.Current.Value == null);
+        }
+
+        [Test]
+        public void TestDisabledCurrent()
+        {
+            string originalValue = null;
+
+            AddStep("store original value", () => originalValue = disabledDropdown.Current.Value);
+
+            toggleDropdownViaClick(disabledDropdown);
+            assertDropdownIsClosed(disabledDropdown);
+
+            AddStep("attempt to select next", () => performKeypress(disabledDropdown, Key.Down));
+            valueIsUnchanged();
+
+            AddStep("attempt to select previous", () => performKeypress(disabledDropdown, Key.Up));
+            valueIsUnchanged();
+
+            AddStep("attempt to select first", () => disabledDropdown.Header.OnPressed(new PlatformAction(PlatformActionType.ListStart)));
+            valueIsUnchanged();
+
+            AddStep("attempt to select last", () => disabledDropdown.Header.OnPressed(new PlatformAction(PlatformActionType.ListEnd)));
+            valueIsUnchanged();
+
+            void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value == originalValue);
         }
 
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
