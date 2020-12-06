@@ -11,7 +11,9 @@ namespace osu.Framework.Platform.SDL2
     {
         public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
         {
-            bool numLockOn = sdlKeysym.mod.HasFlag(SDL.SDL_Keymod.KMOD_NUM);
+            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
+            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
+            bool numLockOn = sdlKeysym.mod.HasFlag(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
 
             switch (sdlKeysym.scancode)
             {
