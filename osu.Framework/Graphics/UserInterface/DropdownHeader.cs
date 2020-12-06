@@ -3,6 +3,7 @@
 
 using osuTK.Graphics;
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
@@ -16,6 +17,8 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public event Action<DropdownSelectionAction> ChangeSelection;
 
+        public Bindable<bool> Disabled { get; } = new BindableBool();
+
         protected Container Background;
         protected Container Foreground;
 
@@ -27,7 +30,19 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundColour = value;
-                Background.Colour = value;
+                updateState();
+            }
+        }
+
+        private Color4 disabledColour = Color4.Gray;
+
+        protected Color4 DisabledColour
+        {
+            get => disabledColour;
+            set
+            {
+                disabledColour = value;
+                updateState();
             }
         }
 
@@ -67,22 +82,37 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            Disabled.BindValueChanged(_ => updateState(), true);
+        }
+
         protected override bool OnHover(HoverEvent e)
         {
-            Background.Colour = BackgroundColourHover;
+            updateState();
             return base.OnHover(e);
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            Background.Colour = BackgroundColour;
+            updateState();
             base.OnHoverLost(e);
+        }
+
+        private void updateState()
+        {
+            Colour = Disabled.Value ? DisabledColour : Color4.White;
+            Background.Colour = IsHovered && !Disabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (Disabled.Value)
+                return true;
+
             switch (e.Key)
             {
                 case Key.Up:
@@ -100,6 +130,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnPressed(PlatformAction action)
         {
+            if (Disabled.Value)
+                return true;
+
             switch (action.ActionType)
             {
                 case PlatformActionType.ListStart:
