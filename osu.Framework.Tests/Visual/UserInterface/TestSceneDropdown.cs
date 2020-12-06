@@ -322,6 +322,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("attempt to select last", () => disabledDropdown.Header.OnPressed(new PlatformAction(PlatformActionType.ListEnd)));
             valueIsUnchanged();
 
+            AddStep("enable current", () => disabledDropdown.Current.Disabled = false);
+            toggleDropdownViaClick(disabledDropdown);
+            assertDropdownIsOpen(disabledDropdown);
+
+            AddStep("disable current", () => disabledDropdown.Current.Disabled = true);
+            assertDropdownIsClosed(disabledDropdown);
+
             void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value == originalValue);
         }
 

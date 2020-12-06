@@ -219,7 +219,12 @@ namespace osu.Framework.Graphics.UserInterface
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
-            Current.DisabledChanged += disabled => Header.Disabled.Value = disabled;
+            Current.DisabledChanged += disabled =>
+            {
+                Header.Disabled.Value = disabled;
+                if (disabled && Menu.State == MenuState.Open)
+                    Menu.State = MenuState.Closed;
+            };
 
             ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
         }
