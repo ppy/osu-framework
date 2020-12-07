@@ -962,6 +962,7 @@ namespace osu.Framework.Platform
                 case WindowState.Normal:
                     Size = sizeWindowed.Value;
 
+                    SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
@@ -982,8 +983,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.FullscreenBorderless:
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = currentDisplay.Bounds.Size;
+                    Size = SetBorderless();
                     break;
 
                 case WindowState.Maximised:
@@ -999,6 +999,20 @@ namespace osu.Framework.Platform
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
             isChangingWindowState = false;
+        }
+
+        /// <summary>
+        /// Prepare display of a borderless window.
+        /// </summary>
+        /// <returns>
+        /// The size of the borderless window's draw area.
+        /// </returns>
+        protected virtual Size SetBorderless()
+        {
+            // this is a generally sane method of handling borderless, and works well on macOS and linux.
+            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+            return currentDisplay.Bounds.Size;
         }
 
         protected void OnHidden() { }

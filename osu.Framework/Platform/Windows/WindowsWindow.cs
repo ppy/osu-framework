@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Platform.Windows.Native;
+using SDL2;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -31,6 +32,21 @@ namespace osu.Framework.Platform.Windows
             {
                 // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
             }
+        }
+
+        protected override Size SetBorderless()
+        {
+            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
+
+            Size positionOffsetHack = new Size(1, 1);
+
+            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
+
+            // for now let's use the same 1px hack that we've always used to force borderless.
+            SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
+            SDL.SDL_SetWindowPosition(SDLWindowHandle, -positionOffsetHack.Width, -positionOffsetHack.Height);
+
+            return newSize;
         }
 
         /// <summary>
