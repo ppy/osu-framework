@@ -33,6 +33,7 @@ namespace osu.Framework
         public static bool SupportsJIT => OS != Platform.iOS;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
+        public static bool IsApple => OS == Platform.iOS || OS == Platform.MacOsx;
 
         static RuntimeInfo()
         {
