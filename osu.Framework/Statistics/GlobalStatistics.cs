@@ -57,6 +57,15 @@ namespace osu.Framework.Statistics
         }
 
         /// <summary>
+        /// Remove a specific statistic.
+        /// </summary>
+        /// <param name="statistic">The statistic to remove.</param>
+        public static void Remove(IGlobalStatistic statistic)
+        {
+            lock (statistics) statistics.Remove(statistic);
+        }
+
+        /// <summary>
         /// Register a new statistic type.
         /// </summary>
         /// <param name="stat">The statistic to register.</param>
