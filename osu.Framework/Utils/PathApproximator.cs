@@ -25,6 +25,7 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a bezier curve, by adaptively repeatedly subdividing
         /// the control points until their approximation error vanishes below a given threshold.
         /// </summary>
+        /// <param name="controlPoints">The control points.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateBezier(ReadOnlySpan<Vector2> controlPoints)
         {
@@ -38,6 +39,8 @@ namespace osu.Framework.Utils
         /// Retains previous bezier approximation functionality when p is 0 or too large to create knots.
         /// Algorithm unsuitable for large values of p with many knots.
         /// </summary>
+        /// <param name="controlPoints">The control points.</param>
+        /// <param name="p">The polynomial order.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateBspline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
         {
