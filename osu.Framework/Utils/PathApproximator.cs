@@ -29,7 +29,7 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateBezier(ReadOnlySpan<Vector2> controlPoints)
         {
-            return ApproximateBspline(controlPoints);
+            return ApproximateBSpline(controlPoints);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace osu.Framework.Utils
         /// <param name="controlPoints">The control points.</param>
         /// <param name="p">The polynomial order.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
-        public static List<Vector2> ApproximateBspline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
+        public static List<Vector2> ApproximateBSpline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
         {
             List<Vector2> output = new List<Vector2>();
             int n = controlPoints.Length - 1;
