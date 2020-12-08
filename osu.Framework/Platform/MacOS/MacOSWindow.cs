@@ -3,16 +3,14 @@
 
 using System;
 using osu.Framework.Platform.MacOS.Native;
-using osu.Framework.Platform.Sdl;
 using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
     /// <summary>
-    /// A macOS-specific subclass of <see cref="Sdl2WindowBackend"/> that performs additional logic
-    /// that SDL does not provide.
+    /// macOS-specific subclass of <see cref="SDL2DesktopWindow"/>.
     /// </summary>
-    public class MacOSWindowBackend : Sdl2WindowBackend
+    public class MacOSWindow : SDL2DesktopWindow
     {
         private static readonly IntPtr sel_hasprecisescrollingdeltas = Selector.Get("hasPreciseScrollingDeltas");
         private static readonly IntPtr sel_scrollingdeltax = Selector.Get("scrollingDeltaX");

@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -19,15 +23,15 @@ namespace osu.Framework.Graphics.Pooling
     /// <typeparam name="T">The type of drawable to be pooled.</typeparam>
     public class DrawablePool<T> : CompositeDrawable, IDrawablePool where T : PoolableDrawable, new()
     {
+        private GlobalStatistic<DrawablePoolUsageStatistic> statistic;
+
         private readonly int initialSize;
         private readonly int? maximumSize;
 
-        /// <summary>
-        /// The number of drawables currently available for consumption.
-        /// </summary>
-        public int CountAvailable => pool.Count;
-
         private readonly Stack<T> pool = new Stack<T>();
+
+        // ReSharper disable once StaticMemberInGenericType (this is intentional, we want a separate count per type).
+        private static int poolInstanceID;
 
         /// <summary>
         /// Create a new pool instance.
@@ -38,6 +42,11 @@ namespace osu.Framework.Graphics.Pooling
         {
             this.maximumSize = maximumSize;
             this.initialSize = initialSize;
+
+            int id = Interlocked.Increment(ref poolInstanceID);
+
+            statistic = GlobalStatistics.Get<DrawablePoolUsageStatistic>(nameof(DrawablePool<T>), typeof(T).ReadableName() + $"`{id}");
+            statistic.Value = new DrawablePoolUsageStatistic();
         }
 
         [BackgroundDependencyLoader]
@@ -70,7 +79,10 @@ namespace osu.Framework.Graphics.Pooling
 
             //TODO: check the drawable was sourced from this pool for safety.
             push((T)pooledDrawable);
+            CountInUse--;
         }
+
+        PoolableDrawable IDrawablePool.Get(Action<PoolableDrawable> setupAction) => Get(setupAction);
 
         /// <summary>
         /// Get a drawable from this pool.
@@ -86,10 +98,16 @@ namespace osu.Framework.Graphics.Pooling
                 if (LoadState >= LoadState.Loading)
                     LoadComponent(drawable);
             }
+            else
+                CountAvailable--;
+
+            drawable.Assign();
+            drawable.LifetimeStart = double.MinValue;
+            drawable.LifetimeEnd = double.MaxValue;
 
             setupAction?.Invoke(drawable);
-            drawable.Assign();
 
+            CountInUse++;
             return drawable;
         }
 
@@ -102,6 +120,7 @@ namespace osu.Framework.Graphics.Pooling
         {
             var drawable = CreateNewDrawable();
             drawable.SetPool(this);
+            CountConstructed++;
 
             return drawable;
         }
@@ -121,7 +140,94 @@ namespace osu.Framework.Graphics.Pooling
             }
 
             pool.Push(poolableDrawable);
+            CountAvailable++;
+
             return true;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            CountInUse = 0;
+            CountConstructed = 0;
+            CountAvailable = 0;
+
+            GlobalStatistics.Remove(statistic);
+
+            // Disallow any further Gets/Returns to adjust the statistics.
+            statistic = null;
+        }
+
+        private int countInUse;
+
+        /// <summary>
+        /// The number of drawables currently in use.
+        /// </summary>
+        public int CountInUse
+        {
+            get => countInUse;
+            private set
+            {
+                Debug.Assert(statistic != null);
+
+                statistic.Value.CountInUse += value - countInUse;
+                countInUse = value;
+            }
+        }
+
+        private int countConstructed;
+
+        /// <summary>
+        /// The total number of drawables constructed.
+        /// </summary>
+        public int CountConstructed
+        {
+            get => countConstructed;
+            private set
+            {
+                Debug.Assert(statistic != null);
+
+                statistic.Value.CountConstructed += value - countConstructed;
+                countConstructed = value;
+            }
+        }
+
+        private int countAvailable;
+
+        /// <summary>
+        /// The number of drawables currently available for consumption.
+        /// </summary>
+        public int CountAvailable
+        {
+            get => countAvailable;
+            private set
+            {
+                Debug.Assert(statistic != null);
+
+                statistic.Value.CountAvailable += value - countAvailable;
+                countAvailable = value;
+            }
+        }
+
+        private class DrawablePoolUsageStatistic
+        {
+            /// <summary>
+            /// Total number of drawables available for use (in the pool).
+            /// </summary>
+            public int CountAvailable;
+
+            /// <summary>
+            /// Total number of drawables currently in use.
+            /// </summary>
+            public int CountInUse;
+
+            /// <summary>
+            /// Total number of drawables constructed (can exceed the max count).
+            /// </summary>
+            public int CountConstructed;
+
+            public override string ToString() => $"{CountAvailable}/{CountConstructed} ({CountInUse})";
         }
     }
 }

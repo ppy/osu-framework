@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,14 +32,15 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
-using SixLabors.Memory;
+using SixLabors.ImageSharp.Memory;
+using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -134,7 +134,15 @@ namespace osu.Framework.Platform
 
         public abstract string UserStoragePath { get; }
 
+        /// <summary>
+        /// The main storage as proposed by the host game.
+        /// </summary>
         public Storage Storage { get; protected set; }
+
+        /// <summary>
+        /// An auxiliary cache storage which is fixed in the default game directory.
+        /// </summary>
+        public Storage CacheStorage { get; protected set; }
 
         /// <summary>
         /// If caps-lock is enabled on the system, false if not overwritten by a subclass
@@ -236,7 +244,7 @@ namespace osu.Framework.Platform
         {
             var exception = (Exception)args.ExceptionObject;
             exception.Data["unhandled"] = "unhandled";
-            handleException(exception);
+            handleException(sender, exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
@@ -244,23 +252,51 @@ namespace osu.Framework.Platform
             Debug.Assert(args.Exception != null);
 
             args.Exception.Data["unhandled"] = "unobserved";
-            handleException(args.Exception);
+            handleException(sender, args.Exception);
         }
 
-        private void handleException(Exception exception)
+        private void handleException(object sender, Exception exception)
         {
             if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+                TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
 
                 var captured = ExceptionDispatchInfo.Capture(exception);
+                var thrownEvent = new ManualResetEventSlim(false);
 
                 //we want to throw this exception on the input thread to interrupt window and also headless execution.
-                InputThread.Scheduler.Add(() => { captured.Throw(); });
+                InputThread.Scheduler.Add(() =>
+                {
+                    try
+                    {
+                        captured.Throw();
+                    }
+                    finally
+                    {
+                        thrownEvent.Set();
+                    }
+                });
+
+                // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
+                // To avoid this, pause the exceptioning thread until the rethrow takes place.
+                waitForThrow();
 
                 // schedule an exit to the input thread.
                 // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
                 PerformExit(false);
+
+                void waitForThrow()
+                {
+                    // This is bypassed for GameThread sources in two situations where deadlocks can occur:
+                    // 1. When the exceptioning thread is the input thread.
+                    // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                    if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                        return;
+
+                    // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                    thrownEvent.Wait(TimeSpan.FromSeconds(10));
+                }
             }
 
             Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
@@ -317,7 +353,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != osuTK.WindowState.Minimized)
+            else if (Window.WindowState != WindowState.Minimised)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -419,16 +455,18 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
+                int width = Window.ClientSize.Width;
+                int height = Window.ClientSize.Height;
+                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is DesktopWindow win)
+                    if (Window is SDL2DesktopWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
-                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -437,6 +475,7 @@ namespace osu.Framework.Platform
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
                 await Task.Run(completionEvent.Wait);
 
+                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
 
                 return image;
@@ -523,6 +562,8 @@ namespace osu.Framework.Platform
 
                 Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
 
+                CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
+
                 SetupForRun();
 
                 Window = CreateWindow();
@@ -564,10 +605,16 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        if (Window is DesktopWindow window)
-                            window.Update += windowUpdate;
-                        else
-                            Window.UpdateFrame += (o, e) => windowUpdate();
+                        switch (Window)
+                        {
+                            case SDL2DesktopWindow window:
+                                window.Update += windowUpdate;
+                                break;
+
+                            case OsuTKWindow tkWindow:
+                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                break;
+                        }
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;

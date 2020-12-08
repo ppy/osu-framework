@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime:0.000}-{EndTime:0.000}ms {StartValue} -> {EndValue}";
     }
 
     public abstract class Transform<TValue, T> : Transform<TValue, DefaultEasingFunction, T>

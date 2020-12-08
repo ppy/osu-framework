@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Platform.MacOS
 {
-    internal class MacOSGameWindow : DesktopGameWindow
+    internal class OsuTKMacOSWindow : OsuTKDesktopWindow
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void FlagsChangedDelegate(IntPtr self, IntPtr cmd, IntPtr notification);
@@ -51,7 +51,7 @@ namespace osu.Framework.Platform.MacOS
 
         private WindowMode? pendingWindowMode;
 
-        public MacOSGameWindow()
+        public OsuTKMacOSWindow()
         {
             Load += OnLoad;
             UpdateFrame += OnUpdateFrame;
@@ -92,7 +92,7 @@ namespace osu.Framework.Platform.MacOS
                 var fieldImplementation = typeof(NativeWindow).GetField("implementation", instance_member);
                 Debug.Assert(fieldImplementation != null, "Reflection is broken!");
 
-                var nativeWindow = fieldImplementation.GetValue(Implementation);
+                var nativeWindow = fieldImplementation.GetValue(OsuTKGameWindow);
                 Debug.Assert(nativeWindow != null, "Reflection is broken!");
 
                 var typeCocoaNativeWindow = nativeWindow.GetType();

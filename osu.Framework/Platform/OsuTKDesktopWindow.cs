@@ -15,7 +15,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class DesktopGameWindow : GameWindow
+    public abstract class OsuTKDesktopWindow : OsuTKWindow
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -32,9 +32,9 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        public override IGraphicsContext Context => Implementation.Context;
+        public override IGraphicsContext Context => OsuTKGameWindow.Context;
 
-        protected new osuTK.GameWindow Implementation => (osuTK.GameWindow)base.Implementation;
+        protected new GameWindow OsuTKGameWindow => (GameWindow)base.OsuTKGameWindow;
 
         public readonly BindableBool MapAbsoluteInputToWindow = new BindableBool();
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Platform
                       .Where(x => x != null)
                       .Select(ExtensionMethods.ToDisplay);
 
-        protected DesktopGameWindow()
+        protected OsuTKDesktopWindow()
             : base(default_width, default_height)
         {
             Resize += OnResize;
@@ -83,7 +83,7 @@ namespace osu.Framework.Platform
 
             // Changing the CurrentDisplay bindable should update the position of the window accordingly.
             // Note that this must be done on the windowing thread to avoid potential deadlocks or strange behaviour.
-            CurrentDisplay.ValueChanged += evt =>
+            CurrentDisplayBindable.ValueChanged += evt =>
                 UpdateFrameScheduler.Add(() => CurrentDisplayDevice = DisplayDevice.GetDisplay((DisplayIndex)evt.NewValue.Index));
         }
 
@@ -97,13 +97,13 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += e =>
             {
-                if (WindowState == osuTK.WindowState.Fullscreen)
+                if (WindowState.ToOsuTK() == osuTK.WindowState.Fullscreen)
                     ChangeResolution(CurrentDisplayDevice, e.NewValue);
             };
 
             sizeWindowed.ValueChanged += newSize =>
             {
-                if (WindowState == osuTK.WindowState.Normal)
+                if (WindowState.ToOsuTK() == osuTK.WindowState.Normal)
                     ClientSize = sizeWindowed.Value;
             };
 
@@ -228,7 +228,7 @@ namespace osu.Framework.Platform
                         ChangeResolution(currentDisplay, sizeFullscreen.Value);
                         lastFullscreenDisplay = currentDisplay;
 
-                        WindowState = osuTK.WindowState.Fullscreen;
+                        WindowState = osuTK.WindowState.Fullscreen.ToFramework();
                         break;
 
                     case Configuration.WindowMode.Borderless:
@@ -236,7 +236,7 @@ namespace osu.Framework.Platform
                             RestoreResolution(lastFullscreenDisplay);
                         lastFullscreenDisplay = null;
 
-                        WindowState = osuTK.WindowState.Maximized;
+                        WindowState = osuTK.WindowState.Maximized.ToFramework();
                         WindowBorder = WindowBorder.Hidden;
 
                         // must add 1 to enter borderless
@@ -251,7 +251,7 @@ namespace osu.Framework.Platform
 
                         var newSize = sizeWindowed.Value;
 
-                        WindowState = osuTK.WindowState.Normal;
+                        WindowState = osuTK.WindowState.Normal.ToFramework();
                         WindowBorder = WindowBorder.Resizable;
 
                         ClientSize = newSize;
@@ -306,8 +306,8 @@ namespace osu.Framework.Platform
 
         public override VSyncMode VSync
         {
-            get => Implementation.VSync;
-            set => Implementation.VSync = value;
+            get => OsuTKGameWindow.VSync;
+            set => OsuTKGameWindow.VSync = value;
         }
     }
 }

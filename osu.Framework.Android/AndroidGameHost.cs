@@ -31,12 +31,6 @@ namespace osu.Framework.Android
             this.gameView = gameView;
         }
 
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-            AndroidGameWindow.View = gameView;
-        }
-
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
@@ -45,7 +39,7 @@ namespace osu.Framework.Android
             base.SetupConfig(defaultOverrides);
         }
 
-        protected override IWindow CreateWindow() => new AndroidGameWindow();
+        protected override IWindow CreateWindow() => new AndroidGameWindow(gameView);
 
         protected override bool LimitedMemoryEnvironment => true;
 

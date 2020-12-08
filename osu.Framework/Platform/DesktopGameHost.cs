@@ -24,14 +24,14 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        internal bool UseSdl { get; }
+        internal bool UseOsuTK { get; }
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
             : base(gameName, toolkitOptions)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
-            UseSdl = useSdl;
+            UseOsuTK = useOsuTK;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
@@ -54,7 +54,7 @@ namespace osu.Framework.Platform
 
         protected override void SetupToolkit()
         {
-            if (!UseSdl)
+            if (UseOsuTK)
                 base.SetupToolkit();
         }
 
@@ -97,7 +97,8 @@ namespace osu.Framework.Platform
         {
             switch (Window)
             {
-                case GameWindow _:
+                case OsuTKWindow _:
+                {
                     var defaultEnabled = new InputHandler[]
                     {
                         new OsuTKMouseHandler(),
@@ -115,13 +116,27 @@ namespace osu.Framework.Platform
                         h.Enabled.Value = false;
 
                     return defaultEnabled.Concat(defaultDisabled);
+                }
 
                 default:
-                    return new InputHandler[]
+                {
+                    var defaultEnabled = new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
+                        new JoystickHandler(),
                     };
+
+                    var defaultDisabled = new InputHandler[]
+                    {
+                        new OsuTKRawMouseHandler(),
+                    };
+
+                    foreach (var h in defaultDisabled)
+                        h.Enabled.Value = false;
+
+                    return defaultEnabled.Concat(defaultDisabled);
+                }
             }
         }
 

@@ -28,7 +28,6 @@ This framework is intended to take steps beyond what you would normally expect f
 Build configurations for the recommended IDEs (listed above) are included. You should use the provided Build/Run functionality of your IDE to get things going. When testing or building new components, it's highly encouraged you use the `VisualTests` project/configuration. More information on this provided [below](#contributing).
 
 - Visual Studio / Rider users should load the project via one of the platform-specific .slnf files, rather than the main .sln. This will allow access to template run configurations.
-- Visual Studio Code users must run the `Restore` task before any build attempt.
 
 ### Code analysis
 
@@ -51,6 +50,10 @@ For those interested, we love to reward quality contributions via [bounties](htt
 This framework is licensed under the [MIT licence](https://opensource.org/licenses/MIT). Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/mit-license) you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.
 
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
+
+## Developing a game using osu!framework
+
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
 
 ## Projects that use osu!framework
 

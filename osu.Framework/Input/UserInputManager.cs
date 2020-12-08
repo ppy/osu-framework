@@ -15,7 +15,7 @@ namespace osu.Framework.Input
     {
         protected override ImmutableArray<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
-        protected override bool HandleHoverEvents => Host.Window?.CursorInWindow ?? true;
+        protected override bool HandleHoverEvents => Host.Window?.CursorInWindow.Value ?? true;
 
         protected internal override bool ShouldBeAlive => true;
 
@@ -43,13 +43,13 @@ namespace osu.Framework.Input
                     break;
 
                 case ButtonStateChangeEvent<MouseButton> buttonChange:
-                    if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow == false)
+                    if (buttonChange.Kind == ButtonStateChangeKind.Pressed && Host.Window?.CursorInWindow.Value == false)
                         return;
 
                     break;
 
                 case MouseScrollChangeEvent _:
-                    if (Host.Window?.CursorInWindow == false)
+                    if (Host.Window?.CursorInWindow.Value == false)
                         return;
 
                     break;

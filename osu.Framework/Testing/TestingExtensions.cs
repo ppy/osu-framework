@@ -19,8 +19,10 @@ namespace osu.Framework.Testing
 
             if (drawable is CompositeDrawable composite)
             {
-                foreach (var child in composite.InternalChildren)
+                for (var i = 0; i < composite.InternalChildren.Count; i++)
                 {
+                    var child = composite.InternalChildren[i];
+
                     foreach (var found in child.ChildrenOfType<T>())
                         yield return found;
                 }

@@ -190,7 +190,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setRawInputConfig(bool x)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? nameof(OsuTKMouseHandler) : nameof(OsuTKRawMouseHandler));
+            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? $"{nameof(OsuTKMouseHandler)} {nameof(MouseHandler)}" : nameof(OsuTKRawMouseHandler));
         }
 
         private void setConfineMouseModeConfig(bool x)

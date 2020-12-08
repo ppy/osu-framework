@@ -17,14 +17,13 @@ using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Threading;
-using Icon = osuTK.Icon;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameWindow : IWindow
+    public abstract class OsuTKWindow : IWindow, IGameWindow
     {
         /// <summary>
-        /// The <see cref="IGraphicsContext"/> associated with this <see cref="GameWindow"/>.
+        /// The <see cref="IGraphicsContext"/> associated with this <see cref="OsuTKWindow"/>.
         /// </summary>
         [NotNull]
         public abstract IGraphicsContext Context { get; }
@@ -36,7 +35,7 @@ namespace osu.Framework.Platform
         public event Func<bool> ExitRequested;
 
         /// <summary>
-        /// Invoked when the <see cref="GameWindow"/> has closed.
+        /// Invoked when the <see cref="OsuTKWindow"/> has closed.
         /// </summary>
         [CanBeNull]
         public event Action Exited;
@@ -51,14 +50,13 @@ namespace osu.Framework.Platform
         internal readonly Version GLSLVersion;
         internal readonly bool IsEmbedded;
 
-        protected readonly IGameWindow Implementation;
+        protected readonly IGameWindow OsuTKGameWindow;
 
         protected readonly Scheduler UpdateFrameScheduler = new Scheduler();
 
-        /// <summary>
-        /// Whether the OS cursor is currently contained within the game window.
-        /// </summary>
-        public bool CursorInWindow { get; protected set; }
+        private readonly BindableBool cursorInWindow = new BindableBool(true);
+
+        public IBindable<bool> CursorInWindow => cursorInWindow;
 
         /// <summary>
         /// Available resolutions for full-screen display.
@@ -70,7 +68,7 @@ namespace osu.Framework.Platform
         private readonly Bindable<bool> isActive = new Bindable<bool>();
 
         /// <summary>
-        /// Whether this <see cref="GameWindow"/> is active (in the foreground).
+        /// Whether this <see cref="OsuTKWindow"/> is active (in the foreground).
         /// </summary>
         public IBindable<bool> IsActive => isActive;
 
@@ -78,11 +76,11 @@ namespace osu.Framework.Platform
 
         public virtual Display PrimaryDisplay => Displays.FirstOrDefault(d => d.Index == (int)DisplayDevice.Default.GetIndex());
 
-        public virtual Bindable<Display> CurrentDisplay { get; } = new Bindable<Display>();
+        public Bindable<Display> CurrentDisplayBindable { get; } = new Bindable<Display>();
 
         /// <summary>
         /// osuTK's reference to the current <see cref="DisplayResolution"/> instance is private.
-        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplay"/>,
+        /// Instead we construct a <see cref="DisplayMode"/> based on the metrics of <see cref="CurrentDisplayBindable"/>,
         /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
         /// report refresh rates such as 59.992863 where SDL2 will report 60.
         /// </summary>
@@ -96,14 +94,14 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Creates a <see cref="GameWindow"/> with a given <see cref="IGameWindow"/> implementation.
+        /// Creates a <see cref="OsuTKWindow"/> with a given <see cref="IGameWindow"/> implementation.
         /// </summary>
-        protected GameWindow([NotNull] IGameWindow implementation)
+        protected OsuTKWindow([NotNull] IGameWindow osuTKGameWindow)
         {
-            Implementation = implementation;
-            Implementation.KeyDown += OnKeyDown;
+            OsuTKGameWindow = osuTKGameWindow;
+            OsuTKGameWindow.KeyDown += OnKeyDown;
 
-            CurrentDisplay.Value = PrimaryDisplay;
+            CurrentDisplayBindable.Value = PrimaryDisplay;
 
             // Moving or resizing the window needs to check to see if we've moved to a different display.
             // This will update the CurrentDisplay bindable.
@@ -113,8 +111,8 @@ namespace osu.Framework.Platform
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
 
-            MouseEnter += (sender, args) => CursorInWindow = true;
-            MouseLeave += (sender, args) => CursorInWindow = false;
+            MouseEnter += (sender, args) => cursorInWindow.Value = true;
+            MouseLeave += (sender, args) => cursorInWindow.Value = false;
 
             FocusedChanged += (o, e) => isActive.Value = Focused;
 
@@ -123,7 +121,7 @@ namespace osu.Framework.Platform
             UpdateFrame += (o, e) => UpdateFrameScheduler.Update();
             UpdateFrameScheduler.Add(() => isActive.Value = Focused);
 
-            WindowStateChanged += (o, e) => isActive.Value = WindowState != osuTK.WindowState.Minimized;
+            WindowStateChanged += (o, e) => isActive.Value = WindowState != WindowState.Minimised;
 
             MakeCurrent();
 
@@ -158,24 +156,20 @@ namespace osu.Framework.Platform
                         GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}");
-
-            Context.MakeCurrent(null);
         }
 
         /// <summary>
-        /// Creates a <see cref="GameWindow"/> with given dimensions.
+        /// Creates a <see cref="OsuTKWindow"/> with given dimensions.
         /// <para>Note that this will use the default <see cref="osuTK.GameWindow"/> implementation, which is not compatible with every platform.</para>
         /// </summary>
-        protected GameWindow(int width, int height)
-            : this(new osuTK.GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
+        protected OsuTKWindow(int width, int height)
+            : this(new GameWindow(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3)))
         {
         }
 
-        /// <summary>
-        /// Not applicable to osuTK.
-        /// </summary>
         public void Create()
         {
+            Context.MakeCurrent(null);
         }
 
         private CursorState cursorState = CursorState.Default;
@@ -190,11 +184,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                Implementation.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
+                OsuTKGameWindow.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    Implementation.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
+                    OsuTKGameWindow.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
                 }
                 catch
                 {
@@ -245,8 +239,8 @@ namespace osu.Framework.Platform
         private void checkCurrentDisplay()
         {
             int index = (int)CurrentDisplayDevice.GetIndex();
-            if (index != CurrentDisplay.Value?.Index)
-                CurrentDisplay.Value = Displays.ElementAtOrDefault(index);
+            if (index != CurrentDisplayBindable.Value?.Index)
+                CurrentDisplayBindable.Value = Displays.ElementAtOrDefault(index);
         }
 
         private string getVersionNumberSubstring(string version)
@@ -309,254 +303,264 @@ namespace osu.Framework.Platform
             WindowMode.Value = currentValue;
         }
 
-        void IWindow.MakeCurrent() => ((IGameWindow)this).MakeCurrent();
-
         public void ClearCurrent() => GraphicsContext.CurrentContext?.MakeCurrent(null);
 
         #region Autogenerated IGameWindow implementation
 
-        public virtual void Run() => Implementation.Run();
-        public virtual void Run(double updateRate) => Implementation.Run(updateRate);
-        public void MakeCurrent() => Implementation.MakeCurrent();
-        public void SwapBuffers() => Implementation.SwapBuffers();
+        public virtual void Run() => OsuTKGameWindow.Run();
 
-        Icon INativeWindow.Icon
+        public void Run(double updateRate)
         {
-            get => Implementation.Icon;
-            set => Implementation.Icon = value;
+            OsuTKGameWindow.Run(updateRate);
         }
+
+        public void MakeCurrent() => OsuTKGameWindow.MakeCurrent();
+        public void SwapBuffers() => OsuTKGameWindow.SwapBuffers();
 
         public string Title
         {
-            get => Implementation.Title;
-            set => Implementation.Title = value;
+            get => OsuTKGameWindow.Title;
+            set => OsuTKGameWindow.Title = $"{value} (legacy osuTK)";
         }
 
-        public virtual bool Focused => Implementation.Focused;
+        public virtual bool Focused => OsuTKGameWindow.Focused;
 
         public bool Visible
         {
-            get => Implementation.Visible;
-            set => Implementation.Visible = value;
+            get => OsuTKGameWindow.Visible;
+            set => OsuTKGameWindow.Visible = value;
         }
 
-        public bool Exists => Implementation.Exists;
-        public IWindowInfo WindowInfo => Implementation.WindowInfo;
+        public bool Exists => OsuTKGameWindow.Exists;
+        public IWindowInfo WindowInfo => OsuTKGameWindow.WindowInfo;
 
-        public virtual osuTK.WindowState WindowState
+        osuTK.WindowState INativeWindow.WindowState
         {
-            get => Implementation.WindowState;
-            set => Implementation.WindowState = value;
+            get => OsuTKGameWindow.WindowState;
+            set => OsuTKGameWindow.WindowState = value;
+        }
+
+        public virtual WindowState WindowState
+        {
+            get => OsuTKGameWindow.WindowState.ToFramework();
+            set => OsuTKGameWindow.WindowState = value.ToOsuTK();
         }
 
         public WindowBorder WindowBorder
         {
-            get => Implementation.WindowBorder;
-            set => Implementation.WindowBorder = value;
+            get => OsuTKGameWindow.WindowBorder;
+            set => OsuTKGameWindow.WindowBorder = value;
         }
 
         public Rectangle Bounds
         {
-            get => Implementation.Bounds;
-            set => Implementation.Bounds = value;
+            get => OsuTKGameWindow.Bounds;
+            set => OsuTKGameWindow.Bounds = value;
         }
 
         public Point Location
         {
-            get => Implementation.Location;
-            set => Implementation.Location = value;
+            get => OsuTKGameWindow.Location;
+            set => OsuTKGameWindow.Location = value;
         }
 
         public Size Size
         {
-            get => Implementation.Size;
-            set => Implementation.Size = value;
+            get => OsuTKGameWindow.Size;
+            set => OsuTKGameWindow.Size = value;
         }
 
         public int X
         {
-            get => Implementation.X;
-            set => Implementation.X = value;
+            get => OsuTKGameWindow.X;
+            set => OsuTKGameWindow.X = value;
         }
 
         public int Y
         {
-            get => Implementation.Y;
-            set => Implementation.Y = value;
+            get => OsuTKGameWindow.Y;
+            set => OsuTKGameWindow.Y = value;
         }
 
         public int Width
         {
-            get => Implementation.Width;
-            set => Implementation.Width = value;
+            get => OsuTKGameWindow.Width;
+            set => OsuTKGameWindow.Width = value;
         }
 
         public int Height
         {
-            get => Implementation.Height;
-            set => Implementation.Height = value;
+            get => OsuTKGameWindow.Height;
+            set => OsuTKGameWindow.Height = value;
         }
 
         public Rectangle ClientRectangle
         {
-            get => Implementation.ClientRectangle;
-            set => Implementation.ClientRectangle = value;
+            get => OsuTKGameWindow.ClientRectangle;
+            set => OsuTKGameWindow.ClientRectangle = value;
         }
 
         public Size ClientSize
         {
-            get => Implementation.ClientSize;
-            set => Implementation.ClientSize = value;
+            get => OsuTKGameWindow.ClientSize;
+            set => OsuTKGameWindow.ClientSize = value;
         }
 
-        public void Close() => Implementation.Close();
-        public void ProcessEvents() => Implementation.ProcessEvents();
-        public Point PointToClient(Point point) => Implementation.PointToClient(point);
-        public Point PointToScreen(Point point) => Implementation.PointToScreen(point);
-        public void Dispose() => Implementation.Dispose();
+        public void Close() => OsuTKGameWindow.Close();
+        public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
+        public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
+        public Point PointToScreen(Point point) => OsuTKGameWindow.PointToScreen(point);
+
+        public Icon Icon
+        {
+            get => OsuTKGameWindow.Icon;
+            set => OsuTKGameWindow.Icon = value;
+        }
+
+        public void Dispose() => OsuTKGameWindow.Dispose();
 
         public event EventHandler<EventArgs> Load
         {
-            add => Implementation.Load += value;
-            remove => Implementation.Load -= value;
+            add => OsuTKGameWindow.Load += value;
+            remove => OsuTKGameWindow.Load -= value;
         }
 
         public event EventHandler<EventArgs> Unload
         {
-            add => Implementation.Unload += value;
-            remove => Implementation.Unload -= value;
+            add => OsuTKGameWindow.Unload += value;
+            remove => OsuTKGameWindow.Unload -= value;
         }
 
         public event EventHandler<FrameEventArgs> UpdateFrame
         {
-            add => Implementation.UpdateFrame += value;
-            remove => Implementation.UpdateFrame -= value;
+            add => OsuTKGameWindow.UpdateFrame += value;
+            remove => OsuTKGameWindow.UpdateFrame -= value;
         }
 
         public event EventHandler<FrameEventArgs> RenderFrame
         {
-            add => Implementation.RenderFrame += value;
-            remove => Implementation.RenderFrame -= value;
+            add => OsuTKGameWindow.RenderFrame += value;
+            remove => OsuTKGameWindow.RenderFrame -= value;
         }
 
         public event EventHandler<EventArgs> Move
         {
-            add => Implementation.Move += value;
-            remove => Implementation.Move -= value;
+            add => OsuTKGameWindow.Move += value;
+            remove => OsuTKGameWindow.Move -= value;
         }
 
         public event EventHandler<EventArgs> Resize
         {
-            add => Implementation.Resize += value;
-            remove => Implementation.Resize -= value;
+            add => OsuTKGameWindow.Resize += value;
+            remove => OsuTKGameWindow.Resize -= value;
         }
 
         public event EventHandler<CancelEventArgs> Closing
         {
-            add => Implementation.Closing += value;
-            remove => Implementation.Closing -= value;
+            add => OsuTKGameWindow.Closing += value;
+            remove => OsuTKGameWindow.Closing -= value;
         }
 
         public event EventHandler<EventArgs> Closed
         {
-            add => Implementation.Closed += value;
-            remove => Implementation.Closed -= value;
+            add => OsuTKGameWindow.Closed += value;
+            remove => OsuTKGameWindow.Closed -= value;
         }
 
         public event EventHandler<EventArgs> Disposed
         {
-            add => Implementation.Disposed += value;
-            remove => Implementation.Disposed -= value;
+            add => OsuTKGameWindow.Disposed += value;
+            remove => OsuTKGameWindow.Disposed -= value;
         }
 
         public event EventHandler<EventArgs> IconChanged
         {
-            add => Implementation.IconChanged += value;
-            remove => Implementation.IconChanged -= value;
+            add => OsuTKGameWindow.IconChanged += value;
+            remove => OsuTKGameWindow.IconChanged -= value;
         }
 
         public event EventHandler<EventArgs> TitleChanged
         {
-            add => Implementation.TitleChanged += value;
-            remove => Implementation.TitleChanged -= value;
+            add => OsuTKGameWindow.TitleChanged += value;
+            remove => OsuTKGameWindow.TitleChanged -= value;
         }
 
         public event EventHandler<EventArgs> VisibleChanged
         {
-            add => Implementation.VisibleChanged += value;
-            remove => Implementation.VisibleChanged -= value;
+            add => OsuTKGameWindow.VisibleChanged += value;
+            remove => OsuTKGameWindow.VisibleChanged -= value;
         }
 
         public event EventHandler<EventArgs> FocusedChanged
         {
-            add => Implementation.FocusedChanged += value;
-            remove => Implementation.FocusedChanged -= value;
+            add => OsuTKGameWindow.FocusedChanged += value;
+            remove => OsuTKGameWindow.FocusedChanged -= value;
         }
 
         public event EventHandler<EventArgs> WindowBorderChanged
         {
-            add => Implementation.WindowBorderChanged += value;
-            remove => Implementation.WindowBorderChanged -= value;
+            add => OsuTKGameWindow.WindowBorderChanged += value;
+            remove => OsuTKGameWindow.WindowBorderChanged -= value;
         }
 
         public event EventHandler<EventArgs> WindowStateChanged
         {
-            add => Implementation.WindowStateChanged += value;
-            remove => Implementation.WindowStateChanged -= value;
+            add => OsuTKGameWindow.WindowStateChanged += value;
+            remove => OsuTKGameWindow.WindowStateChanged -= value;
         }
 
         public event EventHandler<KeyPressEventArgs> KeyPress
         {
-            add => Implementation.KeyPress += value;
-            remove => Implementation.KeyPress -= value;
+            add => OsuTKGameWindow.KeyPress += value;
+            remove => OsuTKGameWindow.KeyPress -= value;
         }
 
         public event EventHandler<KeyboardKeyEventArgs> KeyUp
         {
-            add => Implementation.KeyUp += value;
-            remove => Implementation.KeyUp -= value;
+            add => OsuTKGameWindow.KeyUp += value;
+            remove => OsuTKGameWindow.KeyUp -= value;
         }
 
         public event EventHandler<EventArgs> MouseLeave
         {
-            add => Implementation.MouseLeave += value;
-            remove => Implementation.MouseLeave -= value;
+            add => OsuTKGameWindow.MouseLeave += value;
+            remove => OsuTKGameWindow.MouseLeave -= value;
         }
 
         public event EventHandler<EventArgs> MouseEnter
         {
-            add => Implementation.MouseEnter += value;
-            remove => Implementation.MouseEnter -= value;
+            add => OsuTKGameWindow.MouseEnter += value;
+            remove => OsuTKGameWindow.MouseEnter -= value;
         }
 
         public event EventHandler<MouseButtonEventArgs> MouseDown
         {
-            add => Implementation.MouseDown += value;
-            remove => Implementation.MouseDown -= value;
+            add => OsuTKGameWindow.MouseDown += value;
+            remove => OsuTKGameWindow.MouseDown -= value;
         }
 
         public event EventHandler<MouseButtonEventArgs> MouseUp
         {
-            add => Implementation.MouseUp += value;
-            remove => Implementation.MouseUp -= value;
+            add => OsuTKGameWindow.MouseUp += value;
+            remove => OsuTKGameWindow.MouseUp -= value;
         }
 
         public event EventHandler<MouseMoveEventArgs> MouseMove
         {
-            add => Implementation.MouseMove += value;
-            remove => Implementation.MouseMove -= value;
+            add => OsuTKGameWindow.MouseMove += value;
+            remove => OsuTKGameWindow.MouseMove -= value;
         }
 
         public event EventHandler<MouseWheelEventArgs> MouseWheel
         {
-            add => Implementation.MouseWheel += value;
-            remove => Implementation.MouseWheel -= value;
+            add => OsuTKGameWindow.MouseWheel += value;
+            remove => OsuTKGameWindow.MouseWheel -= value;
         }
 
         public event EventHandler<FileDropEventArgs> FileDrop
         {
-            add => Implementation.FileDrop += value;
-            remove => Implementation.FileDrop -= value;
+            add => OsuTKGameWindow.FileDrop += value;
+            remove => OsuTKGameWindow.FileDrop -= value;
         }
 
         #endregion
@@ -574,18 +578,18 @@ namespace osu.Framework.Platform
         Default = 0,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>, but can still move anywhere.
+        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>, but can still move anywhere.
         /// </summary>
         Hidden = 1,
 
         /// <summary>
-        /// The OS cursor is confined to the <see cref="GameWindow"/> while the window is in focus.
+        /// The OS cursor is confined to the <see cref="OsuTKWindow"/> while the window is in focus.
         /// </summary>
         Confined = 2,
 
         /// <summary>
-        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>.
-        /// It is confined to the <see cref="GameWindow"/> while the window is in focus and can move freely otherwise.
+        /// The OS cursor is hidden while hovering the <see cref="OsuTKWindow"/>.
+        /// It is confined to the <see cref="OsuTKWindow"/> while the window is in focus and can move freely otherwise.
         /// </summary>
         HiddenAndConfined = Hidden | Confined,
     }

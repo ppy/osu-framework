@@ -47,12 +47,12 @@ namespace osu.Framework.Tests.Text
         public TextBuilderTest()
         {
             fontStore = new TestStore(
-                (normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
-                (normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
-                (normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning)),
-                (fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
-                (fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
-                (fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning))
+                new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning))
             );
         }
 
@@ -326,10 +326,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                (font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0)),
-                (font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -346,10 +346,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                (font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -367,10 +367,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                (font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                (nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -414,9 +414,9 @@ namespace osu.Framework.Tests.Text
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            private readonly (FontUsage font, ITexturedCharacterGlyph glyph)[] glyphs;
+            private readonly GlyphEntry[] glyphs;
 
-            public TestStore(params (FontUsage font, ITexturedCharacterGlyph glyph)[] glyphs)
+            public TestStore(params GlyphEntry[] glyphs)
             {
                 this.glyphs = glyphs;
             }
@@ -424,12 +424,26 @@ namespace osu.Framework.Tests.Text
             public ITexturedCharacterGlyph Get(string fontName, char character)
             {
                 if (string.IsNullOrEmpty(fontName))
-                    return glyphs.FirstOrDefault(g => g.glyph.Character == character).glyph;
+                {
+                    return glyphs.FirstOrDefault(g => g.Glyph.Character == character).Glyph;
+                }
 
-                return glyphs.FirstOrDefault(g => g.font.FontName == fontName && g.glyph.Character == character).glyph;
+                return glyphs.FirstOrDefault(g => g.Font.FontName == fontName && g.Glyph.Character == character).Glyph;
             }
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new System.NotImplementedException();
+        }
+
+        private readonly struct GlyphEntry
+        {
+            public readonly FontUsage Font;
+            public readonly ITexturedCharacterGlyph Glyph;
+
+            public GlyphEntry(FontUsage font, ITexturedCharacterGlyph glyph)
+            {
+                Font = font;
+                Glyph = glyph;
+            }
         }
 
         private readonly struct TestGlyph : ITexturedCharacterGlyph

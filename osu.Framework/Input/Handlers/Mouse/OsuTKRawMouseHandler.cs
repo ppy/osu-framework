@@ -1,4 +1,4 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -11,6 +11,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
+using WindowState = osu.Framework.Platform.WindowState;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -32,7 +33,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             base.Initialize(host);
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
-            if (host.Window is DesktopGameWindow desktopWindow)
+            if (host.Window is OsuTKDesktopWindow desktopWindow)
             {
                 windowMode.BindTo(desktopWindow.WindowMode);
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
@@ -44,10 +45,10 @@ namespace osu.Framework.Input.Handlers.Mouse
                 {
                     host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                     {
-                        if (!host.Window.Visible || host.Window.WindowState == osuTK.WindowState.Minimized)
+                        if (host.Window.WindowState == WindowState.Minimised)
                             return;
 
-                        if ((MouseInWindow || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
+                        if ((MouseInWindow.Value || lastEachDeviceStates.Any(s => s != null && s.Buttons.HasAnyButtonPressed)) && host.Window.Focused)
                         {
                             osuTK.Input.Mouse.GetStates(newRawStates);
 
@@ -122,9 +123,9 @@ namespace osu.Framework.Input.Handlers.Mouse
                 if (mapAbsoluteInputToWindow.Value)
                 {
                     // map directly to local window
-                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.Width;
+                    currentPosition.X = ((float)((state.X - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution * Host.Window.ClientSize.Width;
                     currentPosition.Y = ((float)((state.Y - raw_input_resolution / 2f) * Sensitivity.Value) + raw_input_resolution / 2f) / raw_input_resolution
-                                        * Host.Window.Height;
+                                        * Host.Window.ClientSize.Height;
                 }
                 else
                 {
@@ -140,8 +141,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     var clientPos = Host.Window.PointToClient(new Point((int)Math.Round(currentPosition.X), (int)Math.Round(currentPosition.Y)));
 
                     // apply sensitivity from window's centre
-                    currentPosition.X = (float)((clientPos.X - Host.Window.Width / 2f) * Sensitivity.Value + Host.Window.Width / 2f);
-                    currentPosition.Y = (float)((clientPos.Y - Host.Window.Height / 2f) * Sensitivity.Value + Host.Window.Height / 2f);
+                    currentPosition.X = (float)((clientPos.X - Host.Window.ClientSize.Width / 2f) * Sensitivity.Value + Host.Window.ClientSize.Width / 2f);
+                    currentPosition.Y = (float)((clientPos.Y - Host.Window.ClientSize.Height / 2f) * Sensitivity.Value + Host.Window.ClientSize.Height / 2f);
                 }
             }
             else

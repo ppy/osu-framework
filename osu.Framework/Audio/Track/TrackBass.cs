@@ -53,6 +53,8 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
+
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
@@ -62,6 +64,18 @@ namespace osu.Framework.Audio.Track
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
+
+            relativeFrequencyHandler = new BassRelativeFrequencyHandler
+            {
+                FrequencyChangedToZero = () => stopInternal(),
+                FrequencyChangedFromZero = () =>
+                {
+                    // Do not resume the track if a play wasn't requested at all or has been paused via Stop().
+                    if (!isPlayed) return;
+
+                    startInternal();
+                }
+            };
 
             // todo: support this internally to match the underlying Track implementation (which can support this).
             const float tempo_minimum_supported = 0.05f;
@@ -90,8 +104,6 @@ namespace osu.Framework.Audio.Track
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
                     lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
-                    Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out float frequency);
-                    initialFrequency = frequency;
                     bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
@@ -106,6 +118,7 @@ namespace osu.Framework.Audio.Track
 
                     isLoaded = true;
 
+                    relativeFrequencyHandler.SetChannel(activeStream);
                     bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });
@@ -170,6 +183,8 @@ namespace osu.Framework.Audio.Track
 
         protected override void UpdateState()
         {
+            base.UpdateState();
+
             var running = isRunningState(Bass.ChannelIsActive(activeStream));
             var bytePosition = Bass.ChannelGetPosition(activeStream);
 
@@ -181,8 +196,6 @@ namespace osu.Framework.Audio.Track
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             bassAmplitudeProcessor?.Update();
-
-            base.UpdateState();
         }
 
         protected override void Dispose(bool disposing)
@@ -250,9 +263,15 @@ namespace osu.Framework.Audio.Track
 
         private bool startInternal()
         {
+            // ensure state is correct before starting.
+            InvalidateState();
+
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
             if (Bass.ChannelGetPosition(activeStream) == byteLength)
                 return false;
+
+            if (relativeFrequencyHandler.IsFrequencyZero)
+                return true;
 
             return Bass.ChannelPlay(activeStream);
         }
@@ -291,17 +310,17 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
+            if (activeStream == 0)
+                return;
+
             setDirection(AggregateFrequency.Value < 0);
 
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Frequency, bassFreq);
+            relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
+
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(AggregateTempo.Value) - 1) * 100);
         }
-
-        private volatile float initialFrequency;
-
-        private int bassFreq => (int)Math.Clamp(Math.Abs(initialFrequency * AggregateFrequency.Value), 100, 100000);
 
         private volatile int bitrate;
 
