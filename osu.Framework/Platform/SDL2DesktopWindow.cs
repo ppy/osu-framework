@@ -921,6 +921,12 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Stores whether the window used to be in maximised state or not.
+        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
+        /// </summary>
+        private bool windowMaximised;
+
+        /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
         private void updateWindowSpecifics()
@@ -933,6 +939,9 @@ namespace osu.Framework.Platform
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
 
             var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+
+            if (currentState == WindowState.Normal || currentState == WindowState.Maximised)
+                windowMaximised = currentState == WindowState.Maximised;
 
             if (windowState != currentState)
             {
@@ -968,6 +977,8 @@ namespace osu.Framework.Platform
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
                     updateWindowPositionFromConfig();
+
+                    windowMaximised = false;
                     break;
 
                 case WindowState.Fullscreen:
@@ -991,6 +1002,7 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
+                    windowMaximised = true;
                     break;
 
                 case WindowState.Minimised:
@@ -1098,16 +1110,7 @@ namespace osu.Framework.Platform
                         break;
 
                     case Configuration.WindowMode.Windowed:
-                        // todo: this will cause WindowState value to stay at Fullscreen/Borderless for a whole frame
-                        // but is required for taking correct actions based on whether the window is maximised or not.
-                        ScheduleCommand(() =>
-                        {
-                            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
-
-                            var sdlWindowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
-                            Debug.Assert(sdlWindowState == WindowState.Maximised || sdlWindowState == WindowState.Normal);
-                            WindowState = sdlWindowState;
-                        });
+                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
                         break;
                 }
 
