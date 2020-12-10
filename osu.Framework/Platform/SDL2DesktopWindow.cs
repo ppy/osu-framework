@@ -570,7 +570,7 @@ namespace osu.Framework.Platform
 
             previousPolledPoint = new Point(x, y);
 
-            var pos = windowState == WindowState.Normal ? Position : windowDisplayBounds.Location;
+            var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
@@ -886,7 +886,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                     var newPosition = new Point(evtWindow.data1, evtWindow.data2);
 
-                    if (windowState == WindowState.Normal && !newPosition.Equals(Position))
+                    if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
                         position = newPosition;
                         updateWindowPositionConfigFromCurrent();
@@ -897,7 +897,7 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    if (windowState == WindowState.Normal)
+                    if (WindowMode.Value == Configuration.WindowMode.Windowed)
                         updateWindowSize();
                     break;
 
@@ -970,6 +970,7 @@ namespace osu.Framework.Platform
                 case WindowState.Normal:
                     Size = sizeWindowed.Value;
 
+                    SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
 
@@ -992,8 +993,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.FullscreenBorderless:
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    Size = currentDisplay.Bounds.Size;
+                    Size = SetBorderless();
                     break;
 
                 case WindowState.Maximised:
@@ -1018,6 +1018,20 @@ namespace osu.Framework.Platform
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised = windowState == WindowState.Maximised;
+        }
+
+        /// <summary>
+        /// Prepare display of a borderless window.
+        /// </summary>
+        /// <returns>
+        /// The size of the borderless window's draw area.
+        /// </returns>
+        protected virtual Size SetBorderless()
+        {
+            // this is a generally sane method of handling borderless, and works well on macOS and linux.
+            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+            return currentDisplay.Bounds.Size;
         }
 
         protected void OnHidden() { }
