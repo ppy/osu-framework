@@ -926,7 +926,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private bool windowMaximised;
 
-        private void updateMaximisedState(WindowState windowState)
+        private void updateMaximisedState()
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised = windowState == WindowState.Maximised;
@@ -946,13 +946,13 @@ namespace osu.Framework.Platform
 
             var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
 
-            updateMaximisedState(currentState);
-
             if (windowState != currentState)
             {
                 windowState = currentState;
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
             }
+
+            updateMaximisedState();
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
@@ -1012,7 +1012,7 @@ namespace osu.Framework.Platform
                     break;
             }
 
-            updateMaximisedState(windowState);
+            updateMaximisedState();
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
