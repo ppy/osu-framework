@@ -998,6 +998,9 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
+
+                    SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
+                    Size = new Size(w, h);
                     break;
 
                 case WindowState.Minimised:
