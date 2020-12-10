@@ -895,7 +895,6 @@ namespace osu.Framework.Platform
 
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     if (WindowMode.Value == Configuration.WindowMode.Windowed)
                         updateWindowSize();
