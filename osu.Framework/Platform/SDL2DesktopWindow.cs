@@ -219,6 +219,12 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Stores whether the window used to be in maximised state or not.
+        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
+        /// </summary>
+        private bool windowMaximised;
+
+        /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
         public Size ClientSize => new Size(Size.Width, Size.Height);
@@ -938,6 +944,8 @@ namespace osu.Framework.Platform
             {
                 windowState = currentState;
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
+
+                updateMaximisedState();
             }
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
@@ -964,6 +972,8 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
+
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
                     updateWindowPositionFromConfig();
@@ -987,6 +997,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
                     break;
 
@@ -995,10 +1006,18 @@ namespace osu.Framework.Platform
                     break;
             }
 
+            updateMaximisedState();
+
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
             isChangingWindowState = false;
+        }
+
+        private void updateMaximisedState()
+        {
+            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
+                windowMaximised = windowState == WindowState.Maximised;
         }
 
         /// <summary>
@@ -1109,7 +1128,7 @@ namespace osu.Framework.Platform
                         break;
 
                     case Configuration.WindowMode.Windowed:
-                        WindowState = WindowState.Normal;
+                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
                         break;
                 }
 
