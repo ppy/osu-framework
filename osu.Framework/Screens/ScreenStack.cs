@@ -98,16 +98,16 @@ namespace osu.Framework.Screens
             // Suspend the current screen, if there is one
             if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
+            var newScreenDrawable = newScreen.AsDrawable();
+
+            if (newScreenDrawable.IsLoaded)
+                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
+
             if (suspendImmediately)
                 suspend(source, newScreen);
 
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
-
-            var newScreenDrawable = newScreen.AsDrawable();
-
-            if (newScreenDrawable.IsLoaded)
-                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
             newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
