@@ -347,6 +347,9 @@ namespace osu.Framework.Platform
 
         private void updateWindowPositionConfigFromCurrent()
         {
+            if (WindowState != WindowState.Normal)
+                return;
+
             var displayBounds = CurrentDisplay.Bounds;
 
             var windowX = Position.X - displayBounds.X;
