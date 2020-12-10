@@ -330,11 +330,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void updateWindowPositionFromConfig()
+        private Point getWindowPositionFromConfig()
         {
-            if (WindowState != WindowState.Normal)
-                return;
-
             var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
 
             var displayBounds = CurrentDisplay.Bounds;
@@ -342,7 +339,7 @@ namespace osu.Framework.Platform
             var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
             var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
 
-            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+            return new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
 
         private void updateWindowPositionConfigFromCurrent()
@@ -397,16 +394,17 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual void Create()
         {
-            SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
-                                        SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | // shown after first swap to avoid white flash on startup (windows)
-                                        WindowState.ToFlags();
+            const SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                                              SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                                              SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                                              SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN; // shown after first swap to avoid white flash on startup (windows)
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
-            SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
+            position = getWindowPositionFromConfig();
+            Size = sizeWindowed.Value;
 
+            SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
             Exists = true;
 
             MouseEntered += () => cursorInWindow.Value = true;
@@ -978,7 +976,7 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
-                    updateWindowPositionFromConfig();
+                    Position = getWindowPositionFromConfig();
                     break;
 
                 case WindowState.Fullscreen:
