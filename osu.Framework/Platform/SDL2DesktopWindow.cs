@@ -219,6 +219,12 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
+        /// Stores whether the window used to be in maximised state or not.
+        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
+        /// </summary>
+        private bool windowMaximised;
+
+        /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
         public Size ClientSize => new Size(Size.Width, Size.Height);
@@ -921,18 +927,6 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Stores whether the window used to be in maximised state or not.
-        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
-        /// </summary>
-        private bool windowMaximised;
-
-        private void updateMaximisedState()
-        {
-            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
-                windowMaximised = windowState == WindowState.Maximised;
-        }
-
-        /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
         private void updateWindowSpecifics()
@@ -950,9 +944,9 @@ namespace osu.Framework.Platform
             {
                 windowState = currentState;
                 ScheduleEvent(() => OnWindowStateChanged(currentState));
-            }
 
-            updateMaximisedState();
+                updateMaximisedState();
+            }
 
             int newDisplayIndex = SDL.SDL_GetWindowDisplayIndex(SDLWindowHandle);
 
@@ -1018,6 +1012,12 @@ namespace osu.Framework.Platform
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
             isChangingWindowState = false;
+        }
+
+        private void updateMaximisedState()
+        {
+            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
+                windowMaximised = windowState == WindowState.Maximised;
         }
 
         protected void OnHidden() { }
