@@ -926,6 +926,12 @@ namespace osu.Framework.Platform
         /// </summary>
         private bool windowMaximised;
 
+        private void updateMaximisedState(WindowState windowState)
+        {
+            if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
+                windowMaximised = windowState == WindowState.Maximised;
+        }
+
         /// <summary>
         /// Should be run on a regular basis to check for external window state changes.
         /// </summary>
@@ -940,8 +946,7 @@ namespace osu.Framework.Platform
 
             var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
 
-            if (currentState == WindowState.Normal || currentState == WindowState.Maximised)
-                windowMaximised = currentState == WindowState.Maximised;
+            updateMaximisedState(currentState);
 
             if (windowState != currentState)
             {
@@ -977,8 +982,6 @@ namespace osu.Framework.Platform
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
                     updateWindowPositionFromConfig();
-
-                    windowMaximised = false;
                     break;
 
                 case WindowState.Fullscreen:
@@ -1002,13 +1005,14 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
-                    windowMaximised = true;
                     break;
 
                 case WindowState.Minimised:
                     SDL.SDL_MinimizeWindow(SDLWindowHandle);
                     break;
             }
+
+            updateMaximisedState(windowState);
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
