@@ -27,6 +27,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
             Set(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
             Set(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
+            Set(FrameworkSetting.WindowMaximised, false);
             Set(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
             Set(FrameworkSetting.AudioDevice, string.Empty);
             Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
@@ -74,6 +75,7 @@ namespace osu.Framework.Configuration
         WindowedSize,
         WindowedPositionX,
         WindowedPositionY,
+        WindowMaximised,
         LastDisplayDevice,
 
         SizeFullscreen,

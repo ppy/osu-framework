@@ -213,12 +213,6 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Stores whether the window used to be in maximised state or not.
-        /// Used to properly decide what window state to pick when switching to windowed mode (see <see cref="WindowMode"/> change event)
-        /// </summary>
-        private bool windowMaximised;
-
-        /// <summary>
         /// Returns the drawable area, after scaling.
         /// </summary>
         public Size ClientSize => new Size(Size.Width, Size.Height);
@@ -358,6 +352,7 @@ namespace osu.Framework.Platform
         private readonly BindableSize sizeWindowed = new BindableSize();
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
+        private readonly BindableBool windowMaximised = new BindableBool();
         private readonly Bindable<DisplayIndex> windowDisplayIndexBindable = new Bindable<DisplayIndex>();
 
         public SDL2DesktopWindow()
@@ -1018,7 +1013,7 @@ namespace osu.Framework.Platform
         private void updateMaximisedState()
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
-                windowMaximised = windowState == WindowState.Maximised;
+                windowMaximised.Value = windowState == WindowState.Maximised;
         }
 
         private void updateWindowVisibility(bool visible)
@@ -1122,6 +1117,8 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
+            config.BindWith(FrameworkSetting.WindowMaximised, windowMaximised);
+
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
 
             WindowMode.BindValueChanged(evt =>
@@ -1137,7 +1134,7 @@ namespace osu.Framework.Platform
                         break;
 
                     case Configuration.WindowMode.Windowed:
-                        WindowState = windowMaximised ? WindowState.Maximised : WindowState.Normal;
+                        WindowState = windowMaximised.Value ? WindowState.Maximised : WindowState.Normal;
                         break;
                 }
 
