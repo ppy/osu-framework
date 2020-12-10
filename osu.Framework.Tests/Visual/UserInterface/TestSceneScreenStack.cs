@@ -235,6 +235,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestPushAlreadyLoadedScreenFails()
+        {
+            TestScreen screen1 = null;
+
+            AddStep("push once", () => stack.Push(screen1 = new TestScreen()));
+            AddStep("exit", () => screen1.Exit());
+            AddStep("push again fails", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
+            AddAssert("stack in valid state", () => stack.CurrentScreen == baseScreen);
+        }
+
+        [Test]
         public void TestEventOrder()
         {
             List<int> order = new List<int>();
