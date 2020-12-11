@@ -408,7 +408,6 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
-            WindowMode.TriggerChange();
         }
 
         // reference must be kept to avoid GC, see https://stackoverflow.com/a/6193914
@@ -499,13 +498,18 @@ namespace osu.Framework.Platform
 
         public void SwapBuffers()
         {
-            graphicsBackend.SwapBuffers();
-
             if (firstDraw)
             {
+                // SDL actions like SDL_MaximizeWindow() **may** display the window regardless of whether it was hidden.
+                // This is the best place to perform such actions, as the window would have something drawn to it right on next frame.
+                WindowMode.TriggerChange();
+
                 Visible = true;
                 firstDraw = false;
+                return;
             }
+
+            graphicsBackend.SwapBuffers();
         }
 
         /// <summary>
