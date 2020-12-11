@@ -162,7 +162,13 @@ namespace osu.Framework.Platform
             set
             {
                 visible = value;
-                ScheduleCommand(() => updateWindowVisibility(value));
+                ScheduleCommand(() =>
+                {
+                    if (value)
+                        SDL.SDL_ShowWindow(SDLWindowHandle);
+                    else
+                        SDL.SDL_HideWindow(SDLWindowHandle);
+                });
             }
         }
 
@@ -1000,10 +1006,6 @@ namespace osu.Framework.Platform
 
             updateMaximisedState();
 
-            // Functions like SDL_MaximizeWindow or SDL_RestoreWindow show the window
-            // even if they were hidden previously, which is not what we want.
-            updateWindowVisibility(Visible);
-
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
@@ -1014,14 +1016,6 @@ namespace osu.Framework.Platform
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised.Value = windowState == WindowState.Maximised;
-        }
-
-        private void updateWindowVisibility(bool visible)
-        {
-            if (visible)
-                SDL.SDL_ShowWindow(SDLWindowHandle);
-            else
-                SDL.SDL_HideWindow(SDLWindowHandle);
         }
 
         /// <summary>
