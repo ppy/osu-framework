@@ -347,6 +347,9 @@ namespace osu.Framework.Platform
 
         private void updateWindowPositionConfigFromCurrent()
         {
+            if (WindowState != WindowState.Normal)
+                return;
+
             var displayBounds = CurrentDisplay.Bounds;
 
             var windowX = Position.X - displayBounds.X;
@@ -895,7 +898,6 @@ namespace osu.Framework.Platform
 
                     break;
 
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     if (WindowMode.Value == Configuration.WindowMode.Windowed)
                         updateWindowSize();
@@ -999,6 +1001,9 @@ namespace osu.Framework.Platform
                 case WindowState.Maximised:
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
+
+                    SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
+                    Size = new Size(w, h);
                     break;
 
                 case WindowState.Minimised:
