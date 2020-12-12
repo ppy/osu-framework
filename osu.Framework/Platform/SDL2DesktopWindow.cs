@@ -412,6 +412,7 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
+            updateWindowSize();
             WindowMode.TriggerChange();
         }
 
@@ -479,7 +480,7 @@ namespace osu.Framework.Platform
                 if (windowState == WindowState.Normal)
                 {
                     windowStateChanging = true;
-                    sizeWindowed.Value = newSize;
+                    sizeWindowed.Value = scaleSize(newSize, 1 / Scale);
                     windowStateChanging = false;
                 }
 
@@ -968,13 +969,13 @@ namespace osu.Framework.Platform
             switch (windowState)
             {
                 case WindowState.Normal:
-                    Size = sizeWindowed.Value;
+                    Size = scaleSize(sizeWindowed.Value, Scale);
 
                     SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
 
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
+                    SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
 
                     updateWindowPositionFromConfig();
                     break;
