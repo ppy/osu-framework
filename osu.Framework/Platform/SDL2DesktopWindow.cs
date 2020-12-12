@@ -435,7 +435,9 @@ namespace osu.Framework.Platform
 
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    handleSDLEvent(e);
+                    // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
+                    // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
+                    updateWindowSize(false);
                     return 0;
                 }
 
@@ -467,7 +469,11 @@ namespace osu.Framework.Platform
             SDL.SDL_Quit();
         }
 
-        private void updateWindowSize()
+        /// <summary>
+        /// Updates the client size and the scale according to the window.
+        /// </summary>
+        /// <param name="saveToConfig">Whether the new window size should be saved to the config.</param>
+        private void updateWindowSize(bool saveToConfig = true)
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
             var newSize = new Size(w, h);
@@ -479,7 +485,7 @@ namespace osu.Framework.Platform
             {
                 Size = newSize;
 
-                if (windowState == WindowState.Normal)
+                if (windowState == WindowState.Normal && saveToConfig)
                 {
                     windowStateChanging = true;
                     sizeWindowed.Value = newSize;
