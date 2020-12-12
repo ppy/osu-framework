@@ -1213,7 +1213,7 @@ namespace osu.Framework.Platform
                 CursorStateBindable.Value &= ~CursorState.Confined;
         }
 
-        #region SDL Helper functions
+        #region Helper functions
 
         private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
         {
@@ -1257,6 +1257,8 @@ namespace osu.Framework.Platform
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
+
+        private static Size scaleSize(Size size, float scale) => new Size((int)(size.Width * scale), (int)(size.Height * scale));
 
         #endregion
 
