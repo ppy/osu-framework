@@ -15,6 +15,8 @@ namespace osu.Framework.Platform
     /// </summary>
     public interface IWindow : IDisposable
     {
+        internal static Size MaxSize = new Size(9999, 9999);
+
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
         /// </summary>

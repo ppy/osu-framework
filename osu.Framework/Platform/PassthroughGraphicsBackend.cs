@@ -3,11 +3,13 @@
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
+using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
 
@@ -79,6 +81,11 @@ namespace osu.Framework.Platform
             // We need to release the context in this thread, since Windows locks it and prevents
             // the draw thread from taking it. macOS seems to gracefully ignore this.
             MakeCurrent(IntPtr.Zero);
+        }
+
+        public void ResetBuffer(Size size)
+        {
+            GLWrapper.Reset(new Vector2(size.Width, size.Height));
         }
 
         public void MakeCurrent() => MakeCurrent(Context);

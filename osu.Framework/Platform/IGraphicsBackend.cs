@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Drawing;
+
 namespace osu.Framework.Platform
 {
     /// <summary>
@@ -25,6 +27,11 @@ namespace osu.Framework.Platform
         /// or on the next screen refresh if true.
         /// </summary>
         void SwapBuffers();
+
+        /// <summary>
+        /// Resets buffer to the desired size, making the window cleared to black colour.
+        /// </summary>
+        void ResetBuffer(Size size);
 
         /// <summary>
         /// Makes the graphics backend the current context, if appropriate for the driver.

@@ -501,7 +501,9 @@ namespace osu.Framework.Platform
             if (firstDraw)
             {
                 // SDL actions like SDL_MaximizeWindow() **may** display the window regardless of whether it was hidden.
-                // This is the best place to perform such actions, as the window would have something drawn to it right on next frame.
+                // This is the best place to perform such actions, as the window would have something drawn to it.
+                graphicsBackend.ResetBuffer(IWindow.MaxSize);
+                graphicsBackend.SwapBuffers();
                 WindowMode.TriggerChange();
 
                 Visible = true;
