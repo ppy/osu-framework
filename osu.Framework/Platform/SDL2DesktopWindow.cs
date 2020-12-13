@@ -361,6 +361,13 @@ namespace osu.Framework.Platform
             windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
         }
 
+        private void storeWindowSizeToConfig()
+        {
+            windowStateChanging = true;
+            sizeWindowed.Value = Size;
+            windowStateChanging = false;
+        }
+
         private bool firstDraw = true;
 
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -437,7 +444,7 @@ namespace osu.Framework.Platform
                 {
                     // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
                     // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
-                    updateWindowSize(false);
+                    updateWindowSize();
                     return 0;
                 }
 
@@ -472,8 +479,8 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Updates the client size and the scale according to the window.
         /// </summary>
-        /// <param name="saveToConfig">Whether the new window size should be saved to the config.</param>
-        private void updateWindowSize(bool saveToConfig = true)
+        /// <returns>Whether the window size has been changed after updating.</returns>
+        private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
             var newSize = new Size(w, h);
@@ -484,14 +491,6 @@ namespace osu.Framework.Platform
             if (!newSize.Equals(Size))
             {
                 Size = newSize;
-
-                if (windowState == WindowState.Normal && saveToConfig)
-                {
-                    windowStateChanging = true;
-                    sizeWindowed.Value = newSize;
-                    windowStateChanging = false;
-                }
-
                 ScheduleEvent(() => OnResized());
             }
         }
@@ -905,8 +904,10 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    if (WindowMode.Value == Configuration.WindowMode.Windowed)
-                        updateWindowSize();
+                    updateWindowSize();
+                    if (WindowState == WindowState.Normal)
+                        storeWindowSizeToConfig();
+
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
