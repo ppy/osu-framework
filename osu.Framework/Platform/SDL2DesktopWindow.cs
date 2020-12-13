@@ -935,7 +935,7 @@ namespace osu.Framework.Platform
         {
             // this method is potentially called from another thread (see event filter usage).
             // this flag ensures such calls don't interfere with a user-requested screen mode change.
-            if (isChangingWindowState)
+            if (windowStateAndSizeUpdateRunning)
                 return;
 
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
@@ -965,7 +965,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
-            isChangingWindowState = true;
+            windowStateAndSizeUpdateRunning = true;
 
             switch (windowState)
             {
@@ -1016,7 +1016,7 @@ namespace osu.Framework.Platform
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
-            isChangingWindowState = false;
+            windowStateAndSizeUpdateRunning = false;
         }
 
         private void updateMaximisedState()
@@ -1082,7 +1082,10 @@ namespace osu.Framework.Platform
         /// </summary>
         private bool storingSizeToConfig;
 
-        private bool isChangingWindowState;
+        /// <summary>
+        /// Set to <c>true</c> when a call to <see cref="updateWindowStateAndSize"/> is in progress.
+        /// </summary>
+        private bool windowStateAndSizeUpdateRunning;
 
         public void SetupWindow(FrameworkConfigManager config)
         {
