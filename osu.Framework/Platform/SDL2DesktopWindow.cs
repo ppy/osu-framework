@@ -330,7 +330,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void updateWindowPositionFromConfig()
+        private void readWindowPositionFromConfig()
         {
             if (WindowState != WindowState.Normal)
                 return;
@@ -345,7 +345,7 @@ namespace osu.Framework.Platform
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
 
-        private void updateWindowPositionConfigFromCurrent()
+        private void storeWindowPositionToConfig()
         {
             if (WindowState != WindowState.Normal)
                 return;
@@ -892,7 +892,7 @@ namespace osu.Framework.Platform
                     if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        updateWindowPositionConfigFromCurrent();
+                        storeWindowPositionToConfig();
                         ScheduleEvent(() => OnMoved(newPosition));
                     }
 
@@ -978,7 +978,7 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
-                    updateWindowPositionFromConfig();
+                    readWindowPositionFromConfig();
                     break;
 
                 case WindowState.Fullscreen:
