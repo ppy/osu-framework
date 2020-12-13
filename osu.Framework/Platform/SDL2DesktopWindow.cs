@@ -481,9 +481,9 @@ namespace osu.Framework.Platform
 
                 if (windowState == WindowState.Normal)
                 {
-                    windowStateChanging = true;
+                    storingSizeToConfig = true;
                     sizeWindowed.Value = newSize;
-                    windowStateChanging = false;
+                    storingSizeToConfig = false;
                 }
 
                 ScheduleEvent(() => OnResized());
@@ -1078,9 +1078,9 @@ namespace osu.Framework.Platform
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
         /// <summary>
-        /// Set to true during a state change operation to avoid bindable feedback.
+        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
         /// </summary>
-        private bool windowStateChanging;
+        private bool storingSizeToConfig;
 
         private bool isChangingWindowState;
 
@@ -1098,7 +1098,7 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (windowStateChanging) return;
+                if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Fullscreen)
                     ScheduleCommand(updateWindowStateAndSize);
@@ -1106,7 +1106,7 @@ namespace osu.Framework.Platform
 
             sizeWindowed.ValueChanged += evt =>
             {
-                if (windowStateChanging) return;
+                if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Normal)
                     ScheduleCommand(updateWindowStateAndSize);
