@@ -364,7 +364,7 @@ namespace osu.Framework.Platform
         private void storeWindowSizeToConfig()
         {
             windowStateChanging = true;
-            sizeWindowed.Value = scaleSize(Size, 1 / Scale);
+            sizeWindowed.Value = (Size / Scale).ToSize();
             windowStateChanging = false;
         }
 
@@ -978,7 +978,7 @@ namespace osu.Framework.Platform
             switch (windowState)
             {
                 case WindowState.Normal:
-                    Size = scaleSize(sizeWindowed.Value, Scale);
+                    Size = (sizeWindowed.Value * Scale).ToSize();
 
                     SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
@@ -1270,8 +1270,6 @@ namespace osu.Framework.Platform
             SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
-
-        private static Size scaleSize(Size size, float scale) => new Size((int)(size.Width * scale), (int)(size.Height * scale));
 
         #endregion
 
