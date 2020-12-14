@@ -330,36 +330,10 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void updateWindowPositionFromConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
-
-            var displayBounds = CurrentDisplay.Bounds;
-            var windowSize = sizeWindowed.Value;
-            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
-
-            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
-        }
-
-        private void updateWindowPositionConfigFromCurrent()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var displayBounds = CurrentDisplay.Bounds;
-
-            var windowX = Position.X - displayBounds.X;
-            var windowY = Position.Y - displayBounds.Y;
-
-            var windowSize = sizeWindowed.Value;
-
-            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
-            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
-        }
+        /// <summary>
+        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
+        /// </summary>
+        private bool storingSizeToConfig;
 
         private bool firstDraw = true;
 
@@ -435,7 +409,9 @@ namespace osu.Framework.Platform
 
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    handleSDLEvent(e);
+                    // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
+                    // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
+                    updateWindowSize();
                     return 0;
                 }
 
@@ -467,6 +443,10 @@ namespace osu.Framework.Platform
             SDL.SDL_Quit();
         }
 
+        /// <summary>
+        /// Updates the client size and the scale according to the window.
+        /// </summary>
+        /// <returns>Whether the window size has been changed after updating.</returns>
         private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
@@ -478,13 +458,6 @@ namespace osu.Framework.Platform
             if (!newSize.Equals(Size))
             {
                 Size = newSize;
-
-                if (windowState == WindowState.Normal)
-                {
-                    windowStateChanging = true;
-                    sizeWindowed.Value = newSize;
-                    windowStateChanging = false;
-                }
 
                 ScheduleEvent(() => OnResized());
             }
@@ -892,15 +865,17 @@ namespace osu.Framework.Platform
                     if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        updateWindowPositionConfigFromCurrent();
+                        storeWindowPositionToConfig();
                         ScheduleEvent(() => OnMoved(newPosition));
                     }
 
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
-                    if (WindowMode.Value == Configuration.WindowMode.Windowed)
-                        updateWindowSize();
+                    updateWindowSize();
+                    if (WindowState == WindowState.Normal)
+                        storeWindowSizeToConfig();
+
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -935,7 +910,7 @@ namespace osu.Framework.Platform
         {
             // this method is potentially called from another thread (see event filter usage).
             // this flag ensures such calls don't interfere with a user-requested screen mode change.
-            if (isChangingWindowState)
+            if (windowStateAndSizeUpdateRunning)
                 return;
 
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
@@ -965,7 +940,7 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
-            isChangingWindowState = true;
+            windowStateAndSizeUpdateRunning = true;
 
             switch (windowState)
             {
@@ -978,7 +953,7 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
 
-                    updateWindowPositionFromConfig();
+                    readWindowPositionFromConfig();
                     break;
 
                 case WindowState.Fullscreen:
@@ -1016,13 +991,51 @@ namespace osu.Framework.Platform
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
 
-            isChangingWindowState = false;
+            windowStateAndSizeUpdateRunning = false;
         }
 
         private void updateMaximisedState()
         {
             if (windowState == WindowState.Normal || windowState == WindowState.Maximised)
                 windowMaximised = windowState == WindowState.Maximised;
+        }
+
+        private void readWindowPositionFromConfig()
+        {
+            if (WindowState != WindowState.Normal)
+                return;
+
+            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
+
+            var displayBounds = CurrentDisplay.Bounds;
+            var windowSize = sizeWindowed.Value;
+            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
+            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+
+            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+        }
+
+        private void storeWindowPositionToConfig()
+        {
+            if (WindowState != WindowState.Normal)
+                return;
+
+            var displayBounds = CurrentDisplay.Bounds;
+
+            var windowX = Position.X - displayBounds.X;
+            var windowY = Position.Y - displayBounds.Y;
+
+            var windowSize = sizeWindowed.Value;
+
+            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
+            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
+        }
+
+        private void storeWindowSizeToConfig()
+        {
+            storingSizeToConfig = true;
+            sizeWindowed.Value = Size;
+            storingSizeToConfig = false;
         }
 
         /// <summary>
@@ -1078,11 +1091,9 @@ namespace osu.Framework.Platform
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
         /// <summary>
-        /// Set to true during a state change operation to avoid bindable feedback.
+        /// Set to <c>true</c> when a call to <see cref="updateWindowStateAndSize"/> is in progress.
         /// </summary>
-        private bool windowStateChanging;
-
-        private bool isChangingWindowState;
+        private bool windowStateAndSizeUpdateRunning;
 
         public void SetupWindow(FrameworkConfigManager config)
         {
@@ -1098,7 +1109,7 @@ namespace osu.Framework.Platform
 
             sizeFullscreen.ValueChanged += evt =>
             {
-                if (windowStateChanging) return;
+                if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Fullscreen)
                     ScheduleCommand(updateWindowStateAndSize);
@@ -1106,7 +1117,7 @@ namespace osu.Framework.Platform
 
             sizeWindowed.ValueChanged += evt =>
             {
-                if (windowStateChanging) return;
+                if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Normal)
                     ScheduleCommand(updateWindowStateAndSize);
