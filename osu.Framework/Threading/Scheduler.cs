@@ -133,7 +133,9 @@ namespace osu.Framework.Threading
                             tasksToSchedule.Add(sd);
                         }
 
-                        if (!sd.Completed)
+                        if (sd.RepeatInterval == 0)
+                            perUpdateTasks.Add(sd);
+                        else if (!sd.Completed)
                             runQueue.Enqueue(sd);
                     }
                 }
@@ -233,12 +235,7 @@ namespace osu.Framework.Threading
                 throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
 
             lock (queueLock)
-            {
-                if (task.RepeatInterval == 0)
-                    perUpdateTasks.Add(task);
-                else
-                    timedTasks.AddInPlace(task);
-            }
+                timedTasks.AddInPlace(task);
         }
 
         /// <summary>
