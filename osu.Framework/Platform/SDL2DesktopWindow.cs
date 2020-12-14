@@ -330,43 +330,10 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void readWindowPositionFromConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
-
-            var displayBounds = CurrentDisplay.Bounds;
-            var windowSize = sizeWindowed.Value;
-            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
-
-            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
-        }
-
-        private void storeWindowPositionToConfig()
-        {
-            if (WindowState != WindowState.Normal)
-                return;
-
-            var displayBounds = CurrentDisplay.Bounds;
-
-            var windowX = Position.X - displayBounds.X;
-            var windowY = Position.Y - displayBounds.Y;
-
-            var windowSize = sizeWindowed.Value;
-
-            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
-            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
-        }
-
-        private void storeWindowSizeToConfig()
-        {
-            storingSizeToConfig = true;
-            sizeWindowed.Value = Size;
-            storingSizeToConfig = false;
-        }
+        /// <summary>
+        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
+        /// </summary>
+        private bool storingSizeToConfig;
 
         private bool firstDraw = true;
 
@@ -1033,6 +1000,44 @@ namespace osu.Framework.Platform
                 windowMaximised = windowState == WindowState.Maximised;
         }
 
+        private void readWindowPositionFromConfig()
+        {
+            if (WindowState != WindowState.Normal)
+                return;
+
+            var configPosition = new Vector2((float)windowPositionX.Value, (float)windowPositionY.Value);
+
+            var displayBounds = CurrentDisplay.Bounds;
+            var windowSize = sizeWindowed.Value;
+            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
+            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+
+            Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
+        }
+
+        private void storeWindowPositionToConfig()
+        {
+            if (WindowState != WindowState.Normal)
+                return;
+
+            var displayBounds = CurrentDisplay.Bounds;
+
+            var windowX = Position.X - displayBounds.X;
+            var windowY = Position.Y - displayBounds.Y;
+
+            var windowSize = sizeWindowed.Value;
+
+            windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
+            windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
+        }
+
+        private void storeWindowSizeToConfig()
+        {
+            storingSizeToConfig = true;
+            sizeWindowed.Value = Size;
+            storingSizeToConfig = false;
+        }
+
         /// <summary>
         /// Prepare display of a borderless window.
         /// </summary>
@@ -1084,11 +1089,6 @@ namespace osu.Framework.Platform
         #endregion
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
-
-        /// <summary>
-        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
-        /// </summary>
-        private bool storingSizeToConfig;
 
         /// <summary>
         /// Set to <c>true</c> when a call to <see cref="updateWindowStateAndSize"/> is in progress.
