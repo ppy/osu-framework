@@ -330,11 +330,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        /// <summary>
-        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
-        /// </summary>
-        private bool storingSizeToConfig;
-
         private bool firstDraw = true;
 
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -389,6 +384,7 @@ namespace osu.Framework.Platform
             graphicsBackend.Initialise(this);
 
             updateWindowSpecifics();
+            updateWindowSize();
             WindowMode.TriggerChange();
         }
 
@@ -945,13 +941,13 @@ namespace osu.Framework.Platform
             switch (windowState)
             {
                 case WindowState.Normal:
-                    Size = sizeWindowed.Value;
+                    Size = (sizeWindowed.Value * Scale).ToSize();
 
                     SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
 
-                    SDL.SDL_SetWindowSize(SDLWindowHandle, Size.Width, Size.Height);
+                    SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
 
                     readWindowPositionFromConfig();
                     break;
@@ -1031,10 +1027,15 @@ namespace osu.Framework.Platform
             windowPositionY.Value = displayBounds.Height > windowSize.Height ? (float)windowY / (displayBounds.Height - windowSize.Height) : 0;
         }
 
+        /// <summary>
+        /// Set to <c>true</c> while the window size is being stored to config to avoid bindable feedback.
+        /// </summary>
+        private bool storingSizeToConfig;
+
         private void storeWindowSizeToConfig()
         {
             storingSizeToConfig = true;
-            sizeWindowed.Value = Size;
+            sizeWindowed.Value = (Size / Scale).ToSize();
             storingSizeToConfig = false;
         }
 
@@ -1229,7 +1230,7 @@ namespace osu.Framework.Platform
                 CursorStateBindable.Value &= ~CursorState.Confined;
         }
 
-        #region SDL Helper functions
+        #region Helper functions
 
         private SDL.SDL_DisplayMode getClosestDisplayMode(Size size, int refreshRate, int displayIndex)
         {

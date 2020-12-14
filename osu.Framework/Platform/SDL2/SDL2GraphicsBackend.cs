@@ -19,7 +19,11 @@ namespace osu.Framework.Platform.SDL2
             set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
         }
 
-        protected override IntPtr CreateContext() => SDL.SDL_GL_CreateContext(sdlWindowHandle);
+        protected override IntPtr CreateContext()
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+            return SDL.SDL_GL_CreateContext(sdlWindowHandle);
+        }
 
         protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);
 
