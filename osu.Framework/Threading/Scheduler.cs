@@ -123,20 +123,24 @@ namespace osu.Framework.Threading
 
                         if (sd.Cancelled) continue;
 
-                        if (sd.RepeatInterval >= 0)
+                        if (sd.RepeatInterval == 0)
+                        {
+                            // handling of every-frame tasks is slightly different to reduce overhead.
+                            perUpdateTasks.Add(sd);
+                            continue;
+                        }
+
+                        if (sd.RepeatInterval > 0)
                         {
                             if (timedTasks.Count > 1000)
                                 throw new ArgumentException("Too many timed tasks are in the queue!");
 
+                            // schedule the next repeat of the task.
                             sd.SetNextExecution(currentTimeLocal);
-
                             tasksToSchedule.Add(sd);
                         }
 
-                        if (sd.RepeatInterval == 0)
-                            perUpdateTasks.Add(sd);
-                        else if (!sd.Completed)
-                            runQueue.Enqueue(sd);
+                        if (!sd.Completed) runQueue.Enqueue(sd);
                     }
                 }
 
