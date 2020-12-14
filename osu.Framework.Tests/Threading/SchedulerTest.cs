@@ -211,6 +211,35 @@ namespace osu.Framework.Tests.Threading
             }
         }
 
+        [Test]
+        public void TestZeroDelayRepeatingDelegate()
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            Assert.Zero(scheduler.TotalPendingTasks);
+
+            scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 0));
+
+            Assert.AreEqual(1, scheduler.TotalPendingTasks);
+
+            int expectedInvocations = 0;
+
+            for (double d = 0; d <= 2500; d += 100)
+            {
+                clock.Seek(d);
+                scheduler.Update();
+
+                if (d >= 500)
+                    expectedInvocations++;
+
+                Assert.AreEqual(expectedInvocations, invocations);
+                Assert.AreEqual(1, scheduler.TotalPendingTasks);
+            }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestRepeatingDelayedDelegateCatchUp(bool performCatchUp)
