@@ -363,9 +363,9 @@ namespace osu.Framework.Platform
 
         private void storeWindowSizeToConfig()
         {
-            windowStateChanging = true;
+            storingSizeToConfig = true;
             sizeWindowed.Value = Size;
-            windowStateChanging = false;
+            storingSizeToConfig = false;
         }
 
         private bool firstDraw = true;
