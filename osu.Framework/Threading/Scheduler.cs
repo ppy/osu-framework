@@ -30,7 +30,12 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
         /// </summary>
-        public bool HasPendingTasks => runQueue.Count > 0 || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
+        public bool HasPendingTasks => TotalPendingTasks > 0;
+
+        /// <summary>
+        /// The total number of <see cref="ScheduledDelegate"/>s tracked by this instance for future execution.
+        /// </summary>
+        internal int TotalPendingTasks => runQueue.Count + timedTasks.Count + perUpdateTasks.Count;
 
         /// <summary>
         /// The base thread is assumed to be the thread on which the constructor is run.

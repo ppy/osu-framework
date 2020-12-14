@@ -219,7 +219,11 @@ namespace osu.Framework.Tests.Threading
 
             int invocations = 0;
 
+            Assert.Zero(scheduler.TotalPendingTasks);
+
             scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 0));
+
+            Assert.AreEqual(1, scheduler.TotalPendingTasks);
 
             int expectedInvocations = 0;
 
@@ -232,6 +236,7 @@ namespace osu.Framework.Tests.Threading
                     expectedInvocations++;
 
                 Assert.AreEqual(expectedInvocations, invocations);
+                Assert.AreEqual(1, scheduler.TotalPendingTasks);
             }
         }
 
