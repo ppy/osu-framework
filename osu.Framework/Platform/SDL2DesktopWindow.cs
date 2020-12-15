@@ -937,16 +937,18 @@ namespace osu.Framework.Platform
         private void updateWindowStateAndSize()
         {
             windowStateAndSizeUpdateRunning = true;
+            // this reset is required even on changing from one fullscreen resolution to another.
+            // if it is not included, the GL context will not get the correct size.
+            // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
+            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
+            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
             switch (windowState)
             {
                 case WindowState.Normal:
                     Size = (sizeWindowed.Value * Scale).ToSize();
 
-                    SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
-
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
 
                     readWindowPositionFromConfig();
@@ -956,9 +958,6 @@ namespace osu.Framework.Platform
                     var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
                     Size = new Size(closestMode.w, closestMode.h);
 
-                    // not 100% sure if this is the best way to handle things, but without restoring windowed mode before changing the display resolution,
-                    // the GL context will not get the correct size. this is mentioned in multiple threads which seem to resolve by similar means.
-                    // See https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4 for one such discussion.
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
