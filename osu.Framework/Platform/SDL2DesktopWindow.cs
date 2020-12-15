@@ -205,6 +205,8 @@ namespace osu.Framework.Platform
 
         private WindowState windowState = WindowState.Normal;
 
+        private WindowState? pendingWindowState;
+
         /// <summary>
         /// Returns or sets the window's current <see cref="WindowState"/>.
         /// </summary>
@@ -213,8 +215,11 @@ namespace osu.Framework.Platform
             get => windowState;
             set
             {
-                windowState = value;
-                ScheduleCommand(updateWindowStateAndSize);
+                if (pendingWindowState == null && windowState == value)
+                    return;
+
+                pendingWindowState = value;
+                ScheduleCommand(updateWindowSpecifics);
             }
         }
 
@@ -264,7 +269,7 @@ namespace osu.Framework.Platform
                 currentDisplayMode = value;
 
                 // todo: proper handling of this, if we decide we want it.
-                updateWindowStateAndSize();
+                pendingWindowState = windowState;
             }
         }
 
@@ -904,20 +909,26 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
-            // this method is potentially called from another thread (see event filter usage).
-            // this flag ensures such calls don't interfere with a user-requested screen mode change.
-            if (windowStateAndSizeUpdateRunning)
-                return;
-
             Debug.Assert(SDLWindowHandle != IntPtr.Zero);
 
-            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+            var stateBefore = windowState;
 
-            if (windowState != currentState)
+            // check for a pending user state change and give precedence.
+            if (pendingWindowState != null)
             {
-                windowState = currentState;
-                ScheduleEvent(() => OnWindowStateChanged(currentState));
+                windowState = pendingWindowState.Value;
+                pendingWindowState = null;
 
+                updateWindowStateAndSize();
+            }
+            else
+            {
+                windowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+            }
+
+            if (windowState != stateBefore)
+            {
+                ScheduleEvent(() => OnWindowStateChanged(windowState));
                 updateMaximisedState();
             }
 
@@ -936,7 +947,6 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
-            windowStateAndSizeUpdateRunning = true;
             // this reset is required even on changing from one fullscreen resolution to another.
             // if it is not included, the GL context will not get the correct size.
             // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
@@ -985,8 +995,6 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
-
-            windowStateAndSizeUpdateRunning = false;
         }
 
         private void updateMaximisedState()
@@ -1094,11 +1102,6 @@ namespace osu.Framework.Platform
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
-        /// <summary>
-        /// Set to <c>true</c> when a call to <see cref="updateWindowStateAndSize"/> is in progress.
-        /// </summary>
-        private bool windowStateAndSizeUpdateRunning;
-
         public void SetupWindow(FrameworkConfigManager config)
         {
             CurrentDisplayBindable.ValueChanged += evt =>
@@ -1116,7 +1119,7 @@ namespace osu.Framework.Platform
                 if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Fullscreen)
-                    ScheduleCommand(updateWindowStateAndSize);
+                    pendingWindowState = windowState;
             };
 
             sizeWindowed.ValueChanged += evt =>
@@ -1124,7 +1127,7 @@ namespace osu.Framework.Platform
                 if (storingSizeToConfig) return;
 
                 if (windowState == WindowState.Normal)
-                    ScheduleCommand(updateWindowStateAndSize);
+                    pendingWindowState = windowState;
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
