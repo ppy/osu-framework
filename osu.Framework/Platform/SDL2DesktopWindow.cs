@@ -1020,6 +1020,10 @@ namespace osu.Framework.Platform
             var windowX = Position.X - displayBounds.X;
             var windowY = Position.Y - displayBounds.Y;
 
+            // mainly here to handle garbage values (SDL_WINDOWEVENT_SIZE_CHANGED are delayed in borderless fullscreen on windows).
+            if (!displayBounds.Contains(windowX, windowY))
+                return;
+
             var windowSize = sizeWindowed.Value;
 
             windowPositionX.Value = displayBounds.Width > windowSize.Width ? (float)windowX / (displayBounds.Width - windowSize.Width) : 0;
