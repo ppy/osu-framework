@@ -966,9 +966,8 @@ namespace osu.Framework.Platform
 
                 case WindowState.Fullscreen:
                     var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
-                    Size = new Size(closestMode.w, closestMode.h);
 
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    Size = new Size(closestMode.w, closestMode.h);
 
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
@@ -979,7 +978,6 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
