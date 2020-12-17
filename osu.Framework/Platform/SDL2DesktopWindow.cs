@@ -861,7 +861,9 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                    var newPosition = new Point(evtWindow.data1, evtWindow.data2);
+                    // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
+                    SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
+                    var newPosition = new Point(x, y);
 
                     if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
@@ -1025,10 +1027,6 @@ namespace osu.Framework.Platform
 
             var windowX = Position.X - displayBounds.X;
             var windowY = Position.Y - displayBounds.Y;
-
-            // mainly here to handle garbage values (SDL_WINDOWEVENT_SIZE_CHANGED are delayed in borderless fullscreen on windows).
-            if (!displayBounds.Contains(windowX, windowY))
-                return;
 
             var windowSize = sizeWindowed.Value;
 
