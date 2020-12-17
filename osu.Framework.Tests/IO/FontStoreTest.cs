@@ -5,6 +5,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Stores;
 using osu.Framework.Text;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Tests.IO
 {
@@ -24,8 +25,8 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNestedScaleAdjust()
         {
-            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100))
-            using (var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10))
+            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100, All.Linear))
+            using (var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10, All.Linear))
             {
                 fontStore.AddStore(nestedFontStore);
 
@@ -44,7 +45,7 @@ namespace osu.Framework.Tests.IO
         public void TestNoCrashOnMissingResources()
         {
             using (var glyphStore = new RawCachingGlyphStore(fontResourceStore, "DoesntExist") { CacheStorage = storage })
-            using (var fontStore = new FontStore(glyphStore, 100))
+            using (var fontStore = new FontStore(glyphStore, 100, All.Linear))
             {
                 Assert.That(glyphStore.Get('a'), Is.Null);
 

@@ -11,6 +11,7 @@ using osu.Framework.Platform;
 using osu.Framework.Text;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.IO.Stores
 {
@@ -28,13 +29,13 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
 
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
-            : this(store, scaleAdjust, false)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All filteringMode = All.Linear)
+            : this(store, scaleAdjust, false, filteringMode: filteringMode)
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null)
-            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
+            : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
         {
             this.cacheStorage = cacheStorage;
         }
