@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -911,7 +910,9 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
-            Debug.Assert(SDLWindowHandle != IntPtr.Zero);
+            // don't attempt to run before the window is initialised, as Create() will do so anyway.
+            if (SDLWindowHandle == IntPtr.Zero)
+                return;
 
             var stateBefore = windowState;
 
@@ -1113,17 +1114,19 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += evt =>
             {
                 if (storingSizeToConfig) return;
+                if (windowState != WindowState.Fullscreen) return;
 
-                if (windowState == WindowState.Fullscreen)
-                    pendingWindowState = windowState;
+                pendingWindowState = windowState;
+                ScheduleCommand(updateWindowSpecifics);
             };
 
             sizeWindowed.ValueChanged += evt =>
             {
                 if (storingSizeToConfig) return;
+                if (windowState != WindowState.Normal) return;
 
-                if (windowState == WindowState.Normal)
-                    pendingWindowState = windowState;
+                pendingWindowState = windowState;
+                ScheduleCommand(updateWindowSpecifics);
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
