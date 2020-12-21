@@ -218,7 +218,6 @@ namespace osu.Framework.Platform
                     return;
 
                 pendingWindowState = value;
-                ScheduleCommand(updateWindowSpecifics);
             }
         }
 
@@ -424,6 +423,9 @@ namespace osu.Framework.Platform
 
                 if (!Exists)
                     break;
+
+                if (pendingWindowState != null)
+                    updateWindowSpecifics();
 
                 pollSDLEvents();
 
@@ -1117,7 +1119,6 @@ namespace osu.Framework.Platform
                 if (windowState != WindowState.Fullscreen) return;
 
                 pendingWindowState = windowState;
-                ScheduleCommand(updateWindowSpecifics);
             };
 
             sizeWindowed.ValueChanged += evt =>
@@ -1126,7 +1127,6 @@ namespace osu.Framework.Platform
                 if (windowState != WindowState.Normal) return;
 
                 pendingWindowState = windowState;
-                ScheduleCommand(updateWindowSpecifics);
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
