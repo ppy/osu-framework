@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -205,6 +204,8 @@ namespace osu.Framework.Platform
 
         private WindowState windowState = WindowState.Normal;
 
+        private WindowState? pendingWindowState;
+
         /// <summary>
         /// Returns or sets the window's current <see cref="WindowState"/>.
         /// </summary>
@@ -213,8 +214,10 @@ namespace osu.Framework.Platform
             get => windowState;
             set
             {
-                windowState = value;
-                ScheduleCommand(updateWindowStateAndSize);
+                if (pendingWindowState == null && windowState == value)
+                    return;
+
+                pendingWindowState = value;
             }
         }
 
@@ -264,7 +267,7 @@ namespace osu.Framework.Platform
                 currentDisplayMode = value;
 
                 // todo: proper handling of this, if we decide we want it.
-                updateWindowStateAndSize();
+                pendingWindowState = windowState;
             }
         }
 
@@ -420,6 +423,9 @@ namespace osu.Framework.Platform
 
                 if (!Exists)
                     break;
+
+                if (pendingWindowState != null)
+                    updateWindowSpecifics();
 
                 pollSDLEvents();
 
@@ -856,7 +862,9 @@ namespace osu.Framework.Platform
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
-                    var newPosition = new Point(evtWindow.data1, evtWindow.data2);
+                    // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
+                    SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
+                    var newPosition = new Point(x, y);
 
                     if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
                     {
@@ -904,20 +912,28 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowSpecifics()
         {
-            // this method is potentially called from another thread (see event filter usage).
-            // this flag ensures such calls don't interfere with a user-requested screen mode change.
-            if (windowStateAndSizeUpdateRunning)
+            // don't attempt to run before the window is initialised, as Create() will do so anyway.
+            if (SDLWindowHandle == IntPtr.Zero)
                 return;
 
-            Debug.Assert(SDLWindowHandle != IntPtr.Zero);
+            var stateBefore = windowState;
 
-            var currentState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
-
-            if (windowState != currentState)
+            // check for a pending user state change and give precedence.
+            if (pendingWindowState != null)
             {
-                windowState = currentState;
-                ScheduleEvent(() => OnWindowStateChanged(currentState));
+                windowState = pendingWindowState.Value;
+                pendingWindowState = null;
 
+                updateWindowStateAndSize();
+            }
+            else
+            {
+                windowState = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).ToWindowState();
+            }
+
+            if (windowState != stateBefore)
+            {
+                ScheduleEvent(() => OnWindowStateChanged(windowState));
                 updateMaximisedState();
             }
 
@@ -936,17 +952,18 @@ namespace osu.Framework.Platform
         /// </summary>
         private void updateWindowStateAndSize()
         {
-            windowStateAndSizeUpdateRunning = true;
+            // this reset is required even on changing from one fullscreen resolution to another.
+            // if it is not included, the GL context will not get the correct size.
+            // this is mentioned by multiple sources as an SDL issue, which seems to resolve by similar means (see https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4).
+            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
+            SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
 
             switch (windowState)
             {
                 case WindowState.Normal:
                     Size = (sizeWindowed.Value * Scale).ToSize();
 
-                    SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_TRUE);
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
-
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
 
                     readWindowPositionFromConfig();
@@ -954,12 +971,8 @@ namespace osu.Framework.Platform
 
                 case WindowState.Fullscreen:
                     var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
-                    Size = new Size(closestMode.w, closestMode.h);
 
-                    // not 100% sure if this is the best way to handle things, but without restoring windowed mode before changing the display resolution,
-                    // the GL context will not get the correct size. this is mentioned in multiple threads which seem to resolve by similar means.
-                    // See https://discourse.libsdl.org/t/sdl-setwindowsize-does-not-work-in-fullscreen/20711/4 for one such discussion.
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
+                    Size = new Size(closestMode.w, closestMode.h);
 
                     SDL.SDL_SetWindowDisplayMode(SDLWindowHandle, ref closestMode);
                     SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
@@ -970,7 +983,6 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
-                    SDL.SDL_SetWindowFullscreen(SDLWindowHandle, (uint)SDL.SDL_bool.SDL_FALSE);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -986,8 +998,6 @@ namespace osu.Framework.Platform
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
                 currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
-
-            windowStateAndSizeUpdateRunning = false;
         }
 
         private void updateMaximisedState()
@@ -1091,11 +1101,6 @@ namespace osu.Framework.Platform
 
         protected virtual IGraphicsBackend CreateGraphicsBackend() => new SDL2GraphicsBackend();
 
-        /// <summary>
-        /// Set to <c>true</c> when a call to <see cref="updateWindowStateAndSize"/> is in progress.
-        /// </summary>
-        private bool windowStateAndSizeUpdateRunning;
-
         public void SetupWindow(FrameworkConfigManager config)
         {
             CurrentDisplayBindable.ValueChanged += evt =>
@@ -1111,17 +1116,17 @@ namespace osu.Framework.Platform
             sizeFullscreen.ValueChanged += evt =>
             {
                 if (storingSizeToConfig) return;
+                if (windowState != WindowState.Fullscreen) return;
 
-                if (windowState == WindowState.Fullscreen)
-                    ScheduleCommand(updateWindowStateAndSize);
+                pendingWindowState = windowState;
             };
 
             sizeWindowed.ValueChanged += evt =>
             {
                 if (storingSizeToConfig) return;
+                if (windowState != WindowState.Normal) return;
 
-                if (windowState == WindowState.Normal)
-                    ScheduleCommand(updateWindowStateAndSize);
+                pendingWindowState = windowState;
             };
 
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
