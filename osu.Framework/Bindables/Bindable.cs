@@ -245,6 +245,10 @@ namespace osu.Framework.Bindables
                     Value = t;
                     break;
 
+                case IBindable<T> bindable:
+                    Value = bindable.Value;
+                    break;
+
                 case string s when underlyingType.IsEnum:
                     Value = (T)Enum.Parse(underlyingType, s);
                     break;
