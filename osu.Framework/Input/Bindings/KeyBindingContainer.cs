@@ -137,11 +137,14 @@ namespace osu.Framework.Input.Bindings
 
                 case ScrollEvent scroll:
                 {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
+                    var keys = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                    bool handled = false;
 
-                    var handled = handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
-                    handleNewReleased(state, key);
+                    foreach (var key in keys)
+                    {
+                        handled |= handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
+                        handleNewReleased(state, key);
+                    }
 
                     return handled;
                 }
@@ -152,11 +155,7 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            float scrollAmount = 0;
-            if (newKey == InputKey.MouseWheelUp)
-                scrollAmount = scrollDelta?.Y ?? 0;
-            else if (newKey == InputKey.MouseWheelDown)
-                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
@@ -210,6 +209,27 @@ namespace osu.Framework.Input.Bindings
             }
 
             return handled;
+        }
+
+        private static float getScrollAmount(InputKey newKey, Vector2? scrollDelta)
+        {
+            switch (newKey)
+            {
+                case InputKey.MouseWheelUp:
+                    return scrollDelta?.Y ?? 0;
+
+                case InputKey.MouseWheelDown:
+                    return -(scrollDelta?.Y ?? 0);
+
+                case InputKey.MouseWheelRight:
+                    return scrollDelta?.X ?? 0;
+
+                case InputKey.MouseWheelLeft:
+                    return -(scrollDelta?.X ?? 0);
+
+                default:
+                    return 0;
+            }
         }
 
         protected virtual Drawable PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
