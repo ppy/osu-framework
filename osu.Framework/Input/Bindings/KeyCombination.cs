@@ -51,7 +51,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
-            : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
+            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)))
         {
         }
 
