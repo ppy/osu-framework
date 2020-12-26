@@ -100,6 +100,32 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(list));
         }
 
+        [Test]
+        public void TestBindCollectionChangedNotRunIfBoundToSequenceEqualList()
+        {
+            var list = new BindableList<int>(new[] { 1, 3, 5, 6 });
+            var otherList = new BindableList<int>(new[] { 1, 3, 5, 6 });
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.BindCollectionChanged((_, args) => triggeredArgs = args);
+            list.BindTo(otherList);
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
+        [Test]
+        public void TestBindCollectionChangedNotRunIfParsingSequenceEqualEnumerable()
+        {
+            var list = new BindableList<int>(new[] { 99, 100, 101, 102 });
+            var enumerable = Enumerable.Range(99, 4);
+
+            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            list.BindCollectionChanged((_, args) => triggeredArgs = args);
+            list.Parse(enumerable);
+
+            Assert.That(triggeredArgs, Is.Null);
+        }
+
         #endregion
 
         #region list[index]
