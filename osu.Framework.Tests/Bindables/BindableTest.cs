@@ -57,7 +57,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestParseSameTypeBindable()
+        public void TestParseBindableOfExactSameType()
         {
             var bindable1 = new BindableInt();
             var bindable2 = new BindableDouble();
@@ -79,13 +79,14 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestParseSameInheritanceBindable()
+        public void TestParseBindableOfMatchingInterfaceType()
         {
+            // both of these implement IBindable<int>
             var bindable1 = new BindableInt(10) { MaxValue = 15 };
             var bindable2 = new Bindable<int>(20);
 
             bindable1.Parse(bindable2);
-            // ensure bindable allowed range is still respected.
+            // ensure MaxValue is still respected.
             Assert.That(bindable1.Value, Is.EqualTo(15));
 
             bindable2.Parse(bindable1);
