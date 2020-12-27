@@ -138,19 +138,47 @@ namespace osu.Framework.Tests.Graphics
             assertAlmostEqual(new Vector4(expected.Item1, expected.Item2, expected.Item3, expected.Item4), convert.ToHSV(), "HSVA");
 
         [Test]
-        public void TestHex()
+        public void TestToHex()
         {
             Assert.AreEqual("#D2B48C", Colour4.Tan.ToHex());
             Assert.AreEqual("#D2B48CFF", Colour4.Tan.ToHex(true));
             Assert.AreEqual("#6495ED80", Colour4.CornflowerBlue.Opacity(half_alpha).ToHex());
+        }
 
-            Assert.AreEqual(Colour4.White, Colour4.FromHex("#fff"));
-            Assert.AreEqual(Colour4.Red, Colour4.FromHex("#ff0000"));
-            Assert.AreEqual(Colour4.Yellow.Opacity(half_alpha), Colour4.FromHex("ffff0080"));
-            Assert.AreEqual(Colour4.Lime.Opacity(half_alpha), Colour4.FromHex("00ff0080"));
-            Assert.Throws<ArgumentException>(() => Colour4.FromHex("#1"));
-            Assert.Throws<ArgumentException>(() => Colour4.FromHex("#12"));
-            Assert.Throws<ArgumentException>(() => Colour4.FromHex("12345"));
+        private static readonly object[][] valid_hex_colours =
+        {
+            new object[] { Colour4.White, Colour4.FromHex("#fff") },
+            new object[] { Colour4.Red, Colour4.FromHex("#ff0000") },
+            new object[] { Colour4.Yellow.Opacity(half_alpha), Colour4.FromHex("ffff0080") },
+            new object[] { Colour4.Lime.Opacity(half_alpha), Colour4.FromHex("00ff0080") },
+            new object[] { new Colour4(17, 34, 51, 255), Colour4.FromHex("123") },
+            new object[] { new Colour4(17, 34, 51, 255), Colour4.FromHex("#123") },
+            new object[] { new Colour4(17, 34, 51, 68), Colour4.FromHex("1234") },
+            new object[] { new Colour4(17, 34, 51, 68), Colour4.FromHex("#1234") },
+            new object[] { new Colour4(18, 52, 86, 255), Colour4.FromHex("123456") },
+            new object[] { new Colour4(18, 52, 86, 255), Colour4.FromHex("#123456") },
+            new object[] { new Colour4(18, 52, 86, 120), Colour4.FromHex("12345678") },
+            new object[] { new Colour4(18, 52, 86, 120), Colour4.FromHex("#12345678") }
+        };
+
+        [TestCaseSource(nameof(valid_hex_colours))]
+        public void TestFromHex(Colour4 expected, Colour4 actual) => Assert.AreEqual(expected, actual);
+
+        [TestCase("1")]
+        [TestCase("#1")]
+        [TestCase("12")]
+        [TestCase("#12")]
+        [TestCase("12345")]
+        [TestCase("#12345")]
+        [TestCase("1234567")]
+        [TestCase("#1234567")]
+        [TestCase("123456789")]
+        [TestCase("#123456789")]
+        [TestCase("gg00zz")]
+        public void TestFromHexFailsOnInvalidColours(string invalidColour)
+        {
+            // Assert.Catch allows any exception type, contrary to .Throws<T>() (which expects exactly T)
+            Assert.Catch(() => Colour4.FromHex(invalidColour));
         }
 
         [Test]
