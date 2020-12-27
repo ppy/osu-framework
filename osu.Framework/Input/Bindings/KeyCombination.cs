@@ -51,7 +51,7 @@ namespace osu.Framework.Input.Bindings
         /// <param name="keys">A comma-separated (KeyCode in integer) string representation of the keys.</param>
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(string keys)
-            : this(keys.Split(',').Select(s => (InputKey)int.Parse(s)))
+            : this(keys.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (InputKey)int.Parse(s)))
         {
         }
 
@@ -343,6 +343,12 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.MouseWheelUp:
                     return "Wheel Up";
 
+                case InputKey.MouseWheelLeft:
+                    return "Wheel Left";
+
+                case InputKey.MouseWheelRight:
+                    return "Wheel Right";
+
                 default:
                     return key.ToString();
             }
@@ -388,12 +394,19 @@ namespace osu.Framework.Input.Bindings
             return InputKey.FirstJoystickButton + (button - JoystickButton.FirstButton);
         }
 
-        public static InputKey FromScrollDelta(Vector2 scrollDelta)
+        public static IEnumerable<InputKey> FromScrollDelta(Vector2 scrollDelta)
         {
-            if (scrollDelta.Y > 0) return InputKey.MouseWheelUp;
-            if (scrollDelta.Y < 0) return InputKey.MouseWheelDown;
+            if (scrollDelta.Y > 0)
+                yield return InputKey.MouseWheelUp;
 
-            return InputKey.None;
+            if (scrollDelta.Y < 0)
+                yield return InputKey.MouseWheelDown;
+
+            if (scrollDelta.X > 0)
+                yield return InputKey.MouseWheelRight;
+
+            if (scrollDelta.X < 0)
+                yield return InputKey.MouseWheelLeft;
         }
 
         public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);
@@ -415,8 +428,8 @@ namespace osu.Framework.Input.Bindings
                     keys.Add(FromMouseButton(button));
             }
 
-            if (scrollDelta is Vector2 v && v.Y != 0)
-                keys.Add(FromScrollDelta(v));
+            if (scrollDelta is Vector2 v && (v.X != 0 || v.Y != 0))
+                keys.AddRange(FromScrollDelta(v));
 
             if (state.Keyboard != null)
             {

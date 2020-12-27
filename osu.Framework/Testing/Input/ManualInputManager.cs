@@ -273,7 +273,8 @@ namespace osu.Framework.Testing.Input
 
                 protected override bool OnScroll(ScrollEvent e)
                 {
-                    circle.MoveTo(circle.Position - e.ScrollDelta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
+                    var delta = new Vector2(e.ScrollDelta.X, -e.ScrollDelta.Y);
+                    circle.MoveTo(circle.Position + delta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
                     return base.OnScroll(e);
                 }
 
