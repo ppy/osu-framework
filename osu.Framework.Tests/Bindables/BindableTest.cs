@@ -56,6 +56,25 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable3.Disabled, Is.True); // Only have access to disabled
         }
 
+        [Test]
+        public void TestParseSameTypeBindable()
+        {
+            var bindable1 = new BindableInt();
+            var bindable2 = new BindableDouble();
+            var bindable3 = new BindableBool();
+
+            bindable1.Parse(new BindableInt(3));
+            bindable2.Parse(new BindableDouble(2.5));
+            bindable3.Parse(new BindableBool(true));
+
+            Assert.That(bindable1.Value, Is.EqualTo(3));
+            Assert.That(bindable2.Value, Is.EqualTo(2.5));
+            Assert.That(bindable3.Value, Is.EqualTo(true));
+
+            // parsing bindable of different type should throw exception.
+            Assert.Throws<ArgumentException>(() => bindable1.Parse(new BindableDouble(3.0)));
+        }
+
         [TestCaseSource(nameof(getParsingConversionTests))]
         public void TestParse(Type type, object input, object output)
         {
