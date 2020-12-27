@@ -247,7 +247,7 @@ namespace osu.Framework.Bindables
 
                 case IBindable _:
                     if (!(input is IBindable<T> bindable))
-                        throw new ArgumentException($"Attempting to parse {input.GetType()}, which has differnet value type from {typeof(T)}", nameof(input));
+                        throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
 
                     Value = bindable.Value;
                     break;
