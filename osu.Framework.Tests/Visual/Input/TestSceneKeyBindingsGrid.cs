@@ -477,7 +477,7 @@ namespace osu.Framework.Tests.Visual.Input
                 actionText = action.ToString().Replace('_', ' ');
 
                 RelativeSizeAxes = Axes.X;
-                Height = 35;
+                Height = 30;
                 Width = 0.3f;
                 Padding = new MarginPadding(2);
 
@@ -541,13 +541,14 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class KeyBindingTester : Container
+        private class KeyBindingTester : FillFlowContainer
         {
             private readonly TestButton[] testButtons;
 
             public KeyBindingTester(SimultaneousBindingMode concurrency, KeyCombinationMatchingMode matchingMode)
             {
                 RelativeSizeAxes = Axes.Both;
+                Direction = FillDirection.Vertical;
 
                 testButtons = Enum.GetValues(typeof(TestAction)).Cast<TestAction>().Select(t =>
                 {
@@ -565,7 +566,6 @@ namespace osu.Framework.Tests.Visual.Input
                     },
                     new TestInputManager(concurrency, matchingMode)
                     {
-                        Y = 30,
                         RelativeSizeAxes = Axes.Both,
                         Child = new FillFlowContainer
                         {
