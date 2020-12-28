@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.Platform.Windows.Native;
+using SDL2;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -19,6 +20,35 @@ namespace osu.Framework.Platform.Windows
 
         private Icon smallIcon;
         private Icon largeIcon;
+
+        public WindowsWindow()
+        {
+            try
+            {
+                // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
+                SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+            }
+            catch
+            {
+                // API doesn't exist on Windows 7 so it needs to be allowed to fail silently.
+            }
+        }
+
+        protected override Size SetBorderless()
+        {
+            SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
+
+            Size positionOffsetHack = new Size(1, 1);
+
+            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
+            var newPosition = CurrentDisplay.Bounds.Location - positionOffsetHack;
+
+            // for now let's use the same 1px hack that we've always used to force borderless.
+            SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
+            SDL.SDL_SetWindowPosition(SDLWindowHandle, newPosition.X, newPosition.Y);
+
+            return newSize;
+        }
 
         /// <summary>
         /// On Windows, SDL will use the same image for both large and small icons (scaled as necessary).
@@ -52,6 +82,16 @@ namespace osu.Framework.Platform.Windows
         {
             ClientToScreen(WindowHandle, ref point);
             return point;
+        }
+
+        [DllImport("SHCore.dll", SetLastError = true)]
+        internal static extern bool SetProcessDpiAwareness(ProcessDpiAwareness awareness);
+
+        internal enum ProcessDpiAwareness
+        {
+            Process_DPI_Unaware = 0,
+            Process_System_DPI_Aware = 1,
+            Process_Per_Monitor_DPI_Aware = 2
         }
 
         [DllImport("user32.dll", SetLastError = true)]

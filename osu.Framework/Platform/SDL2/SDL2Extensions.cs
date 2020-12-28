@@ -5,12 +5,16 @@ using osu.Framework.Input;
 using osuTK.Input;
 using SDL2;
 
-namespace osu.Framework.Platform.Sdl
+namespace osu.Framework.Platform.SDL2
 {
-    public static class Sdl2Extensions
+    public static class SDL2Extensions
     {
         public static Key ToKey(this SDL.SDL_Keysym sdlKeysym)
         {
+            // Apple devices don't have the notion of NumLock (they have a Clear key instead).
+            // treat them as if they always have NumLock on (the numpad always performs its primary actions).
+            bool numLockOn = sdlKeysym.mod.HasFlag(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
+
             switch (sdlKeysym.scancode)
             {
                 default:
@@ -303,37 +307,37 @@ namespace osu.Framework.Platform.Sdl
                     return Key.KeypadEnter;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_1:
-                    return Key.Keypad1;
+                    return numLockOn ? Key.Keypad1 : Key.End;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_2:
-                    return Key.Keypad2;
+                    return numLockOn ? Key.Keypad2 : Key.Down;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_3:
-                    return Key.Keypad3;
+                    return numLockOn ? Key.Keypad3 : Key.PageDown;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_4:
-                    return Key.Keypad4;
+                    return numLockOn ? Key.Keypad4 : Key.Left;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_5:
                     return Key.Keypad5;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_6:
-                    return Key.Keypad6;
+                    return numLockOn ? Key.Keypad6 : Key.Right;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_7:
-                    return Key.Keypad7;
+                    return numLockOn ? Key.Keypad7 : Key.Home;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_8:
-                    return Key.Keypad8;
+                    return numLockOn ? Key.Keypad8 : Key.Up;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_9:
-                    return Key.Keypad9;
+                    return numLockOn ? Key.Keypad9 : Key.PageUp;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_0:
-                    return Key.Keypad0;
+                    return numLockOn ? Key.Keypad0 : Key.Insert;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_PERIOD:
-                    return Key.KeypadPeriod;
+                    return numLockOn ? Key.KeypadPeriod : Key.Delete;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_NONUSBACKSLASH:
                     return Key.NonUSBackSlash;
@@ -443,7 +447,7 @@ namespace osu.Framework.Platform.Sdl
         {
             // NOTE: on macOS, SDL2 does not differentiate between "maximised" and "fullscreen desktop"
             if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
-                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) && windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) ||
+                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) ||
                 windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) && RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx)
                 return WindowState.FullscreenBorderless;
 

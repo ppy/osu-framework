@@ -4,12 +4,12 @@
 using System;
 using SDL2;
 
-namespace osu.Framework.Platform.Sdl
+namespace osu.Framework.Platform.SDL2
 {
     /// <summary>
     /// Implementation of <see cref="PassthroughGraphicsBackend"/> that uses SDL's OpenGL bindings.
     /// </summary>
-    public class Sdl2GraphicsBackend : PassthroughGraphicsBackend
+    public class SDL2GraphicsBackend : PassthroughGraphicsBackend
     {
         private IntPtr sdlWindowHandle;
 
@@ -19,7 +19,11 @@ namespace osu.Framework.Platform.Sdl
             set => SDL.SDL_GL_SetSwapInterval(value ? 1 : 0);
         }
 
-        protected override IntPtr CreateContext() => SDL.SDL_GL_CreateContext(sdlWindowHandle);
+        protected override IntPtr CreateContext()
+        {
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+            return SDL.SDL_GL_CreateContext(sdlWindowHandle);
+        }
 
         protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);
 
@@ -32,7 +36,7 @@ namespace osu.Framework.Platform.Sdl
             if (!(window is SDL2DesktopWindow sdlWindow))
                 throw new ArgumentException("Unsupported window backend.", nameof(window));
 
-            sdlWindowHandle = sdlWindow.SdlWindowHandle;
+            sdlWindowHandle = sdlWindow.SDLWindowHandle;
             base.Initialise(window);
         }
     }

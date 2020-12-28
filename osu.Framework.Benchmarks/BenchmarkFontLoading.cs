@@ -8,7 +8,7 @@ using BenchmarkDotNet.Attributes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Tests;
-using SixLabors.Memory;
+using SixLabors.ImageSharp.Memory;
 
 namespace osu.Framework.Benchmarks
 {
