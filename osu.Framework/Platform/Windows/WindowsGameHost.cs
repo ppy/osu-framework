@@ -21,6 +21,9 @@ namespace osu.Framework.Platform.Windows
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+#if NET5_0
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
