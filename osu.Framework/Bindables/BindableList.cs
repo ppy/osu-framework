@@ -390,8 +390,14 @@ namespace osu.Framework.Bindables
                     break;
 
                 case IEnumerable<T> enumerable:
+                    // enumerate once locally before proceeding.
+                    var newItems = enumerable.ToList();
+
+                    if (this.SequenceEqual(newItems))
+                        return;
+
                     Clear();
-                    AddRange(enumerable);
+                    AddRange(newItems);
                     break;
 
                 default:
