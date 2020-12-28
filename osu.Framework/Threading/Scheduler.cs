@@ -30,7 +30,12 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether there are any tasks queued to run (including delayed tasks in the future).
         /// </summary>
-        public bool HasPendingTasks => runQueue.Count > 0 || timedTasks.Count > 0 || perUpdateTasks.Count > 0;
+        public bool HasPendingTasks => TotalPendingTasks > 0;
+
+        /// <summary>
+        /// The total number of <see cref="ScheduledDelegate"/>s tracked by this instance for future execution.
+        /// </summary>
+        internal int TotalPendingTasks => runQueue.Count + timedTasks.Count + perUpdateTasks.Count;
 
         /// <summary>
         /// The base thread is assumed to be the thread on which the constructor is run.
@@ -123,18 +128,24 @@ namespace osu.Framework.Threading
 
                         if (sd.Cancelled) continue;
 
-                        if (sd.RepeatInterval >= 0)
+                        if (sd.RepeatInterval == 0)
+                        {
+                            // handling of every-frame tasks is slightly different to reduce overhead.
+                            perUpdateTasks.Add(sd);
+                            continue;
+                        }
+
+                        if (sd.RepeatInterval > 0)
                         {
                             if (timedTasks.Count > 1000)
                                 throw new ArgumentException("Too many timed tasks are in the queue!");
 
+                            // schedule the next repeat of the task.
                             sd.SetNextExecution(currentTimeLocal);
-
                             tasksToSchedule.Add(sd);
                         }
 
-                        if (!sd.Completed)
-                            runQueue.Enqueue(sd);
+                        if (!sd.Completed) runQueue.Enqueue(sd);
                     }
                 }
 
@@ -233,12 +244,7 @@ namespace osu.Framework.Threading
                 throw new InvalidOperationException($"Can not add a {nameof(ScheduledDelegate)} that has been already {nameof(ScheduledDelegate.Completed)}");
 
             lock (queueLock)
-            {
-                if (task.RepeatInterval == 0)
-                    perUpdateTasks.Add(task);
-                else
-                    timedTasks.AddInPlace(task);
-            }
+                timedTasks.AddInPlace(task);
         }
 
         /// <summary>
