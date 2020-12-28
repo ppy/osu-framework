@@ -761,6 +761,18 @@ namespace osu.Framework.Input.Bindings
         MouseWheelDown = 146,
 
         /// <summary>
+        /// Mouse wheel rolled right.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelRight = 147,
+
+        /// <summary>
+        /// Mouse wheel rolled left.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelLeft = 148,
+
+        /// <summary>
         /// The media mute key.
         /// </summary>
         Mute = 256,

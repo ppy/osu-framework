@@ -245,6 +245,13 @@ namespace osu.Framework.Bindables
                     Value = t;
                     break;
 
+                case IBindable _:
+                    if (!(input is IBindable<T> bindable))
+                        throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
+
+                    Value = bindable.Value;
+                    break;
+
                 case string s when underlyingType.IsEnum:
                     Value = (T)Enum.Parse(underlyingType, s);
                     break;
