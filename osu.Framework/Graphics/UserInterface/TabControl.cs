@@ -198,8 +198,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void LoadComplete()
         {
-            // Default to first selection in list
-            if (firstSelection && !Current.Disabled && Items.Any())
+            // Default to first selection in list, if we can
+            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
             Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
