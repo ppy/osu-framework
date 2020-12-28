@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -320,20 +321,31 @@ namespace osu.Framework.Bindables
 
         public override void BindTo(Bindable<T> them)
         {
-            if (them is BindableNumber<T> other)
+            if (!(them is BindableNumber<T> other))
             {
-                Precision = other.Precision;
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
+                base.BindTo(them);
+                return;
+            }
 
-                if (MinValue.CompareTo(MaxValue) > 0)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
-                }
+            Precision = other.Precision;
+            MinValue = other.MinValue;
+            MaxValue = other.MaxValue;
+
+            if (MinValue.CompareTo(MaxValue) > 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
             }
 
             base.BindTo(them);
+
+            if (!EqualityComparer<T>.Default.Equals(Precision, other.Precision))
+                other.SetPrecision(Precision, true, this);
+
+            if (!EqualityComparer<T>.Default.Equals(MinValue, other.MinValue))
+                other.SetMinValue(MinValue, true, this);
+
+            if (!EqualityComparer<T>.Default.Equals(MaxValue, other.MaxValue))
+                other.SetMaxValue(MaxValue, true, this);
         }
 
         /// <summary>

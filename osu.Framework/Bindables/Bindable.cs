@@ -197,11 +197,16 @@ namespace osu.Framework.Bindables
             addWeakReference(them.weakReference);
             them.addWeakReference(weakReference);
 
+            // Our values may have became different from their values even after binding, presumably due to our property change callbacks changing it.
+            // To ensure consistency, propagate our values to them in the backwards direction.
             if (!EqualityComparer<T>.Default.Equals(Value, them.Value))
-            {
-                // The value of the other bindable has been rejected from being set here, propagate the updated value to them instead, to keep synchronisation.
                 them.SetValue(them.Value, Value, false, this);
-            }
+
+            if (!EqualityComparer<T>.Default.Equals(Default, them.Default))
+                them.SetDefaultValue(them.Default, Default, false, this);
+
+            if (Disabled != them.Disabled)
+                them.SetDisabled(Disabled, false, this);
         }
 
         /// <summary>
