@@ -91,6 +91,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected TabItem<T> SelectedTab { get; private set; }
 
         /// <summary>
+        /// When <c>true</c>, the first available tab (if any) will be selected at the point of <see cref="LoadComplete"/>.
+        /// </summary>
+        public bool SelectFirstTabByDefault { get; set; } = true;
+
+        /// <summary>
         /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
         /// </summary>
         public bool IsSwitchable { get; set; }
