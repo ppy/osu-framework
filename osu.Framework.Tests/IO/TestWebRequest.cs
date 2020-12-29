@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.IO.Network;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
@@ -202,6 +203,31 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Aborted);
 
             Assert.IsEmpty(request.GetResponseString());
+
+            Assert.IsTrue(hasThrown);
+        }
+
+        [Test, Retry(5)]
+        public void TestJsonWebRequestThrowsCorrectlyOnMultipleErrors([Values(true, false)] bool async)
+        {
+            var request = new JsonWebRequest<Drawable>("badrequest://www.google.com")
+            {
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            if (async)
+                Assert.ThrowsAsync<ArgumentException>(request.PerformAsync);
+            else
+                Assert.Throws<ArgumentException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsNull(request.GetResponseString());
+            Assert.IsNull(request.ResponseObject);
 
             Assert.IsTrue(hasThrown);
         }

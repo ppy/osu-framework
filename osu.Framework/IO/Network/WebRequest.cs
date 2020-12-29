@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
@@ -162,6 +163,7 @@ namespace osu.Framework.IO.Network
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
         /// <returns>The response body.</returns>
+        [CanBeNull]
         public string GetResponseString()
         {
             try
@@ -486,6 +488,8 @@ namespace osu.Framework.IO.Network
             else
                 logger.Add($@"Request to {Url} successfully completed!");
 
+            // if a failure happened on performing the request, there are still situations where we want to process the response.
+            // consider the case of a server returned error code which triggers a WebException, but the server is also returning details on the error in the response.
             try
             {
                 if (!wasTimeout)
@@ -493,8 +497,15 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se)
             {
-                logger.Add($"Processing response from {Url} failed with {se}.");
-                e = e == null ? se : new AggregateException(e, se);
+                // that said, we don't really care about an error when processing the response if there is already a higher level exception.
+                if (e == null)
+                {
+                    logger.Add($"Processing response from {Url} failed with {se}.");
+                    Failed?.Invoke(se);
+                    Completed = true;
+                    Aborted = true;
+                    throw;
+                }
             }
 
             if (e == null)
