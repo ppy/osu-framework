@@ -498,10 +498,10 @@ namespace osu.Framework.IO.Network
             catch (Exception se)
             {
                 // that said, we don't really care about an error when processing the response if there is already a higher level exception.
-                if (e != null)
+                if (e == null)
                 {
                     logger.Add($"Processing response from {Url} failed with {se}.");
-                    Failed?.Invoke(e);
+                    Failed?.Invoke(se);
                     Completed = true;
                     Aborted = true;
                     throw;
