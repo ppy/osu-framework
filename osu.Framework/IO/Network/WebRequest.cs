@@ -501,7 +501,10 @@ namespace osu.Framework.IO.Network
                 if (e != null)
                 {
                     logger.Add($"Processing response from {Url} failed with {se}.");
-                    e = se;
+                    Failed?.Invoke(e);
+                    Completed = true;
+                    Aborted = true;
+                    throw;
                 }
             }
 
