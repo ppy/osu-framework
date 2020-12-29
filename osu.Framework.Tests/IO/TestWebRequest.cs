@@ -210,7 +210,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestJsonWebRequestThrowsCorrectlyOnMultipleErrors([Values(true, false)] bool async)
         {
-            var request = new JsonWebRequest<Drawable>($"badrequest://www.google.com")
+            var request = new JsonWebRequest<Drawable>("badrequest://www.google.com")
             {
                 AllowInsecureRequests = true,
             };
