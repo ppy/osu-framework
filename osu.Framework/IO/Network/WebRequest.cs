@@ -486,6 +486,8 @@ namespace osu.Framework.IO.Network
             else
                 logger.Add($@"Request to {Url} successfully completed!");
 
+            // if a failure happened on performing the request, there are still situations where we want to process the response.
+            // consider the case of a server returned error code which triggers a WebException, but the server is also returning details on the error in the response.
             try
             {
                 if (!wasTimeout)
@@ -493,8 +495,12 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se)
             {
-                logger.Add($"Processing response from {Url} failed with {se}.");
-                e = e == null ? se : new AggregateException(e, se);
+                // that said, we don't really care about an error when processing the response if there is already a higher level exception.
+                if (e != null)
+                {
+                    logger.Add($"Processing response from {Url} failed with {se}.");
+                    e = se;
+                }
             }
 
             if (e == null)
