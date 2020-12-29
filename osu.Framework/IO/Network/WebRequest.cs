@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
@@ -162,6 +163,7 @@ namespace osu.Framework.IO.Network
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
         /// <returns>The response body.</returns>
+        [CanBeNull]
         public string GetResponseString()
         {
             try
