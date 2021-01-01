@@ -441,6 +441,8 @@ namespace osu.Framework.Bindables
 
         public new BindableNumber<T> GetUnboundCopy() => (BindableNumber<T>)base.GetUnboundCopy();
 
+        public new LeasedBindableNumber<T> BeginLease(bool revertPropertiesOnReturn) => BeginLeaseTo(new LeasedBindableNumber<T>(this, revertPropertiesOnReturn));
+
         public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
 
         public override bool IsDefault
