@@ -200,6 +200,57 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable.Value, Is.EqualTo(3));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestBindableNumberLeasing(bool revertPropertiesOnReturn)
+        {
+            var bindable = new BindableDouble
+            {
+                MinValue = 1.0,
+                MaxValue = 20.0,
+                Precision = 0.01,
+                Value = 2.4,
+            };
+
+            var leased = bindable.BeginLease(revertPropertiesOnReturn);
+            Assert.That(leased.Disabled, Is.EqualTo(bindable.Disabled));
+            Assert.That(leased.Disabled, Is.True);
+
+            // ensure precision updates value
+            leased.Precision = 0.5;
+            Assert.That(leased.Value, Is.EqualTo(bindable.Value));
+            Assert.That(leased.Value, Is.EqualTo(2.5));
+
+            // ensure min value updates value
+            leased.MinValue = 10.5;
+            Assert.That(leased.Value, Is.EqualTo(bindable.Value));
+            Assert.That(leased.Value, Is.EqualTo(10.5));
+
+            // ensure max value updates value.
+            leased.Value = 20.0;
+            leased.MaxValue = 15.0;
+            Assert.That(leased.Value, Is.EqualTo(bindable.Value));
+            Assert.That(leased.Value, Is.EqualTo(15));
+
+            // ensure original properties throw exception when attempting to change
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                leased.Value = 10.5;
+                bindable.MinValue = 12.5;
+            });
+
+            leased.Return();
+
+            if (revertPropertiesOnReturn)
+            {
+                // ensure properties are reverted back to their values before beginning lease.
+                Assert.That(bindable.MinValue, Is.EqualTo(1.0));
+                Assert.That(bindable.MaxValue, Is.EqualTo(20.0));
+                Assert.That(bindable.Precision, Is.EqualTo(0.01));
+                Assert.That(bindable.Value, Is.EqualTo(2.4));
+            }
+        }
+
         private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), Convert.ChangeType(0, type));
 
         private class BindableNumberWithDefaultMaxValue : BindableInt
