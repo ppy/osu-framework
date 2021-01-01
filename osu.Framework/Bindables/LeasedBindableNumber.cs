@@ -7,28 +7,27 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Bindables
 {
-    /// <summary>
-    /// A bindable carrying a mutually exclusive lease on another bindable.
-    /// Can only be retrieved via <see cref="Bindable{T}.BeginLease"/>.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class LeasedBindable<T> : Bindable<T>, ILeasedBindable
+    public class LeasedBindableNumber<T> : BindableNumber<T>, ILeasedBindable
+        where T : struct, IConvertible, IComparable<T>, IEquatable<T>
     {
-        private readonly Bindable<T> source;
+        private readonly BindableNumber<T> source;
 
-        private readonly T valueBeforeLease;
+        private readonly T valueBeforeLease, minValueBeforeLease, maxValueBeforeLease, precisionBeforeLease;
         private readonly bool disabledBeforeLease;
-        private readonly bool revertValueOnReturn;
+        private readonly bool revertPropertiesOnReturn;
 
-        internal LeasedBindable([NotNull] Bindable<T> source, bool revertValueOnReturn)
+        internal LeasedBindableNumber([NotNull] BindableNumber<T> source, bool revertPropertiesOnReturn)
         {
             BindTo(source);
 
             this.source = source ?? throw new ArgumentNullException(nameof(source));
 
-            if (revertValueOnReturn)
+            if (revertPropertiesOnReturn)
             {
-                this.revertValueOnReturn = true;
+                this.revertPropertiesOnReturn = true;
+                precisionBeforeLease = Precision;
+                minValueBeforeLease = MinValue;
+                maxValueBeforeLease = MaxValue;
                 valueBeforeLease = Value;
             }
 
@@ -38,7 +37,7 @@ namespace osu.Framework.Bindables
         }
 
         [UsedImplicitly]
-        public LeasedBindable(T value)
+        public LeasedBindableNumber(T value)
             : base(value)
         {
             // used for GetBoundCopy, where we don't want a source.
@@ -63,7 +62,7 @@ namespace osu.Framework.Bindables
         public override T Value
         {
             get => base.Value;
-            set => setLeased(Value, value, () => SetValue(Value, value, true));
+            set => setLeased(Value, value, () => SetValue(value, true));
         }
 
         public override T Default
@@ -78,12 +77,35 @@ namespace osu.Framework.Bindables
             set => setLeased(Disabled, value, () => SetDisabled(value, true));
         }
 
+        public override T Precision
+        {
+            get => base.Precision;
+            set => setLeased(Precision, value, () => SetPrecision(value, true, true));
+        }
+
+        public override T MinValue
+        {
+            get => base.MinValue;
+            set => setLeased(base.MinValue, value, () => SetMinValue(value, true, true));
+        }
+
+        public override T MaxValue
+        {
+            get => base.MaxValue;
+            set => setLeased(base.MaxValue, value, () => SetMaxValue(value, true, true));
+        }
+
         public override void UnbindAll()
         {
             if (source != null && !hasBeenReturned)
             {
-                if (revertValueOnReturn)
+                if (revertPropertiesOnReturn)
+                {
+                    Precision = precisionBeforeLease;
+                    MinValue = minValueBeforeLease;
+                    MaxValue = maxValueBeforeLease;
                     Value = valueBeforeLease;
+                }
 
                 Disabled = disabledBeforeLease;
 
@@ -92,12 +114,6 @@ namespace osu.Framework.Bindables
             }
 
             base.UnbindAll();
-        }
-
-        private void checkValid()
-        {
-            if (source != null && hasBeenReturned)
-                throw new InvalidOperationException($"Cannot perform operations on a {nameof(LeasedBindable<T>)} that has been {nameof(Return)}ed.");
         }
 
         private void setLeased<TValue>(TValue previous, TValue current, Action setProperty)
