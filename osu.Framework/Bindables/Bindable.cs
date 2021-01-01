@@ -435,7 +435,7 @@ namespace osu.Framework.Bindables
         public LeasedBindable<T> BeginLease(bool revertValueOnReturn) => BeginLeaseTo(new LeasedBindable<T>(this, revertValueOnReturn));
 
         protected TLeased BeginLeaseTo<TLeased>(TLeased instance)
-            where TLeased : ILeasedBindable
+            where TLeased : ILeasedBindable<T>
         {
             if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
@@ -466,8 +466,8 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Called internally by a <see cref="LeasedBindable{T}"/> to end a lease.
         /// </summary>
-        /// <param name="returnedBindable">The <see cref="LeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
-        internal void EndLease(ILeasedBindable returnedBindable)
+        /// <param name="returnedBindable">The <see cref="ILeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
+        internal void EndLease(ILeasedBindable<T> returnedBindable)
         {
             if (!isLeased)
                 throw new InvalidOperationException("Attempted to end a lease without beginning one.");

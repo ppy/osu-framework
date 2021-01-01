@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 
 namespace osu.Framework.Bindables
 {
-    public class LeasedBindableNumber<T> : BindableNumber<T>, ILeasedBindable
+    public class LeasedBindableNumber<T> : BindableNumber<T>, ILeasedBindable<T>
         where T : struct, IConvertible, IComparable<T>, IEquatable<T>
     {
         private readonly BindableNumber<T> source;
