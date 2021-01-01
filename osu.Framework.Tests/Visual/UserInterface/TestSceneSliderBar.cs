@@ -219,6 +219,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 });
             });
 
+            AddStep("change via lease", () =>
+            {
+                var lease = testSlider.Current.BeginLease(false);
+                lease.Value = 3;
+                lease.Return();
+            });
+
             AddStep("set enabled current", () => testSlider.Current = new BindableNumber<double>(10) { MinValue = 1, MaxValue = 10 });
         }
 

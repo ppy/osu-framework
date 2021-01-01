@@ -60,11 +60,11 @@ namespace osu.Framework.Graphics.UserInterface
             current.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
             current.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
             current.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;
-            current.DisabledChanged += v => currentNumberInstantaneous.Disabled = v;
+            // intentionally not updating disabled state to "currentNumberInstantaneous" to handle value changes from disabled current.
 
             currentNumberInstantaneous.ValueChanged += e =>
             {
-                if (!TransferValueOnCommit)
+                if (!TransferValueOnCommit && !current.Disabled)
                     current.Value = e.NewValue;
             };
         }
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (currentNumberInstantaneous.Disabled)
+            if (current.Disabled)
                 return false;
 
             bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
-            if (currentNumberInstantaneous.Disabled)
+            if (current.Disabled)
                 return;
 
             currentNumberInstantaneous.SetProportional(xPosition / UsableWidth, e.ShiftPressed ? KeyboardStep : 0);
