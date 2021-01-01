@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -39,7 +40,7 @@ namespace osu.Framework.Bindables
 
         private T precision;
 
-        public T Precision
+        public virtual T Precision
         {
             get => precision;
             set
@@ -47,10 +48,7 @@ namespace osu.Framework.Bindables
                 if (precision.Equals(value))
                     return;
 
-                if (value.CompareTo(default) <= 0)
-                    throw new ArgumentOutOfRangeException(nameof(Precision), value, "Must be greater than 0.");
-
-                SetPrecision(value, true, this);
+                SetPrecision(value, true);
             }
         }
 
@@ -59,16 +57,20 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="precision">The new precision.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the precision is set.</param>
+        /// <param name="bypassChecks">Whether to bypass checks, used for leased bindables.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetPrecision(T precision, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetPrecision(T precision, bool updateCurrentValue, bool bypassChecks = false, BindableNumber<T> source = null)
         {
+            if (precision.CompareTo(default) <= 0)
+                throw new ArgumentOutOfRangeException(nameof(precision), precision, "Must be greater than 0.");
+
             this.precision = precision;
-            TriggerPrecisionChange(source);
+            TriggerPrecisionChange(source ?? this, true, bypassChecks);
 
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new precision
-                SetValue(Value);
+                SetValue(Value, bypassChecks);
             }
         }
 
@@ -78,22 +80,35 @@ namespace osu.Framework.Bindables
             set => SetValue(value);
         }
 
-        internal void SetValue(T value)
+        internal void SetValue(T value, bool bypassChecks = false)
         {
-            if (Precision.CompareTo(DefaultPrecision) > 0)
-            {
-                double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
-                doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
+            value = computeFinalValue(value);
 
-                base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
-            }
+            if (!bypassChecks)
+                base.Value = value;
             else
-                base.Value = clamp(value, MinValue, MaxValue);
+            {
+                if (EqualityComparer<T>.Default.Equals(Value, value))
+                    return;
+
+                SetValue(Value, value, true);
+            }
+        }
+
+        private T computeFinalValue(T value)
+        {
+            if (Precision.CompareTo(DefaultPrecision) <= 0)
+                return clamp(value, MinValue, MaxValue);
+
+            double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
+            doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
+
+            return (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
         }
 
         private T minValue;
 
-        public T MinValue
+        public virtual T MinValue
         {
             get => minValue;
             set
@@ -101,7 +116,7 @@ namespace osu.Framework.Bindables
                 if (minValue.Equals(value))
                     return;
 
-                SetMinValue(value, true, this);
+                SetMinValue(value, true);
             }
         }
 
@@ -110,22 +125,23 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="minValue">The new minimum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
+        /// <param name="bypassChecks">Whether to bypass checks, used for leased bindables.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMinValue(T minValue, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetMinValue(T minValue, bool updateCurrentValue, bool bypassChecks = false, BindableNumber<T> source = null)
         {
             this.minValue = minValue;
-            TriggerMinValueChange(source);
+            TriggerMinValueChange(source ?? this, true, bypassChecks);
 
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new minimum value
-                SetValue(Value);
+                SetValue(Value, bypassChecks);
             }
         }
 
         private T maxValue;
 
-        public T MaxValue
+        public virtual T MaxValue
         {
             get => maxValue;
             set
@@ -133,7 +149,7 @@ namespace osu.Framework.Bindables
                 if (maxValue.Equals(value))
                     return;
 
-                SetMaxValue(value, true, this);
+                SetMaxValue(value, true);
             }
         }
 
@@ -142,16 +158,17 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="maxValue">The new maximum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
+        /// <param name="bypassChecks">Whether to bypass checks, used for leased bindables.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
+        internal void SetMaxValue(T maxValue, bool updateCurrentValue, bool bypassChecks = false, BindableNumber<T> source = null)
         {
             this.maxValue = maxValue;
-            TriggerMaxValueChange(source);
+            TriggerMaxValueChange(source ?? this, true, bypassChecks);
 
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new maximum value
-                SetValue(Value);
+                SetValue(Value, bypassChecks);
             }
         }
 
@@ -258,7 +275,7 @@ namespace osu.Framework.Bindables
             TriggerMaxValueChange(this, false);
         }
 
-        protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
+        protected void TriggerPrecisionChange(BindableNumber<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = precision;
@@ -270,7 +287,7 @@ namespace osu.Framework.Bindables
                     if (b == source) continue;
 
                     if (b is BindableNumber<T> bn)
-                        bn.SetPrecision(precision, false, this);
+                        bn.SetPrecision(precision, false, bypassChecks, this);
                 }
             }
 
@@ -278,7 +295,7 @@ namespace osu.Framework.Bindables
                 PrecisionChanged?.Invoke(precision);
         }
 
-        protected void TriggerMinValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMinValueChange(BindableNumber<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
@@ -290,7 +307,7 @@ namespace osu.Framework.Bindables
                     if (b == source) continue;
 
                     if (b is BindableNumber<T> bn)
-                        bn.SetMinValue(minValue, false, this);
+                        bn.SetMinValue(minValue, false, bypassChecks, this);
                 }
             }
 
@@ -298,7 +315,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(BindableNumber<T> source, bool propagateToBindings = true, bool bypassChecks = false)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;
@@ -310,7 +327,7 @@ namespace osu.Framework.Bindables
                     if (b == source) continue;
 
                     if (b is BindableNumber<T> bn)
-                        bn.SetMaxValue(maxValue, false, this);
+                        bn.SetMaxValue(maxValue, false, bypassChecks, this);
                 }
             }
 
