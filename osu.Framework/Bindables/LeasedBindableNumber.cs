@@ -39,6 +39,8 @@ namespace osu.Framework.Bindables
         public LeasedBindableNumber(T defaultValue = default)
             : base(defaultValue)
         {
+            // required for GetBoundCopy, where we don't want a source.
+            // it's also usable for components that don't need a source bindable while using leased.
         }
 
         private bool hasBeenReturned;
