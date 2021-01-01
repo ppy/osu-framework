@@ -4,9 +4,13 @@
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// An interface that represents a read-only <see cref="LeasedBindable{T}"/>.
+    /// An interface that represents a read-only leased bindable.
     /// </summary>
     public interface ILeasedBindable : IBindable
     {
+        /// <summary>
+        /// End the lease on the source <see cref="Bindable{T}"/>.
+        /// </summary>
+        void Return();
     }
 }
