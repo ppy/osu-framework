@@ -53,7 +53,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected SliderBar()
         {
-            currentNumberInstantaneous = new BindableNumber<T>();
+            currentNumberInstantaneous = new LeasedBindableNumber<T>();
 
             current.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
             current.DefaultChanged += e => currentNumberInstantaneous.Default = e.NewValue;
