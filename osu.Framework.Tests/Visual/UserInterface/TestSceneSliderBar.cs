@@ -203,6 +203,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
         }
 
+        [Test]
+        public void TestSliderWithDisabledCurrent()
+        {
+            TestSliderBar testSlider = null;
+
+            AddStep("create slider with disabled current", () =>
+            {
+                Add(testSlider = new TestSliderBar
+                {
+                    Anchor = Anchor.BottomLeft,
+                    Origin = Anchor.BottomLeft,
+                    Size = new Vector2(200, 50),
+                    Current = new BindableNumber<double>(5) { MinValue = 1, MaxValue = 10, Disabled = true },
+                });
+            });
+
+            AddStep("set enabled current", () => testSlider.Current = new BindableNumber<double>(10) { MinValue = 1, MaxValue = 10 });
+        }
+
         private void checkValue(int expected, bool disabled)
         {
             if (disabled)
