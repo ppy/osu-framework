@@ -43,20 +43,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly BindableNumberWithCurrent<T> current = new BindableNumberWithCurrent<T>();
 
-        protected BindableNumber<T> CurrentNumber => current;
-
         public Bindable<T> Current
         {
             get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                current.Current = value;
-
-                currentNumberInstantaneous.Default = current.Default;
-            }
+            set => current.Current = value;
         }
 
         protected SliderBar()
@@ -64,6 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
             currentNumberInstantaneous = new BindableNumber<T>();
 
             current.ValueChanged += e => currentNumberInstantaneous.Value = e.NewValue;
+            current.DefaultChanged += e => currentNumberInstantaneous.Default = e.NewValue;
             current.MinValueChanged += v => currentNumberInstantaneous.MinValue = v;
             current.MaxValueChanged += v => currentNumberInstantaneous.MaxValue = v;
             current.PrecisionChanged += v => currentNumberInstantaneous.Precision = v;

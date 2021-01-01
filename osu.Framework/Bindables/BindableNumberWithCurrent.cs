@@ -23,7 +23,12 @@ namespace osu.Framework.Bindables
                 if (value == null)
                     throw new ArgumentNullException(nameof(value));
 
-                if (currentBound != null) UnbindFrom(currentBound);
+                if (currentBound != null)
+                    UnbindFrom(currentBound);
+
+                // must be re-enabled before binding below, see https://github.com/ppy/osu-framework/issues/3218.
+                Disabled = false;
+
                 BindTo(currentBound = (BindableNumber<T>)value);
             }
         }
