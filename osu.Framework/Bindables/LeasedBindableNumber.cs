@@ -36,11 +36,9 @@ namespace osu.Framework.Bindables
             Disabled = true;
         }
 
-        [UsedImplicitly]
-        public LeasedBindableNumber(T value)
-            : base(value)
+        public LeasedBindableNumber(T defaultValue = default)
+            : base(defaultValue)
         {
-            // used for GetBoundCopy, where we don't want a source.
         }
 
         private bool hasBeenReturned;
