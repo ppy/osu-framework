@@ -45,6 +45,13 @@ namespace osu.Framework.Graphics.OpenGL
                 newDisposals.Clear();
             }
 
+            // because disposals are added in batches every frame,
+            // and each frame the remaining frame delay of all disposal tasks is decremented by 1,
+            // all disposals that are executable this frame must be placed at the start of the list.
+            // track the index of the last one, so we can clean them up in one fell swoop instead of as-we-go
+            // (the latter approach can incur a quadratic time penalty).
+            int lastExecutedDisposal = -1;
+
             for (var i = 0; i < pendingDisposals.Count; i++)
             {
                 var item = pendingDisposals[i];
@@ -52,11 +59,19 @@ namespace osu.Framework.Graphics.OpenGL
                 if (item.RemainingFrameDelay-- == 0)
                 {
                     item.Action();
-
-                    Debug.Assert(i == 0);
-                    pendingDisposals.RemoveAt(i--);
+                    lastExecutedDisposal = i;
                 }
             }
+
+            if (lastExecutedDisposal < 0)
+                return;
+
+            // note the signs - a 0 in the inner loop is a -1 here due to the postfix decrement.
+            Debug.Assert(pendingDisposals[lastExecutedDisposal].RemainingFrameDelay < 0);
+            Debug.Assert(lastExecutedDisposal + 1 == pendingDisposals.Count
+                         || pendingDisposals[lastExecutedDisposal + 1].RemainingFrameDelay >= 0);
+
+            pendingDisposals.RemoveRange(0, lastExecutedDisposal + 1);
         }
 
         private class PendingDisposal
