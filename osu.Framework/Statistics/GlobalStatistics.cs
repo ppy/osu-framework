@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Statistics
 {
@@ -47,9 +48,21 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
             {
-                foreach (var stat in statistics.Where(s => group?.Equals(s.Group, StringComparison.Ordinal) != false).ToArray())
-                    statistics.Remove(stat);
+                for (int i = 0; i < statistics.Count; i++)
+                {
+                    if (group?.Equals(statistics[i].Group, StringComparison.Ordinal) != false)
+                        statistics.RemoveAt(i--);
+                }
             }
+        }
+
+        /// <summary>
+        /// Remove a specific statistic.
+        /// </summary>
+        /// <param name="statistic">The statistic to remove.</param>
+        public static void Remove(IGlobalStatistic statistic)
+        {
+            lock (statistics) statistics.Remove(statistic);
         }
 
         /// <summary>
@@ -60,6 +73,26 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
                 statistics.Add(stat);
+        }
+
+        public static void OutputToLog()
+        {
+            IGlobalStatistic[] statisticsSnapshot;
+
+            lock (statistics)
+                statisticsSnapshot = statistics.ToArray();
+
+            Logger.Log("----- Global Statistics -----", LoggingTarget.Performance);
+
+            foreach (var group in statisticsSnapshot.GroupBy(s => s.Group))
+            {
+                Logger.Log($"# {group.Key}", LoggingTarget.Performance);
+
+                foreach (var i in group)
+                    Logger.Log($"{i.Name.PadRight(30)}: {i.DisplayValue}", LoggingTarget.Performance);
+            }
+
+            Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
         }
     }
 }

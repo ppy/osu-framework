@@ -111,9 +111,9 @@ namespace osu.Framework.Tests.Visual.Input
                 var currentState = inputManager.CurrentState;
                 var mouse = currentState.Mouse;
                 inputManagerStatus.Text = $"{inputManager}";
-                mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + string.Join(" ", mouse.Buttons);
-                keyboardStatus.Text = "Keyboard: " + string.Join(" ", currentState.Keyboard.Keys);
-                joystickStatus.Text = "Joystick: " + string.Join(" ", currentState.Joystick.Buttons);
+                mouseStatus.Text = $"Mouse: {mouse.Position} {mouse.Scroll} " + string.Join(' ', mouse.Buttons);
+                keyboardStatus.Text = "Keyboard: " + string.Join(' ', currentState.Keyboard.Keys);
+                joystickStatus.Text = "Joystick: " + string.Join(' ', currentState.Joystick.Buttons);
                 base.Update();
             }
 
@@ -190,7 +190,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setRawInputConfig(bool x)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? nameof(OsuTKMouseHandler) : nameof(OsuTKRawMouseHandler));
+            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? $"{nameof(OsuTKMouseHandler)} {nameof(MouseHandler)}" : nameof(OsuTKRawMouseHandler));
         }
 
         private void setConfineMouseModeConfig(bool x)

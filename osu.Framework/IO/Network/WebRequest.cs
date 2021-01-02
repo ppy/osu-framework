@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Logging;
@@ -158,13 +159,11 @@ namespace osu.Framework.IO.Network
 
         public Stream ResponseStream;
 
-        [Obsolete("Use GetResponseString method instead")] // can be removed 20200521
-        public string ResponseString => GetResponseString();
-
         /// <summary>
         /// Retrieve the full response body as a UTF8 encoded string.
         /// </summary>
         /// <returns>The response body.</returns>
+        [CanBeNull]
         public string GetResponseString()
         {
             try
@@ -178,9 +177,6 @@ namespace osu.Framework.IO.Network
                 return null;
             }
         }
-
-        [Obsolete("Use GetResponseData method instead")] // can be removed 20200521
-        public byte[] ResponseData => GetResponseData();
 
         /// <summary>
         /// Retrieve the full response body as an array of bytes.
@@ -237,7 +233,7 @@ namespace osu.Framework.IO.Network
         {
             var url = Url;
 
-            if (!AllowInsecureRequests && !url.StartsWith(@"https://"))
+            if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
                 logger.Add($"Insecure request was automatically converted to https ({Url})");
                 url = @"https://" + url.Replace(@"http://", @"");
@@ -280,7 +276,9 @@ namespace osu.Framework.IO.Network
 
                             postContent = new MemoryStream();
                             rawContent.Position = 0;
-                            rawContent.CopyTo(postContent);
+
+                            await rawContent.CopyToAsync(postContent, linkedToken.Token);
+
                             postContent.Position = 0;
                         }
                         else
@@ -402,13 +400,13 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer, 0, buffer_size, cancellationToken);
+                    int read = await responseStream.ReadAsync(buffer.AsMemory(), cancellationToken);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        await ResponseStream.WriteAsync(buffer, 0, read, cancellationToken);
+                        await ResponseStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
@@ -490,6 +488,8 @@ namespace osu.Framework.IO.Network
             else
                 logger.Add($@"Request to {Url} successfully completed!");
 
+            // if a failure happened on performing the request, there are still situations where we want to process the response.
+            // consider the case of a server returned error code which triggers a WebException, but the server is also returning details on the error in the response.
             try
             {
                 if (!wasTimeout)
@@ -497,8 +497,15 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se)
             {
-                logger.Add($"Processing response from {Url} failed with {se}.");
-                e = e == null ? se : new AggregateException(e, se);
+                // that said, we don't really care about an error when processing the response if there is already a higher level exception.
+                if (e == null)
+                {
+                    logger.Add($"Processing response from {Url} failed with {se}.");
+                    Failed?.Invoke(se);
+                    Completed = true;
+                    Aborted = true;
+                    throw;
+                }
             }
 
             if (e == null)
@@ -571,8 +578,7 @@ namespace osu.Framework.IO.Network
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
 
-            if (rawContent == null)
-                rawContent = new MemoryStream();
+            rawContent ??= new MemoryStream();
 
             stream.CopyTo(rawContent);
         }

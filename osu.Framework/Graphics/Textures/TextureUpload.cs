@@ -4,13 +4,13 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using StbiSharp;
 
@@ -36,8 +36,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public RectangleI Bounds { get; set; }
 
-        // ReSharper disable once MergeConditionalExpression (can't merge; compile error)
-        public ReadOnlySpan<Rgba32> Data => image != null ? image.GetPixelSpan() : Span<Rgba32>.Empty;
+        public ReadOnlySpan<Rgba32> Data => pixelMemory.Span;
 
         public int Width => image?.Width ?? 0;
 
@@ -47,6 +46,8 @@ namespace osu.Framework.Graphics.Textures
         /// The backing texture. A handle is kept to avoid early GC.
         /// </summary>
         private readonly Image<Rgba32> image;
+
+        private ReadOnlyPixelMemory<Rgba32> pixelMemory;
 
         /// <summary>
         /// Create an upload from a <see cref="TextureUpload"/>. This is the preferred method.
@@ -58,6 +59,8 @@ namespace osu.Framework.Graphics.Textures
 
             if (image.Width > GLWrapper.MaxTextureSize || image.Height > GLWrapper.MaxTextureSize)
                 throw new TextureTooLargeForGLException();
+
+            pixelMemory = image.CreateReadOnlyPixelMemory();
         }
 
         /// <summary>
@@ -116,7 +119,9 @@ namespace osu.Framework.Graphics.Textures
             if (!disposed)
             {
                 disposed = true;
+
                 image?.Dispose();
+                pixelMemory.Dispose();
             }
         }
 

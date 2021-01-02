@@ -47,14 +47,24 @@ namespace osu.Framework.Audio.Sample
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            if (IsLoaded)
-                // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-                Bass.ChannelSetDevice(sampleId, deviceIndex);
+            if (!IsLoaded)
+                return;
+
+            // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
+            Bass.ChannelSetDevice(sampleId, deviceIndex);
+            BassUtils.CheckFaulted(true);
         }
 
         public int CreateChannel() => Bass.SampleGetChannel(sampleId);
 
         private int loadSample(byte[] data)
+        {
+            int handle = getSampleHandle(data);
+            Length = Bass.ChannelBytes2Seconds(handle, data.Length) * 1000;
+            return handle;
+        }
+
+        private int getSampleHandle(byte[] data)
         {
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 

@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Graphics;
@@ -129,6 +130,9 @@ namespace osu.Framework.Testing
 
             var keyboard = currentState.Keyboard;
             keyboard.Keys.ForEach(InputManager.ReleaseKey);
+
+            var touch = currentState.Touch;
+            touch.ActiveSources.ForEach(s => InputManager.EndTouch(new Touch(s, Vector2.Zero)));
 
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);

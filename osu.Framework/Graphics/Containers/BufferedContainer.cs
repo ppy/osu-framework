@@ -232,8 +232,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private long updateVersion;
 
-        protected override bool CanBeFlattened => false;
-
         public IShader TextureShader { get; private set; }
 
         public IShader RoundedTextureShader { get; private set; }
@@ -264,6 +262,15 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(this, sharedData);
+
+        public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
+        {
+            var result = base.UpdateSubTreeMasking(source, maskingBounds);
+
+            childrenUpdateVersion = updateVersion;
+
+            return result;
+        }
 
         protected override RectangleF ComputeChildMaskingBounds(RectangleF maskingBounds) => ScreenSpaceDrawQuad.AABBFloat; // Make sure children never get masked away
 
@@ -315,13 +322,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            childrenUpdateVersion = updateVersion;
-        }
-
         /// <summary>
         /// The blending which <see cref="BufferedContainerDrawNode"/> uses for the effect.
         /// </summary>
@@ -347,7 +347,17 @@ namespace osu.Framework.Graphics.Containers
         public DrawColourInfo? FrameBufferDrawColour => base.DrawColourInfo;
 
         // Children should not receive the true colour to avoid colour doubling when the frame-buffers are rendered to the back-buffer.
-        public override DrawColourInfo DrawColourInfo => new DrawColourInfo(Color4.White, base.DrawColourInfo.Blending);
+        public override DrawColourInfo DrawColourInfo
+        {
+            get
+            {
+                // Todo: This is incorrect.
+                var blending = Blending;
+                blending.ApplyDefaultToInherited();
+
+                return new DrawColourInfo(Color4.White, blending);
+            }
+        }
 
         protected override void Dispose(bool isDisposing)
         {

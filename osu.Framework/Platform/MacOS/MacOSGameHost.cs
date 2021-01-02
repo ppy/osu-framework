@@ -1,7 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osuTK;
@@ -11,15 +13,34 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useOsuTK)
         {
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new MacOSGameWindow() : new SDLWindow();
+        protected override IWindow CreateWindow() => UseOsuTK ? (IWindow)new OsuTKMacOSWindow() : new MacOSWindow();
 
-        protected override Storage GetStorage(string baseName) => new MacOSStorage(baseName, this);
+        public override string UserStoragePath
+        {
+            get
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string[] paths =
+                {
+                    xdg ?? Path.Combine(home, ".local", "share"),
+                    Path.Combine(home)
+                };
+
+                foreach (string path in paths)
+                {
+                    if (Directory.Exists(path))
+                        return path;
+                }
+
+                return paths[0];
+            }
+        }
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
 
@@ -30,7 +51,7 @@ namespace osu.Framework.Platform.MacOS
             base.Swap();
 
             // It has been reported that this helps performance on macOS (https://github.com/ppy/osu/issues/7447)
-            if (Window.VSync != VSyncMode.On)
+            if (!Window.VerticalSync)
                 GL.Finish();
         }
 
@@ -62,11 +83,16 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), new PlatformAction(PlatformActionType.DocumentNext)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.W), new PlatformAction(PlatformActionType.DocumentClose)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.T), new PlatformAction(PlatformActionType.TabNew)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.T), new PlatformAction(PlatformActionType.TabRestore)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.S), new PlatformAction(PlatformActionType.Save)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Up), new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Down), new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move))
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Down), new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Z), new PlatformAction(PlatformActionType.Undo)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Z), new PlatformAction(PlatformActionType.Redo)),
         };
     }
 }

@@ -238,6 +238,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuState.Closed:
                     AnimateClose();
+
+                    if (HasFocus)
+                        GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
@@ -477,6 +480,8 @@ namespace osu.Framework.Graphics.UserInterface
                 }, HoverOpenDelay);
             }
         }
+
+        public override bool HandleNonPositionalInput => State == MenuState.Open;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {

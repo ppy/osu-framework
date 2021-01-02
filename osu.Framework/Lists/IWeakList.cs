@@ -21,20 +21,27 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Adds a weak reference to this list.
         /// </summary>
-        /// <param name="weakReference"></param>
+        /// <param name="weakReference">The weak reference to add.</param>
         void Add(WeakReference<T> weakReference);
 
         /// <summary>
         /// Removes an item from this list.
         /// </summary>
-        /// <param name="item"></param>
-        void Remove(T item);
+        /// <param name="item">The item to remove.</param>
+        /// <returns>Whether the item was removed.</returns>
+        bool Remove(T item);
 
         /// <summary>
         /// Removes a weak reference from this list.
         /// </summary>
         /// <param name="weakReference"></param>
         bool Remove(WeakReference<T> weakReference);
+
+        /// <summary>
+        /// Removes an item at an index from this list.
+        /// </summary>
+        /// <param name="index">The index of the item to remove.</param>
+        void RemoveAt(int index);
 
         /// <summary>
         /// Searches for an item in the list.

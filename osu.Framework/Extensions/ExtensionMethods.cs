@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -163,21 +162,13 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types.Where(t => t != null);
+                return e.Types ?? Enumerable.Empty<Type>();
             }
         }
 
         public static string GetDescription(this object value)
             => value.GetType().GetField(value.ToString())
                     .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
-
-        [Obsolete("Use GetAwaiter().GetResult() if you know it's completed.")] // can be removed 20200516
-        public static void ThrowIfFaulted(this Task task)
-        {
-            if (!task.IsFaulted) return;
-
-            throw task.Exception ?? (Exception)new InvalidOperationException("Task failed.");
-        }
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
@@ -272,6 +263,6 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate));
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
     }
 }

@@ -48,10 +48,29 @@ namespace osu.Framework.Audio
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
 
-        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
+        private bool invalidationPending;
+
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null)
+        {
+            if (CanPerformInline)
+                OnStateChanged();
+            else
+                invalidationPending = true;
+        }
 
         internal virtual void OnStateChanged()
         {
+        }
+
+        protected override void UpdateState()
+        {
+            base.UpdateState();
+
+            if (invalidationPending)
+            {
+                invalidationPending = false;
+                OnStateChanged();
+            }
         }
 
         /// <summary>
@@ -73,8 +92,6 @@ namespace osu.Framework.Audio
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
-
-        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
 
         protected override void Dispose(bool disposing)
         {

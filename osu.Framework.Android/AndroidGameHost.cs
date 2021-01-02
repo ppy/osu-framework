@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -30,12 +31,6 @@ namespace osu.Framework.Android
             this.gameView = gameView;
         }
 
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-            AndroidGameWindow.View = gameView;
-        }
-
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
@@ -44,7 +39,7 @@ namespace osu.Framework.Android
             base.SetupConfig(defaultOverrides);
         }
 
-        protected override IWindow CreateWindow() => new AndroidGameWindow();
+        protected override IWindow CreateWindow() => new AndroidGameWindow(gameView);
 
         protected override bool LimitedMemoryEnvironment => true;
 
@@ -56,10 +51,11 @@ namespace osu.Framework.Android
             => new AndroidTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView) };
+            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
 
-        protected override Storage GetStorage(string baseName)
-            => new AndroidStorage(baseName, this);
+        public override Storage GetStorage(string path) => new AndroidStorage(path, this);
+
+        public override string UserStoragePath => Application.Context.GetExternalFilesDir(string.Empty).ToString();
 
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
@@ -69,8 +65,10 @@ namespace osu.Framework.Android
             var activity = (Activity)gameView.Context;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
+            {
                 if (intent.ResolveActivity(activity.PackageManager) != null)
                     activity.StartActivity(intent);
+            }
         }
 
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)

@@ -7,19 +7,23 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
     public class TestSceneFullscreen : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
-        private readonly SpriteText currentDisplay = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
+        private readonly Dropdown<Display> displaysDropdown;
 
         private IWindow window;
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -31,13 +35,16 @@ namespace osu.Framework.Tests.Visual.Platform
 
             Child = new FillFlowContainer
             {
-                Children = new[]
+                Padding = new MarginPadding(10),
+                Spacing = new Vector2(10),
+                Children = new Drawable[]
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentDisplayMode,
                     currentWindowMode,
                     supportedWindowModes,
-                    currentDisplay
+                    displaysDropdown = new BasicDropdown<Display> { Width = 600 }
                 },
             };
 
@@ -60,6 +67,9 @@ namespace osu.Framework.Tests.Visual.Platform
 
             if (window == null)
                 return;
+
+            displaysDropdown.Items = window.Displays;
+            displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
@@ -94,26 +104,26 @@ namespace osu.Framework.Tests.Visual.Platform
             // show the available displays
             AddStep("query Window.Displays", () =>
             {
-                var displays = window.Displays.ToArray();
-                Logger.Log($"Available displays: {displays.Length}");
-                displays.ForEach(display =>
+                var displaysArray = window.Displays.ToArray();
+                Logger.Log($"Available displays: {displaysArray.Length}");
+                displaysArray.ForEach(display =>
                 {
                     Logger.Log(display.ToString());
                     display.DisplayModes.ForEach(mode => Logger.Log($"-- {mode}"));
                 });
             });
 
-            AddStep("query Window.Display", () => Logger.Log(window.Display.ToString()));
+            AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
-            AddStep("query Window.DisplayMode", () => Logger.Log(window.DisplayMode.ToString()));
+            AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
         }
 
         protected override void Update()
         {
             base.Update();
 
-            currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
-            currentDisplay.Text = $"Current display device: {window?.CurrentDisplay}";
+            currentActualSize.Text = $"Window size: {window?.ClientSize}";
+            currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
         }
     }
 }

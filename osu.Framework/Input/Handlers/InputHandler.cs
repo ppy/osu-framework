@@ -23,18 +23,15 @@ namespace osu.Framework.Input.Handlers
         private readonly object pendingInputsRetrievalLock = new object();
 
         /// <summary>
-        /// Retrieve a list of all pending states since the last call to this method.
+        /// Add all pending states since the last call to this method to a provided list.
         /// </summary>
-        public virtual List<IInput> GetPendingInputs()
+        /// <param name="inputs">The list for pending inputs to be added to.</param>
+        public virtual void CollectPendingInputs(List<IInput> inputs)
         {
             lock (pendingInputsRetrievalLock)
             {
-                List<IInput> pending = new List<IInput>();
-
                 while (PendingInputs.TryDequeue(out IInput s))
-                    pending.Add(s);
-
-                return pending;
+                    inputs.Add(s);
             }
         }
 
@@ -49,7 +46,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         /// <summary>
-        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="GetPendingInputs"/> call
+        /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
         public readonly BindableBool Enabled = new BindableBool(true);
 
@@ -80,16 +77,5 @@ namespace osu.Framework.Input.Handlers
         }
 
         #endregion
-    }
-
-    public class InputHandlerComparer : IComparer<InputHandler>
-    {
-        public int Compare(InputHandler h1, InputHandler h2)
-        {
-            if (h1 == null) throw new ArgumentNullException(nameof(h1));
-            if (h2 == null) throw new ArgumentNullException(nameof(h2));
-
-            return h2.Priority.CompareTo(h1.Priority);
-        }
     }
 }

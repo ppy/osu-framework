@@ -2,33 +2,38 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 
 namespace osu.Framework
 {
     public static class RuntimeInfo
     {
         /// <summary>
+        /// The absolute path to the startup directory of this game.
+        /// </summary>
+        public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
+
+        /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
         /// </summary>
-        public static string GetFrameworkAssemblyPath() =>
-            System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
+        public static string GetFrameworkAssemblyPath()
+        {
+            var assembly = Assembly.GetAssembly(typeof(RuntimeInfo));
+            Debug.Assert(assembly != null);
 
-        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
-        public static bool Is32Bit => IntPtr.Size == 4;
-
-        [Obsolete("Use Environment.Is64Bit*, IntPtr.Size, or RuntimeInformation.*Architecture instead.")] // can be removed 20200430
-        public static bool Is64Bit => IntPtr.Size == 8;
+            return assembly.Location;
+        }
 
         public static Platform OS { get; }
         public static bool IsUnix => OS != Platform.Windows;
 
-        [Obsolete("Wine is no longer detected.")] // can be removed 20200430
-        public static bool IsWine => false;
-
         public static bool SupportsJIT => OS != Platform.iOS;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
+        public static bool IsApple => OS == Platform.iOS || OS == Platform.MacOsx;
 
         static RuntimeInfo()
         {

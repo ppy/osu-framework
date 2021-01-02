@@ -15,9 +15,16 @@ namespace osu.Framework.Graphics.Transforms
     /// A transform which operates on arbitrary fields or properties of a given target.
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
+    /// <typeparam name="TEasing">The type of easing.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : class, ITransformable
+    internal class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+        where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
+        public override string TargetGrouping => targetGrouping ?? TargetMember;
+
+        private readonly string targetGrouping;
+
         private delegate TValue ReadFunc(T transformable);
 
         private delegate void WriteFunc(T transformable, TValue value);
@@ -141,7 +148,6 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
 
         /// <summary>
         /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
@@ -152,14 +158,14 @@ namespace osu.Framework.Graphics.Transforms
         /// <see cref="Transform.EndTime"/>, and a current time.
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
-        public TransformCustom(string propertyOrFieldName)
+        /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
+        public TransformCustom(string propertyOrFieldName, string grouping = null)
         {
             TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
 
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
-
-            interpolationFunc = Interpolation.ValueAt;
         }
 
         private TValue valueAt(double time)
@@ -167,7 +173,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }
@@ -175,5 +181,14 @@ namespace osu.Framework.Graphics.Transforms
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+    }
+
+    internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
+        where T : class, ITransformable
+    {
+        public TransformCustom(string propertyOrFieldName)
+            : base(propertyOrFieldName)
+        {
+        }
     }
 }

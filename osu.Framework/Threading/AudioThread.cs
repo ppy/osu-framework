@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
+using osu.Framework.Platform.Linux.Native;
 
 namespace osu.Framework.Threading
 {
@@ -16,6 +17,12 @@ namespace osu.Framework.Threading
             : base(name: "Audio")
         {
             OnNewFrame = onNewFrame;
+
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
         }
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
@@ -77,12 +84,25 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                foreach (var manager in managers)
-                    manager.Dispose();
+                // AudioManagers are iterated over backwards since disposal will unregister and remove them from the list.
+                for (int i = managers.Count - 1; i >= 0; i--)
+                {
+                    var m = managers[i];
+
+                    m.Dispose();
+
+                    // Audio component disposal (including the AudioManager itself) is scheduled and only runs when the AudioThread updates.
+                    // But the AudioThread won't run another update since it's exiting, so an update must be performed manually in order to finish the disposal.
+                    m.Update();
+                }
+
                 managers.Clear();
             }
 
-            Bass.Free();
+            // Safety net to ensure we have freed all devices before exiting.
+            // This is mainly required for device-lost scenarios.
+            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+            while (Bass.Free()) { }
         }
     }
 }

@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
         /// While default creation parameters are applied automatically, word wrapping is unavailable for contained words.
-        /// This should only be used when a specialised <see cref="SpriteText"/> type is requried.
+        /// This should only be used when a specialised <see cref="SpriteText"/> type is required.
         /// </summary>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>

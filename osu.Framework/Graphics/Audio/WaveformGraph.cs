@@ -8,6 +8,7 @@ using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
@@ -77,6 +78,26 @@ namespace osu.Framework.Graphics.Audio
 
                 waveform = value;
                 generate();
+            }
+        }
+
+        private Color4 baseColour = Color4.White;
+
+        /// <summary>
+        /// The base colour of the graph for frequencies that don't fall into the predefined low/mid/high buckets.
+        /// Also serves as the default value of <see cref="LowColour"/>, <see cref="MidColour"/>, and <see cref="HighColour"/>.
+        /// </summary>
+        public Color4 BaseColour
+        {
+            get => baseColour;
+            set
+            {
+                if (baseColour == value)
+                    return;
+
+                baseColour = value;
+
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -156,7 +177,11 @@ namespace osu.Framework.Graphics.Audio
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
         private ScheduledDelegate scheduledGenerate;
 
-        protected Waveform ResampledWaveform { get; private set; }
+        private List<Waveform.Point> resampledPoints;
+        private int resampledChannels;
+        private double resampledMaxHighIntensity;
+        private double resampledMaxMidIntensity;
+        private double resampledMaxLowIntensity;
 
         private void generate()
         {
@@ -173,8 +198,24 @@ namespace osu.Framework.Graphics.Audio
 
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
-                    ResampledWaveform = w.Result;
-                    Schedule(() => Invalidate(Invalidation.DrawNode));
+                    var points = w.Result.GetPoints();
+                    var channels = w.Result.GetChannels();
+                    var maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                    var maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                    var maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+
+                    Schedule(() =>
+                    {
+                        resampledPoints = points;
+                        resampledChannels = channels;
+                        resampledMaxHighIntensity = maxHighIntensity;
+                        resampledMaxMidIntensity = maxMidIntensity;
+                        resampledMaxLowIntensity = maxLowIntensity;
+
+                        OnWaveformRegenerated(w.Result);
+
+                        Invalidate(Invalidation.DrawNode);
+                    });
                 }, token);
             });
         }
@@ -184,6 +225,14 @@ namespace osu.Framework.Graphics.Audio
             cancelSource?.Cancel();
             cancelSource?.Dispose();
             cancelSource = null;
+        }
+
+        /// <summary>
+        /// Invoked when the waveform has been regenerated.
+        /// </summary>
+        /// <param name="waveform">The new <see cref="Waveform"/> to be displayed.</param>
+        protected virtual void OnWaveformRegenerated(Waveform waveform)
+        {
         }
 
         protected override DrawNode CreateDrawNode() => new WaveformDrawNode(this);
@@ -199,11 +248,12 @@ namespace osu.Framework.Graphics.Audio
             private IShader shader;
             private Texture texture;
 
-            private IReadOnlyList<Waveform.Point> points;
+            private readonly List<Waveform.Point> points = new List<Waveform.Point>();
 
             private Vector2 drawSize;
             private int channels;
 
+            private Color4 baseColour;
             private Color4 lowColour;
             private Color4 midColour;
             private Color4 highColour;
@@ -226,18 +276,21 @@ namespace osu.Framework.Graphics.Audio
                 shader = Source.shader;
                 texture = Source.texture;
                 drawSize = Source.DrawSize;
-                points = Source.ResampledWaveform?.GetPoints();
-                channels = Source.ResampledWaveform?.GetChannels() ?? 0;
-                lowColour = Source.lowColour ?? DrawColourInfo.Colour;
-                midColour = Source.midColour ?? DrawColourInfo.Colour;
-                highColour = Source.highColour ?? DrawColourInfo.Colour;
 
-                if (points?.Any() == true)
-                {
-                    highMax = points.Max(p => p.HighIntensity);
-                    midMax = points.Max(p => p.MidIntensity);
-                    lowMax = points.Max(p => p.LowIntensity);
-                }
+                points.Clear();
+
+                if (Source.resampledPoints != null)
+                    points.AddRange(Source.resampledPoints);
+
+                channels = Source.resampledChannels;
+                highMax = Source.resampledMaxHighIntensity;
+                midMax = Source.resampledMaxMidIntensity;
+                lowMax = Source.resampledMaxLowIntensity;
+
+                baseColour = Source.baseColour;
+                lowColour = Source.lowColour ?? baseColour;
+                midColour = Source.midColour ?? baseColour;
+                highColour = Source.highColour ?? baseColour;
             }
 
             private readonly QuadBatch<TexturedVertex2D> vertexBatch = new QuadBatch<TexturedVertex2D>(1000, 10);
@@ -272,14 +325,17 @@ namespace osu.Framework.Graphics.Audio
                     if (leftX > localMaskingRectangle.Right)
                         break; // X is always increasing
 
-                    Color4 colour = DrawColourInfo.Colour;
+                    Color4 frequencyColour = baseColour;
 
                     // colouring is applied in the order of interest to a viewer.
-                    colour = Interpolation.ValueAt(points[i].MidIntensity / midMax, colour, midColour, 0, 1);
+                    frequencyColour = Interpolation.ValueAt(points[i].MidIntensity / midMax, frequencyColour, midColour, 0, 1);
                     // high end (cymbal) can help find beat, so give it priority over mids.
-                    colour = Interpolation.ValueAt(points[i].HighIntensity / highMax, colour, highColour, 0, 1);
+                    frequencyColour = Interpolation.ValueAt(points[i].HighIntensity / highMax, frequencyColour, highColour, 0, 1);
                     // low end (bass drum) is generally the best visual aid for beat matching, so give it priority over high/mid.
-                    colour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, colour, lowColour, 0, 1);
+                    frequencyColour = Interpolation.ValueAt(points[i].LowIntensity / lowMax, frequencyColour, lowColour, 0, 1);
+
+                    ColourInfo finalColour = DrawColourInfo.Colour;
+                    finalColour.ApplyChild(frequencyColour);
 
                     Quad quadToDraw;
 
@@ -311,7 +367,7 @@ namespace osu.Framework.Graphics.Audio
                     }
 
                     quadToDraw *= DrawInfo.Matrix;
-                    DrawQuad(texture, quadToDraw, colour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
+                    DrawQuad(texture, quadToDraw, finalColour, null, vertexBatch.AddAction, Vector2.Divide(localInflationAmount, quadToDraw.Size));
                 }
 
                 shader.Unbind();

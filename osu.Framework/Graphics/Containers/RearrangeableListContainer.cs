@@ -140,17 +140,22 @@ namespace osu.Framework.Graphics.Containers
                 itemMap[item] = drawable;
             }
 
-            LoadComponentsAsync(drawablesToAdd, loaded =>
+            if (!IsLoaded)
+                addToHierarchy(drawablesToAdd);
+            else
+                LoadComponentsAsync(drawablesToAdd, addToHierarchy);
+
+            void addToHierarchy(IEnumerable<Drawable> drawables)
             {
-                foreach (var d in loaded.Cast<RearrangeableListItem<TModel>>())
+                foreach (var d in drawables.Cast<RearrangeableListItem<TModel>>())
                 {
-                    // We shouldn't add items that were removed during the async load
-                    if (itemMap.ContainsKey(d.Model))
+                    // Don't add drawables whose models were removed during the async load, or drawables that are no longer attached to the contained model.
+                    if (itemMap.TryGetValue(d.Model, out var modelDrawable) && modelDrawable == d)
                         ListContainer.Add(d);
                 }
 
                 reSort();
-            });
+            }
         }
 
         private void reSort()

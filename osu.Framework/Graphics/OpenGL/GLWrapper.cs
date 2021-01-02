@@ -19,7 +19,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -30,6 +29,17 @@ namespace osu.Framework.Graphics.OpenGL
         /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
+
+        /// <summary>
+        /// The interval (in frames) before checking whether VBOs should be freed.
+        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// </summary>
+        private const int vbo_free_check_interval = 300;
+
+        /// <summary>
+        /// The amount of times <see cref="Reset"/> has been invoked.
+        /// </summary>
+        internal static ulong ResetId { get; private set; }
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
@@ -80,6 +90,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
+        private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
+
         public static bool IsInitialized { get; private set; }
 
         private static WeakReference<GameHost> host;
@@ -88,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            if (host.Window is GameWindow win)
+            if (host.Window is OsuTKWindow win)
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
@@ -100,26 +112,53 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
 
             IsInitialized = true;
+
+            reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
+        }
+
+        private static readonly List<PendingDisposal> pending_disposal_actions = new List<PendingDisposal>();
+
+        private class PendingDisposal
+        {
+            public int RemainingFrameDelay = MAX_DRAW_NODES;
+
+            public readonly Action Action;
+
+            public PendingDisposal(Action action)
+            {
+                Action = action;
+            }
         }
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            int frameCount = 0;
-
-            if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            if (host != null && host.TryGetTarget(out _))
+            {
+                lock (pending_disposal_actions)
+                    pending_disposal_actions.Add(new PendingDisposal(disposalAction));
+            }
             else
                 disposalAction.Invoke();
+        }
 
-            void scheduleNextDisposal() => reset_scheduler.Add(() =>
+        private static void checkPendingDisposals()
+        {
+            // use for loop to avoid need for locking
+            for (var i = 0; i < pending_disposal_actions.Count; i++)
             {
-                // There may be a number of DrawNodes queued to be drawn
-                // Disposal should only take place after
-                if (frameCount++ >= MAX_DRAW_NODES)
-                    disposalAction.Invoke();
-                else
-                    scheduleNextDisposal();
-            });
+                var item = pending_disposal_actions[i];
+
+                if (item.RemainingFrameDelay-- == 0)
+                {
+                    item.Action();
+
+                    lock (pending_disposal_actions)
+                    {
+                        Debug.Assert(i == 0);
+                        pending_disposal_actions.RemoveAt(i--);
+                    }
+                }
+            }
         }
 
         private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
@@ -129,6 +168,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
+            ResetId++;
+
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -136,37 +177,6 @@ namespace osu.Framework.Graphics.OpenGL
             stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
             if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
-
-            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
-            stat_texture_uploads_dequeued.Value = 0;
-            stat_texture_uploads_performed.Value = 0;
-
-            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
-            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
-            int uploads = 0;
-            int uploadedPixels = 0;
-
-            // continue attempting to upload textures until enough uploads have been performed.
-            while (texture_upload_queue.TryDequeue(out TextureGL texture))
-            {
-                stat_texture_uploads_dequeued.Value++;
-
-                texture.IsQueuedForUpload = false;
-
-                if (!texture.Upload())
-                    continue;
-
-                stat_texture_uploads_performed.Value++;
-
-                if (++uploads >= targetUploads)
-                    break;
-
-                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
-                    break;
-            }
-
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
 
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
@@ -208,6 +218,39 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushDepthInfo(DepthInfo.Default);
             Clear(new ClearInfo(Color4.Black));
+
+            freeUnusedVertexBuffers();
+
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int uploads = 0;
+            int uploadedPixels = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
+                    break;
+            }
+
+            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
+            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
         }
 
         private static ClearInfo currentClearInfo;
@@ -348,6 +391,26 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
+        /// <summary>
+        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
+        internal static void RegisterVertexBufferUse(IVertexBuffer buffer) => vertex_buffers_in_use.Add(buffer);
+
+        private static void freeUnusedVertexBuffers()
+        {
+            if (ResetId % vbo_free_check_interval != 0)
+                return;
+
+            foreach (var buf in vertex_buffers_in_use)
+            {
+                if (buf.InUse && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                    buf.Free();
+            }
+
+            vertex_buffers_in_use.RemoveAll(b => !b.InUse);
+        }
+
         private static readonly int[] last_bound_texture = new int[16];
         private static readonly bool[] last_bound_texture_is_atlas = new bool[16];
 
@@ -359,33 +422,57 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="texture">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0)
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(TextureGL texture, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
-            BindTexture(texture?.TextureId ?? 0, unit);
+            bool didBind = BindTexture(texture?.TextureId ?? 0, unit, wrapModeS, wrapModeT);
             last_bound_texture_is_atlas[GetTextureUnitId(unit)] = texture is TextureGLAtlas;
+
+            return didBind;
         }
+
+        internal static WrapMode CurrentWrapModeS;
+        internal static WrapMode CurrentWrapModeT;
 
         /// <summary>
         /// Binds a texture to draw with.
         /// </summary>
         /// <param name="textureId">The texture to bind.</param>
         /// <param name="unit">The texture unit to bind it to.</param>
-        public static void BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0)
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
+        public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
             var index = GetTextureUnitId(unit);
 
-            if (last_bound_texture[index] != textureId)
+            if (wrapModeS != CurrentWrapModeS)
             {
-                FlushCurrentBatch();
-
-                GL.ActiveTexture(unit);
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
-
-                last_bound_texture[index] = textureId;
-                last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
-
-                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeS, (int)wrapModeS);
+                CurrentWrapModeS = wrapModeS;
             }
+
+            if (wrapModeT != CurrentWrapModeT)
+            {
+                GlobalPropertyManager.Set(GlobalProperty.WrapModeT, (int)wrapModeT);
+                CurrentWrapModeT = wrapModeT;
+            }
+
+            if (last_bound_texture[index] == textureId)
+                return false;
+
+            FlushCurrentBatch();
+
+            GL.ActiveTexture(unit);
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+
+            last_bound_texture[index] = textureId;
+            last_bound_texture_is_atlas[GetTextureUnitId(unit)] = false;
+
+            FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
+            return true;
         }
 
         private static BlendingParameters lastBlendingParameters;

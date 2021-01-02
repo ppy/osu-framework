@@ -3,19 +3,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
-using osuTK;
-using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {
     /// <summary>
     /// Interface representation of the game window, intended to hide any implementation-specific code.
-    /// Currently inherits from osuTK; this will be removed as part of the <see cref="GameWindow"/> refactor.
     /// </summary>
-    public interface IWindow : IGameWindow
+    public interface IWindow : IDisposable
     {
         /// <summary>
         /// Cycles through the available <see cref="WindowMode"/>s as determined by <see cref="SupportedWindowModes"/>.
@@ -27,6 +25,11 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="config">The configuration manager to use.</param>
         void SetupWindow(FrameworkConfigManager config);
+
+        /// <summary>
+        /// Creates the concrete window implementation.
+        /// </summary>
+        void Create();
 
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
@@ -43,7 +46,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
-        bool CursorInWindow { get; }
+        IBindable<bool> CursorInWindow { get; }
 
         /// <summary>
         /// Controls the state of the OS cursor.
@@ -51,19 +54,19 @@ namespace osu.Framework.Platform
         CursorState CursorState { get; set; }
 
         /// <summary>
+        /// Controls the state of the window.
+        /// </summary>
+        WindowState WindowState { get; set; }
+
+        /// <summary>
         /// Controls the vertical sync mode of the screen.
         /// </summary>
-        VSyncMode VSync { get; set; }
+        bool VerticalSync { get; set; }
 
         /// <summary>
         /// Returns the default <see cref="WindowMode"/> for the implementation.
         /// </summary>
         WindowMode DefaultWindowMode { get; }
-
-        /// <summary>
-        /// Gets the <see cref="DisplayDevice"/> that this window is currently on.
-        /// </summary>
-        DisplayDevice CurrentDisplay { get; }
 
         /// <summary>
         /// Whether this <see cref="IWindow"/> is active (in the foreground).
@@ -83,23 +86,83 @@ namespace osu.Framework.Platform
         IBindableList<WindowMode> SupportedWindowModes { get; }
 
         /// <summary>
-        /// Available resolutions for full-screen display.
+        /// Provides a <see cref="Bindable{WindowMode}"/> that manages the current window mode.
+        /// Supported window modes for the current platform can be retrieved via <see cref="SupportedWindowModes"/>.
         /// </summary>
-        IEnumerable<DisplayResolution> AvailableResolutions { get; }
+        Bindable<WindowMode> WindowMode { get; }
 
         /// <summary>
-        /// Queries the physical displays and their supported resolutions.
+        /// Exposes the physical displays as an <see cref="IEnumerable{Display}"/>.
         /// </summary>
         IEnumerable<Display> Displays { get; }
 
         /// <summary>
-        /// Gets the <see cref="Display"/> that this window is currently on.
+        /// Gets the <see cref="Display"/> that has been set as "primary" or "default" in the operating system.
         /// </summary>
-        Display Display { get; }
+        Display PrimaryDisplay { get; }
+
+        /// <summary>
+        /// Exposes the <see cref="Display"/> that this window is currently on as a <see cref="Bindable{Display}"/>.
+        /// </summary>
+        Bindable<Display> CurrentDisplayBindable { get; }
 
         /// <summary>
         /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode DisplayMode { get; }
+        DisplayMode CurrentDisplayMode { get; }
+
+        /// <summary>
+        /// Makes this window the current graphics context, if appropriate for the driver.
+        /// </summary>
+        void MakeCurrent();
+
+        /// <summary>
+        /// Clears the current graphics context, if appropriate for the driver.
+        /// </summary>
+        void ClearCurrent();
+
+        /// <summary>
+        /// Request close.
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// Start the window's run loop. Is a blocking call.
+        /// </summary>
+        void Run();
+
+        /// <summary>
+        /// Requests that the graphics backend perform a buffer swap.
+        /// </summary>
+        void SwapBuffers();
+
+        /// <summary>
+        /// Whether the window currently has focus.
+        /// </summary>
+        bool Focused { get; }
+
+        /// <summary>
+        /// Convert a window based coordinate to global screen space.
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Point PointToClient(Point point);
+
+        /// <summary>
+        /// Convert a screen based coordinate to local window space.
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        Point PointToScreen(Point point);
+
+        /// <summary>
+        /// The client size of the window (excluding any window decoration/border).
+        /// </summary>
+        Size ClientSize { get; }
+
+        /// <summary>
+        /// The window title.
+        /// </summary>
+        string Title { get; set; }
     }
 }

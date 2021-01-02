@@ -3,8 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.ListExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -13,6 +16,7 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -44,16 +48,21 @@ namespace osu.Framework.Input
         /// </summary>
         public Drawable FocusedDrawable { get; internal set; }
 
-        protected abstract IEnumerable<InputHandler> InputHandlers { get; }
+        protected abstract ImmutableArray<InputHandler> InputHandlers { get; }
 
         private double keyboardRepeatTime;
         private Key? keyboardRepeatKey;
 
         /// <summary>
         /// The initial input state. <see cref="CurrentState"/> is always equal (as a reference) to the value returned from this.
-        /// <see cref="InputState.Mouse"/>, <see cref="InputState.Keyboard"/> and <see cref="InputState.Joystick"/> should be non-null.
         /// </summary>
-        protected virtual InputState CreateInitialState() => new InputState(new MouseState { IsPositionValid = false }, new KeyboardState(), new JoystickState());
+        protected virtual InputState CreateInitialState() => new InputState(
+            new MouseState { IsPositionValid = false },
+            new KeyboardState(),
+            new TouchState(),
+            new JoystickState(),
+            new MidiState()
+        );
 
         /// <summary>
         /// The last processed state.
@@ -106,18 +115,32 @@ namespace osu.Framework.Input
         /// that the return value of <see cref="Drawable.OnHover"/> is not taken
         /// into account.
         /// </summary>
-        public IEnumerable<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState);
+        /// <remarks>
+        /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
+        /// </remarks>
+        public SlimReadOnlyListWrapper<Drawable> PositionalInputQueue => buildPositionalInputQueue(CurrentState.Mouse.Position);
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
         /// for non-positional input.
         /// </summary>
-        public IEnumerable<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
+        /// <remarks>
+        /// This collection should not be retained as a reference. The contents is not stable outside of local usage.
+        /// </remarks>
+        public SlimReadOnlyListWrapper<Drawable> NonPositionalInputQueue => buildNonPositionalInputQueue();
 
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
-
+        private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
+        private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
+
+        private readonly Dictionary<JoystickAxisSource, JoystickAxisEventManager> joystickAxisEventManagers = new Dictionary<JoystickAxisSource, JoystickAxisEventManager>();
+
+        /// <summary>
+        /// Whether to produce mouse input on any touch input from latest source.
+        /// </summary>
+        protected virtual bool MapMouseToLatestTouch => true;
 
         protected InputManager()
         {
@@ -163,7 +186,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="MouseButtonEventManager"/> responsible for a specified mouse button.
         /// </summary>
-        /// <param name="button">The button find the manager for.</param>
+        /// <param name="button">The button to find the manager for.</param>
         /// <returns>The <see cref="MouseButtonEventManager"/>.</returns>
         public MouseButtonEventManager GetButtonEventManagerFor(MouseButton button) =>
             mouseButtonEventManagers.TryGetValue(button, out var manager) ? manager : null;
@@ -178,7 +201,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="KeyEventManager"/> responsible for a specified key.
         /// </summary>
-        /// <param name="key">The key find the manager for.</param>
+        /// <param name="key">The key to find the manager for.</param>
         /// <returns>The <see cref="KeyEventManager"/>.</returns>
         public KeyEventManager GetButtonEventManagerFor(Key key)
         {
@@ -191,6 +214,28 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Create a <see cref="TouchEventManager"/> for a specified touch source.
+        /// </summary>
+        /// <param name="source">The touch source to be handled by the returned manager.</param>
+        /// <returns>The <see cref="TouchEventManager"/>.</returns>
+        protected virtual TouchEventManager CreateButtonEventManagerFor(TouchSource source) => new TouchEventManager(source);
+
+        /// <summary>
+        /// Get the <see cref="TouchEventManager"/> responsible for a specified touch source.
+        /// </summary>
+        /// <param name="source">The touch source to find the manager for.</param>
+        /// <returns>The <see cref="TouchEventManager"/>.</returns>
+        public TouchEventManager GetButtonEventManagerFor(TouchSource source)
+        {
+            if (touchEventManagers.TryGetValue(source, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(source);
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
+            return touchEventManagers[source] = manager;
+        }
+
+        /// <summary>
         /// Create a <see cref="JoystickButtonEventManager"/> for a specified joystick button.
         /// </summary>
         /// <param name="button">The button to be handled by the returned manager.</param>
@@ -200,7 +245,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// Get the <see cref="JoystickButtonEventManager"/> responsible for a specified joystick button.
         /// </summary>
-        /// <param name="button">The button find the manager for.</param>
+        /// <param name="button">The button to find the manager for.</param>
         /// <returns>The <see cref="JoystickButtonEventManager"/>.</returns>
         public JoystickButtonEventManager GetButtonEventManagerFor(JoystickButton button)
         {
@@ -210,6 +255,50 @@ namespace osu.Framework.Input
             var manager = CreateButtonEventManagerFor(button);
             manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="MidiKeyEventManager"/> for a specified midi key.
+        /// </summary>
+        /// <param name="key">The key to be handled by the returned manager.</param>
+        /// <returns>The <see cref="MidiKeyEventManager"/>.</returns>
+        protected virtual MidiKeyEventManager CreateButtonEventManagerFor(MidiKey key) => new MidiKeyEventManager(key);
+
+        /// <summary>
+        /// Get the <see cref="MidiKeyEventManager"/> responsible for a specified midi key.
+        /// </summary>
+        /// <param name="key">The key to find the manager for.</param>
+        /// <returns>The <see cref="MidiKeyEventManager"/>.</returns>
+        public MidiKeyEventManager GetButtonEventManagerFor(MidiKey key)
+        {
+            if (midiKeyEventManagers.TryGetValue(key, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(key);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return midiKeyEventManagers[key] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="JoystickAxisEventManager"/> for a specified joystick axis.
+        /// </summary>
+        /// <param name="source">The axis to be handled by the returned manager.</param>
+        /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
+        protected virtual JoystickAxisEventManager CreateJoystickAxisEventManagerFor(JoystickAxisSource source) => new JoystickAxisEventManager(source);
+
+        /// <summary>
+        /// Get the <see cref="JoystickAxisEventManager"/> responsible for a specified joystick axis.
+        /// </summary>
+        /// <param name="source">The axis to find the manager for.</param>
+        /// <returns>The <see cref="JoystickAxisEventManager"/>.</returns>
+        public JoystickAxisEventManager GetJoystickAxisEventManagerFor(JoystickAxisSource source)
+        {
+            if (joystickAxisEventManagers.TryGetValue(source, out var existing))
+                return existing;
+
+            var manager = CreateJoystickAxisEventManagerFor(source);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return joystickAxisEventManagers[source] = manager;
         }
 
         /// <summary>
@@ -288,6 +377,10 @@ namespace osu.Framework.Input
 
         private bool hoverEventsUpdated;
 
+        private readonly List<Drawable> highFrequencyDrawables = new List<Drawable>();
+
+        private MouseMoveEvent highFrequencyMoveEvent;
+
         protected override void Update()
         {
             unfocusIfNoLongerValid();
@@ -298,14 +391,34 @@ namespace osu.Framework.Input
 
             hoverEventsUpdated = false;
 
-            foreach (var result in GetPendingInputs())
+            var pendingInputs = GetPendingInputs();
+
+            foreach (var result in pendingInputs)
             {
                 result.Apply(CurrentState, this);
             }
 
             if (CurrentState.Mouse.IsPositionValid)
             {
-                PropagateBlockableEvent(PositionalInputQueue.Where(d => d is IRequireHighFrequencyMousePosition), new MouseMoveEvent(CurrentState));
+                Debug.Assert(highFrequencyDrawables.Count == 0);
+
+                foreach (var d in PositionalInputQueue)
+                {
+                    if (d is IRequireHighFrequencyMousePosition)
+                        highFrequencyDrawables.Add(d);
+                }
+
+                if (highFrequencyDrawables.Count > 0)
+                {
+                    // conditional avoid allocs of MouseMoveEvent when state is guaranteed to not have been mutated.
+                    // can be removed if we pool/change UIEvent allocation to be more efficient.
+                    if (highFrequencyMoveEvent == null || pendingInputs.Count > 0)
+                        highFrequencyMoveEvent = new MouseMoveEvent(CurrentState);
+
+                    PropagateBlockableEvent(highFrequencyDrawables.AsSlimReadOnly(), highFrequencyMoveEvent);
+                }
+
+                highFrequencyDrawables.Clear();
             }
 
             updateKeyRepeat(CurrentState);
@@ -334,21 +447,21 @@ namespace osu.Framework.Input
             }
         }
 
+        private readonly List<IInput> inputs = new List<IInput>();
+
         protected virtual List<IInput> GetPendingInputs()
         {
-            var inputs = new List<IInput>();
+            inputs.Clear();
 
             foreach (var h in InputHandlers)
-            {
-                inputs.AddRange(h.GetPendingInputs());
-            }
+                h.CollectPendingInputs(inputs);
 
             return inputs;
         }
 
         private readonly List<Drawable> inputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildNonPositionalInputQueue()
+        private SlimReadOnlyListWrapper<Drawable> buildNonPositionalInputQueue()
         {
             inputQueue.Clear();
 
@@ -370,12 +483,12 @@ namespace osu.Framework.Input
             // need to be reversed.
             inputQueue.Reverse();
 
-            return inputQueue;
+            return inputQueue.AsSlimReadOnly();
         }
 
         private readonly List<Drawable> positionalInputQueue = new List<Drawable>();
 
-        private IEnumerable<Drawable> buildPositionalInputQueue(InputState state)
+        private SlimReadOnlyListWrapper<Drawable> buildPositionalInputQueue(Vector2 screenSpacePos)
         {
             positionalInputQueue.Clear();
 
@@ -384,10 +497,10 @@ namespace osu.Framework.Input
 
             var children = AliveInternalChildren;
             for (int i = 0; i < children.Count; i++)
-                children[i].BuildPositionalInputQueue(state.Mouse.Position, positionalInputQueue);
+                children[i].BuildPositionalInputQueue(screenSpacePos, positionalInputQueue);
 
             positionalInputQueue.Reverse();
-            return positionalInputQueue;
+            return positionalInputQueue.AsSlimReadOnly();
         }
 
         protected virtual bool HandleHoverEvents => true;
@@ -476,8 +589,46 @@ namespace osu.Framework.Input
             }
         }
 
+        protected virtual void HandleTouchStateChange(TouchStateChangeEvent e)
+        {
+            Debug.Assert(e.LastPosition != null || e.IsActive != null, $"A {nameof(TouchStateChangeEvent)} provided with no changes information.");
+
+            var manager = GetButtonEventManagerFor(e.Touch.Source);
+
+            if (e.LastPosition is Vector2 lastPosition)
+                manager.HandlePositionChange(e.State, lastPosition);
+
+            if (e.IsActive is bool active)
+                manager.HandleButtonStateChange(e.State, active ? ButtonStateChangeKind.Pressed : ButtonStateChangeKind.Released);
+        }
+
+        /// <summary>
+        /// Handles latest activated touch state change event to produce mouse input from.
+        /// </summary>
+        /// <param name="e">The latest activated touch state change event.</param>
+        /// <returns>Whether mouse input has been performed accordingly.</returns>
+        protected virtual bool HandleMouseTouchStateChange(TouchStateChangeEvent e)
+        {
+            if (!MapMouseToLatestTouch)
+                return false;
+
+            if (e.IsActive == true || e.LastPosition != null)
+            {
+                new MousePositionAbsoluteInputFromTouch(e)
+                {
+                    Position = e.Touch.Position
+                }.Apply(CurrentState, this);
+            }
+
+            new MouseButtonInputFromTouch(MouseButton.Left, e.State.Touch.ActiveSources.HasAnyButtonPressed, e).Apply(CurrentState, this);
+            return true;
+        }
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
+
+        protected virtual void HandleMidiKeyStateChange(ButtonStateChangeEvent<MidiKey> midiKeyStateChange)
+            => GetButtonEventManagerFor(midiKeyStateChange.Button).HandleButtonStateChange(midiKeyStateChange.State, midiKeyStateChange.Kind);
 
         public virtual void HandleInputStateChange(InputStateChangeEvent inputStateChange)
         {
@@ -499,11 +650,38 @@ namespace osu.Framework.Input
                     HandleKeyboardKeyStateChange(keyboardKeyStateChange);
                     return;
 
+                case TouchStateChangeEvent touchChange:
+                    var manager = GetButtonEventManagerFor(touchChange.Touch.Source);
+
+                    bool touchWasHandled = manager.HeldDrawable != null;
+
+                    HandleTouchStateChange(touchChange);
+
+                    bool touchIsHandled = manager.HeldDrawable != null;
+
+                    // Produce mouse input if no drawable in the input queue has handled this touch event.
+                    // Done for compatibility with components that do not handle touch input directly.
+                    if (!touchWasHandled && !touchIsHandled)
+                        HandleMouseTouchStateChange(touchChange);
+
+                    return;
+
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
                     HandleJoystickButtonStateChange(joystickButtonStateChange);
                     return;
+
+                case JoystickAxisChangeEvent joystickAxisChangeEvent:
+                    HandleJoystickAxisChange(joystickAxisChangeEvent);
+                    return;
+
+                case ButtonStateChangeEvent<MidiKey> midiKeyStateChange:
+                    HandleMidiKeyStateChange(midiKeyStateChange);
+                    return;
             }
         }
+
+        protected virtual void HandleJoystickAxisChange(JoystickAxisChangeEvent e)
+            => GetJoystickAxisEventManagerFor(e.Axis.Source).HandleAxisChange(e.State, e.Axis.Value, e.LastValue);
 
         protected virtual void HandleMousePositionChange(MousePositionChangeEvent e)
         {
@@ -545,17 +723,22 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
         /// <returns>Whether the event was handled.</returns>
-        protected virtual bool PropagateBlockableEvent(IEnumerable<Drawable> drawables, UIEvent e)
+        protected virtual bool PropagateBlockableEvent(SlimReadOnlyListWrapper<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
-
-            if (handledBy != null && shouldLog(e))
+            foreach (var d in drawables)
             {
-                var detail = handledBy is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
-                Logger.Log($"{detail} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
+                if (!d.TriggerEvent(e)) continue;
+
+                if (shouldLog(e))
+                {
+                    var detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
+                }
+
+                return true;
             }
 
-            return handledBy != null;
+            return false;
         }
 
         private bool shouldLog(UIEvent eventType)
@@ -647,7 +830,16 @@ namespace osu.Framework.Input
         private void focusTopMostRequestingDrawable()
         {
             // todo: don't rebuild input queue every frame
-            ChangeFocus(NonPositionalInputQueue.FirstOrDefault(target => target.RequestsFocus));
+            foreach (var d in NonPositionalInputQueue)
+            {
+                if (d.RequestsFocus)
+                {
+                    ChangeFocus(d);
+                    return;
+                }
+            }
+
+            ChangeFocus(null);
         }
 
         private class MouseLeftButtonEventManager : MouseButtonEventManager

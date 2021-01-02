@@ -6,7 +6,7 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// A channel playing back an audio sample.
     /// </summary>
-    public interface ISampleChannel
+    public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
         /// Start playback.
@@ -33,5 +33,10 @@ namespace osu.Framework.Audio.Sample
         /// States if this sample should repeat.
         /// </summary>
         bool Looping { get; set; }
+
+        /// <summary>
+        /// The length of the underlying sample, in milliseconds.
+        /// </summary>
+        double Length { get; }
     }
 }

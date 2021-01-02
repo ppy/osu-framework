@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
 
@@ -222,9 +224,7 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
-
+            Bindings ??= new LockedWeakList<Bindable<T>>();
             Bindings.Add(weakReference);
         }
 
@@ -237,12 +237,19 @@ namespace osu.Framework.Bindables
         /// <param name="input">The input which is to be parsed.</param>
         public virtual void Parse(object input)
         {
-            Type underlyingType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+            Type underlyingType = typeof(T).GetUnderlyingNullableType() ?? typeof(T);
 
             switch (input)
             {
                 case T t:
                     Value = t;
+                    break;
+
+                case IBindable _:
+                    if (!(input is IBindable<T> bindable))
+                        throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
+
+                    Value = bindable.Value;
                     break;
 
                 case string s when underlyingType.IsEnum:
@@ -394,6 +401,8 @@ namespace osu.Framework.Bindables
         public Bindable<T> GetBoundCopy()
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
+            Debug.Assert(copy != null);
+
             copy.BindTo(this);
             return copy;
         }

@@ -8,14 +8,11 @@ namespace osu.Framework.Tests
 {
     public class TemporaryNativeStorage : NativeStorage, IDisposable
     {
-        public TemporaryNativeStorage(string name, GameHost host = null, bool createIfEmpty = false)
-            : base(name, host)
+        public TemporaryNativeStorage(string path, GameHost host = null)
+            : base(path, host)
         {
-            if (createIfEmpty)
-            {
-                // create directory
-                GetFullPath("./", true);
-            }
+            // create directory
+            GetFullPath("./", true);
         }
 
         public void Dispose()

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
             layoutContent();
         }
 
-        private Drawable[][] content;
+        private GridContainerContent content;
 
         /// <summary>
         /// The content of this <see cref="GridContainer"/>, arranged in a 2D grid array, where each array
@@ -37,18 +37,29 @@ namespace osu.Framework.Graphics.Containers
         /// Null elements are allowed to represent blank rows/cells.
         /// </para>
         /// </summary>
-        public Drawable[][] Content
+        public GridContainerContent Content
         {
             get => content;
             set
             {
-                if (content == value)
+                if (content?.Equals(value) == true)
                     return;
+
+                if (content != null)
+                    content.ArrayElementChanged -= onContentChange;
 
                 content = value;
 
-                cellContent.Invalidate();
+                onContentChange();
+
+                if (content != null)
+                    content.ArrayElementChanged += onContentChange;
             }
+        }
+
+        private void onContentChange()
+        {
+            cellContent.Invalidate();
         }
 
         private Dimension[] rowDimensions = Array.Empty<Dimension>();
@@ -131,8 +142,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellContent.IsValid)
                 return;
 
-            int requiredRows = Content?.Length ?? 0;
-            int requiredColumns = requiredRows == 0 ? 0 : Content.Max(c => c?.Length ?? 0);
+            int requiredRows = Content?.Count ?? 0;
+            int requiredColumns = requiredRows == 0 ? 0 : Content?.Max(c => c?.Count ?? 0) ?? 0;
 
             // Clear cell containers without disposing, as the content might be reused
             foreach (var cell in cells)
@@ -158,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     // Allow non-square grids
-                    if (c >= Content[r].Length)
+                    if (c >= Content[r].Count)
                         continue;
 
                     // Allow empty cells
@@ -292,7 +303,7 @@ namespace osu.Framework.Graphics.Containers
             int[] distributedIndices = Enumerable.Range(0, cellSizes.Length).Where(i => i >= dimensions.Length || dimensions[i].Mode == GridSizeMode.Distributed).ToArray();
 
             // The dimensions corresponding to all distributed cells
-            IEnumerable<(int i, Dimension dim)> distributedDimensions = distributedIndices.Select(i => (i, i >= dimensions.Length ? new Dimension() : dimensions[i]));
+            IEnumerable<DimensionEntry> distributedDimensions = distributedIndices.Select(i => new DimensionEntry(i, i >= dimensions.Length ? new Dimension() : dimensions[i]));
 
             // Total number of distributed cells
             int distributionCount = distributedIndices.Length;
@@ -304,18 +315,30 @@ namespace osu.Framework.Graphics.Containers
             float distributionSize = Math.Max(0, spanLength - requiredSize) / distributionCount;
 
             // Write the sizes of distributed cells. Ordering is important to maximize excess at every step
-            foreach (var (i, dim) in distributedDimensions.OrderBy(d => d.dim.Range))
+            foreach (var entry in distributedDimensions.OrderBy(d => d.Dimension.Range))
             {
                 // Cells start off at their minimum size, and the total size should not exceed their maximum size
-                cellSizes[i] = Math.Min(dim.MaxSize, dim.MinSize + distributionSize);
+                cellSizes[entry.Index] = Math.Min(entry.Dimension.MaxSize, entry.Dimension.MinSize + distributionSize);
 
                 // If there's no excess, any further distributions are guaranteed to also have no excess, so this becomes a null-op
                 // If there is an excess, the excess should be re-distributed among all other n-1 distributed cells
                 if (--distributionCount > 0)
-                    distributionSize += Math.Max(0, distributionSize - dim.Range) / distributionCount;
+                    distributionSize += Math.Max(0, distributionSize - entry.Dimension.Range) / distributionCount;
             }
 
             return cellSizes;
+        }
+
+        private readonly struct DimensionEntry
+        {
+            public readonly int Index;
+            public readonly Dimension Dimension;
+
+            public DimensionEntry(int index, Dimension dimension)
+            {
+                Index = index;
+                Dimension = dimension;
+            }
         }
 
         /// <summary>

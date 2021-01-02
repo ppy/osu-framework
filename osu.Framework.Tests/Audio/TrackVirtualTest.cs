@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Audio;
@@ -235,10 +236,43 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestRateWithAggregateAdjustments()
+        public void TestRateWithAggregateTempoAdjustments()
+        {
+            track.AddAdjustment(AdjustableProperty.Tempo, new BindableDouble(1.5f));
+            Assert.AreEqual(1.5, track.Rate);
+
+            testPlaybackRate(1.5);
+        }
+
+        [Test]
+        public void TestRateWithAggregateFrequencyAdjustments()
         {
             track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
             Assert.AreEqual(1.5, track.Rate);
+
+            testPlaybackRate(1.5);
+        }
+
+        private void testPlaybackRate(double expectedRate)
+        {
+            const double play_time = 1000;
+            const double fudge = play_time * 0.1;
+
+            track.Start();
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            while (sw.ElapsedMilliseconds < play_time)
+            {
+                Thread.Sleep(50);
+                track.Update();
+            }
+
+            sw.Stop();
+
+            Assert.GreaterOrEqual(track.CurrentTime, sw.ElapsedMilliseconds * expectedRate - fudge);
+            Assert.LessOrEqual(track.CurrentTime, sw.ElapsedMilliseconds * expectedRate + fudge);
         }
 
         private void startPlaybackAt(double time)

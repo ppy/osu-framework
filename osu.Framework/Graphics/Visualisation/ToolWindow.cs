@@ -69,17 +69,22 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
-                MainHorizontalContent = new FillFlowContainer
+                new TooltipContainer
                 {
                     RelativeSizeAxes = Axes.Y,
                     AutoSizeAxes = Axes.X,
-                    Direction = FillDirection.Horizontal,
-                    Children = new Drawable[]
+                    Child = MainHorizontalContent = new FillFlowContainer
                     {
-                        ScrollContent = new BasicScrollContainer<Drawable>
+                        RelativeSizeAxes = Axes.Y,
+                        AutoSizeAxes = Axes.X,
+                        Direction = FillDirection.Horizontal,
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Y,
-                            Width = WIDTH
+                            ScrollContent = new BasicScrollContainer<Drawable>
+                            {
+                                RelativeSizeAxes = Axes.Y,
+                                Width = WIDTH
+                            }
                         }
                     }
                 },

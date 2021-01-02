@@ -66,9 +66,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void NotifyInputError() => background.FlashColour(InputErrorColour, 200);
 
-        protected override void Commit()
+        protected override void OnTextCommitted(bool textChanged)
         {
-            base.Commit();
+            base.OnTextCommitted(textChanged);
 
             background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
             background.ClearTransforms();

@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
+using osuTK;
 
 namespace osu.Framework.Tests.Containers
 {
@@ -89,6 +90,26 @@ namespace osu.Framework.Tests.Containers
                     return true;
                 }
             });
+        }
+
+        /// <summary>
+        /// Tests whether a drawable that is loaded can be added to an unloaded container.
+        /// </summary>
+        [Test]
+        public void TestAddLoadedDrawableToUnloadedContainer()
+        {
+            Drawable target = null;
+
+            AddStep("load target", () =>
+            {
+                Add(target = new Box { Size = new Vector2(100) });
+
+                // Empty scheduler to force creation of the scheduler.
+                target.Schedule(() => { });
+            });
+
+            AddStep("remove target", () => Remove(target));
+            AddStep("add target to unloaded container", () => Add(new Container { Child = target }));
         }
 
         /// <summary>
@@ -217,6 +238,43 @@ namespace osu.Framework.Tests.Containers
             AddStep("allow load", () => drawable.AllowLoad.Set());
 
             AddUntilStep("drawable was cleared successfully", () => drawable.HasCleared);
+        }
+
+        [Test]
+        public void TestExpireChildAfterLoad()
+        {
+            Container container = null;
+            Drawable child = null;
+
+            AddStep("add container and child", () =>
+            {
+                Add(container = new Container
+                {
+                    Child = child = new Box()
+                });
+            });
+
+            AddStep("expire child", () => child.Expire());
+
+            AddUntilStep("container has no children", () => container.Count == 0);
+        }
+
+        [Test]
+        public void TestExpireChildBeforeLoad()
+        {
+            Container container = null;
+
+            AddStep("add container", () => Add(container = new Container()));
+
+            AddStep("add expired child", () =>
+            {
+                var child = new Box();
+                child.Expire();
+
+                container.Add(child);
+            });
+
+            AddUntilStep("container has no children", () => container.Count == 0);
         }
 
         private class DelayedLoadDrawable : CompositeDrawable

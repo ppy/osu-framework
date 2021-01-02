@@ -1,10 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace osu.Framework.Lists
 {
@@ -12,53 +13,106 @@ namespace osu.Framework.Lists
     /// A list maintaining weak reference of objects.
     /// </summary>
     /// <typeparam name="T">Type of items tracked by weak reference.</typeparam>
-    public class WeakList<T> : IWeakList<T>, IEnumerable<T>
+    public partial class WeakList<T> : IWeakList<T>, IEnumerable<T>
         where T : class
     {
         private readonly List<InvalidatableWeakReference> list = new List<InvalidatableWeakReference>();
+        private int listStart; // The inclusive starting index in the list.
+        private int listEnd; // The exclusive ending index in the list.
 
-        public void Add(T obj) => list.Add(new InvalidatableWeakReference(obj));
+        public void Add(T obj) => add(new InvalidatableWeakReference(obj));
 
-        public void Add(WeakReference<T> weakReference) => list.Add(new InvalidatableWeakReference(weakReference));
+        public void Add(WeakReference<T> weakReference) => add(new InvalidatableWeakReference(weakReference));
 
-        public void Remove(T item)
+        private void add(in InvalidatableWeakReference item)
         {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].Reference == null)
-                    continue;
+            if (listEnd < list.Count)
+                list[listEnd] = item;
+            else
+                list.Add(item);
 
-                if (!list[i].Reference.TryGetTarget(out var obj) || obj != item)
-                    continue;
-
-                list[i] = default;
-                break;
-            }
+            listEnd++;
         }
 
-        public bool Remove(WeakReference<T> weakReference)
+        public bool Remove(T item)
         {
-            for (int i = 0; i < list.Count; i++)
+            int hashCode = EqualityComparer<T>.Default.GetHashCode(item);
+
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (list[i].Reference != weakReference)
+                var reference = list[i].Reference;
+
+                // Check if the object is valid.
+                if (reference == null)
                     continue;
 
-                list[i] = default;
+                // Compare by hash code (fast).
+                if (list[i].ObjectHashCode != hashCode)
+                    continue;
+
+                // Compare by object equality (slow).
+                if (!reference.TryGetTarget(out var target) || target != item)
+                    continue;
+
+                RemoveAt(i - listStart);
                 return true;
             }
 
             return false;
         }
 
-        public bool Contains(T item)
+        public bool Remove(WeakReference<T> weakReference)
         {
-            foreach (var t in list)
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (t.Reference == null)
+                // Check if the object is valid.
+                if (list[i].Reference != weakReference)
                     continue;
 
-                if (t.Reference.TryGetTarget(out var obj) && obj == item)
-                    return true;
+                RemoveAt(i - listStart);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            // Move the index to the valid range of the list.
+            index += listStart;
+
+            if (index < listStart || index >= listEnd)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            list[index] = default;
+
+            if (index == listStart)
+                listStart++;
+            else if (index == listEnd - 1)
+                listEnd--;
+        }
+
+        public bool Contains(T item)
+        {
+            int hashCode = EqualityComparer<T>.Default.GetHashCode(item);
+
+            for (int i = listStart; i < listEnd; i++)
+            {
+                var reference = list[i].Reference;
+
+                // Check if the object is valid.
+                if (reference == null)
+                    continue;
+
+                // Compare by hash code (fast).
+                if (list[i].ObjectHashCode != hashCode)
+                    continue;
+
+                // Compare by object equality (slow).
+                if (!reference.TryGetTarget(out var target) || target != item)
+                    continue;
+
+                return true;
             }
 
             return false;
@@ -66,90 +120,57 @@ namespace osu.Framework.Lists
 
         public bool Contains(WeakReference<T> weakReference)
         {
-            foreach (var t in list)
+            for (int i = listStart; i < listEnd; i++)
             {
-                if (t.Reference != null && t.Reference == weakReference)
+                // Check if the object is valid.
+                if (list[i].Reference == weakReference)
                     return true;
             }
 
             return false;
         }
 
-        public void Clear()
-        {
-            for (int i = 0; i < list.Count; i++)
-                list[i] = default;
-        }
+        public void Clear() => listStart = listEnd = 0;
 
-        public Enumerator GetEnumerator()
+        public ValidItemsEnumerator GetEnumerator()
         {
+            // Trim from the sides - items that have been removed.
+            list.RemoveRange(listEnd, list.Count - listEnd);
+            list.RemoveRange(0, listStart);
+
+            // Trim all items whose references are no longer alive.
             list.RemoveAll(item => item.Reference == null || !item.Reference.TryGetTarget(out _));
 
-            return new Enumerator(list);
+            // After the trim, the valid range represents the full list.
+            listStart = 0;
+            listEnd = list.Count;
+
+            return new ValidItemsEnumerator(this);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public struct Enumerator : IEnumerator<T>
+        private readonly struct InvalidatableWeakReference
         {
-            private List<InvalidatableWeakReference> list;
+            public readonly WeakReference<T>? Reference;
 
-            private int currentIndex;
-            private T currentObject;
+            /// <summary>
+            /// Hash code of the target of <see cref="Reference"/>.
+            /// </summary>
+            public readonly int ObjectHashCode;
 
-            internal Enumerator(List<InvalidatableWeakReference> list)
+            public InvalidatableWeakReference(T reference)
             {
-                this.list = list;
-
-                currentIndex = -1; // The first MoveNext() should bring the iterator to 0
-                currentObject = null;
+                Reference = new WeakReference<T>(reference);
+                ObjectHashCode = EqualityComparer<T>.Default.GetHashCode(reference);
             }
 
-            public bool MoveNext()
-            {
-                while (++currentIndex < list.Count)
-                {
-                    if (list[currentIndex].Reference == null || !list[currentIndex].Reference.TryGetTarget(out currentObject))
-                        continue;
-
-                    return true;
-                }
-
-                return false;
-            }
-
-            public void Reset()
-            {
-                currentIndex = -1;
-                currentObject = null;
-            }
-
-            public readonly T Current => currentObject;
-
-            readonly object IEnumerator.Current => Current;
-
-            public void Dispose()
-            {
-                list = null;
-                currentObject = null;
-            }
-        }
-
-        internal readonly struct InvalidatableWeakReference
-        {
-            [CanBeNull]
-            public readonly WeakReference<T> Reference;
-
-            public InvalidatableWeakReference([CanBeNull] T reference)
-                : this(new WeakReference<T>(reference))
-            {
-            }
-
-            public InvalidatableWeakReference([CanBeNull] WeakReference<T> weakReference)
+            public InvalidatableWeakReference(WeakReference<T> weakReference)
             {
                 Reference = weakReference;
+                ObjectHashCode = !weakReference.TryGetTarget(out var target) ? 0 : EqualityComparer<T>.Default.GetHashCode(target);
             }
         }
     }

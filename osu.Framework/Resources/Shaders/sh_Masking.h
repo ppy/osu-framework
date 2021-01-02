@@ -1,6 +1,5 @@
 ﻿varying highp vec2 v_MaskingPosition;
 varying lowp vec4 v_Colour;
-varying mediump vec2 v_TexCoord;
 varying mediump vec4 v_TexRect;
 varying mediump vec2 v_BlendRange;
 
@@ -44,14 +43,14 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 	}
 }
 
-highp float distanceFromDrawingRect()
+highp float distanceFromDrawingRect(mediump vec2 texCoord)
 {
-	highp vec2 topLeftOffset = v_TexRect.xy - v_TexCoord;
+	highp vec2 topLeftOffset = v_TexRect.xy - texCoord;
 	topLeftOffset = vec2(
 		v_BlendRange.x > 0.0 ? topLeftOffset.x / v_BlendRange.x : 0.0,
 		v_BlendRange.y > 0.0 ? topLeftOffset.y / v_BlendRange.y : 0.0);
 
-	highp vec2 bottomRightOffset = v_TexCoord - v_TexRect.zw;
+	highp vec2 bottomRightOffset = texCoord - v_TexRect.zw;
 	bottomRightOffset = vec2(
 		v_BlendRange.x > 0.0 ? bottomRightOffset.x / v_BlendRange.x : 0.0,
 		v_BlendRange.y > 0.0 ? bottomRightOffset.y / v_BlendRange.y : 0.0);
@@ -60,7 +59,7 @@ highp float distanceFromDrawingRect()
 	return max(xyDistance.x, xyDistance.y);
 }
 
-lowp vec4 getRoundedColor(lowp vec4 texel)
+lowp vec4 getRoundedColor(lowp vec4 texel, mediump vec2 texCoord)
 {
 	highp float dist = distanceFromRoundedRect(vec2(0.0), g_CornerRadius);
 	lowp float alphaFactor = 1.0;
@@ -92,7 +91,7 @@ lowp vec4 getRoundedColor(lowp vec4 texel)
 	alphaFactor *= min(fadeStart - dist, 1.0);
 
 	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
-		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(), 0.0, 1.0);
+		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(texCoord), 0.0, 1.0);
 
 	if (alphaFactor <= 0.0)
 	{

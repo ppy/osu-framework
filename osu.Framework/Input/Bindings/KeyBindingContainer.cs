@@ -128,13 +128,23 @@ namespace osu.Framework.Input.Bindings
                     handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
                     return false;
 
+                case MidiDownEvent midiDown:
+                    return handleNewPressed(state, KeyCombination.FromMidiKey(midiDown.Key), false);
+
+                case MidiUpEvent midiUp:
+                    handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
+                    return false;
+
                 case ScrollEvent scroll:
                 {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
+                    var keys = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                    bool handled = false;
 
-                    var handled = handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
-                    handleNewReleased(state, key);
+                    foreach (var key in keys)
+                    {
+                        handled |= handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
+                        handleNewReleased(state, key);
+                    }
 
                     return handled;
                 }
@@ -145,11 +155,7 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            float scrollAmount = 0;
-            if (newKey == InputKey.MouseWheelUp)
-                scrollAmount = scrollDelta?.Y ?? 0;
-            else if (newKey == InputKey.MouseWheelDown)
-                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
@@ -159,8 +165,11 @@ namespace osu.Framework.Input.Bindings
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
             if (KeyCombination.IsModifierKey(newKey))
+            {
                 // if the current key pressed was a modifier, only handle modifier-only bindings.
-                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(KeyCombination.IsModifierKey));
+                // lambda expression is used so that the delegate is cached (see: https://github.com/dotnet/roslyn/issues/5835)
+                newlyPressed = newlyPressed.Where(b => b.KeyCombination.Keys.All(key => KeyCombination.IsModifierKey(key)));
+            }
 
             // we want to always handle bindings with more keys before bindings with less.
             newlyPressed = newlyPressed.OrderByDescending(b => b.KeyCombination.Keys.Length).ToList();
@@ -202,6 +211,27 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
+        private static float getScrollAmount(InputKey newKey, Vector2? scrollDelta)
+        {
+            switch (newKey)
+            {
+                case InputKey.MouseWheelUp:
+                    return scrollDelta?.Y ?? 0;
+
+                case InputKey.MouseWheelDown:
+                    return -(scrollDelta?.Y ?? 0);
+
+                case InputKey.MouseWheelRight:
+                    return scrollDelta?.X ?? 0;
+
+                case InputKey.MouseWheelLeft:
+                    return -(scrollDelta?.X ?? 0);
+
+                default:
+                    return 0;
+            }
+        }
+
         protected virtual Drawable PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             Drawable handled = null;
@@ -212,8 +242,7 @@ namespace osu.Framework.Input.Bindings
                 pressedActions.Add(pressed);
                 if (scrollAmount != 0)
                     handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
-                if (handled == null)
-                    handled = (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                handled ??= (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
             if (handled != null)

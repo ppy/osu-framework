@@ -94,7 +94,7 @@ namespace osu.Framework.Platform.Windows
         #endregion
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct TimeCaps
+        private readonly struct TimeCaps
         {
             internal readonly int wPeriodMin;
             internal readonly int wPeriodMax;

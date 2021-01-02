@@ -1,14 +1,16 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Drawing;
+using System.Linq;
 
 namespace osu.Framework.Platform
 {
     /// <summary>
     /// Represents a physical display device on the current system.
     /// </summary>
-    public sealed class Display
+    public sealed class Display : IEquatable<Display>
     {
         /// <summary>
         /// The name of the display, if available. Usually the manufacturer.
@@ -41,5 +43,31 @@ namespace osu.Framework.Platform
         }
 
         public override string ToString() => $"Name: {Name ?? "Unknown"}, Bounds: {Bounds}, DisplayModes: {DisplayModes.Length}";
+
+        public bool Equals(Display other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return Index == other.Index;
+        }
+
+        /// <summary>
+        /// Attempts to find a <see cref="DisplayMode"/> for the given <see cref="Display"/> that
+        /// closely matches the requested parameters.
+        /// </summary>
+        /// <param name="size">The <see cref="Size"/> to match.</param>
+        /// <param name="bitsPerPixel">The bits per pixel to match. If null, the highest available bits per pixel will be used.</param>
+        /// <param name="refreshRate">The refresh rate in hertz. If null, the highest available refresh rate will be used.</param>
+        /// <returns></returns>
+        public DisplayMode FindDisplayMode(Size size, int? bitsPerPixel = null, int? refreshRate = null) =>
+            DisplayModes.Where(mode => mode.Size.Width <= size.Width && mode.Size.Height <= size.Height &&
+                                       (bitsPerPixel == null || mode.BitsPerPixel == bitsPerPixel) &&
+                                       (refreshRate == null || mode.RefreshRate == refreshRate))
+                        .OrderByDescending(mode => mode.Size.Width)
+                        .ThenByDescending(mode => mode.Size.Height)
+                        .ThenByDescending(mode => mode.RefreshRate)
+                        .ThenByDescending(mode => mode.BitsPerPixel)
+                        .FirstOrDefault();
     }
 }

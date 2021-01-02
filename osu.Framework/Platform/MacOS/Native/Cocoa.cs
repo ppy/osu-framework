@@ -40,12 +40,6 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern uint SendUint(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern int SendInt(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern bool SendBool(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
@@ -55,19 +49,21 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern bool SendBool(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector);
-
-        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, uint arg);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr ptr1, IntPtr ptr2);
+        public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        public static extern float SendFloat_i386(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
+        public static extern double SendFloat_x64(IntPtr receiver, IntPtr selector);
+
+        public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
 
         public static IntPtr AppKitLibrary;
 

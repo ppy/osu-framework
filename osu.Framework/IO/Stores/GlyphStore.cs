@@ -3,15 +3,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -29,6 +30,7 @@ namespace osu.Framework.IO.Stores
 
         protected readonly ResourceStore<byte[]> Store;
 
+        [CanBeNull]
         protected BitmapFont Font => completionSource.Task.Result;
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
@@ -72,16 +74,16 @@ namespace osu.Framework.IO.Stores
             }
         }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+        public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
 
-        public int GetBaseHeight() => Font.Common.Base;
+        public int GetBaseHeight() => Font?.Common.Base ?? 0;
 
         public int? GetBaseHeight(string name)
         {
             if (name != FontName)
                 return null;
 
-            return Font.Common.Base;
+            return GetBaseHeight();
         }
 
         protected virtual TextureUpload GetPageImage(int page)
@@ -94,15 +96,22 @@ namespace osu.Framework.IO.Stores
         }
 
         protected string GetFilenameForPage(int page)
-            => $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
+        {
+            Debug.Assert(Font != null);
+            return $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
+        }
 
+        [CanBeNull]
         public CharacterGlyph Get(char character)
         {
+            if (Font == null)
+                return null;
+
             var bmCharacter = Font.GetCharacter(character);
             return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, this);
         }
 
-        public int GetKerning(char left, char right) => Font.GetKerningAmount(left, right);
+        public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;
 
         Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name) => Task.Run(() => ((IGlyphStore)this).Get(name[0]));
 
@@ -110,13 +119,12 @@ namespace osu.Framework.IO.Stores
 
         public TextureUpload Get(string name)
         {
+            if (Font == null) return null;
+
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            if (!Font.Characters.TryGetValue(name.Last(), out Character c))
-                return null;
-
-            return LoadCharacter(c);
+            return Font.Characters.TryGetValue(name.Last(), out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name)
@@ -124,10 +132,7 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            if (!(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c))
-                return null;
-
-            return LoadCharacter(c);
+            return !(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
         }
 
         protected int LoadedGlyphCount;
@@ -138,8 +143,6 @@ namespace osu.Framework.IO.Stores
             LoadedGlyphCount++;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
-
-            var dest = image.GetPixelSpan();
             var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
@@ -148,11 +151,11 @@ namespace osu.Framework.IO.Stores
 
             for (int y = 0; y < character.Height; y++)
             {
+                var pixelRowSpan = image.GetPixelRowSpan(y);
                 int readOffset = (character.Y + y) * page.Width + character.X;
-                int writeOffset = y * character.Width;
 
                 for (int x = 0; x < character.Width; x++)
-                    dest[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);
@@ -160,7 +163,7 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name) => throw new NotSupportedException();
 
-        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
+        public IEnumerable<string> GetAvailableResources() => Font?.Characters.Keys.Select(k => $"{FontName}/{(char)k}") ?? Enumerable.Empty<string>();
 
         #region IDisposable Support
 
