@@ -13,4 +13,12 @@ namespace osu.Framework.Bindables
         /// </summary>
         void Return();
     }
+
+    /// <summary>
+    /// An interface that representes a read-only leased bindable.
+    /// </summary>
+    /// <typeparam name="T">The value type of the bindable.</typeparam>
+    public interface ILeasedBindable<T> : ILeasedBindable, IBindable<T>
+    {
+    }
 }
