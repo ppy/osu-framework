@@ -412,7 +412,7 @@ namespace osu.Framework.Bindables
             Value = serializer.Deserialize<T>(reader);
         }
 
-        private LeasedBindable<T> leasedBindable;
+        private ILeasedBindable<T> leasedBindable;
 
         private bool isLeased => leasedBindable != null;
 
@@ -428,7 +428,9 @@ namespace osu.Framework.Bindables
             if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
-            return leasedBindable = new LeasedBindable<T>(this, revertValueOnReturn);
+            var instance = new LeasedBindable<T>(this, revertValueOnReturn);
+            leasedBindable = instance;
+            return instance;
         }
 
         private bool checkForLease(Bindable<T> source)
@@ -453,8 +455,8 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Called internally by a <see cref="LeasedBindable{T}"/> to end a lease.
         /// </summary>
-        /// <param name="returnedBindable">The <see cref="LeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
-        internal void EndLease(Bindable<T> returnedBindable)
+        /// <param name="returnedBindable">The <see cref="ILeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
+        internal void EndLease(ILeasedBindable<T> returnedBindable)
         {
             if (!isLeased)
                 throw new InvalidOperationException("Attempted to end a lease without beginning one.");
