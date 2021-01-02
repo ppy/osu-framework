@@ -421,7 +421,7 @@ namespace osu.Framework.Bindables
             Value = serializer.Deserialize<T>(reader);
         }
 
-        private ILeasedBindable<T> leasedBindable;
+        private LeasedBindable<T> leasedBindable;
 
         private bool isLeased => leasedBindable != null;
 
@@ -437,9 +437,7 @@ namespace osu.Framework.Bindables
             if (checkForLease(this))
                 throw new InvalidOperationException("Attempted to lease a bindable that is already in a leased state.");
 
-            var instance = new LeasedBindable<T>(this, revertValueOnReturn);
-            leasedBindable = instance;
-            return instance;
+            return leasedBindable = new LeasedBindable<T>(this, revertValueOnReturn);
         }
 
         private bool checkForLease(Bindable<T> source)
