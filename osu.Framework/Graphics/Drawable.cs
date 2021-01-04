@@ -2538,6 +2538,34 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        internal sealed override void EnsureMutationAllowed()
+        {
+            switch (LoadState)
+            {
+                case LoadState.NotLoaded:
+                    break;
+
+                case LoadState.Loading:
+                    if (Thread.CurrentThread != LoadThread)
+                        throw new InvalidThreadForMutationException(LoadState, "not on the load thread");
+
+                    break;
+
+                case LoadState.Ready:
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, "not on the load or update threads");
+
+                    break;
+
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, "not on the update thread");
+
+                    break;
+            }
+        }
+
         #endregion
 
         #region Transforms
@@ -2625,6 +2653,15 @@ namespace osu.Framework.Graphics
 
         private class EmptyDrawable : Drawable
         {
+        }
+
+        public class InvalidThreadForMutationException : InvalidOperationException
+        {
+            public InvalidThreadForMutationException(LoadState loadState, string description)
+                : base($"Cannot mutate the children of a {loadState} {nameof(CompositeDrawable)} while {description}. "
+                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
+            {
+            }
         }
     }
 
