@@ -372,6 +372,6 @@ namespace osu.Framework.Graphics.Transforms
         /// Check whether this transformable is in a state where mutation of thread-safe properties is allowed.
         /// Will throw on failure.
         /// </summary>
-        internal virtual void EnsureMutationAllowed() { }
+        internal abstract void EnsureMutationAllowed();
     }
 }
