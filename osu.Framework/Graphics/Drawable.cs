@@ -2658,7 +2658,7 @@ namespace osu.Framework.Graphics
         public class InvalidThreadForMutationException : InvalidOperationException
         {
             public InvalidThreadForMutationException(LoadState loadState, string description)
-                : base($"Cannot mutate the children of a {loadState} {nameof(CompositeDrawable)} while {description}. "
+                : base($"Cannot mutate the state of a {loadState} {nameof(Drawable)} while {description}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }
