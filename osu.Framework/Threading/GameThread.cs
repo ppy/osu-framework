@@ -8,6 +8,7 @@ using osu.Framework.Timing;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 
@@ -20,7 +21,10 @@ namespace osu.Framework.Threading
 
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
+
+        [CanBeNull]
         public Thread Thread { get; private set; }
+
         public Scheduler Scheduler { get; }
 
         /// <summary>
@@ -240,7 +244,10 @@ namespace osu.Framework.Threading
             paused = false;
 
             if (Thread == null)
+            {
                 createThread();
+                Debug.Assert(Thread != null);
+            }
 
             Thread.Start();
         }
