@@ -29,8 +29,8 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
 
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All filteringMode = All.Linear)
-            : this(store, scaleAdjust, false, filteringMode: filteringMode)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+            : this(store, scaleAdjust, false)
         {
         }
 
