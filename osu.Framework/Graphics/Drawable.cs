@@ -2538,7 +2538,9 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        internal sealed override void EnsureMutationAllowed()
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+
+        internal void EnsureMutationAllowed(string member)
         {
             switch (LoadState)
             {
@@ -2547,20 +2549,20 @@ namespace osu.Framework.Graphics
 
                 case LoadState.Loading:
                     if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForMutationException(LoadState, "not on the load thread");
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
 
                     break;
 
                 case LoadState.Ready:
                     // Allow mutating from the load thread since parenting containers may still be in the loading state
                     if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, "not on the load or update threads");
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
 
                     break;
 
                 case LoadState.Loaded:
                     if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForMutationException(LoadState, "not on the update thread");
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
 
                     break;
             }
@@ -2657,8 +2659,8 @@ namespace osu.Framework.Graphics
 
         public class InvalidThreadForMutationException : InvalidOperationException
         {
-            public InvalidThreadForMutationException(LoadState loadState, string description)
-                : base($"Cannot mutate the state of a {loadState} {nameof(Drawable)} while {description}. "
+            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
+                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
                        + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
             {
             }

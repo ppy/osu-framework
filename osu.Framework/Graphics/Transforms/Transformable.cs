@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
         }
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             if (targetMember != null)
             {
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="propagateChildren">Whether to also apply children's <see cref="Transform"/>s at <paramref name="time"/>.</param>
         public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
 
@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             if (targetMember != null)
             {
@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public IDisposable BeginDelayedSequence(double delay, bool recursive = true)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             if (delay == 0)
                 return null;
@@ -289,7 +289,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public virtual IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
         public void AddTransform(Transform transform, ulong? customTransformID = null)
         {
-            EnsureMutationAllowed();
+            EnsureTransformMutationAllowed();
 
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
@@ -372,6 +372,6 @@ namespace osu.Framework.Graphics.Transforms
         /// Check whether this transformable is in a state where mutation of thread-safe properties is allowed.
         /// Will throw on failure.
         /// </summary>
-        internal abstract void EnsureMutationAllowed();
+        internal abstract void EnsureTransformMutationAllowed();
     }
 }
