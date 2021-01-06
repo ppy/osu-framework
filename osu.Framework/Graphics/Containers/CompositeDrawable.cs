@@ -447,7 +447,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
         protected internal virtual bool RemoveInternal(Drawable drawable)
         {
-            ensureChildMutationAllowed();
+            EnsureChildMutationAllowed();
 
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -485,7 +485,7 @@ namespace osu.Framework.Graphics.Containers
         /// </param>
         protected internal virtual void ClearInternal(bool disposeChildren = true)
         {
-            ensureChildMutationAllowed();
+            EnsureChildMutationAllowed();
 
             if (internalChildren.Count == 0) return;
 
@@ -523,7 +523,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal virtual void AddInternal(Drawable drawable)
         {
-            ensureChildMutationAllowed();
+            EnsureChildMutationAllowed();
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may not have children added.");
@@ -574,7 +574,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
-            ensureChildMutationAllowed();
+            EnsureChildMutationAllowed();
 
             if (child.Depth == newDepth) return;
 
@@ -607,38 +607,10 @@ namespace osu.Framework.Graphics.Containers
         /// </remarks>
         protected internal void SortInternal()
         {
-            ensureChildMutationAllowed();
+            EnsureChildMutationAllowed();
 
             internalChildren.Sort();
             aliveInternalChildren.Sort();
-        }
-
-        private void ensureChildMutationAllowed()
-        {
-            switch (LoadState)
-            {
-                case LoadState.NotLoaded:
-                    break;
-
-                case LoadState.Loading:
-                    if (Thread.CurrentThread != LoadThread)
-                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load thread");
-
-                    break;
-
-                case LoadState.Ready:
-                    // Allow mutating from the load thread since parenting containers may still be in the loading state
-                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForChildMutationException(LoadState, "not on the load or update threads");
-
-                    break;
-
-                case LoadState.Loaded:
-                    if (!ThreadSafety.IsUpdateThread)
-                        throw new InvalidThreadForChildMutationException(LoadState, "not on the update thread");
-
-                    break;
-            }
         }
 
         #endregion
@@ -1209,6 +1181,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
+            EnsureTransformMutationAllowed();
+
             base.ApplyTransformsAt(time, propagateChildren);
 
             if (!propagateChildren)
@@ -1220,6 +1194,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
+            EnsureTransformMutationAllowed();
+
             base.ClearTransformsAfter(time, propagateChildren, targetMember);
 
             if (!propagateChildren)
@@ -1247,6 +1223,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
+            EnsureTransformMutationAllowed();
+
             var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
             if (!recursive)
                 return baseDisposalAction;
@@ -1264,6 +1242,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
+            EnsureTransformMutationAllowed();
+
             base.FinishTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
@@ -1298,6 +1278,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected TransformSequence<CompositeDrawable> TweenEdgeEffectTo(EdgeEffectParameters newParams, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(EdgeEffect), newParams, duration, easing);
+
+        internal void EnsureChildMutationAllowed() => EnsureMutationAllowed(nameof(InternalChildren));
 
         #endregion
 
@@ -1893,14 +1875,5 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
-
-        public class InvalidThreadForChildMutationException : InvalidOperationException
-        {
-            public InvalidThreadForChildMutationException(LoadState loadState, string description)
-                : base($"Cannot mutate the children of a {loadState} {nameof(CompositeDrawable)} while {description}. "
-                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
-            {
-            }
-        }
     }
 }

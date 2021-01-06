@@ -138,6 +138,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
+            EnsureTransformMutationAllowed();
+
             getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
@@ -151,8 +153,12 @@ namespace osu.Framework.Graphics.Transforms
         /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
         /// Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) =>
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        {
+            EnsureTransformMutationAllowed();
+
             ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        }
 
         /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
@@ -165,6 +171,8 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
+            EnsureTransformMutationAllowed();
+
             if (targetMember != null)
             {
                 getTrackerFor(targetMember)?.ClearTransformsAfter(time, targetMember);
@@ -187,6 +195,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="propagateChildren">Whether to also apply children's <see cref="Transform"/>s at <paramref name="time"/>.</param>
         public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
+            EnsureTransformMutationAllowed();
+
             if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
 
             updateTransforms(time);
@@ -202,6 +212,8 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
+            EnsureTransformMutationAllowed();
+
             if (targetMember != null)
             {
                 getTrackerFor(targetMember)?.FinishTransforms(targetMember);
@@ -230,6 +242,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public IDisposable BeginDelayedSequence(double delay, bool recursive = true)
         {
+            EnsureTransformMutationAllowed();
+
             if (delay == 0)
                 return null;
 
@@ -275,6 +289,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public virtual IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
+            EnsureTransformMutationAllowed();
+
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
@@ -317,6 +333,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
         public void AddTransform(Transform transform, ulong? customTransformID = null)
         {
+            EnsureTransformMutationAllowed();
+
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
@@ -349,5 +367,11 @@ namespace osu.Framework.Graphics.Transforms
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
                 updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
+
+        /// <summary>
+        /// Check whether the current thread is valid for operating on thread-safe properties.
+        /// Will throw on failure.
+        /// </summary>
+        internal abstract void EnsureTransformMutationAllowed();
     }
 }
