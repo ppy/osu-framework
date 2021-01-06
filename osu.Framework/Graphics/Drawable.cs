@@ -2540,6 +2540,11 @@ namespace osu.Framework.Graphics
 
         internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
 
+        /// <summary>
+        /// Check whether the current thread is valid for operating on thread-safe properties.
+        /// </summary>
+        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
         internal void EnsureMutationAllowed(string member)
         {
             switch (LoadState)
