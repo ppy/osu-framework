@@ -19,6 +19,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework
 {
@@ -50,6 +51,14 @@ namespace osu.Framework
         /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
         /// </remarks>
         public FontStore Fonts { get; private set; }
+
+        /// <summary>
+        /// Sets the game-wide font store filtering mode.
+        /// </summary>
+        /// <remarks>
+        /// Currently child font store filtering will be overridden by this.
+        /// </remarks>
+        protected virtual All BaseFontStoreFilteringMode => All.Linear;
 
         private FontStore localFonts;
 
@@ -151,7 +160,7 @@ namespace osu.Framework
             var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
+            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage, filteringMode: BaseFontStoreFilteringMode);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
