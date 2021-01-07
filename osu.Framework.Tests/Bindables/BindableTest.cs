@@ -56,6 +56,43 @@ namespace osu.Framework.Tests.Bindables
             Assert.That(bindable3.Disabled, Is.True); // Only have access to disabled
         }
 
+        [Test]
+        public void TestParseBindableOfExactSameType()
+        {
+            var bindable1 = new BindableInt();
+            var bindable2 = new BindableDouble();
+            var bindable3 = new BindableBool();
+            var bindable4 = new Bindable<string>();
+
+            bindable1.Parse(new BindableInt(3));
+            bindable2.Parse(new BindableDouble(2.5));
+            bindable3.Parse(new BindableBool(true));
+            bindable4.Parse(new Bindable<string>("string value"));
+
+            Assert.That(bindable1.Value, Is.EqualTo(3));
+            Assert.That(bindable2.Value, Is.EqualTo(2.5));
+            Assert.That(bindable3.Value, Is.EqualTo(true));
+            Assert.That(bindable4.Value, Is.EqualTo("string value"));
+
+            // parsing bindable of different type should throw exception.
+            Assert.Throws<ArgumentException>(() => bindable1.Parse(new BindableDouble(3.0)));
+        }
+
+        [Test]
+        public void TestParseBindableOfMatchingInterfaceType()
+        {
+            // both of these implement IBindable<int>
+            var bindable1 = new BindableInt(10) { MaxValue = 15 };
+            var bindable2 = new Bindable<int>(20);
+
+            bindable1.Parse(bindable2);
+            // ensure MaxValue is still respected.
+            Assert.That(bindable1.Value, Is.EqualTo(15));
+
+            bindable2.Parse(bindable1);
+            Assert.That(bindable2.Value, Is.EqualTo(15));
+        }
+
         [TestCaseSource(nameof(getParsingConversionTests))]
         public void TestParse(Type type, object input, object output)
         {
