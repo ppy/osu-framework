@@ -15,7 +15,7 @@ namespace osu.Framework.Audio.Sample
         void Play(bool restart = true);
 
         /// <summary>
-        /// Stop playback.
+        /// Stop playback and reset position to beginning of sample.
         /// </summary>
         void Stop();
 
