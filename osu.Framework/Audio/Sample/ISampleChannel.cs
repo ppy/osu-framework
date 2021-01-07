@@ -12,7 +12,7 @@ namespace osu.Framework.Audio.Sample
     {
         /// <summary>
         /// Start a new playback of this sample.
-        /// Note that this will not stop previous playbacks (but concurrency will be limited by the source <see cref="ISampleStore.PlaybackConcurrency"/>.
+        /// Note that this will not stop previous playbacks unless <see cref="Looping"/> is true (but concurrency will be limited by the source <see cref="ISampleStore.PlaybackConcurrency"/>.
         /// </summary>
         /// <param name="restart">Whether to restart the sample from the beginning.</param>
         void Play(bool restart = true);

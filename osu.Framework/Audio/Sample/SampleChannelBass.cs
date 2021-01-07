@@ -70,9 +70,18 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                // if restart is not requested and the sample is currently playing, nothing needs to be done.
-                if (!restart && Bass.ChannelIsActive(channel) == PlaybackState.Playing)
-                    return;
+                bool currentChannelPlaying = Bass.ChannelIsActive(channel) == PlaybackState.Playing;
+
+                if (currentChannelPlaying)
+                {
+                    // if restart is not requested and the sample is currently playing, nothing needs to be done.
+                    if (!restart)
+                        return;
+
+                    // in the case of looping samples, we don't want to end up with multiple underlying channels playing, so the previous instance should be stopped.
+                    if (Looping)
+                        Stop();
+                }
 
                 channel = ((SampleBass)Sample).CreateChannel();
 
