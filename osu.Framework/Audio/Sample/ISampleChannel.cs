@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Audio.Track;
+
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
@@ -9,7 +11,8 @@ namespace osu.Framework.Audio.Sample
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
-        /// Start playback.
+        /// Start a new playback of this sample.
+        /// Note that this will not stop previous playbacks (but concurrency will be limited by the source <see cref="ISampleStore.PlaybackConcurrency"/>.
         /// </summary>
         /// <param name="restart">Whether to restart the sample from the beginning.</param>
         void Play(bool restart = true);
