@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-
 namespace osu.Framework.Input.Bindings
 {
     public class KeyBinding : IKeyBinding
@@ -41,7 +39,7 @@ namespace osu.Framework.Input.Bindings
         }
 
         public virtual T GetAction<T>()
-            where T : Enum => (T)Action;
+            where T : struct => (T)Action;
 
         public override string ToString() => $"{KeyCombination}=>{Action}";
     }

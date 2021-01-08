@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
@@ -26,6 +24,6 @@ namespace osu.Framework.Input.Bindings
         /// <typeparam name="T">The enum type.</typeparam>
         /// <returns>A cast <typeparamref name="T"/> representation of <see cref="KeyBinding.Action"/>.</returns>
         T GetAction<T>()
-            where T : Enum;
+            where T : struct;
     }
 }
