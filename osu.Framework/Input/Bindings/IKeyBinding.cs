@@ -17,13 +17,5 @@ namespace osu.Framework.Input.Bindings
         /// The resultant action which is triggered by this binding.
         /// </summary>
         object Action { get; set; }
-
-        /// <summary>
-        /// Get the action associated with this binding, cast to the required enum type.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
-        /// <returns>A cast <typeparamref name="T"/> representation of <see cref="KeyBinding.Action"/>.</returns>
-        T GetAction<T>()
-            where T : struct;
     }
 }

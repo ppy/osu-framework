@@ -38,9 +38,6 @@ namespace osu.Framework.Input.Bindings
         {
         }
 
-        public virtual T GetAction<T>()
-            where T : struct => (T)Action;
-
         public override string ToString() => $"{KeyCombination}=>{Action}";
     }
 }
