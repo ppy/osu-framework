@@ -44,6 +44,7 @@ namespace osu.Framework.Input.Handlers.Midi
 
                     foreach (var value in openedDevices.Values)
                     {
+                        value.CloseAsync().Wait();
                         value.MessageReceived -= onMidiMessageReceived;
                     }
 
