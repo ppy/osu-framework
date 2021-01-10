@@ -110,7 +110,7 @@ namespace osu.Framework.Audio.Track
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
                         if (Looping)
-                            Restart();
+                            EnqueueAction(() => Restart());
                         else
                         {
                             hasCompleted = true;
