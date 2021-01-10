@@ -53,12 +53,12 @@ namespace osu.Framework
         public FontStore Fonts { get; private set; }
 
         /// <summary>
-        /// Sets the game-wide font store filtering mode.
+        /// Sets the game-wide font store minification filtering mode. Defaults to Linear.
         /// </summary>
         /// <remarks>
-        /// Currently child font store filtering will be overridden by this.
+        /// This property should be used instead of (and will override) setting directly on child font stores added to Fonts.
         /// </remarks>
-        protected virtual All BaseFontStoreFilteringMode => All.Linear;
+        protected virtual All FontFilteringMode => All.Linear;
 
         private FontStore localFonts;
 
