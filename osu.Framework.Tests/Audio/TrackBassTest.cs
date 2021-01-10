@@ -269,6 +269,38 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestLoopingTrackDoesntSetCompleted()
+        {
+            bool completedEvent = false;
+
+            track.Completed += () => completedEvent = true;
+            track.Looping = true;
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsFalse(track.HasCompleted);
+            Assert.IsFalse(completedEvent);
+
+            updateTrack();
+
+            Assert.IsTrue(track.IsRunning);
+        }
+
+        [Test]
+        public void TestHasCompletedSetToFalseOnSeek()
+        {
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsTrue(track.HasCompleted);
+
+            track.SeekAsync(0);
+            updateTrack();
+
+            Assert.IsFalse(track.HasCompleted);
+        }
+
+        [Test]
         public void TestZeroFrequencyHandling()
         {
             // start track.
