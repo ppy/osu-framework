@@ -81,8 +81,13 @@ namespace osu.Framework.Audio.Track
             {
                 if (clock.IsRunning && CurrentTime >= Length)
                 {
-                    Stop();
-                    RaiseCompleted();
+                    if (Looping)
+                        Restart();
+                    else
+                    {
+                        Stop();
+                        RaiseCompleted();
+                    }
                 }
             }
         }
