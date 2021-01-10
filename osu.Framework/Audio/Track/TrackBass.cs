@@ -38,8 +38,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        private long byteLength;
-
         /// <summary>
         /// The last position that a seek will succeed for.
         /// </summary>
@@ -92,8 +90,10 @@ namespace osu.Framework.Audio.Track
 
                 activeStream = prepareStream(data, quick);
 
+                long byteLength = Bass.ChannelGetLength(activeStream);
+
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength);
 
                 bool success = seconds >= 0;
 
@@ -109,8 +109,13 @@ namespace osu.Framework.Audio.Track
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
-                        if (!Looping)
+                        if (Looping)
+                            Restart();
+                        else
+                        {
+                            hasCompleted = true;
                             RaiseCompleted();
+                        }
                     });
 
                     Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
@@ -191,7 +196,7 @@ namespace osu.Framework.Audio.Track
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
-            isRunning = running || (isPlayed && bytePosition < byteLength);
+            isRunning = running || (isPlayed && !hasCompleted);
 
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
@@ -267,7 +272,7 @@ namespace osu.Framework.Audio.Track
             InvalidateState();
 
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
-            if (Bass.ChannelGetPosition(activeStream) == byteLength)
+            if (hasCompleted)
                 return false;
 
             if (relativeFrequencyHandler.IsFrequencyZero)
@@ -293,6 +298,8 @@ namespace osu.Framework.Audio.Track
 
                 if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
+
+                hasCompleted = false;
             });
 
             return conservativeClamped == seek;
@@ -305,6 +312,10 @@ namespace osu.Framework.Audio.Track
         private volatile bool isRunning;
 
         public override bool IsRunning => isRunning;
+
+        private volatile bool hasCompleted;
+
+        public override bool HasCompleted => hasCompleted;
 
         internal override void OnStateChanged()
         {
