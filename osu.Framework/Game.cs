@@ -160,7 +160,7 @@ namespace osu.Framework
             var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
-            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage, filteringMode: BaseFontStoreFilteringMode);
+            Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage, filteringMode: FontFilteringMode);
 
             // nested store for framework provided fonts.
             // note that currently this means there could be two async font load operations.
