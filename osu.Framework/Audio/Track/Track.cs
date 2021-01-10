@@ -21,8 +21,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public double RestartPoint { get; set; }
 
-        protected override void OnLooping() => Restart();
-
         /// <summary>
         /// Reset this track to a logical default state.
         /// </summary>
