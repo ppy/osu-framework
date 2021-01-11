@@ -45,9 +45,9 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
-        /// <param name="filteringMode">The minification filtering mode to use.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All filteringMode = All.Linear)
-            : this(store, scaleAdjust, true, filteringMode: filteringMode)
+        /// <param name="minFilterMode">The texture minification filtering mode to use.</param>
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
+            : this(store, scaleAdjust, true, filteringMode: minFilterMode)
         {
         }
 
