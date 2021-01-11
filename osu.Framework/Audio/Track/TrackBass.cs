@@ -109,13 +109,10 @@ namespace osu.Framework.Audio.Track
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
-                        if (Looping)
-                            EnqueueAction(() => Restart());
-                        else
-                        {
-                            hasCompleted = true;
-                            RaiseCompleted();
-                        }
+                        if (Looping) return;
+
+                        hasCompleted = true;
+                        RaiseCompleted();
                     });
 
                     Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
@@ -130,6 +127,12 @@ namespace osu.Framework.Audio.Track
 
             InvalidateState();
         }
+
+        private void setLoopFlag(bool value) => EnqueueAction(() =>
+        {
+            if (activeStream != 0)
+                Bass.ChannelFlags(activeStream, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
+        });
 
         private int prepareStream(Stream data, bool quick)
         {
@@ -278,7 +281,19 @@ namespace osu.Framework.Audio.Track
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return true;
 
+            setLoopFlag(Looping);
+
             return Bass.ChannelPlay(activeStream);
+        }
+
+        public override bool Looping
+        {
+            get => base.Looping;
+            set
+            {
+                base.Looping = value;
+                setLoopFlag(Looping);
+            }
         }
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
