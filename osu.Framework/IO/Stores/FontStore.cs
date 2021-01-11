@@ -30,7 +30,7 @@ namespace osu.Framework.IO.Stores
         private readonly ConcurrentDictionary<(string, char), ITexturedCharacterGlyph> namespacedGlyphCache = new ConcurrentDictionary<(string, char), ITexturedCharacterGlyph>();
 
         /// <summary>
-        /// Construct a font store to be added to a parent font store via <see cref="Game.AddFont"/>.
+        /// Construct a font store to be added to a parent font store via <see cref="AddStore"/>.
         /// </summary>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
@@ -40,7 +40,7 @@ namespace osu.Framework.IO.Stores
         }
 
         /// <summary>
-        /// Construct a font store with a custom filtering mode to be added to a parent font store via <see cref="Game.AddFont"/>.
+        /// Construct a font store with a custom filtering mode to be added to a parent font store via <see cref="AddStore"/>.
         /// All fonts that use the specified filter mode should be nested inside this store to make optimal use of texture atlases.
         /// </summary>
         /// <param name="store">The texture source.</param>
