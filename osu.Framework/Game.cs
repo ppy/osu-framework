@@ -19,7 +19,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics.ES30;
 
 namespace osu.Framework
 {
@@ -51,14 +50,6 @@ namespace osu.Framework
         /// It is recommended to use <see cref="AddFont"/> when adding new fonts.
         /// </remarks>
         public FontStore Fonts { get; private set; }
-
-        /// <summary>
-        /// Sets the game-wide font store minification filtering mode. Defaults to Linear.
-        /// </summary>
-        /// <remarks>
-        /// This property should be used instead of (and will override) setting directly on child font stores added to Fonts.
-        /// </remarks>
-        protected virtual All FontFilteringMode => All.Linear;
 
         private FontStore localFonts;
 
@@ -213,9 +204,7 @@ namespace osu.Framework
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
         public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
-        {
-            addFont(target ?? Fonts, store, assetName);
-        }
+            => addFont(target ?? Fonts, store, assetName);
 
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
