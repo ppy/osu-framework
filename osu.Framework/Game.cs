@@ -212,8 +212,7 @@ namespace osu.Framework
         /// <param name="store">The backing store with font resources.</param>
         /// <param name="assetName">The base name of the font.</param>
         /// <param name="target">An optional target store to add the font to. If not specified, <see cref="Fonts"/> is used.</param>
-        /// <param name="minFilterMode">The texture minification filter mode to use.</param>
-        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null, All minFilterMode = All.Linear)
+        public void AddFont(ResourceStore<byte[]> store, string assetName = null, FontStore target = null)
         {
             addFont(target ?? Fonts, store, assetName);
         }
