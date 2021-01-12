@@ -238,6 +238,9 @@ namespace osu.Framework.Audio.Track
             endCallback?.Dispose();
             endCallback = null;
 
+            endMixtimeCallback?.Dispose();
+            endMixtimeCallback = null;
+
             base.Dispose(disposing);
         }
 
