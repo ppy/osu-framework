@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -329,9 +330,9 @@ namespace osu.Framework.Input.Bindings
 
         public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
 
-        protected override void LoadComplete()
+        protected override void LoadAsyncComplete()
         {
-            base.LoadComplete();
+            base.LoadAsyncComplete();
             ReloadMappings();
         }
 
