@@ -109,7 +109,13 @@ namespace osu.Framework.Audio.Track
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
-                        if (Looping) return;
+                        if (Looping)
+                        {
+                            // bass doesn't support looping to a certain point internally.
+                            // so if restart point is not zero, seek back to that point.
+                            seekInternal(RestartPoint);
+                            return;
+                        }
 
                         hasCompleted = true;
                         RaiseCompleted();
@@ -305,20 +311,22 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
             double conservativeClamped = Math.Clamp(seek, 0, conservativeLength);
 
-            await EnqueueAction(() =>
-            {
-                double clamped = Math.Clamp(seek, 0, Length);
-
-                if (clamped < Length)
-                    hasCompleted = false;
-
-                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
-
-                if (pos != Bass.ChannelGetPosition(activeStream))
-                    Bass.ChannelSetPosition(activeStream, pos);
-            });
+            await EnqueueAction(() => seekInternal(seek));
 
             return conservativeClamped == seek;
+        }
+
+        private void seekInternal(double seek)
+        {
+            double clamped = Math.Clamp(seek, 0, Length);
+
+            if (clamped < Length)
+                hasCompleted = false;
+
+            long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+
+            if (pos != Bass.ChannelGetPosition(activeStream))
+                Bass.ChannelSetPosition(activeStream, pos);
         }
 
         private double currentTime;
