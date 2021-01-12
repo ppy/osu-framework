@@ -309,13 +309,13 @@ namespace osu.Framework.Audio.Track
             {
                 double clamped = Math.Clamp(seek, 0, Length);
 
+                if (clamped < Length)
+                    hasCompleted = false;
+
                 long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
                 if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
-
-                if (pos < Length)
-                    hasCompleted = false;
             });
 
             return conservativeClamped == seek;
