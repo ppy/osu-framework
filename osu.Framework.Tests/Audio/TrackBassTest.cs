@@ -217,8 +217,6 @@ namespace osu.Framework.Tests.Audio
 
         [TestCase(0)]
         [TestCase(1000)]
-        [TestCase(500000)]
-        [TestCase(-500)]
         public void TestLoopingRestart(double restartPoint)
         {
             track.Looping = true;
@@ -247,9 +245,6 @@ namespace osu.Framework.Tests.Audio
 
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
-
-            // last seekable position is track.Length - 1.
-            restartPoint = Math.Clamp(restartPoint, 0, track.Length - 1);
 
             Assert.GreaterOrEqual(track.CurrentTime, restartPoint);
             Assert.LessOrEqual(track.CurrentTime, restartPoint + 1000);
