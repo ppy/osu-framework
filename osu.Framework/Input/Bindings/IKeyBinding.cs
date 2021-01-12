@@ -15,6 +15,7 @@ namespace osu.Framework.Input.Bindings
 
         /// <summary>
         /// The resultant action which is triggered by this binding.
+        /// Generally an enum type, but may also be an int representing an enum (converted via <see cref="KeyBindingExtensions.GetAction{T}"/>
         /// </summary>
         object Action { get; set; }
     }
