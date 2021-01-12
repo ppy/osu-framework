@@ -44,6 +44,7 @@ namespace osu.Framework.Audio.Track
         private double lastSeekablePosition;
 
         private FileCallbacks fileCallbacks;
+        private SyncCallback endMixtimeCallback;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
 
@@ -109,20 +110,22 @@ namespace osu.Framework.Audio.Track
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
-                        if (Looping)
-                        {
-                            // bass doesn't support looping to a certain point internally.
-                            // so if restart point is not zero, seek back to that point.
-                            seekInternal(RestartPoint);
-                            return;
-                        }
+                        if (Looping) return;
 
                         hasCompleted = true;
                         RaiseCompleted();
                     });
+                    endMixtimeCallback = new SyncCallback((a, b, c, d) =>
+                    {
+                        // this is separate from the above callback as this is required to be invoked on mixtime.
+                        // see "BASS_SYNC_MIXTIME" part of http://www.un4seen.com/doc/#bass/BASS_ChannelSetSync.html for reason why.
+                        if (Looping)
+                            seekInternal(RestartPoint);
+                    });
 
                     Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
                     Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End | SyncFlags.Mixtime, 0, endMixtimeCallback.Callback, endMixtimeCallback.Handle);
 
                     isLoaded = true;
 
