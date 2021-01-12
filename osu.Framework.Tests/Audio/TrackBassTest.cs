@@ -287,14 +287,22 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestHasCompletedSetToFalseOnSeek()
+        public void TestHasCompletedResetsOnSeekBack()
         {
+            // start playback and wait for completion.
             startPlaybackAt(track.Length - 1);
             takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.HasCompleted);
 
-            track.SeekAsync(0);
+            // ensure seeking to end doesn't reset completed state.
+            track.SeekAsync(track.Length);
+            updateTrack();
+
+            Assert.IsTrue(track.HasCompleted);
+
+            // seeking back reset completed state.
+            track.SeekAsync(track.Length - 1);
             updateTrack();
 
             Assert.IsFalse(track.HasCompleted);

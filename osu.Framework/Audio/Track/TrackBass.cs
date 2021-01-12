@@ -314,7 +314,8 @@ namespace osu.Framework.Audio.Track
                 if (pos != Bass.ChannelGetPosition(activeStream))
                     Bass.ChannelSetPosition(activeStream, pos);
 
-                hasCompleted = false;
+                if (pos < Length)
+                    hasCompleted = false;
             });
 
             return conservativeClamped == seek;
