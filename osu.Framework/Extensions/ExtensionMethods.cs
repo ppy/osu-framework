@@ -162,7 +162,9 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types ?? Enumerable.Empty<Type>();
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse (this may contain null types, as stated in docs.)
+                // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
+                return e.Types?.Where(t => t != null) ?? Enumerable.Empty<Type>();
             }
         }
 
