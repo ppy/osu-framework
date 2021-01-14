@@ -152,7 +152,7 @@ namespace osu.Framework.Extensions
 
         public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
 
-        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        public static Type[] GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Extensions
             {
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse (this may contain null types, as stated in docs.)
                 // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
-                return e.Types?.Where(t => t != null) ?? Enumerable.Empty<Type>();
+                return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
             }
         }
 
