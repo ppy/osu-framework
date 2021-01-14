@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Sample
         new SampleChannel Get(string sampleName);
 
         /// <summary>
-        /// Retrieves a new channel for the specified sample which will play a new layered instance when <see cref="SampleChannel.Play"/> is invoked.
+        /// Retrieves a new channel for the specified sample which will play a new layered instance when <see cref="SampleChannel.Play"/> is invoked (up to <see cref="PlaybackConcurrency"/> concurrent playbacks).
         /// </summary>
         /// <param name="sampleName">The name of the sample.</param>
         /// <returns>A new channel for the specified sample.</returns>
