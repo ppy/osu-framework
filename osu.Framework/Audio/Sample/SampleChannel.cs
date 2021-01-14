@@ -13,6 +13,7 @@ namespace osu.Framework.Audio.Sample
 
         /// <summary>
         /// Whether calling <see cref="Play"/> should forcefully stop an existing playback of this channel.
+        /// Setting this to false will result in "layered" playback, with each call to Play triggering a new overlapping playback.
         /// </summary>
         internal bool PlayStopsPreviousPlayback = true;
 
@@ -28,8 +29,14 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Play(bool restart = true)
         {
-            if (!PlayStopsPreviousPlayback && Looping)
-                throw new InvalidOperationException($"Cannot play a layered sample playback if {nameof(Looping)} is enabled.");
+            if (!PlayStopsPreviousPlayback)
+            {
+                if (Looping)
+                    throw new InvalidOperationException($"Cannot play a layered sample playback if {nameof(Looping)} is enabled.");
+
+                if (!restart)
+                    throw new ArgumentException("Cannot resume playback of a layered sample playback.", nameof(restart));
+            }
 
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not play disposed samples.");
