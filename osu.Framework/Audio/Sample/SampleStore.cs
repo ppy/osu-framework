@@ -55,6 +55,15 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
+        public SampleChannel GetLayerable(string sampleName)
+        {
+            var channel = Get(sampleName);
+
+            channel.PlayStopsPreviousPlayback = true;
+
+            return channel;
+        }
+
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
         internal override void UpdateDevice(int deviceIndex)

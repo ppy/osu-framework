@@ -11,6 +11,11 @@ namespace osu.Framework.Audio.Sample
     {
         protected bool WasStarted;
 
+        /// <summary>
+        /// Whether calling <see cref="Play"/> should forcefully stop an existing playback of this channel.
+        /// </summary>
+        internal bool PlayStopsPreviousPlayback;
+
         protected Sample Sample { get; set; }
 
         private readonly Action<SampleChannel> onPlay;
@@ -23,6 +28,9 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Play(bool restart = true)
         {
+            if (PlayStopsPreviousPlayback && Looping)
+                throw new InvalidOperationException($"Cannot play a layered sample playback if {nameof(Looping)} is enabled.");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not play disposed samples.");
 
@@ -32,6 +40,9 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Stop()
         {
+            if (PlayStopsPreviousPlayback)
+                throw new InvalidOperationException($"Cannot call {nameof(Stop)} on a layered sample playback.");
+
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not stop disposed samples.");
         }

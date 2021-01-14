@@ -78,7 +78,8 @@ namespace osu.Framework.Audio.Sample
                     if (!restart)
                         return;
 
-                    Stop();
+                    if (PlayStopsPreviousPlayback)
+                        Stop();
                 }
 
                 channel = ((SampleBass)Sample).CreateChannel();
