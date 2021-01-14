@@ -9,10 +9,9 @@ namespace osu.Framework.Audio.Sample
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
-        /// Start a new playback of this sample.
-        /// Note that this will not stop previous playbacks unless <see cref="Looping"/> is true (but concurrency will be limited by the source <see cref="ISampleStore.PlaybackConcurrency"/>.
+        /// Start a playback of this sample.
         /// </summary>
-        /// <param name="restart">Whether to restart the sample from the beginning.</param>
+        /// <param name="restart">Whether to restart the sample from the beginning. If true, any existing playback of the channel will be stopped.</param>
         void Play(bool restart = true);
 
         /// <summary>
