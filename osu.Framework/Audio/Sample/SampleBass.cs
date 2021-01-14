@@ -12,7 +12,7 @@ namespace osu.Framework.Audio.Sample
 {
     internal sealed class SampleBass : Sample, IBassAudio
     {
-        internal volatile int SampleId;
+        internal int SampleId { get; private set; }
 
         public override bool IsLoaded => SampleId != 0;
 
@@ -39,6 +39,8 @@ namespace osu.Framework.Audio.Sample
             if (IsLoaded)
             {
                 Bass.SampleFree(SampleId);
+                SampleId = 0;
+
                 memoryLease?.Dispose();
             }
 
