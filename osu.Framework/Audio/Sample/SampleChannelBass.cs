@@ -78,9 +78,7 @@ namespace osu.Framework.Audio.Sample
                     if (!restart)
                         return;
 
-                    // in the case of looping samples, we don't want to end up with multiple underlying channels playing, so the previous instance should be stopped.
-                    if (Looping)
-                        Stop();
+                    Stop();
                 }
 
                 channel = ((SampleBass)Sample).CreateChannel();
