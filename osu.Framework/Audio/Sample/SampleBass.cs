@@ -12,9 +12,9 @@ namespace osu.Framework.Audio.Sample
 {
     internal sealed class SampleBass : Sample, IBassAudio
     {
-        private volatile int sampleId;
+        internal volatile int SampleId;
 
-        public override bool IsLoaded => sampleId != 0;
+        public override bool IsLoaded => SampleId != 0;
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
@@ -28,7 +28,7 @@ namespace osu.Framework.Audio.Sample
             {
                 EnqueueAction(() =>
                 {
-                    sampleId = loadSample(data);
+                    SampleId = loadSample(data);
                     memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
                 });
             }
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (IsLoaded)
             {
-                Bass.SampleFree(sampleId);
+                Bass.SampleFree(SampleId);
                 memoryLease?.Dispose();
             }
 
@@ -51,11 +51,11 @@ namespace osu.Framework.Audio.Sample
                 return;
 
             // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-            Bass.ChannelSetDevice(sampleId, deviceIndex);
+            Bass.ChannelSetDevice(SampleId, deviceIndex);
             BassUtils.CheckFaulted(true);
         }
 
-        public int CreateChannel() => Bass.SampleGetChannel(sampleId);
+        public int CreateChannel() => Bass.SampleGetChannel(SampleId);
 
         private int loadSample(byte[] data)
         {

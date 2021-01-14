@@ -77,6 +77,34 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
+        [Test]
+        public void TestStandardPlaybackConcurrency()
+        {
+            channel.Play();
+            updateSample();
+            channel.Play();
+            updateSample();
+            channel.Play();
+            updateSample();
+
+            Assert.AreEqual(1, Bass.SampleGetChannels(sample.SampleId).Length);
+        }
+
+        [Test]
+        public void TestLayeredPlaybackConcurrency()
+        {
+            channel.PlayStopsPreviousPlayback = false;
+
+            channel.Play();
+            updateSample();
+            channel.Play();
+            updateSample();
+            channel.Play();
+            updateSample();
+
+            Assert.AreEqual(Sample.DEFAULT_CONCURRENCY, Bass.SampleGetChannels(sample.SampleId).Length);
+        }
+
         private void updateSample() => runOnAudioThread(() =>
         {
             sample.Update();
