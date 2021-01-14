@@ -70,9 +70,9 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                bool currentChannelPlaying = Bass.ChannelIsActive(channel) == PlaybackState.Playing;
+                bool existingChannelAvailable = Bass.ChannelIsActive(channel) != PlaybackState.Stopped;
 
-                if (currentChannelPlaying)
+                if (existingChannelAvailable)
                 {
                     // if restart is not requested and the sample is currently playing, nothing needs to be done.
                     if (!restart)
