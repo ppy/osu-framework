@@ -377,7 +377,7 @@ namespace osu.Framework.Testing
             return base.OnKeyDown(e);
         }
 
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestBrowserAction.Search),
             new KeyBinding(new[] { InputKey.Control, InputKey.R }, TestBrowserAction.Reload), // for macOS
