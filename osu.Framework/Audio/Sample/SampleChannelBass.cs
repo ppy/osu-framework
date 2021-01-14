@@ -48,7 +48,7 @@ namespace osu.Framework.Audio.Sample
             relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
         }
 
-        public sealed override bool Looping
+        public override bool Looping
         {
             get => base.Looping;
             set
