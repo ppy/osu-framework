@@ -2431,7 +2431,7 @@ namespace osu.Framework.Graphics
 
                 foreach (var inputProperty in inputProperties)
                 {
-                    var property = type?.GetProperty(inputProperty);
+                    var property = type.GetProperty(inputProperty);
 
                     Debug.Assert(property != null);
 
