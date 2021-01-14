@@ -56,7 +56,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
-            if (!IsDisposed)
+            if (!IsDisposed && PlayStopsPreviousPlayback)
                 Stop();
 
             base.Dispose(disposing);
