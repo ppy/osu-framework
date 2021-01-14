@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using osu.Framework.Extensions;
 using osu.Framework.Lists;
 using osu.Framework.Logging;
 
@@ -77,20 +78,11 @@ namespace osu.Framework.Testing
                 if (string.IsNullOrEmpty(assembly.Location))
                     return;
 
-                Type[] loadedTypes;
-
-                try
-                {
-                    loadedTypes = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException e)
-                {
-                    loadedTypes = e.Types;
-                }
+                Type[] loadedTypes = assembly.GetLoadableTypes();
 
                 // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
                 // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
-                if (!force && loadedTypes.Any(t => t?.Namespace == jetbrains_annotations_namespace))
+                if (!force && loadedTypes.Any(t => t.Namespace == jetbrains_annotations_namespace))
                     return;
 
                 bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i) == true);
