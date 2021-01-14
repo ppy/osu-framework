@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Logging;
@@ -13,10 +14,17 @@ namespace osu.Framework.Statistics
     /// </summary>
     public static class GlobalStatistics
     {
-        // ReSharper disable once InconsistentlySynchronizedField
-        internal static IBindableList<IGlobalStatistic> Statistics => statistics;
+        /// <summary>
+        /// An event which is raised when the available statistics change.
+        /// </summary>
+        internal static event NotifyCollectionChangedEventHandler StatisticsChanged;
 
         private static readonly BindableList<IGlobalStatistic> statistics = new BindableList<IGlobalStatistic>();
+
+        static GlobalStatistics()
+        {
+            statistics.BindCollectionChanged((o, e) => StatisticsChanged?.Invoke(o, e));
+        }
 
         /// <summary>
         /// Retrieve a <see cref="IGlobalStatistic"/> of specified type.
@@ -30,7 +38,7 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
             {
-                var existing = Statistics.OfType<GlobalStatistic<T>>().FirstOrDefault(s => s.Name == name && s.Group == group);
+                var existing = statistics.OfType<GlobalStatistic<T>>().FirstOrDefault(s => s.Name == name && s.Group == group);
                 if (existing != null)
                     return existing;
 
@@ -62,7 +70,8 @@ namespace osu.Framework.Statistics
         /// <param name="statistic">The statistic to remove.</param>
         public static void Remove(IGlobalStatistic statistic)
         {
-            lock (statistics) statistics.Remove(statistic);
+            lock (statistics)
+                statistics.Remove(statistic);
         }
 
         /// <summary>
@@ -77,10 +86,7 @@ namespace osu.Framework.Statistics
 
         public static void OutputToLog()
         {
-            IGlobalStatistic[] statisticsSnapshot;
-
-            lock (statistics)
-                statisticsSnapshot = statistics.ToArray();
+            var statisticsSnapshot = GetStatistics();
 
             Logger.Log("----- Global Statistics -----", LoggingTarget.Performance);
 
@@ -93,6 +99,12 @@ namespace osu.Framework.Statistics
             }
 
             Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
+        }
+
+        internal static IGlobalStatistic[] GetStatistics()
+        {
+            lock (statistics)
+                return statistics.ToArray();
         }
     }
 }
