@@ -309,8 +309,8 @@ namespace osu.Framework.Graphics
                     return new Colour4(
                         (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
                         (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(3, 1), NumberStyles.HexNumber) * 17));
 
                 case 8:
                     return new Colour4(

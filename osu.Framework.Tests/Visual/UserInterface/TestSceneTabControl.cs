@@ -20,6 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private readonly TestEnum[] items;
 
+        private FillFlowContainer tabControlContainer;
+
         private StyledTabControl pinnedAndAutoSort;
         private StyledTabControl switchingTabControl;
         private PlatformActionContainer platformActionContainer;
@@ -40,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Clear();
 
-            Add(new FillFlowContainer
+            Add(tabControlContainer = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Full,
@@ -353,6 +355,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
+        }
+
+        [TestCase(false, null)]
+        [TestCase(true, TestEnum.Test0)]
+        public void TestInitialSelection(bool selectFirstByDefault, TestEnum? expectedInitialSelection)
+        {
+            StyledTabControl tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControlContainer.Add(tabControl = new StyledTabControl
+                {
+                    Size = new Vector2(200, 30),
+                    Items = items.Cast<TestEnum?>().ToList(),
+                    SelectFirstTabByDefault = selectFirstByDefault
+                });
+            });
+
+            AddUntilStep("wait for loaded", () => tabControl.IsLoaded);
+            AddAssert("initial selection is correct", () => tabControl.Current.Value == expectedInitialSelection);
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>

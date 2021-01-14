@@ -89,7 +89,7 @@ namespace osu.Framework.Tests.Bindables
 
             // end a lease with an incorrect bindable
             original.BeginLease(true);
-            Assert.Throws<InvalidOperationException>(() => original.EndLease(original));
+            Assert.Throws<InvalidOperationException>(() => original.EndLease(new Bindable<int>().BeginLease(true)));
         }
 
         [Test]

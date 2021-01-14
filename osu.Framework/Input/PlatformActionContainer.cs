@@ -24,7 +24,7 @@ namespace osu.Framework.Input
         {
         }
 
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
 
         protected override bool Prioritised => true;
 
@@ -57,6 +57,9 @@ namespace osu.Framework.Input
         LineEnd,
         DocumentPrevious,
         DocumentNext,
+        DocumentClose,
+        TabNew,
+        TabRestore,
         ListStart,
         ListEnd,
         Save,

@@ -245,6 +245,13 @@ namespace osu.Framework.Bindables
                     Value = t;
                     break;
 
+                case IBindable _:
+                    if (!(input is IBindable<T> bindable))
+                        throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
+
+                    Value = bindable.Value;
+                    break;
+
                 case string s when underlyingType.IsEnum:
                     Value = (T)Enum.Parse(underlyingType, s);
                     break;
@@ -455,8 +462,8 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Called internally by a <see cref="LeasedBindable{T}"/> to end a lease.
         /// </summary>
-        /// <param name="returnedBindable">The <see cref="LeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
-        internal void EndLease(Bindable<T> returnedBindable)
+        /// <param name="returnedBindable">The <see cref="ILeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
+        internal void EndLease(ILeasedBindable<T> returnedBindable)
         {
             if (!isLeased)
                 throw new InvalidOperationException("Attempted to end a lease without beginning one.");
