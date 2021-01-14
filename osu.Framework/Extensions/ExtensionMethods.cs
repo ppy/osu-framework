@@ -162,8 +162,14 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalse (this may contain null types, as stated in docs.)
+                // the following warning disables are caused by netstandard2.1 and net5.0 differences
+                // the former declares Types as Type[], while the latter declares as Type?[]:
                 // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
+                // which trips some inspectcode errors which are only "valid" for the first of the two.
+                // TODO: remove if netstandard2.1 is removed
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                // ReSharper disable once ConstantConditionalAccessQualifier
+                // ReSharper disable once ConstantNullCoalescingCondition
                 return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
             }
         }
