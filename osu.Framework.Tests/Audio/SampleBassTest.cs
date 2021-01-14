@@ -95,6 +95,10 @@ namespace osu.Framework.Tests.Audio
         {
             channel.PlayStopsPreviousPlayback = false;
 
+            Assert.Throws<InvalidOperationException>(() => channel.Looping = true);
+            Assert.Throws<ArgumentException>(() => channel.Play(false));
+            Assert.Throws<InvalidOperationException>(() => channel.Stop());
+
             channel.Play();
             updateSample();
             channel.Play();
