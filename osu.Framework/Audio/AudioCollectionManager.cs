@@ -25,7 +25,9 @@ namespace osu.Framework.Audio
             });
         }
 
-        public virtual void UpdateDevice(int deviceIndex)
+        void IBassAudio.UpdateDevice(int deviceIndex) => UpdateDevice(deviceIndex);
+
+        internal virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
                 item.UpdateDevice(deviceIndex);

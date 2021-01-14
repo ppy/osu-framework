@@ -22,21 +22,21 @@
   </PropertyGroup>
   <ItemGroup Label="Package References">
     <PackageReference Include="managed-midi" Version="1.9.14" />
-    <PackageReference Include="Markdig" Version="0.22.0" />
+    <PackageReference Include="Markdig" Version="0.22.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <!-- Preview version of ImageSharp causes NU5104. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.156101" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
-    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.165" />
+    <PackageReference Include="ppy.osuTK.NS20" Version="1.0.173" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.53" />
   </ItemGroup>

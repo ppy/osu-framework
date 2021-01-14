@@ -42,10 +42,8 @@ namespace osu.Framework.Input.Handlers.Midi
                 {
                     scheduledRefreshDevices?.Cancel();
 
-                    foreach (var value in openedDevices.Values)
-                    {
-                        value.MessageReceived -= onMidiMessageReceived;
-                    }
+                    foreach (var device in openedDevices.Values)
+                        closeDevice(device);
 
                     openedDevices.Clear();
                 }
@@ -63,15 +61,14 @@ namespace osu.Framework.Input.Handlers.Midi
                 // check removed devices
                 foreach (string key in openedDevices.Keys.ToArray())
                 {
-                    var value = openedDevices[key];
+                    var device = openedDevices[key];
 
                     if (inputs.All(i => i.Id != key))
                     {
-                        value.CloseAsync().Wait();
-                        value.MessageReceived -= onMidiMessageReceived;
+                        closeDevice(device);
                         openedDevices.Remove(key);
 
-                        Logger.Log($"Disconnected MIDI device: {value.Details.Name}");
+                        Logger.Log($"Disconnected MIDI device: {device.Details.Name}");
                     }
                 }
 
@@ -99,6 +96,12 @@ namespace osu.Framework.Input.Handlers.Midi
                 Enabled.Value = false;
                 return false;
             }
+        }
+
+        private void closeDevice(IMidiInput device)
+        {
+            device.CloseAsync().Wait();
+            device.MessageReceived -= onMidiMessageReceived;
         }
 
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)

@@ -34,9 +34,6 @@ namespace osu.Framework.Graphics.Sprites
 
         public IShader RoundedTextureShader { get; protected set; }
 
-        [Obsolete("Has no effect. Use TextureRectangle instead.")] // can be removed 20201201
-        public bool WrapTexture { get; set; }
-
         private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
 
         /// <summary>
