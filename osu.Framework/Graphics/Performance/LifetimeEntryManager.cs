@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics.Performance
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
 
                 var entry = futureEntries.Min;
-                Debug.Assert(entry?.State == LifetimeEntryState.Future);
+                Debug.Assert(entry.State == LifetimeEntryState.Future);
 
                 if (getState(entry, startTime, endTime) == LifetimeEntryState.Future)
                     break;
@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics.Performance
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
 
                 var entry = pastEntries.Max;
-                Debug.Assert(entry?.State == LifetimeEntryState.Past);
+                Debug.Assert(entry.State == LifetimeEntryState.Past);
 
                 if (getState(entry, startTime, endTime) == LifetimeEntryState.Past)
                     break;
