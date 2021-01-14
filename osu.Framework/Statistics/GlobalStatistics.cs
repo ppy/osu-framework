@@ -17,7 +17,7 @@ namespace osu.Framework.Statistics
         /// <summary>
         /// An event which is raised when the available statistics change.
         /// </summary>
-        public static event NotifyCollectionChangedEventHandler StatisticsChanged;
+        internal static event NotifyCollectionChangedEventHandler StatisticsChanged;
 
         private static readonly BindableList<IGlobalStatistic> statistics = new BindableList<IGlobalStatistic>();
 
