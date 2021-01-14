@@ -59,7 +59,7 @@ namespace osu.Framework.Audio.Sample
         {
             var channel = Get(sampleName);
 
-            channel.PlayStopsPreviousPlayback = false;
+            channel.ConcurrentPlayback = true;
 
             return channel;
         }

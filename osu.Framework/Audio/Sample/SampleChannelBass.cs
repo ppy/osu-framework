@@ -53,7 +53,7 @@ namespace osu.Framework.Audio.Sample
             get => base.Looping;
             set
             {
-                if (!PlayStopsPreviousPlayback)
+                if (ConcurrentPlayback)
                     throw new InvalidOperationException($"Cannot change {nameof(Looping)} on a sample layered sample");
 
                 base.Looping = value;
@@ -81,7 +81,7 @@ namespace osu.Framework.Audio.Sample
                     if (!restart)
                         return;
 
-                    if (PlayStopsPreviousPlayback)
+                    if (!ConcurrentPlayback)
                         Stop();
                 }
 

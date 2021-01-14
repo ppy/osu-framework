@@ -93,7 +93,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestLayeredPlaybackConcurrency()
         {
-            channel.PlayStopsPreviousPlayback = false;
+            channel.ConcurrentPlayback = true;
 
             Assert.Throws<InvalidOperationException>(() => channel.Looping = true);
             Assert.Throws<ArgumentException>(() => channel.Play(false));

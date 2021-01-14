@@ -12,10 +12,9 @@ namespace osu.Framework.Audio.Sample
         protected bool WasStarted;
 
         /// <summary>
-        /// Whether calling <see cref="Play"/> should forcefully stop an existing playback of this channel.
-        /// Setting this to false will result in "layered" playback, with each call to Play triggering a new overlapping playback.
+        /// Whether each invocation of <see cref="Play"/> results in a new (potentially concurrent) playback.
         /// </summary>
-        internal bool PlayStopsPreviousPlayback = true;
+        internal bool ConcurrentPlayback;
 
         protected Sample Sample { get; set; }
 
@@ -29,7 +28,7 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Play(bool restart = true)
         {
-            if (!PlayStopsPreviousPlayback)
+            if (ConcurrentPlayback)
             {
                 if (Looping)
                     throw new InvalidOperationException($"Cannot play a layered sample playback if {nameof(Looping)} is enabled.");
@@ -47,7 +46,7 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Stop()
         {
-            if (!PlayStopsPreviousPlayback)
+            if (ConcurrentPlayback)
                 throw new InvalidOperationException($"Cannot call {nameof(Stop)} on a layered sample playback.");
 
             if (IsDisposed)
@@ -56,7 +55,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
-            if (!IsDisposed && PlayStopsPreviousPlayback)
+            if (!IsDisposed && !ConcurrentPlayback)
                 Stop();
 
             base.Dispose(disposing);
