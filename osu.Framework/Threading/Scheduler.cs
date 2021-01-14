@@ -16,6 +16,13 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler
     {
+        /// <summary>
+        /// A synchronisation context which posts all continuatiuons to this scheduler instance.
+        /// </summary>
+        public SynchronizationContext SynchronizationContext => synchronizationContext ??= new SchedulerSynchronizationContext(this);
+
+        private SynchronizationContext synchronizationContext;
+
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
