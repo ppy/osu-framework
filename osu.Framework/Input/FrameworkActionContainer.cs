@@ -8,7 +8,7 @@ namespace osu.Framework.Input
 {
     internal class FrameworkActionContainer : KeyBindingContainer<FrameworkAction>
     {
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F1 }, FrameworkAction.ToggleDrawVisualiser),
             new KeyBinding(new[] { InputKey.Control, InputKey.F2 }, FrameworkAction.ToggleGlobalStatistics),
