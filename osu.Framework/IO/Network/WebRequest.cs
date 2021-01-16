@@ -300,7 +300,11 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
+#if NET5_0
+                            postContent = await formData.ReadAsStreamAsync(linkedToken.Token);
+#else
                             postContent = await formData.ReadAsStreamAsync();
+#endif
                         }
 
                         requestStream = new LengthTrackingStream(postContent);
@@ -389,7 +393,11 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
+#if NET5_0
+            using (var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken))
+#else
             using (var responseStream = await response.Content.ReadAsStreamAsync())
+#endif
             {
                 reportForwardProgress();
                 Started?.Invoke();
