@@ -20,6 +20,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
             StatisticsCounterType.MidiEvents,
+            StatisticsCounterType.TabletEvents,
         };
 
         public override bool IsCurrent => ThreadSafety.IsInputThread;
