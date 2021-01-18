@@ -219,8 +219,9 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
 
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+            last_bound_texture.AsSpan().Clear();
+            last_bound_texture_is_atlas.AsSpan().Clear();
+            last_bound_buffers.AsSpan().Clear();
         }
 
         private static ClearInfo currentClearInfo;
