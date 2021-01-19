@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         {
             switch (format)
             {
+                // GL_RED
                 case RenderbufferInternalFormat.R8:
                 case RenderbufferInternalFormat.R8Snorm:
                     return 1;
@@ -94,6 +95,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.R32f:
                     return 4;
 
+                // GL_RED_INTEGER
                 case RenderbufferInternalFormat.R8ui:
                 case RenderbufferInternalFormat.R8i:
                     return 1;
@@ -106,6 +108,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.R32i:
                     return 4;
 
+                // GL_RG
                 case RenderbufferInternalFormat.Rg8:
                 case RenderbufferInternalFormat.Rg8Snorm:
                     return 2;
@@ -116,6 +119,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rg32f:
                     return 8;
 
+                // GL_RG_INTEGER
                 case RenderbufferInternalFormat.Rg8ui:
                 case RenderbufferInternalFormat.Rg8i:
                     return 2;
@@ -128,6 +132,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rg32i:
                     return 8;
 
+                // GL_RGB
                 case RenderbufferInternalFormat.Rgb8:
                 case RenderbufferInternalFormat.Srgb8:
                     return 3;
@@ -148,6 +153,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rgb32f:
                     return 12;
 
+                // GL_RGB_INTEGER
                 case RenderbufferInternalFormat.Rgb8ui:
                 case RenderbufferInternalFormat.Rgb8i:
                     return 3;
@@ -160,6 +166,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rgb32i:
                     return 12;
 
+                // GL_RGBA
                 case RenderbufferInternalFormat.Rgba8:
                 case RenderbufferInternalFormat.Srgb8Alpha8:
                 case RenderbufferInternalFormat.Rgba8Snorm:
@@ -178,6 +185,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rgba32f:
                     return 16;
 
+                // GL_RGBA_INTEGER
                 case RenderbufferInternalFormat.Rgba8i:
                 case RenderbufferInternalFormat.Rgba8ui:
                 case RenderbufferInternalFormat.Rgb10A2ui:
@@ -191,6 +199,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 case RenderbufferInternalFormat.Rgba32ui:
                     return 16;
 
+                // GL_DEPTH_COMPONENT
                 case RenderbufferInternalFormat.DepthComponent16:
                     return 2;
 
@@ -198,6 +207,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     return 3;
 
                 case RenderbufferInternalFormat.DepthComponent32f:
+                    return 4;
+
+                // GL_DEPTH_STENCIL
                 case RenderbufferInternalFormat.Depth24Stencil8:
                     return 4;
 
