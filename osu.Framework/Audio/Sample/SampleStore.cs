@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
@@ -16,7 +15,7 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly IResourceStore<byte[]> store;
 
-        private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
+        private readonly ConcurrentDictionary<string, SampleBassFactory> managers = new ConcurrentDictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
@@ -34,39 +33,28 @@ namespace osu.Framework.Audio.Sample
 
             if (string.IsNullOrEmpty(name)) return null;
 
-            lock (sampleCache)
+            lock (managers)
             {
-                if (sampleCache.TryGetValue(name, out Sample sample))
-                    return sample;
+                if (!managers.TryGetValue(name, out SampleBassFactory manager))
+                {
+                    this.LogIfNonBackgroundThread(name);
 
-                this.LogIfNonBackgroundThread(name);
+                    byte[] data = store.Get(name);
+                    manager = managers[name] = data == null ? null : new SampleBassFactory(data);
 
-                byte[] data = store.Get(name);
+                    if (manager != null)
+                        AddItem(manager);
+                }
 
-                sample = sampleCache[name] = data == null
-                    ? null
-                    : new SampleBass(data, PlaybackConcurrency) { AddChannel = AddItem };
-
-                if (sample != null)
-                    AddItem(sample);
-
-                return sample;
+                return manager?.CreateSample();
             }
         }
 
         public Task<Sample> GetAsync(string name) => Task.Run(() => Get(name));
 
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
-                sample.UpdateDevice(deviceIndex);
-
-            base.UpdateDevice(deviceIndex);
-        }
-
         protected override void UpdateState()
         {
-            FrameStatistics.Add(StatisticsCounterType.Samples, sampleCache.Count);
+            FrameStatistics.Add(StatisticsCounterType.Samples, managers.Count);
             base.UpdateState();
         }
 

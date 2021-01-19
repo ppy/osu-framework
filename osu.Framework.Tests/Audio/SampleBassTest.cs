@@ -16,6 +16,7 @@ namespace osu.Framework.Tests.Audio
     public class SampleBassTest
     {
         private DllResourceStore resources;
+        private SampleBassFactory sampleFactory;
         private Sample sample;
         private SampleChannel channel;
 
@@ -26,7 +27,8 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sample = new SampleBass(resources.Get("Resources.Tracks.sample-track.mp3"));
+            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
+            sample = new SampleBass(sampleFactory);
 
             updateSample();
         }
@@ -75,6 +77,7 @@ namespace osu.Framework.Tests.Audio
 
         private void updateSample() => runOnAudioThread(() =>
         {
+            sampleFactory.Update();
             sample.Update();
             channel?.Update();
         });
