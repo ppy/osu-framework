@@ -11,7 +11,7 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus concurrent playback).
     /// </summary>
-    internal class SampleBassFactory : AudioCollectionManager<AudioComponent>
+    internal class SampleBassFactory : AudioCollectionManager<AdjustableAudioComponent>
     {
         public int SampleId { get; private set; }
 

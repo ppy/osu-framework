@@ -11,7 +11,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleStore : AudioCollectionManager<AudioComponent>, ISampleStore
+    internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 

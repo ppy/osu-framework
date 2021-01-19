@@ -18,9 +18,11 @@ namespace osu.Framework.Graphics.Audio
         /// <param name="sample">The audio sample to wrap.</param>
         /// <param name="disposeSampleOnDisposal">Whether the sample should be automatically disposed on drawable disposal/expiry.</param>
         public DrawableSample(Sample sample, bool disposeSampleOnDisposal = true)
-            : base(sample)
+            : base(sample, disposeSampleOnDisposal)
         {
             this.sample = sample;
+
+            sample.Volume.Value = 0.5;
         }
 
         public SampleChannel Play() => sample.Play();
