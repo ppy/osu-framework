@@ -9,7 +9,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
-    /// A factory for a sample, which provides methods to retrieve <see cref="SampleBass"/> objects.
+    /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus concurrent playback).
     /// </summary>
     internal class SampleBassFactory : AudioCollectionManager<AudioComponent>
     {
