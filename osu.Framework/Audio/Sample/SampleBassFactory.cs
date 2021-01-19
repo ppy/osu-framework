@@ -44,10 +44,10 @@ namespace osu.Framework.Audio.Sample
 
                 EnqueueAction(() =>
                 {
-                    if (!IsLoaded)
-                        return;
-
                     // Todo: Broken (SEGV on SampleGetInfo())
+                    // if (!IsLoaded)
+                    //     return;
+                    //
                     // var sampleInfo = Bass.SampleGetInfo(SampleId);
                     // sampleInfo.Max = value;
                     // Bass.SampleSetInfo(SampleId, sampleInfo);
