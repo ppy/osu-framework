@@ -82,6 +82,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public static int GetBytesPerPixel(this RenderbufferInternalFormat format)
         {
+            // cross-reference: https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
             switch (format)
             {
                 // GL_RED
