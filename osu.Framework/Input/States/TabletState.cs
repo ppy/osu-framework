@@ -32,17 +32,19 @@ namespace osu.Framework.Input.States
         public override string ToString()
         {
             string output;
+
             if (IsStateValid)
             {
                 output = $"({Position.X:F0},{Position.Y:F0}) "
-                    + $"PenButtons [{PenButtons}] "
-                    + $"AuxiliaryButtons [{AuxiliaryButtons}] "
-                    + $"Pressure {Pressure * 100}%";
+                         + $"PenButtons [{PenButtons}] "
+                         + $"AuxiliaryButtons [{AuxiliaryButtons}] "
+                         + $"Pressure {Pressure * 100}%";
             }
             else
             {
                 output = "(Invalid)";
             }
+
             return $@"{GetType().ReadableName()} {output}";
         }
     }

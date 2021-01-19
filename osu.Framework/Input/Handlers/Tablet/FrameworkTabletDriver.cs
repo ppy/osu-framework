@@ -10,6 +10,7 @@ using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Logging;
+
 #endif
 
 namespace osu.Framework.Input.Handlers.Tablet
@@ -20,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         public FrameworkTabletDriver()
         {
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}");
-            base.DevicesChanged += (sender, args) =>
+            DevicesChanged += (sender, args) =>
             {
                 if (Tablet == null && args.Additions.Any())
                     DetectTablet();
@@ -29,31 +30,31 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public void DetectTablet()
         {
-            foreach (var config in GetConfigurations())
+            foreach (var config in getConfigurations())
             {
                 if (TryMatch(config))
                     break;
             }
         }
 
-        private IEnumerable<TabletConfiguration> GetConfigurations()
+        private IEnumerable<TabletConfiguration> getConfigurations()
         {
             // Retreive all embedded configurations
             var asm = typeof(Driver).Assembly;
             return from path in asm.GetManifestResourceNames()
                    where path.Contains(".json")
                    let stream = asm.GetManifestResourceStream(path)
-                   select Deserialize(stream);
+                   select deserialize(stream);
         }
 
-        private TabletConfiguration Deserialize(Stream stream)
+        private TabletConfiguration deserialize(Stream stream)
         {
             using (var tr = new StreamReader(stream))
             using (var jr = new JsonTextReader(tr))
-                return ConfigurationSerializer.Deserialize<TabletConfiguration>(jr);
+                return configurationSerializer.Deserialize<TabletConfiguration>(jr);
         }
 
-        private JsonSerializer ConfigurationSerializer { get; } = new JsonSerializer();
+        private JsonSerializer configurationSerializer { get; } = new JsonSerializer();
     }
 #endif
 }

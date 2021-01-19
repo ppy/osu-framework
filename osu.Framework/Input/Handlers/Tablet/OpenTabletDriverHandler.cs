@@ -73,6 +73,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                         TabletDriver.DetectTablet();
                     }
                 }
+
                 TabletDriver.EnableInput = d.NewValue;
             }, true);
 
