@@ -13,7 +13,7 @@ namespace osu.Framework.Input.States
         public readonly ButtonStates<TabletAuxiliaryButton> AuxiliaryButtons = new ButtonStates<TabletAuxiliaryButton>();
 
         public Vector2 Position { set; get; }
-        
+
         public double Pressure { set; get; }
 
         public bool IsStateValid { set; get; } = true;
@@ -25,7 +25,7 @@ namespace osu.Framework.Input.States
 
         public bool IsButtonPressed(TabletPenButton button) => PenButtons.IsPressed(button);
         public void SetButtonPressed(TabletPenButton button, bool pressed) => PenButtons.SetPressed(button, pressed);
-        
+
         public bool IsButtonPressed(TabletAuxiliaryButton button) => AuxiliaryButtons.IsPressed(button);
         public void SetButtonPressed(TabletAuxiliaryButton button, bool pressed) => AuxiliaryButtons.SetPressed(button, pressed);
 

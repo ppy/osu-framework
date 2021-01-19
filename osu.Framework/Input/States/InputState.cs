@@ -27,7 +27,7 @@ namespace osu.Framework.Input.States
         /// The joystick state.
         /// </summary>
         public readonly JoystickState Joystick;
-        
+
         /// <summary>
         /// The tablet state.
         /// </summary>
