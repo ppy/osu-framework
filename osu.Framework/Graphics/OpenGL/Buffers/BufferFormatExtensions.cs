@@ -82,66 +82,134 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public static int GetBytesPerPixel(this RenderbufferInternalFormat format)
         {
-            return format switch
+            switch (format)
             {
-                RenderbufferInternalFormat.R8 => 1,
-                RenderbufferInternalFormat.R8Snorm => 1,
-                RenderbufferInternalFormat.R16f => 2,
-                RenderbufferInternalFormat.R32f => 4,
-                RenderbufferInternalFormat.R8ui => 1,
-                RenderbufferInternalFormat.R8i => 1,
-                RenderbufferInternalFormat.R16ui => 2,
-                RenderbufferInternalFormat.R16i => 2,
-                RenderbufferInternalFormat.R32ui => 4,
-                RenderbufferInternalFormat.R32i => 4,
-                RenderbufferInternalFormat.Rg8 => 2,
-                RenderbufferInternalFormat.Rg8Snorm => 2,
-                RenderbufferInternalFormat.Rg16f => 4,
-                RenderbufferInternalFormat.Rg32f => 8,
-                RenderbufferInternalFormat.Rg8ui => 2,
-                RenderbufferInternalFormat.Rg8i => 2,
-                RenderbufferInternalFormat.Rg16ui => 4,
-                RenderbufferInternalFormat.Rg16i => 4,
-                RenderbufferInternalFormat.Rg32ui => 8,
-                RenderbufferInternalFormat.Rg32i => 8,
-                RenderbufferInternalFormat.Rgb8 => 3,
-                RenderbufferInternalFormat.Srgb8 => 3,
-                RenderbufferInternalFormat.Rgb565 => 2,
-                RenderbufferInternalFormat.Rgb8Snorm => 3,
-                RenderbufferInternalFormat.R11fG11fB10f => 4,
-                RenderbufferInternalFormat.Rgb9E5 => 4,
-                RenderbufferInternalFormat.Rgb16f => 6,
-                RenderbufferInternalFormat.Rgb32f => 12,
-                RenderbufferInternalFormat.Rgb8ui => 3,
-                RenderbufferInternalFormat.Rgb8i => 3,
-                RenderbufferInternalFormat.Rgb16ui => 6,
-                RenderbufferInternalFormat.Rgb16i => 6,
-                RenderbufferInternalFormat.Rgb32ui => 12,
-                RenderbufferInternalFormat.Rgb32i => 12,
-                RenderbufferInternalFormat.Rgba8 => 4,
-                RenderbufferInternalFormat.Srgb8Alpha8 => 4,
-                RenderbufferInternalFormat.Rgba8Snorm => 4,
-                RenderbufferInternalFormat.Rgb5A1 => 2,
-                RenderbufferInternalFormat.Rgba4 => 2,
-                RenderbufferInternalFormat.Rgb10A2 => 4,
-                RenderbufferInternalFormat.Rgba16f => 8,
-                RenderbufferInternalFormat.Rgba32f => 16,
-                RenderbufferInternalFormat.Rgba8i => 4,
-                RenderbufferInternalFormat.Rgba8ui => 4,
-                RenderbufferInternalFormat.Rgb10A2ui => 4,
-                RenderbufferInternalFormat.Rgba16i => 8,
-                RenderbufferInternalFormat.Rgba16ui => 8,
-                RenderbufferInternalFormat.Rgba32i => 16,
-                RenderbufferInternalFormat.Rgba32ui => 16,
-                RenderbufferInternalFormat.DepthComponent16 => 2,
-                RenderbufferInternalFormat.DepthComponent24 => 3,
-                RenderbufferInternalFormat.DepthComponent32f => 4,
-                RenderbufferInternalFormat.Depth24Stencil8 => 4,
-                RenderbufferInternalFormat.Depth32fStencil8 => 5,
-                RenderbufferInternalFormat.StencilIndex8 => 1,
+                case RenderbufferInternalFormat.R8:
+                case RenderbufferInternalFormat.R8Snorm:
+                    return 1;
 
-                _ => throw new InvalidOperationException($"{format} is not a valid {nameof(RenderbufferInternalFormat)} type.")
-            };
+                case RenderbufferInternalFormat.R16f:
+                    return 2;
+
+                case RenderbufferInternalFormat.R32f:
+                    return 4;
+
+                case RenderbufferInternalFormat.R8ui:
+                case RenderbufferInternalFormat.R8i:
+                    return 1;
+
+                case RenderbufferInternalFormat.R16ui:
+                case RenderbufferInternalFormat.R16i:
+                    return 2;
+
+                case RenderbufferInternalFormat.R32ui:
+                case RenderbufferInternalFormat.R32i:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rg8:
+                case RenderbufferInternalFormat.Rg8Snorm:
+                    return 2;
+
+                case RenderbufferInternalFormat.Rg16f:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rg32f:
+                    return 8;
+
+                case RenderbufferInternalFormat.Rg8ui:
+                case RenderbufferInternalFormat.Rg8i:
+                    return 2;
+
+                case RenderbufferInternalFormat.Rg16ui:
+                case RenderbufferInternalFormat.Rg16i:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rg32ui:
+                case RenderbufferInternalFormat.Rg32i:
+                    return 8;
+
+                case RenderbufferInternalFormat.Rgb8:
+                case RenderbufferInternalFormat.Srgb8:
+                    return 3;
+
+                case RenderbufferInternalFormat.Rgb565:
+                    return 2;
+
+                case RenderbufferInternalFormat.Rgb8Snorm:
+                    return 3;
+
+                case RenderbufferInternalFormat.R11fG11fB10f:
+                case RenderbufferInternalFormat.Rgb9E5:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rgb16f:
+                    return 6;
+
+                case RenderbufferInternalFormat.Rgb32f:
+                    return 12;
+
+                case RenderbufferInternalFormat.Rgb8ui:
+                case RenderbufferInternalFormat.Rgb8i:
+                    return 3;
+
+                case RenderbufferInternalFormat.Rgb16ui:
+                case RenderbufferInternalFormat.Rgb16i:
+                    return 6;
+
+                case RenderbufferInternalFormat.Rgb32ui:
+                case RenderbufferInternalFormat.Rgb32i:
+                    return 12;
+
+                case RenderbufferInternalFormat.Rgba8:
+                case RenderbufferInternalFormat.Srgb8Alpha8:
+                case RenderbufferInternalFormat.Rgba8Snorm:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rgb5A1:
+                case RenderbufferInternalFormat.Rgba4:
+                    return 2;
+
+                case RenderbufferInternalFormat.Rgb10A2:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rgba16f:
+                    return 8;
+
+                case RenderbufferInternalFormat.Rgba32f:
+                    return 16;
+
+                case RenderbufferInternalFormat.Rgba8i:
+                case RenderbufferInternalFormat.Rgba8ui:
+                case RenderbufferInternalFormat.Rgb10A2ui:
+                    return 4;
+
+                case RenderbufferInternalFormat.Rgba16i:
+                case RenderbufferInternalFormat.Rgba16ui:
+                    return 8;
+
+                case RenderbufferInternalFormat.Rgba32i:
+                case RenderbufferInternalFormat.Rgba32ui:
+                    return 16;
+
+                case RenderbufferInternalFormat.DepthComponent16:
+                    return 2;
+
+                case RenderbufferInternalFormat.DepthComponent24:
+                    return 3;
+
+                case RenderbufferInternalFormat.DepthComponent32f:
+                case RenderbufferInternalFormat.Depth24Stencil8:
+                    return 4;
+
+                case RenderbufferInternalFormat.Depth32fStencil8:
+                    return 5;
+
+                case RenderbufferInternalFormat.StencilIndex8:
+                    return 1;
+
+                default:
+                    throw new InvalidOperationException($"{format} is not a valid {nameof(RenderbufferInternalFormat)} type.");
+            }
         }
     }
 }
