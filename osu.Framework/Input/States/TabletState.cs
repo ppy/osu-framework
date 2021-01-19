@@ -16,8 +16,6 @@ namespace osu.Framework.Input.States
 
         public double Pressure { set; get; }
 
-        public bool IsStateValid { set; get; } = true;
-
         /// <summary>
         /// The last input source to make a change to the state.
         /// </summary>
@@ -31,20 +29,10 @@ namespace osu.Framework.Input.States
 
         public override string ToString()
         {
-            string output;
-
-            if (IsStateValid)
-            {
-                output = $"({Position.X:F0},{Position.Y:F0}) "
-                         + $"PenButtons [{PenButtons}] "
-                         + $"AuxiliaryButtons [{AuxiliaryButtons}] "
-                         + $"Pressure {Pressure * 100}%";
-            }
-            else
-            {
-                output = "(Invalid)";
-            }
-
+            string output = $"({Position.X:F0},{Position.Y:F0}) "
+                          + $"PenButtons [{PenButtons}] "
+                          + $"AuxiliaryButtons [{AuxiliaryButtons}] "
+                          + $"Pressure {Pressure * 100}%";
             return $@"{GetType().ReadableName()} {output}";
         }
     }

@@ -16,30 +16,30 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer
     {
-        public override bool IsActive => TabletDriver.EnableInput;
+        public override bool IsActive => tabletDriver.EnableInput;
 
         public override int Priority => 0;
 
-        protected FrameworkTabletDriver TabletDriver { set; get; }
+        private FrameworkTabletDriver tabletDriver;
 
         public override bool Initialize(GameHost host)
         {
-            TabletDriver = new FrameworkTabletDriver
+            tabletDriver = new FrameworkTabletDriver
             {
                 OutputMode = new AbsoluteTabletMode(this)
             };
 
-            TabletDriver.TabletChanged += (sender, e) =>
+            tabletDriver.TabletChanged += (sender, e) =>
             {
-                if (TabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode && TabletDriver.Tablet is TabletState tablet)
+                if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode && tabletDriver.Tablet != null)
                 {
                     float inputWidth, inputHeight, outputWidth, outputHeight;
 
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
-                        Width = inputWidth = tablet.Digitizer.Width,
-                        Height = inputHeight = tablet.Digitizer.Height,
+                        Width = inputWidth = tabletDriver.Tablet.Digitizer.Width,
+                        Height = inputHeight = tabletDriver.Tablet.Digitizer.Height,
                         Position = new Vector2(inputWidth / 2, inputHeight / 2),
                         Rotation = 0
                     };
@@ -55,7 +55,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 }
             };
 
-            TabletDriver.ReportRecieved += (sender, report) =>
+            tabletDriver.ReportRecieved += (sender, report) =>
             {
                 if (report is ITabletReport tabletReport)
                     handleTabletReport(tabletReport);
@@ -67,24 +67,24 @@ namespace osu.Framework.Input.Handlers.Tablet
             {
                 if (d.NewValue)
                 {
-                    if (TabletDriver.Tablet == null)
+                    if (tabletDriver.Tablet == null)
                     {
                         Logger.Log("Detecting tablets...");
-                        TabletDriver.DetectTablet();
+                        tabletDriver.DetectTablet();
                     }
                 }
 
-                TabletDriver.EnableInput = d.NewValue;
+                tabletDriver.EnableInput = d.NewValue;
             }, true);
 
             return true;
         }
 
-        public void SetPosition(Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new osuTK.Vector2(pos.X, pos.Y) });
+        void IAbsolutePointer.SetPosition(Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new osuTK.Vector2(pos.X, pos.Y) });
 
-        public void SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
+        void IVirtualTablet.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        public void Translate(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new osuTK.Vector2(delta.X, delta.Y) });
+        void IRelativePointer.Translate(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new osuTK.Vector2(delta.X, delta.Y) });
 
         private void handleTabletReport(ITabletReport tabletReport)
         {

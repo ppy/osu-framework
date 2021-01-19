@@ -60,9 +60,9 @@ namespace osu.Framework.Input
             new MouseState { IsPositionValid = false },
             new KeyboardState(),
             new TouchState(),
-            new TabletState(),
             new JoystickState(),
-            new MidiState()
+            new MidiState(),
+            new TabletState()
         );
 
         /// <summary>

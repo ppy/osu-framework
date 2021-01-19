@@ -29,21 +29,21 @@ namespace osu.Framework.Input.States
         public readonly JoystickState Joystick;
 
         /// <summary>
-        /// The tablet state.
-        /// </summary>
-        public readonly TabletState Tablet;
-
-        /// <summary>
         /// The midi state.
         /// </summary>
         public readonly MidiState Midi;
+
+        /// <summary>
+        /// The tablet state.
+        /// </summary>
+        public readonly TabletState Tablet;
 
         /// <summary>
         /// Creates a new <see cref="InputState"/> using the individual input states from another <see cref="InputState"/>.
         /// </summary>
         /// <param name="other">The <see cref="InputState"/> to take the individual input states from. Note that states are not cloned and will remain as references to the same objects.</param>
         public InputState(InputState other)
-            : this(other.Mouse, other.Keyboard, other.Touch, other.Tablet, other.Joystick, other.Midi)
+            : this(other.Mouse, other.Keyboard, other.Touch, other.Joystick, other.Midi, other.Tablet)
         {
         }
 
@@ -53,17 +53,17 @@ namespace osu.Framework.Input.States
         /// <param name="mouse">The mouse state.</param>
         /// <param name="keyboard">The keyboard state.</param>
         /// <param name="touch">The touch state.</param>
-        /// <param name="tablet">The tablet state</param>
         /// <param name="joystick">The joystick state.</param>
         /// <param name="midi">The midi state.</param>
-        public InputState(MouseState mouse = null, KeyboardState keyboard = null, TouchState touch = null, TabletState tablet = null, JoystickState joystick = null, MidiState midi = null)
+        /// <param name="tablet">The tablet state.</param>
+        public InputState(MouseState mouse = null, KeyboardState keyboard = null, TouchState touch = null, JoystickState joystick = null, MidiState midi = null, TabletState tablet = null)
         {
             Mouse = mouse ?? new MouseState();
             Keyboard = keyboard ?? new KeyboardState();
             Touch = touch ?? new TouchState();
-            Tablet = tablet ?? new TabletState();
             Joystick = joystick ?? new JoystickState();
             Midi = midi ?? new MidiState();
+            Tablet = tablet ?? new TabletState();
         }
     }
 }

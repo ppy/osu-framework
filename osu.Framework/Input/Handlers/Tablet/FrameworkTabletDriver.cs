@@ -39,12 +39,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private IEnumerable<TabletConfiguration> getConfigurations()
         {
-            // Retreive all embedded configurations
+            // Retrieve all embedded configurations
             var asm = typeof(Driver).Assembly;
-            return from path in asm.GetManifestResourceNames()
-                   where path.Contains(".json")
-                   let stream = asm.GetManifestResourceStream(path)
-                   select deserialize(stream);
+            return asm.GetManifestResourceNames()
+                .Where(path => path.Contains(".json"))
+                .Select(path => deserialize(asm.GetManifestResourceStream(path)));
         }
 
         private TabletConfiguration deserialize(Stream stream)
