@@ -11,10 +11,15 @@ namespace osu.Framework.Audio.Sample
 
         private readonly SampleBassFactory factory;
 
-        internal SampleBass(SampleBassFactory factory, int concurrency = DEFAULT_CONCURRENCY)
-            : base(concurrency)
+        internal SampleBass(SampleBassFactory factory)
         {
             this.factory = factory;
+        }
+
+        public override int PlaybackConcurrency
+        {
+            get => factory.PlaybackConcurrency;
+            set => factory.PlaybackConcurrency = value;
         }
 
         protected override SampleChannel CreateChannel() => new SampleChannelBass(this);

@@ -12,16 +12,7 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         public double Length { get; protected set; }
 
-        protected readonly int PlaybackConcurrency;
-
-        /// <summary>
-        /// Construct a new sample.
-        /// </summary>
-        /// <param name="playbackConcurrency">How many instances of this sample should be allowed to playback concurrently before stopping the longest playing.</param>
-        protected Sample(int playbackConcurrency = DEFAULT_CONCURRENCY)
-        {
-            PlaybackConcurrency = playbackConcurrency;
-        }
+        public virtual int PlaybackConcurrency { get; set; } = DEFAULT_CONCURRENCY;
 
         public SampleChannel Play()
         {

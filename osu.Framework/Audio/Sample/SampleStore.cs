@@ -40,7 +40,7 @@ namespace osu.Framework.Audio.Sample
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    manager = managers[name] = data == null ? null : new SampleBassFactory(data);
+                    manager = managers[name] = data == null ? null : new SampleBassFactory(data) { PlaybackConcurrency = PlaybackConcurrency };
 
                     if (manager != null)
                         AddItem(manager);

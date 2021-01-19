@@ -22,11 +22,6 @@ namespace osu.Framework.Audio.Sample
 
     public sealed class SampleVirtual : Sample
     {
-        public SampleVirtual(int playbackConcurrency = DEFAULT_CONCURRENCY)
-            : base(playbackConcurrency)
-        {
-        }
-
         protected override SampleChannel CreateChannel() => new SampleChannelVirtual();
     }
 }

@@ -33,6 +33,28 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
+        private int playbackConcurrency = Sample.DEFAULT_CONCURRENCY;
+
+        public int PlaybackConcurrency
+        {
+            get => playbackConcurrency;
+            set
+            {
+                playbackConcurrency = value;
+
+                EnqueueAction(() =>
+                {
+                    if (!IsLoaded)
+                        return;
+
+                    // Todo: Broken (SEGV on SampleGetInfo())
+                    // var sampleInfo = Bass.SampleGetInfo(SampleId);
+                    // sampleInfo.Max = value;
+                    // Bass.SampleSetInfo(SampleId, sampleInfo);
+                });
+            }
+        }
+
         internal override void UpdateDevice(int deviceIndex)
         {
             if (!IsLoaded)
@@ -55,10 +77,10 @@ namespace osu.Framework.Audio.Sample
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 
             if (RuntimeInfo.SupportsJIT)
-                return Bass.SampleLoad(data, 0, data.Length, Sample.DEFAULT_CONCURRENCY, flags);
+                return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);
 
             using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
-                return Bass.SampleLoad(handle.Address, 0, data.Length, Sample.DEFAULT_CONCURRENCY, flags);
+                return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, flags);
         }
 
         public Sample CreateSample()
