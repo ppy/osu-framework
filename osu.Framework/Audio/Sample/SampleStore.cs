@@ -15,7 +15,7 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly IResourceStore<byte[]> store;
 
-        private readonly ConcurrentDictionary<string, SampleBassFactory> managers = new ConcurrentDictionary<string, SampleBassFactory>();
+        private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
@@ -33,20 +33,20 @@ namespace osu.Framework.Audio.Sample
 
             if (string.IsNullOrEmpty(name)) return null;
 
-            lock (managers)
+            lock (factories)
             {
-                if (!managers.TryGetValue(name, out SampleBassFactory manager))
+                if (!factories.TryGetValue(name, out SampleBassFactory factory))
                 {
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    manager = managers[name] = data == null ? null : new SampleBassFactory(data) { PlaybackConcurrency = PlaybackConcurrency };
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data) { PlaybackConcurrency = PlaybackConcurrency };
 
-                    if (manager != null)
-                        AddItem(manager);
+                    if (factory != null)
+                        AddItem(factory);
                 }
 
-                return manager?.CreateSample();
+                return factory?.CreateSample();
             }
         }
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            FrameStatistics.Add(StatisticsCounterType.Samples, managers.Count);
+            FrameStatistics.Add(StatisticsCounterType.Samples, factories.Count);
             base.UpdateState();
         }
 
