@@ -48,8 +48,8 @@ namespace osu.Framework.Input.Handlers.Tablet
                     absoluteOutputMode.Output = new Area
                     {
                         // Ideally would be the maximum window dimensions
-                        Width = outputWidth = 1920,
-                        Height = outputHeight = 1080,
+                        Width = outputWidth = host.Window.ClientSize.Width,
+                        Height = outputHeight = host.Window.ClientSize.Height,
                         Position = new Vector2(outputWidth / 2, outputHeight / 2)
                     };
                 }
