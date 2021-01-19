@@ -2,38 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Statistics;
-using System;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
     public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel
     {
-        protected bool WasStarted;
-
-        protected Sample Sample { get; set; }
-
-        private readonly Action<SampleChannel> onPlay;
-
-        protected SampleChannel(Sample sample, Action<SampleChannel> onPlay)
-        {
-            Sample = sample ?? throw new ArgumentNullException(nameof(sample));
-            this.onPlay = onPlay;
-        }
-
-        public virtual void Play(bool restart = true)
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not play disposed samples.");
-
-            onPlay(this);
-            WasStarted = true;
-        }
-
         public virtual void Stop()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not stop disposed samples.");
         }
 
         protected override void Dispose(bool disposing)
@@ -52,9 +28,7 @@ namespace osu.Framework.Audio.Sample
 
         public abstract bool Playing { get; }
 
-        public virtual bool Played => WasStarted && !Playing;
-
-        public double Length => Sample.Length;
+        public virtual bool Played => !Playing;
 
         public override bool IsAlive => base.IsAlive && !Played;
 

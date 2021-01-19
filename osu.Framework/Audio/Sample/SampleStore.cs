@@ -12,7 +12,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal class SampleStore : AudioCollectionManager<AdjustableAudioComponent>, ISampleStore
+    internal class SampleStore : AudioCollectionManager<AudioComponent>, ISampleStore
     {
         private readonly IResourceStore<byte[]> store;
 
@@ -28,7 +28,7 @@ namespace osu.Framework.Audio.Sample
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
-        public SampleChannel Get(string name)
+        public Sample Get(string name)
         {
             if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
 
@@ -36,26 +36,25 @@ namespace osu.Framework.Audio.Sample
 
             lock (sampleCache)
             {
-                SampleChannel channel = null;
+                if (sampleCache.TryGetValue(name, out Sample sample))
+                    return sample;
 
-                if (!sampleCache.TryGetValue(name, out Sample sample))
-                {
-                    this.LogIfNonBackgroundThread(name);
+                this.LogIfNonBackgroundThread(name);
 
-                    byte[] data = store.Get(name);
-                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
-                }
+                byte[] data = store.Get(name);
+
+                sample = sampleCache[name] = data == null
+                    ? null
+                    : new SampleBass(data, PlaybackConcurrency) { AddChannel = AddItem };
 
                 if (sample != null)
-                {
-                    channel = new SampleChannelBass(sample, AddItem);
-                }
+                    AddItem(sample);
 
-                return channel;
+                return sample;
             }
         }
 
-        public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
+        public Task<Sample> GetAsync(string name) => Task.Run(() => Get(name));
 
         internal override void UpdateDevice(int deviceIndex)
         {

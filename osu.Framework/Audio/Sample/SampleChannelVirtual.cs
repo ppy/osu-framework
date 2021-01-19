@@ -9,15 +9,24 @@ namespace osu.Framework.Audio.Sample
     /// </summary>
     public sealed class SampleChannelVirtual : SampleChannel
     {
-        public SampleChannelVirtual()
-            : base(new SampleVirtual(), _ => { })
+        private volatile bool playing = true;
+
+        public override bool Playing => playing;
+
+        public override void Stop()
+        {
+            base.Stop();
+            playing = false;
+        }
+    }
+
+    public sealed class SampleVirtual : Sample
+    {
+        public SampleVirtual(int playbackConcurrency = DEFAULT_CONCURRENCY)
+            : base(playbackConcurrency)
         {
         }
 
-        public override bool Playing => false;
-
-        private class SampleVirtual : Sample
-        {
-        }
+        protected override SampleChannel CreateChannel() => new SampleChannelVirtual();
     }
 }

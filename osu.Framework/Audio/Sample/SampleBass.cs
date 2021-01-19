@@ -3,32 +3,27 @@
 
 using ManagedBass;
 using osu.Framework.Allocation;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Audio.Sample
 {
     internal sealed class SampleBass : Sample, IBassAudio
     {
-        private volatile int sampleId;
+        public int SampleId { get; private set; }
 
-        public override bool IsLoaded => sampleId != 0;
+        public override bool IsLoaded => SampleId != 0;
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
-        internal SampleBass(byte[] data, ConcurrentQueue<Task> customPendingActions = null, int concurrency = DEFAULT_CONCURRENCY)
+        internal SampleBass(byte[] data, int concurrency = DEFAULT_CONCURRENCY)
             : base(concurrency)
         {
-            if (customPendingActions != null)
-                PendingActions = customPendingActions;
-
             if (data.Length > 0)
             {
                 EnqueueAction(() =>
                 {
-                    sampleId = loadSample(data);
+                    SampleId = loadSample(data);
                     memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
                 });
             }
@@ -38,7 +33,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (IsLoaded)
             {
-                Bass.SampleFree(sampleId);
+                Bass.SampleFree(SampleId);
                 memoryLease?.Dispose();
             }
 
@@ -51,11 +46,9 @@ namespace osu.Framework.Audio.Sample
                 return;
 
             // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-            Bass.ChannelSetDevice(sampleId, deviceIndex);
+            Bass.ChannelSetDevice(SampleId, deviceIndex);
             BassUtils.CheckFaulted(true);
         }
-
-        public int CreateChannel() => Bass.SampleGetChannel(sampleId);
 
         private int loadSample(byte[] data)
         {
@@ -74,5 +67,7 @@ namespace osu.Framework.Audio.Sample
             using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
                 return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, flags);
         }
+
+        protected override SampleChannel CreateChannel() => new SampleChannelBass(this);
     }
 }

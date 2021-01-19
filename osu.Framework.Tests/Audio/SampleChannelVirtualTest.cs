@@ -28,7 +28,6 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Played);
             Assert.IsFalse(channel.HasCompleted);
 
-            channel.Play();
             updateChannel();
 
             Thread.Sleep(50);
