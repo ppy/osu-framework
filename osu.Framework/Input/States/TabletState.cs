@@ -30,9 +30,9 @@ namespace osu.Framework.Input.States
         public override string ToString()
         {
             string output = $"({Position.X:F0},{Position.Y:F0}) "
-                          + $"PenButtons [{PenButtons}] "
-                          + $"AuxiliaryButtons [{AuxiliaryButtons}] "
-                          + $"Pressure {Pressure * 100}%";
+                            + $"PenButtons [{PenButtons}] "
+                            + $"AuxiliaryButtons [{AuxiliaryButtons}] "
+                            + $"Pressure {Pressure * 100}%";
             return $@"{GetType().ReadableName()} {output}";
         }
     }
