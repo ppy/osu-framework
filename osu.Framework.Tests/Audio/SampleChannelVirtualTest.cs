@@ -35,6 +35,25 @@ namespace osu.Framework.Tests.Audio
             Assert.IsTrue(channel.HasCompleted);
         }
 
+        [Test]
+        public void TestLooping()
+        {
+            var channel = sample.Play();
+            channel.Looping = true;
+            Assert.IsTrue(channel.Playing);
+            Assert.IsFalse(channel.HasCompleted);
+
+            updateSample();
+
+            Assert.IsTrue(channel.Playing);
+            Assert.False(channel.HasCompleted);
+
+            channel.Stop();
+
+            Assert.False(channel.Playing);
+            Assert.IsTrue(channel.HasCompleted);
+        }
+
         private void updateSample() => RunOnAudioThread(() => sample.Update());
 
         /// <summary>
