@@ -16,7 +16,9 @@ namespace osu.Framework.Audio.Sample
         protected override void UpdateState()
         {
             base.UpdateState();
-            Stop();
+
+            if (!Looping)
+                Stop();
         }
 
         public override void Stop()

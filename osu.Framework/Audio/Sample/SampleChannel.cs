@@ -28,6 +28,8 @@ namespace osu.Framework.Audio.Sample
 
         public abstract bool Playing { get; }
 
+        public virtual bool Looping { get; set; }
+
         public override bool IsAlive => base.IsAlive && Playing;
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
