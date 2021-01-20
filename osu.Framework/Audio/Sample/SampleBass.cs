@@ -14,12 +14,8 @@ namespace osu.Framework.Audio.Sample
         internal SampleBass(SampleBassFactory factory)
         {
             this.factory = factory;
-        }
 
-        public override int PlaybackConcurrency
-        {
-            get => factory.PlaybackConcurrency;
-            set => factory.PlaybackConcurrency = value;
+            PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
         protected override SampleChannel CreateChannel() => new SampleChannelBass(this);

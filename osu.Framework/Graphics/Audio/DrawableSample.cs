@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Audio.Sample;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -22,16 +23,13 @@ namespace osu.Framework.Graphics.Audio
         {
             this.sample = sample;
 
+            PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
 
         public SampleChannel Play() => sample.Play();
 
         public double Length => sample.Length;
 
-        public int PlaybackConcurrency
-        {
-            get => sample.PlaybackConcurrency;
-            set => sample.PlaybackConcurrency = value;
-        }
+        public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
     }
 }

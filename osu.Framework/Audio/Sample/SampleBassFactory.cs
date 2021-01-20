@@ -4,6 +4,7 @@
 using System.Runtime.InteropServices;
 using ManagedBass;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Audio.Sample
@@ -19,6 +20,8 @@ namespace osu.Framework.Audio.Sample
 
         public double Length { get; private set; }
 
+        public readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
+
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
         public SampleBassFactory(byte[] data)
@@ -33,26 +36,18 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
-        private int playbackConcurrency = Sample.DEFAULT_CONCURRENCY;
-
-        public int PlaybackConcurrency
+        private void updatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
         {
-            get => playbackConcurrency;
-            set
+            EnqueueAction(() =>
             {
-                playbackConcurrency = value;
-
-                EnqueueAction(() =>
-                {
-                    // Todo: Broken (SEGV on SampleGetInfo())
-                    // if (!IsLoaded)
-                    //     return;
-                    //
-                    // var sampleInfo = Bass.SampleGetInfo(SampleId);
-                    // sampleInfo.Max = value;
-                    // Bass.SampleSetInfo(SampleId, sampleInfo);
-                });
-            }
+                // Todo: Broken (SEGV on SampleGetInfo())
+                // if (!IsLoaded)
+                //     return;
+                //
+                // var sampleInfo = Bass.SampleGetInfo(SampleId);
+                // sampleInfo.Max = concurrency.NewValue;
+                // Bass.SampleSetInfo(SampleId, sampleInfo);
+            });
         }
 
         internal override void UpdateDevice(int deviceIndex)
@@ -77,10 +72,10 @@ namespace osu.Framework.Audio.Sample
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 
             if (RuntimeInfo.SupportsJIT)
-                return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency, flags);
+                return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency.Value, flags);
 
             using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
-                return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency, flags);
+                return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency.Value, flags);
         }
 
         public Sample CreateSample()

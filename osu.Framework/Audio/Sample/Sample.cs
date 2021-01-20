@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Bindables;
+
 namespace osu.Framework.Audio.Sample
 {
     public abstract class Sample : AudioCollectionManager<SampleChannel>, ISample
@@ -9,7 +11,7 @@ namespace osu.Framework.Audio.Sample
 
         public double Length { get; protected set; }
 
-        public virtual int PlaybackConcurrency { get; set; } = DEFAULT_CONCURRENCY;
+        public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
         public SampleChannel Play()
         {
