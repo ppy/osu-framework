@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Audio
         {
             this.sample = sample;
 
-            sample.Volume.Value = 0.5;
         }
 
         public SampleChannel Play() => sample.Play();
