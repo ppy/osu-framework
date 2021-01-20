@@ -141,7 +141,7 @@ namespace osu.Framework.Graphics.Video
 
             var frameTime = CurrentFrameTime;
 
-            while (availableFrames.Count > 0 && availableFrames.Peek().Time <= PlaybackPosition && Math.Abs(availableFrames.Peek().Time - PlaybackPosition) < lenience_before_seek)
+            while (availableFrames.Count > 0 && checkNextFrameValid(availableFrames.Peek()))
             {
                 if (lastFrame != null) decoder.ReturnFrames(new[] { lastFrame });
                 lastFrame = availableFrames.Dequeue();
@@ -166,6 +166,15 @@ namespace osu.Framework.Graphics.Video
 
             if (frameTime != CurrentFrameTime)
                 FramesProcessed++;
+        }
+
+        private bool checkNextFrameValid(DecodedFrame frame)
+        {
+            // in the case of looping, we may start a seek back to the beginning but still receive some lingering frames from the end of the last loop. these should be allowed to continue playing.
+            if (Loop && Math.Abs((frame.Time - Duration) - PlaybackPosition) < lenience_before_seek)
+                return true;
+
+            return frame.Time <= PlaybackPosition && Math.Abs(frame.Time - PlaybackPosition) < lenience_before_seek;
         }
 
         protected override void Dispose(bool isDisposing)
