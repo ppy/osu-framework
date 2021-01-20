@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class Sample : AudioCollectionManager<SampleChannel>
+    public abstract class Sample : AudioCollectionManager<SampleChannel>, ISample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
