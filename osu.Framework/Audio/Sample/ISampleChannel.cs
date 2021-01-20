@@ -4,27 +4,22 @@
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
-    /// A channel playing back an audio sample.
+    /// A unique playback of an <see cref="ISample"/>.
     /// </summary>
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
-        /// Stop playback and reset position to beginning of sample.
+        /// Stops playback.
         /// </summary>
         void Stop();
 
         /// <summary>
-        /// Whether the sample is playing.
+        /// Whether playback is currently in progress.
         /// </summary>
         bool Playing { get; }
 
         /// <summary>
-        /// Whether the sample has finished playback.
-        /// </summary>
-        bool Played { get; }
-
-        /// <summary>
-        /// States if this sample should repeat.
+        /// Whether playback should repeat.
         /// </summary>
         bool Looping { get; set; }
     }

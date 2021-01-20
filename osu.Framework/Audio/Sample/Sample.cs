@@ -7,9 +7,6 @@ namespace osu.Framework.Audio.Sample
     {
         public const int DEFAULT_CONCURRENCY = 2;
 
-        /// <summary>
-        /// The length in milliseconds of this <see cref="Sample"/>.
-        /// </summary>
         public double Length { get; protected set; }
 
         public virtual int PlaybackConcurrency { get; set; } = DEFAULT_CONCURRENCY;
@@ -24,6 +21,10 @@ namespace osu.Framework.Audio.Sample
             return channel;
         }
 
+        /// <summary>
+        /// Creates a unique playback of this <see cref="Sample"/>.
+        /// </summary>
+        /// <returns>The <see cref="SampleChannel"/> for the playback.</returns>
         protected abstract SampleChannel CreateChannel();
     }
 }

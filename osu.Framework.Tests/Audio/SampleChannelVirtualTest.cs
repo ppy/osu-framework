@@ -26,12 +26,12 @@ namespace osu.Framework.Tests.Audio
         public void TestStart()
         {
             var channel = sample.Play();
-            Assert.IsFalse(channel.Played);
+            Assert.IsTrue(channel.Playing);
             Assert.IsFalse(channel.HasCompleted);
 
             updateSample();
 
-            Assert.IsTrue(channel.Played);
+            Assert.IsFalse(channel.Playing);
             Assert.IsTrue(channel.HasCompleted);
         }
 

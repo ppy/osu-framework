@@ -28,5 +28,11 @@ namespace osu.Framework.Graphics.Audio
         public SampleChannel Play() => sample.Play();
 
         public double Length => sample.Length;
+
+        public int PlaybackConcurrency
+        {
+            get => sample.PlaybackConcurrency;
+            set => sample.PlaybackConcurrency = value;
+        }
     }
 }
