@@ -7,7 +7,7 @@ namespace osu.Framework.Audio.Sample
     /// A <see cref="SampleChannel"/> which explicitly plays no audio.
     /// Aimed for scenarios in which a non-null <see cref="SampleChannel"/> is needed, but one that doesn't necessarily play any sound.
     /// </summary>
-    public sealed class SampleChannelVirtual : SampleChannel
+    internal class SampleChannelVirtual : SampleChannel
     {
         private volatile bool playing = true;
 
@@ -24,10 +24,5 @@ namespace osu.Framework.Audio.Sample
             base.Stop();
             playing = false;
         }
-    }
-
-    public sealed class SampleVirtual : Sample
-    {
-        protected override SampleChannel CreateChannel() => new SampleChannelVirtual();
     }
 }
