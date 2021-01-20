@@ -34,6 +34,8 @@ namespace osu.Framework.Audio.Sample
                     memoryLease = NativeMemoryTracker.AddMemory(this, data.Length);
                 });
             }
+
+            PlaybackConcurrency.BindValueChanged(updatePlaybackConcurrency);
         }
 
         private void updatePlaybackConcurrency(ValueChangedEvent<int> concurrency)
