@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.Audio
             AddUntilStep("audio device ready", () => audioManager.IsLoaded);
             AddStep("create looping sample", () =>
             {
-                channel?.Dispose();
+                sample?.Dispose();
                 sample = audioManager.Samples.Get("tone.wav");
             });
         }
@@ -95,7 +95,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
         protected override void Dispose(bool isDisposing)
         {
-            channel?.Dispose();
+            sample?.Dispose();
             base.Dispose(isDisposing);
         }
     }

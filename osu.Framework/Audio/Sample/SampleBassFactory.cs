@@ -10,7 +10,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Audio.Sample
 {
     /// <summary>
-    /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus concurrent playback).
+    /// A factory for <see cref="SampleBass"/> objects sharing a common sample ID (and thus playback concurrency).
     /// </summary>
     internal class SampleBassFactory : AudioCollectionManager<AdjustableAudioComponent>
     {

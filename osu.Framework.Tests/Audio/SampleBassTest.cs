@@ -78,7 +78,6 @@ namespace osu.Framework.Tests.Audio
         private void updateSample() => runOnAudioThread(() =>
         {
             sampleFactory.Update();
-            sample.Update();
             channel?.Update();
         });
 
