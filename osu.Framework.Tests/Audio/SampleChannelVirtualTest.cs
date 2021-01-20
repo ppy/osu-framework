@@ -13,30 +13,29 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleChannelVirtualTest
     {
-        private SampleChannelVirtual channel;
+        private Sample sample;
 
         [SetUp]
         public void Setup()
         {
-            channel = new SampleChannelVirtual();
-            updateChannel();
+            sample = new SampleVirtual();
+            updateSample();
         }
 
         [Test]
         public void TestStart()
         {
+            var channel = sample.Play();
             Assert.IsFalse(channel.Played);
             Assert.IsFalse(channel.HasCompleted);
 
-            updateChannel();
-
-            Thread.Sleep(50);
+            updateSample();
 
             Assert.IsTrue(channel.Played);
             Assert.IsTrue(channel.HasCompleted);
         }
 
-        private void updateChannel() => RunOnAudioThread(() => channel.Update());
+        private void updateSample() => RunOnAudioThread(() => sample.Update());
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

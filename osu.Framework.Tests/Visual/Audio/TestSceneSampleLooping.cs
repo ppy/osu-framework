@@ -89,8 +89,8 @@ namespace osu.Framework.Tests.Visual.Audio
 
         private void stopAndCheckSample()
         {
-            AddStep("stop playing", () => channel.Stop());
-            AddUntilStep("stopped", () => !channel.Playing);
+            AddStep("stop playing", () => channel?.Stop());
+            AddUntilStep("stopped", () => channel?.Playing != true);
         }
 
         protected override void Dispose(bool isDisposing)

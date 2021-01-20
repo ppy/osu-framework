@@ -13,6 +13,12 @@ namespace osu.Framework.Audio.Sample
 
         public override bool Playing => playing;
 
+        protected override void UpdateState()
+        {
+            base.UpdateState();
+            Stop();
+        }
+
         public override void Stop()
         {
             base.Stop();
