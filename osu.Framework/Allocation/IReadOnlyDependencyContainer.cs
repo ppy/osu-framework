@@ -23,8 +23,9 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="type">The dependency type to query for.</param>
         /// <param name="info">Extra information that identifies the cached dependency.</param>
+        /// <param name="exclusion">An optional array of instances to exclude while searching.</param>
         /// <returns>The requested dependency, or null if not found.</returns>
-        object Get(Type type, CacheInfo info);
+        object Get(Type type, CacheInfo info, object[] exclusion = null);
 
         /// <summary>
         /// Injects dependencies into the given instance.

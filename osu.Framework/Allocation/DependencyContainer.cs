@@ -162,15 +162,17 @@ namespace osu.Framework.Allocation
             cache[info] = instance;
         }
 
-        public object Get(Type type)
-            => Get(type, default);
+        public object Get(Type type) => Get(type, default);
 
-        public object Get(Type type, CacheInfo info)
+        public object Get(Type type, CacheInfo info, object[] exclusion = null)
         {
             info = info.WithType(type.GetUnderlyingNullableType() ?? type);
 
             if (cache.TryGetValue(info, out var existing))
-                return existing;
+            {
+                if (exclusion == null || Array.IndexOf(exclusion, existing) == -1)
+                    return existing;
+            }
 
             return parentContainer?.Get(type, info);
         }

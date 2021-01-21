@@ -55,14 +55,14 @@ namespace osu.Framework.Allocation
 
         public object Get(Type type) => Get(type, default);
 
-        public object Get(Type type, CacheInfo info)
+        public object Get(Type type, CacheInfo info, object[] exclusion = null)
         {
             if (info.Parent == null)
-                return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info);
+                return type == typeof(TModel) ? createChildShadowModel() : parent?.Get(type, info, exclusion);
             if (info.Parent == typeof(TModel))
-                return shadowDependencies.Get(type, info) ?? parent?.Get(type, info);
+                return shadowDependencies.Get(type, info, exclusion) ?? parent?.Get(type, info, exclusion);
 
-            return parent?.Get(type, info);
+            return parent?.Get(type, info, exclusion);
         }
 
         public void Inject<T>(T instance) where T : class => DependencyActivator.Activate(instance, this);
