@@ -67,7 +67,7 @@ namespace osu.Framework.Allocation
                         {
                             var parameterArray = new object[parameterGetters.Length];
                             for (int i = 0; i < parameterGetters.Length; i++)
-                                parameterArray[i] = parameterGetters[i](dc);
+                                parameterArray[i] = parameterGetters[i](dc, target);
 
                             method.Invoke(target, parameterArray);
                         }
@@ -82,9 +82,9 @@ namespace osu.Framework.Allocation
             }
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object, object> getDependency(Type type, Type requestingType, bool permitNulls) => (dc, requester) =>
         {
-            var val = dc.Get(type);
+            var val = dc.Get(type, default, new[] { requester });
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 

@@ -97,7 +97,7 @@ namespace osu.Framework.Allocation
 
                 var fieldGetter = getDependency(property.PropertyType, type, attribute.CanBeNull || property.PropertyType.IsNullable(), cacheInfo);
 
-                activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc)));
+                activators.Add((target, dc) => property.SetValue(target, fieldGetter(dc, target)));
             }
 
             return (target, dc) =>
@@ -107,9 +107,9 @@ namespace osu.Framework.Allocation
             };
         }
 
-        private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
+        private static Func<IReadOnlyDependencyContainer, object, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => (dc, requester) =>
         {
-            var val = dc.Get(type, info);
+            var val = dc.Get(type, info, new[] { requester });
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 
