@@ -255,6 +255,23 @@ namespace osu.Framework.Tests.Dependencies
         }
 
         [Test]
+        public void TestResolveFromInsideCachedContainer()
+        {
+            var receiver = new Receiver14();
+            var parent = new Receiver14();
+
+            var parentDependencies = new DependencyContainer();
+            parentDependencies.Cache(parent);
+
+            var dependencies = new DependencyContainer(parentDependencies);
+            dependencies.Cache(receiver);
+
+            dependencies.Inject(receiver);
+
+            Assert.AreSame(parent, receiver.Parent);
+        }
+
+        [Test]
         public void TestCacheAsNullableInternal()
         {
             int? testObject = 5;
@@ -432,6 +449,17 @@ namespace osu.Framework.Tests.Dependencies
 
             [BackgroundDependencyLoader(true)]
             private void load(int testObject) => TestObject = testObject;
+        }
+
+        private class Receiver14
+        {
+            public Receiver14 Parent { get; private set; }
+
+            [BackgroundDependencyLoader(true)]
+            private void load(Receiver14 parent)
+            {
+                Parent = parent;
+            }
         }
     }
 }

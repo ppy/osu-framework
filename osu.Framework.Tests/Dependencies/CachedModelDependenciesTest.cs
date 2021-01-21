@@ -265,6 +265,26 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(null, resolver.BindableString.Value);
         }
 
+        [Test]
+        public void TestResolveFromInsideCachedContainer()
+        {
+            var parent = new SameTypeResolver();
+            var resolver = new SameTypeResolver();
+
+            var parentDependencies = new DependencyContainer();
+            parentDependencies.Cache(parent);
+
+            var modelDependencies = new CachedModelDependencyContainer<FieldModel>(parentDependencies);
+            modelDependencies.Model.Value = new FieldModel();
+
+            var dependencies = new DependencyContainer(modelDependencies);
+            dependencies.Cache(resolver);
+
+            dependencies.Inject(resolver);
+
+            Assert.AreSame(parent, resolver.Parent);
+        }
+
         private class NonBindablePublicFieldModel
         {
 #pragma warning disable 649
@@ -323,6 +343,12 @@ namespace osu.Framework.Tests.Dependencies
 
             [Resolved(typeof(DerivedFieldModel))]
             public Bindable<string> BindableString { get; private set; }
+        }
+
+        public class SameTypeResolver
+        {
+            [Resolved(CanBeNull = true)]
+            public SameTypeResolver Parent { get; private set; }
         }
     }
 }

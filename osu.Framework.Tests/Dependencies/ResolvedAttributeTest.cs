@@ -187,9 +187,32 @@ namespace osu.Framework.Tests.Dependencies
             Assert.AreEqual(bindable.Value, receiver.Obj2.Value);
         }
 
+        [Test]
+        public void TestResolveFromInsideCachedContainer()
+        {
+            var receiver = new Receiver17();
+            var parent = new Receiver17();
+
+            var parentDependencies = createDependencies(parent);
+            var dependencies = createDependenciesWithParent(parentDependencies, receiver);
+
+            dependencies.Inject(receiver);
+
+            Assert.AreSame(receiver.Parent, parent);
+        }
+
         private DependencyContainer createDependencies(params object[] toCache)
         {
             var dependencies = new DependencyContainer();
+
+            toCache?.ForEach(o => dependencies.Cache(o));
+
+            return dependencies;
+        }
+
+        private DependencyContainer createDependenciesWithParent(IReadOnlyDependencyContainer parent, params object[] toCache)
+        {
+            var dependencies = new DependencyContainer(parent);
 
             toCache?.ForEach(o => dependencies.Cache(o));
 
@@ -303,6 +326,12 @@ namespace osu.Framework.Tests.Dependencies
 
             [Resolved]
             public IBindable<int> Obj2 { get; private set; }
+        }
+
+        private class Receiver17
+        {
+            [Resolved(CanBeNull = true)]
+            public Receiver17 Parent { get; private set; }
         }
     }
 }
