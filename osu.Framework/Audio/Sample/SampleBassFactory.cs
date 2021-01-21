@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Sample
         {
             EnqueueAction(() =>
             {
-                // Todo: Broken (SEGV on SampleGetInfo())
+                // Broken in ManagedBass (https://github.com/ManagedBass/ManagedBass/pull/85).
                 // if (!IsLoaded)
                 //     return;
                 //
