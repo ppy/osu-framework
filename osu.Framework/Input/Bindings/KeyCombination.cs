@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using osu.Framework.Input.States;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -32,7 +33,7 @@ namespace osu.Framework.Input.Bindings
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
+            Keys = keys?.Any() == true ? OrderAttributeUtils.GetValuesInOrder(keys.Distinct()).ToImmutableArray() : none;
         }
 
         /// <summary>
@@ -468,8 +469,8 @@ namespace osu.Framework.Input.Bindings
                 keys.AddRange(state.Midi.Keys.Select(FromMidiKey));
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
-            keys.Sort();
-            return new KeyCombination(keys.ToImmutable());
+
+            return new KeyCombination(OrderAttributeUtils.GetValuesInOrder(keys).ToImmutableArray());
         }
     }
 
