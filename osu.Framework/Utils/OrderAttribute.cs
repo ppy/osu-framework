@@ -39,7 +39,7 @@ namespace osu.Framework.Utils
 
             return items.OrderBy(i =>
             {
-                if (type.GetField(i.ToString()).GetCustomAttributes(typeof(OrderAttribute), false).FirstOrDefault() is OrderAttribute attr)
+                if (type.GetField(i.ToString())?.GetCustomAttributes(typeof(OrderAttribute), false).FirstOrDefault() is OrderAttribute attr)
                     return attr.Order;
 
                 if (orderedAttr.AllowPartialOrdering)
