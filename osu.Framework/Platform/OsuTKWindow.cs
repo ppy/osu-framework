@@ -41,6 +41,11 @@ namespace osu.Framework.Platform
         public event Action Exited;
 
         /// <summary>
+        /// Invoked when the <see cref="OsuTKWindow"/> has resized.
+        /// </summary>
+        public event Action Resized;
+
+        /// <summary>
         /// Invoked when any key has been pressed.
         /// </summary>
         [CanBeNull]
@@ -106,7 +111,11 @@ namespace osu.Framework.Platform
             // Moving or resizing the window needs to check to see if we've moved to a different display.
             // This will update the CurrentDisplay bindable.
             Move += (sender, e) => checkCurrentDisplay();
-            Resize += (sender, e) => checkCurrentDisplay();
+            Resize += (sender, e) =>
+            {
+                checkCurrentDisplay();
+                Resized?.Invoke();
+            };
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
