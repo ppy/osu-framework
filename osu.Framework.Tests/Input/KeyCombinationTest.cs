@@ -13,26 +13,17 @@ namespace osu.Framework.Tests.Input
     public class KeyCombinationTest
     {
         [Test]
-        public void TestKeyCombinationSortKeysWithTrueOrder()
-        {
-            var keyCombination = new KeyCombination(InputKey.R, InputKey.Shift, InputKey.Control);
-
-            Assert.AreEqual(keyCombination.Keys[0], InputKey.Control);
-            Assert.AreEqual(keyCombination.Keys[1], InputKey.Shift);
-            Assert.AreEqual(keyCombination.Keys[2], InputKey.R);
-        }
-
-        [Test]
-        public void TestKeyCombinationReadableStringDisplayTrueOrder()
+        public void TestKeyCombinationDisplayTrueOrder()
         {
             var keyCombination1 = new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.R);
             var keyCombination2 = new KeyCombination(InputKey.R, InputKey.Shift, InputKey.Control);
 
             Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
+            Assert.AreEqual(keyCombination1.ToString(), keyCombination2.ToString());
         }
 
         [Test]
-        public void TestKeyCombinationFromKeyboardStateReadableStringDisplayTrueOrder()
+        public void TestKeyCombinationFromKeyboardStateDisplayTrueOrder()
         {
             var keyboardState = new KeyboardState();
 
@@ -44,6 +35,7 @@ namespace osu.Framework.Tests.Input
             var keyCombination2 = new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.R);
 
             Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
+            Assert.AreEqual(keyCombination1.ToString(), keyCombination2.ToString());
         }
     }
 }

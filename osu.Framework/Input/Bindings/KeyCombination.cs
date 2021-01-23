@@ -33,7 +33,7 @@ namespace osu.Framework.Input.Bindings
         /// <remarks>This constructor is not optimized. Hot paths are assumed to use <see cref="FromInputState(InputState, Vector2?)"/>.</remarks>
         public KeyCombination(IEnumerable<InputKey> keys)
         {
-            Keys = keys?.Any() == true ? OrderAttributeUtils.GetValuesInOrder(keys.Distinct()).ToImmutableArray() : none;
+            Keys = keys?.Any() == true ? keys.Distinct().OrderBy(k => (int)k).ToImmutableArray() : none;
         }
 
         /// <summary>
@@ -142,9 +142,17 @@ namespace osu.Framework.Input.Bindings
         /// Get a string representation can be used with <see cref="KeyCombination(string)"/>.
         /// </summary>
         /// <returns>The string representation.</returns>
-        public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
+        public override string ToString()
+        {
+            var sortedKeys = OrderAttributeUtils.GetValuesInOrder(Keys);
+            return string.Join(',', sortedKeys.Select(k => (int)k));
+        }
 
-        public string ReadableString() => string.Join('-', Keys.Select(getReadableKey));
+        public string ReadableString()
+        {
+            var sortedKeys = OrderAttributeUtils.GetValuesInOrder(Keys);
+            return string.Join('-', sortedKeys.Select(getReadableKey));
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
@@ -469,8 +477,8 @@ namespace osu.Framework.Input.Bindings
                 keys.AddRange(state.Midi.Keys.Select(FromMidiKey));
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
-
-            return new KeyCombination(OrderAttributeUtils.GetValuesInOrder(keys).ToImmutableArray());
+            keys.Sort();
+            return new KeyCombination(keys.ToImmutable());
         }
     }
 
