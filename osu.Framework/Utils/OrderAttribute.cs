@@ -65,8 +65,8 @@ namespace osu.Framework.Utils
     public class HasOrderedElementsAttribute : Attribute
     {
         /// <summary>
-        /// Allow for partially ordering Enum members.
-        /// Members without an Order Attribute will default to their value as ordering key.
+        /// Allow for partially ordering <see cref="Enum"/> members.
+        /// Members without an <see cref="OrderAttribute"/> will default to their value as ordering key.
         /// </summary>
         public bool AllowPartialOrdering { get; set; }
     }
