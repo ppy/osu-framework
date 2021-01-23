@@ -17,7 +17,7 @@ namespace osu.Framework.Utils
             var type = typeof(T);
 
             if (!type.IsEnum)
-                throw new InvalidOperationException("T must be an enum");
+                throw new InvalidOperationException($"{typeof(T)} must be an enum");
 
             IEnumerable<T> items = (T[])Enum.GetValues(type);
 
@@ -32,7 +32,7 @@ namespace osu.Framework.Utils
             var type = typeof(T);
 
             if (!type.IsEnum)
-                throw new InvalidOperationException("T must be an enum");
+                throw new InvalidOperationException($"{typeof(T)} must be an enum");
 
             if (!(Attribute.GetCustomAttribute(type, typeof(HasOrderedElementsAttribute)) is HasOrderedElementsAttribute orderedAttr))
                 return items;
@@ -45,7 +45,7 @@ namespace osu.Framework.Utils
                 if (orderedAttr.AllowPartialOrdering)
                     return (int)Enum.Parse(type, i.ToString());
 
-                throw new ArgumentException($"Not all values of {nameof(T)} have {nameof(OrderAttribute)} specified.");
+                throw new ArgumentException($"Not all values of {typeof(T)} have {nameof(OrderAttribute)} specified.");
             });
         }
     }
