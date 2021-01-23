@@ -10,8 +10,13 @@ namespace osu.Framework.Utils
     /// </summary>
     public static class RNG
     {
-        // Base RNG. Maybe expose methods for re-seeding in the future?
-        private static readonly Random random = new Random();
+        private static Random random = new Random();
+
+        /// <summary>
+        /// Seeds the random number generator with the specified number.
+        /// </summary>
+        /// <param name="seed">The number to use to seed the random number generator.</param>
+        public static void Seed(int seed) => random = new Random(seed);
 
         /// <summary>
         /// Returns a non-negative signed integer.
