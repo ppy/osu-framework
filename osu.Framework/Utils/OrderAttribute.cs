@@ -39,11 +39,13 @@ namespace osu.Framework.Utils
 
             return items.OrderBy(i =>
             {
-                if (type.GetField(i.ToString())?.GetCustomAttributes(typeof(OrderAttribute), false).FirstOrDefault() is OrderAttribute attr)
+                var fieldInfo = type.GetField(i.ToString());
+
+                if (fieldInfo?.GetCustomAttributes(typeof(OrderAttribute), false).FirstOrDefault() is OrderAttribute attr)
                     return attr.Order;
 
                 if (orderedAttr.AllowPartialOrdering)
-                    return (int)Enum.Parse(type, i.ToString());
+                    return Convert.ToInt32(i);
 
                 throw new ArgumentException($"Not all values of {typeof(T)} have {nameof(OrderAttribute)} specified.");
             });
