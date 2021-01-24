@@ -19,7 +19,6 @@ namespace osu.Framework.Tests.Input
             var keyCombination2 = new KeyCombination(InputKey.R, InputKey.Shift, InputKey.Control);
 
             Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
-            Assert.AreEqual(keyCombination1.ToString(), keyCombination2.ToString());
         }
 
         [Test]
@@ -35,7 +34,6 @@ namespace osu.Framework.Tests.Input
             var keyCombination2 = new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.R);
 
             Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
-            Assert.AreEqual(keyCombination1.ToString(), keyCombination2.ToString());
         }
     }
 }

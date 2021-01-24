@@ -142,11 +142,7 @@ namespace osu.Framework.Input.Bindings
         /// Get a string representation can be used with <see cref="KeyCombination(string)"/>.
         /// </summary>
         /// <returns>The string representation.</returns>
-        public override string ToString()
-        {
-            var sortedKeys = OrderAttributeUtils.GetValuesInOrder(Keys);
-            return string.Join(',', sortedKeys.Select(k => (int)k));
-        }
+        public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
         public string ReadableString()
         {
