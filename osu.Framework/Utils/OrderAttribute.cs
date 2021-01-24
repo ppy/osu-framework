@@ -13,6 +13,7 @@ namespace osu.Framework.Utils
         /// Get values of an enum in order. Supports custom ordering via <see cref="OrderAttribute"/>.
         /// </summary>
         public static IEnumerable<T> GetValuesInOrder<T>()
+            where T : struct, Enum
         {
             var type = typeof(T);
 
@@ -28,6 +29,7 @@ namespace osu.Framework.Utils
         /// Get values of a collection of enum values in order. Supports custom ordering via <see cref="OrderAttribute"/>.
         /// </summary>
         public static IEnumerable<T> GetValuesInOrder<T>(IEnumerable<T> items)
+            where T : struct, Enum
         {
             var type = typeof(T);
 
