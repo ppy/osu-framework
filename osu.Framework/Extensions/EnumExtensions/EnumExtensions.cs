@@ -8,7 +8,7 @@ using osu.Framework.Utils;
 
 namespace osu.Framework.Extensions.EnumExtensions
 {
-    public static class OrderedEnumExtensions
+    public static class EnumExtensions
     {
         /// <summary>
         /// Get values of an enum in order. Supports custom ordering via <see cref="OrderAttribute"/>.
