@@ -3,37 +3,22 @@
 
 using NUnit.Framework;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Input.States;
-using osuTK.Input;
-using KeyboardState = osu.Framework.Input.States.KeyboardState;
 
 namespace osu.Framework.Tests.Input
 {
     [TestFixture]
     public class KeyCombinationTest
     {
-        [Test]
-        public void TestKeyCombinationDisplayTrueOrder()
+        private static readonly object[][] key_combination_display_test_cases =
         {
-            var keyCombination1 = new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.R);
-            var keyCombination2 = new KeyCombination(InputKey.R, InputKey.Shift, InputKey.Control);
+            new object[] { new KeyCombination(InputKey.Alt, InputKey.F4), "Alt-F4" },
+            new object[] { new KeyCombination(InputKey.D, InputKey.Control), "Ctrl-D" },
+            new object[] { new KeyCombination(InputKey.Shift, InputKey.F, InputKey.Control), "Ctrl-Shift-F" },
+            new object[] { new KeyCombination(InputKey.Alt, InputKey.Control, InputKey.Super, InputKey.Shift), "Ctrl-Alt-Shift-Win" }
+        };
 
-            Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
-        }
-
-        [Test]
-        public void TestKeyCombinationFromKeyboardStateDisplayTrueOrder()
-        {
-            var keyboardState = new KeyboardState();
-
-            keyboardState.Keys.Add(Key.R);
-            keyboardState.Keys.Add(Key.LShift);
-            keyboardState.Keys.Add(Key.LControl);
-
-            var keyCombination1 = KeyCombination.FromInputState(new InputState(keyboard: keyboardState));
-            var keyCombination2 = new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.R);
-
-            Assert.AreEqual(keyCombination1.ReadableString(), keyCombination2.ReadableString());
-        }
+        [TestCaseSource(nameof(key_combination_display_test_cases))]
+        public void TestKeyCombinationDisplayOrder(KeyCombination keyCombination, string expectedRepresentation)
+            => Assert.That(keyCombination.ReadableString(), Is.EqualTo(expectedRepresentation));
     }
 }
