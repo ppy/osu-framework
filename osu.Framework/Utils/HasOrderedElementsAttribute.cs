@@ -2,9 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Utils
 {
+    /// <summary>
+    /// Marker attribute for <see cref="Enum"/> classes whose members are annotated with <see cref="OrderAttribute"/>.
+    /// Methods from the <see cref="EnumExtensions"/> static class use the order defined with these attributes.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Enum)]
     public class HasOrderedElementsAttribute : Attribute
     {
