@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.States;
-using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -146,7 +146,7 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString()
         {
-            var sortedKeys = OrderAttributeUtils.GetValuesInOrder(Keys);
+            var sortedKeys = Keys.GetValuesInOrder();
             return string.Join('-', sortedKeys.Select(getReadableKey));
         }
 
