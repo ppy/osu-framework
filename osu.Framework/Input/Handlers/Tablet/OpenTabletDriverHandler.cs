@@ -29,31 +29,10 @@ namespace osu.Framework.Input.Handlers.Tablet
                 OutputMode = new AbsoluteTabletMode(this)
             };
 
-            tabletDriver.TabletChanged += (sender, e) =>
-            {
-                if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode && tabletDriver.Tablet != null)
-                {
-                    float inputWidth, inputHeight, outputWidth, outputHeight;
-
-                    // Set input area in millimeters
-                    absoluteOutputMode.Input = new Area
-                    {
-                        Width = inputWidth = tabletDriver.Tablet.Digitizer.Width,
-                        Height = inputHeight = tabletDriver.Tablet.Digitizer.Height,
-                        Position = new Vector2(inputWidth / 2, inputHeight / 2),
-                        Rotation = 0
-                    };
-
-                    // Set output area in pixels
-                    absoluteOutputMode.Output = new Area
-                    {
-                        // Ideally would be the maximum window dimensions
-                        Width = outputWidth = host.Window.ClientSize.Width,
-                        Height = outputHeight = host.Window.ClientSize.Height,
-                        Position = new Vector2(outputWidth / 2, outputHeight / 2)
-                    };
-                }
-            };
+            updateOutputArea(host.Window);
+            updateInputArea();
+            host.Window.Resized += () => updateOutputArea(host.Window);
+            tabletDriver.TabletChanged += (sender, e) => updateInputArea();
 
             tabletDriver.ReportRecieved += (sender, report) =>
             {
@@ -85,6 +64,39 @@ namespace osu.Framework.Input.Handlers.Tablet
         void IVirtualTablet.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
         void IRelativePointer.Translate(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new osuTK.Vector2(delta.X, delta.Y) });
+
+        private void updateOutputArea(IWindow window)
+        {
+            if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode)
+            {
+                float outputWidth, outputHeight;
+
+                // Set output area in pixels
+                absoluteOutputMode.Output = new Area
+                {
+                    Width = outputWidth = window.ClientSize.Width,
+                    Height = outputHeight = window.ClientSize.Height,
+                    Position = new Vector2(outputWidth / 2, outputHeight / 2)
+                };
+            }
+        }
+
+        private void updateInputArea()
+        {
+            if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode && tabletDriver.Tablet != null)
+            {
+                float inputWidth, inputHeight;
+
+                // Set input area in millimeters
+                absoluteOutputMode.Input = new Area
+                {
+                    Width = inputWidth = tabletDriver.Tablet.Digitizer.Width,
+                    Height = inputHeight = tabletDriver.Tablet.Digitizer.Height,
+                    Position = new Vector2(inputWidth / 2, inputHeight / 2),
+                    Rotation = 0
+                };
+            }
+        }
 
         private void handleTabletReport(ITabletReport tabletReport)
         {
