@@ -42,15 +42,11 @@ namespace osu.Framework.Tests.Visual.Testing
             AddStep("move mouse to screen zero", () => InputManager.MoveMouseTo(Vector2.Zero));
             AddAssert("ensure cursor masked away", () => cursor.IsMaskedAway);
 
-            AddStep("press buttons", () =>
-            {
-                InputManager.PressButton(MouseButton.Left);
-                InputManager.PressButton(MouseButton.Right);
-            });
+            AddStep("hold left button", () => InputManager.PressButton(MouseButton.Left));
+            AddAssert("cursor updated to hold", () => cursor.Left.IsPresent);
 
-            AddStep("move cursor to content", () => InputManager.MoveMouseTo(Content));
-
-            AddAssert("cursor button parts visible", () => cursor.Left.IsPresent && cursor.Right.IsPresent);
+            AddStep("move mouse to content", () => InputManager.MoveMouseTo(Content));
+            AddAssert("cursor still holding", () => cursor.Left.IsPresent);
         }
 
         [Test]
