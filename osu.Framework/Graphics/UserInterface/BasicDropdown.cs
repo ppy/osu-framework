@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Foreground.Padding = new MarginPadding(5);
                 BackgroundColour = FrameworkColour.Green;
                 BackgroundColourHover = FrameworkColour.YellowGreen;
+
                 Children = new[]
                 {
                     label = new SpriteText

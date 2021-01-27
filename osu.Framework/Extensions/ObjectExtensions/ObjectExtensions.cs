@@ -16,7 +16,7 @@ namespace osu.Framework.Extensions.ObjectExtensions
         /// Coerces a nullable object as non-nullable. This is an alternative to the C# 8 null-forgiving operator "<c>!</c>".
         /// </summary>
         /// <remarks>
-        /// This should only be used when when an assertion or other handling is not a reasonable alternative.
+        /// This should only be used when an assertion or other handling is not a reasonable alternative.
         /// </remarks>
         /// <param name="obj">The nullable object.</param>
         /// <typeparam name="T">The type of the object.</typeparam>

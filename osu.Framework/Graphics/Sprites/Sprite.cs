@@ -17,12 +17,22 @@ namespace osu.Framework.Graphics.Sprites
     /// </summary>
     public class Sprite : Drawable, ITexturedShaderDrawable
     {
+        public Sprite()
+        {
+            AddLayout(conservativeScreenSpaceDrawQuadBacking);
+            AddLayout(inflationAmountBacking);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
+        {
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+        }
+
         public IShader TextureShader { get; protected set; }
 
         public IShader RoundedTextureShader { get; protected set; }
-
-        [Obsolete("Has no effect. Use TextureRectangle instead.")] // can be removed 20201201
-        public bool WrapTexture { get; set; }
 
         private RectangleF textureRectangle = new RectangleF(0, 0, 1, 1);
 
@@ -99,6 +109,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public const int MAX_EDGE_SMOOTHNESS = 3; // See https://github.com/ppy/osu-framework/pull/3511#discussion_r421665156 for relevant discussion.
 
+        private Vector2 edgeSmoothness;
+
         /// <summary>
         /// Determines over how many pixels of width the border of the sprite is smoothed
         /// in X and Y direction respectively.
@@ -106,33 +118,27 @@ namespace osu.Framework.Graphics.Sprites
         /// may be masked away. This should be counteracted by setting the MaskingSmoothness
         /// of the masking container to a slightly larger value than EdgeSmoothness.
         /// </summary>
-        public Vector2 EdgeSmoothness = Vector2.Zero;
-
-        public Sprite()
+        public Vector2 EdgeSmoothness
         {
-            AddLayout(conservativeScreenSpaceDrawQuadBacking);
+            get => edgeSmoothness;
+            set
+            {
+                if (edgeSmoothness == value)
+                    return;
+
+                if (value.X > MAX_EDGE_SMOOTHNESS || value.Y > MAX_EDGE_SMOOTHNESS)
+                {
+                    throw new InvalidOperationException(
+                        $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({value.X}, {value.Y}).");
+                }
+
+                edgeSmoothness = value;
+
+                Invalidate(Invalidation.DrawInfo);
+            }
         }
-
-        #region Disposal
-
-        protected override void Dispose(bool isDisposing)
-        {
-            texture?.Dispose();
-            texture = null;
-
-            base.Dispose(isDisposing);
-        }
-
-        #endregion
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode(this);
-
-        [BackgroundDependencyLoader]
-        private void load(ShaderManager shaders)
-        {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-        }
 
         private Texture texture;
 
@@ -176,25 +182,24 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public Vector2 InflationAmount { get; private set; }
+        public Vector2 InflationAmount => inflationAmountBacking.IsValid ? inflationAmountBacking.Value : (inflationAmountBacking.Value = computeInflationAmount());
+
+        private readonly LayoutValue<Vector2> inflationAmountBacking = new LayoutValue<Vector2>(Invalidation.DrawInfo);
+
+        private Vector2 computeInflationAmount()
+        {
+            if (EdgeSmoothness == Vector2.Zero)
+                return Vector2.Zero;
+
+            return DrawInfo.MatrixInverse.ExtractScale().Xy * EdgeSmoothness;
+        }
 
         protected override Quad ComputeScreenSpaceDrawQuad()
         {
             if (EdgeSmoothness == Vector2.Zero)
-            {
-                InflationAmount = Vector2.Zero;
                 return base.ComputeScreenSpaceDrawQuad();
-            }
 
-            if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
-            {
-                throw new InvalidOperationException(
-                    $"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
-            }
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-
-            return ToScreenSpace(DrawRectangle.Inflate(scale.Xy * EdgeSmoothness));
+            return ToScreenSpace(DrawRectangle.Inflate(InflationAmount));
         }
 
         // Matches the invalidation types of Drawable.screenSpaceDrawQuadBacking
@@ -257,5 +262,17 @@ namespace osu.Framework.Graphics.Sprites
                 result += $" tex: {texture.AssetName}";
             return result;
         }
+
+        #region Disposal
+
+        protected override void Dispose(bool isDisposing)
+        {
+            texture?.Dispose();
+            texture = null;
+
+            base.Dispose(isDisposing);
+        }
+
+        #endregion
     }
 }

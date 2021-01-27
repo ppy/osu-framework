@@ -98,16 +98,16 @@ namespace osu.Framework.Screens
             // Suspend the current screen, if there is one
             if (source != null && source != stack.Peek()) throw new ScreenNotCurrentException(nameof(Push));
 
+            var newScreenDrawable = newScreen.AsDrawable();
+
+            if (newScreenDrawable.IsLoaded)
+                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
+
             if (suspendImmediately)
                 suspend(source, newScreen);
 
             stack.Push(newScreen);
             ScreenPushed?.Invoke(source, newScreen);
-
-            var newScreenDrawable = newScreen.AsDrawable();
-
-            if (newScreenDrawable.IsLoaded)
-                throw new InvalidOperationException("A screen should not be loaded before being pushed.");
 
             // this needs to be queued here before the load is begun so it preceed any potential OnSuspending event (also attached to OnLoadComplete).
             newScreenDrawable.OnLoadComplete += _ => newScreen.OnEntering(source);
@@ -214,20 +214,38 @@ namespace osu.Framework.Screens
                 throw new ScreenNotInStackException(nameof(MakeCurrent));
 
             // while a parent still exists and exiting is not blocked, continue to iterate upwards.
-            IScreen firstScreen = CurrentScreen;
-            IScreen exitSource = null;
+            IScreen exitCandidate = null;
 
             while (CurrentScreen != null)
             {
-                if (exitFrom(exitSource, shouldFireResumeEvent: false) || CurrentScreen == target)
+                // the exit source is always the candidate from the previous loop, or null if this is the current screen.
+                IScreen exitSource = exitCandidate;
+                exitCandidate = CurrentScreen;
+
+                bool exitBlocked = exitFrom(exitSource, shouldFireResumeEvent: false);
+
+                if (exitBlocked)
                 {
-                    // don't fire the resume event if the first screen blocked the exit.
-                    if (CurrentScreen != firstScreen)
+                    // exit was blocked and no screen change has happened in this loop.
+                    // no resume event should be fired.
+                    if (exitSource == null)
+                        return;
+
+                    // exit was blocked, but a nested exit operation may have succeeded (ie. a screen calling this.Exit() after blocking).
+                    // in such a case, the MakeCurrent / resumeFrom flow would have already been performed.
+                    // to avoid a duplicate resumeFrom event, only fire from here if it can be assured that the current screen is still the one which blocked the exit above.
+                    if (CurrentScreen == exitCandidate)
                         resumeFrom(exitSource);
+
                     return;
                 }
 
-                exitSource = CurrentScreen;
+                if (CurrentScreen == target)
+                {
+                    // an exit was successful; resume from the "proposed" target (which was exited above).
+                    resumeFrom(exitCandidate);
+                    return;
+                }
             }
         }
 

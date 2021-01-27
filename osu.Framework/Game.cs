@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -20,10 +18,11 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -60,7 +59,7 @@ namespace osu.Framework
 
         private DrawVisualiser drawVisualiser;
 
-        private TextureAtlasVisualiser atlasVisualiser;
+        private TextureVisualiser textureVisualiser;
 
         private LogOverlay logOverlay;
 
@@ -75,6 +74,14 @@ namespace osu.Framework
         /// </remarks>
         /// </summary>
         protected internal virtual IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => null;
+
+        /// <summary>
+        /// Creates the <see cref="Storage"/> where this <see cref="Game"/> will reside.
+        /// </summary>
+        /// <param name="host">The <see cref="GameHost"/>.</param>
+        /// <param name="defaultStorage">The default <see cref="Storage"/> to be used if a custom <see cref="Storage"/> isn't desired.</param>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected internal virtual Storage CreateStorage(GameHost host, Storage defaultStorage) => defaultStorage;
 
         protected Game()
         {
@@ -141,7 +148,7 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            var cacheStorage = Host.Storage.GetStorageForDirectory(Path.Combine("cache", "fonts"));
+            var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
             Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
@@ -285,16 +292,16 @@ namespace osu.Framework
 
                 case FrameworkAction.ToggleAtlasVisualiser:
 
-                    if (atlasVisualiser == null)
+                    if (textureVisualiser == null)
                     {
-                        LoadComponentAsync(atlasVisualiser = new TextureAtlasVisualiser
+                        LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
                             Position = new Vector2(100 + 2 * ToolWindow.WIDTH, 100),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
 
-                    atlasVisualiser.ToggleVisibility();
+                    textureVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
@@ -331,6 +338,22 @@ namespace osu.Framework
         {
         }
 
+        public virtual bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.Exit:
+                    Host.Window?.Close();
+                    return true;
+            }
+
+            return false;
+        }
+
+        public virtual void OnReleased(PlatformAction action)
+        {
+        }
+
         public void Exit()
         {
             if (Host == null)
@@ -343,6 +366,15 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            // ensure any async disposals are completed before we begin to rip components out.
+            // if we were to not wait, async disposals may throw unexpected exceptions.
+            AsyncDisposalQueue.WaitForEmpty();
+
+            base.Dispose(isDisposing);
+
+            // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
+            AsyncDisposalQueue.WaitForEmpty();
+
             Audio?.Dispose();
             Audio = null;
 
@@ -351,8 +383,6 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
-
-            base.Dispose(isDisposing);
         }
     }
 }

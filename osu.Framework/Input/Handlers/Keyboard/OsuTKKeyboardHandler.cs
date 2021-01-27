@@ -24,15 +24,17 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
             Enabled.BindValueChanged(e =>
             {
+                var tkWin = (OsuTKWindow)host.Window;
+
                 if (e.NewValue)
                 {
-                    host.Window.KeyDown += handleKeyboardEvent;
-                    host.Window.KeyUp += handleKeyboardEvent;
+                    tkWin.KeyDown += handleKeyboardEvent;
+                    tkWin.KeyUp += handleKeyboardEvent;
                 }
                 else
                 {
-                    host.Window.KeyDown -= handleKeyboardEvent;
-                    host.Window.KeyUp -= handleKeyboardEvent;
+                    tkWin.KeyDown -= handleKeyboardEvent;
+                    tkWin.KeyUp -= handleKeyboardEvent;
                     lastRawState = null;
                     lastEventState = null;
                 }

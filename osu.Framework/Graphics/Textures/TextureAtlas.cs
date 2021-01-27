@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.Textures
 
             using (var whiteTex = new TextureGLSub(bounds, AtlasTexture, WrapMode.Repeat, WrapMode.Repeat))
                 // Generate white padding as if WhitePixel was wrapped, even though it isn't
-                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, Rgba32.White)));
+                whiteTex.SetData(new TextureUpload(new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, whiteTex.Width, whiteTex.Height, new Rgba32(Vector4.One))));
 
             currentPosition = new Vector2I(PADDING + WHITE_PIXEL_SIZE, PADDING);
         }

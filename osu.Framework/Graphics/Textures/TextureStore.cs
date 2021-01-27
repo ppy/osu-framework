@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -15,6 +16,7 @@ namespace osu.Framework.Graphics.Textures
     public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        private readonly object retrievalLock = new object();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -60,7 +62,11 @@ namespace osu.Framework.Graphics.Textures
             if (Atlas != null)
             {
                 if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
-                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
+                {
+                    Logger.Log(
+                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
+                        LoggingTarget.Performance);
+                }
             }
 
             glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
@@ -85,7 +91,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) =>
+            Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -107,38 +114,78 @@ namespace osu.Framework.Graphics.Textures
 
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
-            this.LogIfNonBackgroundThread(key);
+            // Check if the texture exists in the cache.
+            if (TryGetCached(key, out var cached))
+                return cached;
 
-            lock (textureCache)
+            // Take an exclusive lock on retrieval of the texture.
+            lock (retrievalLock)
             {
-                // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(key, out var tex))
-                {
-                    try
-                    {
-                        textureCache[key] = tex = getTexture(name, wrapModeS, wrapModeT);
-                    }
-                    catch (TextureTooLargeForGLException)
-                    {
-                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                    }
-                }
+                // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
+                if (TryGetCached(key, out cached))
+                    return cached;
 
-                return tex;
+                this.LogIfNonBackgroundThread(key);
+
+                try
+                {
+                    var tex = getTexture(name, wrapModeS, wrapModeT);
+                    if (tex != null)
+                        tex.LookupKey = key;
+
+                    return CacheAndReturnTexture(key, tex);
+                }
+                catch (TextureTooLargeForGLException)
+                {
+                    Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                }
             }
+
+            return null;
         }
 
         /// <summary>
-        /// Disposes and removes a texture with the specified name from the texture cache.
+        /// Attempts to retrieve an existing cached texture.
         /// </summary>
-        /// <param name="name">The name of the texture to purge from the cache.</param>
-        protected void Purge(string name)
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The returned texture. Null if the texture did not exist in the cache.</param>
+        /// <returns>Whether a cached texture was retrieved.</returns>
+        protected virtual bool TryGetCached([NotNull] string lookupKey, [CanBeNull] out Texture texture)
+        {
+            lock (textureCache)
+                return textureCache.TryGetValue(lookupKey, out texture);
+        }
+
+        /// <summary>
+        /// Caches and returns the given texture.
+        /// </summary>
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The texture to be cached and returned.</param>
+        /// <returns>The texture to be returned.</returns>
+        [CanBeNull]
+        protected virtual Texture CacheAndReturnTexture([NotNull] string lookupKey, [CanBeNull] Texture texture)
+        {
+            lock (textureCache)
+                return textureCache[lookupKey] = texture;
+        }
+
+        /// <summary>
+        /// Disposes and removes a texture from the cache.
+        /// </summary>
+        /// <param name="texture">The texture to purge from the cache.</param>
+        protected void Purge(Texture texture)
         {
             lock (textureCache)
             {
-                if (textureCache.TryGetValue(name, out var tex))
-                    tex.Dispose();
-                textureCache.Remove(name);
+                if (textureCache.TryGetValue(texture.LookupKey, out var tex))
+                {
+                    // we are doing this locally as right now, Textures don't dispose the underlying texture (leaving it to GC finalizers).
+                    // in the case of a purge operation we are pretty sure this is the intended behaviour.
+                    tex?.TextureGL?.Dispose();
+                    tex?.Dispose();
+                }
+
+                textureCache.Remove(texture.LookupKey);
             }
         }
     }

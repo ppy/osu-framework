@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -51,11 +52,21 @@ namespace osu.Framework.Graphics.Performance
         {
             base.LoadComplete();
 
-            GlobalStatistics.Statistics.ItemsAdded += add;
-            GlobalStatistics.Statistics.ItemsRemoved += remove;
+            GlobalStatistics.StatisticsChanged += (_, e) =>
+            {
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Add:
+                        add(e.NewItems.Cast<IGlobalStatistic>());
+                        break;
 
-            // ToArray is to guard against collection modification in underlying bindable.
-            add(GlobalStatistics.Statistics.ToArray());
+                    case NotifyCollectionChangedAction.Remove:
+                        remove(e.OldItems.Cast<IGlobalStatistic>());
+                        break;
+                }
+            };
+
+            add(GlobalStatistics.GetStatistics());
 
             State.BindValueChanged(visibilityChanged, true);
         }
@@ -63,6 +74,9 @@ namespace osu.Framework.Graphics.Performance
         private void visibilityChanged(ValueChangedEvent<Visibility> state)
         {
             performanceLogging.Value = state.NewValue == Visibility.Visible;
+
+            if (state.NewValue == Visibility.Visible)
+                GlobalStatistics.OutputToLog();
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>

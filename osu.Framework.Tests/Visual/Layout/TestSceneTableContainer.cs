@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Layout
         public void TestOnlyContent()
         {
             AddStep("set content", () => table.Content = createContent(2, 2));
-            AddAssert("headers not displayed", () => getGrid().Content.Length == 2);
+            AddAssert("headers not displayed", () => getGrid().Content.Count == 2);
         }
 
         [Test]
@@ -81,9 +81,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("4 rows", () => getGrid().Content.Length == 4);
+            AddAssert("4 rows", () => getGrid().Content.Count == 4);
             AddStep("disable headers", () => table.ShowHeaders = false);
-            AddAssert("3 rows", () => getGrid().Content.Length == 3);
+            AddAssert("3 rows", () => getGrid().Content.Count == 3);
         }
 
         [Test]
@@ -100,9 +100,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count) == 3);
             AddStep("disable headers", () => table.ShowHeaders = false);
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count) == 2);
         }
 
         [Test]
@@ -118,9 +118,9 @@ namespace osu.Framework.Tests.Visual.Layout
                 };
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count) == 3);
             AddStep("disable headers", () => table.ShowHeaders = false);
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count) == 3);
         }
 
         [Test]
@@ -172,7 +172,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
             bool testColumn(int index, Anchor anchor)
             {
-                for (int r = 0; r < getGrid().Content.Length; r++)
+                for (int r = 0; r < getGrid().Content.Count; r++)
                 {
                     if (getGrid().Content[r][index].Anchor != anchor)
                         return false;
@@ -202,14 +202,14 @@ namespace osu.Framework.Tests.Visual.Layout
                 new TableColumn("Header 3"),
             });
 
-            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Length) == 3);
+            AddAssert("3 columns", () => getGrid().Content.Max(r => r.Count) == 3);
 
             AddStep("decrease columns", () => table.Columns = new[]
             {
                 new TableColumn("Header 1"),
             });
 
-            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Length) == 2);
+            AddAssert("2 columns", () => getGrid().Content.Max(r => r.Count) == 2);
         }
 
         [Test]
@@ -239,7 +239,7 @@ namespace osu.Framework.Tests.Visual.Layout
 
             bool testRows(float expectedHeight)
             {
-                for (int row = 0; row < getGrid().Content.Length; row++)
+                for (int row = 0; row < getGrid().Content.Count; row++)
                 {
                     if (!Precision.AlmostEquals(expectedHeight, getGrid().Content[row][0].Parent.DrawHeight))
                         return false;

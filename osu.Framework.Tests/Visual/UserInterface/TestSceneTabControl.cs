@@ -20,6 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private readonly TestEnum[] items;
 
+        private FillFlowContainer tabControlContainer;
+
         private StyledTabControl pinnedAndAutoSort;
         private StyledTabControl switchingTabControl;
         private PlatformActionContainer platformActionContainer;
@@ -27,6 +29,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private StyledTabControl removeAllTabControl;
         private StyledMultilineTabControl multilineTabControl;
         private StyledTabControl simpleTabcontrol;
+        private StyledTabControl simpleTabcontrolNoSwitchOnRemove;
+        private BasicTabControl<TestEnum?> basicTabControl;
 
         public TestSceneTabControl()
         {
@@ -38,7 +42,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Clear();
 
-            Add(new FillFlowContainer
+            Add(tabControlContainer = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Full,
@@ -48,6 +52,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     simpleTabcontrol = new StyledTabControl
                     {
                         Size = new Vector2(200, 30),
+                    },
+                    simpleTabcontrolNoSwitchOnRemove = new StyledTabControl
+                    {
+                        Size = new Vector2(200, 30),
+                        SwitchTabOnRemove = false
                     },
                     multilineTabControl = new StyledMultilineTabControl
                     {
@@ -76,15 +85,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Size = new Vector2(200, 30)
                     },
+                    basicTabControl = new BasicTabControl<TestEnum?>
+                    {
+                        Size = new Vector2(200, 20)
+                    }
                 }
             });
 
             foreach (var item in items)
             {
                 simpleTabcontrol.AddItem(item);
+                simpleTabcontrolNoSwitchOnRemove.AddItem(item);
                 multilineTabControl.AddItem(item);
                 switchingTabControl.AddItem(item);
                 withoutDropdownTabControl.AddItem(item);
+                basicTabControl.AddItem(item);
             }
 
             items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
@@ -260,6 +275,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("Ensure selected tab is null", () => simpleTabcontrol.SelectedTab == null);
         }
 
+        /// <summary>
+        /// Tests that the selection is not switched on a <see cref="TabControl{T}"/> that has <see cref="TabControl{T}.SwitchTabOnRemove"/> set to <c>false</c>.
+        /// </summary>
+        [Test]
+        public void TestRemovingSelectedTabDoesNotSwitchSelectionIfNotSwitchTabOnRemove()
+        {
+            AddStep("Select tab 2", () => simpleTabcontrolNoSwitchOnRemove.Current.Value = TestEnum.Test2);
+            AddStep("Remove tab 2", () => simpleTabcontrolNoSwitchOnRemove.RemoveItem(TestEnum.Test2));
+            AddAssert("Ensure has not switched", () => simpleTabcontrolNoSwitchOnRemove.SelectedTab.Value == TestEnum.Test2);
+        }
+
         [Test]
         public void TestRemovingUnswitchableTab()
         {
@@ -329,6 +355,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
+        }
+
+        [TestCase(false, null)]
+        [TestCase(true, TestEnum.Test0)]
+        public void TestInitialSelection(bool selectFirstByDefault, TestEnum? expectedInitialSelection)
+        {
+            StyledTabControl tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControlContainer.Add(tabControl = new StyledTabControl
+                {
+                    Size = new Vector2(200, 30),
+                    Items = items.Cast<TestEnum?>().ToList(),
+                    SelectFirstTabByDefault = selectFirstByDefault
+                });
+            });
+
+            AddUntilStep("wait for loaded", () => tabControl.IsLoaded);
+            AddAssert("initial selection is correct", () => tabControl.Current.Value == expectedInitialSelection);
         }
 
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>

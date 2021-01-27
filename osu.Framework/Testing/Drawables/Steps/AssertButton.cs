@@ -13,7 +13,8 @@ namespace osu.Framework.Testing.Drawables.Steps
         public string ExtendedDescription;
         public StackTrace CallStack;
 
-        public AssertButton()
+        public AssertButton(bool isSetupStep = false)
+            : base(isSetupStep)
         {
             Action += checkAssert;
             LightColour = Color4.OrangeRed;

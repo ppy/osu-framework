@@ -35,7 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SampleGame\SampleGame.csproj">
-      <Project>{E3882853-43D1-4603-AD33-D9D59C8A8692}</Project>
+      <Project>{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}</Project>
       <Name>SampleGame</Name>
     </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">

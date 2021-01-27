@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderBarText;
-        private readonly SliderBar<double> sliderBar;
+        private readonly TestSliderBar sliderBar;
         private readonly SliderBar<double> transferOnCommitSliderBar;
 
         public TestSceneSliderBar()
@@ -48,7 +48,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Text = "BasicSliderBar:",
                     },
-                    sliderBar = new BasicSliderBar<double>
+                    sliderBar = new TestSliderBar
                     {
                         Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
@@ -122,6 +122,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         [TestCase(false)]
         [TestCase(true)]
+        public void TestKeyboardInput(bool allowOutside)
+        {
+            AddStep($"allow outside: {allowOutside}", () => sliderBar.KeyboardInput = allowOutside);
+
+            checkValue(0, allowOutside);
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(1, !allowOutside);
+
+            AddStep("move mouse inside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(allowOutside ? 2 : 1, false);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void TestAdjustmentPrecision(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
@@ -187,6 +214,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
             sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
+        }
+
+        public class TestSliderBar : BasicSliderBar<double>
+        {
+            public bool KeyboardInput;
+
+            protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }
 }

@@ -90,5 +90,21 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
 
             return new string(prefix);
         }
+
+        /// <summary>
+        /// Get all combinations of provided sequences.
+        /// </summary>
+        public static IEnumerable<IEnumerable<T>> CartesianProduct<T>(this IEnumerable<IEnumerable<T>> sequences)
+        {
+            // https://stackoverflow.com/a/3098381
+            IEnumerable<IEnumerable<T>> emptyProduct = new[] { Enumerable.Empty<T>() };
+            return sequences.Aggregate(
+                emptyProduct,
+                (accumulator, sequence) =>
+                    from accseq in accumulator
+                    from item in sequence
+                    select accseq.Concat(new[] { item })
+            );
+        }
     }
 }

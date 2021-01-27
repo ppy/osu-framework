@@ -19,7 +19,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -30,6 +29,17 @@ namespace osu.Framework.Graphics.OpenGL
         /// This is a carefully-chosen number to enable the update and draw threads to work concurrently without causing unnecessary load.
         /// </summary>
         public const int MAX_DRAW_NODES = 3;
+
+        /// <summary>
+        /// The interval (in frames) before checking whether VBOs should be freed.
+        /// VBOs may remain unused for at most double this length before they are recycled.
+        /// </summary>
+        private const int vbo_free_check_interval = 300;
+
+        /// <summary>
+        /// The amount of times <see cref="Reset"/> has been invoked.
+        /// </summary>
+        internal static ulong ResetId { get; private set; }
 
         public static ref readonly MaskingInfo CurrentMaskingInfo => ref currentMaskingInfo;
         private static MaskingInfo currentMaskingInfo;
@@ -80,6 +90,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly List<IVertexBatch> batch_reset_list = new List<IVertexBatch>();
 
+        private static readonly List<IVertexBuffer> vertex_buffers_in_use = new List<IVertexBuffer>();
+
         public static bool IsInitialized { get; private set; }
 
         private static WeakReference<GameHost> host;
@@ -88,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            if (host.Window is GameWindow win)
+            if (host.Window is OsuTKWindow win)
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
@@ -100,26 +112,23 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
 
             IsInitialized = true;
+
+            reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
         }
+
+        private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            int frameCount = 0;
-
-            if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            if (host != null && host.TryGetTarget(out _))
+                disposal_queue.ScheduleDisposal(disposalAction);
             else
                 disposalAction.Invoke();
+        }
 
-            void scheduleNextDisposal() => reset_scheduler.Add(() =>
-            {
-                // There may be a number of DrawNodes queued to be drawn
-                // Disposal should only take place after
-                if (frameCount++ >= MAX_DRAW_NODES)
-                    disposalAction.Invoke();
-                else
-                    scheduleNextDisposal();
-            });
+        private static void checkPendingDisposals()
+        {
+            disposal_queue.CheckPendingDisposals();
         }
 
         private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
@@ -129,6 +138,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
+            ResetId++;
+
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
@@ -136,37 +147,6 @@ namespace osu.Framework.Graphics.OpenGL
             stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
             if (expensive_operation_queue.TryDequeue(out Action action))
                 action.Invoke();
-
-            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
-            stat_texture_uploads_dequeued.Value = 0;
-            stat_texture_uploads_performed.Value = 0;
-
-            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
-            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
-            int uploads = 0;
-            int uploadedPixels = 0;
-
-            // continue attempting to upload textures until enough uploads have been performed.
-            while (texture_upload_queue.TryDequeue(out TextureGL texture))
-            {
-                stat_texture_uploads_dequeued.Value++;
-
-                texture.IsQueuedForUpload = false;
-
-                if (!texture.Upload())
-                    continue;
-
-                stat_texture_uploads_performed.Value++;
-
-                if (++uploads >= targetUploads)
-                    break;
-
-                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
-                    break;
-            }
-
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
 
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
@@ -208,6 +188,40 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushDepthInfo(DepthInfo.Default);
             Clear(new ClearInfo(Color4.Black));
+
+            freeUnusedVertexBuffers();
+
+            stat_texture_uploads_queued.Value = texture_upload_queue.Count;
+            stat_texture_uploads_dequeued.Value = 0;
+            stat_texture_uploads_performed.Value = 0;
+
+            // increase the number of items processed with the queue length to ensure it doesn't get out of hand.
+            int targetUploads = Math.Clamp(texture_upload_queue.Count / 2, 1, MaxTexturesUploadedPerFrame);
+            int uploads = 0;
+            int uploadedPixels = 0;
+
+            // continue attempting to upload textures until enough uploads have been performed.
+            while (texture_upload_queue.TryDequeue(out TextureGL texture))
+            {
+                stat_texture_uploads_dequeued.Value++;
+
+                texture.IsQueuedForUpload = false;
+
+                if (!texture.Upload())
+                    continue;
+
+                stat_texture_uploads_performed.Value++;
+
+                if (++uploads >= targetUploads)
+                    break;
+
+                if ((uploadedPixels += texture.Width * texture.Height) > MaxPixelsUploadedPerFrame)
+                    break;
+            }
+
+            last_bound_texture.AsSpan().Clear();
+            last_bound_texture_is_atlas.AsSpan().Clear();
+            last_bound_buffers.AsSpan().Clear();
         }
 
         private static ClearInfo currentClearInfo;
@@ -346,6 +360,26 @@ namespace osu.Framework.Graphics.OpenGL
             FlushCurrentBatch();
 
             lastActiveBatch = batch;
+        }
+
+        /// <summary>
+        /// Notifies that a <see cref="IVertexBuffer"/> has begun being used.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IVertexBuffer"/> in use.</param>
+        internal static void RegisterVertexBufferUse(IVertexBuffer buffer) => vertex_buffers_in_use.Add(buffer);
+
+        private static void freeUnusedVertexBuffers()
+        {
+            if (ResetId % vbo_free_check_interval != 0)
+                return;
+
+            foreach (var buf in vertex_buffers_in_use)
+            {
+                if (buf.InUse && ResetId - buf.LastUseResetId > vbo_free_check_interval)
+                    buf.Free();
+            }
+
+            vertex_buffers_in_use.RemoveAll(b => !b.InUse);
         }
 
         private static readonly int[] last_bound_texture = new int[16];

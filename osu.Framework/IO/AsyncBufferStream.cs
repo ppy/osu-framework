@@ -107,7 +107,7 @@ namespace osu.Framework.IO
                 blockLoadedStatus[curr] = true;
                 last = curr;
 
-                isLoaded |= blockLoadedStatus.All(loaded => loaded);
+                isLoaded = blockLoadedStatus.All(loaded => loaded);
             }
 
             if (!isClosed) underlyingStream?.Close();
@@ -202,7 +202,8 @@ namespace osu.Framework.IO
             int bytesRead = amountBytesToRead;
 
             amountBytesToRead = 0;
-            position += bytesRead;
+
+            Interlocked.Add(ref position, bytesRead);
 
             return bytesRead;
         }

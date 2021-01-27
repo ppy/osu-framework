@@ -24,6 +24,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         private TestAnimation animation;
         private Container animationContainer;
 
+        [Resolved]
+        private FontStore fontStore { get; set; }
+
         [SetUpSteps]
         public void SetUpSteps()
         {
@@ -209,11 +212,57 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddAssert("Animation is at beginning", () => animation.PlaybackPosition < 1000);
         }
 
+        [Test]
+        public void TestGotoZeroOnFirstFrameVisible()
+        {
+            loadNewAnimation();
+
+            AddStep("set time to 1000", () => clock.CurrentTime = 1000);
+            AddStep("hide animation", () => animation.Hide());
+
+            AddStep("set time = 2000", () => clock.CurrentTime = 2000);
+            AddStep("goto(0) and show", () =>
+            {
+                animation.GotoFrame(0);
+                animation.Show();
+            });
+
+            // Note: We won't get PlaybackPosition=0 here because the test runner increments the clock by at least 200ms per step, so 1000 is a safe value.
+            AddAssert("animation restarted from 0", () => animation.PlaybackPosition < 1000);
+        }
+
+        [TestCase(0)]
+        [TestCase(48)]
+        public void TestGotoFrameBeforeLoaded(int frame)
+        {
+            AddStep("create new animation", () => animation = new TestAnimation(true, fontStore)
+            {
+                Loop = false
+            });
+            AddStep($"go to frame {frame}", () => animation.GotoFrame(frame));
+
+            AddStep("load animation", () => animationContainer.Child = animation);
+
+            AddAssert($"animation is at frame {frame}", () => animation.CurrentFrameIndex == frame);
+        }
+
+        [Test]
+        public void TestClearFrames()
+        {
+            loadNewAnimation();
+
+            AddUntilStep("animation is playing", () => animation.CurrentFrameIndex > 0);
+
+            AddStep("clear frames", () => animation.ClearFrames());
+            AddAssert("animation duration is 0", () => animation.Duration == 0);
+            AddAssert("animation is at start", () => animation.CurrentFrameIndex == 0);
+        }
+
         private void loadNewAnimation(bool startFromCurrent = true, Action<TestAnimation> postLoadAction = null)
         {
             AddStep("load animation", () =>
             {
-                animationContainer.Child = animation = new TestAnimation(startFromCurrent)
+                animationContainer.Child = animation = new TestAnimation(startFromCurrent, fontStore)
                 {
                     Loop = false,
                 };
@@ -241,27 +290,16 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             public const int LOADABLE_FRAMES = 72;
 
-            [Resolved]
-            private FontStore fontStore { get; set; }
-
             public int FramesProcessed;
 
-            public TestAnimation(bool startFromCurrent)
+            // fontStore passed in via ctor to be able to test scenarios where an animation
+            // already has frames before load
+            public TestAnimation(bool startFromCurrent, FontStore fontStore)
                 : base(startFromCurrent)
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
-            }
 
-            protected override void DisplayFrame(Texture content)
-            {
-                FramesProcessed++;
-                base.DisplayFrame(content);
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
                 for (int i = 0; i < LOADABLE_FRAMES; i++)
                 {
                     AddFrame(new Texture(fontStore.Get(null, (char)('0' + i))?.Texture.TextureGL)
@@ -269,6 +307,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                         ScaleAdjust = 1 + i / 40f,
                     }, 250);
                 }
+            }
+
+            protected override void DisplayFrame(Texture content)
+            {
+                FramesProcessed++;
+                base.DisplayFrame(content);
             }
         }
     }

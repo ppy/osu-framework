@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Testing
 {
-    public class EmptyTypeReferenceBuilder : ITypeReferenceBuilder
+    internal class EmptyTypeReferenceBuilder : ITypeReferenceBuilder
     {
         public Task Initialise(string solutionFile) => Task.CompletedTask;
 
         public async Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile)
             => await Task.FromResult(Array.Empty<string>());
 
-        public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile)
-            => await Task.FromResult(Array.Empty<string>());
+        public async Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile)
+            => await Task.FromResult(Array.Empty<AssemblyReference>());
 
         public void Reset()
         {

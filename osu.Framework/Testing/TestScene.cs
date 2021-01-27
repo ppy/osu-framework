@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
@@ -292,9 +291,10 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
+        [Obsolete("Specify normal steps via AddStep inside a method marked with [SetUpSteps] instead")] // can be removed 20210325
         public StepButton AddSetupStep(string description, Action action)
         {
-            var step = new SetUpStepButton
+            var step = new SingleStepButton(true)
             {
                 Text = description,
                 Action = action
@@ -309,10 +309,7 @@ namespace osu.Framework.Testing
 
         public StepButton AddStep(string description, Action action)
         {
-            if (addStepsAsSetupSteps)
-                return AddSetupStep(description, action);
-
-            var step = new SingleStepButton
+            var step = new SingleStepButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 Action = action
@@ -344,7 +341,7 @@ namespace osu.Framework.Testing
 
         protected void AddRepeatStep(string description, Action action, int invocationCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(action, invocationCount)
+            StepsContainer.Add(new RepeatStepButton(action, invocationCount, addStepsAsSetupSteps)
             {
                 Text = description,
             });
@@ -360,7 +357,7 @@ namespace osu.Framework.Testing
 
         protected void AddUntilStep(string description, Func<bool> waitUntilTrueDelegate) => schedule(() =>
         {
-            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate)
+            StepsContainer.Add(new UntilStepButton(waitUntilTrueDelegate, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Until",
             });
@@ -368,7 +365,7 @@ namespace osu.Framework.Testing
 
         protected void AddWaitStep(string description, int waitCount) => schedule(() =>
         {
-            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount)
+            StepsContainer.Add(new RepeatStepButton(() => { }, waitCount, addStepsAsSetupSteps)
             {
                 Text = description ?? @"Wait",
             });
@@ -384,7 +381,7 @@ namespace osu.Framework.Testing
 
         protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null) => schedule(() =>
         {
-            StepsContainer.Add(new AssertButton
+            StepsContainer.Add(new AssertButton(addStepsAsSetupSteps)
             {
                 Text = description,
                 ExtendedDescription = extendedDescription,
@@ -392,9 +389,6 @@ namespace osu.Framework.Testing
                 Assertion = assert,
             });
         });
-
-        [Obsolete("Required types are now determined automatically.")] // can be removed 20201115
-        public virtual IReadOnlyList<Type> RequiredTypes => Array.Empty<Type>();
 
         internal void RunSetUpSteps()
         {

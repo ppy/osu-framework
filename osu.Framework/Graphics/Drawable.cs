@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
@@ -55,7 +56,6 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            scheduler = new Lazy<Scheduler>(() => new Scheduler(() => ThreadSafety.IsUpdateThread, Clock));
             total_count.Value++;
 
             AddLayout(drawInfoBacking);
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics
         private void dispose(bool isDisposing)
         {
             //we can't dispose if we are mid-load, else our children may get in a bad state.
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (IsDisposed)
                     return;
@@ -105,10 +105,11 @@ namespace osu.Framework.Graphics
                 total_count.Value--;
 
                 Dispose(isDisposing);
-
                 UnbindAllBindables();
 
-                Parent = null;
+                // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
+                parent = null;
+                ChildID = 0;
 
                 OnUpdate = null;
                 Invalidated = null;
@@ -151,10 +152,9 @@ namespace osu.Framework.Graphics
                                      .Where(f => typeof(IUnbindable).IsAssignableFrom(f.FieldType))
                                      .Select(f => new Action<object>(target => ((IUnbindable)f.GetValue(target))?.UnbindAll())));
 
-                // Generate delegates to unbind properties
-                actions.AddRange(type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                                     .Where(p => typeof(IUnbindable).IsAssignableFrom(p.PropertyType))
-                                     .Select(p => new Action<object>(target => ((IUnbindable)p.GetValue(target))?.UnbindAll())));
+                // Delegates to unbind properties are intentionally not generated.
+                // Properties with backing fields (including automatic properties) will be picked up by the field unbind delegate generation,
+                // while ones without backing fields (like get-only properties that delegate to another drawable's bindable) should not be unbound here.
 
                 unbind_action_cache[type] = target =>
                 {
@@ -216,7 +216,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal Thread LoadThread { get; private set; }
 
-        private readonly object loadLock = new object();
+        internal readonly object LoadLock = new object();
 
         private static readonly StopwatchClock perf_clock = new StopwatchClock(true);
 
@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether the load was successful.</returns>
         internal bool LoadFromAsync(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (IsDisposed)
                     return false;
@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics
         /// <param name="isDirectAsyncContext">Whether this call is being executed from a directly async context (not a parent).</param>
         internal void Load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext = false)
         {
-            lock (loadLock)
+            lock (LoadLock)
             {
                 if (!isDirectAsyncContext && IsLongRunning)
                     throw new InvalidOperationException("Tried to load a long-running drawable in a non-direct async context. See https://git.io/Je1YF for more details.");
@@ -438,13 +438,23 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnUnbindAllBindables;
 
-        private readonly Lazy<Scheduler> scheduler;
+        private Scheduler scheduler;
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected internal Scheduler Scheduler => scheduler.Value;
+        protected internal Scheduler Scheduler
+        {
+            get
+            {
+                if (scheduler != null)
+                    return scheduler;
+
+                lock (LoadLock)
+                    return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
+            }
+        }
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -472,9 +482,9 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return true;
 
-            if (scheduler.IsValueCreated)
+            if (scheduler != null)
             {
-                int amountScheduledTasks = scheduler.Value.Update();
+                int amountScheduledTasks = scheduler.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
@@ -507,7 +517,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="maskingBounds">The <see cref="RectangleF"/> that defines the masking bounds.</param>
         /// <returns>Whether this <see cref="Drawable"/> is currently masked away.</returns>
-        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !maskingBounds.IntersectsWith(ScreenSpaceDrawQuad.AABBFloat);
+        protected virtual bool ComputeIsMaskedAway(RectangleF maskingBounds) => !Precision.AlmostIntersects(maskingBounds, ScreenSpaceDrawQuad.AABBFloat);
 
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
@@ -1391,7 +1401,7 @@ namespace osu.Framework.Graphics
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
-            if (scheduler.IsValueCreated) scheduler.Value.UpdateClock(this.clock);
+            scheduler?.UpdateClock(this.clock);
         }
 
         /// <summary>
@@ -1613,7 +1623,7 @@ namespace osu.Framework.Graphics
                 if ((i & Invalidation.Colour) > 0)
                     return true;
 
-                return !s.Colour.HasSingleColour || s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour;
+                return !s.Colour.HasSingleColour || (s.drawColourInfoBacking.IsValid && !s.drawColourInfoBacking.Value.Colour.HasSingleColour);
             });
 
         /// <summary>
@@ -2040,12 +2050,26 @@ namespace osu.Framework.Graphics
                     OnKeyUp(keyUp);
                     return false;
 
+                case TouchDownEvent touchDown:
+                    return OnTouchDown(touchDown);
+
+                case TouchMoveEvent touchMove:
+                    OnTouchMove(touchMove);
+                    return false;
+
+                case TouchUpEvent touchUp:
+                    OnTouchUp(touchUp);
+                    return false;
+
                 case JoystickPressEvent joystickPress:
                     return OnJoystickPress(joystickPress);
 
                 case JoystickReleaseEvent joystickRelease:
                     OnJoystickRelease(joystickRelease);
                     return false;
+
+                case JoystickAxisMoveEvent joystickAxisMove:
+                    return OnJoystickAxisMove(joystickAxisMove);
 
                 case MidiDownEvent midiDown:
                     return OnMidiDown(midiDown);
@@ -2110,7 +2134,7 @@ namespace osu.Framework.Graphics
         /// An event that occurs when a <see cref="MouseButton"/> is clicked on this <see cref="Drawable"/>.
         /// </summary>
         /// <remarks>
-        /// This can only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnMouseDown"/> invocation
         /// which are still present in the input queue (via <see cref="BuildPositionalInputQueue"/>) when the click occurs.<br />
         /// This will not occur if a drag was started (<see cref="OnDragStart"/> was invoked) or a double-click occurred (<see cref="OnDoubleClick"/> was invoked).
         /// </remarks>
@@ -2199,6 +2223,32 @@ namespace osu.Framework.Graphics
         protected virtual void OnKeyUp(KeyUpEvent e) => Handle(e);
 
         /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is active.
+        /// </summary>
+        /// <param name="e">The <see cref="TouchDownEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTouchDown(TouchDownEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs every time an active <see cref="Touch"/> has moved while hovering this <see cref="Drawable"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will only be invoked on the <see cref="Drawable"/>s that received a previous <see cref="OnTouchDown"/> invocation from the source of this touch.
+        /// This will not occur if the touch has been activated then deactivated without moving from its initial position.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchMoveEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchMove(TouchMoveEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="Touch"/> is not active.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnTouchDown"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="TouchUpEvent"/> containing information about the input event.</param>
+        protected virtual void OnTouchUp(TouchUpEvent e) => Handle(e);
+
+        /// <summary>
         /// An event that occurs when a <see cref="JoystickButton"/> is pressed.
         /// </summary>
         /// <param name="e">The <see cref="JoystickPressEvent"/> containing information about the input event.</param>
@@ -2213,6 +2263,13 @@ namespace osu.Framework.Graphics
         /// </remarks>
         /// <param name="e">The <see cref="JoystickReleaseEvent"/> containing information about the input event.</param>
         protected virtual void OnJoystickRelease(JoystickReleaseEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="JoystickAxis"/> is moved.
+        /// </summary>
+        /// <param name="e">The <see cref="JoystickAxisMoveEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnJoystickAxisMove(JoystickAxisMoveEvent e) => Handle(e);
 
         /// <summary>
         /// An event that occurs when a <see cref="MidiKey"/> is pressed.
@@ -2277,6 +2334,7 @@ namespace osu.Framework.Graphics
             private static readonly string[] positional_input_methods =
             {
                 nameof(Handle),
+                nameof(OnMouseMove),
                 nameof(OnHover),
                 nameof(OnHoverLost),
                 nameof(OnMouseDown),
@@ -2289,7 +2347,9 @@ namespace osu.Framework.Graphics
                 nameof(OnScroll),
                 nameof(OnFocus),
                 nameof(OnFocusLost),
-                nameof(OnMouseMove)
+                nameof(OnTouchDown),
+                nameof(OnTouchMove),
+                nameof(OnTouchUp)
             };
 
             private static readonly string[] non_positional_input_methods =
@@ -2300,7 +2360,8 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyDown),
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
-                nameof(OnJoystickRelease)
+                nameof(OnJoystickRelease),
+                nameof(OnJoystickAxisMove)
             };
 
             private static readonly Type[] positional_input_interfaces =
@@ -2343,7 +2404,7 @@ namespace osu.Framework.Graphics
                 return value;
             }
 
-            private static bool compute(Type type, bool positional)
+            private static bool compute([NotNull] Type type, bool positional)
             {
                 var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
@@ -2478,6 +2539,41 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+
+        /// <summary>
+        /// Check whether the current thread is valid for operating on thread-safe properties.
+        /// </summary>
+        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
+        internal void EnsureMutationAllowed(string member)
+        {
+            switch (LoadState)
+            {
+                case LoadState.NotLoaded:
+                    break;
+
+                case LoadState.Loading:
+                    if (Thread.CurrentThread != LoadThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+
+                    break;
+
+                case LoadState.Ready:
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+
+                    break;
+
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+
+                    break;
+            }
+        }
+
         #endregion
 
         #region Transforms
@@ -2565,6 +2661,15 @@ namespace osu.Framework.Graphics
 
         private class EmptyDrawable : Drawable
         {
+        }
+
+        public class InvalidThreadForMutationException : InvalidOperationException
+        {
+            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
+                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
+            {
+            }
         }
     }
 
