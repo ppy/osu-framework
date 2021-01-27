@@ -3,10 +3,9 @@
 
 using System.Linq;
 using NUnit.Framework;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Input;
 
@@ -34,15 +33,24 @@ namespace osu.Framework.Tests.Visual.Testing
         }
 
         [Test]
-        public void TestCursorReceivesEventsWhenMaskedAway()
+        public void TestHoldLeftFromMaskedPosition()
         {
-            Drawable cursor = null;
+            TestCursor cursor = null;
 
-            AddStep("retrieve cursor", () => cursor = InputManager.ChildrenOfType<CursorContainer>().Single().ActiveCursor);
+            AddStep("retrieve cursor", () => cursor = (TestCursor)InputManager.ChildrenOfType<TestCursorContainer>().Single().ActiveCursor);
 
             AddStep("move mouse to screen zero", () => InputManager.MoveMouseTo(Vector2.Zero));
             AddAssert("ensure cursor masked away", () => cursor.IsMaskedAway);
-            AddAssert("cursor allows event propagation", () => cursor.PropagatePositionalInputSubTree);
+
+            AddStep("press buttons", () =>
+            {
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.PressButton(MouseButton.Right);
+            });
+
+            AddStep("move cursor to content", () => InputManager.MoveMouseTo(Content));
+
+            AddAssert("cursor button parts visible", () => cursor.Left.IsPresent && cursor.Right.IsPresent);
         }
 
         [Test]
