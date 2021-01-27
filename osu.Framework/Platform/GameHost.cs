@@ -244,7 +244,7 @@ namespace osu.Framework.Platform
         {
             var exception = (Exception)args.ExceptionObject;
 
-            logException(exception, "unobserved");
+            logException(exception, "unhandled");
             abortExecutionFromException(sender, exception);
         }
 
