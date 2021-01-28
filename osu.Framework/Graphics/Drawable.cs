@@ -112,6 +112,7 @@ namespace osu.Framework.Graphics
                 ChildID = 0;
 
                 OnUpdate = null;
+                onInput = null;
                 Invalidated = null;
 
                 OnDispose?.Invoke();
@@ -277,8 +278,8 @@ namespace osu.Framework.Graphics
 
             double timeBefore = DebugUtils.LogPerformanceIssues ? perf_clock.CurrentTime : 0;
 
-            RequestsNonPositionalInput = HandleInputCache.RequestsNonPositionalInput(this);
-            RequestsPositionalInput = HandleInputCache.RequestsPositionalInput(this);
+            RequestsNonPositionalInput = onInput != null || HandleInputCache.RequestsNonPositionalInput(this);
+            RequestsPositionalInput = onInput != null || HandleInputCache.RequestsPositionalInput(this);
 
             RequestsNonPositionalInputSubTree = RequestsNonPositionalInput;
             RequestsPositionalInputSubTree = RequestsPositionalInput;
@@ -1980,12 +1981,29 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
+        private event Func<UIEvent, bool> onInput;
+
+        /// <summary>
+        /// This event is fired when this drawable receives an input event.
+        /// </summary>
+        public event Func<UIEvent, bool> OnInput
+        {
+            add
+            {
+                onInput += value;
+
+                RequestsNonPositionalInputSubTree = RequestsNonPositionalInput = true;
+                RequestsPositionalInputSubTree = RequestsPositionalInput = true;
+            }
+            remove => onInput -= value;
+        }
+
         /// <summary>
         /// Handle a UI event.
         /// </summary>
         /// <param name="e">The event to be handled.</param>
         /// <returns>If the event supports blocking, returning true will make the event to not propagating further.</returns>
-        protected virtual bool Handle(UIEvent e) => false;
+        protected virtual bool Handle(UIEvent e) => onInput?.Invoke(e) ?? false;
 
         /// <summary>
         /// Trigger a UI event with <see cref="UIEvent.Target"/> set to this <see cref="Drawable"/>.
@@ -2313,13 +2331,13 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles non-positional input.
-        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any non-positional (e.g. keyboard related) "On-" input methods are overridden or if <see cref="OnInput"/> is assigned.
         /// </summary>
         public virtual bool HandleNonPositionalInput => RequestsNonPositionalInput;
 
         /// <summary>
         /// Whether this <see cref="Drawable"/> handles positional input.
-        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden.
+        /// This value is true by default if <see cref="Handle"/> or any positional (i.e. mouse related) "On-" input methods are overridden or if <see cref="OnInput"/> is assigned.
         /// </summary>
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
