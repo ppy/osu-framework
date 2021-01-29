@@ -37,7 +37,7 @@ namespace osu.Framework.Input.Bindings
             this.matchingMode = matchingMode;
         }
 
-        private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
+        private readonly List<IKeyBinding> pressedBindings = new List<IKeyBinding>();
 
         private readonly List<T> pressedActions = new List<T>();
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
-        private readonly Dictionary<KeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<KeyBinding, List<Drawable>>();
+        private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace osu.Framework.Input.Bindings
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
-            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<KeyBinding>();
+            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<IKeyBinding>();
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
@@ -306,7 +306,7 @@ namespace osu.Framework.Input.Bindings
             PropagatePressed(KeyBindingInputQueue, pressed);
         }
 
-        private List<Drawable> getInputQueue(KeyBinding binding, bool rebuildIfEmpty = false)
+        private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
         {
             if (!keyBindingQueues.ContainsKey(binding))
                 keyBindingQueues.Add(binding, new List<Drawable>());
@@ -325,9 +325,9 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
-        protected IEnumerable<KeyBinding> KeyBindings;
+        protected IEnumerable<IKeyBinding> KeyBindings;
 
-        public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
+        public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
 
         protected override void LoadComplete()
         {

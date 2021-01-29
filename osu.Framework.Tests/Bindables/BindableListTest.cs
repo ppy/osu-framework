@@ -705,7 +705,7 @@ namespace osu.Framework.Tests.Bindables
 
             bindableObjectList.Remove(new TestAlwaysEqualModel());
 
-            Assert.That(triggeredArgs.OldItems[0] == item, Is.True);
+            Assert.That(triggeredArgs?.OldItems?[0] == item, Is.True);
         }
 
         [Test]

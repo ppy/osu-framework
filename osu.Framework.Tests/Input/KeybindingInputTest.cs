@@ -115,7 +115,7 @@ namespace osu.Framework.Tests.Input
             {
             }
 
-            public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+            public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
             {
                 new KeyBinding(InputKey.Up, TestKeyBinding.Binding1),
                 new KeyBinding(InputKey.Down, TestKeyBinding.Binding2),

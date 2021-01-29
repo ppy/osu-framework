@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.Build.Traversal">
+<Project Sdk="Microsoft.Build.Traversal/3.0.2">
   <ItemGroup>
     <ProjectReference Include="..\SampleGame.Desktop\SampleGame.Desktop.csproj" />
     <ProjectReference Include="..\SampleGame\SampleGame.csproj" />

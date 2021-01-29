@@ -9,13 +9,13 @@ namespace osu.Framework.Audio.Sample
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
-        /// Start playback.
+        /// Start a playback of this sample.
         /// </summary>
-        /// <param name="restart">Whether to restart the sample from the beginning.</param>
+        /// <param name="restart">Whether to restart the sample from the beginning. If true, any existing playback of the channel will be stopped.</param>
         void Play(bool restart = true);
 
         /// <summary>
-        /// Stop playback.
+        /// Stop playback and reset position to beginning of sample.
         /// </summary>
         void Stop();
 

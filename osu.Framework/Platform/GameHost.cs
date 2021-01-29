@@ -243,63 +243,72 @@ namespace osu.Framework.Platform
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
-            exception.Data["unhandled"] = "unhandled";
-            handleException(sender, exception);
+
+            logException(exception, "unhandled");
+            abortExecutionFromException(sender, exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            Debug.Assert(args.Exception != null);
-
-            args.Exception.Data["unhandled"] = "unobserved";
-            handleException(sender, args.Exception);
+            // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
+            logException(args.Exception, "unobserved");
         }
 
-        private void handleException(object sender, Exception exception)
+        private void logException(Exception exception, string type)
         {
-            if (ExceptionThrown?.Invoke(exception) != true)
+            Logger.Error(exception, $"An {type} error has occurred.", recursive: true);
+        }
+
+        /// <summary>
+        /// Give the running application a last change to handle an otherwise unhandled exception, and potentially ignore it.
+        /// </summary>
+        /// <param name="sender">The source, generally a <see cref="GameThread"/>.</param>
+        /// <param name="exception">The unhandled exception.</param>
+        private void abortExecutionFromException(object sender, Exception exception)
+        {
+            // nothing needs to be done if the consumer has requested continuing execution.
+            if (ExceptionThrown?.Invoke(exception) == true) return;
+
+            // otherwise, we need to unwind and abort execution.
+
+            AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+            TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            var captured = ExceptionDispatchInfo.Capture(exception);
+            var thrownEvent = new ManualResetEventSlim(false);
+
+            //we want to throw this exception on the input thread to interrupt window and also headless execution.
+            InputThread.Scheduler.Add(() =>
             {
-                AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
-                TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
-
-                var captured = ExceptionDispatchInfo.Capture(exception);
-                var thrownEvent = new ManualResetEventSlim(false);
-
-                //we want to throw this exception on the input thread to interrupt window and also headless execution.
-                InputThread.Scheduler.Add(() =>
+                try
                 {
-                    try
-                    {
-                        captured.Throw();
-                    }
-                    finally
-                    {
-                        thrownEvent.Set();
-                    }
-                });
-
-                // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
-                // To avoid this, pause the exceptioning thread until the rethrow takes place.
-                waitForThrow();
-
-                // schedule an exit to the input thread.
-                // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-                PerformExit(false);
-
-                void waitForThrow()
-                {
-                    // This is bypassed for GameThread sources in two situations where deadlocks can occur:
-                    // 1. When the exceptioning thread is the input thread.
-                    // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
-                    if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
-                        return;
-
-                    // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
-                    thrownEvent.Wait(TimeSpan.FromSeconds(10));
+                    captured.Throw();
                 }
-            }
+                finally
+                {
+                    thrownEvent.Set();
+                }
+            });
 
-            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
+            // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
+            // To avoid this, pause the exceptioning thread until the rethrow takes place.
+            waitForThrow();
+
+            // schedule an exit to the input thread.
+            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
+            PerformExit(false);
+
+            void waitForThrow()
+            {
+                // This is bypassed for GameThread sources in two situations where deadlocks can occur:
+                // 1. When the exceptioning thread is the input thread.
+                // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                    return;
+
+                // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                thrownEvent.Wait(TimeSpan.FromSeconds(10));
+            }
         }
 
         protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => Activated?.Invoke());

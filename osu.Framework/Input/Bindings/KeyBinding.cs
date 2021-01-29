@@ -3,20 +3,11 @@
 
 namespace osu.Framework.Input.Bindings
 {
-    /// <summary>
-    /// A binding of a <see cref="Bindings.KeyCombination"/> to an action.
-    /// </summary>
-    public class KeyBinding
+    public class KeyBinding : IKeyBinding
     {
-        /// <summary>
-        /// The combination of keys which will trigger this binding.
-        /// </summary>
-        public KeyCombination KeyCombination;
+        public KeyCombination KeyCombination { get; set; }
 
-        /// <summary>
-        /// The resultant action which is triggered by this binding.
-        /// </summary>
-        public object Action;
+        public object Action { get; set; }
 
         /// <summary>
         /// Construct a new instance.
@@ -46,13 +37,6 @@ namespace osu.Framework.Input.Bindings
         public KeyBinding()
         {
         }
-
-        /// <summary>
-        /// Get the action associated with this binding, cast to the required enum type.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
-        /// <returns>A cast <typeparamref name="T"/> representation of <see cref="Action"/>.</returns>
-        public virtual T GetAction<T>() => (T)Action;
 
         public override string ToString() => $"{KeyCombination}=>{Action}";
     }

@@ -70,10 +70,16 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                // Free previous channels as we're creating a new channel for every playback, since old channels
-                // may be overriden when too many other channels are created from the same sample.
-                if (Bass.ChannelIsActive(channel) != PlaybackState.Stopped)
-                    Bass.ChannelStop(channel);
+                bool existingChannelAvailable = Bass.ChannelIsActive(channel) != PlaybackState.Stopped;
+
+                if (existingChannelAvailable)
+                {
+                    // if restart is not requested and the sample is currently playing, nothing needs to be done.
+                    if (!restart)
+                        return;
+
+                    Stop();
+                }
 
                 channel = ((SampleBass)Sample).CreateChannel();
 

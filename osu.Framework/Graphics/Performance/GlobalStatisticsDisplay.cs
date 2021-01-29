@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.LoadComplete();
 
-            GlobalStatistics.Statistics.CollectionChanged += (_, e) =>
+            GlobalStatistics.StatisticsChanged += (_, e) =>
             {
                 switch (e.Action)
                 {
@@ -66,8 +66,7 @@ namespace osu.Framework.Graphics.Performance
                 }
             };
 
-            // ToArray is to guard against collection modification in underlying bindable.
-            add(GlobalStatistics.Statistics.ToArray());
+            add(GlobalStatistics.GetStatistics());
 
             State.BindValueChanged(visibilityChanged, true);
         }

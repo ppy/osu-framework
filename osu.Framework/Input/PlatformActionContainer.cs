@@ -24,7 +24,7 @@ namespace osu.Framework.Input
         {
         }
 
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => host.PlatformKeyBindings;
 
         protected override bool Prioritised => true;
 
