@@ -34,7 +34,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             host.Window.Resized += () => updateOutputArea(host.Window);
             tabletDriver.TabletChanged += (sender, e) => updateInputArea();
 
-            tabletDriver.ReportRecieved += (sender, report) =>
+            tabletDriver.ReportReceived += (sender, report) =>
             {
                 if (report is ITabletReport tabletReport)
                     handleTabletReport(tabletReport);
