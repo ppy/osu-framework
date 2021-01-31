@@ -1,6 +1,6 @@
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Track;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Audio;
