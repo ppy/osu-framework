@@ -1,24 +1,21 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#if NET5_0
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-#if NET5_0
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Logging;
 
-#endif
-
 namespace osu.Framework.Input.Handlers.Tablet
 {
-#if NET5_0
-    public class FrameworkTabletDriver : Driver
+    public class TabletDriver : Driver
     {
-        public FrameworkTabletDriver()
+        public TabletDriver()
         {
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}");
             DevicesChanged += (sender, args) =>
@@ -55,5 +52,5 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private JsonSerializer configurationSerializer { get; } = new JsonSerializer();
     }
-#endif
 }
+#endif

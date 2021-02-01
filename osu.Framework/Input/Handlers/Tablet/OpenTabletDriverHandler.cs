@@ -20,11 +20,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public override int Priority => 0;
 
-        private FrameworkTabletDriver tabletDriver;
+        private TabletDriver tabletDriver;
 
         public override bool Initialize(GameHost host)
         {
-            tabletDriver = new FrameworkTabletDriver
+            tabletDriver = new TabletDriver
             {
                 // for now let's keep things simple and always use absolute mode.
                 // this will likely be a user setting in the future.
