@@ -26,20 +26,29 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             tabletDriver = new FrameworkTabletDriver
             {
+                // for now let's keep things simple and always use absolute mode.
+                // this will likely be a user setting in the future.
                 OutputMode = new AbsoluteTabletMode(this)
             };
 
             updateOutputArea(host.Window);
             updateInputArea();
-            host.Window.Resized += () => updateOutputArea(host.Window);
-            tabletDriver.TabletChanged += (sender, e) => updateInputArea();
 
+            host.Window.Resized += () => updateOutputArea(host.Window);
+
+            tabletDriver.TabletChanged += (sender, e) => updateInputArea();
             tabletDriver.ReportReceived += (sender, report) =>
             {
-                if (report is ITabletReport tabletReport)
-                    handleTabletReport(tabletReport);
-                if (report is IAuxReport auxiliaryReport)
-                    handleAuxiliaryReport(auxiliaryReport);
+                switch (report)
+                {
+                    case ITabletReport tabletReport:
+                        handleTabletReport(tabletReport);
+                        break;
+
+                    case IAuxReport auxiliaryReport:
+                        handleAuxiliaryReport(auxiliaryReport);
+                        break;
+                }
             };
 
             Enabled.BindValueChanged(d =>
@@ -67,34 +76,46 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private void updateOutputArea(IWindow window)
         {
-            if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode)
+            switch (tabletDriver.OutputMode)
             {
-                float outputWidth, outputHeight;
-
-                // Set output area in pixels
-                absoluteOutputMode.Output = new Area
+                case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    Width = outputWidth = window.ClientSize.Width,
-                    Height = outputHeight = window.ClientSize.Height,
-                    Position = new Vector2(outputWidth / 2, outputHeight / 2)
-                };
+                    float outputWidth, outputHeight;
+
+                    // Set output area in pixels
+                    absoluteOutputMode.Output = new Area
+                    {
+                        Width = outputWidth = window.ClientSize.Width,
+                        Height = outputHeight = window.ClientSize.Height,
+                        Position = new Vector2(outputWidth / 2, outputHeight / 2)
+                    };
+                    break;
+                }
             }
         }
 
         private void updateInputArea()
         {
-            if (tabletDriver.OutputMode is AbsoluteOutputMode absoluteOutputMode && tabletDriver.Tablet != null)
-            {
-                float inputWidth, inputHeight;
+            if (tabletDriver.Tablet == null)
+                return;
 
-                // Set input area in millimeters
-                absoluteOutputMode.Input = new Area
+            switch (tabletDriver.OutputMode)
+            {
+                case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    Width = inputWidth = tabletDriver.Tablet.Digitizer.Width,
-                    Height = inputHeight = tabletDriver.Tablet.Digitizer.Height,
-                    Position = new Vector2(inputWidth / 2, inputHeight / 2),
-                    Rotation = 0
-                };
+                    float inputWidth = tabletDriver.Tablet.Digitizer.Width;
+                    float inputHeight = tabletDriver.Tablet.Digitizer.Height;
+
+                    // Set input area in millimeters
+                    absoluteOutputMode.Input = new Area
+                    {
+                        Width = inputWidth,
+                        Height = inputHeight,
+                        Position = new Vector2(inputWidth / 2, inputHeight / 2),
+                        Rotation = 0
+                    };
+                    break;
+                }
             }
         }
 
