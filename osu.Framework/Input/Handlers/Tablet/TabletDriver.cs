@@ -45,12 +45,10 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private TabletConfiguration deserialize(Stream stream)
         {
-            using (var tr = new StreamReader(stream))
-            using (var jr = new JsonTextReader(tr))
-                return configurationSerializer.Deserialize<TabletConfiguration>(jr);
+            using (var reader = new StreamReader(stream))
+            using (var jsonReader = new JsonTextReader(reader))
+                return new JsonSerializer().Deserialize<TabletConfiguration>(jsonReader);
         }
-
-        private JsonSerializer configurationSerializer { get; } = new JsonSerializer();
     }
 }
 #endif
