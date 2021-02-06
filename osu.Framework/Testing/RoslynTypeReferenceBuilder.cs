@@ -30,7 +30,7 @@ namespace osu.Framework.Testing
 
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
-        private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
+        private readonly Dictionary<string, SemanticModel> semanticModelCache = new Dictionary<string, SemanticModel>();
         private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
         private readonly Dictionary<string, bool> syntaxExclusionMap = new Dictionary<string, bool>();
         private readonly HashSet<string> assembliesContainingReferencedInternalMembers = new HashSet<string>();
@@ -162,7 +162,7 @@ namespace osu.Framework.Testing
                     }
 
                     var compilation = await compileProjectAsync(project);
-                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
+                    var syntaxTree = compilation.SyntaxTrees.Single(tree => tree.FilePath == typePath);
                     var semanticModel = await getSemanticModelAsync(syntaxTree);
                     var referencedTypes = await getReferencedTypesAsync(semanticModel);
 
@@ -525,10 +525,17 @@ namespace osu.Framework.Testing
         /// <returns>The corresponding <see cref="SemanticModel"/>.</returns>
         private async Task<SemanticModel> getSemanticModelAsync(SyntaxTree syntaxTree)
         {
-            if (semanticModelCache.TryGetValue(syntaxTree, out var existing))
+            string filePath = syntaxTree.FilePath;
+
+            if (semanticModelCache.TryGetValue(filePath, out var existing))
                 return existing;
 
-            return semanticModelCache[syntaxTree] = (await compileProjectAsync(getProjectFromFile(syntaxTree.FilePath))).GetSemanticModel(syntaxTree, true);
+            var compilation = await compileProjectAsync(getProjectFromFile(filePath));
+
+            // Syntax trees are identified with the compilation they're in, so they must be re-retrieved on the new compilation.
+            syntaxTree = compilation.SyntaxTrees.Single(t => t.FilePath == filePath);
+
+            return semanticModelCache[filePath] = compilation.GetSemanticModel(syntaxTree, true);
         }
 
         /// <summary>
