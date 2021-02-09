@@ -65,16 +65,6 @@ namespace osu.Framework.Audio
         public virtual bool Looping { get; set; }
 
         /// <summary>
-        /// Invoked when the component should loop.
-        /// </summary>
-        /// <remarks>
-        /// Used to restart the playback when looping is enabled and playback has completed.
-        /// </remarks>
-        protected virtual void OnLooping()
-        {
-        }
-
-        /// <summary>
         /// Run each loop of the audio thread's execution after queued actions are completed to allow components to perform any additional operations.
         /// </summary>
         protected virtual void UpdateState()
@@ -105,12 +95,7 @@ namespace osu.Framework.Audio
                 task.RunSynchronously();
 
             if (!IsDisposed)
-            {
                 UpdateState();
-
-                if (Looping && HasCompleted)
-                    OnLooping();
-            }
 
             UpdateChildren();
         }

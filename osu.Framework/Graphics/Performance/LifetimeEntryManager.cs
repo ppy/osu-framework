@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Statistics;
 
@@ -232,7 +233,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
 
-                var entry = futureEntries.Min;
+                var entry = futureEntries.Min.AsNonNull(); // guaranteed by the .Count > 0 guard.
                 Debug.Assert(entry.State == LifetimeEntryState.Future);
 
                 if (getState(entry, startTime, endTime) == LifetimeEntryState.Future)
@@ -247,7 +248,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 FrameStatistics.Increment(StatisticsCounterType.CCL);
 
-                var entry = pastEntries.Max;
+                var entry = pastEntries.Max.AsNonNull(); // guaranteed by the .Count > 0 guard.
                 Debug.Assert(entry.State == LifetimeEntryState.Past);
 
                 if (getState(entry, startTime, endTime) == LifetimeEntryState.Past)

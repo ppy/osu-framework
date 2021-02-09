@@ -116,49 +116,19 @@ namespace osu.Framework.Graphics.OpenGL
             reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
         }
 
-        private static readonly List<PendingDisposal> pending_disposal_actions = new List<PendingDisposal>();
-
-        private class PendingDisposal
-        {
-            public int RemainingFrameDelay = MAX_DRAW_NODES;
-
-            public readonly Action Action;
-
-            public PendingDisposal(Action action)
-            {
-                Action = action;
-            }
-        }
+        private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
             if (host != null && host.TryGetTarget(out _))
-            {
-                lock (pending_disposal_actions)
-                    pending_disposal_actions.Add(new PendingDisposal(disposalAction));
-            }
+                disposal_queue.ScheduleDisposal(disposalAction);
             else
                 disposalAction.Invoke();
         }
 
         private static void checkPendingDisposals()
         {
-            // use for loop to avoid need for locking
-            for (var i = 0; i < pending_disposal_actions.Count; i++)
-            {
-                var item = pending_disposal_actions[i];
-
-                if (item.RemainingFrameDelay-- == 0)
-                {
-                    item.Action();
-
-                    lock (pending_disposal_actions)
-                    {
-                        Debug.Assert(i == 0);
-                        pending_disposal_actions.RemoveAt(i--);
-                    }
-                }
-            }
+            disposal_queue.CheckPendingDisposals();
         }
 
         private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
@@ -249,8 +219,9 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
 
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+            last_bound_texture.AsSpan().Clear();
+            last_bound_texture_is_atlas.AsSpan().Clear();
+            last_bound_buffers.AsSpan().Clear();
         }
 
         private static ClearInfo currentClearInfo;

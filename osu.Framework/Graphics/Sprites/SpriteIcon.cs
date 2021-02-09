@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// A sprite representing an icon.
-    /// Ues <see cref="FontStore"/> to perform character lookups.
+    /// Uses <see cref="FontStore"/> to perform character lookups.
     /// </summary>
     public class SpriteIcon : CompositeDrawable
     {

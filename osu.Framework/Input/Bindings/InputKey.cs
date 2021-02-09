@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Utils;
+
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
     /// A collection of keys, mouse and other controllers' buttons.
     /// </summary>
+    [HasOrderedElements(AllowPartialOrdering = true)]
     public enum InputKey
     {
         /// <summary>
@@ -16,21 +19,25 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The shift key.
         /// </summary>
+        [Order(3)]
         Shift = 1,
 
         /// <summary>
         /// The control key.
         /// </summary>
+        [Order(1)]
         Control = 3,
 
         /// <summary>
         /// The alt key.
         /// </summary>
+        [Order(2)]
         Alt = 5,
 
         /// <summary>
         /// The win key.
         /// </summary>
+        [Order(4)]
         Super = 7,
 
         /// <summary>

@@ -5,11 +5,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using osu.Framework.IO.Stores;
-using osu.Framework.Statistics;
 using System.Linq;
 using System.Threading.Tasks;
-using osu.Framework.Audio.Track;
+using osu.Framework.IO.Stores;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -58,7 +57,7 @@ namespace osu.Framework.Audio.Sample
 
         public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
 
-        public override void UpdateDevice(int deviceIndex)
+        internal override void UpdateDevice(int deviceIndex)
         {
             foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
                 sample.UpdateDevice(deviceIndex);

@@ -367,7 +367,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
             }
 
-            public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+            public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
             {
                 new KeyBinding(InputKey.A, TestAction.A),
                 new KeyBinding(InputKey.S, TestAction.S),

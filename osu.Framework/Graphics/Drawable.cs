@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Cursor;
@@ -2403,7 +2404,7 @@ namespace osu.Framework.Graphics
                 return value;
             }
 
-            private static bool compute(Type type, bool positional)
+            private static bool compute([NotNull] Type type, bool positional)
             {
                 var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
@@ -2538,6 +2539,41 @@ namespace osu.Framework.Graphics
             return true;
         }
 
+        internal sealed override void EnsureTransformMutationAllowed() => EnsureMutationAllowed(nameof(Transforms));
+
+        /// <summary>
+        /// Check whether the current thread is valid for operating on thread-safe properties.
+        /// </summary>
+        /// <param name="member">The member to be operated on, used only for describing failures in exception messages.</param>
+        /// <exception cref="InvalidThreadForMutationException">If the current thread is not valid.</exception>
+        internal void EnsureMutationAllowed(string member)
+        {
+            switch (LoadState)
+            {
+                case LoadState.NotLoaded:
+                    break;
+
+                case LoadState.Loading:
+                    if (Thread.CurrentThread != LoadThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load thread");
+
+                    break;
+
+                case LoadState.Ready:
+                    // Allow mutating from the load thread since parenting containers may still be in the loading state
+                    if (Thread.CurrentThread != LoadThread && !ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the load or update threads");
+
+                    break;
+
+                case LoadState.Loaded:
+                    if (!ThreadSafety.IsUpdateThread)
+                        throw new InvalidThreadForMutationException(LoadState, member, "not on the update thread");
+
+                    break;
+            }
+        }
+
         #endregion
 
         #region Transforms
@@ -2625,6 +2661,15 @@ namespace osu.Framework.Graphics
 
         private class EmptyDrawable : Drawable
         {
+        }
+
+        public class InvalidThreadForMutationException : InvalidOperationException
+        {
+            public InvalidThreadForMutationException(LoadState loadState, string member, string invalidThreadContextDescription)
+                : base($"Cannot mutate the {member} of a {loadState} {nameof(Drawable)} while {invalidThreadContextDescription}. "
+                       + $"Consider using {nameof(Schedule)} to schedule the mutation operation.")
+            {
+            }
         }
     }
 

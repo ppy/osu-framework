@@ -135,7 +135,15 @@ namespace osu.Framework.Platform
             Threads.ForEach(t => t.Exit());
             Threads.Where(t => t.Running).ForEach(t =>
             {
-                if (!t.Thread.Join(thread_join_timeout))
+                var thread = t.Thread;
+
+                if (thread == null)
+                {
+                    // has already been cleaned up (or never started)
+                    return;
+                }
+
+                if (!thread.Join(thread_join_timeout))
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
 

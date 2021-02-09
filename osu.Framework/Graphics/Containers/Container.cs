@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
+        /// Adds a child to this container. This amounts to adding a child to <see cref="Content"/>'s
         /// <see cref="Children"/>, recursing until <see cref="Content"/> == this.
         /// </summary>
         public virtual void Add(T drawable)

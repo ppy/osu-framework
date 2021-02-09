@@ -44,6 +44,12 @@ namespace osu.Framework.Platform
         event Action Exited;
 
         /// <summary>
+        /// Invoked when the <see cref="IWindow"/> client size has changed.
+        /// </summary>
+        [CanBeNull]
+        event Action Resized;
+
+        /// <summary>
         /// Whether the OS cursor is currently contained within the game window.
         /// </summary>
         IBindable<bool> CursorInWindow { get; }
