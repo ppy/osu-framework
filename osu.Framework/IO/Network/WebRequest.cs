@@ -138,7 +138,6 @@ namespace osu.Framework.IO.Network
             new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
 #endif
         )
-
         {
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
