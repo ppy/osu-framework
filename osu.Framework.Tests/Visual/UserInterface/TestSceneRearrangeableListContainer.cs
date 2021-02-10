@@ -114,6 +114,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestRearrangeByDragWithHiddenItems()
+        {
+            addItems(6);
+
+            AddStep("hide item zero", () => list.ListContainer.First(i => i.Model == 0).Hide());
+
+            addDragSteps(2, 5, new[] { 0, 1, 3, 4, 5, 2 });
+            addDragSteps(2, 4, new[] { 0, 1, 3, 2, 4, 5 });
+            addDragSteps(1, 4, new[] { 0, 3, 2, 4, 1, 5 });
+            addDragSteps(4, 5, new[] { 0, 3, 2, 1, 5, 4 });
+            addDragSteps(5, 3, new[] { 0, 5, 3, 2, 1, 4 });
+            addDragSteps(3, 5, new[] { 0, 3, 5, 2, 1, 4 });
+        }
+
+        [Test]
         public void TestRearrangeByDragAfterRemoval()
         {
             addItems(5);
@@ -317,6 +332,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public float ScrollPosition => ScrollContainer.Current;
 
             public new IReadOnlyDictionary<int, RearrangeableListItem<int>> ItemMap => base.ItemMap;
+
+            public new FillFlowContainer<RearrangeableListItem<int>> ListContainer => base.ListContainer;
 
             public void ScrollTo(int item)
                 => ScrollContainer.ScrollTo(this.ChildrenOfType<BasicRearrangeableListItem<int>>().First(i => i.Model == item), false);
