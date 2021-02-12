@@ -9,9 +9,19 @@ namespace osu.Framework.Audio.Sample
     public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
+        /// Starts or resumes playback. Has no effect if this <see cref="ISampleChannel"/> is already playing.
+        /// </summary>
+        void Play();
+
+        /// <summary>
         /// Stops playback.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        /// Whether playback was ever started.
+        /// </summary>
+        bool Played { get; }
 
         /// <summary>
         /// Whether playback is currently in progress.

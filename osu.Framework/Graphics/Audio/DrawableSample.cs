@@ -28,6 +28,8 @@ namespace osu.Framework.Graphics.Audio
 
         public SampleChannel Play() => sample.Play();
 
+        public SampleChannel GetChannel() => sample.GetChannel();
+
         public double Length => sample.Length;
 
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);

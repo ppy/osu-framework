@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Statistics;
 using osu.Framework.Audio.Track;
 
@@ -8,8 +9,18 @@ namespace osu.Framework.Audio.Sample
 {
     public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel
     {
+        public virtual void Play()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not play disposed sample channels.");
+
+            Played = true;
+        }
+
         public virtual void Stop()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not stop disposed sample channels.");
         }
 
         protected override void Dispose(bool disposing)
@@ -25,6 +36,8 @@ namespace osu.Framework.Audio.Sample
             FrameStatistics.Increment(StatisticsCounterType.SChannels);
             base.UpdateState();
         }
+
+        public bool Played { get; private set; }
 
         public abstract bool Playing { get; }
 

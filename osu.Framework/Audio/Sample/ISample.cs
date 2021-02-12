@@ -24,13 +24,21 @@ namespace osu.Framework.Audio.Sample
         Bindable<int> PlaybackConcurrency { get; }
 
         /// <summary>
-        /// Plays this <see cref="ISample"/> in a unique playback channel.
+        /// Creates a new unique playback channel for this <see cref="ISample"/> and immediately plays it.
         /// </summary>
         /// <remarks>
-        /// Concurrent playbacks are supported by calling this method multiple times, but can only be heard up to <see cref="PlaybackConcurrency"/> times.
-        /// If concurrent playback is not desired, stop any <see cref="SampleChannel"/> returned from a previous call to <see cref="Play"/>.
+        /// Multiple channels can be played simultaneously, but can only be heard up to <see cref="PlaybackConcurrency"/> times.
         /// </remarks>
-        /// <returns>The <see cref="SampleChannel"/> for the playback.</returns>
+        /// <returns>The unique <see cref="SampleChannel"/> for the playback.</returns>
         SampleChannel Play();
+
+        /// <summary>
+        /// Retrieves a unique playback channel for this <see cref="ISample"/>.
+        /// </summary>
+        /// <remarks>
+        /// Multiple channels can be retrieved and played simultaneously, but can only be heard up to <see cref="PlaybackConcurrency"/> times.
+        /// </remarks>
+        /// <returns>The unique <see cref="SampleChannel"/> for the playback.</returns>
+        SampleChannel GetChannel();
     }
 }

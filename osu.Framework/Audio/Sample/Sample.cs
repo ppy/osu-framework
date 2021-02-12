@@ -15,6 +15,13 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel Play()
         {
+            var channel = GetChannel();
+            channel.Play();
+            return channel;
+        }
+
+        public SampleChannel GetChannel()
+        {
             var channel = CreateChannel();
 
             if (channel != null)
