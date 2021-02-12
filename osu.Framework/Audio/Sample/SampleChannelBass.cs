@@ -11,6 +11,7 @@ namespace osu.Framework.Audio.Sample
         private readonly SampleBass sample;
         private volatile int channel;
         private volatile bool playing;
+        private volatile bool stopped = true;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor bassAmplitudeProcessor;
@@ -21,46 +22,26 @@ namespace osu.Framework.Audio.Sample
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
-                FrequencyChangedToZero = () => Bass.ChannelPause(channel),
-                FrequencyChangedFromZero = () => Bass.ChannelPlay(channel),
+                FrequencyChangedToZero = stopChannel,
+                FrequencyChangedFromZero = () =>
+                {
+                    // Only unpause if not stopped manually.
+                    if (!stopped)
+                        playChannel();
+                },
             };
 
-            EnqueueAction(() =>
-            {
-                ensureChannel();
-
-                if (channel == 0)
-                    return;
-
-                Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
-                setLoopFlag(Looping);
-
-                relativeFrequencyHandler.SetChannel(channel);
-                bassAmplitudeProcessor?.SetChannel(channel);
-            });
+            ensureChannel();
         }
 
         public override void Play()
         {
-            // Needs to happen on the main thread such that Played does not become true before Playing for a short moment.
-            playing = true;
-
             base.Play();
 
-            EnqueueAction(() =>
-            {
-                // Channel may have been freed via UpdateDevice().
-                ensureChannel();
+            playChannel();
 
-                if (channel == 0)
-                    return;
-
-                // Ensure state is correct before starting.
-                InvalidateState();
-
-                if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
-                    Bass.ChannelPlay(channel);
-            });
+            playing = true; // Needs to happen on the main thread such that Played does not become true before Playing for a short moment.
+            stopped = false;
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
@@ -115,18 +96,37 @@ namespace osu.Framework.Audio.Sample
         {
             base.Stop();
 
-            EnqueueAction(() =>
-            {
-                if (channel == 0)
-                    return;
+            stopChannel();
 
-                Bass.ChannelPause(channel);
-            });
+            stopped = true;
         }
 
         public override bool Playing => playing;
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
+
+        private void playChannel() => EnqueueAction(() =>
+        {
+            // Channel may have been freed via UpdateDevice().
+            ensureChannel();
+
+            if (channel == 0)
+                return;
+
+            // Ensure state is correct before starting.
+            InvalidateState();
+
+            if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
+                Bass.ChannelPlay(channel);
+        });
+
+        private void stopChannel() => EnqueueAction(() =>
+        {
+            if (channel == 0)
+                return;
+
+            Bass.ChannelPause(channel);
+        });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {
@@ -140,6 +140,12 @@ namespace osu.Framework.Audio.Sample
                 return;
 
             channel = Bass.SampleGetChannel(sample.SampleId);
+
+            Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
+            setLoopFlag(Looping);
+
+            relativeFrequencyHandler.SetChannel(channel);
+            bassAmplitudeProcessor?.SetChannel(channel);
         });
     }
 }
