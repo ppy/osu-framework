@@ -141,6 +141,9 @@ namespace osu.Framework.Audio.Sample
 
             channel = Bass.SampleGetChannel(sample.SampleId);
 
+            if (!hasChannel)
+                return;
+
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
 
