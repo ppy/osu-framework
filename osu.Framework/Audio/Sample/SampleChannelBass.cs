@@ -57,7 +57,7 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged();
 
-            if (channel == 0)
+            if (!hasChannel)
                 return;
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, AggregateVolume.Value);
@@ -78,7 +78,7 @@ namespace osu.Framework.Audio.Sample
         protected override void UpdateState()
         {
             // Initial playing state depending on whether a channel exists or not. This should be true in most cases.
-            playing = channel != 0;
+            playing = hasChannel;
 
             // Adjust playing state depending on whether the channel is actually playing. Stalled counts as playing, as playback will continue once more data is streamed in.
             if (playing)
@@ -105,38 +105,38 @@ namespace osu.Framework.Audio.Sample
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
 
+        private bool hasChannel => channel != 0;
+
         private void playChannel() => EnqueueAction(() =>
         {
             // Channel may have been freed via UpdateDevice().
             ensureChannel();
 
-            if (channel == 0)
+            if (!hasChannel)
                 return;
 
             // Ensure state is correct before starting.
             InvalidateState();
 
-            if (channel != 0 && !relativeFrequencyHandler.IsFrequencyZero)
+            if (hasChannel && !relativeFrequencyHandler.IsFrequencyZero)
                 Bass.ChannelPlay(channel);
         });
 
         private void stopChannel() => EnqueueAction(() =>
         {
-            if (channel == 0)
-                return;
-
-            Bass.ChannelPause(channel);
+            if (hasChannel)
+                Bass.ChannelPause(channel);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {
-            if (channel != 0)
+            if (hasChannel)
                 Bass.ChannelFlags(channel, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
         });
 
         private void ensureChannel() => EnqueueAction(() =>
         {
-            if (channel != 0)
+            if (hasChannel)
                 return;
 
             channel = Bass.SampleGetChannel(sample.SampleId);
