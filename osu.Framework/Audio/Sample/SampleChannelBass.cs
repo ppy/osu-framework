@@ -150,5 +150,19 @@ namespace osu.Framework.Audio.Sample
             relativeFrequencyHandler.SetChannel(channel);
             bassAmplitudeProcessor?.SetChannel(channel);
         });
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            if (hasChannel)
+            {
+                Bass.ChannelStop(channel);
+                channel = 0;
+
+                playing = false;
+                stopped = true;
+            }
+        }
     }
 }
