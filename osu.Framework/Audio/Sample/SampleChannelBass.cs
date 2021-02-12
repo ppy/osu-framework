@@ -100,8 +100,11 @@ namespace osu.Framework.Audio.Sample
             playing = channel != 0;
 
             // Adjust playing state depending on whether the channel is actually playing. Stalled counts as playing, as playback will continue once more data is streamed in.
-            var state = Bass.ChannelIsActive(channel);
-            playing = playing && (state == PlaybackState.Playing || state == PlaybackState.Stalled);
+            if (playing)
+            {
+                var state = Bass.ChannelIsActive(channel);
+                playing = state == PlaybackState.Playing || state == PlaybackState.Stalled;
+            }
 
             base.UpdateState();
 
