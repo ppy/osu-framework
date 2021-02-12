@@ -13,9 +13,10 @@ namespace osu.Framework.Audio.Sample
 
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
-        public SampleChannel Play()
+        public SampleChannel Play(bool looping = false)
         {
             var channel = GetChannel();
+            channel.Looping = looping;
             channel.Play();
             return channel;
         }
