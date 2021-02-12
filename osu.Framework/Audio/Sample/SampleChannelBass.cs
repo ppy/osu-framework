@@ -10,8 +10,10 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly SampleBass sample;
         private volatile int channel;
+        private volatile bool isPlayed;
+
+        public override bool Playing => playing;
         private volatile bool playing;
-        private volatile bool stopped = true;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor bassAmplitudeProcessor;
@@ -25,8 +27,8 @@ namespace osu.Framework.Audio.Sample
                 FrequencyChangedToZero = stopChannel,
                 FrequencyChangedFromZero = () =>
                 {
-                    // Only unpause if not stopped manually.
-                    if (!stopped)
+                    // Only unpause if the channel has been played.
+                    if (isPlayed)
                         playChannel();
                 },
             };
@@ -36,12 +38,21 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play()
         {
-            base.Play();
+            isPlayed = true;
 
+            // Enqueue the playback to start.
+            //
+            // The playing state set below combined with the call to base.Play() will make this channel visible to the audio thread if it's not already.
+            // If the the audio thread were to update and see the channel not playing, it would reset the playing state and remove the channel from the audio thread's visibility.
+            //
+            // In order to prevent this race, playback is enqueued first so that the audio thread is guaranteed to play the channel when it becomes visible to it.
             playChannel();
 
-            playing = true; // Needs to happen on the main thread such that Played does not become true before Playing for a short moment.
-            stopped = false;
+            // The playing state keeps the channel alive to receive updates from the audio thread. It will not receive updates until base.Play().
+            playing = true;
+
+            // Notify to Sample/SampleBassFactory that this channel has come alive.
+            base.Play();
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
@@ -77,14 +88,30 @@ namespace osu.Framework.Audio.Sample
 
         protected override void UpdateState()
         {
-            // Initial playing state depending on whether a channel exists or not. This should be true in most cases.
-            playing = hasChannel;
-
-            // Adjust playing state depending on whether the channel is actually playing. Stalled counts as playing, as playback will continue once more data is streamed in.
-            if (playing)
+            if (hasChannel)
             {
-                var state = Bass.ChannelIsActive(channel);
-                playing = state == PlaybackState.Playing || state == PlaybackState.Stalled;
+                // Set playing state depending on whether the channel is playing or not.
+                switch (Bass.ChannelIsActive(channel))
+                {
+                    case PlaybackState.Playing:
+                    case PlaybackState.Stalled: // Stalled counts as playing, as playback will continue once more data has streamed in.
+                        playing = true;
+                        break;
+
+                    case PlaybackState.Paused when isPlayed:
+                        // The channel is in a "paused" state via zero-frequency. It should be marked as playing even if it's in a paused state internally.
+                        playing = true;
+                        break;
+
+                    default:
+                        playing = false;
+                        break;
+                }
+            }
+            else
+            {
+                // Channel doesn't exist - a rare case occurring as a result of device updates.
+                playing = false;
             }
 
             base.UpdateState();
@@ -94,14 +121,12 @@ namespace osu.Framework.Audio.Sample
 
         public override void Stop()
         {
+            isPlayed = false;
+
             base.Stop();
 
             stopChannel();
-
-            stopped = true;
         }
-
-        public override bool Playing => playing;
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
 
@@ -118,8 +143,10 @@ namespace osu.Framework.Audio.Sample
             // Ensure state is correct before starting.
             InvalidateState();
 
-            if (hasChannel && !relativeFrequencyHandler.IsFrequencyZero)
-                Bass.ChannelPlay(channel);
+            if (relativeFrequencyHandler.IsFrequencyZero)
+                return;
+
+            Bass.ChannelPlay(channel);
         });
 
         private void stopChannel() => EnqueueAction(() =>
@@ -159,10 +186,9 @@ namespace osu.Framework.Audio.Sample
             {
                 Bass.ChannelStop(channel);
                 channel = 0;
-
-                playing = false;
-                stopped = true;
             }
+
+            playing = false;
         }
     }
 }
