@@ -43,16 +43,18 @@ namespace osu.Framework.Tests.Visual.Audio
             playAndCheckSample();
 
             AddStep("set frequency to 0", () => channel.Frequency.Value = 0);
+            AddWaitStep("wait for audio thread", 3);
             AddAssert("is still playing", () => channel.Playing);
         }
 
         [Test]
         public void TestZeroFrequencyOnStart()
         {
-            AddStep("set frequency to 0", () => channel.Frequency.Value = 0);
+            AddStep("set frequency to 0", () => sample.Frequency.Value = 0);
             playAndCheckSample();
 
             AddStep("set frequency to 1", () => channel.Frequency.Value = 1);
+            AddWaitStep("wait for audio thread", 3);
             AddAssert("is still playing", () => channel.Playing);
         }
 
@@ -62,6 +64,7 @@ namespace osu.Framework.Tests.Visual.Audio
             stopAndCheckSample();
 
             AddStep("set frequency to 0", () => channel.Frequency.Value = 0);
+            AddWaitStep("wait for audio thread", 3);
             AddAssert("still stopped", () => !channel.Playing);
         }
 
@@ -75,11 +78,12 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             AddStep("play sample", () =>
             {
-                channel = sample.Play();
+                channel = sample.GetChannel();
+                channel.Looping = true;
 
                 // reduce volume of the tone due to how loud it normally is.
                 channel.Volume.Value = 0.05;
-                channel.Looping = true;
+                channel.Play();
             });
 
             // ensures that it is in fact looping given that the loaded sample length is very short.
