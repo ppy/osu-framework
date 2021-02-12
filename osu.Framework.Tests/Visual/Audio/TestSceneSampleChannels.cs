@@ -31,7 +31,13 @@ namespace osu.Framework.Tests.Visual.Audio
         public void TestPlayLoopingSample()
         {
             SampleChannel channel = null;
-            AddStep("play sample", () => channel = sample.Play(true));
+            AddStep("play sample", () =>
+            {
+                channel = sample.GetChannel();
+                channel.Looping = true;
+                channel.Play();
+            });
+
             AddWaitStep("wait for loop", 20);
             AddAssert("still playing", () => channel.Playing);
             AddStep("stop playing", () => channel.Stop());

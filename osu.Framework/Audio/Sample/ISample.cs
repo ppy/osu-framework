@@ -30,7 +30,7 @@ namespace osu.Framework.Audio.Sample
         /// Multiple channels can be played simultaneously, but can only be heard up to <see cref="PlaybackConcurrency"/> times.
         /// </remarks>
         /// <returns>The unique <see cref="SampleChannel"/> for the playback.</returns>
-        SampleChannel Play(bool looping = false);
+        SampleChannel Play();
 
         /// <summary>
         /// Retrieves a unique playback channel for this <see cref="ISample"/>.

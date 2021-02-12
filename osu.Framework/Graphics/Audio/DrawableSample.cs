@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Audio
             PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
 
-        public SampleChannel Play(bool looping = false) => sample.Play(looping);
+        public SampleChannel Play() => sample.Play();
 
         public SampleChannel GetChannel() => sample.GetChannel();
 

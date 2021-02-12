@@ -16,10 +16,9 @@ namespace osu.Framework.Audio.Sample
 
         internal Action<Sample> OnPlay;
 
-        public SampleChannel Play(bool looping = false)
+        public SampleChannel Play()
         {
             var channel = GetChannel();
-            channel.Looping = looping;
             channel.Play();
             return channel;
         }
