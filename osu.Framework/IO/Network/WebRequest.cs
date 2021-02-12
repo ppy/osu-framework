@@ -199,6 +199,7 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
+        private CancellationToken? userToken;
         private CancellationTokenSource abortToken;
         private CancellationTokenSource timeoutToken;
 
@@ -214,14 +215,20 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public async Task PerformAsync()
+        public async Task PerformAsync() => await PerformAsync(default);
+
+        /// <summary>
+        /// Performs the request asynchronously.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the request.</param>
+        public async Task PerformAsync(CancellationToken cancellationToken)
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
 
             try
             {
-                await internalPerform();
+                await internalPerform(cancellationToken);
             }
             catch (AggregateException ae)
             {
@@ -229,7 +236,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        private async Task internalPerform()
+        private async Task internalPerform(CancellationToken cancellationToken = default)
         {
             var url = Url;
 
@@ -239,9 +246,13 @@ namespace osu.Framework.IO.Network
                 url = @"https://" + url.Replace(@"http://", @"");
             }
 
+            // If a user token already exists, keep it. Otherwise, take on the previous user token, as this could be a retry of the request.
+            userToken ??= cancellationToken;
+            cancellationToken = userToken.Value;
+
             using (abortToken ??= new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
-            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token, cancellationToken))
             {
                 try
                 {
@@ -354,9 +365,9 @@ namespace osu.Framework.IO.Network
                     Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
                         WebExceptionStatus.Timeout));
                 }
-                catch (Exception) when (abortToken.IsCancellationRequested)
+                catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                    onAborted();
                 }
                 catch (Exception e)
                 {
@@ -366,6 +377,14 @@ namespace osu.Framework.IO.Network
 
                     Complete(e);
                 }
+            }
+
+            void onAborted()
+            {
+                // Aborting via the cancellation token will not set the correct aborted/completion states. Make sure they're set here.
+                Abort();
+
+                Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
             }
         }
 

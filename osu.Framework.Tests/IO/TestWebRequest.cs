@@ -327,6 +327,90 @@ namespace osu.Framework.Tests.IO
         }
 
         /// <summary>
+        /// Tests cancelling the <see cref="WebRequest"/> after response has been received from the server
+        /// but before data has been read.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestCancelReceive()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+            request.Started += () => cancellationSource.Cancel();
+
+            Assert.DoesNotThrowAsync(() => request.PerformAsync(cancellationSource.Token));
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(request.ResponseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
+        /// </summary>
+        [Test, Retry(5)]
+        public async Task TestCancelRequest()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            cancellationSource.Cancel();
+            await request.PerformAsync(cancellationSource.Token);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(request.ResponseObject == null);
+
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests being able to cancel + restart a request.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestRestartAfterAbort()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            cancellationSource.Cancel();
+            request.PerformAsync(cancellationSource.Token);
+
+            Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
         /// Tests that specifically-crafted <see cref="WebRequest"/> is completed after one timeout.
         /// </summary>
         [Test, Retry(5)]
