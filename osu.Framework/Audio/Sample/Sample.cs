@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Sample
@@ -12,6 +13,8 @@ namespace osu.Framework.Audio.Sample
         public double Length { get; protected set; }
 
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
+
+        internal Action<Sample> OnPlay;
 
         public SampleChannel Play(bool looping = false)
         {
@@ -26,10 +29,18 @@ namespace osu.Framework.Audio.Sample
             var channel = CreateChannel();
 
             if (channel != null)
-                AddItem(channel);
+                channel.OnPlay = onPlay;
 
             return channel;
         }
+
+        private void onPlay(SampleChannel channel)
+        {
+            AddItem(channel);
+            OnPlay?.Invoke(this);
+        }
+
+        public override bool IsAlive => base.IsAlive && (PendingActions.Count > 0 || Items.Count > 0);
 
         /// <summary>
         /// Creates a unique playback of this <see cref="Sample"/>.

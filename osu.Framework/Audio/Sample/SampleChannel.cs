@@ -9,12 +9,15 @@ namespace osu.Framework.Audio.Sample
 {
     public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel
     {
+        internal Action<SampleChannel> OnPlay;
+
         public virtual void Play()
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not play disposed sample channels.");
 
             Played = true;
+            OnPlay?.Invoke(this);
         }
 
         public virtual void Stop()

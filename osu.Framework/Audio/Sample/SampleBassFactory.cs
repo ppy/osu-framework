@@ -80,11 +80,11 @@ namespace osu.Framework.Audio.Sample
                 return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency.Value, flags);
         }
 
-        public Sample CreateSample()
+        public Sample CreateSample() => new SampleBass(this) { OnPlay = onPlay };
+
+        private void onPlay(Sample sample)
         {
-            var sample = new SampleBass(this);
             AddItem(sample);
-            return sample;
         }
 
         protected override void Dispose(bool disposing)
