@@ -1,4 +1,5 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Lists;
@@ -1302,7 +1303,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="child">The drawable to be evaluated.</param>
         /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
-        protected virtual bool ShouldBeConsideredForInput(Drawable child) => true;
+        protected virtual bool ShouldBeConsideredForInput(Drawable child) => child.LoadState == LoadState.Loaded;
 
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
