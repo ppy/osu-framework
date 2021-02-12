@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Track
 
         public double RestartPoint { get; set; }
 
-        public bool Looping { get; set; }
+        public virtual bool Looping { get; set; }
 
         /// <summary>
         /// Reset this track to a logical default state.
