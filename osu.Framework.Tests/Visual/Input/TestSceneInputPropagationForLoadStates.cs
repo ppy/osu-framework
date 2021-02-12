@@ -19,13 +19,16 @@ namespace osu.Framework.Tests.Visual.Input
         [Test]
         public void TestReadyStateDrawablesDontReceiveInput()
         {
-            Children = new Drawable[]
+            AddStep("setup children", () =>
             {
-                receiver1 = new InputReceiver(),
-                new InputSender(),
-                // receiver is updated (ie. LoadComplete is run) after sender, so it should not receive the initial input
-                receiver2 = new InputReceiver()
-            };
+                Children = new Drawable[]
+                {
+                    receiver1 = new InputReceiver(),
+                    new InputSender(),
+                    // receiver is updated (ie. LoadComplete is run) after sender, so it should not receive the initial input
+                    receiver2 = new InputReceiver()
+                };
+            });
 
             AddAssert("receiver 1 received input'", () => receiver1.DidReceiveInput);
             AddAssert("receiver 2 did not receive input'", () => !receiver2.DidReceiveInput);
