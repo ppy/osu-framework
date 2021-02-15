@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Sample
             // Enqueue the playback to start.
             //
             // The playing state set below combined with the call to base.Play() will make this channel visible to the audio thread if it's not already.
-            // If the the audio thread were to update and see the channel not playing, it would reset the playing state and remove the channel from the audio thread's visibility.
+            // If the audio thread were to update and see the channel not playing, it would reset the playing state and remove the channel from the audio thread's visibility.
             //
             // In order to prevent this race, playback is enqueued first so that the audio thread is guaranteed to play the channel when it becomes visible to it.
             playChannel();
@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Sample
             // The playing state keeps the channel alive to receive updates from the audio thread. It will not receive updates until base.Play().
             playing = true;
 
-            // Notify to Sample/SampleBassFactory that this channel has come alive.
+            // Notifies Sample/SampleBassFactory that this channel has come alive.
             base.Play();
         }
 
@@ -90,16 +90,13 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                // Set playing state depending on whether the channel is playing or not.
                 switch (Bass.ChannelIsActive(channel))
                 {
                     case PlaybackState.Playing:
-                    case PlaybackState.Stalled: // Stalled counts as playing, as playback will continue once more data has streamed in.
-                        playing = true;
-                        break;
-
+                    // Stalled counts as playing, as playback will continue once more data has streamed in.
+                    case PlaybackState.Stalled:
+                    // The channel is in a "paused" state via zero-frequency. It should be marked as playing even if it's in a paused state internally.
                     case PlaybackState.Paused when userRequestedPlay:
-                        // The channel is in a "paused" state via zero-frequency. It should be marked as playing even if it's in a paused state internally.
                         playing = true;
                         break;
 
