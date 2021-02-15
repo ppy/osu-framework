@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly SampleBass sample;
         private volatile int channel;
-        private volatile bool isPlayed;
+        private volatile bool userRequestedPlay;
 
         public override bool Playing => playing;
         private volatile bool playing;
@@ -27,8 +27,8 @@ namespace osu.Framework.Audio.Sample
                 FrequencyChangedToZero = stopChannel,
                 FrequencyChangedFromZero = () =>
                 {
-                    // Only unpause if the channel has been played.
-                    if (isPlayed)
+                    // Only unpause if the channel has been played by the user.
+                    if (userRequestedPlay)
                         playChannel();
                 },
             };
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play()
         {
-            isPlayed = true;
+            userRequestedPlay = true;
 
             // Enqueue the playback to start.
             //
@@ -98,7 +98,7 @@ namespace osu.Framework.Audio.Sample
                         playing = true;
                         break;
 
-                    case PlaybackState.Paused when isPlayed:
+                    case PlaybackState.Paused when userRequestedPlay:
                         // The channel is in a "paused" state via zero-frequency. It should be marked as playing even if it's in a paused state internally.
                         playing = true;
                         break;
@@ -121,7 +121,7 @@ namespace osu.Framework.Audio.Sample
 
         public override void Stop()
         {
-            isPlayed = false;
+            userRequestedPlay = false;
 
             base.Stop();
 
