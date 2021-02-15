@@ -28,6 +28,16 @@ namespace osu.Framework.Tests.Visual.Audio
         }
 
         [Test]
+        public void TestDoesNotRestart()
+        {
+            SampleChannel channel = null;
+            AddStep("play sample", () => channel = sample.Play());
+            AddUntilStep("wait for end", () => !channel.Playing);
+            AddStep("play channel", () => channel.Play());
+            AddAssert("not playing", () => !channel.Playing);
+        }
+
+        [Test]
         public void TestPlayLoopingSample()
         {
             SampleChannel channel = null;

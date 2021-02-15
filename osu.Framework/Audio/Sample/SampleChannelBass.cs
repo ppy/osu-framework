@@ -143,6 +143,12 @@ namespace osu.Framework.Audio.Sample
             // Ensure state is correct before starting.
             InvalidateState();
 
+            // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
+            // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
+            // to indicate the natural stoppage of a sample as a result of having reaching the end.
+            if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                return;
+
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return;
 
