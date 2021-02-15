@@ -31,10 +31,23 @@ namespace osu.Framework.Tests.Visual.Audio
         public void TestDoesNotRestart()
         {
             SampleChannel channel = null;
-            AddStep("play sample", () => channel = sample.Play());
-            AddUntilStep("wait for end", () => !channel.Playing);
-            AddStep("play channel", () => channel.Play());
-            AddAssert("not playing", () => !channel.Playing);
+
+            AddStep("play channel 1 sample", () => channel = sample.Play());
+            AddUntilStep("wait for channel 1 to end", () => !channel.Playing);
+            AddStep("play channel 1 again", () => channel.Play());
+
+            // Create another channel purely for tracking purposes in order to avoid timing issues.
+            // When this channel is playing, the audio thread is guaranteed to have processed the above channel.
+            SampleChannel channel2 = null;
+            AddStep("play a silent channel 2", () =>
+            {
+                channel2 = sample.GetChannel();
+                channel2.Volume.Value = 0;
+                channel2.Play();
+            });
+
+            AddUntilStep("channel 2 playing", () => channel2.Playing);
+            AddAssert("channel 1 not playing", () => !channel.Playing);
         }
 
         [Test]
