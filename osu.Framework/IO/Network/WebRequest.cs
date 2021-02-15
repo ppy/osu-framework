@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -126,7 +127,17 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
-        private static readonly HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
+        private static readonly HttpClient client = new HttpClient(
+#if NET5_0
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                ConnectCallback = onConnect,
+            }
+#else
+            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+#endif
+        )
         {
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
@@ -689,6 +700,86 @@ namespace osu.Framework.IO.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        #endregion
+
+        #region IPv4 fallback implementation
+
+#if NET5_0
+        /// <summary>
+        /// Whether IPv6 should be preferred. Value may change based on runtime failures.
+        /// </summary>
+        private static bool useIPv6 = Socket.OSSupportsIPv6;
+
+        /// <summary>
+        /// Whether the initial IPv6 check has been performed (to determine whether v6 is available or not).
+        /// </summary>
+        private static bool hasResolvedIPv6Availability;
+
+        private const int connection_establish_timeout = 2000;
+
+        private static async ValueTask<Stream> onConnect(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+        {
+            // Until .NET supports an implementation of Happy Eyeballs (https://tools.ietf.org/html/rfc8305#section-2), let's make IPv4 fallback work in a simple way.
+            // This issue is being tracked at https://github.com/dotnet/runtime/issues/26177 and expected to be fixed in .NET 6.
+
+            if (useIPv6)
+            {
+                try
+                {
+                    var localToken = cancellationToken;
+
+                    if (!hasResolvedIPv6Availability)
+                    {
+                        // to make things move fast, use a very low timeout for the initial ipv6 attempt.
+                        var quickFailCts = new CancellationTokenSource(connection_establish_timeout);
+                        var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, quickFailCts.Token);
+
+                        localToken = linkedTokenSource.Token;
+                    }
+
+                    return await attemptConnection(AddressFamily.InterNetworkV6, context, localToken);
+                }
+                catch
+                {
+                    // very naively fallback to ipv4 permanently for this execution based on the response of the first connection attempt.
+                    // note that this may cause users to eventually get switched to ipv4 (on a random failure when they are switching networks, for instance)
+                    // but in the interest of keeping this implementation simple, this is acceptable.
+                    useIPv6 = false;
+                }
+                finally
+                {
+                    hasResolvedIPv6Availability = true;
+                }
+            }
+
+            // fallback to IPv4.
+            return await attemptConnection(AddressFamily.InterNetwork, context, cancellationToken);
+        }
+
+        private static async ValueTask<Stream> attemptConnection(AddressFamily addressFamily, SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+        {
+            // The following socket constructor will create a dual-mode socket on systems where IPV6 is available.
+            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
+            {
+                // Turn off Nagle's algorithm since it degrades performance in most HttpClient scenarios.
+                NoDelay = true
+            };
+
+            try
+            {
+                await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
+                // The stream should take the ownership of the underlying socket,
+                // closing it when it's disposed.
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+#endif
 
         #endregion
 
