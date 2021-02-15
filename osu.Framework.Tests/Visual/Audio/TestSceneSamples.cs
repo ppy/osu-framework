@@ -196,8 +196,9 @@ namespace osu.Framework.Tests.Visual.Audio
                 Played = true;
                 circle.ScaleTo(1.8f).ScaleTo(1, 600, Easing.OutQuint);
 
-                var channel = sample.Play();
+                var channel = sample.GetChannel();
                 channel.Frequency.Value = 1 + Y / notes;
+                channel.Play();
             }
         }
     }
