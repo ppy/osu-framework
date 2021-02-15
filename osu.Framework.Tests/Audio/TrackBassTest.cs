@@ -10,6 +10,7 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Threading;
 
 #pragma warning disable 4014
@@ -26,6 +27,12 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Init(0);
 

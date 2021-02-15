@@ -60,11 +60,6 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// States if this component should repeat.
-        /// </summary>
-        public virtual bool Looping { get; set; }
-
-        /// <summary>
         /// Run each loop of the audio thread's execution after queued actions are completed to allow components to perform any additional operations.
         /// </summary>
         protected virtual void UpdateState()
