@@ -20,7 +20,10 @@ namespace osu.Framework.Audio.Sample
 
         public double Length { get; private set; }
 
-        public readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
+        /// <summary>
+        /// Todo: Expose this to support per-sample playback concurrency once ManagedBass has been updated (https://github.com/ManagedBass/ManagedBass/pull/85).
+        /// </summary>
+        internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
 
