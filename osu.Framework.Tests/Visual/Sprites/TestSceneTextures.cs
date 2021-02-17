@@ -89,19 +89,19 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddStep("begin blocking load", () => blockingOnlineStore.StartBlocking("https://a.ppy.sh/3"));
 
             AddStep("get first", () => avatar1 = addSprite("https://a.ppy.sh/3"));
-            AddUntilStep("wait for first to begin loading", () => blockingOnlineStore.TotalLookups == 1);
+            AddUntilStep("wait for first to begin loading", () => blockingOnlineStore.TotalInitiatedLookups == 1);
 
             AddStep("get second", () => avatar2 = addSprite("https://a.ppy.sh/2"));
 
             AddUntilStep("wait for avatar2 load", () => avatar2.Texture != null);
 
             AddAssert("avatar1 not loaded", () => avatar1.Texture == null);
-            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalLookups == 1);
+            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalCompletedLookups == 1);
 
             AddStep("unblock load", () => blockingOnlineStore.AllowLoad());
 
             AddUntilStep("wait for texture load", () => avatar1.Texture != null);
-            AddAssert("two lookups occurred", () => blockingOnlineStore.TotalLookups == 2);
+            AddAssert("two lookups occurred", () => blockingOnlineStore.TotalCompletedLookups == 2);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddUntilStep("wait for texture load", () => avatar1.Texture != null && avatar2.Texture != null);
 
-            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalLookups == 1);
+            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalInitiatedLookups == 1);
         }
 
         /// <summary>
@@ -186,7 +186,12 @@ namespace osu.Framework.Tests.Visual.Sprites
             /// <summary>
             /// The total number of lookups requested on this store (including blocked lookups).
             /// </summary>
-            public int TotalLookups { get; private set; }
+            public int TotalInitiatedLookups { get; private set; }
+
+            /// <summary>
+            /// The total number of completed lookup.
+            /// </summary>
+            public int TotalCompletedLookups { get; private set; }
 
             private readonly ManualResetEventSlim resetEvent = new ManualResetEventSlim(true);
 
@@ -206,18 +211,20 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             public override byte[] Get(string url)
             {
-                TotalLookups++;
+                TotalInitiatedLookups++;
 
                 if (string.IsNullOrEmpty(blockingUrl) || url == blockingUrl)
                     resetEvent.Wait();
 
+                TotalCompletedLookups++;
                 return base.Get(url);
             }
 
             public void Reset()
             {
                 AllowLoad();
-                TotalLookups = 0;
+                TotalInitiatedLookups = 0;
+                TotalCompletedLookups = 0;
             }
         }
     }
