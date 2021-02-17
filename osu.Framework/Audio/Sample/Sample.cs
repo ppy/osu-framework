@@ -25,6 +25,9 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel GetChannel()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not get a channel from a disposed sample.");
+
             var channel = CreateChannel();
 
             if (channel != null)
