@@ -126,10 +126,10 @@ namespace osu.Framework.Graphics.Textures
 
             lock (retrievalCompletionSources)
             {
-                // check if an existing lookup was already started for this name.
-                if (!retrievalCompletionSources.TryGetValue(name, out task))
+                // check if an existing lookup was already started for this key.
+                if (!retrievalCompletionSources.TryGetValue(key, out task))
                     // if not, take responsibility for the lookup.
-                    retrievalCompletionSources[name] = (tcs = new TaskCompletionSource<Texture>()).Task;
+                    retrievalCompletionSources[key] = (tcs = new TaskCompletionSource<Texture>()).Task;
             }
 
             if (task != null)
