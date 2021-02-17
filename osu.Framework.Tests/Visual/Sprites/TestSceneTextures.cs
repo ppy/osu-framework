@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
@@ -9,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -20,14 +22,27 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Cached]
         private LargeTextureStore largeStore;
 
+        private BlockingOnlineStore blockingOnlineStore;
+
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
         {
             var host = parent.Get<GameHost>();
 
-            normalStore = new TextureStore(host.CreateTextureLoaderStore(new OnlineStore()));
-            largeStore = new LargeTextureStore(host.CreateTextureLoaderStore(new OnlineStore()));
+            blockingOnlineStore = new BlockingOnlineStore();
+
+            normalStore = new TextureStore(host.CreateTextureLoaderStore(blockingOnlineStore));
+            largeStore = new LargeTextureStore(host.CreateTextureLoaderStore(blockingOnlineStore));
 
             return base.CreateChildDependencies(parent);
+        }
+
+        [SetUpSteps]
+        public void SetUpSteps()
+        {
+            AddStep("reset online store", () => blockingOnlineStore.Reset());
+
+            // required to drop reference counts and allow fresh lookups to occur on the LargeTextureStore.
+            AddStep("dispose children", () => Clear());
         }
 
         /// <summary>
@@ -60,6 +75,55 @@ namespace osu.Framework.Tests.Visual.Sprites
             });
 
             assertAvailability(() => texture, false);
+        }
+
+        /// <summary>
+        /// Tests the case where multiple lookups occur for different textures, which shouldn't block each other.
+        /// </summary>
+        [Test]
+        public void TestFetchContentionDifferentLookup()
+        {
+            Avatar avatar1 = null;
+            Avatar avatar2 = null;
+
+            AddStep("begin blocking load", () => blockingOnlineStore.StartBlocking("https://a.ppy.sh/3"));
+
+            AddStep("get first", () => avatar1 = addSprite("https://a.ppy.sh/3"));
+            AddUntilStep("wait for first to begin loading", () => blockingOnlineStore.TotalLookups == 1);
+
+            AddStep("get second", () => avatar2 = addSprite("https://a.ppy.sh/2"));
+
+            AddUntilStep("wait for avatar2 load", () => avatar2.Texture != null);
+
+            AddAssert("avatar1 not loaded", () => avatar1.Texture == null);
+            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalLookups == 1);
+
+            AddStep("unblock load", () => blockingOnlineStore.AllowLoad());
+
+            AddUntilStep("wait for texture load", () => avatar1.Texture != null);
+            AddAssert("two lookups occurred", () => blockingOnlineStore.TotalLookups == 2);
+        }
+
+        /// <summary>
+        /// Tests the case where multiple lookups occur which overlap each other, for the same texture.
+        /// </summary>
+        [Test]
+        public void TestFetchContentionSameLookup()
+        {
+            Avatar avatar1 = null;
+            Avatar avatar2 = null;
+
+            AddStep("begin blocking load", () => blockingOnlineStore.StartBlocking());
+            AddStep("get first", () => avatar1 = addSprite("https://a.ppy.sh/3"));
+            AddStep("get second", () => avatar2 = addSprite("https://a.ppy.sh/3"));
+
+            AddAssert("neither are loaded", () => avatar1.Texture == null && avatar2.Texture == null);
+
+            AddStep("unblock load", () => blockingOnlineStore.AllowLoad());
+
+            AddUntilStep("wait for texture load", () => avatar1.Texture != null && avatar2.Texture != null);
+
+            AddAssert("only one lookup occurred", () => blockingOnlineStore.TotalLookups == 1);
         }
 
         /// <summary>
@@ -114,6 +178,46 @@ namespace osu.Framework.Tests.Visual.Sprites
             private void load(LargeTextureStore textures)
             {
                 Texture = textures.Get(url);
+            }
+        }
+
+        private class BlockingOnlineStore : OnlineStore
+        {
+            /// <summary>
+            /// The total number of lookups requested on this store (including blocked lookups).
+            /// </summary>
+            public int TotalLookups { get; private set; }
+
+            private readonly ManualResetEventSlim resetEvent = new ManualResetEventSlim(true);
+
+            private string blockingUrl;
+
+            /// <summary>
+            /// Block load until <see cref="AllowLoad"/> is called.
+            /// </summary>
+            /// <param name="blockingUrl">An optional URL to limit load blocking to a specification.</param>
+            public void StartBlocking(string blockingUrl = null)
+            {
+                this.blockingUrl = blockingUrl;
+                resetEvent.Reset();
+            }
+
+            public void AllowLoad() => resetEvent.Set();
+
+            public override byte[] Get(string url)
+            {
+                TotalLookups++;
+
+                if (string.IsNullOrEmpty(blockingUrl) || url == blockingUrl)
+                    resetEvent.Wait();
+
+                return base.Get(url);
+            }
+
+            public void Reset()
+            {
+                AllowLoad();
+                TotalLookups = 0;
             }
         }
     }
