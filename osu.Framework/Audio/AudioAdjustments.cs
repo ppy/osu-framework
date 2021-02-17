@@ -66,10 +66,10 @@ namespace osu.Framework.Audio
             }
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => getAggregate(type).AddSource(adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => getAggregate(type).RemoveSource(adjustBindable);
 
         /// <summary>
