@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new Texture Get(string name) => Get(name, default, default);
 
-        private readonly Dictionary<string, Task<Texture>> retrievalCompletionSources = new Dictionary<string, Task<Texture>>();
+        private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Textures
                 return cached;
 
             TaskCompletionSource<Texture> tcs = null;
-            Task<Texture> task;
+            Task task;
 
             lock (retrievalCompletionSources)
             {
@@ -131,8 +131,17 @@ namespace osu.Framework.Graphics.Textures
                     retrievalCompletionSources[key] = (tcs = new TaskCompletionSource<Texture>()).Task;
             }
 
+            // handle the case where a lookup is already in progress.
             if (task != null)
-                return task.Result;
+            {
+                task.Wait();
+
+                // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
+                if (TryGetCached(key, out cached))
+                    return cached;
+
+                return null;
+            }
 
             this.LogIfNonBackgroundThread(key);
 
