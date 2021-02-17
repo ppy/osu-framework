@@ -17,7 +17,6 @@ namespace osu.Framework.Graphics.Textures
     public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
-        private readonly object retrievalLock = new object();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
