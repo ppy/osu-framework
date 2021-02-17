@@ -25,27 +25,78 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a bezier curve, by adaptively repeatedly subdividing
         /// the control points until their approximation error vanishes below a given threshold.
         /// </summary>
+        /// <param name="controlPoints">The control points.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateBezier(ReadOnlySpan<Vector2> controlPoints)
         {
+            return ApproximateBSpline(controlPoints);
+        }
+
+        /// <summary>
+        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order p,
+        /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
+        /// subdividing those until their approximation error vanishes below a given threshold.
+        /// Retains previous bezier approximation functionality when p is 0 or too large to create knots.
+        /// Algorithm unsuitable for large values of p with many knots.
+        /// </summary>
+        /// <param name="controlPoints">The control points.</param>
+        /// <param name="p">The polynomial order.</param>
+        /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        public static List<Vector2> ApproximateBSpline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
+        {
             List<Vector2> output = new List<Vector2>();
-            int count = controlPoints.Length;
+            int n = controlPoints.Length - 1;
 
-            if (count == 0)
+            if (n < 0)
                 return output;
-
-            var subdivisionBuffer1 = new Vector2[count];
-            var subdivisionBuffer2 = new Vector2[count * 2 - 1];
 
             Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
 
+            var points = controlPoints.ToArray();
+
+            if (p > 0 && p < n)
+            {
+                // Subdivide B-spline into bezier control points at knots.
+                for (int i = 0; i < n - p; i++)
+                {
+                    var subBezier = new Vector2[p + 1];
+                    subBezier[0] = points[i];
+
+                    // Destructively insert the knot p-1 times via Boehm's algorithm.
+                    for (int j = 0; j < p - 1; j++)
+                    {
+                        subBezier[j + 1] = points[i + 1];
+
+                        for (int k = 1; k < p - j; k++)
+                        {
+                            int l = Math.Min(k, n - p - i);
+                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
+                        }
+                    }
+
+                    subBezier[p] = points[i + 1];
+                    toFlatten.Push(subBezier);
+                }
+
+                toFlatten.Push(points[(n - p)..]);
+                // Reverse the stack so elements can be accessed in order.
+                toFlatten = new Stack<Vector2[]>(toFlatten);
+            }
+            else
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                p = n;
+                toFlatten.Push(points);
+            }
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
             // (More specifically, we iteratively and adaptively refine our curve with a
             // <a href="https://en.wikipedia.org/wiki/Depth-first_search">Depth-first search</a>
             // over the tree resulting from the subdivisions we make.)
-            toFlatten.Push(controlPoints.ToArray());
+
+            var subdivisionBuffer1 = new Vector2[p + 1];
+            var subdivisionBuffer2 = new Vector2[p * 2 + 1];
 
             Vector2[] leftChild = subdivisionBuffer2;
 
@@ -59,7 +110,7 @@ namespace osu.Framework.Utils
                     // an extension to De Casteljau's algorithm to obtain a piecewise-linear approximation
                     // of the bezier curve represented by our control points, consisting of the same amount
                     // of points as there are control points.
-                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, count);
+                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, p + 1);
 
                     freeBuffers.Push(parent);
                     continue;
@@ -67,18 +118,18 @@ namespace osu.Framework.Utils
 
                 // If we do not yet have a sufficiently "flat" (in other words, detailed) approximation we keep
                 // subdividing the curve we are currently operating on.
-                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[count];
-                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, count);
+                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[p + 1];
+                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, p + 1);
 
                 // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
-                for (int i = 0; i < count; ++i)
+                for (int i = 0; i < p + 1; ++i)
                     parent[i] = leftChild[i];
 
                 toFlatten.Push(rightChild);
                 toFlatten.Push(parent);
             }
 
-            output.Add(controlPoints[count - 1]);
+            output.Add(controlPoints[n]);
             return output;
         }
 

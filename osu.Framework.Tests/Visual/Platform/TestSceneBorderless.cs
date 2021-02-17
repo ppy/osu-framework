@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private DesktopGameWindow window;
+        private OsuTKDesktopWindow window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as DesktopGameWindow;
+            window = host.Window as OsuTKDesktopWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             if (window == null)
@@ -165,13 +165,13 @@ namespace osu.Framework.Tests.Visual.Platform
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
                 AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
                 AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value == display);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
                 AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
-                AddAssert("check current screen", () => window.CurrentDisplay.Value == display);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value == display);
             }
         }
 
@@ -203,7 +203,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window == null) return;
 
             bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
-            var currentBounds = window.CurrentDisplay.Value.Bounds;
+            var currentBounds = window.CurrentDisplayBindable.Value.Bounds;
 
             windowContainer.X = window.X;
             windowContainer.Y = window.Y;
@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.Size}";
             currentClientSize.Text = $"Client size: {window?.ClientSize}";
-            currentDisplay.Text = $"Current Display: {window?.CurrentDisplay.Value.Name}";
+            currentDisplay.Text = $"Current Display: {window?.CurrentDisplayBindable.Value.Name}";
         }
     }
 }

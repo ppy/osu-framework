@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -223,9 +224,7 @@ namespace osu.Framework.Bindables
 
         private void addWeakReference(WeakReference<Bindable<T>> weakReference)
         {
-            if (Bindings == null)
-                Bindings = new LockedWeakList<Bindable<T>>();
-
+            Bindings ??= new LockedWeakList<Bindable<T>>();
             Bindings.Add(weakReference);
         }
 
@@ -244,6 +243,13 @@ namespace osu.Framework.Bindables
             {
                 case T t:
                     Value = t;
+                    break;
+
+                case IBindable _:
+                    if (!(input is IBindable<T> bindable))
+                        throw new ArgumentException($"Expected bindable of type {nameof(IBindable)}<{typeof(T)}>, got {input.GetType()}", nameof(input));
+
+                    Value = bindable.Value;
                     break;
 
                 case string s when underlyingType.IsEnum:
@@ -395,6 +401,8 @@ namespace osu.Framework.Bindables
         public Bindable<T> GetBoundCopy()
         {
             var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
+            Debug.Assert(copy != null);
+
             copy.BindTo(this);
             return copy;
         }
@@ -454,8 +462,8 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// Called internally by a <see cref="LeasedBindable{T}"/> to end a lease.
         /// </summary>
-        /// <param name="returnedBindable">The <see cref="LeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
-        internal void EndLease(Bindable<T> returnedBindable)
+        /// <param name="returnedBindable">The <see cref="ILeasedBindable{T}"/> that was provided as a return of a <see cref="BeginLease"/> call.</param>
+        internal void EndLease(ILeasedBindable<T> returnedBindable)
         {
             if (!isLeased)
                 throw new InvalidOperationException("Attempted to end a lease without beginning one.");

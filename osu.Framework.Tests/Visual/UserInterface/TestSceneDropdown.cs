@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private const int items_to_add = 10;
         private const float explicit_height = 100;
         private float calculatedHeight;
-        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown;
+        private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown, disabledDropdown;
         private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection, platformActionContainerEmptyDropdown;
         private readonly BindableList<string> bindableList = new BindableList<string>();
 
@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = testDropdown = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(200, 70),
+                    Position = new Vector2(50, 50),
                     Items = testItems
                 }
             });
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = testDropdownMenu = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(400, 70),
+                    Position = new Vector2(250, 50),
                     Items = testItems
                 }
             });
@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             Add(bindableDropdown = new TestDropdown
             {
                 Width = 150,
-                Position = new Vector2(600, 70),
+                Position = new Vector2(450, 50),
                 ItemSource = bindableList
             });
 
@@ -69,7 +69,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 Child = emptyDropdown = new TestDropdown
                 {
                     Width = 150,
-                    Position = new Vector2(800, 70),
+                    Position = new Vector2(650, 50),
+                }
+            });
+
+            Add(disabledDropdown = new TestDropdown
+            {
+                Width = 150,
+                Position = new Vector2(50, 350),
+                Items = testItems,
+                Current =
+                {
+                    Value = testItems[3],
+                    Disabled = true
                 }
             });
         }
@@ -79,7 +91,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             var i = items_to_add;
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown is open", () => testDropdown.Menu.State == MenuState.Open);
 
             AddRepeatStep("add item", () => testDropdown.AddDropdownItem("test " + i++), items_to_add);
@@ -103,10 +115,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
             AddAssert("item 15 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(15));
 
-            AddStep("click dropdown1", () => toggleDropdownViaClick(testDropdown));
+            toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
 
-            AddStep("click dropdown2", () => toggleDropdownViaClick(testDropdownMenu));
+            toggleDropdownViaClick(testDropdownMenu, "dropdown2");
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
             AddAssert("dropdown2 is open", () => testDropdownMenu.Menu.State == MenuState.Open);
@@ -120,14 +132,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));
 
             AddStep("clear bindable list", () => bindableList.Clear());
-            AddStep("click dropdown3", () => toggleDropdownViaClick(bindableDropdown));
+            toggleDropdownViaClick(bindableDropdown, "dropdown3");
             AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
+
             AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }));
             AddAssert("three items in dropdown", () => bindableDropdown.Items.Count() == 3);
+
             AddStep("select three", () => bindableDropdown.Current.Value = "three");
             AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
             AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
             AddAssert("current value still three", () => bindableDropdown.Current.Value == "three");
+
             AddStep("remove three", () => bindableList.Remove("three"));
             AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
         }
@@ -165,7 +180,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 previousIndex = testDropdown.SelectedIndex;
                 performKeypress(testDropdown.Header, Key.Down);
             });
-
             AddAssert("Next item is selected", () => testDropdown.SelectedIndex == previousIndex + 1);
 
             AddStep("Select previous item", () =>
@@ -173,25 +187,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 previousIndex = testDropdown.SelectedIndex;
                 performKeypress(testDropdown.Header, Key.Up);
             });
-
             AddAssert("Previous item is selected", () => testDropdown.SelectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("Select last item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
-
             AddAssert("Last item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.Last().Item);
 
             AddStep("Select first item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardSelection, testDropdown.Header));
-
             AddAssert("First item selected", () => testDropdown.SelectedItem == testDropdown.Menu.DrawableMenuItems.First().Item);
 
             AddStep("Select next item when empty", () => performKeypress(emptyDropdown.Header, Key.Up));
-
             AddStep("Select previous item when empty", () => performKeypress(emptyDropdown.Header, Key.Down));
-
             AddStep("Select last item when empty", () => performKeypress(emptyDropdown.Header, Key.PageUp));
-
             AddStep("Select first item when empty", () => performKeypress(emptyDropdown.Header, Key.PageDown));
         }
 
@@ -202,15 +210,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             if (cleanSelection)
                 AddStep("Clean selection", () => testDropdownMenu.Current.Value = null);
 
-            clickKeyboardPreselectionDropdown();
-            assertDropdownIsOpen();
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
 
             AddStep("Preselect next item", () =>
             {
                 previousIndex = testDropdownMenu.PreselectedIndex;
                 performKeypress(testDropdownMenu.Menu, Key.Down);
             });
-
             AddAssert("Next item is preselected", () => testDropdownMenu.PreselectedIndex == previousIndex + 1);
 
             AddStep("Preselect previous item", () =>
@@ -218,7 +225,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 previousIndex = testDropdownMenu.PreselectedIndex;
                 performKeypress(testDropdownMenu.Menu, Key.Up);
             });
-
             AddAssert("Previous item is preselected", () => testDropdownMenu.PreselectedIndex == Math.Max(0, previousIndex - 1));
 
             AddStep("Preselect last visible item", () =>
@@ -226,7 +232,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 lastVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.Last());
                 performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
-
             AddAssert("Last visible item preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheCurrentPage);
 
             AddStep("Preselect last visible item on the next page", () =>
@@ -236,7 +241,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
                 performKeypress(testDropdownMenu.Menu, Key.PageDown);
             });
-
             AddAssert("Last visible item on the next page preselected", () => testDropdownMenu.PreselectedIndex == lastVisibleIndexOnTheNextPage);
 
             AddStep("Preselect first visible item", () =>
@@ -244,7 +248,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 firstVisibleIndexOnTheCurrentPage = testDropdownMenu.Menu.DrawableMenuItems.ToList().IndexOf(testDropdownMenu.Menu.VisibleMenuItems.First());
                 performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
-
             AddAssert("First visible item preselected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnTheCurrentPage);
 
             AddStep("Preselect first visible item on the previous page", () =>
@@ -253,72 +256,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     testDropdownMenu.Menu.Items.Count - 1);
                 performKeypress(testDropdownMenu.Menu, Key.PageUp);
             });
-
             AddAssert("First visible item on the previous page selected", () => testDropdownMenu.PreselectedIndex == firstVisibleIndexOnThePreviousPage);
-
             AddAssert("First item is preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
             AddStep("Preselect last item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
-
             AddAssert("Last item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
 
-            AddStep("Finalize selection", () => { performKeypress(testDropdownMenu.Menu, Key.Enter); });
-
+            AddStep("Finalize selection", () => performKeypress(testDropdownMenu.Menu, Key.Enter));
             assertLastItemSelected();
+            assertDropdownIsClosed(testDropdownMenu);
 
-            assertDropdownIsClosed();
-
-            clickKeyboardPreselectionDropdown();
-
-            assertDropdownIsOpen();
+            toggleDropdownViaClick(testDropdownMenu);
+            assertDropdownIsOpen(testDropdownMenu);
 
             AddStep("Preselect first item",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerKeyboardPreselection, testDropdownMenu));
-
             AddAssert("First item preselected", () => testDropdownMenu.Menu.PreselectedItem.Item == testDropdownMenu.Menu.DrawableMenuItems.First().Item);
 
             AddStep("Discard preselection", () => performKeypress(testDropdownMenu.Menu, Key.Escape));
-
-            assertDropdownIsClosed();
-
+            assertDropdownIsClosed(testDropdownMenu);
             assertLastItemSelected();
 
-            AddStep($"Click {emptyDropdown}", () => toggleDropdownViaClick(emptyDropdown));
-
-            AddStep("Preselect next item when empty", () =>
-            {
-                performKeypress(emptyDropdown.Menu, Key.Down);
-            });
-
-            AddStep("Preselect previous item when empty", () =>
-            {
-                performKeypress(emptyDropdown.Menu, Key.Up);
-            });
-
-            AddStep("Preselect first visible item when empty", () =>
-            {
-                performKeypress(emptyDropdown.Menu, Key.PageUp);
-            });
-
-            AddStep("Preselect last visible item when empty", () =>
-            {
-                performKeypress(emptyDropdown.Menu, Key.PageDown);
-            });
-
+            toggleDropdownViaClick(emptyDropdown, "empty dropdown");
+            AddStep("Preselect next item when empty", () => performKeypress(emptyDropdown.Menu, Key.Down));
+            AddStep("Preselect previous item when empty", () => performKeypress(emptyDropdown.Menu, Key.Up));
+            AddStep("Preselect first visible item when empty", () => performKeypress(emptyDropdown.Menu, Key.PageUp));
+            AddStep("Preselect last visible item when empty", () => performKeypress(emptyDropdown.Menu, Key.PageDown));
             AddStep("Preselect first item when empty",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move), platformActionContainerEmptyDropdown, emptyDropdown));
-
             AddStep("Preselect last item when empty",
                 () => performPlatformAction(new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move), platformActionContainerEmptyDropdown, emptyDropdown));
 
-            void clickKeyboardPreselectionDropdown() => AddStep("click keyboardPreselectionDropdown", () => toggleDropdownViaClick(testDropdownMenu));
-
-            void assertDropdownIsOpen() => AddAssert("dropdown is open", () => testDropdownMenu.Menu.State == MenuState.Open);
-
             void assertLastItemSelected() => AddAssert("Last item selected", () => testDropdownMenu.SelectedItem == testDropdownMenu.Menu.DrawableMenuItems.Last().Item);
-
-            void assertDropdownIsClosed() => AddAssert("dropdown is closed", () => testDropdownMenu.Menu.State == MenuState.Closed);
         }
 
         [Test]
@@ -330,11 +300,47 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("null is selected", () => testDropdown.Current.Value == null);
         }
 
-        private void toggleDropdownViaClick(TestDropdown dropdown)
+        [Test]
+        public void TestDisabledCurrent()
+        {
+            string originalValue = null;
+
+            AddStep("store original value", () => originalValue = disabledDropdown.Current.Value);
+
+            toggleDropdownViaClick(disabledDropdown);
+            assertDropdownIsClosed(disabledDropdown);
+
+            AddStep("attempt to select next", () => performKeypress(disabledDropdown, Key.Down));
+            valueIsUnchanged();
+
+            AddStep("attempt to select previous", () => performKeypress(disabledDropdown, Key.Up));
+            valueIsUnchanged();
+
+            AddStep("attempt to select first", () => disabledDropdown.Header.OnPressed(new PlatformAction(PlatformActionType.ListStart)));
+            valueIsUnchanged();
+
+            AddStep("attempt to select last", () => disabledDropdown.Header.OnPressed(new PlatformAction(PlatformActionType.ListEnd)));
+            valueIsUnchanged();
+
+            AddStep("enable current", () => disabledDropdown.Current.Disabled = false);
+            toggleDropdownViaClick(disabledDropdown);
+            assertDropdownIsOpen(disabledDropdown);
+
+            AddStep("disable current", () => disabledDropdown.Current.Disabled = true);
+            assertDropdownIsClosed(disabledDropdown);
+
+            void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value == originalValue);
+        }
+
+        private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
         {
             InputManager.MoveMouseTo(dropdown.Header);
             InputManager.Click(MouseButton.Left);
-        }
+        });
+
+        private void assertDropdownIsOpen(TestDropdown dropdown) => AddAssert("dropdown is open", () => dropdown.Menu.State == MenuState.Open);
+
+        private void assertDropdownIsClosed(TestDropdown dropdown) => AddAssert("dropdown is closed", () => dropdown.Menu.State == MenuState.Closed);
 
         private class TestDropdown : BasicDropdown<string>
         {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -9,7 +10,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Logging;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using Veldrid.Sdl2;
 
 namespace osu.Framework.Platform
 {
@@ -17,11 +17,8 @@ namespace osu.Framework.Platform
     /// Implementation of <see cref="IGraphicsBackend"/> that force-loads OpenGL
     /// endpoints into osuTK's bindings.
     /// </summary>
-    public class PassthroughGraphicsBackend : IGraphicsBackend
+    public abstract class PassthroughGraphicsBackend : IGraphicsBackend
     {
-        private bool initialised;
-
-        internal IntPtr SdlWindowHandle;
         internal IntPtr Context;
 
         internal Version GLVersion { get; private set; }
@@ -30,26 +27,19 @@ namespace osu.Framework.Platform
 
         internal bool IsEmbedded { get; private set; }
 
-        public bool VerticalSync
+        public abstract bool VerticalSync { get; set; }
+
+        protected abstract IntPtr CreateContext();
+        protected abstract void MakeCurrent(IntPtr context);
+        protected abstract IntPtr GetProcAddress(string symbol);
+
+        public abstract void SwapBuffers();
+
+        public virtual void Initialise(IWindow window)
         {
-            get => Sdl2Functions.SDL_GL_GetSwapInterval() != 0;
-            set => Sdl2Native.SDL_GL_SetSwapInterval(value ? 1 : 0);
-        }
+            Context = CreateContext();
 
-        public void Initialise(IWindowBackend windowBackend)
-        {
-            if (initialised)
-                return;
-
-            initialised = true;
-
-            if (!(windowBackend is Sdl2WindowBackend sdlWindowBackend))
-                return;
-
-            SdlWindowHandle = sdlWindowBackend.SdlWindowHandle;
-            Context = Sdl2Native.SDL_GL_CreateContext(SdlWindowHandle);
-
-            MakeCurrent();
+            MakeCurrent(Context);
 
             loadTKBindings();
 
@@ -88,12 +78,12 @@ namespace osu.Framework.Platform
 
             // We need to release the context in this thread, since Windows locks it and prevents
             // the draw thread from taking it. macOS seems to gracefully ignore this.
-            Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, IntPtr.Zero);
+            MakeCurrent(IntPtr.Zero);
         }
 
-        public void MakeCurrent() => Sdl2Native.SDL_GL_MakeCurrent(SdlWindowHandle, Context);
+        public void MakeCurrent() => MakeCurrent(Context);
 
-        public void SwapBuffers() => Sdl2Native.SDL_GL_SwapWindow(SdlWindowHandle);
+        public void ClearCurrent() => MakeCurrent(IntPtr.Zero);
 
         private void loadTKBindings()
         {
@@ -115,13 +105,16 @@ namespace osu.Framework.Platform
             var entryPointNamesInstance = (byte[])namesInfo.GetValue(bindings);
             var entryPointNameOffsetsInstance = (int[])offsetsInfo.GetValue(bindings);
 
+            Debug.Assert(entryPointsInstance != null);
+            Debug.Assert(entryPointNameOffsetsInstance != null);
+
             fixed (byte* name = entryPointNamesInstance)
             {
                 for (int i = 0; i < entryPointsInstance.Length; i++)
                 {
                     var ptr = name + entryPointNameOffsetsInstance[i];
                     var str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
-                    entryPointsInstance[i] = Sdl2Native.SDL_GL_GetProcAddress(str);
+                    entryPointsInstance[i] = GetProcAddress(str);
                 }
             }
 

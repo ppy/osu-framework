@@ -36,6 +36,18 @@ namespace osu.Framework.Graphics.Transforms
 
         public abstract string TargetMember { get; }
 
+        /// <summary>
+        /// The name of the grouping this <see cref="Transform"/> belongs to.
+        /// Defaults to <see cref="TargetMember"/>.
+        /// </summary>
+        /// <remarks>
+        /// Transforms in a single group affect the same property (or properties) of a <see cref="Transformable"/>.
+        /// It is assumed that transforms in different groups are independent from each other
+        /// in that they affect different properties, and therefore they can be applied independently
+        /// in any order without affecting the end result.
+        /// </remarks>
+        public virtual string TargetGrouping => TargetMember;
+
         public abstract void Apply(double time);
 
         public abstract void ReadIntoStartValue();
@@ -95,7 +107,7 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime:0.000}-{EndTime:0.000}ms {StartValue} -> {EndValue}";
     }
 
     public abstract class Transform<TValue, T> : Transform<TValue, DefaultEasingFunction, T>

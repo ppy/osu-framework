@@ -184,7 +184,11 @@ namespace osu.Framework.Graphics.UserInterface
             get => selectedItem;
             set
             {
+                if (Current.Disabled)
+                    return;
+
                 selectedItem = value;
+
                 if (value != null)
                     Current.Value = value.Value;
             }
@@ -212,9 +216,14 @@ namespace osu.Framework.Graphics.UserInterface
             Header.ChangeSelection += selectionKeyPressed;
             Menu.PreselectionConfirmed += preselectionConfirmed;
             Current.ValueChanged += selectionChanged;
+            Current.DisabledChanged += disabled =>
+            {
+                Header.Enabled.Value = !disabled;
+                if (disabled && Menu.State == MenuState.Open)
+                    Menu.State = MenuState.Closed;
+            };
 
-            ItemSource.ItemsAdded += _ => setItems(ItemSource);
-            ItemSource.ItemsRemoved += _ => setItems(ItemSource);
+            ItemSource.CollectionChanged += (_, __) => setItems(ItemSource);
         }
 
         private void preselectionConfirmed(int selectedIndex)

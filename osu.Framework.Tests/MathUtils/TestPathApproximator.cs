@@ -28,5 +28,17 @@ namespace osu.Framework.Tests.MathUtils
                 Assert.AreEqual(0.6f * x * x + 0.4f * x, approximated[i].Y, 1e-4);
             }
         }
+
+        [Test]
+        public void TestBSpline()
+        {
+            Vector2[] points = { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1), new Vector2(3, 2), new Vector2(3, 0) };
+
+            List<Vector2> approximated = PathApproximator.ApproximateBSpline(points, 4);
+            Assert.AreEqual(approximated.Count, 29, "Approximated path should have 29 points to test");
+            Assert.True(Precision.AlmostEquals(approximated[0], points[0], 1e-4f));
+            Assert.True(Precision.AlmostEquals(approximated[28], points[6], 1e-4f));
+            Assert.True(Precision.AlmostEquals(approximated[10], new Vector2(-0.11415f, -0.69065f), 1e-4f));
+        }
     }
 }

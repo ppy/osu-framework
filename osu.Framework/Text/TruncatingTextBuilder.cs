@@ -30,9 +30,10 @@ namespace osu.Framework.Text
         /// <param name="characterList">That list to contain all resulting <see cref="TextBuilderGlyph"/>s.</param>
         /// <param name="neverFixedWidthCharacters">The characters for which fixed width should never be applied.</param>
         /// <param name="fallbackCharacter">The character to use if a glyph lookup fails.</param>
+        /// <param name="fixedWidthReferenceCharacter">The character to use to calculate the fixed width width. Defaults to 'm'.</param>
         public TruncatingTextBuilder(ITexturedGlyphLookupStore store, FontUsage font, float maxWidth, string ellipsisString = null, bool useFontSizeAsHeight = true, Vector2 startOffset = default,
-                                     Vector2 spacing = default, List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?')
-            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter)
+                                     Vector2 spacing = default, List<TextBuilderGlyph> characterList = null, char[] neverFixedWidthCharacters = null, char fallbackCharacter = '?', char fixedWidthReferenceCharacter = 'm')
+            : base(store, font, maxWidth, useFontSizeAsHeight, startOffset, spacing, characterList, neverFixedWidthCharacters, fallbackCharacter, fixedWidthReferenceCharacter)
         {
             this.store = store;
             this.font = font;

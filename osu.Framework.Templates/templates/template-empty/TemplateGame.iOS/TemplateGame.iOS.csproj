@@ -121,11 +121,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TemplateGame.Game\TemplateGame.Game.csproj">
-      <Project>{1ADACD09-7BE3-46A1-AEAB-C41E78E8700F}</Project>
+      <Project>{6BEB95A6-0673-4AF5-892E-9146FF8B0948}</Project>
       <Name>TemplateGame.Game</Name>
     </ProjectReference>
     <ProjectReference Include="..\TemplateGame.Resources\TemplateGame.Resources.csproj">
-      <Project>{31D3872C-3A4F-437E-9655-3EF58DD62F46}</Project>
+      <Project>{6E3EBF71-8664-49D7-BD0D-2B21B3EEC540}</Project>
       <Name>TemplateGame.Resources</Name>
     </ProjectReference>
   </ItemGroup>
@@ -150,10 +150,10 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="ppy.osu.Framework.iOS" Version="2020.528.0" />
+    <PackageReference Include="ppy.osu.Framework.iOS" Version="2021.128.0" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
-    <PackageReference Include="ppy.osu.Framework" Version="2020.528.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2021.128.0" />
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" ExcludeAssets="all" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

@@ -13,13 +13,12 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
+            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useOsuTK)
         {
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new MacOSGameWindow() : new SDLWindow();
+        protected override IWindow CreateWindow() => UseOsuTK ? (IWindow)new OsuTKMacOSWindow() : new MacOSWindow();
 
         public override string UserStoragePath
         {
@@ -84,6 +83,9 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), new PlatformAction(PlatformActionType.DocumentNext)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.W), new PlatformAction(PlatformActionType.DocumentClose)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.T), new PlatformAction(PlatformActionType.TabNew)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.T), new PlatformAction(PlatformActionType.TabRestore)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.S), new PlatformAction(PlatformActionType.Save)),

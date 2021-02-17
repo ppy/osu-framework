@@ -5,15 +5,14 @@ using osu.Framework.Platform;
 using TKVector2 = osuTK.Vector2;
 using SNVector2 = System.Numerics.Vector2;
 using SDPoint = System.Drawing.Point;
-using VPoint = Veldrid.Point;
 using SDSize = System.Drawing.Size;
-using VWindowState = Veldrid.WindowState;
 using TKWindowState = osuTK.WindowState;
 
 namespace osu.Framework.Extensions
 {
     /// <summary>
-    /// Temporary extension functions for bridging between osuTK, Veldrid, and System.Numerics
+    /// Temporary extension functions for bridging between osuTK, System.Drawing, and System.Numerics
+    /// Can be removed when the SDL2 migration is complete.
     /// </summary>
     public static class BridgingExtensions
     {
@@ -35,12 +34,6 @@ namespace osu.Framework.Extensions
         public static SDPoint ToSystemDrawingPoint(this SNVector2 vec) =>
             new SDPoint((int)vec.X, (int)vec.Y);
 
-        public static VPoint ToVeldridPoint(this SNVector2 vec) =>
-            new VPoint((int)vec.X, (int)vec.Y);
-
-        public static SNVector2 ToSystemNumerics(this VPoint point) =>
-            new SNVector2(point.X, point.Y);
-
         public static TKWindowState ToOsuTK(this WindowState state)
         {
             switch (state)
@@ -60,52 +53,6 @@ namespace osu.Framework.Extensions
             }
 
             return TKWindowState.Normal;
-        }
-
-        public static VWindowState ToVeldrid(this WindowState state)
-        {
-            switch (state)
-            {
-                case WindowState.Normal:
-                    return VWindowState.Normal;
-
-                case WindowState.Minimised:
-                    return VWindowState.Minimized;
-
-                case WindowState.Maximised:
-                    return VWindowState.Maximized;
-
-                case WindowState.Fullscreen:
-                    return VWindowState.FullScreen;
-
-                case WindowState.FullscreenBorderless:
-                    return VWindowState.BorderlessFullScreen;
-            }
-
-            return VWindowState.Normal;
-        }
-
-        public static WindowState ToFramework(this VWindowState state)
-        {
-            switch (state)
-            {
-                case VWindowState.Normal:
-                    return WindowState.Normal;
-
-                case VWindowState.Minimized:
-                    return WindowState.Minimised;
-
-                case VWindowState.Maximized:
-                    return WindowState.Maximised;
-
-                case VWindowState.FullScreen:
-                    return WindowState.Fullscreen;
-
-                case VWindowState.BorderlessFullScreen:
-                    return WindowState.FullscreenBorderless;
-            }
-
-            return WindowState.Normal;
         }
 
         public static WindowState ToFramework(this TKWindowState state)

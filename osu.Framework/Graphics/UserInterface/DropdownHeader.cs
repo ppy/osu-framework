@@ -28,7 +28,19 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 backgroundColour = value;
-                Background.Colour = value;
+                updateState();
+            }
+        }
+
+        private Color4 disabledColour = Color4.Gray;
+
+        protected Color4 DisabledColour
+        {
+            get => disabledColour;
+            set
+            {
+                disabledColour = value;
+                updateState();
             }
         }
 
@@ -68,22 +80,37 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            Enabled.BindValueChanged(_ => updateState(), true);
+        }
+
         protected override bool OnHover(HoverEvent e)
         {
-            Background.Colour = BackgroundColourHover;
+            updateState();
             return base.OnHover(e);
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            Background.Colour = BackgroundColour;
+            updateState();
             base.OnHoverLost(e);
+        }
+
+        private void updateState()
+        {
+            Colour = Enabled.Value ? Color4.White : DisabledColour;
+            Background.Colour = IsHovered && Enabled.Value ? BackgroundColourHover : BackgroundColour;
         }
 
         public override bool HandleNonPositionalInput => IsHovered;
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (!Enabled.Value)
+                return true;
+
             switch (e.Key)
             {
                 case Key.Up:
@@ -101,6 +128,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool OnPressed(PlatformAction action)
         {
+            if (!Enabled.Value)
+                return true;
+
             switch (action.ActionType)
             {
                 case PlatformActionType.ListStart:

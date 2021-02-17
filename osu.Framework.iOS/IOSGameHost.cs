@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Foundation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
@@ -65,14 +64,13 @@ namespace osu.Framework.iOS
         protected override void SetupForRun()
         {
             base.SetupForRun();
-            IOSGameWindow.GameView = gameView;
 
             AllowScreenSuspension.BindValueChanged(allow =>
-                InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
-            true);
+                    InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
+                true);
         }
 
-        protected override IWindow CreateWindow() => new IOSGameWindow();
+        protected override IWindow CreateWindow() => new IOSGameWindow(gameView);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
@@ -98,7 +96,14 @@ namespace osu.Framework.iOS
         public override ITextInputSource GetTextInput() => new IOSTextInput(gameView);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[] { new IOSTouchHandler(gameView), keyboardHandler = new IOSKeyboardHandler(gameView), rawKeyboardHandler = new IOSRawKeyboardHandler(), new MidiInputHandler() };
+            new InputHandler[]
+            {
+                new IOSTouchHandler(gameView),
+                keyboardHandler = new IOSKeyboardHandler(gameView),
+                rawKeyboardHandler = new IOSRawKeyboardHandler(),
+                new IOSMouseHandler(gameView),
+                new MidiInputHandler()
+            };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 

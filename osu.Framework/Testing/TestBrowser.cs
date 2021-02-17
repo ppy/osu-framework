@@ -12,6 +12,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
@@ -60,7 +61,11 @@ namespace osu.Framework.Testing
         /// <param name="assemblyNamespace">Assembly prefix which is used to match assemblies whose tests should be displayed</param>
         public TestBrowser(string assemblyNamespace = null)
         {
-            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n => n.FullName.StartsWith("osu") || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace)).ToList();
+            assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(n =>
+            {
+                Debug.Assert(n.FullName != null);
+                return n.FullName.StartsWith("osu", StringComparison.Ordinal) || assemblyNamespace != null && n.FullName.StartsWith(assemblyNamespace, StringComparison.Ordinal);
+            }).ToList();
 
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             foreach (Assembly asm in assemblies.ToList())
@@ -219,13 +224,6 @@ namespace osu.Framework.Testing
                             {
                                 searchTextBox = new TestBrowserTextBox
                                 {
-                                    OnCommit = delegate
-                                    {
-                                        var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
-                                                                         .FirstOrDefault(b => b.MatchingFilter)?.TestType;
-                                        if (firstTest != null)
-                                            LoadTest(firstTest);
-                                    },
                                     Height = 25,
                                     RelativeSizeAxes = Axes.X,
                                     PlaceholderText = "type to search",
@@ -247,6 +245,14 @@ namespace osu.Framework.Testing
                         }
                     }
                 },
+            };
+
+            searchTextBox.OnCommit += delegate
+            {
+                var firstTest = leftFlowContainer.Where(b => b.IsPresent).SelectMany(b => b.FilterableChildren).OfType<TestSubButton>()
+                                                 .FirstOrDefault(b => b.MatchingFilter)?.TestType;
+                if (firstTest != null)
+                    LoadTest(firstTest);
             };
 
             searchTextBox.Current.ValueChanged += e => leftFlowContainer.SearchTerm = e.NewValue;
@@ -331,7 +337,16 @@ namespace osu.Framework.Testing
             base.LoadComplete();
 
             if (CurrentTest == null)
-                LoadTest(TestTypes.Find(t => t.Name == config.Get<string>(TestBrowserSetting.LastTest)));
+            {
+                var lastTest = config.Get<string>(TestBrowserSetting.LastTest);
+
+                var foundTest = TestTypes.Find(t => t.FullName == lastTest)
+                                // full name was not always stored in this value, so fallback to matching on just test name.
+                                // can be removed 20210622
+                                ?? TestTypes.Find(t => t.Name == lastTest);
+
+                LoadTest(foundTest);
+            }
         }
 
         private void toggleTestList()
@@ -363,7 +378,7 @@ namespace osu.Framework.Testing
             return base.OnKeyDown(e);
         }
 
-        public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
         {
             new KeyBinding(new[] { InputKey.Control, InputKey.F }, TestBrowserAction.Search),
             new KeyBinding(new[] { InputKey.Control, InputKey.R }, TestBrowserAction.Reload), // for macOS
@@ -414,7 +429,7 @@ namespace osu.Framework.Testing
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testType?.Name ?? string.Empty);
+            config.Set(TestBrowserSetting.LastTest, testType?.FullName ?? string.Empty);
 
             if (testType == null)
                 return;
@@ -433,7 +448,12 @@ namespace osu.Framework.Testing
             }
             else
             {
-                TestTypes.RemoveAll(t => t.Assembly.FullName.Contains(dynamic_prefix));
+                TestTypes.RemoveAll(t =>
+                {
+                    Debug.Assert(t.Assembly.FullName != null);
+                    return t.Assembly.FullName.Contains(dynamic_prefix);
+                });
+
                 newTest.DynamicCompilationOriginal = newTest;
             }
 
@@ -478,24 +498,60 @@ namespace osu.Framework.Testing
                 if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
 
-                if (name.StartsWith("Test"))
+                if (name.StartsWith("Test", StringComparison.Ordinal))
                     name = name.Substring(4);
 
                 int runCount = 1;
 
                 if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
-                    runCount += (int)m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                {
+                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    Debug.Assert(count != null);
+
+                    runCount += (int)count;
+                }
 
                 for (int i = 0; i < runCount; i++)
                 {
                     string repeatSuffix = i > 0 ? $" ({i + 1})" : string.Empty;
 
-                    if (m.GetCustomAttribute(typeof(TestAttribute), false) != null)
-                    {
-                        hadTestAttributeTest = true;
-                        CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                    var methodWrapper = new MethodWrapper(m.GetType(), m);
 
-                        handleTestMethod(m);
+                    if (methodWrapper.GetCustomAttributes<TestAttribute>(false).SingleOrDefault() != null)
+                    {
+                        var parameters = m.GetParameters();
+
+                        if (parameters.Length > 0)
+                        {
+                            var valueMatrix = new List<List<object>>();
+
+                            foreach (var p in methodWrapper.GetParameters())
+                            {
+                                var valueAttrib = p.GetCustomAttributes<ValuesAttribute>(false).SingleOrDefault();
+                                if (valueAttrib == null)
+                                    throw new ArgumentException($"Parameter is present on a {nameof(TestAttribute)} method without values specification.", p.ParameterInfo.Name);
+
+                                List<object> choices = new List<object>();
+
+                                foreach (var choice in valueAttrib.GetData(p))
+                                    choices.Add(choice);
+
+                                valueMatrix.Add(choices);
+                            }
+
+                            foreach (var combination in valueMatrix.CartesianProduct())
+                            {
+                                hadTestAttributeTest = true;
+                                CurrentTest.AddLabel($"{name}({string.Join(", ", combination)}){repeatSuffix}");
+                                handleTestMethod(m, combination.ToArray());
+                            }
+                        }
+                        else
+                        {
+                            hadTestAttributeTest = true;
+                            CurrentTest.AddLabel($"{name}{repeatSuffix}");
+                            handleTestMethod(m);
+                        }
                     }
 
                     foreach (var tc in m.GetCustomAttributes(typeof(TestCaseAttribute), false).OfType<TestCaseAttribute>())
@@ -518,13 +574,15 @@ namespace osu.Framework.Testing
 
             void addSetUpSteps()
             {
-                var setUpMethods = Reflect.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
-                                          .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
+                var setUpMethods = ReflectionUtils.GetMethodsWithAttribute(newTest.GetType(), typeof(SetUpAttribute), true)
+                                                  .Where(m => m.Name != nameof(TestScene.SetUpTestForNUnit));
 
                 if (setUpMethods.Any())
                 {
-                    CurrentTest.AddStep(new SetUpStepButton
+                    CurrentTest.AddStep(new SingleStepButton(true)
                     {
+                        Text = "[SetUp]",
+                        LightColour = Color4.Teal,
                         Action = () => setUpMethods.ForEach(s => s.Invoke(CurrentTest, null))
                     });
                 }
@@ -552,7 +610,7 @@ namespace osu.Framework.Testing
                     // stop once one actual step has been run.
                     return true;
 
-                if (!(s is SetUpStepButton) && !(s is LabelStep))
+                if (!s.IsSetupStep && !(s is LabelStep))
                     actualStepCount++;
 
                 return false;

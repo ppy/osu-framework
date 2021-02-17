@@ -78,9 +78,10 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private void scrollMouseWheel(int dy)
+        private void scrollMouseWheel(int dx, int dy)
         {
-            AddStep($"scroll wheel {dy}", () => InputManager.ScrollVerticalBy(dy));
+            if (dx != 0) AddStep($"scroll wheel horizontally {dx}", () => InputManager.ScrollHorizontalBy(dx));
+            if (dy != 0) AddStep($"scroll wheel {dy}", () => InputManager.ScrollVerticalBy(dy));
         }
 
         private void check(TestAction action, params CheckConditions[] entries)
@@ -245,12 +246,18 @@ namespace osu.Framework.Tests.Visual.Input
                     new CheckConditions(all, 1, 1)
                 };
 
-                scrollMouseWheel(1);
+                scrollMouseWheel(0, 1);
                 check(TestAction.WheelUp, allPressAndReleased);
-                scrollMouseWheel(-1);
+                scrollMouseWheel(0, -1);
                 check(TestAction.WheelDown, allPressAndReleased);
+
+                scrollMouseWheel(-1, 0);
+                check(TestAction.WheelLeft, allPressAndReleased);
+                scrollMouseWheel(1, 0);
+                check(TestAction.WheelRight, allPressAndReleased);
+
                 toggleKey(Key.ControlLeft);
-                scrollMouseWheel(1);
+                scrollMouseWheel(0, 1);
                 toggleKey(Key.ControlLeft);
                 check(TestAction.Ctrl_and_WheelUp, allPressAndReleased);
                 toggleMouseButton(MouseButton.Left);
@@ -276,12 +283,12 @@ namespace osu.Framework.Tests.Visual.Input
                     new ScrollCheckConditions(all, 1, 1, 1, amount)
                 };
 
-                scrollMouseWheel(2);
+                scrollMouseWheel(0, 2);
                 check(TestAction.WheelUp, allPressAndReleased(2));
-                scrollMouseWheel(-3);
+                scrollMouseWheel(0, -3);
                 check(TestAction.WheelDown, allPressAndReleased(3));
                 toggleKey(Key.ControlLeft);
-                scrollMouseWheel(4);
+                scrollMouseWheel(0, 4);
                 toggleKey(Key.ControlLeft);
                 check(TestAction.Ctrl_and_WheelUp, allPressAndReleased(4));
             });
@@ -348,6 +355,8 @@ namespace osu.Framework.Tests.Visual.Input
             RightMouse,
             WheelUp,
             WheelDown,
+            WheelLeft,
+            WheelRight,
             Ctrl_and_WheelUp,
         }
 
@@ -358,7 +367,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
             }
 
-            public override IEnumerable<KeyBinding> DefaultKeyBindings => new[]
+            public override IEnumerable<IKeyBinding> DefaultKeyBindings => new[]
             {
                 new KeyBinding(InputKey.A, TestAction.A),
                 new KeyBinding(InputKey.S, TestAction.S),
@@ -398,6 +407,8 @@ namespace osu.Framework.Tests.Visual.Input
 
                 new KeyBinding(new[] { InputKey.MouseWheelUp }, TestAction.WheelUp),
                 new KeyBinding(new[] { InputKey.MouseWheelDown }, TestAction.WheelDown),
+                new KeyBinding(new[] { InputKey.MouseWheelLeft }, TestAction.WheelLeft),
+                new KeyBinding(new[] { InputKey.MouseWheelRight }, TestAction.WheelRight),
                 new KeyBinding(new[] { InputKey.Control, InputKey.MouseWheelUp }, TestAction.Ctrl_and_WheelUp),
             };
 
@@ -466,7 +477,7 @@ namespace osu.Framework.Tests.Visual.Input
                 actionText = action.ToString().Replace('_', ' ');
 
                 RelativeSizeAxes = Axes.X;
-                Height = 35;
+                Height = 30;
                 Width = 0.3f;
                 Padding = new MarginPadding(2);
 
@@ -530,13 +541,14 @@ namespace osu.Framework.Tests.Visual.Input
             }
         }
 
-        private class KeyBindingTester : Container
+        private class KeyBindingTester : FillFlowContainer
         {
             private readonly TestButton[] testButtons;
 
             public KeyBindingTester(SimultaneousBindingMode concurrency, KeyCombinationMatchingMode matchingMode)
             {
                 RelativeSizeAxes = Axes.Both;
+                Direction = FillDirection.Vertical;
 
                 testButtons = Enum.GetValues(typeof(TestAction)).Cast<TestAction>().Select(t =>
                 {
@@ -554,7 +566,6 @@ namespace osu.Framework.Tests.Visual.Input
                     },
                     new TestInputManager(concurrency, matchingMode)
                     {
-                        Y = 30,
                         RelativeSizeAxes = Axes.Both,
                         Child = new FillFlowContainer
                         {

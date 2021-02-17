@@ -351,7 +351,7 @@ namespace osu.Framework.Bindables
             Debug.Assert(isSupportedType());
 
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
-            // Code pathes for other types will be eliminated.
+            // Code paths for other types will be eliminated.
             if (typeof(T) == typeof(byte))
                 ((BindableNumber<byte>)(object)this).Value = val.ToByte(NumberFormatInfo.InvariantInfo);
             else if (typeof(T) == typeof(sbyte))

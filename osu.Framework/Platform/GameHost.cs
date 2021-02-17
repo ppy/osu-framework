@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -32,14 +32,15 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Stores;
-using SixLabors.Memory;
+using SixLabors.ImageSharp.Memory;
+using Image = SixLabors.ImageSharp.Image;
 using PixelFormat = osuTK.Graphics.ES30.PixelFormat;
+using Size = System.Drawing.Size;
 
 namespace osu.Framework.Platform
 {
@@ -133,7 +134,15 @@ namespace osu.Framework.Platform
 
         public abstract string UserStoragePath { get; }
 
+        /// <summary>
+        /// The main storage as proposed by the host game.
+        /// </summary>
         public Storage Storage { get; protected set; }
+
+        /// <summary>
+        /// An auxiliary cache storage which is fixed in the default game directory.
+        /// </summary>
+        public Storage CacheStorage { get; protected set; }
 
         /// <summary>
         /// If caps-lock is enabled on the system, false if not overwritten by a subclass
@@ -234,33 +243,72 @@ namespace osu.Framework.Platform
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
-            exception.Data["unhandled"] = "unhandled";
-            handleException(exception);
+
+            logException(exception, "unhandled");
+            abortExecutionFromException(sender, exception);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            args.Exception.Data["unhandled"] = "unobserved";
-            handleException(args.Exception);
+            // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
+            logException(args.Exception, "unobserved");
         }
 
-        private void handleException(Exception exception)
+        private void logException(Exception exception, string type)
         {
-            if (ExceptionThrown?.Invoke(exception) != true)
+            Logger.Error(exception, $"An {type} error has occurred.", recursive: true);
+        }
+
+        /// <summary>
+        /// Give the running application a last change to handle an otherwise unhandled exception, and potentially ignore it.
+        /// </summary>
+        /// <param name="sender">The source, generally a <see cref="GameThread"/>.</param>
+        /// <param name="exception">The unhandled exception.</param>
+        private void abortExecutionFromException(object sender, Exception exception)
+        {
+            // nothing needs to be done if the consumer has requested continuing execution.
+            if (ExceptionThrown?.Invoke(exception) == true) return;
+
+            // otherwise, we need to unwind and abort execution.
+
+            AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+            TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            var captured = ExceptionDispatchInfo.Capture(exception);
+            var thrownEvent = new ManualResetEventSlim(false);
+
+            //we want to throw this exception on the input thread to interrupt window and also headless execution.
+            InputThread.Scheduler.Add(() =>
             {
-                AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+                try
+                {
+                    captured.Throw();
+                }
+                finally
+                {
+                    thrownEvent.Set();
+                }
+            });
 
-                var captured = ExceptionDispatchInfo.Capture(exception);
+            // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
+            // To avoid this, pause the exceptioning thread until the rethrow takes place.
+            waitForThrow();
 
-                //we want to throw this exception on the input thread to interrupt window and also headless execution.
-                InputThread.Scheduler.Add(() => { captured.Throw(); });
+            // schedule an exit to the input thread.
+            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
+            PerformExit(false);
 
-                // schedule an exit to the input thread.
-                // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-                PerformExit(false);
+            void waitForThrow()
+            {
+                // This is bypassed for GameThread sources in two situations where deadlocks can occur:
+                // 1. When the exceptioning thread is the input thread.
+                // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                    return;
+
+                // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                thrownEvent.Wait(TimeSpan.FromSeconds(10));
             }
-
-            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
         }
 
         protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => Activated?.Invoke());
@@ -314,7 +362,7 @@ namespace osu.Framework.Platform
                 var windowedSize = Config.Get<Size>(FrameworkSetting.WindowedSize);
                 Root.Size = new Vector2(windowedSize.Width, windowedSize.Height);
             }
-            else if (Window.WindowState != osuTK.WindowState.Minimized)
+            else if (Window.WindowState != WindowState.Minimised)
                 Root.Size = new Vector2(Window.ClientSize.Width, Window.ClientSize.Height);
 
             // Ensure we maintain a valid size for any children immediately scaling by the window size
@@ -330,6 +378,8 @@ namespace osu.Framework.Platform
         }
 
         private long lastDrawFrameId;
+
+        private readonly DepthValue depthValue = new DepthValue();
 
         protected virtual void DrawFrame()
         {
@@ -352,8 +402,9 @@ namespace osu.Framework.Platform
 
                     if (!bypassFrontToBackPass.Value)
                     {
-                        var depthValue = new DepthValue();
+                        depthValue.Reset();
 
+                        GL.ColorMask(false, false, false, false);
                         GLWrapper.SetBlend(BlendingParameters.None);
                         GLWrapper.PushDepthInfo(DepthInfo.Default);
 
@@ -361,6 +412,7 @@ namespace osu.Framework.Platform
                         buffer.Object.DrawOpaqueInteriorSubTree(depthValue, null);
 
                         GLWrapper.PopDepthInfo();
+                        GL.ColorMask(true, true, true, true);
 
                         // The back pass doesn't write depth, but needs to depth test properly
                         GLWrapper.PushDepthInfo(new DepthInfo(true, false));
@@ -412,16 +464,18 @@ namespace osu.Framework.Platform
 
             using (var completionEvent = new ManualResetEventSlim(false))
             {
-                var image = new Image<Rgba32>(Window.ClientSize.Width, Window.ClientSize.Height);
+                int width = Window.ClientSize.Width;
+                int height = Window.ClientSize.Height;
+                var pixelData = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
 
                 DrawThread.Scheduler.Add(() =>
                 {
-                    if (Window is SDLWindow win)
+                    if (Window is SDL2DesktopWindow win)
                         win.MakeCurrent();
                     else if (GraphicsContext.CurrentContext == null)
                         throw new GraphicsContextMissingException();
 
-                    GL.ReadPixels(0, 0, image.Width, image.Height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(image.GetPixelSpan()));
+                    GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, ref MemoryMarshal.GetReference(pixelData.Memory.Span));
 
                     // ReSharper disable once AccessToDisposedClosure
                     completionEvent.Set();
@@ -430,6 +484,7 @@ namespace osu.Framework.Platform
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
                 await Task.Run(completionEvent.Wait);
 
+                var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
 
                 return image;
@@ -481,8 +536,6 @@ namespace osu.Framework.Platform
                 SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateWithModeratePooling();
             }
 
-            DebugUtils.HostAssembly = game.GetType().Assembly;
-
             if (ExecutionState != ExecutionState.Idle)
                 throw new InvalidOperationException("A game that has already been run cannot be restarted.");
 
@@ -510,17 +563,15 @@ namespace osu.Framework.Platform
                 Trace.Listeners.Add(new ThrowingTraceListener());
 
                 var assembly = DebugUtils.GetEntryAssembly();
-                string assemblyPath = DebugUtils.GetEntryPath();
 
                 Logger.GameIdentifier = Name;
-                Logger.VersionIdentifier = assembly.GetName().Version.ToString();
-
-                if (assemblyPath != null)
-                    Environment.CurrentDirectory = assemblyPath;
+                Logger.VersionIdentifier = assembly.GetName().Version?.ToString() ?? Logger.VersionIdentifier;
 
                 Dependencies.CacheAs(this);
 
-                Dependencies.CacheAs(Storage = CreateGameStorage());
+                Dependencies.CacheAs(Storage = game.CreateStorage(this, GetDefaultGameStorage()));
+
+                CacheStorage = GetDefaultGameStorage().GetStorageForDirectory("cache");
 
                 SetupForRun();
 
@@ -534,6 +585,8 @@ namespace osu.Framework.Platform
                 {
                     Window.SetupWindow(Config);
                     Window.Title = $@"osu!framework (running ""{Name}"")";
+
+                    Window.Create();
 
                     IsActive.BindTo(Window.IsActive);
                 }
@@ -561,10 +614,16 @@ namespace osu.Framework.Platform
                 {
                     if (Window != null)
                     {
-                        if (Window is SDLWindow window)
-                            window.Update += windowUpdate;
-                        else
-                            Window.UpdateFrame += (o, e) => windowUpdate();
+                        switch (Window)
+                        {
+                            case SDL2DesktopWindow window:
+                                window.Update += windowUpdate;
+                                break;
+
+                            case OsuTKWindow tkWindow:
+                                tkWindow.UpdateFrame += (o, e) => windowUpdate();
+                                break;
+                        }
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
@@ -592,7 +651,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual Storage CreateGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        /// <summary>
+        /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
+        /// </summary>
+        /// <returns>The <see cref="Storage"/>.</returns>
+        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
@@ -651,7 +714,7 @@ namespace osu.Framework.Platform
                     h.Dispose();
             }
 
-            AvailableInputHandlers = CreateAvailableInputHandlers();
+            AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
@@ -842,7 +905,7 @@ namespace osu.Framework.Platform
 
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
-        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
+        public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 
@@ -927,6 +990,10 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageDown), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.W), new PlatformAction(PlatformActionType.DocumentClose)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), new PlatformAction(PlatformActionType.DocumentClose)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.T), new PlatformAction(PlatformActionType.TabNew)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.T), new PlatformAction(PlatformActionType.TabRestore)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save)),
             new KeyBinding(InputKey.Home, new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
             new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move)),

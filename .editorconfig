@@ -206,3 +206,6 @@ dotnet_diagnostic.IDE0069.severity = none
 
 #File header
 dotnet_diagnostic.IDE0073.severity = warning
+
+#Disable operator overloads requiring alternate named methods
+dotnet_diagnostic.CA2225.severity = none

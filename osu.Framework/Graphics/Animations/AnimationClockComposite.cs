@@ -92,6 +92,12 @@ namespace osu.Framework.Graphics.Animations
             {
                 hasSeeked = true;
                 manualClock.CurrentTime = value;
+
+                // consume current clock to avoid additional jumps on top of the seek due to time naturally elapsing.
+                // there's no need to do this before we're loaded - LoadComplete() will also consume clock initially,
+                // and Time might not even be initialised yet during load
+                if (IsLoaded)
+                    consumeClockTime();
             }
         }
 

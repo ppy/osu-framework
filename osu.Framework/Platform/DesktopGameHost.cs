@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -25,22 +24,22 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        internal bool UseSdl { get; }
+        internal bool UseOsuTK { get; }
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
             : base(gameName, toolkitOptions)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
-            UseSdl = useSdl;
+            UseOsuTK = useOsuTK;
         }
 
-        protected sealed override Storage CreateGameStorage()
+        protected sealed override Storage GetDefaultGameStorage()
         {
-            if (IsPortableInstallation || File.Exists(FrameworkConfigManager.FILENAME))
-                return GetStorage(Environment.CurrentDirectory);
+            if (IsPortableInstallation || File.Exists(Path.Combine(RuntimeInfo.StartupDirectory, FrameworkConfigManager.FILENAME)))
+                return GetStorage(RuntimeInfo.StartupDirectory);
 
-            return base.CreateGameStorage();
+            return base.GetDefaultGameStorage();
         }
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
@@ -55,7 +54,7 @@ namespace osu.Framework.Platform
 
         protected override void SetupToolkit()
         {
-            if (!UseSdl)
+            if (UseOsuTK)
                 base.SetupToolkit();
         }
 
@@ -98,7 +97,8 @@ namespace osu.Framework.Platform
         {
             switch (Window)
             {
-                case GameWindow _:
+                case OsuTKWindow _:
+                {
                     var defaultEnabled = new InputHandler[]
                     {
                         new OsuTKMouseHandler(),
@@ -116,13 +116,28 @@ namespace osu.Framework.Platform
                         h.Enabled.Value = false;
 
                     return defaultEnabled.Concat(defaultDisabled);
+                }
 
                 default:
-                    return new InputHandler[]
+                {
+                    var defaultEnabled = new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
+                        new JoystickHandler(),
+                        new MidiInputHandler(),
                     };
+
+                    var defaultDisabled = new InputHandler[]
+                    {
+                        new OsuTKRawMouseHandler(),
+                    };
+
+                    foreach (var h in defaultDisabled)
+                        h.Enabled.Value = false;
+
+                    return defaultEnabled.Concat(defaultDisabled);
+                }
             }
         }
 

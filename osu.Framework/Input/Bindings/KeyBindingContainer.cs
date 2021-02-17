@@ -37,7 +37,7 @@ namespace osu.Framework.Input.Bindings
             this.matchingMode = matchingMode;
         }
 
-        private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
+        private readonly List<IKeyBinding> pressedBindings = new List<IKeyBinding>();
 
         private readonly List<T> pressedActions = new List<T>();
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
-        private readonly Dictionary<KeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<KeyBinding, List<Drawable>>();
+        private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
 
         /// <summary>
@@ -137,11 +137,14 @@ namespace osu.Framework.Input.Bindings
 
                 case ScrollEvent scroll:
                 {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
+                    var keys = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                    bool handled = false;
 
-                    var handled = handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
-                    handleNewReleased(state, key);
+                    foreach (var key in keys)
+                    {
+                        handled |= handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
+                        handleNewReleased(state, key);
+                    }
 
                     return handled;
                 }
@@ -152,15 +155,11 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            float scrollAmount = 0;
-            if (newKey == InputKey.MouseWheelUp)
-                scrollAmount = scrollDelta?.Y ?? 0;
-            else if (newKey == InputKey.MouseWheelDown)
-                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
-            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<KeyBinding>();
+            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<IKeyBinding>();
             var newlyPressed = bindings.Where(m =>
                 m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
                 && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
@@ -212,6 +211,27 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
+        private static float getScrollAmount(InputKey newKey, Vector2? scrollDelta)
+        {
+            switch (newKey)
+            {
+                case InputKey.MouseWheelUp:
+                    return scrollDelta?.Y ?? 0;
+
+                case InputKey.MouseWheelDown:
+                    return -(scrollDelta?.Y ?? 0);
+
+                case InputKey.MouseWheelRight:
+                    return scrollDelta?.X ?? 0;
+
+                case InputKey.MouseWheelLeft:
+                    return -(scrollDelta?.X ?? 0);
+
+                default:
+                    return 0;
+            }
+        }
+
         protected virtual Drawable PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             Drawable handled = null;
@@ -222,8 +242,7 @@ namespace osu.Framework.Input.Bindings
                 pressedActions.Add(pressed);
                 if (scrollAmount != 0)
                     handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
-                if (handled == null)
-                    handled = (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
+                handled ??= (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressed));
             }
 
             if (handled != null)
@@ -287,7 +306,7 @@ namespace osu.Framework.Input.Bindings
             PropagatePressed(KeyBindingInputQueue, pressed);
         }
 
-        private List<Drawable> getInputQueue(KeyBinding binding, bool rebuildIfEmpty = false)
+        private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
         {
             if (!keyBindingQueues.ContainsKey(binding))
                 keyBindingQueues.Add(binding, new List<Drawable>());
@@ -306,9 +325,9 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
-        protected IEnumerable<KeyBinding> KeyBindings;
+        protected IEnumerable<IKeyBinding> KeyBindings;
 
-        public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
+        public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
 
         protected override void LoadComplete()
         {

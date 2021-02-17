@@ -20,6 +20,7 @@ namespace osu.Framework.Tests.Visual.Platform
     public class TestSceneFullscreen : FrameworkTestScene
     {
         private readonly SpriteText currentActualSize = new SpriteText();
+        private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
         private readonly Dropdown<Display> displaysDropdown;
@@ -40,6 +41,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 {
                     currentBindableSize,
                     currentActualSize,
+                    currentDisplayMode,
                     currentWindowMode,
                     supportedWindowModes,
                     displaysDropdown = new BasicDropdown<Display> { Width = 600 }
@@ -67,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 return;
 
             displaysDropdown.Items = window.Displays;
-            displaysDropdown.Current.BindTo(window.CurrentDisplay);
+            displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
 
@@ -111,7 +113,7 @@ namespace osu.Framework.Tests.Visual.Platform
                 });
             });
 
-            AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplay.ToString()));
+            AddStep("query Window.CurrentDisplay", () => Logger.Log(window.CurrentDisplayBindable.ToString()));
 
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
         }
@@ -120,7 +122,8 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             base.Update();
 
-            currentActualSize.Text = $"Window size: {window?.Bounds.Size}";
+            currentActualSize.Text = $"Window size: {window?.ClientSize}";
+            currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
         }
     }
 }

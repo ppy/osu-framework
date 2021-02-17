@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +16,12 @@ namespace osu.Framework.Input.States
     public class ButtonStates<TButton> : IEnumerable<TButton>
         where TButton : struct
     {
-        private List<TButton> pressedButtons = new List<TButton>();
+        private HashSet<TButton> pressedButtons = new HashSet<TButton>();
 
         public ButtonStates<TButton> Clone()
         {
             var clone = (ButtonStates<TButton>)MemberwiseClone();
-            clone.pressedButtons = new List<TButton>(pressedButtons);
+            clone.pressedButtons = new HashSet<TButton>(pressedButtons);
             return clone;
         }
 
@@ -48,13 +49,40 @@ namespace osu.Framework.Input.States
             return true;
         }
 
-        public bool HasAnyButtonPressed => pressedButtons.Any();
+        public bool HasAnyButtonPressed => pressedButtons.Count > 0;
 
         /// <summary>
         /// Enumerates the differences between ourselves and a previous <see cref="ButtonStates{TButton}"/>.
         /// </summary>
         /// <param name="lastButtons">The previous <see cref="ButtonStates{TButton}"/>.</param>
-        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons) => new ButtonStateDifference(lastButtons.Except(this).ToArray(), this.Except(lastButtons).ToArray());
+        public ButtonStateDifference EnumerateDifference(ButtonStates<TButton> lastButtons)
+        {
+            if (!lastButtons.HasAnyButtonPressed)
+            {
+                // if no buttons pressed anywhere, use static to avoid alloc.
+                return !HasAnyButtonPressed ? ButtonStateDifference.EMPTY : new ButtonStateDifference(Array.Empty<TButton>(), pressedButtons.ToArray());
+            }
+
+            if (!HasAnyButtonPressed)
+                return new ButtonStateDifference(lastButtons.pressedButtons.ToArray(), Array.Empty<TButton>());
+
+            List<TButton> released = new List<TButton>();
+            List<TButton> pressed = new List<TButton>();
+
+            foreach (var b in pressedButtons)
+            {
+                if (!lastButtons.pressedButtons.Contains(b))
+                    pressed.Add(b);
+            }
+
+            foreach (var b in lastButtons.pressedButtons)
+            {
+                if (!pressedButtons.Contains(b))
+                    released.Add(b);
+            }
+
+            return new ButtonStateDifference(released.ToArray(), pressed.ToArray());
+        }
 
         /// <summary>
         /// Copies the state of another <see cref="ButtonStates{TButton}"/> to ourselves.
@@ -63,7 +91,8 @@ namespace osu.Framework.Input.States
         public void Set(ButtonStates<TButton> other)
         {
             pressedButtons.Clear();
-            pressedButtons.AddRange(other.pressedButtons);
+            foreach (var b in other.pressedButtons)
+                pressedButtons.Add(b);
         }
 
         public override string ToString() => $@"{GetType().ReadableName()}({string.Join(' ', pressedButtons)})";
@@ -76,10 +105,12 @@ namespace osu.Framework.Input.States
 
         public readonly struct ButtonStateDifference
         {
-            public readonly IEnumerable<TButton> Released;
-            public readonly IEnumerable<TButton> Pressed;
+            public readonly TButton[] Released;
+            public readonly TButton[] Pressed;
 
-            public ButtonStateDifference(IEnumerable<TButton> released, IEnumerable<TButton> pressed)
+            public static readonly ButtonStateDifference EMPTY = new ButtonStateDifference(Array.Empty<TButton>(), Array.Empty<TButton>());
+
+            public ButtonStateDifference(TButton[] released, TButton[] pressed)
             {
                 Released = released;
                 Pressed = pressed;
