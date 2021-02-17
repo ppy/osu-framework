@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.Textures
                     Debug.Assert(tcs != null);
 
                     tcs.SetResult(tex);
-                    retrievalCompletionSources.Remove(name);
+                    retrievalCompletionSources.Remove(key);
                 }
             }
 
