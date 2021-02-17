@@ -189,7 +189,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             public int TotalInitiatedLookups { get; private set; }
 
             /// <summary>
-            /// The total number of completed lookup.
+            /// The total number of completed lookups.
             /// </summary>
             public int TotalCompletedLookups { get; private set; }
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Tests.Visual.Sprites
             /// <summary>
             /// Block load until <see cref="AllowLoad"/> is called.
             /// </summary>
-            /// <param name="blockingUrl">An optional URL to limit load blocking to a specification.</param>
+            /// <param name="blockingUrl">If not <c>null</c> or empty, only lookups for this particular URL will be blocked.</param>
             public void StartBlocking(string blockingUrl = null)
             {
                 this.blockingUrl = blockingUrl;
