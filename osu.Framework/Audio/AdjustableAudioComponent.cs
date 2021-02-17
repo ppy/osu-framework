@@ -40,10 +40,10 @@ namespace osu.Framework.Audio
             AggregateTempo.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
