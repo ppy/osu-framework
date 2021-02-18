@@ -116,15 +116,15 @@ namespace osu.Framework.Graphics.Textures
 
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
-            // Check if the texture exists in the cache.
-            if (TryGetCached(key, out var cached))
-                return cached;
-
             TaskCompletionSource<Texture> tcs = null;
             Task task;
 
             lock (retrievalCompletionSources)
             {
+                // Check if the texture exists in the cache.
+                if (TryGetCached(key, out var cached))
+                    return cached;
+
                 // check if an existing lookup was already started for this key.
                 if (!retrievalCompletionSources.TryGetValue(key, out task))
                     // if not, take responsibility for the lookup.
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Textures
                 task.Wait();
 
                 // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
-                if (TryGetCached(key, out cached))
+                if (TryGetCached(key, out var cached))
                     return cached;
 
                 return null;
