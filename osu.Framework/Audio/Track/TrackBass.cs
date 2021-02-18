@@ -97,6 +97,8 @@ namespace osu.Framework.Audio.Track
 
                 processReplayGain(data);
 
+                replayGainReady.Set();
+
                 Preview = quick;
 
                 activeStream = prepareStream(quick);
@@ -180,7 +182,8 @@ namespace osu.Framework.Audio.Track
 
             Bass.StreamFree(replayGainProcessingStream);
 
-            ReplayGainVolumeAdjust = Math.Pow(10, gain / 20);
+            replayGainVolumeAdjust = Math.Pow(10, gain / 20);
+            replayGainReady.Set();
         }
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -406,7 +409,18 @@ namespace osu.Framework.Audio.Track
 
         private volatile int bitrate;
 
-        public double ReplayGainVolumeAdjust { get; private set; }
+        private readonly ManualResetEventSlim replayGainReady = new ManualResetEventSlim();
+
+        private double replayGainVolumeAdjust;
+
+        public double ReplayGainVolumeAdjust
+        {
+            get
+            {
+                replayGainReady.Wait();
+                return replayGainVolumeAdjust;
+            }
+        }
 
         public override int? Bitrate => bitrate;
 
