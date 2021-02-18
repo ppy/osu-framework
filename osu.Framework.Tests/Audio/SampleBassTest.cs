@@ -40,6 +40,17 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestGetChannelOnDisposed()
+        {
+            sample.Dispose();
+
+            sample.Update();
+
+            Assert.Throws<ObjectDisposedException>(() => sample.GetChannel());
+            Assert.Throws<ObjectDisposedException>(() => sample.Play());
+        }
+
+        [Test]
         public void TestStart()
         {
             channel = sample.Play();
