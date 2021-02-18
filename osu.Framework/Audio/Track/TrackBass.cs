@@ -2,13 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
+using NReplayGain;
 using osu.Framework.Audio.Callbacks;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Audio.Track
 {
@@ -87,6 +90,8 @@ namespace osu.Framework.Audio.Track
 
             EnqueueAction(() =>
             {
+                processReplayGain(data);
+
                 Preview = quick;
 
                 activeStream = prepareStream(data, quick);
@@ -135,6 +140,45 @@ namespace osu.Framework.Audio.Track
             });
 
             InvalidateState();
+        }
+
+        private void processReplayGain(Stream data)
+        {
+            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, 1);
+            fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
+
+            int replayGainProcessingStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode, fileCallbacks.Callbacks, fileCallbacks.Handle);
+            TrackGain trackGain = new TrackGain(44100, 16);
+
+            const int buf_len = 1024;
+            short[] buf = new short[buf_len];
+
+            List<int> leftSamples = new List<int>();
+            List<int> rightSamples = new List<int>();
+
+            while (true)
+            {
+                int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
+                if (length == -1) break;
+
+                for (int a = 0; a < length / sizeof(short); a += 2)
+                {
+                    leftSamples.Add(buf[a]);
+                    rightSamples.Add(buf[a + 1]);
+                }
+            }
+
+            trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
+
+            double gain = trackGain.GetGain();
+            double peak = trackGain.GetPeak();
+
+            Logger.Log($"REPLAYGAIN GAIN: {gain}");
+            Logger.Log($"REPLAYGAIN PEAK: {peak}");
+
+            Bass.StreamFree(replayGainProcessingStream);
+
+            ReplayGainVolumeAdjust = Math.Pow(10, gain / 20);
         }
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -364,6 +408,8 @@ namespace osu.Framework.Audio.Track
         }
 
         private volatile int bitrate;
+
+        public double ReplayGainVolumeAdjust { get; private set; }
 
         public override int? Bitrate => bitrate;
 
