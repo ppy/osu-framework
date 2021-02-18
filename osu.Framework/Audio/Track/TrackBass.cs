@@ -90,11 +90,16 @@ namespace osu.Framework.Audio.Track
 
             EnqueueAction(() =>
             {
+                //encapsulate incoming stream with async buffer if it isn't already.
+                dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+
+                fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
+
                 processReplayGain(data);
 
                 Preview = quick;
 
-                activeStream = prepareStream(data, quick);
+                activeStream = prepareStream(quick);
 
                 long byteLength = Bass.ChannelGetLength(activeStream);
 
@@ -144,9 +149,6 @@ namespace osu.Framework.Audio.Track
 
         private void processReplayGain(Stream data)
         {
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, 1);
-            fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
-
             int replayGainProcessingStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode, fileCallbacks.Callbacks, fileCallbacks.Handle);
             TrackGain trackGain = new TrackGain(44100, 16);
 
@@ -187,13 +189,8 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelFlags(activeStream, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
         });
 
-        private int prepareStream(Stream data, bool quick)
+        private int prepareStream(bool quick)
         {
-            //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
-
-            fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(dataStream));
-
             BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
