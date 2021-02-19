@@ -16,7 +16,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class TabletDriver : Driver
     {
-        private static readonly IEnumerable<int> knownVendors = Enum.GetValues<DeviceVendor>().Cast<int>();
+        private static readonly IEnumerable<int> known_vendors = Enum.GetValues<DeviceVendor>().Cast<int>();
 
         public TabletDriver()
         {
@@ -30,7 +30,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public void DetectTablet()
         {
-            if (CurrentDevices.Select(d => d.VendorID).Intersect(knownVendors).Any())
+            if (CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).Any())
             {
                 foreach (var config in getConfigurations())
                 {
