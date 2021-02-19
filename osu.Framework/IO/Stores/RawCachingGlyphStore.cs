@@ -35,7 +35,16 @@ namespace osu.Framework.IO.Stores
         protected override TextureUpload LoadCharacter(Character character)
         {
             if (!pageLookup.TryGetValue(character.Page, out var pageInfo))
-                pageInfo = createCachedPageInfo(character.Page);
+            {
+                // Use simple global locking for the time being.
+                // If necessary, a per-lookup-key (page number) locking mechanism could be implemented similar to TextureStore.
+                lock (pageLookup)
+                {
+                    // second lookup within lock for safety
+                    if (!pageLookup.TryGetValue(character.Page, out pageInfo))
+                        pageInfo = createCachedPageInfo(character.Page);
+                }
+            }
 
             return createTextureUpload(character, pageInfo);
         }
