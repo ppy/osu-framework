@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     public class TabletDriver : Driver
     {
+        private static readonly IEnumerable<int> knownVendors = Enum.GetValues<DeviceVendor>().Cast<int>();
+
         public TabletDriver()
         {
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}");
@@ -27,10 +30,13 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public void DetectTablet()
         {
-            foreach (var config in getConfigurations())
+            if (CurrentDevices.Select(d => d.VendorID).Intersect(knownVendors).Any())
             {
-                if (TryMatch(config))
-                    break;
+                foreach (var config in getConfigurations())
+                {
+                    if (TryMatch(config))
+                        break;
+                }
             }
         }
 
