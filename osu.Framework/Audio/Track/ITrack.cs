@@ -9,7 +9,7 @@ namespace osu.Framework.Audio.Track
     /// <summary>
     /// An audio track.
     /// </summary>
-    public interface ITrack : IAdjustableClock, IHasAmplitudes, IAdjustableAudioComponent
+    public interface ITrack : IAdjustableClock, IHasAmplitudes, IAdjustableAudioComponent, IAggregateAudioAdjustment
     {
         /// <summary>
         /// Invoked when this track has completed.
