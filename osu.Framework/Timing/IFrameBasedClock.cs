@@ -4,7 +4,7 @@
 namespace osu.Framework.Timing
 {
     /// <summary>
-    /// A clock which will only update its current time when a frame proces is triggered.
+    /// A clock which will only update its current time when a frame process is triggered.
     /// Useful for keeping a consistent time state across an individual update.
     /// </summary>
     public interface IFrameBasedClock : IClock
