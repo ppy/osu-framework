@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.

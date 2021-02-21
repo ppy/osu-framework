@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Audio
 {
-    public interface IAdjustableAudioComponent
+    public interface IAdjustableAudioComponent : IAggregateAudioAdjustment
     {
         /// <summary>
         /// The volume of this component.
