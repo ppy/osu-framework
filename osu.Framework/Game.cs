@@ -159,7 +159,7 @@ namespace osu.Framework
 
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Regular");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Italic");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-RegularItalic");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
