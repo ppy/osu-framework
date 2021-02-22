@@ -8,7 +8,7 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// An interface for an audio sample.
     /// </summary>
-    public interface ISample
+    public interface ISample : IAdjustableAudioComponent
     {
         /// <summary>
         /// The length in milliseconds of this <see cref="ISample"/>.

@@ -11,14 +11,14 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class DrawableSample : DrawableAudioWrapper, ISample
     {
-        private readonly Sample sample;
+        private readonly ISample sample;
 
         /// <summary>
         /// Construct a new drawable sample instance.
         /// </summary>
         /// <param name="sample">The audio sample to wrap.</param>
         /// <param name="disposeSampleOnDisposal">Whether the sample should be automatically disposed on drawable disposal/expiry.</param>
-        public DrawableSample(Sample sample, bool disposeSampleOnDisposal = true)
+        public DrawableSample(ISample sample, bool disposeSampleOnDisposal = true)
             : base(sample, disposeSampleOnDisposal)
         {
             this.sample = sample;
