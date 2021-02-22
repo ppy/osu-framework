@@ -14,7 +14,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestSceneRomanisableSpriteText : FrameworkTestScene
     {
-        private FillFlowContainer flow;
+        private readonly FillFlowContainer flow;
 
         public TestSceneRomanisableSpriteText()
         {
