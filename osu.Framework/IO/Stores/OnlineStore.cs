@@ -30,7 +30,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public byte[] Get(string url)
+        public virtual byte[] Get(string url)
         {
             if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                 return null;
