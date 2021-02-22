@@ -42,7 +42,13 @@ namespace osu.Framework.Graphics.Sprites
 
         public SpriteText()
         {
-            current.BindValueChanged(text => Text = text.NewValue);
+            current.BindValueChanged(text =>
+            {
+                // importantly, to avoid a feedback loop which will overwrite a localised text object, check equality of the resulting text before propagating a basic string to Text.
+                // in the case localisedText is not yet setup, special consideration does not need to be given as it can be assumed the change to current was a user invoked change.
+                if (localisedText == null || text.NewValue != localisedText.Value)
+                    Text = text.NewValue;
+            });
 
             AddLayout(charactersCache);
             AddLayout(parentScreenSpaceCache);
@@ -56,6 +62,8 @@ namespace osu.Framework.Graphics.Sprites
             localisedText = localisation.GetLocalisedString(text);
             localisedText.BindValueChanged(str =>
             {
+                current.Value = localisedText.Value;
+
                 if (string.IsNullOrEmpty(str.NewValue))
                 {
                     // We'll become not present and won't update the characters to set the size to 0, so do it manually
@@ -93,10 +101,10 @@ namespace osu.Framework.Graphics.Sprites
 
                 text = value;
 
-                current.Value = text.ToString();
-
                 if (localisedText != null)
+                {
                     localisedText.Text = value;
+                }
             }
         }
 
