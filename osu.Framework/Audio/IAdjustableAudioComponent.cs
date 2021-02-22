@@ -31,6 +31,18 @@ namespace osu.Framework.Audio
         BindableNumber<double> Tempo { get; }
 
         /// <summary>
+        /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void BindAdjustments(IAggregateAudioAdjustment component);
+
+        /// <summary>
+        /// Unbind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void UnbindAdjustments(IAggregateAudioAdjustment component);
+
+        /// <summary>
         /// Add a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>
