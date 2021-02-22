@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
@@ -94,57 +95,130 @@ namespace osu.Framework.Graphics.Containers
         public IReadOnlyList<T> Children
         {
             get => container.Children;
-            set => container.Children = value;
+            set
+            {
+                unbindAllAdjustments();
+                container.Children = value;
+                bindAllAdjustments();
+            }
         }
 
-        public int RemoveAll(Predicate<T> match) => container.RemoveAll(match);
+        public int RemoveAll(Predicate<T> match) => container.RemoveAll(d =>
+        {
+            if (!match(d))
+                return false;
+
+            unbindAdjustments(d);
+            return true;
+        });
 
         public T Child
         {
             get => container.Child;
-            set => container.Child = value;
+            set
+            {
+                unbindAllAdjustments();
+                container.Child = value;
+                bindAllAdjustments();
+            }
         }
 
         public IEnumerable<T> ChildrenEnumerable
         {
-            set => container.ChildrenEnumerable = value;
+            set
+            {
+                unbindAllAdjustments();
+                container.ChildrenEnumerable = value;
+                bindAllAdjustments();
+            }
         }
 
         public void Add(T drawable)
         {
             container.Add(drawable);
+            bindAdjustments(drawable);
         }
 
         public void Clear()
         {
+            unbindAllAdjustments();
             container.Clear();
         }
 
         public bool Contains(T item) => container.Contains(item);
 
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            container.CopyTo(array, arrayIndex);
-        }
+        public void CopyTo(T[] array, int arrayIndex) => container.CopyTo(array, arrayIndex);
 
         public void AddRange(IEnumerable<T> collection)
         {
-            container.AddRange(collection);
+            // For Container, AddRange() is equivalent to calling Add() with each drawable in the collection.
+            foreach (var drawable in collection)
+                Add(drawable);
         }
 
-        public bool Remove(T drawable) => container.Remove(drawable);
+        public bool Remove(T drawable)
+        {
+            if (!container.Remove(drawable))
+                return false;
+
+            unbindAdjustments(drawable);
+            return true;
+        }
+
         int ICollection<T>.Count => container.Count;
 
         public bool IsReadOnly => container.IsReadOnly;
 
         public void RemoveRange(IEnumerable<T> range)
         {
-            container.RemoveRange(range);
+            // For Container, RemoveRange() is equivalent to calling Remove() with each drawable in the collection.
+            foreach (var drawable in range)
+                Remove(drawable);
         }
 
         int IReadOnlyCollection<T>.Count => container.Count;
 
         public T this[int index] => container[index];
+
+        #region Adjustment Binding
+
+        /// <summary>
+        /// Binds adjustments to a single <typeparamref name="T"/> object.
+        /// </summary>
+        private void bindAdjustments(T drawable)
+        {
+            if (drawable is IAdjustableAudioComponent adjustable)
+                adjustable.BindAdjustments(this);
+        }
+
+        /// <summary>
+        /// Binds adjustments to all container <typeparamref name="T"/> objects.
+        /// </summary>
+        private void bindAllAdjustments()
+        {
+            foreach (var adjustable in container.OfType<IAdjustableAudioComponent>())
+                adjustable.BindAdjustments(this);
+        }
+
+        /// <summary>
+        /// Unbinds adjustments from a single <typeparamref name="T"/> object.
+        /// </summary>
+        private void unbindAdjustments(T drawable)
+        {
+            if (drawable is IAdjustableAudioComponent adjustable)
+                adjustable.UnbindAdjustments(this);
+        }
+
+        /// <summary>
+        /// Unbinds adjustments from all contained <typeparamref name="T"/> objects.
+        /// </summary>
+        private void unbindAllAdjustments()
+        {
+            foreach (var adjustable in container.OfType<IAdjustableAudioComponent>())
+                adjustable.UnbindAdjustments(this);
+        }
+
+        #endregion
     }
 
     /// <summary>
