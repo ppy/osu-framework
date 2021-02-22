@@ -24,12 +24,12 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestNestedScaleAdjust()
         {
-            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans") { CacheStorage = storage }, scaleAdjust: 100))
+            using (var fontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Regular") { CacheStorage = storage }, scaleAdjust: 100))
             using (var nestedFontStore = new FontStore(new RawCachingGlyphStore(fontResourceStore, "OpenSans-Bold") { CacheStorage = storage }, 10))
             {
                 fontStore.AddStore(nestedFontStore);
 
-                var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans", 'a');
+                var normalGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Regular", 'a');
                 Assert.That(normalGlyph, Is.Not.Null);
 
                 var boldGlyph = (TexturedCharacterGlyph)fontStore.Get("OpenSans-Bold", 'a');
