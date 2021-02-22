@@ -157,7 +157,7 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Regular");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Italic");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
