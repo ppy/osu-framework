@@ -10,7 +10,7 @@ namespace osu.Framework.Audio
     /// Provides adjustable and bindable attributes for an audio component.
     /// Aggregates results as a <see cref="IAggregateAudioAdjustment"/>.
     /// </summary>
-    public class AudioAdjustments : IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AudioAdjustments : IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.

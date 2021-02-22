@@ -8,7 +8,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// An audio component which allows for basic bindable adjustments to be applied.
     /// </summary>
-    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AdjustableAudioComponent : AudioComponent, IAdjustableAudioComponent
     {
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
