@@ -16,22 +16,25 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// The string in its original script. May be null.
         /// </summary>
-        public readonly string Original;
+        public readonly string? Original;
 
         /// <summary>
         /// The romanised version of the string. May be null.
         /// </summary>
-        public readonly string Romanised;
+        public readonly string? Romanised;
 
         /// <summary>
         /// Construct a new romanisable string.
         /// </summary>
+        /// <remarks>
+        /// For flexibility, both of the provided strings are allowed to be null. If both are null, the returned string value from <see cref="GetPreferred"/> will be <see cref="string.Empty"/>.
+        /// </remarks>
         /// <param name="original">The string in its original script. If null, the <paramref name="romanised"/> version will always be used.</param>
         /// <param name="romanised">The romanised version of the string. If null, the <paramref name="original"/> version will always be used.</param>
-        public RomanisableString(string original, string romanised)
+        public RomanisableString(string? original, string? romanised)
         {
-            Romanised = romanised;
             Original = original;
+            Romanised = romanised;
         }
 
         /// <summary>
@@ -41,8 +44,8 @@ namespace osu.Framework.Localisation
         /// <returns>The best match for the provided criteria.</returns>
         public string GetPreferred(bool preferUnicode)
         {
-            if (string.IsNullOrEmpty(Romanised)) return Original;
-            if (string.IsNullOrEmpty(Original)) return Romanised;
+            if (string.IsNullOrEmpty(Romanised)) return Original ?? string.Empty;
+            if (string.IsNullOrEmpty(Original)) return Romanised ?? string.Empty;
 
             return preferUnicode ? Original : Romanised;
         }
