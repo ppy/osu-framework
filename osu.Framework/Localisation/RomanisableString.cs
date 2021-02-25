@@ -13,7 +13,7 @@ namespace osu.Framework.Localisation
         public readonly string Romanised;
         public readonly string Unicode;
 
-        public RomanisableString(string romanised, string unicode)
+        public RomanisableString(string unicode, string romanised)
         {
             Romanised = romanised;
             Unicode = unicode;
