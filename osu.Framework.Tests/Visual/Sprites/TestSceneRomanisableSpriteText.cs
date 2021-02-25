@@ -36,9 +36,9 @@ namespace osu.Framework.Tests.Visual.Sprites
                 }
             };
 
-            flow.Add(new SpriteText { Text = new RomanisableString("music", "ongaku") });
-            flow.Add(new SpriteText { Text = new RomanisableString("music", "") });
-            flow.Add(new SpriteText { Text = new RomanisableString("", "ongaku") });
+            flow.Add(new SpriteText { Text = new RomanisableString("ongaku", "music") });
+            flow.Add(new SpriteText { Text = new RomanisableString("", "music") });
+            flow.Add(new SpriteText { Text = new RomanisableString("ongaku", "") });
         }
 
         [Resolved]
