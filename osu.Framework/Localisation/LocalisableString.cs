@@ -10,7 +10,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A descriptor representing text that can be localised and formatted.
     /// </summary>
-    public readonly struct LocalisableString : IEquatable<LocalisableString>
+    public readonly struct LocalisableString : IEquatable<LocalisableString>, IEquatable<string>
     {
         /// <summary>
         /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableString"/>.
@@ -31,7 +31,20 @@ namespace osu.Framework.Localisation
         public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
 
-        public override bool Equals(object? obj) => obj is LocalisableString other && Equals(other);
+        public static implicit operator string(LocalisableString localisable) => localisable.ToString();
+        public bool Equals(string other) => ToString().Equals(other);
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is LocalisableString localisable)
+                return Equals(localisable);
+
+            if (obj is string str)
+                return Equals(str);
+
+            return false;
+        }
+
         public override int GetHashCode() => Data?.GetHashCode() ?? 0;
     }
 }
