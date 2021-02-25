@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
@@ -351,8 +352,8 @@ namespace osu.Framework.Platform
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
+                CursorVisible = !evt.NewValue.HasFlagFast(CursorState.Hidden);
+                CursorConfined = evt.NewValue.HasFlagFast(CursorState.Confined);
             };
 
             cursorInWindow.ValueChanged += evt =>
