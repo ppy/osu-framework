@@ -53,11 +53,13 @@ namespace osu.Framework.Extensions.EnumExtensions
             });
         }
 
+#pragma warning disable RS0030 // (banned API)
         /// <summary>
         /// A fast alternative functionally equivalent to <see cref="Enum.HasFlag"/>, eliminating boxing in all scenarios.
         /// </summary>
         /// <param name="enumValue">The enum to check.</param>
         /// <param name="flag">The flag to check for.</param>
+#pragma warning restore RS0030
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe bool HasFlagFast<T>(this T enumValue, T flag) where T : unmanaged, Enum
         {

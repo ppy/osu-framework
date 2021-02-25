@@ -16,6 +16,7 @@ using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Platform
@@ -193,11 +194,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                OsuTKGameWindow.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
+                OsuTKGameWindow.Cursor = cursorState.HasFlagFast(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    OsuTKGameWindow.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
+                    OsuTKGameWindow.CursorGrabbed = cursorState.HasFlagFast(CursorState.Confined);
                 }
                 catch
                 {
