@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions.EnumExtensions;
 using osuTK;
 using osuTK.Input;
 
@@ -29,7 +30,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
 
             Scroll = new Vector2(-tkState.Scroll.X, tkState.Scroll.Y);
-            HasPreciseScroll = tkState.Flags.HasFlag(MouseStateFlags.HasPreciseScroll);
+            HasPreciseScroll = tkState.Flags.HasFlagFast(MouseStateFlags.HasPreciseScroll);
             Position = new Vector2(mappedPosition?.X ?? tkState.X, mappedPosition?.Y ?? tkState.Y);
         }
 

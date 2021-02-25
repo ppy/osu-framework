@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -152,14 +153,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 box.Anchor = anchor;
 
-                if (anchor.HasFlag(Anchor.x0))
+                if (anchor.HasFlagFast(Anchor.x0))
                     box.X -= contextMenuContainer.CurrentMenu.DrawWidth + 10;
-                else if (anchor.HasFlag(Anchor.x2))
+                else if (anchor.HasFlagFast(Anchor.x2))
                     box.X += 10;
 
-                if (anchor.HasFlag(Anchor.y0))
+                if (anchor.HasFlagFast(Anchor.y0))
                     box.Y -= contextMenuContainer.CurrentMenu.DrawHeight + 10;
-                else if (anchor.HasFlag(Anchor.y2))
+                else if (anchor.HasFlagFast(Anchor.y2))
                     box.Y += 10;
             });
 
