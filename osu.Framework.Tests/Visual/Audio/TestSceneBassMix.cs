@@ -1,21 +1,49 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Fx;
+using NReplayGain;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Tests.Audio;
+using osuTK;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
+    public class BassUtils
+    {
+        public static double DbToLevel(double gain)
+        {
+            if (gain == 0) return 0;
+
+            return Math.Pow(10, gain / 20);
+        }
+
+        public static double LevelToDb(double level)
+        {
+            if (level == 0) return 0;
+
+            return Math.Log(Math.Sqrt(level), 10) * 20f;
+        }
+
+        public static double LevelToDisplay(double level)
+        {
+            // return Math.Min(1, Math.Log10(1 + level) * 10);
+            // return level == 0 ? 0 : Math.Pow(2, 10 * level - 10) * 3;
+            return level;
+        }
+    }
+
     public class TestSceneBassMix : FrameworkTestScene
     {
         private int mixerHandle;
@@ -27,31 +55,53 @@ namespace osu.Framework.Tests.Visual.Audio
         private int compressorHandle;
 
         private const int num_mix_channels = 8;
-        private readonly Box[] mixChannels = new Box[num_mix_channels];
+        private int[] channelHandles = new int[num_mix_channels];
+        private ChannelStrip[] channelStrips = new ChannelStrip[num_mix_channels];
 
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks)
         {
+            DllResourceStore resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
+
+            for (int i = 0; i < num_mix_channels; i++)
+            {
+                channelStrips[i] = new ChannelStrip
+                {
+                    IsMixChannel = (i < num_mix_channels - 1),
+                    Width = 1f / num_mix_channels
+                };
+            }
+
             // Create Mixer
             mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.MixerNonStop);
             Logger.Log($"[BASSDLL] CreateMixerStream: {Bass.LastError}");
+            // Make Mixer Go
+            Bass.ChannelPlay(mixerHandle);
+            Logger.Log($"[BASSDLL] ChannelPlay: {Bass.LastError}");
+            channelHandles[num_mix_channels - 1] = mixerHandle;
+            // bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
 
             // Load BGM Track
-            DllResourceStore resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            var bgmData = resources.Get("Resources.Tracks.sample-track.mp3");
+            var bgmData = resources.Get("Resources.Tracks.bgm_main.ogg");
             trackHandle = Bass.CreateStream(bgmData, 0, bgmData.Length, BassFlags.Decode | BassFlags.Loop);
+            double replayGain = calculateReplayGain(bgmData);
+
+            // Apply ReplayGain
+            Bass.ChannelSetAttribute(trackHandle, ChannelAttribute.Volume, BassUtils.DbToLevel(replayGain));
 
             // Add BGM Track to Mixer
             BassMix.MixerAddChannel(mixerHandle, trackHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
+            channelHandles[0] = trackHandle;
 
             // Load SFX1
-            var sfxData = resources.Get("Resources.Samples.long.mp3");
+            var sfxData = resources.Get("Resources.Samples.se_common_move2.ogg");
             sfxHandle = Bass.CreateStream(sfxData, 0, sfxData.Length, BassFlags.Decode);
 
             // Add SFX1 to Mixer
             BassMix.MixerAddChannel(mixerHandle, sfxHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
+            channelHandles[1] = sfxHandle;
 
             // Load SFX2
             var sfx2Data = resources.Get("Resources.Samples.loud.wav");
@@ -60,26 +110,13 @@ namespace osu.Framework.Tests.Visual.Audio
             // Add SFX1 to Mixer
             BassMix.MixerAddChannel(mixerHandle, sfx2Handle, BassFlags.MixerPause | BassFlags.MixerBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
+            channelHandles[2] = sfx2Handle;
 
-            // Make Mixer Go
-            Bass.ChannelPlay(mixerHandle);
-
-            Children = new Drawable[]
+            Child = new FillFlowContainer
             {
-                new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    ChildrenEnumerable =
-                        Enumerable.Range(0, num_mix_channels)
-                                  .Select(i => mixChannels[i] = new Box
-                                  {
-                                      RelativeSizeAxes = Axes.Both,
-                                      Anchor = Anchor.BottomLeft,
-                                      Origin = Anchor.BottomLeft,
-                                      Height = 0,
-                                      Width = 1 / (float)num_mix_channels
-                                  })
-                }
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(1.0f),
+                Children = channelStrips
             };
         }
 
@@ -148,6 +185,14 @@ namespace osu.Framework.Tests.Visual.Audio
                 Bass.ChannelSetPosition(sfx2Handle, 0);
                 BassMix.ChannelFlags(sfx2Handle, BassFlags.Default, BassFlags.MixerPause);
             });
+
+            AddStep("Reset Peaks", () =>
+            {
+                foreach (var strip in channelStrips)
+                {
+                    strip.Reset();
+                }
+            });
         }
 
         protected override void Dispose(bool isDisposing)
@@ -161,26 +206,144 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             base.Update();
 
-            var buffSizeMs = 20;
+            for (int i = 0; i < num_mix_channels; i++)
+            {
+                channelStrips[i].Handle = channelHandles[i];
+            }
+        }
 
-            float[] levels1 = new float[1];
-            BassMix.ChannelGetLevel(trackHandle, levels1, 1 / (float)buffSizeMs, LevelRetrievalFlags.Mono);
-            mixChannels[0].TransformTo(nameof(Drawable.Height), levels1[0], buffSizeMs * 4);
+        private double calculateReplayGain(byte[] data)
+        {
+            int replayGainProcessingStream = Bass.CreateStream(data, 0, data.Length, BassFlags.Decode);
+            TrackGain trackGain = new TrackGain(44100, 16);
 
-            float[] levels2 = new float[1];
-            BassMix.ChannelGetLevel(sfxHandle, levels2, 1 / (float)buffSizeMs, LevelRetrievalFlags.Mono);
-            mixChannels[1].TransformTo(nameof(Drawable.Height), levels2[0], buffSizeMs * 4);
+            const int buf_len = 1024;
+            short[] buf = new short[buf_len];
 
-            float[] levels3 = new float[1];
-            BassMix.ChannelGetLevel(sfx2Handle, levels3, 1 / (float)buffSizeMs, LevelRetrievalFlags.Mono);
-            mixChannels[2].TransformTo(nameof(Drawable.Height), levels3[0], buffSizeMs * 4);
+            List<int> leftSamples = new List<int>();
+            List<int> rightSamples = new List<int>();
 
-            float[] levels4 = new float[1];
-            Bass.ChannelGetLevel(mixerHandle, levels4, 1 / (float)buffSizeMs, LevelRetrievalFlags.Mono);
-            mixChannels[7].TransformTo(nameof(Drawable.Height), levels4[0], buffSizeMs * 4);
+            while (true)
+            {
+                int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
+                if (length == -1) break;
 
-            // Logger.Log($"LEVEL: {levels2[0]}");
-            // Logger.Log($"[BASSDLL] ChannelGetLevel: {Bass.LastError}");
+                for (int a = 0; a < length / sizeof(short); a += 2)
+                {
+                    leftSamples.Add(buf[a]);
+                    rightSamples.Add(buf[a + 1]);
+                }
+            }
+
+            trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
+
+            double gain = trackGain.GetGain();
+            double peak = trackGain.GetPeak();
+
+            Logger.Log($"REPLAYGAIN GAIN: {gain}");
+            Logger.Log($"REPLAYGAIN PEAK: {peak}");
+
+            Bass.StreamFree(replayGainProcessingStream);
+
+            return gain;
+        }
+    }
+
+    public class ChannelStrip : CompositeDrawable
+    {
+        public int Handle { get; set; }
+        public int BuffSize = 30;
+        public bool IsMixChannel { get; set; } = true;
+
+        private float maxPeak = float.MinValue;
+        private float peak = float.MinValue;
+        private float gain;
+        private Box volBarL;
+        private Box volBarR;
+        private SpriteText peakText;
+        private SpriteText maxPeakText;
+
+        public ChannelStrip(int handle = -1)
+        {
+            Handle = handle;
+
+            RelativeSizeAxes = Axes.Both;
+            InternalChildren = new Drawable[]
+            {
+                volBarL = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Origin = Anchor.BottomLeft,
+                    Anchor = Anchor.BottomLeft,
+                    Colour = Colour4.Green,
+                    Height = 0f,
+                    Width = 0.5f,
+                },
+                volBarR = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Origin = Anchor.BottomRight,
+                    Anchor = Anchor.BottomRight,
+                    Colour = Colour4.Green,
+                    Height = 0f,
+                    Width = 0.5f,
+                },
+                new FillFlowContainer
+                {
+                    // Anchor = Anchor.TopCentre,
+                    // Origin = Anchor.TopCentre,
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Vertical,
+                    Children = new[]
+                    {
+                        peakText = new SpriteText
+                        {
+                            Text = $"{peak}dB",
+                        },
+                        maxPeakText = new SpriteText
+                        {
+                            Text = $"{maxPeak}dB",
+                        }
+                    }
+                }
+            };
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (Handle == 0)
+            {
+                volBarL.Height = 0;
+                peakText.Text = "N/A";
+                maxPeakText.Text = "N/A";
+                return;
+            }
+
+            float[] levels = new float[2];
+
+            if (IsMixChannel)
+                BassMix.ChannelGetLevel(Handle, levels, 1 / (float)BuffSize, LevelRetrievalFlags.Stereo);
+            else
+                Bass.ChannelGetLevel(Handle, levels, 1 / (float)BuffSize, LevelRetrievalFlags.Stereo);
+
+            peak = (levels[0] + levels[1]) / 2f;
+            maxPeak = Math.Max(peak, maxPeak);
+
+            // if (levels[0] > 0 || levels[1] > 0)
+            //     Logger.Log($"L: {levels[0]} ({BassUtil.LevelToDisplay(levels[0])}), R: {levels[1]} ({BassUtil.LevelToDisplay(levels[1])})");
+
+            volBarL.TransformTo(nameof(Drawable.Height), (float)BassUtils.LevelToDisplay(levels[0]), BuffSize * 4);
+            volBarR.TransformTo(nameof(Drawable.Height), (float)BassUtils.LevelToDisplay(levels[1]), BuffSize * 4);
+            peakText.Text = $"{BassUtils.LevelToDb(peak):F}dB";
+            maxPeakText.Text = $"{BassUtils.LevelToDb(maxPeak):F}dB";
+        }
+
+        public void Reset()
+        {
+            peak = float.MinValue;
+            maxPeak = float.MinValue;
         }
     }
 }
