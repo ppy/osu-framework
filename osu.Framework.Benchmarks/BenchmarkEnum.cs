@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Extensions.EnumExtensions;
 
@@ -14,40 +13,22 @@ namespace osu.Framework.Benchmarks
         [Benchmark]
         public bool HasFlag()
         {
-            bool result = false;
-
 #pragma warning disable RS0030 // (banned API)
-            for (int i = 0; i < 1000000; i++)
-                result |= getFlags(i).HasFlag((FlagsEnum)i);
+            return (FlagsEnum.Flag2 | FlagsEnum.Flag3).HasFlag(FlagsEnum.Flag2);
 #pragma warning restore RS0030
-
-            return result;
         }
 
         [Benchmark]
         public bool BitwiseAnd()
         {
-            bool result = false;
-
-            for (int i = 0; i < 1000000; i++)
-                result |= (getFlags(i) & (FlagsEnum)i) > 0;
-
-            return result;
+            return ((FlagsEnum.Flag2 | FlagsEnum.Flag3) & FlagsEnum.Flag2) > 0;
         }
 
         [Benchmark]
         public bool HasFlagFast()
         {
-            bool result = false;
-
-            for (int i = 0; i < 1000000; i++)
-                result |= getFlags(i).HasFlagFast((FlagsEnum)i);
-
-            return result;
+            return (FlagsEnum.Flag2 | FlagsEnum.Flag3).HasFlagFast(FlagsEnum.Flag2);
         }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlagsEnum getFlags(int i) => (FlagsEnum)i;
 
         [Flags]
         private enum FlagsEnum
