@@ -464,12 +464,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (string.IsNullOrEmpty(displayedText))
                     return;
 
-                TextBuilder textBuilder;
-
-                if (textBuilderBacking.IsValid)
-                    textBuilder = textBuilderBacking.Value;
-                else
-                    textBuilder = textBuilderBacking.Value = CreateTextBuilder(store);
+                TextBuilder textBuilder = getTextBuilder();
 
                 textBuilder.Reset();
                 textBuilder.AddText(displayedText);
@@ -614,6 +609,14 @@ namespace osu.Framework.Graphics.Sprites
 
             return new TextBuilder(store, Font, builderMaxWidth, UseFullGlyphHeight, new Vector2(Padding.Left, Padding.Top), Spacing, charactersBacking,
                 excludeCharacters, FallbackCharacter, FixedWidthReferenceCharacter);
+        }
+
+        private TextBuilder getTextBuilder()
+        {
+            if (!textBuilderBacking.IsValid)
+                textBuilderBacking.Value = CreateTextBuilder(store);
+
+            return textBuilderBacking.Value;
         }
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();
