@@ -359,8 +359,8 @@ namespace osu.Framework.Graphics.Performance
 
             timeBar.Sprite.Texture.SetData(upload);
 
-            timeBars[timeBarIndex].MoveToX(WIDTH - timeBarX);
-            timeBars[(timeBarIndex + 1) % timeBars.Length].MoveToX(-timeBarX);
+            timeBars[timeBarIndex].X = WIDTH - timeBarX;
+            timeBars[(timeBarIndex + 1) % timeBars.Length].X = -timeBarX;
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
