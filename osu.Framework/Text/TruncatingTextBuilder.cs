@@ -17,6 +17,9 @@ namespace osu.Framework.Text
         private readonly bool useFontSizeAsHeight;
         private readonly Vector2 spacing;
 
+        private bool ellipsisAdded;
+        private bool addingEllipsis; // Only used temporarily during the addition of the ellipsis.
+
         /// <summary>
         /// Creates a new <see cref="TextBuilder"/>.
         /// </summary>
@@ -44,8 +47,12 @@ namespace osu.Framework.Text
             this.fallbackCharacter = fallbackCharacter;
         }
 
-        private bool addingEllipsis;
-        private bool ellipsisAdded;
+        public override void Reset()
+        {
+            base.Reset();
+
+            ellipsisAdded = false;
+        }
 
         protected override bool CanAddCharacters => (base.CanAddCharacters && !ellipsisAdded) || addingEllipsis;
 
