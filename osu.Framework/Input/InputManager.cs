@@ -107,7 +107,7 @@ namespace osu.Framework.Input
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
-        public IReadOnlyList<Drawable> HoveredDrawables => hoveredDrawables;
+        public IReadOnlyList<Drawable> HoveredDrawables => hoveredDrawables.AsSlimReadOnly();
 
         /// <summary>
         /// Contains all <see cref="Drawable"/>s in top-down order which are considered
