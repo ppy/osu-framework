@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 font = value;
 
-                invalidate(true);
+                invalidate(true, true);
                 shadowOffsetCache.Invalidate();
             }
         }
@@ -156,8 +156,7 @@ namespace osu.Framework.Graphics.Sprites
                     Truncate = false;
 
                 allowMultiline = value;
-
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -235,7 +234,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 useFullGlyphHeight = value;
 
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -259,7 +258,7 @@ namespace osu.Framework.Graphics.Sprites
                     AllowMultiline = false;
 
                 truncate = value;
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -277,7 +276,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (ellipsisString == value) return;
 
                 ellipsisString = value;
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -306,7 +305,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Width = value;
                 explicitWidth = value;
 
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -327,7 +326,7 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 maxWidth = value;
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -352,7 +351,7 @@ namespace osu.Framework.Graphics.Sprites
                 base.Height = value;
                 explicitHeight = value;
 
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -389,7 +388,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 spacing = value;
 
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -410,7 +409,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 padding = value;
 
-                invalidate(true);
+                invalidate(true, true);
             }
         }
 
@@ -544,10 +543,14 @@ namespace osu.Framework.Graphics.Sprites
 
         #region Invalidation
 
-        private void invalidate(bool layout = false)
+        private void invalidate(bool characters = false, bool textBuilder = false)
         {
-            if (layout)
+            if (characters)
                 charactersCache.Invalidate();
+
+            if (textBuilder)
+                InvalidateTextBuilder();
+
             parentScreenSpaceCache.Invalidate();
             localScreenSpaceCache.Invalidate();
 
