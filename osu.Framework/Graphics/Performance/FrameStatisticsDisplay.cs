@@ -363,7 +363,7 @@ namespace osu.Framework.Graphics.Performance
             timeBars[(timeBarIndex + 1) % timeBars.Length].X = -timeBarX;
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();
