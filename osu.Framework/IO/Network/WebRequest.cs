@@ -289,7 +289,7 @@ namespace osu.Framework.IO.Network
                     {
                         request = new HttpRequestMessage(Method, url);
 
-                        Stream postContent;
+                        Stream postContent = null;
 
                         if (rawContent != null)
                         {
@@ -305,7 +305,7 @@ namespace osu.Framework.IO.Network
 
                             postContent.Position = 0;
                         }
-                        else
+                        else if (parameters.Count > 0 || files.Count > 0)
                         {
                             if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
                                 throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
@@ -331,16 +331,19 @@ namespace osu.Framework.IO.Network
 #endif
                         }
 
-                        requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += e =>
+                        if (postContent != null)
                         {
-                            reportForwardProgress();
-                            UploadProgress?.Invoke(e.NewValue, contentLength);
-                        };
+                            requestStream = new LengthTrackingStream(postContent);
+                            requestStream.BytesRead.ValueChanged += e =>
+                            {
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(e.NewValue, contentLength);
+                            };
 
-                        request.Content = new StreamContent(requestStream);
-                        if (!string.IsNullOrEmpty(ContentType))
-                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                            request.Content = new StreamContent(requestStream);
+                            if (!string.IsNullOrEmpty(ContentType))
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                        }
                     }
 
                     request.Headers.UserAgent.TryParseAdd(UserAgent);
