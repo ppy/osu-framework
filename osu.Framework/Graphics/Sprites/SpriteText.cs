@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
@@ -457,22 +458,30 @@ namespace osu.Framework.Graphics.Sprites
             Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
             isComputingCharacters = true;
 
-            TextBuilder textBuilder = null;
+            Vector2 textBounds = Vector2.Zero;
 
             try
             {
                 if (string.IsNullOrEmpty(displayedText))
                     return;
 
-                textBuilder = CreateTextBuilder(store);
+                TextBuilder textBuilder;
+
+                if (textBuilderBacking.IsValid)
+                    textBuilder = textBuilderBacking.Value;
+                else
+                    textBuilder = textBuilderBacking.Value = CreateTextBuilder(store);
+
+                textBuilder.Reset();
                 textBuilder.AddText(displayedText);
+                textBounds = textBuilder.Bounds;
             }
             finally
             {
                 if (requiresAutoSizedWidth)
-                    base.Width = (textBuilder?.Bounds.X ?? 0) + Padding.Right;
+                    base.Width = textBounds.X + Padding.Right;
                 if (requiresAutoSizedHeight)
-                    base.Height = (textBuilder?.Bounds.Y ?? 0) + Padding.Bottom;
+                    base.Height = textBounds.Y + Padding.Bottom;
 
                 base.Width = Math.Min(base.Width, MaxWidth);
 
@@ -567,6 +576,13 @@ namespace osu.Framework.Graphics.Sprites
         /// The character to fallback to use if a character glyph lookup failed.
         /// </summary>
         protected virtual char FallbackCharacter => '?';
+
+        private readonly Cached<TextBuilder> textBuilderBacking = new Cached<TextBuilder>();
+
+        /// <summary>
+        /// Invalidates the current <see cref="TextBuilder"/>, causing a new one to be created next time it's required via <see cref="CreateTextBuilder"/>.
+        /// </summary>
+        protected void InvalidateTextBuilder() => textBuilderBacking.Invalidate();
 
         /// <summary>
         /// Creates a <see cref="TextBuilder"/> to generate the character layout for this <see cref="SpriteText"/>.
