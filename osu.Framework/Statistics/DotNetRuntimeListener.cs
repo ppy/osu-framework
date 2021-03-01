@@ -10,38 +10,90 @@ namespace osu.Framework.Statistics
     {
         private const int gc_keyword = 0x0000001;
 
-        private const string statistics_grouping = "GC";
+        private const string gc_statistics_grouping = "GC";
+
+        private const string arraypool_statistics_grouping = "ArrayPool";
+
+        private const string source_runtime = "Microsoft-Windows-DotNETRuntime";
+        private const string source_arraypool = "System.Buffers.ArrayPoolEventSource";
 
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if (eventSource.Name == "Microsoft-Windows-DotNETRuntime")
-                EnableEvents(eventSource, EventLevel.Verbose, (EventKeywords)gc_keyword);
+            switch (eventSource.Name)
+            {
+                case source_runtime:
+                    EnableEvents(eventSource, EventLevel.Verbose, (EventKeywords)gc_keyword);
+                    break;
+
+                case source_arraypool:
+                    EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
+                    break;
+            }
         }
+
+        private readonly GlobalStatistic<int> statInflight = GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Inflight");
 
         protected override void OnEventWritten(EventWrittenEventArgs data)
         {
-            switch ((EventType)data.EventId)
+            switch (data.EventSource.Name)
             {
-                case EventType.GCStart_V1 when data.Payload != null:
-                    // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
-                    GlobalStatistics.Get<int>(statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
+                case source_arraypool:
+
+                    switch ((ArrayPoolEventType)data.EventId)
+                    {
+                        case ArrayPoolEventType.BufferAllocated:
+                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Allocated").Value++;
+                            break;
+
+                        case ArrayPoolEventType.BufferRented:
+                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Rented").Value++;
+                            statInflight.Value++;
+                            break;
+
+                        case ArrayPoolEventType.BufferReturned:
+                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Returned").Value++;
+
+                            // the listener may have been started while buffers were already rented.
+                            if (statInflight.Value > 0)
+                                statInflight.Value--;
+                            break;
+                    }
+
                     break;
 
-                case EventType.GCHeapStats_V1 when data.Payload != null:
-                    // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
-                    for (int i = 0; i <= 6; i += 2)
-                        addStatistic<ulong>($"Size Gen{i / 2}", data.Payload[i]);
+                case source_runtime:
+                    switch ((GCEventType)data.EventId)
+                    {
+                        case GCEventType.GCStart_V1 when data.Payload != null:
+                            // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcstart_v1_event
+                            GlobalStatistics.Get<int>(gc_statistics_grouping, $"Collections Gen{data.Payload[1]}").Value++;
+                            break;
 
-                    addStatistic<ulong>("Finalization queue length", data.Payload[9]);
-                    addStatistic<uint>("Pinned objects", data.Payload[10]);
+                        case GCEventType.GCHeapStats_V1 when data.Payload != null:
+                            // https://docs.microsoft.com/en-us/dotnet/framework/performance/garbage-collection-etw-events#gcheapstats_v1_event
+                            for (int i = 0; i <= 6; i += 2)
+                                addStatistic<ulong>($"Size Gen{i / 2}", data.Payload[i]);
+
+                            addStatistic<ulong>("Finalization queue length", data.Payload[9]);
+                            addStatistic<uint>("Pinned objects", data.Payload[10]);
+                            break;
+                    }
+
                     break;
             }
         }
 
         private void addStatistic<T>(string name, object data)
-            => GlobalStatistics.Get<T>(statistics_grouping, name).Value = (T)data;
+            => GlobalStatistics.Get<T>(gc_statistics_grouping, name).Value = (T)data;
 
-        private enum EventType
+        private enum ArrayPoolEventType
+        {
+            BufferRented = 1,
+            BufferAllocated,
+            BufferReturned
+        }
+
+        private enum GCEventType
         {
             GCStart_V1 = 1,
             GCHeapStats_V1 = 4,
