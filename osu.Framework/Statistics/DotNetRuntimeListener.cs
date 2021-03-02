@@ -36,6 +36,9 @@ namespace osu.Framework.Statistics
         }
 
         private readonly GlobalStatistic<int> statInflight = GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Inflight");
+        private readonly GlobalStatistic<int> statAllocated = GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Allocated");
+        private readonly GlobalStatistic<int> statRented = GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Rented");
+        private readonly GlobalStatistic<int> statReturned = GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Returned");
 
         protected override void OnEventWritten(EventWrittenEventArgs data)
         {
@@ -46,16 +49,16 @@ namespace osu.Framework.Statistics
                     switch ((ArrayPoolEventType)data.EventId)
                     {
                         case ArrayPoolEventType.BufferAllocated:
-                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Allocated").Value++;
+                            statAllocated.Value++;
                             break;
 
                         case ArrayPoolEventType.BufferRented:
-                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Rented").Value++;
+                            statRented.Value++;
                             statInflight.Value++;
                             break;
 
                         case ArrayPoolEventType.BufferReturned:
-                            GlobalStatistics.Get<int>(arraypool_statistics_grouping, "Returned").Value++;
+                            statReturned.Value++;
 
                             // the listener may have been started while buffers were already rented.
                             if (statInflight.Value > 0)
