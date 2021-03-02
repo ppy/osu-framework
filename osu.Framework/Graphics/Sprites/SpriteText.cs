@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Caching;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
@@ -55,6 +54,7 @@ namespace osu.Framework.Graphics.Sprites
             AddLayout(parentScreenSpaceCache);
             AddLayout(localScreenSpaceCache);
             AddLayout(shadowOffsetCache);
+            AddLayout(textBuilderCache);
         }
 
         [BackgroundDependencyLoader]
@@ -575,12 +575,12 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         protected virtual char FallbackCharacter => '?';
 
-        private readonly Cached<TextBuilder> textBuilderBacking = new Cached<TextBuilder>();
+        private readonly LayoutValue<TextBuilder> textBuilderCache = new LayoutValue<TextBuilder>(Invalidation.DrawSize);
 
         /// <summary>
         /// Invalidates the current <see cref="TextBuilder"/>, causing a new one to be created next time it's required via <see cref="CreateTextBuilder"/>.
         /// </summary>
-        protected void InvalidateTextBuilder() => textBuilderBacking.Invalidate();
+        protected void InvalidateTextBuilder() => textBuilderCache.Invalidate();
 
         /// <summary>
         /// Creates a <see cref="TextBuilder"/> to generate the character layout for this <see cref="SpriteText"/>.
@@ -613,10 +613,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private TextBuilder getTextBuilder()
         {
-            if (!textBuilderBacking.IsValid)
-                textBuilderBacking.Value = CreateTextBuilder(store);
+            if (!textBuilderCache.IsValid)
+                textBuilderCache.Value = CreateTextBuilder(store);
 
-            return textBuilderBacking.Value;
+            return textBuilderCache.Value;
         }
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();
