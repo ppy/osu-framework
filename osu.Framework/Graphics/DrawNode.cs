@@ -288,15 +288,15 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
+            if (referenceCount.Decrement() != 0)
+                return;
+
             GLWrapper.ScheduleDisposal(() => Dispose(true));
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
         {
-            if (referenceCount.Decrement() != 0)
-                return;
-
             Source = null;
             IsDisposed = true;
         }
