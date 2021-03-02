@@ -10,7 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Video
 {
-    public unsafe class VideoTextureUpload : ITextureUpload
+    public sealed unsafe class VideoTextureUpload : ITextureUpload
     {
         public readonly AVFrame* Frame;
 
