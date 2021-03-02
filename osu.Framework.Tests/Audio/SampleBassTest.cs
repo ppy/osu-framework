@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Audio
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
             sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
-            sample = new SampleBass(sampleFactory);
+            sample = sampleFactory.CreateSample();
 
             updateSample();
         }
