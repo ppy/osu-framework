@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
+    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData"/>.
     /// </summary>
     public class TextureUpload : ITextureUpload
     {
