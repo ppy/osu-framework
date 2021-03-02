@@ -288,7 +288,7 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            Dispose(true);
+            GLWrapper.ScheduleDisposal(() => Dispose(true));
             GC.SuppressFinalize(this);
         }
 
@@ -296,8 +296,6 @@ namespace osu.Framework.Graphics
         {
             if (referenceCount.Decrement() != 0)
                 return;
-
-            GLWrapper.ScheduleDisposal(() => Dispose(true));
 
             Source = null;
             IsDisposed = true;
