@@ -95,7 +95,7 @@ namespace osu.Framework.Statistics
                             Debug.Assert(finalizeMethod != null); // All objects have this.
 
                             if (finalizeMethod.DeclaringType != typeof(object))
-                                Logger.Log($"Allocated finalizable object: {name}", LoggingTarget.Performance, LogLevel.Important);
+                                Logger.Log($"Allocated finalizable object: {name}", LoggingTarget.Performance);
 
                             break;
                     }
