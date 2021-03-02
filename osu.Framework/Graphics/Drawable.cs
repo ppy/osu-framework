@@ -66,14 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(requiredParentSizeToFitBacking);
         }
 
-        ~Drawable()
-        {
-            dispose(false);
-            finalize_disposals.Value++;
-        }
-
-        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
-        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total constructed");
 
         internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
@@ -82,30 +75,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public void Dispose()
         {
-            dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected internal bool IsDisposed { get; private set; }
-
-        /// <summary>
-        /// Disposes this drawable.
-        /// </summary>
-        protected virtual void Dispose(bool isDisposing)
-        {
-        }
-
-        private void dispose(bool isDisposing)
-        {
             //we can't dispose if we are mid-load, else our children may get in a bad state.
             lock (LoadLock)
             {
                 if (IsDisposed)
                     return;
 
-                total_count.Value--;
-
-                Dispose(isDisposing);
                 UnbindAllBindables();
 
                 // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
@@ -123,6 +98,15 @@ namespace osu.Framework.Graphics
 
                 IsDisposed = true;
             }
+        }
+
+        protected internal bool IsDisposed { get; private set; }
+
+        /// <summary>
+        /// Disposes this drawable.
+        /// </summary>
+        protected virtual void Dispose(bool isDisposing)
+        {
         }
 
         /// <summary>
