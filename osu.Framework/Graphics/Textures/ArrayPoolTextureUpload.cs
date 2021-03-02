@@ -49,28 +49,22 @@ namespace osu.Framework.Graphics.Textures
 
         #region IDisposable Support
 
-#pragma warning disable IDE0032 // Use auto property
         private bool disposed;
-#pragma warning restore IDE0032 // Use auto property
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                disposed = true;
-                memoryOwner.Dispose();
-            }
-        }
-
-        ~ArrayPoolTextureUpload()
-        {
-            Dispose(false);
-        }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (disposed)
+                return;
+
+            memoryOwner?.Dispose();
+
+            disposed = true;
         }
 
         #endregion
