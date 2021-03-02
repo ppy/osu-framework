@@ -1,7 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Reflection;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Statistics
 {
@@ -77,6 +81,23 @@ namespace osu.Framework.Statistics
                             addStatistic<ulong>("Finalization queue length", data.Payload[9]);
                             addStatistic<uint>("Pinned objects", data.Payload[10]);
                             break;
+
+                        case GCEventType.GCAllocationTick_V2 when data.Payload != null:
+                            string name = (string)data.Payload[5];
+                            if (string.IsNullOrEmpty(name))
+                                break;
+
+                            var allocType = Type.GetType(name, false, false);
+                            if (allocType == null)
+                                break;
+
+                            var finalizeMethod = allocType.GetMethod("Finalize", BindingFlags.NonPublic | BindingFlags.Instance);
+                            Debug.Assert(finalizeMethod != null); // All objects have this.
+
+                            if (finalizeMethod.DeclaringType != typeof(object))
+                                Logger.Log($"Allocated finalizable object: {name}", LoggingTarget.Performance, LogLevel.Important);
+
+                            break;
                     }
 
                     break;
@@ -97,6 +118,7 @@ namespace osu.Framework.Statistics
         {
             GCStart_V1 = 1,
             GCHeapStats_V1 = 4,
+            GCAllocationTick_V2 = 10
         }
     }
 }
