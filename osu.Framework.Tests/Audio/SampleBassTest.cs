@@ -86,11 +86,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
-        private void updateSample() => runOnAudioThread(() =>
-        {
-            sampleFactory.Update();
-            channel?.Update();
-        });
+        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.
