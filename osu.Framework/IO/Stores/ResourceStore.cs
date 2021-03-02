@@ -198,6 +198,12 @@ namespace osu.Framework.IO.Stores
 
         private bool isDisposed;
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
@@ -205,17 +211,6 @@ namespace osu.Framework.IO.Stores
                 isDisposed = true;
                 lock (stores) stores.ForEach(s => s.Dispose());
             }
-        }
-
-        ~ResourceStore()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         #endregion

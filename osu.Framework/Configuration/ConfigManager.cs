@@ -223,11 +223,6 @@ namespace osu.Framework.Configuration
             }
         }
 
-        ~ConfigManager()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
