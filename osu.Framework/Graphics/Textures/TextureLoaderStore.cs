@@ -50,26 +50,15 @@ namespace osu.Framework.Graphics.Textures
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-                store.Dispose();
-            }
-        }
-
-        ~TextureLoaderStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            store.Dispose();
         }
 
         #endregion
