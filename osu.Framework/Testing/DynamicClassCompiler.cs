@@ -260,11 +260,6 @@ namespace osu.Framework.Testing
             }
         }
 
-        ~DynamicClassCompiler()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);

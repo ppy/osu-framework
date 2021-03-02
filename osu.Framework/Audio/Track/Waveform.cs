@@ -295,11 +295,6 @@ namespace osu.Framework.Audio.Track
 
         #region Disposal
 
-        ~Waveform()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
