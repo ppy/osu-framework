@@ -86,6 +86,18 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
+        [Test]
+        public void TestStopsWhenFactoryDisposed()
+        {
+            channel = sample.Play();
+            updateSample();
+
+            sampleFactory.Dispose();
+            updateSample();
+
+            Assert.IsFalse(channel.Playing);
+        }
+
         private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
 
         /// <summary>
