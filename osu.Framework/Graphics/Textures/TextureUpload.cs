@@ -113,10 +113,23 @@ namespace osu.Framework.Graphics.Textures
 
         #region IDisposable Support
 
+        private bool disposed;
+
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (disposed)
+                return;
+
             image?.Dispose();
             pixelMemory.Dispose();
+
+            disposed = true;
         }
 
         #endregion
