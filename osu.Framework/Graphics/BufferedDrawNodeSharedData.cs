@@ -96,15 +96,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal void ResetCurrentEffectBuffer() => currentEffectBuffer = -1;
 
-        ~BufferedDrawNodeSharedData()
-        {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
-        }
-
         public void Dispose()
         {
             GLWrapper.ScheduleDisposal(() => Dispose(true));
-            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool isDisposing)
