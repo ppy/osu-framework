@@ -65,11 +65,6 @@ namespace osu.Framework.Input.Handlers
             IsDisposed = true;
         }
 
-        ~InputHandler()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
