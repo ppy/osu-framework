@@ -290,6 +290,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
+            if (IsDisposed)
+                return;
+
             disposalCancellationSource?.Cancel();
             disposalCancellationSource?.Dispose();
 

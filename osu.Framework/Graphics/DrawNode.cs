@@ -284,11 +284,6 @@ namespace osu.Framework.Graphics
         /// </remarks>
         internal void Reference() => referenceCount.Increment();
 
-        ~DrawNode()
-        {
-            GLWrapper.ScheduleDisposal(() => Dispose(false));
-        }
-
         protected internal bool IsDisposed { get; private set; }
 
         public void Dispose()

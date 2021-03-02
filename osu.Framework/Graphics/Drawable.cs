@@ -66,14 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(requiredParentSizeToFitBacking);
         }
 
-        ~Drawable()
-        {
-            dispose(false);
-            finalize_disposals.Value++;
-        }
-
-        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
-        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
 
         internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
@@ -82,7 +75,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         public void Dispose()
         {
-            dispose(true);
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            lock (LoadLock) Dispose(true);
+
             GC.SuppressFinalize(this);
         }
 
@@ -93,36 +88,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void Dispose(bool isDisposing)
         {
-        }
+            if (IsDisposed)
+                return;
 
-        private void dispose(bool isDisposing)
-        {
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
-            lock (LoadLock)
-            {
-                if (IsDisposed)
-                    return;
+            UnbindAllBindables();
 
-                total_count.Value--;
+            // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
+            parent = null;
+            ChildID = 0;
 
-                Dispose(isDisposing);
-                UnbindAllBindables();
+            OnUpdate = null;
+            Invalidated = null;
 
-                // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
-                parent = null;
-                ChildID = 0;
+            OnDispose?.Invoke();
+            OnDispose = null;
 
-                OnUpdate = null;
-                Invalidated = null;
+            for (int i = 0; i < drawNodes.Length; i++)
+                drawNodes[i]?.Dispose();
 
-                OnDispose?.Invoke();
-                OnDispose = null;
-
-                for (int i = 0; i < drawNodes.Length; i++)
-                    drawNodes[i]?.Dispose();
-
-                IsDisposed = true;
-            }
+            IsDisposed = true;
         }
 
         /// <summary>
@@ -430,7 +414,7 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> Invalidated;
 
         /// <summary>
-        /// Fired after the <see cref="dispose(bool)"/> method is called.
+        /// Fired after the <see cref="Dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
 
