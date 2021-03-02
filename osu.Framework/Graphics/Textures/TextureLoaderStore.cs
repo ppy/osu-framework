@@ -50,6 +50,8 @@ namespace osu.Framework.Graphics.Textures
 
         #region IDisposable Support
 
+        private bool isDisposed;
+
         public void Dispose()
         {
             Dispose(true);
@@ -58,7 +60,12 @@ namespace osu.Framework.Graphics.Textures
 
         protected virtual void Dispose(bool disposing)
         {
+            if (isDisposed)
+                return;
+
             store.Dispose();
+
+            isDisposed = true;
         }
 
         #endregion
