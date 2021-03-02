@@ -51,24 +51,12 @@ namespace osu.Framework.Graphics.Textures
         private bool disposed;
 #pragma warning restore IDE0032 // Use auto property
 
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
-            if (!disposed)
-            {
-                disposed = true;
-                memoryOwner.Dispose();
-            }
-        }
+            if (disposed) return;
 
-        ~ArrayPoolTextureUpload()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            disposed = true;
+            memoryOwner.Dispose();
         }
 
         #endregion
