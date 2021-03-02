@@ -18,14 +18,16 @@ using System.Linq;
 using osu.Framework.Input.Events;
 using osuTK;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
     internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
+        internal const int HEIGHT = 100;
+
         protected const int WIDTH = 800;
-        protected const int HEIGHT = 100;
 
         private const int amount_count_steps = 5;
 
@@ -51,6 +53,8 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly Container mainContainer;
         private readonly Container timeBarsContainer;
+
+        private readonly MemoryAllocator uploadAllocator;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
@@ -99,10 +103,11 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread)
+        public FrameStatisticsDisplay(GameThread thread, MemoryAllocator uploadAllocator)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
+            this.uploadAllocator = uploadAllocator;
 
             Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
@@ -346,7 +351,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new ArrayPoolTextureUpload(1, HEIGHT)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT, uploadAllocator)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
