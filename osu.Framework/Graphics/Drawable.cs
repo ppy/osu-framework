@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(requiredParentSizeToFitBacking);
         }
 
-        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total constructed");
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
 
         internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
@@ -414,7 +414,7 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> Invalidated;
 
         /// <summary>
-        /// Fired after the <see cref="dispose(bool)"/> method is called.
+        /// Fired after the <see cref="Dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
 
