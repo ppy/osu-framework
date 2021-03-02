@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         /// <param name="frame">The frame to upload.</param>
         /// <param name="freeFrameDelegate">A function to free the frame on disposal.</param>
-        public VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate)
+        internal VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate)
         {
             Frame = frame;
             this.freeFrameDelegate = freeFrameDelegate;
