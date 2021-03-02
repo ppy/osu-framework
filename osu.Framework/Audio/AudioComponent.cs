@@ -112,11 +112,6 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        ~AudioComponent()
-        {
-            Dispose(false);
-        }
-
         protected volatile bool IsDisposed;
 
         public void Dispose()
