@@ -76,28 +76,9 @@ namespace osu.Framework.Graphics
         public void Dispose()
         {
             //we can't dispose if we are mid-load, else our children may get in a bad state.
-            lock (LoadLock)
-            {
-                if (IsDisposed)
-                    return;
+            lock (LoadLock) Dispose(true);
 
-                UnbindAllBindables();
-
-                // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
-                parent = null;
-                ChildID = 0;
-
-                OnUpdate = null;
-                Invalidated = null;
-
-                OnDispose?.Invoke();
-                OnDispose = null;
-
-                for (int i = 0; i < drawNodes.Length; i++)
-                    drawNodes[i]?.Dispose();
-
-                IsDisposed = true;
-            }
+            GC.SuppressFinalize(this);
         }
 
         protected internal bool IsDisposed { get; private set; }
@@ -107,6 +88,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void Dispose(bool isDisposing)
         {
+            if (IsDisposed)
+                return;
+
+            UnbindAllBindables();
+
+            // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
+            parent = null;
+            ChildID = 0;
+
+            OnUpdate = null;
+            Invalidated = null;
+
+            OnDispose?.Invoke();
+            OnDispose = null;
+
+            for (int i = 0; i < drawNodes.Length; i++)
+                drawNodes[i]?.Dispose();
+
+            IsDisposed = true;
         }
 
         /// <summary>
