@@ -181,9 +181,10 @@ namespace osu.Framework.Audio.Sample
             bassAmplitudeProcessor?.SetChannel(channel);
         });
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            if (IsDisposed)
+                return;
 
             if (hasChannel)
             {
@@ -192,6 +193,8 @@ namespace osu.Framework.Audio.Sample
             }
 
             playing = false;
+
+            base.Dispose(disposing);
         }
     }
 }
