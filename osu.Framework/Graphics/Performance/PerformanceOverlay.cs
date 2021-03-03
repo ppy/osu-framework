@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
