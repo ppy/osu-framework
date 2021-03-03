@@ -531,7 +531,7 @@ namespace osu.Framework.Graphics.Video
                 // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
                 {
-                    case RuntimeInfo.Platform.MacOsx:
+                    case RuntimeInfo.Platform.macOS:
                         libraryName = $"{name}.{version}";
                         break;
 
