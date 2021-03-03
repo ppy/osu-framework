@@ -31,9 +31,9 @@ namespace osu.Framework
         public static bool IsUnix => OS != Platform.Windows;
 
         public static bool SupportsJIT => OS != Platform.iOS;
-        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
+        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.macOS || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
-        public static bool IsApple => OS == Platform.iOS || OS == Platform.MacOsx;
+        public static bool IsApple => OS == Platform.iOS || OS == Platform.macOS;
 
         static RuntimeInfo()
         {
@@ -44,7 +44,7 @@ namespace osu.Framework
             if (osuTK.Configuration.RunningOnAndroid)
                 OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(typeof(Platform), OS)}");
             if (OS != Platform.iOS && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                OS = OS == 0 ? Platform.MacOsx : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.MacOsx)}, but is already {Enum.GetName(typeof(Platform), OS)}");
+                OS = OS == 0 ? Platform.macOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.macOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
             if (OS != Platform.Android && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 OS = OS == 0 ? Platform.Linux : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Linux)}, but is already {Enum.GetName(typeof(Platform), OS)}");
 
@@ -56,7 +56,7 @@ namespace osu.Framework
         {
             Windows = 1,
             Linux = 2,
-            MacOsx = 3,
+            macOS = 3,
             iOS = 4,
             Android = 5
         }
