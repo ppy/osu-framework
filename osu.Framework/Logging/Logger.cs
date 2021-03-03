@@ -408,8 +408,8 @@ namespace osu.Framework.Logging
 
             add("----------------------------------------------------------", outputToListeners: false);
             add($"{Name} Log for {UserIdentifier} (LogLevel: {Level})", outputToListeners: false);
-            add($"{GameIdentifier} {VersionIdentifier}", outputToListeners: false);
-            add($"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores", outputToListeners: false);
+            add($"Running {GameIdentifier} {VersionIdentifier} on .NET {Environment.Version}", outputToListeners: false);
+            add($"Environment: {RuntimeInfo.OS} ({Environment.OSVersion}), {Environment.ProcessorCount} cores ", outputToListeners: false);
             add("----------------------------------------------------------", outputToListeners: false);
         }
 
