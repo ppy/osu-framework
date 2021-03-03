@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Collections.Generic;
@@ -71,17 +72,14 @@ namespace osu.Framework.Graphics.Performance
             StateChanged?.Invoke(State);
         }
 
-        private ArrayPoolMemoryAllocator createUploadPool()
+        private ArrayPool<Rgba32> createUploadPool()
         {
-            int uploadSize = FrameStatisticsDisplay.HEIGHT * Unsafe.SizeOf<Rgba32>();
-
             // bucket size should be enough to allow some overhead when running multi-threaded with draw at 60hz.
             const int max_expected_thread_update_rate = 2000;
 
             int bucketSize = threads.Length * (max_expected_thread_update_rate / 60);
 
-            // we already know the fixed size of uploads so there's no need to use i#'s two-tiered pooling system.
-            return new ArrayPoolMemoryAllocator(uploadSize, uploadSize, 1, bucketSize);
+            return ArrayPool<Rgba32>.Create(FrameStatisticsDisplay.HEIGHT, bucketSize);
         }
 
         public PerformanceOverlay(IEnumerable<GameThread> threads)
