@@ -575,7 +575,7 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         protected virtual char FallbackCharacter => '?';
 
-        private readonly LayoutValue<TextBuilder> textBuilderCache = new LayoutValue<TextBuilder>(Invalidation.DrawSize);
+        private readonly LayoutValue<TextBuilder> textBuilderCache = new LayoutValue<TextBuilder>(Invalidation.DrawSize, InvalidationSource.Parent);
 
         /// <summary>
         /// Invalidates the current <see cref="TextBuilder"/>, causing a new one to be created next time it's required via <see cref="CreateTextBuilder"/>.
