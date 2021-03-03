@@ -111,7 +111,7 @@ namespace osu.Framework.Statistics
                             if (type == null)
                                 break;
 
-                            Logger.Log($"Finalizing object: {type.ReadableName()}");
+                            Logger.Log($"Finalizing object: {type.ReadableName()}", LoggingTarget.Performance);
 
                             break;
                     }
