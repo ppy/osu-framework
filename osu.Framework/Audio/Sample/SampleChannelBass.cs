@@ -181,11 +181,6 @@ namespace osu.Framework.Audio.Sample
             bassAmplitudeProcessor?.SetChannel(channel);
         });
 
-        ~SampleChannelBass()
-        {
-            Dispose(false);
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (IsDisposed)
