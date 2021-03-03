@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
@@ -22,7 +21,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
-        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
         private readonly List<OsuTKMouseState> lastEachDeviceStates = new List<OsuTKMouseState>();
@@ -35,10 +33,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
             if (host.Window is OsuTKDesktopWindow desktopWindow)
-            {
-                windowMode.BindTo(desktopWindow.WindowMode);
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
-            }
 
             Enabled.BindValueChanged(e =>
             {
