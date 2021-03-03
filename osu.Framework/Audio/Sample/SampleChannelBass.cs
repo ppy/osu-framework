@@ -17,10 +17,12 @@ namespace osu.Framework.Audio.Sample
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor bassAmplitudeProcessor;
+        private readonly AudioMixer mixer;
 
-        public SampleChannelBass(SampleBass sample)
+        public SampleChannelBass(SampleBass sample, AudioMixer mixer)
         {
             this.sample = sample;
+            this.mixer = mixer;
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -149,13 +151,13 @@ namespace osu.Framework.Audio.Sample
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return;
 
-            Bass.ChannelPlay(channel);
+            mixer?.PlayChannel(channel);
         });
 
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                Bass.ChannelPause(channel);
+                mixer?.PauseChannel(channel);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -169,10 +171,12 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
                 return;
 
-            channel = Bass.SampleGetChannel(sample.SampleId);
+            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.BASS_SAMCHAN_STREAM | BassFlags.Decode);
 
             if (!hasChannel)
                 return;
+
+            mixer?.AddChannel(channel);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -187,7 +191,8 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                Bass.ChannelStop(channel);
+                mixer.StopChannel(channel);
+                mixer.RemoveChannel(channel);
                 channel = 0;
             }
 

@@ -36,6 +36,11 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         /// <summary>
+        /// The audio mixer that audio is routed into.
+        /// </summary>
+        public readonly AudioMixer Mixer = new AudioMixer();
+
+        /// <summary>
         /// The names of all available audio devices.
         /// </summary>
         /// <remarks>
@@ -118,7 +123,7 @@ namespace osu.Framework.Audio
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
-                var store = new TrackStore(trackStore);
+                var store = new TrackStore(trackStore, Mixer);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
                 return store;
@@ -126,11 +131,13 @@ namespace osu.Framework.Audio
 
             globalSampleStore = new Lazy<SampleStore>(() =>
             {
-                var store = new SampleStore(sampleStore);
+                var store = new SampleStore(sampleStore, Mixer);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
+
+            AddItem(Mixer);
 
             CancellationToken token = cancelSource.Token;
 
@@ -193,7 +200,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalTrackStore.Value;
 
-            TrackStore tm = new TrackStore(store);
+            TrackStore tm = new TrackStore(store, Mixer);
             globalTrackStore.Value.AddItem(tm);
             return tm;
         }
@@ -207,7 +214,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalSampleStore.Value;
 
-            SampleStore sm = new SampleStore(store);
+            SampleStore sm = new SampleStore(store, Mixer);
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }
@@ -279,6 +286,14 @@ namespace osu.Framework.Audio
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
+
+            Mixer.Init();
+
+            if (BassUtils.CheckFaulted(false))
+            {
+                Logger.Log("[BASS] AudioMixer failed to initialize", level: LogLevel.Error);
+                return false;
+            }
 
             return true;
         }

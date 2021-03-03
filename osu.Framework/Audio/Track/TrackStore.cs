@@ -12,10 +12,12 @@ namespace osu.Framework.Audio.Track
     internal class TrackStore : AudioCollectionManager<AdjustableAudioComponent>, ITrackStore
     {
         private readonly IResourceStore<byte[]> store;
+        private readonly AudioMixer mixer;
 
-        internal TrackStore(IResourceStore<byte[]> store)
+        internal TrackStore(IResourceStore<byte[]> store, AudioMixer mixer)
         {
             this.store = store;
+            this.mixer = mixer;
 
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
@@ -40,9 +42,11 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            Track track = new TrackBass(dataStream);
-            AddItem(track);
-            return track;
+            TrackBass trackBass = new TrackBass(dataStream, false, mixer);
+
+            AddItem(trackBass);
+
+            return trackBass;
         }
 
         public Task<Track> GetAsync(string name) => Task.Run(() => Get(name));

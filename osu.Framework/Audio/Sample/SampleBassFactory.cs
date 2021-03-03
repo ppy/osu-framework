@@ -26,9 +26,12 @@ namespace osu.Framework.Audio.Sample
         internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
         private NativeMemoryTracker.NativeMemoryLease memoryLease;
+        private readonly AudioMixer mixer;
 
-        public SampleBassFactory(byte[] data)
+        public SampleBassFactory(byte[] data, AudioMixer mixer)
         {
+            this.mixer = mixer;
+
             if (data.Length > 0)
             {
                 EnqueueAction(() =>
@@ -83,7 +86,7 @@ namespace osu.Framework.Audio.Sample
                 return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency.Value, flags);
         }
 
-        public Sample CreateSample() => new SampleBass(this) { OnPlay = onPlay };
+        public Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = onPlay };
 
         private void onPlay(Sample sample)
         {

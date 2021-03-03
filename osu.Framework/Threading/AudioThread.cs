@@ -41,6 +41,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.Samples,
             StatisticsCounterType.SChannels,
             StatisticsCounterType.Components,
+            StatisticsCounterType.MixChannels,
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();

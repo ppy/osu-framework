@@ -10,14 +10,16 @@ namespace osu.Framework.Audio.Sample
         public override bool IsLoaded => factory.IsLoaded;
 
         private readonly SampleBassFactory factory;
+        private AudioMixer mixer;
 
-        internal SampleBass(SampleBassFactory factory)
+        internal SampleBass(SampleBassFactory factory, AudioMixer mixer)
         {
             this.factory = factory;
+            this.mixer = mixer;
 
             PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
-        protected override SampleChannel CreateChannel() => new SampleChannelBass(this);
+        protected override SampleChannel CreateChannel() => new SampleChannelBass(this, mixer);
     }
 }

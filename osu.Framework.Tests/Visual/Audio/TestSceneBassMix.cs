@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Fx;
-using NReplayGain;
+// using NReplayGain;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -20,30 +20,6 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
-    public class BassUtils
-    {
-        public static double DbToLevel(double gain)
-        {
-            if (gain == 0) return 0;
-
-            return Math.Pow(10, gain / 20);
-        }
-
-        public static double LevelToDb(double level)
-        {
-            if (level == 0) return 0;
-
-            return Math.Log(Math.Sqrt(level), 10) * 20f;
-        }
-
-        public static double LevelToDisplay(double level)
-        {
-            // return Math.Min(1, Math.Log10(1 + level) * 10);
-            // return level == 0 ? 0 : Math.Pow(2, 10 * level - 10) * 3;
-            return level;
-        }
-    }
-
     public class TestSceneBassMix : FrameworkTestScene
     {
         private int mixerHandle;
@@ -84,10 +60,10 @@ namespace osu.Framework.Tests.Visual.Audio
             // Load BGM Track
             var bgmData = resources.Get("Resources.Tracks.bgm_main.ogg");
             trackHandle = Bass.CreateStream(bgmData, 0, bgmData.Length, BassFlags.Decode | BassFlags.Loop);
-            double replayGain = calculateReplayGain(bgmData);
+            // double replayGain = calculateReplayGain(bgmData);
 
             // Apply ReplayGain
-            Bass.ChannelSetAttribute(trackHandle, ChannelAttribute.Volume, BassUtils.DbToLevel(replayGain));
+            // Bass.ChannelSetAttribute(trackHandle, ChannelAttribute.Volume, BassUtils.DbToLevel(replayGain));
 
             // Add BGM Track to Mixer
             BassMix.MixerAddChannel(mixerHandle, trackHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
@@ -212,41 +188,45 @@ namespace osu.Framework.Tests.Visual.Audio
             }
         }
 
-        private double calculateReplayGain(byte[] data)
-        {
-            int replayGainProcessingStream = Bass.CreateStream(data, 0, data.Length, BassFlags.Decode);
-            TrackGain trackGain = new TrackGain(44100, 16);
+        // private double calculateReplayGain(byte[] data)
+        // {
+        //     int replayGainProcessingStream = Bass.CreateStream(data, 0, data.Length, BassFlags.Decode);
+        //     TrackGain trackGain = new TrackGain(44100, 16);
+        //
+        //     const int buf_len = 1024;
+        //     short[] buf = new short[buf_len];
+        //
+        //     List<int> leftSamples = new List<int>();
+        //     List<int> rightSamples = new List<int>();
+        //
+        //     while (true)
+        //     {
+        //         int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
+        //         if (length == -1) break;
+        //
+        //         for (int a = 0; a < length / sizeof(short); a += 2)
+        //         {
+        //             leftSamples.Add(buf[a]);
+        //             rightSamples.Add(buf[a + 1]);
+        //         }
+        //     }
+        //
+        //     trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
+        //
+        //     double gain = trackGain.GetGain();
+        //     double peak = trackGain.GetPeak();
+        //
+        //     Logger.Log($"REPLAYGAIN GAIN: {gain}");
+        //     Logger.Log($"REPLAYGAIN PEAK: {peak}");
+        //
+        //     Bass.StreamFree(replayGainProcessingStream);
+        //
+        //     return gain;
+        // }
+    }
 
-            const int buf_len = 1024;
-            short[] buf = new short[buf_len];
-
-            List<int> leftSamples = new List<int>();
-            List<int> rightSamples = new List<int>();
-
-            while (true)
-            {
-                int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
-                if (length == -1) break;
-
-                for (int a = 0; a < length / sizeof(short); a += 2)
-                {
-                    leftSamples.Add(buf[a]);
-                    rightSamples.Add(buf[a + 1]);
-                }
-            }
-
-            trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
-
-            double gain = trackGain.GetGain();
-            double peak = trackGain.GetPeak();
-
-            Logger.Log($"REPLAYGAIN GAIN: {gain}");
-            Logger.Log($"REPLAYGAIN PEAK: {peak}");
-
-            Bass.StreamFree(replayGainProcessingStream);
-
-            return gain;
-        }
+    public class MixerChannel : AudioComponent
+    {
     }
 
     public class ChannelStrip : CompositeDrawable
@@ -334,8 +314,8 @@ namespace osu.Framework.Tests.Visual.Audio
             // if (levels[0] > 0 || levels[1] > 0)
             //     Logger.Log($"L: {levels[0]} ({BassUtil.LevelToDisplay(levels[0])}), R: {levels[1]} ({BassUtil.LevelToDisplay(levels[1])})");
 
-            volBarL.TransformTo(nameof(Drawable.Height), (float)BassUtils.LevelToDisplay(levels[0]), BuffSize * 4);
-            volBarR.TransformTo(nameof(Drawable.Height), (float)BassUtils.LevelToDisplay(levels[1]), BuffSize * 4);
+            volBarL.TransformTo(nameof(Drawable.Height), (float)levels[0], BuffSize * 4);
+            volBarR.TransformTo(nameof(Drawable.Height), (float)levels[1], BuffSize * 4);
             peakText.Text = $"{BassUtils.LevelToDb(peak):F}dB";
             maxPeakText.Text = $"{BassUtils.LevelToDb(maxPeak):F}dB";
         }

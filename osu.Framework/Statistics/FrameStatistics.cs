@@ -71,6 +71,7 @@ namespace osu.Framework.Statistics
         Samples,
         SChannels,
         Components,
+        MixChannels,
 
         MouseEvents,
         KeyEvents,
