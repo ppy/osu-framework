@@ -77,6 +77,12 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestScreenModeSwitch()
         {
+            if (window == null)
+            {
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+                return;
+            }
+
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });
 
