@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Reflection;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Statistics
@@ -101,11 +102,56 @@ namespace osu.Framework.Statistics
                                 Logger.Log($"Allocated finalizable object: {name}", LoggingTarget.Performance);
 
                             break;
+
+                        case GCEventType.FinalizeObject when data.Payload != null:
+                            if (data.Payload[0] == null)
+                                break;
+
+                            var type = getTypeFromHandle((IntPtr)data.Payload[0]);
+                            if (type == null)
+                                break;
+
+                            Logger.Log($"Finalizing object: {type.ReadableName()}", LoggingTarget.Performance);
+
+                            break;
                     }
 
                     break;
             }
         }
+
+        /// <summary>
+        /// Retrieves a <see cref="Type"/> from a CLR type id.
+        /// </summary>
+        /// <remarks>
+        /// Attrib: https://stackoverflow.com/questions/26972066/type-from-intptr-handle/54469241#54469241
+        /// </remarks>
+        // ReSharper disable once RedundantUnsafeContext
+        private static unsafe Type getTypeFromHandle(IntPtr handle)
+        {
+#if NET5_0
+            // This is super unsafe code which is dependent upon internal CLR structures.
+            TypedReferenceAccess tr = new TypedReferenceAccess { Type = handle };
+            return __reftype(*(TypedReference*)&tr);
+#else
+            return null;
+#endif
+        }
+
+#if NET5_0
+        /// <summary>
+        /// Matches the internal layout of <see cref="TypedReference"/>.
+        /// See: https://source.dot.net/#System.Private.CoreLib/src/System/TypedReference.cs
+        /// </summary>
+        private struct TypedReferenceAccess
+        {
+            [JetBrains.Annotations.UsedImplicitly]
+            public IntPtr Value;
+
+            [JetBrains.Annotations.UsedImplicitly]
+            public IntPtr Type;
+        }
+#endif
 
         private void addStatistic<T>(string name, object data)
             => GlobalStatistics.Get<T>(gc_statistics_grouping, name).Value = (T)data;
@@ -121,7 +167,8 @@ namespace osu.Framework.Statistics
         {
             GCStart_V1 = 1,
             GCHeapStats_V1 = 4,
-            GCAllocationTick_V2 = 10
+            GCAllocationTick_V2 = 10,
+            FinalizeObject = 29
         }
     }
 }
