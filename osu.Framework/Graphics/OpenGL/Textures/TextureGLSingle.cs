@@ -88,6 +88,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         #region Disposal
 
+        ~TextureGLSingle()
+        {
+            Dispose(false);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);

@@ -32,11 +32,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         #region Disposal
 
-        ~TextureGL()
-        {
-            Dispose(false);
-        }
-
         internal virtual bool IsQueuedForUpload { get; set; }
 
         /// <summary>
