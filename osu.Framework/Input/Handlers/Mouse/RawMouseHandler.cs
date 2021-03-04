@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
@@ -22,6 +23,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
+        private Vector2? lastPosition;
+
         public override bool Initialize(GameHost host)
         {
             if (!(host.Window is SDL2DesktopWindow desktopWindow))
@@ -32,9 +35,11 @@ namespace osu.Framework.Input.Handlers.Mouse
             // todo: implement?
             // mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
 
-            Enabled.BindValueChanged(evt =>
+            Enabled.BindValueChanged(enabled =>
             {
-                if (evt.NewValue)
+                desktopWindow.RelativeMouseMode = enabled.NewValue;
+
+                if (enabled.NewValue)
                 {
                     window.MouseMove += handleMouseMove;
                     window.MouseMoveRelative += handleMouseMoveRelative;
@@ -49,12 +54,21 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseDown -= handleMouseDown;
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
-                }
 
-                desktopWindow.RelativeMouseMode = evt.NewValue;
+                    transferLastPositionToWindowMouse();
+                }
             });
 
             return true;
+        }
+
+        public void FeedbackMousePositionChange(Vector2 position)
+        {
+            if (!Enabled.Value)
+                return;
+
+            // store the last (final) mouse position to propagate back to the host window manager when required.
+            lastPosition = position;
         }
 
         private void enqueueInput(IInput input)
@@ -85,12 +99,12 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseWheel(Vector2 delta, bool precise) => enqueueInput(new MouseScrollRelativeInput { Delta = delta, IsPrecise = precise });
 
-        public void FeedbackMousePositionChange(Vector2 position)
+        private void transferLastPositionToWindowMouse()
         {
-            if (!Enabled.Value)
-                return;
-
-            window.UpdateRelativePosition(position);
+            if (lastPosition != null)
+            {
+                window.UpdateMousePosition(lastPosition.Value);
+            }
         }
     }
 }

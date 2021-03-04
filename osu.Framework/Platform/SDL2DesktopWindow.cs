@@ -1205,47 +1205,11 @@ namespace osu.Framework.Platform
         }
 
         /// <summary>
-        /// Enables or disables <see cref="SDL2DesktopWindow.RelativeMouseMode"/> based on the given <paramref name="position"/>.
-        /// If the position is within the window and relative mode is disabled, relative mode will be enabled.
-        /// If the position is outside the window and relative mode is enabled, relative mode will be disabled
-        /// and the mouse cursor will be warped to <paramref name="position"/>.
-        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in scaled coordinates. If null, defaults to current position.</param>
+        /// Update the host window manager's cursor position based on a location relative to window coordinates.
         /// </summary>
-        public void UpdateRelativePosition(Vector2? position = null) => ScheduleCommand(() =>
-        {
-            bool relativeEnabled = SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
-
-            if (!RelativeMouseMode || !focused || !cursorInWindow.Value)
-            {
-                if (relativeEnabled)
-                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
-
-                return;
-            }
-
-            int x, y;
-
-            if (position == null)
-                SDL.SDL_GetMouseState(out x, out y);
-            else
-            {
-                x = (int)(position.Value.X / Scale);
-                y = (int)(position.Value.Y / Scale);
-            }
-
-            // we use a padding around the window to ensure that a relative mode transition cannot occur while the mouse is over the window decorations
-            // this fixes an issue where mouse clicks could potentially be sent to the window decoration and thus block SDL_PollEvent
-            var relativeMargin = relativeEnabled ? -10 : 10;
-            bool inWindow = x >= relativeMargin && y >= relativeMargin && x < Size.Width - relativeMargin && y < Size.Height - relativeMargin;
-
-            if (relativeEnabled && !inWindow)
-            {
-                SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
-                SDL.SDL_WarpMouseInWindow(SDLWindowHandle, x, y);
-            }
-            else if (!relativeEnabled && inWindow)
-                SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
-        });
+        /// <param name="position">A position inside the window.</param>
+        public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
+            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)position.X, (int)position.Y));
 
         public void SetIconFromStream(Stream stream)
         {
