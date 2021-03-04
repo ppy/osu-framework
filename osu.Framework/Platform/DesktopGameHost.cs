@@ -130,7 +130,7 @@ namespace osu.Framework.Platform
 
                     var defaultDisabled = new InputHandler[]
                     {
-                        new OsuTKRawMouseHandler(),
+                        new RawMouseHandler(),
                     };
 
                     foreach (var h in defaultDisabled)
