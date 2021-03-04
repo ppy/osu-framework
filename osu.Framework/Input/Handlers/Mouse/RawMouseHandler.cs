@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Logging;
@@ -101,6 +102,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void transferLastPositionToWindowMouse()
         {
+            // this operation will fail if in an enabled state (SDL eats the update).
+            Debug.Assert(!Enabled.Value);
+
             if (lastPosition != null)
             {
                 window.UpdateMousePosition(lastPosition.Value);
