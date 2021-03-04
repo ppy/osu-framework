@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
@@ -25,6 +24,12 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Vector2? lastPosition;
 
         private IBindable<bool> isActive;
+
+        /// <summary>
+        /// Whether a non-relative mouse event has ever been received.
+        /// This is used as a starting location for relative movement.
+        /// </summary>
+        private bool absolutePositionReceived;
 
         public override bool Initialize(GameHost host)
         {
@@ -90,19 +95,17 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void updateRelativeMode()
         {
-            window.RelativeMouseMode = Enabled.Value && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+            window.RelativeMouseMode = Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();
         }
 
-        private void enqueueInput(IInput input)
+        private void handleMouseMove(Vector2 position)
         {
-            PendingInputs.Enqueue(input);
-            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+            absolutePositionReceived = true;
+            enqueueInput(new MousePositionAbsoluteInput { Position = position });
         }
-
-        private void handleMouseMove(Vector2 position) => enqueueInput(new MousePositionAbsoluteInput { Position = position });
 
         private void handleMouseMoveRelative(Vector2 delta)
         {
@@ -114,6 +117,12 @@ namespace osu.Framework.Input.Handlers.Mouse
         private void handleMouseUp(MouseButton button) => enqueueInput(new MouseButtonInput(button, false));
 
         private void handleMouseWheel(Vector2 delta, bool precise) => enqueueInput(new MouseScrollRelativeInput { Delta = delta, IsPrecise = precise });
+
+        private void enqueueInput(IInput input)
+        {
+            PendingInputs.Enqueue(input);
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+        }
 
         private void transferLastPositionToHostCursor()
         {
