@@ -22,8 +22,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private SDL2DesktopWindow window;
 
-        private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
-
         private Vector2? lastPosition;
 
         private IBindable<bool> isActive;
@@ -108,16 +106,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseMoveRelative(Vector2 delta)
         {
-            float mappedInputMultiplier = 1f;
-
-            if (mapAbsoluteInputToWindow.Value)
-            {
-                const float base_size = 1024f;
-                int longestSide = Math.Max(window.Size.Width, window.Size.Height);
-                mappedInputMultiplier = longestSide / base_size;
-            }
-
-            enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value * mappedInputMultiplier });
+            enqueueInput(new MousePositionRelativeInput { Delta = delta * (float)Sensitivity.Value });
         }
 
         private void handleMouseDown(MouseButton button) => enqueueInput(new MouseButtonInput(button, true));
