@@ -2,10 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using osuTK;
@@ -18,6 +16,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         public override bool IsActive => true;
+
         public override int Priority => 0;
 
         private SDL2DesktopWindow window;
@@ -34,9 +33,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                 return false;
 
             window = desktopWindow;
-
-            // todo: implement?
-            // mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
 
             isActive = window.IsActive.GetBoundCopy();
             isActive.BindValueChanged(_ => updateRelativeMode());
@@ -60,16 +56,12 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseDown -= handleMouseDown;
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
-
-                    transferLastPositionToWindowMouse();
+                    updateRelativeMode();
                 }
             });
 
             return true;
         }
-
-        private void updateRelativeMode() =>
-            window.RelativeMouseMode = Enabled.Value && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
 
         public void FeedbackMousePositionChange(Vector2 position)
         {
@@ -78,20 +70,26 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             // store the last (final) mouse position to propagate back to the host window manager when required.
             lastPosition = position;
+            updateRelativeMode();
 
-            if (!window.RelativeMouseMode)
+            // handle the case where relative / raw input is active, but the cursor may have exited the window
+            // bounds and is not intended to be confined.
+            if (window.RelativeMouseMode && !window.CursorConfined)
             {
-                // waiting on focus or mouse to enter the window.
-                updateRelativeMode();
-            }
-            else if (!window.CursorConfined)
-            {
-                // handle the case where the cursor has exited the window bounds and is not intended to be confined.
                 if (position.X < 0 || position.Y < 0 || position.X > window.Size.Width || position.Y > window.Size.Height)
                 {
+                    // setting relative mode to false will allow the window manager to take control until the next
+                    // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
                     window.RelativeMouseMode = false;
+                    transferLastPositionToWindowMouse();
                 }
             }
+        }
+
+        private void updateRelativeMode()
+        {
+            window.RelativeMouseMode = Enabled.Value && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+            transferLastPositionToWindowMouse();
         }
 
         private void enqueueInput(IInput input)
@@ -124,11 +122,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void transferLastPositionToWindowMouse()
         {
-            // this operation will fail if in an enabled state (SDL eats the update).
-            Debug.Assert(!Enabled.Value);
-
             if (lastPosition != null)
             {
+                // this is a noop in the case that RelativeMouseMode is true, but won't cause any harm.
                 window.UpdateMousePosition(lastPosition.Value);
             }
         }
