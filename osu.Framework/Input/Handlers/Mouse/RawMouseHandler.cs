@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -56,7 +57,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseDown -= handleMouseDown;
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
-                    updateRelativeMode();
                 }
             });
 
@@ -81,7 +81,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     // setting relative mode to false will allow the window manager to take control until the next
                     // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
                     window.RelativeMouseMode = false;
-                    transferLastPositionToWindowMouse();
+                    transferLastPositionToHostCursor();
                 }
             }
         }
@@ -89,7 +89,9 @@ namespace osu.Framework.Input.Handlers.Mouse
         private void updateRelativeMode()
         {
             window.RelativeMouseMode = Enabled.Value && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
-            transferLastPositionToWindowMouse();
+
+            if (!window.RelativeMouseMode)
+                transferLastPositionToHostCursor();
         }
 
         private void enqueueInput(IInput input)
@@ -120,12 +122,15 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void handleMouseWheel(Vector2 delta, bool precise) => enqueueInput(new MouseScrollRelativeInput { Delta = delta, IsPrecise = precise });
 
-        private void transferLastPositionToWindowMouse()
+        private void transferLastPositionToHostCursor()
         {
+            // while a noop on windows, this causes weirdness on (at least) macOS.
+            Debug.Assert(!window.RelativeMouseMode);
+
             if (lastPosition != null)
             {
-                // this is a noop in the case that RelativeMouseMode is true, but won't cause any harm.
                 window.UpdateMousePosition(lastPosition.Value);
+                lastPosition = null;
             }
         }
     }
