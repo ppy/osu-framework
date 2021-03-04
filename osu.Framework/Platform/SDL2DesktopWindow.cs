@@ -90,6 +90,18 @@ namespace osu.Framework.Platform
             }
         }
 
+        private bool relativeMouseMode;
+
+        public bool RelativeMouseMode
+        {
+            get => relativeMouseMode;
+            set
+            {
+                relativeMouseMode = value;
+                ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+            }
+        }
+
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
@@ -810,8 +822,13 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
+        {
+            if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
+                ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+            else
+                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel, evtMotion.yrel)));
+        }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -1187,6 +1204,49 @@ namespace osu.Framework.Platform
             WindowMode.Value = currentValue;
         }
 
+        /// <summary>
+        /// Enables or disables <see cref="SDL2DesktopWindow.RelativeMouseMode"/> based on the given <paramref name="position"/>.
+        /// If the position is within the window and relative mode is disabled, relative mode will be enabled.
+        /// If the position is outside the window and relative mode is enabled, relative mode will be disabled
+        /// and the mouse cursor will be warped to <paramref name="position"/>.
+        /// <param name="position">The given screen location to check, relative to the top left corner of the window, in scaled coordinates. If null, defaults to current position.</param>
+        /// </summary>
+        public void UpdateRelativePosition(Vector2? position = null) => ScheduleCommand(() =>
+        {
+            bool relativeEnabled = SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_TRUE;
+
+            if (!RelativeMouseMode || !focused || !cursorInWindow.Value)
+            {
+                if (relativeEnabled)
+                    SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+
+                return;
+            }
+
+            int x, y;
+
+            if (position == null)
+                SDL.SDL_GetMouseState(out x, out y);
+            else
+            {
+                x = (int)(position.Value.X / Scale);
+                y = (int)(position.Value.Y / Scale);
+            }
+
+            // we use a padding around the window to ensure that a relative mode transition cannot occur while the mouse is over the window decorations
+            // this fixes an issue where mouse clicks could potentially be sent to the window decoration and thus block SDL_PollEvent
+            var relativeMargin = relativeEnabled ? -10 : 10;
+            bool inWindow = x >= relativeMargin && y >= relativeMargin && x < Size.Width - relativeMargin && y < Size.Height - relativeMargin;
+
+            if (relativeEnabled && !inWindow)
+            {
+                SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_FALSE);
+                SDL.SDL_WarpMouseInWindow(SDLWindowHandle, x, y);
+            }
+            else if (!relativeEnabled && inWindow)
+                SDL.SDL_SetRelativeMouseMode(SDL.SDL_bool.SDL_TRUE);
+        });
+
         public void SetIconFromStream(Stream stream)
         {
             using (var ms = new MemoryStream())
@@ -1336,6 +1396,11 @@ namespace osu.Framework.Platform
         public event Action<Vector2> MouseMove;
 
         /// <summary>
+        /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
+        /// </summary>
+        public event Action<Vector2> MouseMoveRelative;
+
+        /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
         public event Action<MouseButton> MouseDown;
@@ -1395,6 +1460,7 @@ namespace osu.Framework.Platform
         protected void OnMoved(Point point) => Moved?.Invoke(point);
         protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
         protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected void OnMouseMoveRelative(Vector2 position) => MouseMoveRelative?.Invoke(position);
         protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
         protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
         protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
