@@ -112,24 +112,19 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        ~AudioComponent()
-        {
-            Dispose(false);
-        }
-
         protected volatile bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            IsDisposed = true;
-        }
-
-        public virtual void Dispose()
+        public void Dispose()
         {
             acceptingActions = false;
             PendingActions.Enqueue(new Task(() => Dispose(true)));
 
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            IsDisposed = true;
         }
 
         #endregion

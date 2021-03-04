@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -38,10 +39,10 @@ namespace osu.Framework.Tests.Visual.Containers
 
         private void addBoxAssert(OverrideTestContainer container)
         {
-            bool leftOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Left);
-            bool topOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Top);
-            bool rightOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Right);
-            bool bottomOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlag(Edges.Bottom);
+            bool leftOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Left);
+            bool topOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Top);
+            bool rightOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Right);
+            bool bottomOverridden = container.SafeAreaContainer.SafeAreaOverrideEdges.HasFlagFast(Edges.Bottom);
 
             AddAssert($"\"{container.Name}\" overrides correctly", () =>
                 leftOverridden == container.SafeAreaContainer.Padding.Left < 0

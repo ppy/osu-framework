@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Audio
 {
-    public interface IAdjustableAudioComponent
+    public interface IAdjustableAudioComponent : IAggregateAudioAdjustment
     {
         /// <summary>
         /// The volume of this component.
@@ -29,6 +29,18 @@ namespace osu.Framework.Audio
         /// Rate at which the component is played back (does not affect pitch). 1 is 100% playback speed.
         /// </summary>
         BindableNumber<double> Tempo { get; }
+
+        /// <summary>
+        /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void BindAdjustments(IAggregateAudioAdjustment component);
+
+        /// <summary>
+        /// Unbind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void UnbindAdjustments(IAggregateAudioAdjustment component);
 
         /// <summary>
         /// Add a bindable adjustment source.

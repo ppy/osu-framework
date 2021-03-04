@@ -28,9 +28,10 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
+
             var mixer = new AudioMixer();
             sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
-            sample = new SampleBass(sampleFactory, mixer);
+            sample = sampleFactory.CreateSample();
 
             updateSample();
         }
@@ -88,11 +89,19 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
-        private void updateSample() => runOnAudioThread(() =>
+        [Test]
+        public void TestStopsWhenFactoryDisposed()
         {
-            sampleFactory.Update();
-            channel?.Update();
-        });
+            channel = sample.Play();
+            updateSample();
+
+            sampleFactory.Dispose();
+            updateSample();
+
+            Assert.IsFalse(channel.Playing);
+        }
+
+        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

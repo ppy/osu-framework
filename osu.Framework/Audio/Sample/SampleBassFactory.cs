@@ -79,9 +79,6 @@ namespace osu.Framework.Audio.Sample
         {
             const BassFlags flags = BassFlags.Default | BassFlags.SampleOverrideLongestPlaying;
 
-            if (RuntimeInfo.SupportsJIT)
-                return Bass.SampleLoad(data, 0, data.Length, PlaybackConcurrency.Value, flags);
-
             using (var handle = new ObjectHandle<byte[]>(data, GCHandleType.Pinned))
                 return Bass.SampleLoad(handle.Address, 0, data.Length, PlaybackConcurrency.Value, flags);
         }
@@ -93,8 +90,16 @@ namespace osu.Framework.Audio.Sample
             AddItem(sample);
         }
 
+        ~SampleBassFactory()
+        {
+            Dispose(false);
+        }
+
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+                return;
+
             if (IsLoaded)
             {
                 Bass.SampleFree(SampleId);

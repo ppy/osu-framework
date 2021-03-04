@@ -223,8 +223,16 @@ namespace osu.Framework.Audio.Track
             bassAmplitudeProcessor?.Update();
         }
 
+        ~TrackBass()
+        {
+            Dispose(false);
+        }
+
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+                return;
+
             if (ActiveStream != 0)
             {
                 isRunning = false;

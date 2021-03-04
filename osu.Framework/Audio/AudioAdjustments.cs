@@ -10,7 +10,7 @@ namespace osu.Framework.Audio
     /// Provides adjustable and bindable attributes for an audio component.
     /// Aggregates results as a <see cref="IAggregateAudioAdjustment"/>.
     /// </summary>
-    public class AudioAdjustments : IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AudioAdjustments : IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -72,21 +72,13 @@ namespace osu.Framework.Audio
         public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => getAggregate(type).RemoveSource(adjustBindable);
 
-        /// <summary>
-        /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
-        /// </summary>
-        /// <param name="component">The adjustment source.</param>
-        internal void BindAdjustments(IAggregateAudioAdjustment component)
+        public void BindAdjustments(IAggregateAudioAdjustment component)
         {
             foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
                 getAggregate(type).AddSource(component.GetAggregate(type));
         }
 
-        /// <summary>
-        /// Unbind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
-        /// </summary>
-        /// <param name="component">The adjustment source.</param>
-        internal void UnbindAdjustments(IAggregateAudioAdjustment component)
+        public void UnbindAdjustments(IAggregateAudioAdjustment component)
         {
             foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
                 getAggregate(type).RemoveSource(component.GetAggregate(type));

@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
@@ -73,8 +74,8 @@ namespace osu.Framework.Graphics.Textures
             if (relativeSizeAxes != Axes.None)
             {
                 Vector2 scale = new Vector2(
-                    relativeSizeAxes.HasFlag(Axes.X) ? Width : 1,
-                    relativeSizeAxes.HasFlag(Axes.Y) ? Height : 1
+                    relativeSizeAxes.HasFlagFast(Axes.X) ? Width : 1,
+                    relativeSizeAxes.HasFlagFast(Axes.Y) ? Height : 1
                 );
                 cropRectangle *= scale;
             }

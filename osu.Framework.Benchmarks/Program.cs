@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
 namespace osu.Framework.Benchmarks
@@ -11,7 +12,7 @@ namespace osu.Framework.Benchmarks
         {
             BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(args);
+                .Run(args, DefaultConfig.Instance.WithOption(ConfigOptions.DisableOptimizationsValidator, true));
         }
     }
 }

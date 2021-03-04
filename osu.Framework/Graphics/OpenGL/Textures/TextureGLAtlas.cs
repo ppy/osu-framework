@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     bool allTransparentBlack = true;
                     int index = sideIndices[i];
 
-                    var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+                    var sideUpload = new MemoryAllocatorTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
 
                     for (int y = 0; y < sideBounds.Height; ++y)
                     {
@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     bool allTransparentBlack = true;
                     int index = sideIndices[i];
 
-                    var sideUpload = new ArrayPoolTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
+                    var sideUpload = new MemoryAllocatorTextureUpload(sideBounds.Width, sideBounds.Height) { Bounds = sideBounds };
 
                     int stride = middleBounds.Width;
 
@@ -181,7 +181,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 // Only upload if we have a non-zero size and if the colour isn't already transparent black
                 if (nCornerPixels > 0 && cornerPixel != transparent_black)
                 {
-                    var cornerUpload = new ArrayPoolTextureUpload(cornerBounds.Width, cornerBounds.Height) { Bounds = cornerBounds };
+                    var cornerUpload = new MemoryAllocatorTextureUpload(cornerBounds.Width, cornerBounds.Height) { Bounds = cornerBounds };
                     for (int j = 0; j < nCornerPixels; ++j)
                         cornerUpload.RawData[j] = cornerPixel;
 

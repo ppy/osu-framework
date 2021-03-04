@@ -13,6 +13,7 @@ using osu.Framework.Utils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Input.Events;
@@ -24,8 +25,9 @@ namespace osu.Framework.Graphics.Performance
 {
     internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
+        internal const int HEIGHT = 100;
+
         protected const int WIDTH = 800;
-        protected const int HEIGHT = 100;
 
         private const int amount_count_steps = 5;
 
@@ -51,6 +53,8 @@ namespace osu.Framework.Graphics.Performance
 
         private readonly Container mainContainer;
         private readonly Container timeBarsContainer;
+
+        private readonly ArrayPool<Rgba32> uploadPool;
 
         private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
@@ -99,10 +103,11 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(GameThread thread)
+        public FrameStatisticsDisplay(GameThread thread, ArrayPool<Rgba32> uploadPool)
         {
             Name = thread.Name;
             monitor = thread.Monitor;
+            this.uploadPool = uploadPool;
 
             Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
@@ -346,7 +351,7 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            var upload = new ArrayPoolTextureUpload(1, HEIGHT)
+            var upload = new ArrayPoolTextureUpload(1, HEIGHT, uploadPool)
             {
                 Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
@@ -359,11 +364,11 @@ namespace osu.Framework.Graphics.Performance
 
             timeBar.Sprite.Texture.SetData(upload);
 
-            timeBars[timeBarIndex].MoveToX(WIDTH - timeBarX);
-            timeBars[(timeBarIndex + 1) % timeBars.Length].MoveToX(-timeBarX);
+            timeBars[timeBarIndex].X = WIDTH - timeBarX;
+            timeBars[(timeBarIndex + 1) % timeBars.Length].X = -timeBarX;
             currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
+            foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length])
             {
                 if (e is Box && e.DrawPosition.X <= timeBarX)
                     e.Expire();

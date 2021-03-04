@@ -1,13 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#if NET5_0
+using System.Net.Sockets;
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -152,11 +154,6 @@ namespace osu.Framework.IO.Network
                 Url = args.Length == 0 ? url : string.Format(url, args);
         }
 
-        ~WebRequest()
-        {
-            Dispose(false);
-        }
-
         private int responseBytesRead;
 
         private const int buffer_size = 32768;
@@ -287,7 +284,7 @@ namespace osu.Framework.IO.Network
                     {
                         request = new HttpRequestMessage(Method, url);
 
-                        Stream postContent;
+                        Stream postContent = null;
 
                         if (rawContent != null)
                         {
@@ -303,7 +300,7 @@ namespace osu.Framework.IO.Network
 
                             postContent.Position = 0;
                         }
-                        else
+                        else if (parameters.Count > 0 || files.Count > 0)
                         {
                             if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
                                 throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
@@ -329,16 +326,19 @@ namespace osu.Framework.IO.Network
 #endif
                         }
 
-                        requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += e =>
+                        if (postContent != null)
                         {
-                            reportForwardProgress();
-                            UploadProgress?.Invoke(e.NewValue, contentLength);
-                        };
+                            requestStream = new LengthTrackingStream(postContent);
+                            requestStream.BytesRead.ValueChanged += e =>
+                            {
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(e.NewValue, contentLength);
+                            };
 
-                        request.Content = new StreamContent(requestStream);
-                        if (!string.IsNullOrEmpty(ContentType))
-                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                            request.Content = new StreamContent(requestStream);
+                            if (!string.IsNullOrEmpty(ContentType))
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                        }
                     }
 
                     request.Headers.UserAgent.TryParseAdd(UserAgent);

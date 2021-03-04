@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
@@ -351,8 +352,8 @@ namespace osu.Framework.Platform
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
+                CursorVisible = !evt.NewValue.HasFlagFast(CursorState.Hidden);
+                CursorConfined = evt.NewValue.HasFlagFast(CursorState.Confined);
             };
 
             cursorInWindow.ValueChanged += evt =>
@@ -1136,6 +1137,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
             WindowMode.BindValueChanged(evt =>
             {
@@ -1154,11 +1156,10 @@ namespace osu.Framework.Platform
                         break;
                 }
 
-                ConfineMouseMode.TriggerChange();
+                updateConfineMode();
             });
 
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-            ConfineMouseMode.BindValueChanged(confineMouseModeChanged);
+            ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
         }
 
         public void CycleMode()
@@ -1214,11 +1215,11 @@ namespace osu.Framework.Platform
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
-        private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
+        private void updateConfineMode()
         {
             bool confine = false;
 
-            switch (args.NewValue)
+            switch (ConfineMouseMode.Value)
             {
                 case Input.ConfineMouseMode.Fullscreen:
                     confine = WindowMode.Value != Configuration.WindowMode.Windowed;

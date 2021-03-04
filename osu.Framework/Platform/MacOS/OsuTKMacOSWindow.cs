@@ -12,6 +12,7 @@ using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
 using System.Diagnostics;
+using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -140,7 +141,7 @@ namespace osu.Framework.Platform.MacOS
         private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
             NSApplicationPresentationOptions.AutoHideDock | NSApplicationPresentationOptions.AutoHideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
-        private bool isCursorHidden => CursorState.HasFlag(CursorState.Hidden);
+        private bool isCursorHidden => CursorState.HasFlagFast(CursorState.Hidden);
 
         private NSApplicationPresentationOptions fullscreenPresentationOptions =>
             default_fullscreen_presentation_options | (isCursorHidden ? NSApplicationPresentationOptions.DisableCursorLocationAssistance : 0);
@@ -164,7 +165,7 @@ namespace osu.Framework.Platform.MacOS
             {
                 pendingWindowMode = null;
 
-                bool currentFullScreen = styleMask.HasFlag(NSWindowStyleMask.FullScreen);
+                bool currentFullScreen = styleMask.HasFlagFast(NSWindowStyleMask.FullScreen);
                 bool toggleFullScreen = mode.Value == Configuration.WindowMode.Fullscreen ? !currentFullScreen : currentFullScreen;
 
                 if (toggleFullScreen)
@@ -195,42 +196,42 @@ namespace osu.Framework.Platform.MacOS
             {
                 case MacOSKeyCodes.LShift:
                     key = osuTK.Input.Key.LShift;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftShift);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.LeftShift);
                     break;
 
                 case MacOSKeyCodes.RShift:
                     key = osuTK.Input.Key.RShift;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightShift);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.RightShift);
                     break;
 
                 case MacOSKeyCodes.LControl:
                     key = osuTK.Input.Key.LControl;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftControl);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.LeftControl);
                     break;
 
                 case MacOSKeyCodes.RControl:
                     key = osuTK.Input.Key.RControl;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightControl);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.RightControl);
                     break;
 
                 case MacOSKeyCodes.LAlt:
                     key = osuTK.Input.Key.LAlt;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftAlt);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.LeftAlt);
                     break;
 
                 case MacOSKeyCodes.RAlt:
                     key = osuTK.Input.Key.RAlt;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightAlt);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.RightAlt);
                     break;
 
                 case MacOSKeyCodes.LCommand:
                     key = osuTK.Input.Key.LWin;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.LeftCommand);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.LeftCommand);
                     break;
 
                 case MacOSKeyCodes.RCommand:
                     key = osuTK.Input.Key.RWin;
-                    keyDown = modifierFlags.HasFlag(CocoaKeyModifiers.RightCommand);
+                    keyDown = modifierFlags.HasFlagFast(CocoaKeyModifiers.RightCommand);
                     break;
 
                 default:

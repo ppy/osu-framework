@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Textures
 {
     /// <summary>
     /// Low level class for queueing texture uploads to the GPU.
+    /// Should be manually disposed if not queued for upload via <see cref="Texture.SetData"/>.
     /// </summary>
     public class TextureUpload : ITextureUpload
     {
@@ -114,26 +115,21 @@ namespace osu.Framework.Graphics.Textures
 
         private bool disposed;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                disposed = true;
-
-                image?.Dispose();
-                pixelMemory.Dispose();
-            }
-        }
-
-        ~TextureUpload()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (disposed)
+                return;
+
+            image?.Dispose();
+            pixelMemory.Dispose();
+
+            disposed = true;
         }
 
         #endregion
