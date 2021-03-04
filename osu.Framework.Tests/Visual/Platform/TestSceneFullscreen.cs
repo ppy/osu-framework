@@ -3,6 +3,7 @@
 
 using System.Drawing;
 using System.Linq;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -11,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
@@ -52,13 +54,11 @@ namespace osu.Framework.Tests.Visual.Platform
             windowMode.ValueChanged += newMode => currentWindowMode.Text = $"Window Mode: {newMode.NewValue}";
         }
 
-        private void testResolution(int w, int h)
-        {
-            AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
-        }
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config, GameHost host)
+        private void load(GameHost host)
         {
             window = host.Window;
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
@@ -72,6 +72,16 @@ namespace osu.Framework.Tests.Visual.Platform
             displaysDropdown.Current.BindTo(window.CurrentDisplayBindable);
 
             supportedWindowModes.Text = $"Supported Window Modes: {string.Join(", ", window.SupportedWindowModes)}";
+        }
+
+        [Test]
+        public void TestScreenModeSwitch()
+        {
+            if (window == null)
+            {
+                Assert.Ignore("This test cannot run in headless mode (a window instance is required).");
+                return;
+            }
 
             // so the test case doesn't change fullscreen size just when you enter it
             AddStep("nothing", () => { });
@@ -118,12 +128,25 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("query Window.CurrentDisplayMode", () => Logger.Log(window.CurrentDisplayMode.ToString()));
         }
 
+        [Test]
+        public void TestConfineModes()
+        {
+            AddStep("set confined to never", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
+            AddStep("set confined to fullscreen", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
+            AddStep("set confined to always", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+        }
+
         protected override void Update()
         {
             base.Update();
 
             currentActualSize.Text = $"Window size: {window?.ClientSize}";
             currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
+        }
+
+        private void testResolution(int w, int h)
+        {
+            AddStep($"set to {w}x{h}", () => sizeFullscreen.Value = new Size(w, h));
         }
     }
 }
