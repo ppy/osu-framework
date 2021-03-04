@@ -58,7 +58,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                     window.MouseUp -= handleMouseUp;
                     window.MouseWheel -= handleMouseWheel;
                 }
-            });
+            }, true);
 
             return true;
         }
