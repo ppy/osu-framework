@@ -87,8 +87,16 @@ namespace osu.Framework.Audio.Sample
             AddItem(sample);
         }
 
+        ~SampleBassFactory()
+        {
+            Dispose(false);
+        }
+
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+                return;
+
             if (IsLoaded)
             {
                 Bass.SampleFree(SampleId);

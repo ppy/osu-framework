@@ -43,8 +43,6 @@ namespace osu.Framework.Graphics.Performance
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            listener = new DotNetRuntimeListener();
-
             performanceLogging = host.PerformanceLogging.GetBoundCopy();
         }
 
@@ -76,7 +74,12 @@ namespace osu.Framework.Graphics.Performance
             performanceLogging.Value = state.NewValue == Visibility.Visible;
 
             if (state.NewValue == Visibility.Visible)
+            {
                 GlobalStatistics.OutputToLog();
+                listener = new DotNetRuntimeListener();
+            }
+            else
+                listener?.Dispose();
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>

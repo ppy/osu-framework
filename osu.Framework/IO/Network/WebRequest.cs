@@ -154,11 +154,6 @@ namespace osu.Framework.IO.Network
                 Url = args.Length == 0 ? url : string.Format(url, args);
         }
 
-        ~WebRequest()
-        {
-            Dispose(false);
-        }
-
         private int responseBytesRead;
 
         private const int buffer_size = 32768;

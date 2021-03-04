@@ -225,11 +225,6 @@ namespace osu.Framework.Statistics
             }
         }
 
-        ~PerformanceMonitor()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
