@@ -97,6 +97,9 @@ namespace osu.Framework.Platform
             get => relativeMouseMode;
             set
             {
+                if (relativeMouseMode == value)
+                    return;
+
                 relativeMouseMode = value;
                 ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }

@@ -68,9 +68,13 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!Enabled.Value)
                 return;
 
-            // store the last (final) mouse position to propagate back to the host window manager when required.
-            lastPosition = position;
             updateRelativeMode();
+
+            if (window.RelativeMouseMode)
+            {
+                // store the last mouse position to propagate back to the host window manager when exiting relative mode.
+                lastPosition = position;
+            }
 
             // handle the case where relative / raw input is active, but the cursor may have exited the window
             // bounds and is not intended to be confined.
