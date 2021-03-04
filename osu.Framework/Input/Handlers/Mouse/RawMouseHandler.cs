@@ -26,6 +26,8 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private Vector2? lastPosition;
 
+        private IBindable<bool> isActive;
+
         public override bool Initialize(GameHost host)
         {
             if (!(host.Window is SDL2DesktopWindow desktopWindow))
@@ -36,9 +38,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             // todo: implement?
             // mapAbsoluteInputToWindow.BindTo(window.MapAbsoluteInputToWindow);
 
+            isActive = window.IsActive.GetBoundCopy();
+            isActive.BindValueChanged(_ => updateRelativeMode());
+
             Enabled.BindValueChanged(enabled =>
             {
-                desktopWindow.RelativeMouseMode = enabled.NewValue;
+                updateRelativeMode();
 
                 if (enabled.NewValue)
                 {
@@ -63,6 +68,9 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
+        private void updateRelativeMode() =>
+            window.RelativeMouseMode = Enabled.Value && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+
         public void FeedbackMousePositionChange(Vector2 position)
         {
             if (!Enabled.Value)
@@ -70,6 +78,20 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             // store the last (final) mouse position to propagate back to the host window manager when required.
             lastPosition = position;
+
+            if (!window.RelativeMouseMode)
+            {
+                // waiting on focus or mouse to enter the window.
+                updateRelativeMode();
+            }
+            else if (!window.CursorConfined)
+            {
+                // handle the case where the cursor has exited the window bounds and is not intended to be confined.
+                if (position.X < 0 || position.Y < 0 || position.X > window.Size.Width || position.Y > window.Size.Height)
+                {
+                    window.RelativeMouseMode = false;
+                }
+            }
         }
 
         private void enqueueInput(IInput input)
