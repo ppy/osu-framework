@@ -14,9 +14,12 @@ namespace osu.Framework.Platform.Windows
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
-    internal unsafe class WindowsRawInputMouseHandler : InputHandler
+    internal unsafe class WindowsRawInputMouseHandler : InputHandler, IHasCursorSensitivity
     {
+        public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
+
         private const int raw_input_coordinate_space = 65536;
+
         private SDL.SDL_WindowsMessageHook callback;
         private SDL2DesktopWindow window;
 
@@ -84,12 +87,13 @@ namespace osu.Framework.Platform.Windows
             }
 
             var position = new Vector2(mouse.LastX, mouse.LastY);
-
-            // TODO: apply sensitivity adjustment.
+            float sensitivity = (float)Sensitivity.Value;
 
             if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
             {
                 // TODO: map screen to client
+
+                // TODO: apply sensitivity adjustment.
 
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
                 // using it here as a method of determining where the coordinate space is incorrect.
@@ -110,7 +114,7 @@ namespace osu.Framework.Platform.Windows
             }
             else
             {
-                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) });
+                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
             }
 
             return IntPtr.Zero;
