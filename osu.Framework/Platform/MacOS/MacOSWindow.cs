@@ -22,6 +22,16 @@ namespace osu.Framework.Platform.MacOS
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
+        public override bool CursorVisible
+        {
+            get => base.CursorVisible;
+            set
+            {
+                base.CursorVisible = value;
+                updateCursorAssistanceState();
+            }
+        }
+
         public override void Create()
         {
             base.Create();
@@ -30,6 +40,16 @@ namespace osu.Framework.Platform.MacOS
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+
+            CursorInWindow.BindValueChanged(_ => updateCursorAssistanceState(), true);
+        }
+
+        private void updateCursorAssistanceState()
+        {
+            if (CursorInWindow.Value && !CursorVisible)
+                NSApplication.PresentationOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+            else
+                NSApplication.PresentationOptions &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
         }
 
         /// <summary>
