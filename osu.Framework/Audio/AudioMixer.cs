@@ -1,9 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
+using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
+using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 
@@ -11,8 +12,8 @@ namespace osu.Framework.Audio
 {
     public class AudioMixer : AdjustableAudioComponent
     {
-        public List<int> MixChannels = new List<int>();
-        private int mixerHandle;
+        public BindableList<int> MixChannels = new BindableList<int>();
+        public int MixerHandle { get; protected set; }
 
         public AudioMixer()
         {
@@ -30,7 +31,7 @@ namespace osu.Framework.Audio
         {
             EnqueueAction(() =>
             {
-                if (mixerHandle == 0)
+                if (MixerHandle == 0)
                 {
                     Logger.Log($"[AudioMixer] Attempted to add channel ({channelHandle}) when mixer not yet initialized!");
                     return;
@@ -42,10 +43,9 @@ namespace osu.Framework.Audio
                     return;
                 }
 
-                // BassMix.MixerAddChannel(mixerHandle, channelHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
                 BassFlags flags = addPaused ? BassFlags.MixerChanPause | BassFlags.MixerChanBuffer : BassFlags.MixerChanBuffer;
 
-                BassMix.MixerAddChannel(mixerHandle, channelHandle, flags);
+                BassMix.MixerAddChannel(MixerHandle, channelHandle, flags);
                 var error = Bass.LastError;
                 Logger.Log($"[AudioMixer] MixerAddChannel: {error}");
 
@@ -92,23 +92,30 @@ namespace osu.Framework.Audio
             Logger.Log("[AudioMixer] Init()");
             EnqueueAction(() =>
             {
-                mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.MixerNonStop);
+                MixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.MixerNonStop);
                 Logger.Log($"[AudioMixer] CreateMixerStream: {Bass.LastError}");
-                Bass.ChannelPlay(mixerHandle);
+                Bass.ChannelPlay(MixerHandle);
                 Logger.Log($"[AudioMixer] ChannelPlay(mixer): {Bass.LastError}");
             });
         }
 
-        // protected override void UpdateChildren()
-        // {
-        //     base.UpdateChildren();
-        //
-        //     Logger.Log("[AudioMixer] UpdateChildren()");
-        // }
-
         protected override void UpdateState()
         {
-            // Logger.Log("[AudioMixer] UpdateState()");
+            EnqueueAction(() =>
+            {
+                var channels = MixChannels.ToArray();
+
+                // not sure if we want to be doing this every UpdateState?
+                foreach (var channel in channels)
+                {
+                    if (Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                    {
+                        Logger.Log($"[AudioMixer] Channel gone, auto-removing ({channel})");
+                        RemoveChannel(channel);
+                    }
+                }
+            });
+
             FrameStatistics.Add(StatisticsCounterType.MixChannels, MixChannels.Count);
 
             base.UpdateState();
