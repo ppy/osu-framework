@@ -48,8 +48,12 @@ namespace osu.Framework.Platform.Windows
         {
             // for windows platforms we want to override the relative mouse event handling behaviour.
             return base.CreateAvailableInputHandlers()
-                       .Where(t => !(t is SDL2RelativeMouseHandler))
-                       .Concat(new[] { new WindowsRawInputMouseHandler() });
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[]
+                       {
+                           new WindowsMouseHandler(),
+                           new WindowsRawInputMouseHandler()
+                       });
         }
 
         protected override void SetupForRun()

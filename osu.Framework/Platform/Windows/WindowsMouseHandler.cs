@@ -6,11 +6,11 @@ using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {
-    public class WindowsSDL2RelativeMouseHandler : SDL2RelativeMouseHandler
+    public class WindowsMouseHandler : MouseHandler
     {
         protected override void HandleMouseMoveRelative(Vector2 delta)
         {
-            // block.
+            // handled via WindowsRawInputMouseHandler.
         }
     }
 }
