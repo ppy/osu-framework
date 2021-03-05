@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -36,7 +36,11 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public BindableNumber<double> Tempo => adjustments.Tempo;
 
-        private readonly AdjustableAudioComponent component;
+        public void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+
+        public void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
+
+        private readonly IAdjustableAudioComponent component;
 
         private readonly bool disposeUnderlyingComponentOnDispose;
 
@@ -57,7 +61,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         /// <param name="component">The audio component to wrap.</param>
         /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
-        protected DrawableAudioWrapper([NotNull] AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+        protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
@@ -78,13 +82,13 @@ namespace osu.Framework.Graphics.Audio
             component?.UnbindAdjustments(adjustments);
 
             if (disposeUnderlyingComponentOnDispose)
-                component?.Dispose();
+                (component as IDisposable)?.Dispose();
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => adjustments.RemoveAdjustment(type, adjustBindable);
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);

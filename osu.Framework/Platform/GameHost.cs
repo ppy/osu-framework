@@ -946,11 +946,6 @@ namespace osu.Framework.Platform
             Logger.Flush();
         }
 
-        ~GameHost()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);

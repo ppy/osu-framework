@@ -167,25 +167,14 @@ namespace osu.Framework.IO.Stores
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        ~GlyphStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         #endregion

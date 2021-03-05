@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
@@ -16,7 +15,7 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly IResourceStore<byte[]> store;
 
-        private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
+        private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
@@ -28,46 +27,34 @@ namespace osu.Framework.Audio.Sample
             (store as ResourceStore<byte[]>)?.AddExtension(@"mp3");
         }
 
-        public SampleChannel Get(string name)
+        public Sample Get(string name)
         {
             if (IsDisposed) throw new ObjectDisposedException($"Cannot retrieve items for an already disposed {nameof(SampleStore)}");
 
             if (string.IsNullOrEmpty(name)) return null;
 
-            lock (sampleCache)
+            lock (factories)
             {
-                SampleChannel channel = null;
-
-                if (!sampleCache.TryGetValue(name, out Sample sample))
+                if (!factories.TryGetValue(name, out SampleBassFactory factory))
                 {
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    sample = sampleCache[name] = data == null ? null : new SampleBass(data, PendingActions, PlaybackConcurrency);
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+
+                    if (factory != null)
+                        AddItem(factory);
                 }
 
-                if (sample != null)
-                {
-                    channel = new SampleChannelBass(sample, AddItem);
-                }
-
-                return channel;
+                return factory?.CreateSample();
             }
         }
 
-        public Task<SampleChannel> GetAsync(string name) => Task.Run(() => Get(name));
-
-        internal override void UpdateDevice(int deviceIndex)
-        {
-            foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
-                sample.UpdateDevice(deviceIndex);
-
-            base.UpdateDevice(deviceIndex);
-        }
+        public Task<Sample> GetAsync(string name) => Task.Run(() => Get(name));
 
         protected override void UpdateState()
         {
-            FrameStatistics.Add(StatisticsCounterType.Samples, sampleCache.Count);
+            FrameStatistics.Add(StatisticsCounterType.Samples, factories.Count);
             base.UpdateState();
         }
 

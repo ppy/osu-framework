@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 var drawable = itemMap[Items[dstIndex]];
 
-                if (!drawable.IsLoaded)
+                if (!drawable.IsLoaded || !drawable.IsPresent)
                     continue;
 
                 // Using BoundingBox here takes care of scale, paddings, etc...

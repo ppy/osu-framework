@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Layout;
 
@@ -76,10 +77,10 @@ namespace osu.Framework.Graphics.Containers
 
             return new MarginPadding
             {
-                Left = SafeAreaOverrideEdges.HasFlag(Edges.Left) ? nonSafeLocalSpace.TopLeft.X : Math.Clamp(localTopLeft.X, 0, DrawSize.X),
-                Right = SafeAreaOverrideEdges.HasFlag(Edges.Right) ? DrawRectangle.BottomRight.X - nonSafeLocalSpace.BottomRight.X : Math.Clamp(DrawSize.X - localBottomRight.X, 0, DrawSize.X),
-                Top = SafeAreaOverrideEdges.HasFlag(Edges.Top) ? nonSafeLocalSpace.TopLeft.Y : Math.Clamp(localTopLeft.Y, 0, DrawSize.Y),
-                Bottom = SafeAreaOverrideEdges.HasFlag(Edges.Bottom) ? DrawRectangle.BottomRight.Y - nonSafeLocalSpace.BottomRight.Y : Math.Clamp(DrawSize.Y - localBottomRight.Y, 0, DrawSize.Y)
+                Left = SafeAreaOverrideEdges.HasFlagFast(Edges.Left) ? nonSafeLocalSpace.TopLeft.X : Math.Clamp(localTopLeft.X, 0, DrawSize.X),
+                Right = SafeAreaOverrideEdges.HasFlagFast(Edges.Right) ? DrawRectangle.BottomRight.X - nonSafeLocalSpace.BottomRight.X : Math.Clamp(DrawSize.X - localBottomRight.X, 0, DrawSize.X),
+                Top = SafeAreaOverrideEdges.HasFlagFast(Edges.Top) ? nonSafeLocalSpace.TopLeft.Y : Math.Clamp(localTopLeft.Y, 0, DrawSize.Y),
+                Bottom = SafeAreaOverrideEdges.HasFlagFast(Edges.Bottom) ? DrawRectangle.BottomRight.Y - nonSafeLocalSpace.BottomRight.Y : Math.Clamp(DrawSize.Y - localBottomRight.Y, 0, DrawSize.Y)
             };
         }
     }

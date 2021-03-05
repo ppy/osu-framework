@@ -8,7 +8,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// An audio component which allows for basic bindable adjustments to be applied.
     /// </summary>
-    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AdjustableAudioComponent : AudioComponent, IAdjustableAudioComponent
     {
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
@@ -40,10 +40,10 @@ namespace osu.Framework.Audio
             AggregateTempo.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
@@ -73,17 +73,9 @@ namespace osu.Framework.Audio
             }
         }
 
-        /// <summary>
-        /// Bind all adjustments to another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+        public void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
 
-        /// <summary>
-        /// Unbind all adjustments from another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
+        public void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
 
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 

@@ -11,66 +11,34 @@ namespace osu.Framework.Graphics.Textures
 {
     public class ArrayPoolTextureUpload : ITextureUpload
     {
-        public Span<Rgba32> RawData => memoryOwner.Memory.Span;
+        private readonly ArrayPool<Rgba32> arrayPool;
 
-        public ReadOnlySpan<Rgba32> Data => RawData;
-
-        private readonly IMemoryOwner<Rgba32> memoryOwner;
-
-        /// <summary>
-        /// The target mipmap level to upload into.
-        /// </summary>
-        public int Level { get; set; }
-
-        /// <summary>
-        /// The texture format for this upload.
-        /// </summary>
-        public virtual PixelFormat Format => PixelFormat.Rgba;
-
-        /// <summary>
-        /// The target bounds for this upload. If not specified, will assume to be (0, 0, width, height).
-        /// </summary>
-        public RectangleI Bounds { get; set; }
+        private readonly Rgba32[] data;
 
         /// <summary>
         /// Create an empty raw texture with an efficient shared memory backing.
         /// </summary>
         /// <param name="width">The width of the texture.</param>
         /// <param name="height">The height of the texture.</param>
-        public ArrayPoolTextureUpload(int width, int height)
+        /// <param name="arrayPool">The source pool to retrieve memory from. Shared default is used if null.</param>
+        public ArrayPoolTextureUpload(int width, int height, ArrayPool<Rgba32> arrayPool = null)
         {
-            memoryOwner = SixLabors.ImageSharp.Configuration.Default.MemoryAllocator.Allocate<Rgba32>(width * height);
-        }
-
-        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
-        public bool HasBeenUploaded => disposed;
-
-        #region IDisposable Support
-
-#pragma warning disable IDE0032 // Use auto property
-        private bool disposed;
-#pragma warning restore IDE0032 // Use auto property
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                disposed = true;
-                memoryOwner.Dispose();
-            }
-        }
-
-        ~ArrayPoolTextureUpload()
-        {
-            Dispose(false);
+            data = (this.arrayPool ??= ArrayPool<Rgba32>.Shared).Rent(width * height);
         }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            arrayPool.Return(data);
         }
 
-        #endregion
+        public Span<Rgba32> RawData => data;
+
+        public ReadOnlySpan<Rgba32> Data => data;
+
+        public int Level { get; set; }
+
+        public virtual PixelFormat Format => PixelFormat.Rgba;
+
+        public RectangleI Bounds { get; set; }
     }
 }

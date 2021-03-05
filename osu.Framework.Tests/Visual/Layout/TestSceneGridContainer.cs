@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -794,7 +793,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Replace bottom right box with a SpriteText", () =>
             {
                 gridContentChangeEventWasFired = false;
-                grid.Content[1][1] = new SpriteText { Text = new LocalisedString("test") };
+                grid.Content[1][1] = new SpriteText { Text = "test" };
             });
             assertContentChangeEventWasFired();
             AddAssert("[1][1] cell contains a SpriteText", () => grid.Content[1][1].GetType() == typeof(SpriteText));
@@ -802,7 +801,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Replace top line with [SpriteText][null]", () =>
             {
                 gridContentChangeEventWasFired = false;
-                grid.Content[0] = new Drawable[] { new SpriteText { Text = new LocalisedString("test") }, null };
+                grid.Content[0] = new Drawable[] { new SpriteText { Text = "test" }, null };
             });
             assertContentChangeEventWasFired();
             AddAssert("[0][0] cell contains a SpriteText", () => grid.Content[0][0].GetType() == typeof(SpriteText));

@@ -20,6 +20,7 @@ using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -602,7 +603,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected SpriteText Placeholder;
 
-        public string PlaceholderText
+        public LocalisableString PlaceholderText
         {
             get => Placeholder.Text;
             set => Placeholder.Text = value;

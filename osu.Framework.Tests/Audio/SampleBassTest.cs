@@ -16,10 +16,9 @@ namespace osu.Framework.Tests.Audio
     public class SampleBassTest
     {
         private DllResourceStore resources;
-
-        private SampleBass sample;
-
-        private SampleChannelBass channel;
+        private SampleBassFactory sampleFactory;
+        private Sample sample;
+        private SampleChannel channel;
 
         [SetUp]
         public void Setup()
@@ -28,10 +27,9 @@ namespace osu.Framework.Tests.Audio
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
+            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
+            sample = sampleFactory.CreateSample();
 
-            sample = new SampleBass(resources.Get("Resources.Tracks.sample-track.mp3"));
-
-            channel = new SampleChannelBass(sample, channel => { });
             updateSample();
         }
 
@@ -42,9 +40,20 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestGetChannelOnDisposed()
+        {
+            sample.Dispose();
+
+            sample.Update();
+
+            Assert.Throws<ObjectDisposedException>(() => sample.GetChannel());
+            Assert.Throws<ObjectDisposedException>(() => sample.Play());
+        }
+
+        [Test]
         public void TestStart()
         {
-            channel.Play();
+            channel = sample.Play();
             updateSample();
 
             Thread.Sleep(50);
@@ -57,7 +66,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestStop()
         {
-            channel.Play();
+            channel = sample.Play();
             updateSample();
 
             channel.Stop();
@@ -69,7 +78,7 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestStopBeforeLoadFinished()
         {
-            channel.Play();
+            channel = sample.Play();
             channel.Stop();
 
             updateSample();
@@ -77,11 +86,19 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
-        private void updateSample() => runOnAudioThread(() =>
+        [Test]
+        public void TestStopsWhenFactoryDisposed()
         {
-            sample.Update();
-            channel.Update();
-        });
+            channel = sample.Play();
+            updateSample();
+
+            sampleFactory.Dispose();
+            updateSample();
+
+            Assert.IsFalse(channel.Playing);
+        }
+
+        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

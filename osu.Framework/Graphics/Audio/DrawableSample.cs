@@ -2,44 +2,36 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Audio.Sample;
-using osu.Framework.Audio.Track;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Audio
 {
     /// <summary>
     /// A <see cref="SampleChannel"/> wrapper to allow insertion in the draw hierarchy to allow transforms, lifetime management etc.
     /// </summary>
-    public class DrawableSample : DrawableAudioWrapper, ISampleChannel
+    public class DrawableSample : DrawableAudioWrapper, ISample
     {
-        private readonly SampleChannel channel;
+        private readonly ISample sample;
 
         /// <summary>
         /// Construct a new drawable sample instance.
         /// </summary>
-        /// <param name="channel">The audio sample to wrap.</param>
-        /// <param name="disposeChannelOnDisposal">Whether the sample should be automatically disposed on drawable disposal/expiry.</param>
-        public DrawableSample(SampleChannel channel, bool disposeChannelOnDisposal = true)
-            : base(channel, disposeChannelOnDisposal)
+        /// <param name="sample">The audio sample to wrap.</param>
+        /// <param name="disposeSampleOnDisposal">Whether the sample should be automatically disposed on drawable disposal/expiry.</param>
+        public DrawableSample(ISample sample, bool disposeSampleOnDisposal = true)
+            : base(sample, disposeSampleOnDisposal)
         {
-            this.channel = channel;
+            this.sample = sample;
+
+            PlaybackConcurrency.BindTo(sample.PlaybackConcurrency);
         }
 
-        public void Play(bool restart = true) => channel.Play(restart);
+        public SampleChannel Play() => sample.Play();
 
-        public void Stop() => channel.Stop();
+        public SampleChannel GetChannel() => sample.GetChannel();
 
-        public bool Playing => channel.Playing;
+        public double Length => sample.Length;
 
-        public bool Played => channel.Played;
-
-        public bool Looping
-        {
-            get => channel.Looping;
-            set => channel.Looping = value;
-        }
-
-        public double Length => channel.Length;
-
-        public ChannelAmplitudes CurrentAmplitudes => channel.CurrentAmplitudes;
+        public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
     }
 }

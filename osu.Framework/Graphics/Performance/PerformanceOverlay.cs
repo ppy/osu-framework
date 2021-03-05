@@ -2,15 +2,18 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Collections.Generic;
+using System.Linq;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance
 {
     internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
-        private readonly IEnumerable<GameThread> threads;
+        private readonly GameThread[] threads;
         private FrameStatisticsMode state;
 
         public event Action<FrameStatisticsMode> StateChanged;
@@ -50,8 +53,11 @@ namespace osu.Framework.Graphics.Performance
                     if (!initialised)
                     {
                         initialised = true;
+
+                        var uploadPool = createUploadPool();
+
                         foreach (GameThread t in threads)
-                            Add(new FrameStatisticsDisplay(t) { State = state });
+                            Add(new FrameStatisticsDisplay(t, uploadPool) { State = state });
                     }
 
                     this.FadeIn(100);
@@ -64,9 +70,19 @@ namespace osu.Framework.Graphics.Performance
             StateChanged?.Invoke(State);
         }
 
+        private ArrayPool<Rgba32> createUploadPool()
+        {
+            // bucket size should be enough to allow some overhead when running multi-threaded with draw at 60hz.
+            const int max_expected_thread_update_rate = 2000;
+
+            int bucketSize = threads.Length * (max_expected_thread_update_rate / 60);
+
+            return ArrayPool<Rgba32>.Create(FrameStatisticsDisplay.HEIGHT, bucketSize);
+        }
+
         public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
-            this.threads = threads;
+            this.threads = threads.ToArray();
             Direction = FillDirection.Vertical;
         }
     }
