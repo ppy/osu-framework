@@ -2,6 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Allocation;
@@ -18,23 +22,13 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public class TestSceneBassMix2 : FrameworkTestScene
     {
-        private int mixerHandle;
-        private int trackHandle;
-        private int sfxHandle;
-        private int sfx2Handle;
-
-        private int reverbHandle;
-        private int compressorHandle;
-
-        // private const int num_mix_channels = 8;
-        // private ChannelStrip2[] channelStrips = new ChannelStrip2[num_mix_channels];
-
         private AudioManager audio;
-        // private AudioMixer mixer;
 
         private TrackBass bassTrack;
         private ITrackStore tracks;
         private DrawableSample sample;
+
+        private MixerDrawable mixerDrawable;
 
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks, AudioManager audio)
@@ -42,7 +36,7 @@ namespace osu.Framework.Tests.Visual.Audio
             this.tracks = tracks;
             this.audio = audio;
 
-            Child = new Mixer(audio.Mixer);
+            Child = mixerDrawable = new MixerDrawable(audio.Mixer);
         }
 
         protected override void LoadComplete()
@@ -55,225 +49,130 @@ namespace osu.Framework.Tests.Visual.Audio
             });
             AddStep("load", () =>
             {
-                // test = audio.Samples.Get("loud");
                 bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
-                // mixer.AddChannel(bassTrack.ActiveStream);
             });
             AddStep("play", () =>
             {
-                // test?.Play();
                 bassTrack?.Start();
             });
             AddStep("stop", () =>
             {
                 bassTrack?.Stop();
             });
-            // AddStep("start track", () =>
-            // {
-            //     Bass.ChannelSetPosition(trackHandle, 0);
-            //     BassMix.ChannelFlags(trackHandle, BassFlags.Default, BassFlags.MixerPause);
-            // });
-            // AddStep("stop track", () =>
-            // {
-            //     BassMix.ChannelFlags(trackHandle, BassFlags.MixerPause, BassFlags.MixerPause);
-            // });
-            //
-            // AddStep("Reverb on", () =>
-            // {
-            //     // reverbHandle = Bass.ChannelSetFX(mixerHandle, EffectType.Freeverb, 100);
-            //     reverbHandle = Bass.ChannelSetFX(sfxHandle, EffectType.Freeverb, 100);
-            //     Bass.FXSetParameters(reverbHandle, new ReverbParameters
-            //     {
-            //         fDryMix = 1f,
-            //         fWetMix = 0.1f,
-            //     });
-            //     Logger.Log($"[BASSDLL] ChannelSetFX: {Bass.LastError}");
-            // });
-            // AddStep("Reverb off", () =>
-            // {
-            //     Bass.ChannelRemoveFX(sfxHandle, reverbHandle);
-            //     Logger.Log($"[BASSDLL] ChannelSetFX: {Bass.LastError}");
-            // });
-            //
-            // AddStep("Compressor on", () =>
-            // {
-            //     compressorHandle = Bass.ChannelSetFX(mixerHandle, EffectType.Compressor, 1);
-            //     Bass.FXSetParameters(compressorHandle, new CompressorParameters
-            //     {
-            //         fAttack = 5,
-            //         fRelease = 100,
-            //         fThreshold = -6,
-            //         fGain = 0,
-            //         // fRatio = 4,
-            //     });
-            //     Logger.Log($"[BASSDLL] ChannelSetFX: {Bass.LastError}");
-            // });
-            // AddStep("Compressor off", () =>
-            // {
-            //     Bass.ChannelRemoveFX(mixerHandle, compressorHandle);
-            //     Logger.Log($"[BASSDLL] ChannelSetFX: {Bass.LastError}");
-            // });
-            //
-            // AddStep("Load SFX1", () =>
-            // {
-            //
-            // });
             AddStep("Play SFX1", () =>
             {
                 sample = new DrawableSample(audio.Samples.Get("long.mp3"));
                 sample?.Play();
-                // Bass.ChannelSetPosition(sample, 0);
-                // BassMix.ChannelFlags(sfxHandle, BassFlags.Default, BassFlags.MixerPause);
             });
-            //
-            // AddStep("Play SFX2", () =>
-            // {
-            //     Bass.ChannelSetPosition(sfx2Handle, 0);
-            //     BassMix.ChannelFlags(sfx2Handle, BassFlags.Default, BassFlags.MixerPause);
-            // });
-
             AddStep("Reset Peaks", () =>
             {
-
-                // foreach (var strip in channelStrips)
-                // {
-                //     strip.Reset();
-                // }
+                mixerDrawable.ResetPeaks();
             });
         }
 
-        // protected override void Dispose(bool isDisposing)
-        // {
-        //     base.Dispose(isDisposing);
-        //
-        //     Bass.StreamFree(trackHandle);
-        // }
-
-        // protected override void Update()
-        // {
-        //     base.Update();
-        //
-        //     if (mixer.MixChannels.Count < 1)
-        //         return;
-        //
-        //     for (int i = 0; i < num_mix_channels; i++)
-        //     {
-        //         if (i >= mixer.MixChannels.Count)
-        //             break;
-        //
-        //         channelStrips[i].Handle = mixer.MixChannels[i];
-        //     }
-        // }
-
-        // private double calculateReplayGain(byte[] data)
-        // {
-        //     int replayGainProcessingStream = Bass.CreateStream(data, 0, data.Length, BassFlags.Decode);
-        //     TrackGain trackGain = new TrackGain(44100, 16);
-        //
-        //     const int buf_len = 1024;
-        //     short[] buf = new short[buf_len];
-        //
-        //     List<int> leftSamples = new List<int>();
-        //     List<int> rightSamples = new List<int>();
-        //
-        //     while (true)
-        //     {
-        //         int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
-        //         if (length == -1) break;
-        //
-        //         for (int a = 0; a < length / sizeof(short); a += 2)
-        //         {
-        //             leftSamples.Add(buf[a]);
-        //             rightSamples.Add(buf[a + 1]);
-        //         }
-        //     }
-        //
-        //     trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
-        //
-        //     double gain = trackGain.GetGain();
-        //     double peak = trackGain.GetPeak();
-        //
-        //     Logger.Log($"REPLAYGAIN GAIN: {gain}");
-        //     Logger.Log($"REPLAYGAIN PEAK: {peak}");
-        //
-        //     Bass.StreamFree(replayGainProcessingStream);
-        //
-        //     return gain;
-        // }
-
-        public class Mixer : CompositeDrawable
+        public class MixerDrawable : CompositeDrawable
         {
-            private readonly AudioMixer mixer;
+            private Dictionary<int, ChannelStripDrawable> channelStrips = new Dictionary<int, ChannelStripDrawable>();
+            private readonly FillFlowContainer stripContainer;
 
-            // private readonly BindableList<ChannelStrip2> channelStrips = new BindableList<ChannelStrip2>();
-            // private ChannelStrip2[] channelStrips;
-
-            private const int num_mix_channels = 8;
-            private readonly ChannelStrip2[] channelStrips = new ChannelStrip2[num_mix_channels];
-
-            public Mixer(AudioMixer mixer)
+            public MixerDrawable(AudioMixer mixer)
             {
-                this.mixer = mixer;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                for (int i = 0; i < num_mix_channels; i++)
-                {
-                    channelStrips[i] = new ChannelStrip2
-                    {
-                        IsMixerChannel = (i < num_mix_channels - 1),
-                        Width = 1f / num_mix_channels
-                    };
-                }
-
                 RelativeSizeAxes = Axes.Both;
-                Size = new Vector2(1.0f);
-                InternalChild = new FillFlowContainer
+                InternalChild = new BasicScrollContainer(Direction.Horizontal)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(1.0f),
-                    Children = channelStrips
+                    Children = new[]
+                    {
+                        stripContainer = new FillFlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.X,
+                        }
+                    }
                 };
+
+                stripContainer.Add(new ChannelStripDrawable(mixer.MixerHandle));
+
+                mixer.MixChannels.CollectionChanged += updateChannels;
             }
 
-            protected override void Update()
+            private void addChannels(IList items)
             {
-                base.Update();
-
-                if (mixer.MixChannels.Count < 1)
-                    return;
-
-                for (int i = 0; i < num_mix_channels; i++)
+                foreach (var item in items.Cast<int>())
                 {
-                    if (i >= mixer.MixChannels.Count)
-                        break;
+                    if (!channelStrips.ContainsKey(item))
+                    {
+                        channelStrips.Add(item, new ChannelStripDrawable(item));
+                        stripContainer.Add(channelStrips[item]);
+                    }
+                }
+            }
 
-                    channelStrips[i].Handle = mixer.MixChannels[i];
+            private void removeChannels(IList items)
+            {
+                foreach (var item in items.Cast<int>())
+                {
+                    stripContainer.Remove(channelStrips[item]);
+                    channelStrips.Remove(item);
+                }
+            }
+
+            private void updateChannels(object sender, NotifyCollectionChangedEventArgs e)
+            {
+                Schedule(() =>
+                {
+                    switch (e.Action)
+                    {
+                        case NotifyCollectionChangedAction.Add:
+                            addChannels(e.NewItems);
+                            break;
+
+                        case NotifyCollectionChangedAction.Remove:
+                            removeChannels(e.OldItems);
+                            break;
+
+                        case NotifyCollectionChangedAction.Reset:
+                            stripContainer.Clear();
+                            channelStrips.Clear();
+                            break;
+
+                        case NotifyCollectionChangedAction.Replace:
+                            removeChannels(e.OldItems);
+                            addChannels(e.NewItems);
+                            break;
+                    }
+                });
+            }
+
+            public void ResetPeaks()
+            {
+                foreach (var entry in channelStrips)
+                {
+                    entry.Value.ResetPeaks();
                 }
             }
         }
 
-        public class ChannelStrip2 : CompositeDrawable
+        public class ChannelStripDrawable : CompositeDrawable
         {
-            public int Handle { get; set; }
+            public int Handle { get; protected set; }
             public int BuffSize = 30;
-            public bool IsMixerChannel { get; set; } = true;
 
             private float maxPeak = float.MinValue;
             private float peak = float.MinValue;
-            private float gain;
-            private Box volBarL;
-            private Box volBarR;
-            private SpriteText peakText;
-            private SpriteText maxPeakText;
+            private readonly Box volBarL;
+            private readonly Box volBarR;
+            private readonly SpriteText peakText;
+            private readonly SpriteText maxPeakText;
+            private readonly TextFlowContainer channelInfoText;
 
-            public ChannelStrip2(int handle = 0)
+            public ChannelStripDrawable(int handle = 0)
             {
                 Handle = handle;
 
-                RelativeSizeAxes = Axes.Both;
+                RelativeSizeAxes = Axes.Y;
+                Width = 80;
+                Height = 1f;
                 InternalChildren = new Drawable[]
                 {
                     volBarL = new Box
@@ -281,7 +180,7 @@ namespace osu.Framework.Tests.Visual.Audio
                         RelativeSizeAxes = Axes.Both,
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomLeft,
-                        Colour = Colour4.Green,
+                        Colour = Colour4.White,
                         Height = 1f,
                         Width = 0.5f,
                     },
@@ -290,24 +189,26 @@ namespace osu.Framework.Tests.Visual.Audio
                         RelativeSizeAxes = Axes.Both,
                         Origin = Anchor.BottomRight,
                         Anchor = Anchor.BottomRight,
-                        Colour = Colour4.Green,
+                        Colour = Colour4.White,
                         Height = 1f,
                         Width = 0.5f,
                     },
                     new FillFlowContainer
                     {
-                        AutoSizeAxes = Axes.Both,
+                        AutoSizeAxes = Axes.Y,
+                        RelativeSizeAxes = Axes.X,
+                        Width = 1f,
                         Direction = FillDirection.Vertical,
-                        Children = new[]
+                        Children = new Drawable[]
                         {
-                            peakText = new SpriteText
+                            peakText = new SpriteText { Text = "N/A" },
+                            maxPeakText = new SpriteText { Text = "N/A" },
+                            channelInfoText = new TextFlowContainer(s => s.Font = FrameworkFont.Condensed.With(size: 14f))
                             {
-                                Text = "N/A",
+                                RelativeSizeAxes = Axes.X,
+                                Width = 1f,
+                                AutoSizeAxes = Axes.Y
                             },
-                            maxPeakText = new SpriteText
-                            {
-                                Text = "N/A",
-                            }
                         }
                     }
                 };
@@ -317,22 +218,23 @@ namespace osu.Framework.Tests.Visual.Audio
             {
                 base.Update();
 
-                if (Handle == 0)
-                {
-                    volBarL.Height = 0;
-                    volBarR.Height = 0;
-                    peakText.Text = "N/A";
-                    maxPeakText.Text = "N/A";
-
-                    return;
-                }
+                if (Handle == 0) return;
 
                 float[] levels = new float[2];
 
-                if (IsMixerChannel)
-                    BassMix.ChannelGetLevel(Handle, levels, 1 / (float)BuffSize, LevelRetrievalFlags.Stereo);
+                ChannelInfo chanInfo;
+                Bass.ChannelGetInfo(Handle, out chanInfo);
+
+                if (chanInfo.ChannelType == ChannelType.Mixer)
+                {
+                    Bass.ChannelGetLevel(Handle, levels, 1f / BuffSize, LevelRetrievalFlags.Stereo);
+                    volBarL.Colour = volBarR.Colour = Colour4.GreenYellow;
+                }
                 else
-                    Bass.ChannelGetLevel(Handle, levels, 1 / (float)BuffSize, LevelRetrievalFlags.Stereo);
+                {
+                    BassMix.ChannelGetLevel(Handle, levels, 1f / BuffSize, LevelRetrievalFlags.Stereo);
+                    volBarL.Colour = volBarR.Colour = Colour4.Green;
+                }
 
                 peak = (levels[0] + levels[1]) / 2f;
                 maxPeak = Math.Max(peak, maxPeak);
@@ -341,9 +243,10 @@ namespace osu.Framework.Tests.Visual.Audio
                 volBarR.TransformTo(nameof(Drawable.Height), levels[1], BuffSize * 4);
                 peakText.Text = $"{BassUtils.LevelToDb(peak):F}dB";
                 maxPeakText.Text = $"{BassUtils.LevelToDb(maxPeak):F}dB";
+                channelInfoText.Text = chanInfo.ChannelType.ToString();
             }
 
-            public void Reset()
+            public void ResetPeaks()
             {
                 peak = float.MinValue;
                 maxPeak = float.MinValue;
