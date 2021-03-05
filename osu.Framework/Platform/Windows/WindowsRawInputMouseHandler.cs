@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
@@ -17,8 +19,6 @@ namespace osu.Framework.Platform.Windows
         private const int raw_input_coordinate_space = 65536;
         private SDL.SDL_WindowsMessageHook callback;
         private SDL2DesktopWindow window;
-        private Vector2? lastRelativePosition;
-        private IntPtr lastRelativeDevice;
 
         public override bool IsActive => Enabled.Value;
         public override int Priority => 0;
@@ -75,44 +75,42 @@ namespace osu.Framework.Platform.Windows
 
             var mouse = data.Mouse;
 
-            var position = new Vector2(mouse.LastX, mouse.LastY);
-
             //TODO: this isn't correct.
             if (mouse.ExtraInformation > 0)
             {
                 // i'm not sure if there is a valid case where we need to handle packets with this present
                 // but the osu!tablet fires noise events with non-zero values, which we want to ignore.
-                return IntPtr.Zero;
+                // return IntPtr.Zero;
             }
 
-            // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
-            // using it here as a method of determining where the coordinate space is incorrect.
-            if (((int)mouse.Flags & 64) > 0)
-            {
-                // tablets that provide raw input in screen space instead of 0..65536
-                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
-            }
-            else
-            {
-                position /= raw_input_coordinate_space;
-                position = new Vector2(position.X * window.ClientSize.Width, position.Y * window.ClientSize.Height);
+            var position = new Vector2(mouse.LastX, mouse.LastY);
 
-                if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
+            // TODO: apply sensitivity adjustment.
+
+            if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
+            {
+                // TODO: map screen to client
+
+                // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
+                // using it here as a method of determining where the coordinate space is incorrect.
+                if (((int)mouse.Flags & 64) > 0)
                 {
+                    // tablets that provide raw input in screen space instead of 0..65536
                     PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
                 }
                 else
                 {
-                    if (lastRelativeDevice != data.Header.Device)
-                    {
-                        // if the relative data is coming from a new device, forget the last coordinate.
-                        lastRelativePosition = null;
-                        lastRelativeDevice = data.Header.Device;
-                    }
+                    var screenRect = mouse.Flags.HasFlagFast(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
 
-                    lastRelativePosition ??= position;
-                    PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX - lastRelativePosition.Value.X, mouse.LastY - lastRelativePosition.Value.Y) });
+                    position /= raw_input_coordinate_space;
+                    position = new Vector2(position.X * screenRect.Width, position.Y * screenRect.Height);
+
+                    PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
                 }
+            }
+            else
+            {
+                PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) });
             }
 
             return IntPtr.Zero;
