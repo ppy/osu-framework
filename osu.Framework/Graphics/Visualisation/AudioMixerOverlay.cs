@@ -8,152 +8,100 @@ using System.Collections.Specialized;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
-using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Track;
-using osu.Framework.Graphics;
-using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osuTK;
 
-namespace osu.Framework.Tests.Visual.Audio
+namespace osu.Framework.Graphics.Visualisation
 {
-    public class TestSceneBassMix2 : FrameworkTestScene
+    internal class AudioMixerOverlay : ToolWindow
     {
-        private AudioManager audio;
+        private readonly Dictionary<int, ChannelStrip> channelStrips = new Dictionary<int, ChannelStrip>();
+        private readonly FillFlowContainer stripContainer;
 
-        private TrackBass bassTrack;
-        private ITrackStore tracks;
-        private DrawableSample sample;
-
-        private MixerDrawable mixerDrawable;
-
-        [BackgroundDependencyLoader]
-        private void load(ITrackStore tracks, AudioManager audio)
+        public AudioMixerOverlay(AudioMixer mixer)
+            : base("AudioMixer", "(Ctrl+F9 to toggle)")
         {
-            this.tracks = tracks;
-            this.audio = audio;
-
-            Child = mixerDrawable = new MixerDrawable(audio.Mixer);
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            AddStep("idle", () =>
+            ScrollContent.Expire();
+            MainHorizontalContent.Add(new BasicScrollContainer(Direction.Horizontal)
             {
-                // do nothing
-            });
-            AddStep("load", () =>
-            {
-                bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
-            });
-            AddStep("play", () =>
-            {
-                bassTrack?.Start();
-            });
-            AddStep("stop", () =>
-            {
-                bassTrack?.Stop();
-            });
-            AddStep("Play SFX1", () =>
-            {
-                sample = new DrawableSample(audio.Samples.Get("long.mp3"));
-                sample?.Play();
-            });
-            AddStep("Reset Peaks", () =>
-            {
-                mixerDrawable.ResetPeaks();
-            });
-        }
-
-        public class MixerDrawable : CompositeDrawable
-        {
-            private Dictionary<int, ChannelStripDrawable> channelStrips = new Dictionary<int, ChannelStripDrawable>();
-            private readonly FillFlowContainer stripContainer;
-
-            public MixerDrawable(AudioMixer mixer)
-            {
-                RelativeSizeAxes = Axes.Both;
-                InternalChild = new BasicScrollContainer(Direction.Horizontal)
+                RelativeSizeAxes = Axes.Y,
+                Width = WIDTH,
+                Children = new[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new[]
+                    stripContainer = new FillFlowContainer
                     {
-                        stripContainer = new FillFlowContainer
-                        {
-                            RelativeSizeAxes = Axes.Y,
-                            AutoSizeAxes = Axes.X,
-                        }
-                    }
-                };
-
-                stripContainer.Add(new ChannelStripDrawable(mixer.MixerHandle));
-
-                mixer.MixChannels.CollectionChanged += updateChannels;
-            }
-
-            private void addChannels(IList items)
-            {
-                foreach (var item in items.Cast<int>())
-                {
-                    if (!channelStrips.ContainsKey(item))
-                    {
-                        channelStrips.Add(item, new ChannelStripDrawable(item));
-                        stripContainer.Add(channelStrips[item]);
+                        RelativeSizeAxes = Axes.Y,
+                        AutoSizeAxes = Axes.X,
                     }
                 }
-            }
+            });
 
-            private void removeChannels(IList items)
+            stripContainer.Add(new ChannelStrip(mixer.MixerHandle));
+
+            mixer.MixChannels.CollectionChanged += updateChannels;
+        }
+
+        private void addChannels(IList items)
+        {
+            foreach (var item in items.Cast<int>())
             {
-                foreach (var item in items.Cast<int>())
+                if (!channelStrips.ContainsKey(item))
                 {
+                    channelStrips.Add(item, new ChannelStrip(item));
+                    stripContainer.Add(channelStrips[item]);
+                }
+            }
+        }
+
+        private void removeChannels(IList items)
+        {
+            foreach (var item in items.Cast<int>())
+            {
+                if (channelStrips.ContainsKey(item))
                     stripContainer.Remove(channelStrips[item]);
-                    channelStrips.Remove(item);
-                }
-            }
 
-            private void updateChannels(object sender, NotifyCollectionChangedEventArgs e)
-            {
-                Schedule(() =>
-                {
-                    switch (e.Action)
-                    {
-                        case NotifyCollectionChangedAction.Add:
-                            addChannels(e.NewItems);
-                            break;
-
-                        case NotifyCollectionChangedAction.Remove:
-                            removeChannels(e.OldItems);
-                            break;
-
-                        case NotifyCollectionChangedAction.Reset:
-                            stripContainer.Clear();
-                            channelStrips.Clear();
-                            break;
-
-                        case NotifyCollectionChangedAction.Replace:
-                            removeChannels(e.OldItems);
-                            addChannels(e.NewItems);
-                            break;
-                    }
-                });
-            }
-
-            public void ResetPeaks()
-            {
-                foreach (var entry in channelStrips)
-                {
-                    entry.Value.ResetPeaks();
-                }
+                channelStrips.Remove(item);
             }
         }
 
-        public class ChannelStripDrawable : CompositeDrawable
+        private void updateChannels(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            Schedule(() =>
+            {
+                switch (e.Action)
+                {
+                    case NotifyCollectionChangedAction.Add:
+                        addChannels(e.NewItems);
+                        break;
+
+                    case NotifyCollectionChangedAction.Remove:
+                        removeChannels(e.OldItems);
+                        break;
+
+                    case NotifyCollectionChangedAction.Reset:
+                        stripContainer.Clear();
+                        channelStrips.Clear();
+                        break;
+
+                    case NotifyCollectionChangedAction.Replace:
+                        removeChannels(e.OldItems);
+                        addChannels(e.NewItems);
+                        break;
+                }
+            });
+        }
+
+        // public void ResetPeaks()
+        // {
+        //     foreach (var entry in channelStrips)
+        //     {
+        //         entry.Value.ResetPeaks();
+        //     }
+        // }
+
+        private class ChannelStrip : CompositeDrawable
         {
             public int Handle { get; protected set; }
             public int BuffSize = 30;
@@ -166,7 +114,7 @@ namespace osu.Framework.Tests.Visual.Audio
             private readonly SpriteText maxPeakText;
             private readonly TextFlowContainer channelInfoText;
 
-            public ChannelStripDrawable(int handle = 0)
+            public ChannelStrip(int handle = 0)
             {
                 Handle = handle;
 

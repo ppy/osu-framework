@@ -83,7 +83,7 @@ namespace osu.Framework.Audio
 
         public void StopChannel(int channelHandle)
         {
-            BassMix.ChannelFlags(channelHandle, BassFlags.Default, BassFlags.MixerPause);
+            BassMix.ChannelFlags(channelHandle, BassFlags.Default, BassFlags.MixerChanPause);
             Bass.ChannelSetPosition(channelHandle, 0);
         }
 
