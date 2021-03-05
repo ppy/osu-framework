@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -40,6 +42,14 @@ namespace osu.Framework.Platform.Windows
             }
 
             base.OpenFileExternally(filename);
+        }
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            // for windows platforms we want to override the relative mouse event handling behaviour.
+            return base.CreateAvailableInputHandlers()
+                       .Where(t => !(t is SDL2RelativeMouseHandler))
+                       .Concat(new[] { new WindowsRawInputMouseHandler() });
         }
 
         protected override void SetupForRun()
