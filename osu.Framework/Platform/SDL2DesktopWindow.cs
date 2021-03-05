@@ -830,7 +830,7 @@ namespace osu.Framework.Platform
             if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
                 ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
             else
-                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel, evtMotion.yrel)));
+                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale)));
         }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
