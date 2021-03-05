@@ -11,7 +11,7 @@ using osuTK.Input;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
-    public class RawMouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
+    public class SDL2RelativeMouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
     {
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
