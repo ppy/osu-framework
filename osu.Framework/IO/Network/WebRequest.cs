@@ -223,7 +223,7 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public async Task PerformAsync() => await PerformAsync(default);
+        public Task PerformAsync() => PerformAsync(default);
 
         /// <summary>
         /// Performs the request asynchronously.
