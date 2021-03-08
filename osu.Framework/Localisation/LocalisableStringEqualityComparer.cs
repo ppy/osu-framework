@@ -24,10 +24,7 @@ namespace osu.Framework.Localisation
                 return false;
 
             if (ReferenceEquals(null, xData))
-            {
-                Debug.Assert(ReferenceEquals(null, yData));
                 return true;
-            }
 
             if (xData.GetType() != yData.GetType())
                 return EqualityComparer<object>.Default.Equals(xData, yData);
