@@ -17,47 +17,34 @@ namespace osu.Framework.Localisation
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {
-            bool xIsNull = ReferenceEquals(null, x.Data);
-            bool yIsNull = ReferenceEquals(null, y.Data);
+            var xData = x.Data;
+            var yData = y.Data;
 
-            // Nullability differs.
-            if (xIsNull != yIsNull)
+            if (ReferenceEquals(null, xData) != ReferenceEquals(null, yData))
                 return false;
 
-            // Both are null.
-            if (xIsNull)
+            if (ReferenceEquals(null, xData))
             {
-                Debug.Assert(yIsNull);
+                Debug.Assert(ReferenceEquals(null, yData));
                 return true;
             }
 
-            if (x.Data is string strX)
-            {
-                if (y.Data is string strY)
-                    return strX.Equals(strY, StringComparison.Ordinal);
+            if (xData.GetType() != yData.GetType())
+                return EqualityComparer<object>.Default.Equals(xData, yData);
 
-                return false;
+            switch (xData)
+            {
+                case string strX:
+                    return strX.Equals((string)yData, StringComparison.Ordinal);
+
+                case TranslatableString translatableX:
+                    return translatableX.Equals((TranslatableString)yData);
+
+                case RomanisableString romanisableX:
+                    return romanisableX.Equals((RomanisableString)yData);
             }
 
-            if (x.Data is TranslatableString translatableX)
-            {
-                if (y.Data is TranslatableString translatableY)
-                    return translatableX.Equals(translatableY);
-
-                return false;
-            }
-
-            if (x.Data is RomanisableString romanisableX)
-            {
-                if (y.Data is RomanisableString romanisableY)
-                    return romanisableX.Equals(romanisableY);
-
-                return false;
-            }
-
-            Debug.Assert(x.Data != null);
-            Debug.Assert(y.Data != null);
-            return EqualityComparer<object>.Default.Equals(x.Data, y.Data);
+            return false;
         }
 
         public int GetHashCode(LocalisableString obj)
