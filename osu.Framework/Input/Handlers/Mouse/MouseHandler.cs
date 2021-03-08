@@ -37,7 +37,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                     return;
 
                 useRelativeMode = value;
-                updateRelativeMode();
+                if (window != null)
+                    updateRelativeMode();
             }
         }
 
