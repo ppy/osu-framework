@@ -69,28 +69,28 @@ namespace osu.Framework.Extensions.EnumExtensions
             {
                 var value1 = Unsafe.As<T, byte>(ref enumValue);
                 var value2 = Unsafe.As<T, byte>(ref flag);
-                return (value1 & value2) > 0;
+                return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 2)
             {
                 var value1 = Unsafe.As<T, short>(ref enumValue);
                 var value2 = Unsafe.As<T, short>(ref flag);
-                return (value1 & value2) > 0;
+                return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 4)
             {
                 var value1 = Unsafe.As<T, int>(ref enumValue);
                 var value2 = Unsafe.As<T, int>(ref flag);
-                return (value1 & value2) > 0;
+                return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 8)
             {
                 var value1 = Unsafe.As<T, long>(ref enumValue);
                 var value2 = Unsafe.As<T, long>(ref flag);
-                return (value1 & value2) > 0;
+                return (value1 & value2) == value2;
             }
 
             throw new ArgumentException($"Invalid enum type provided: {typeof(T)}.");
