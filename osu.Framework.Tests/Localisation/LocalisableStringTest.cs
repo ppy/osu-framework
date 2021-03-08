@@ -16,7 +16,7 @@ namespace osu.Framework.Tests.Localisation
         public void TestTranslatableStringEqualsTranslatableString()
         {
             var str1 = new TranslatableString(string_a, string_b, string_a, string_b);
-            var str2 = new TranslatableString(string_b, string_a, string_a, string_b);
+            var str2 = new TranslatableString(string_a, string_b);
 
             Assert.That(str1.Equals(str1));
             Assert.That(str1.Equals(new TranslatableString(string_a, string_b, string_a, string_b))); // Structurally equal
@@ -33,5 +33,38 @@ namespace osu.Framework.Tests.Localisation
             Assert.That(str1.Equals(new RomanisableString(string_a, string_b))); // Structurally equal
             Assert.That(!str1.Equals(str2));
         }
+
+        [Test]
+        public void TestLocalisableStringEqualsString()
+        {
+            LocalisableString localisable = makeString('a');
+
+            Assert.That(localisable.Equals(string_a));
+            Assert.That(!localisable.Equals(string_b));
+        }
+
+        [Test]
+        public void TestLocalisableStringEqualsTranslatableString()
+        {
+            LocalisableString localisable = new TranslatableString(string_a, string_b, string_a, string_b);
+
+            Assert.That(localisable.Equals(new TranslatableString(string_a, string_b, string_a, string_b))); // Structurally equal
+            Assert.That(!localisable.Equals(new TranslatableString(string_b, string_a)));
+            Assert.That(!localisable.Equals(makeString('a')));
+            Assert.That(!localisable.Equals(new RomanisableString(string_a, string_b)));
+        }
+
+        [Test]
+        public void TestLocalisableStringEqualsRomanisableString()
+        {
+            LocalisableString localisable = new RomanisableString(string_a, string_b);
+
+            Assert.That(localisable.Equals(new RomanisableString(string_a, string_b))); // Structurally equal
+            Assert.That(!localisable.Equals(new RomanisableString(string_b, string_a)));
+            Assert.That(!localisable.Equals(makeString('a')));
+            Assert.That(!localisable.Equals(new TranslatableString(string_a, string_b)));
+        }
+
+        private string makeString(params char[] chars) => new string(chars);
     }
 }

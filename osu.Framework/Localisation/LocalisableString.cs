@@ -22,7 +22,32 @@ namespace osu.Framework.Localisation
         // it's somehow common to call default(LocalisableString), and we should return empty string then.
         public override string ToString() => Data?.ToString() ?? string.Empty;
 
-        public bool Equals(LocalisableString other) => Data == other.Data;
+        public bool Equals(LocalisableString other)
+        {
+            if (Data is string strThis)
+            {
+                if (other.Data is string strOther)
+                    return strThis.Equals(strOther);
+
+                return false;
+            }
+
+            if (Data is TranslatableString translatableThis)
+            {
+                if (other.Data is TranslatableString translatableOther)
+                    return translatableThis.Equals(translatableOther);
+
+                return false;
+            }
+
+            if (Data is RomanisableString romanisableThis)
+            {
+                if (other.Data is RomanisableString romanisableOther)
+                    return romanisableThis.Equals(romanisableOther);
+            }
+
+            return false;
+        }
 
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
