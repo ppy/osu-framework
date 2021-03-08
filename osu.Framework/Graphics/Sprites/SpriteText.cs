@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Sprites
             get => text;
             set
             {
-                if (text == value)
+                if (text.Equals(value))
                     return;
 
                 text = value;

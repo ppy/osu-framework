@@ -27,7 +27,7 @@ namespace osu.Framework.Localisation
             if (Data is string strThis)
             {
                 if (other.Data is string strOther)
-                    return strThis.Equals(strOther);
+                    return strThis.Equals(strOther, StringComparison.Ordinal);
 
                 return false;
             }
@@ -52,9 +52,6 @@ namespace osu.Framework.Localisation
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
         public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
-
-        public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
-        public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
 
         public override bool Equals(object? obj) => obj is LocalisableString other && Equals(other);
         public override int GetHashCode() => Data?.GetHashCode() ?? 0;
