@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 #nullable enable
 
@@ -24,6 +26,20 @@ namespace osu.Framework.Localisation
 
         public bool Equals(LocalisableString other)
         {
+            bool thisIsNull = ReferenceEquals(null, Data);
+            bool otherIsNull = ReferenceEquals(null, other.Data);
+
+            // Nullability differs.
+            if (thisIsNull != otherIsNull)
+                return false;
+
+            // Both are null.
+            if (thisIsNull)
+            {
+                Debug.Assert(otherIsNull);
+                return true;
+            }
+
             if (Data is string strThis)
             {
                 if (other.Data is string strOther)
@@ -46,7 +62,9 @@ namespace osu.Framework.Localisation
                     return romanisableThis.Equals(romanisableOther);
             }
 
-            return false;
+            Debug.Assert(Data != null);
+            Debug.Assert(other.Data != null);
+            return EqualityComparer<object>.Default.Equals(Data, other.Data);
         }
 
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
