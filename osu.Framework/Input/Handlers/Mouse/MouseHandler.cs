@@ -99,18 +99,20 @@ namespace osu.Framework.Input.Handlers.Mouse
             {
                 // store the last mouse position to propagate back to the host window manager when exiting relative mode.
                 lastPosition = position;
-            }
 
-            // handle the case where relative / raw input is active, but the cursor may have exited the window
-            // bounds and is not intended to be confined.
-            if (window.RelativeMouseMode && !window.CursorConfined)
-            {
-                if (position.X < 0 || position.Y < 0 || position.X > window.Size.Width || position.Y > window.Size.Height)
+                // handle the case where relative / raw input is active, but the cursor may have exited the window
+                // bounds and is not intended to be confined.
+                if (!window.CursorConfined)
                 {
-                    // setting relative mode to false will allow the window manager to take control until the next
-                    // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
-                    window.RelativeMouseMode = false;
-                    transferLastPositionToHostCursor();
+                    bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
+
+                    if (positionOutsideWindow)
+                    {
+                        // setting relative mode to false will allow the window manager to take control until the next
+                        // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
+                        window.RelativeMouseMode = false;
+                        transferLastPositionToHostCursor();
+                    }
                 }
             }
         }
@@ -148,7 +150,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void transferLastPositionToHostCursor()
         {
-            // while a noop on windows, this causes weirdness on (at least) macOS.
+            // while a noop on windows, some platforms (macOS) will not warp the host mouse when in relative mode.
             Debug.Assert(!window.RelativeMouseMode);
 
             if (lastPosition != null)
