@@ -58,7 +58,8 @@ namespace osu.Framework.Localisation
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Original == other.Original && Romanised == other.Romanised;
+            return Original == other.Original
+                   && Romanised == other.Romanised;
         }
 
         public override bool Equals(object? obj)
