@@ -23,9 +23,6 @@ namespace osu.Framework.Input.Bindings
     public abstract class KeyBindingContainer<T> : KeyBindingContainer
         where T : struct
     {
-        [Resolved]
-        protected GameHost Host { get; private set; }
-
         private readonly SimultaneousBindingMode simultaneousMode;
         private readonly KeyCombinationMatchingMode matchingMode;
 
@@ -330,6 +327,12 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
+        // This is only specified here (rather than in PlatformContainer, where it is consumed) to workaround
+        // a critical iOS / Xamarin bug. It should not need to be here.
+        // See https://github.com/ppy/osu-framework/pull/4263 for discussion.
+        [Resolved]
+        protected GameHost Host { get; private set; }
+
         protected IEnumerable<IKeyBinding> KeyBindings;
 
         public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
