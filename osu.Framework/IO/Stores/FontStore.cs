@@ -98,12 +98,12 @@ namespace osu.Framework.IO.Stores
             childStoreLoadTasks = Task.Run(async () =>
             {
                 if (previousLoadStream != null)
-                    await previousLoadStream;
+                    await previousLoadStream.ConfigureAwait(false);
 
                 try
                 {
                     Logger.Log($"Loading Font {store.FontName}...", level: LogLevel.Debug);
-                    await store.LoadFontAsync();
+                    await store.LoadFontAsync().ConfigureAwait(false);
                     Logger.Log($"Loaded Font {store.FontName}!", level: LogLevel.Debug);
                 }
                 catch

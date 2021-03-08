@@ -45,7 +45,7 @@ namespace osu.Framework.IO.Stores
                 if (stream == null) return null;
 
                 byte[] buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer.AsMemory());
+                await stream.ReadAsync(buffer.AsMemory()).ConfigureAwait(false);
                 return buffer;
             }
         }
