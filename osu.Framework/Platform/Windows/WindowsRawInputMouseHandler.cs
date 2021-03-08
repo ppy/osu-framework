@@ -93,20 +93,30 @@ namespace osu.Framework.Platform.Windows
             {
                 var screenRect = mouse.Flags.HasFlagFast(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
 
+                Vector2 screenSize = new Vector2(screenRect.Width, screenRect.Height);
+
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
                 // using it here as a method of determining where the coordinate space is incorrect.
                 if (((int)mouse.Flags & 64) == 0)
                 {
                     position /= raw_input_coordinate_space;
-                    position = new Vector2(position.X * screenRect.Width, position.Y * screenRect.Height);
+                    position *= screenSize;
+                }
+
+                if (Sensitivity.Value != 1)
+                {
+                    // apply absolute sensitivity adjustment from the centre of the screen area.
+                    Vector2 halfScreenSize = (screenSize / 2);
+
+                    position -= halfScreenSize;
+                    position *= (float)Sensitivity.Value;
+                    position += halfScreenSize;
                 }
 
                 // map from screen to client coordinate space.
                 // not using Window's PointToClient implementation to keep floating point precision here.
                 position -= new Vector2(window.Position.X, window.Position.Y);
                 position *= window.Scale;
-
-                // TODO: apply sensitivity adjustment.
 
                 PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
             }
