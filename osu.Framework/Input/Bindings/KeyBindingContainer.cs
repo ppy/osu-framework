@@ -4,12 +4,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Input.Bindings
@@ -21,6 +23,9 @@ namespace osu.Framework.Input.Bindings
     public abstract class KeyBindingContainer<T> : KeyBindingContainer
         where T : struct
     {
+        [Resolved]
+        protected GameHost Host { get; private set; }
+
         private readonly SimultaneousBindingMode simultaneousMode;
         private readonly KeyCombinationMatchingMode matchingMode;
 
