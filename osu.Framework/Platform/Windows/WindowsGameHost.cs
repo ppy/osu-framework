@@ -19,6 +19,8 @@ namespace osu.Framework.Platform.Windows
     {
         private TimePeriod timePeriod;
 
+        private WindowsRawInputMouseHandler rawInputHandler;
+
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -51,8 +53,8 @@ namespace osu.Framework.Platform.Windows
                        .Where(t => !(t is MouseHandler))
                        .Concat(new InputHandler[]
                        {
-                           new WindowsMouseHandler(),
-                           new WindowsRawInputMouseHandler()
+                           rawInputHandler = new WindowsRawInputMouseHandler(),
+                           new WindowsMouseHandler(() => rawInputHandler.IsActive),
                        });
         }
 
