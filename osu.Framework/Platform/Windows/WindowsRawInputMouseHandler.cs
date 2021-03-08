@@ -91,26 +91,24 @@ namespace osu.Framework.Platform.Windows
 
             if (mouse.Flags.HasFlagFast(RawMouseFlags.MoveAbsolute))
             {
-                // TODO: map screen to client
-
-                // TODO: apply sensitivity adjustment.
+                var screenRect = mouse.Flags.HasFlagFast(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
 
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
                 // using it here as a method of determining where the coordinate space is incorrect.
-                if (((int)mouse.Flags & 64) > 0)
+                if (((int)mouse.Flags & 64) == 0)
                 {
-                    // tablets that provide raw input in screen space instead of 0..65536
-                    PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
-                }
-                else
-                {
-                    var screenRect = mouse.Flags.HasFlagFast(RawMouseFlags.VirtualDesktop) ? Native.Input.VirtualScreenRect : new Rectangle(window.Position, window.ClientSize);
-
                     position /= raw_input_coordinate_space;
                     position = new Vector2(position.X * screenRect.Width, position.Y * screenRect.Height);
-
-                    PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
                 }
+
+                // map from screen to client coordinate space.
+                // not using Window's PointToClient implementation to keep floating point precision here.
+                position -= new Vector2(window.Position.X, window.Position.Y);
+                position *= window.Scale;
+
+                // TODO: apply sensitivity adjustment.
+
+                PendingInputs.Enqueue(new MousePositionAbsoluteInput { Position = position });
             }
             else
             {
