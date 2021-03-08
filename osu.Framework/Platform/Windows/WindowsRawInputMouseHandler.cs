@@ -95,6 +95,12 @@ namespace osu.Framework.Platform.Windows
 
                 Vector2 screenSize = new Vector2(screenRect.Width, screenRect.Height);
 
+                if (mouse.LastX == 0 && mouse.LastY == 0)
+                {
+                    // not sure if this is the case for all tablets, but on osu!tablet these can appear and are noise.
+                    return IntPtr.Zero;
+                }
+
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
                 // using it here as a method of determining where the coordinate space is incorrect.
                 if (((int)mouse.Flags & 64) == 0)
