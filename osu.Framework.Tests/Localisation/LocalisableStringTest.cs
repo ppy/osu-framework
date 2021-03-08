@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestNullEqualsNull()
         {
-            testEquals(false, new LocalisableString(), new LocalisableString());
+            testEquals(true, new LocalisableString(), new LocalisableString());
         }
 
         [Test]
