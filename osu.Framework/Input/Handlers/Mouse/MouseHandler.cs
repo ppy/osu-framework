@@ -23,6 +23,24 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override int Priority => 0;
 
+        private bool useRelativeMode = true;
+
+        /// <summary>
+        /// Whether relative mode should be preferred when the window has focus and the cursor is contained.
+        /// </summary>
+        public bool UseRelativeMode
+        {
+            get => useRelativeMode;
+            set
+            {
+                if (value == useRelativeMode)
+                    return;
+
+                useRelativeMode = value;
+                updateRelativeMode();
+            }
+        }
+
         private SDL2DesktopWindow window;
 
         private Vector2? lastPosition;
@@ -99,7 +117,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void updateRelativeMode()
         {
-            window.RelativeMouseMode = Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+            window.RelativeMouseMode = useRelativeMode && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();
