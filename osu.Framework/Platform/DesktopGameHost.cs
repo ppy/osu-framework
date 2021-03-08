@@ -120,23 +120,13 @@ namespace osu.Framework.Platform
 
                 default:
                 {
-                    var defaultEnabled = new InputHandler[]
+                    return new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
                         new JoystickHandler(),
                         new MidiInputHandler(),
                     };
-
-                    var defaultDisabled = new InputHandler[]
-                    {
-                        new SDL2RelativeMouseHandler(),
-                    };
-
-                    foreach (var h in defaultDisabled)
-                        h.Enabled.Value = false;
-
-                    return defaultEnabled.Concat(defaultDisabled);
                 }
             }
         }
