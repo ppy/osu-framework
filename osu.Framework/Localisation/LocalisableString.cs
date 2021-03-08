@@ -67,11 +67,24 @@ namespace osu.Framework.Localisation
             return EqualityComparer<object>.Default.Equals(Data, other.Data);
         }
 
+        public override bool Equals(object? obj) => obj is LocalisableString other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            if (Data is string str)
+                return str.GetHashCode();
+
+            if (Data is TranslatableString translatable)
+                return translatable.GetHashCode();
+
+            if (Data is RomanisableString romanisable)
+                return romanisable.GetHashCode();
+
+            return Data?.GetHashCode() ?? 0;
+        }
+
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
         public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
-
-        public override bool Equals(object? obj) => obj is LocalisableString other && Equals(other);
-        public override int GetHashCode() => Data?.GetHashCode() ?? 0;
     }
 }
