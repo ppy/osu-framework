@@ -17,6 +17,9 @@ namespace osu.Framework.Platform.MacOS
         private static readonly IntPtr sel_scrollingdeltay = Selector.Get("scrollingDeltaY");
         private static readonly IntPtr sel_respondstoselector_ = Selector.Get("respondsToSelector:");
 
+        /// <summary>
+        /// The default fullscreen presentation options SDL uses: https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
+        /// </summary>
         private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
             NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
@@ -49,6 +52,7 @@ namespace osu.Framework.Platform.MacOS
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
 
             // handle invisible cursor when providing presentation options for "fullscreen desktop" mode.
+            // as SDL overwrites the options there, see https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
             var windowClass = Class.Get("Cocoa_WindowListener");
             windowWillUseFullScreenHandler = windowWillUseFullScreen;
             Class.RegisterMethod(windowClass, windowWillUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
