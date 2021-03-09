@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Development
 {
@@ -61,18 +61,11 @@ namespace osu.Framework.Development
                                          .Where(method => method.IsDefined(attributeType, inherit: true))
                                          .ToLookup(method => method.DeclaringType);
 
-            return typeAndBaseTypes(fixtureType)
+            return fixtureType
+                   .EnumerateBaseTypes()
                    .Reverse()
                    .SelectMany(declaringType => methodsByDeclaringType[declaringType])
                    .ToArray();
-        }
-
-        private static IEnumerable<Type> typeAndBaseTypes(Type type)
-        {
-            for (; type != null; type = type.GetTypeInfo().BaseType)
-            {
-                yield return type;
-            }
         }
     }
 }
