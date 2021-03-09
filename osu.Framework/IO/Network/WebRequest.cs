@@ -322,7 +322,7 @@ namespace osu.Framework.IO.Network
 #if NET5_0
                             postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
-                            postContent = await formData.ReadAsStreamAsync();
+                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
                         }
 
@@ -430,7 +430,9 @@ namespace osu.Framework.IO.Network
                                                       .ReadAsStreamAsync(cancellationToken)
                                                       .ConfigureAwait(false))
 #else
-            using (var responseStream = await response.Content.ReadAsStreamAsync())
+            using (var responseStream = await response.Content
+                                                      .ReadAsStreamAsync()
+                                                      .ConfigureAwait(false))
 #endif
             {
                 reportForwardProgress();
