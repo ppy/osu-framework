@@ -52,10 +52,6 @@ namespace osu.Framework.Platform
             if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
         }
 
-        protected override void SetupToolkit()
-        {
-        }
-
         protected override void DrawFrame()
         {
             //we can't draw.

@@ -218,15 +218,10 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        private Toolkit toolkit;
-
-        private readonly ToolkitOptions toolkitOptions;
-
         private bool suspended;
 
-        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
+        protected GameHost(string gameName = @"")
         {
-            this.toolkitOptions = toolkitOptions;
             Name = gameName;
         }
 
@@ -541,8 +536,6 @@ namespace osu.Framework.Platform
 
             try
             {
-                SetupToolkit();
-
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -699,11 +692,6 @@ namespace osu.Framework.Platform
         protected virtual void SetupForRun()
         {
             Logger.Storage = Storage.GetStorageForDirectory("logs");
-        }
-
-        protected virtual void SetupToolkit()
-        {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
         }
 
         private void resetInputHandlers()
@@ -940,8 +928,6 @@ namespace osu.Framework.Platform
             DebugConfig?.Dispose();
 
             Window?.Dispose();
-
-            toolkit?.Dispose();
 
             Logger.Flush();
         }
