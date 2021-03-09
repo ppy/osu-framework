@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers
         /// <summary>
         /// A user-readable description of this input handler, for display in settings.
         /// </summary>
-        public abstract string Description { get; }
+        public virtual string Description => ToString().Replace("Handler", string.Empty);
 
         /// <summary>
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
