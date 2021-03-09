@@ -48,7 +48,7 @@ namespace osu.Framework.Input.Handlers
         /// <summary>
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
-        public readonly BindableBool Enabled = new BindableBool(true);
+        public BindableBool Enabled { get; } = new BindableBool(true);
 
         public override string ToString() => GetType().Name;
 
