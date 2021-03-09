@@ -17,7 +17,14 @@ namespace osu.Framework.Platform.MacOS
         private static readonly IntPtr sel_scrollingdeltay = Selector.Get("scrollingDeltaY");
         private static readonly IntPtr sel_respondstoselector_ = Selector.Get("respondsToSelector:");
 
+        private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
+            NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
+
+        private delegate uint WindowWillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
+
         private delegate void ScrollWheelDelegate(IntPtr handle, IntPtr selector, IntPtr theEvent); // v@:@
+
+        private WindowWillUseFullScreenDelegate windowWillUseFullScreenHandler;
 
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
@@ -41,15 +48,30 @@ namespace osu.Framework.Platform.MacOS
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
 
+            // handle invisible cursor when providing presentation options for "fullscreen desktop" mode.
+            var windowClass = Class.Get("Cocoa_WindowListener");
+            windowWillUseFullScreenHandler = windowWillUseFullScreen;
+            Class.RegisterMethod(windowClass, windowWillUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
+
             CursorInWindow.BindValueChanged(_ => updateCursorAssistanceState(), true);
         }
 
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) =>
+            (uint)applyCursorAssistanceState(default_fullscreen_presentation_options);
+
         private void updateCursorAssistanceState()
         {
+            NSApplication.PresentationOptions = applyCursorAssistanceState(NSApplication.PresentationOptions);
+        }
+
+        private NSApplicationPresentationOptions applyCursorAssistanceState(NSApplicationPresentationOptions options)
+        {
             if (CursorInWindow.Value && !CursorVisible)
-                NSApplication.PresentationOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+                options |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
             else
-                NSApplication.PresentationOptions &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+                options &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+
+            return options;
         }
 
         /// <summary>
