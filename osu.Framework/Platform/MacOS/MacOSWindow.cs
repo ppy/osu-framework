@@ -60,22 +60,24 @@ namespace osu.Framework.Platform.MacOS
             CursorInWindow.BindValueChanged(_ => updateCursorAssistanceState(), true);
         }
 
-        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options) =>
-            (uint)applyCursorAssistanceState(default_fullscreen_presentation_options);
+        private bool shouldDisableCursorAssistance => CursorInWindow.Value && !CursorVisible;
+
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options)
+        {
+            var fullscreenOptions = default_fullscreen_presentation_options;
+
+            if (shouldDisableCursorAssistance)
+                fullscreenOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+
+            return (uint)fullscreenOptions;
+        }
 
         private void updateCursorAssistanceState()
         {
-            NSApplication.PresentationOptions = applyCursorAssistanceState(NSApplication.PresentationOptions);
-        }
-
-        private NSApplicationPresentationOptions applyCursorAssistanceState(NSApplicationPresentationOptions options)
-        {
-            if (CursorInWindow.Value && !CursorVisible)
-                options |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+            if (shouldDisableCursorAssistance)
+                NSApplication.PresentationOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
             else
-                options &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
-
-            return options;
+                NSApplication.PresentationOptions &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
         }
 
         /// <summary>
