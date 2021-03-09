@@ -10,7 +10,7 @@ using osu.Framework.Input.StateChanges;
 
 namespace osu.Framework.Input.Handlers
 {
-    public abstract class InputHandler : IDisposable
+    public abstract class InputHandler : IDisposable, IHasDescription
     {
         /// <summary>
         /// Used to initialize resources specific to this InputHandler. It gets called once.
@@ -44,6 +44,11 @@ namespace osu.Framework.Input.Handlers
         /// Indicated how high of a priority this handler has. The active handler with the highest priority is controlling the cursor at any given time.
         /// </summary>
         public abstract int Priority { get; }
+
+        /// <summary>
+        /// A user-readable description of this input handler, for display in settings.
+        /// </summary>
+        public abstract string Description { get; }
 
         /// <summary>
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
