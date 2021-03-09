@@ -93,7 +93,7 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    T result = await store.GetAsync(f);
+                    T result = await store.GetAsync(f).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
