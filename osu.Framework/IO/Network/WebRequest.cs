@@ -223,7 +223,7 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public async Task PerformAsync() => await PerformAsync(default);
+        public Task PerformAsync() => PerformAsync(default);
 
         /// <summary>
         /// Performs the request asynchronously.
@@ -236,7 +236,7 @@ namespace osu.Framework.IO.Network
 
             try
             {
-                await internalPerform(cancellationToken);
+                await internalPerform(cancellationToken).ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {
@@ -296,7 +296,7 @@ namespace osu.Framework.IO.Network
                             postContent = new MemoryStream();
                             rawContent.Position = 0;
 
-                            await rawContent.CopyToAsync(postContent, linkedToken.Token);
+                            await rawContent.CopyToAsync(postContent, linkedToken.Token).ConfigureAwait(false);
 
                             postContent.Position = 0;
                         }
@@ -320,9 +320,9 @@ namespace osu.Framework.IO.Network
                             }
 
 #if NET5_0
-                            postContent = await formData.ReadAsStreamAsync(linkedToken.Token);
+                            postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
 #else
-                            postContent = await formData.ReadAsStreamAsync();
+                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
                         }
 
@@ -353,21 +353,23 @@ namespace osu.Framework.IO.Network
 
                     using (request)
                     {
-                        response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token);
+                        response = await client
+                                         .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token)
+                                         .ConfigureAwait(false);
 
                         ResponseStream = CreateOutputStream();
 
                         if (Method == HttpMethod.Get)
                         {
                             //GETs are easy
-                            await beginResponse(linkedToken.Token);
+                            await beginResponse(linkedToken.Token).ConfigureAwait(false);
                         }
                         else
                         {
                             reportForwardProgress();
                             UploadProgress?.Invoke(0, contentLength);
 
-                            await beginResponse(linkedToken.Token);
+                            await beginResponse(linkedToken.Token).ConfigureAwait(false);
                         }
                     }
                 }
@@ -424,9 +426,13 @@ namespace osu.Framework.IO.Network
         private async Task beginResponse(CancellationToken cancellationToken)
         {
 #if NET5_0
-            using (var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken))
+            using (var responseStream = await response.Content
+                                                      .ReadAsStreamAsync(cancellationToken)
+                                                      .ConfigureAwait(false))
 #else
-            using (var responseStream = await response.Content.ReadAsStreamAsync())
+            using (var responseStream = await response.Content
+                                                      .ReadAsStreamAsync()
+                                                      .ConfigureAwait(false))
 #endif
             {
                 reportForwardProgress();
@@ -438,13 +444,18 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer.AsMemory(), cancellationToken);
+                    int read = await responseStream
+                                     .ReadAsync(buffer.AsMemory(), cancellationToken)
+                                     .ConfigureAwait(false);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        await ResponseStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                        await ResponseStream
+                              .WriteAsync(buffer.AsMemory(0, read), cancellationToken)
+                              .ConfigureAwait(false);
+
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
@@ -738,7 +749,8 @@ namespace osu.Framework.IO.Network
                         localToken = linkedTokenSource.Token;
                     }
 
-                    return await attemptConnection(AddressFamily.InterNetworkV6, context, localToken);
+                    return await attemptConnection(AddressFamily.InterNetworkV6, context, localToken)
+                        .ConfigureAwait(false);
                 }
                 catch
                 {
@@ -754,7 +766,7 @@ namespace osu.Framework.IO.Network
             }
 
             // fallback to IPv4.
-            return await attemptConnection(AddressFamily.InterNetwork, context, cancellationToken);
+            return await attemptConnection(AddressFamily.InterNetwork, context, cancellationToken).ConfigureAwait(false);
         }
 
         private static async ValueTask<Stream> attemptConnection(AddressFamily addressFamily, SocketsHttpConnectionContext context, CancellationToken cancellationToken)

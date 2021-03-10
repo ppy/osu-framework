@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Video;
 using osu.Framework.IO.Network;
@@ -14,7 +15,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         private static MemoryStream consumeVideoStream()
         {
             var wr = new WebRequest("https://assets.ppy.sh/media/landing.mp4");
-            wr.PerformAsync();
+            Task.Run(() => wr.PerformAsync());
 
             while (!wr.Completed)
                 Thread.Sleep(100);

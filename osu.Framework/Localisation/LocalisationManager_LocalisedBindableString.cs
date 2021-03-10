@@ -51,7 +51,7 @@ namespace osu.Framework.Localisation
             {
                 set
                 {
-                    if (text == value)
+                    if (text.Equals(value))
                         return;
 
                     text = value;

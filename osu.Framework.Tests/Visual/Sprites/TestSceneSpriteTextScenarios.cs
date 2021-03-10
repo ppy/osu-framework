@@ -289,7 +289,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 EffectiveCulture = new CultureInfo(locale);
             }
 
-            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name)).ConfigureAwait(false);
 
             public string Get(string name)
             {

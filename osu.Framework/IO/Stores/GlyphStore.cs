@@ -132,7 +132,7 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return !(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
+            return !(await completionSource.Task.ConfigureAwait(false)).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
         }
 
         protected int LoadedGlyphCount;
