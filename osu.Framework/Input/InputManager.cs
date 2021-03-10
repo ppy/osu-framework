@@ -256,7 +256,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
-            manager.GetInputQueue = () => NonPositionalInputQueue;
+            manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
 
