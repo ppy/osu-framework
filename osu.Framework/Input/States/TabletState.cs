@@ -12,9 +12,9 @@ namespace osu.Framework.Input.States
         public readonly ButtonStates<TabletPenButton> PenButtons = new ButtonStates<TabletPenButton>();
         public readonly ButtonStates<TabletAuxiliaryButton> AuxiliaryButtons = new ButtonStates<TabletAuxiliaryButton>();
 
-        public Vector2 Position { set; get; }
+        public Vector2 Position { get; set; }
 
-        public double Pressure { set; get; }
+        public double Pressure { get; set; }
 
         /// <summary>
         /// The last input source to make a change to the state.
