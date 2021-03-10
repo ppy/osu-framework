@@ -94,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Testing
             // Under both nUnit and the test browser, this should be invoked once _after_ each test method.
             AddAssert("correct teardown step run", () => teardownStepsDummyRun == testRunCountDummyRun - 1);
 
-            AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text == "set up second step").IsSetupStep);
+            AddAssert("setup step marked as such", () => StepsContainer.OfType<StepButton>().First(s => s.Text.ToString() == "set up second step").IsSetupStep);
 
             testRunCount++;
         }

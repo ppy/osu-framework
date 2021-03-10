@@ -123,7 +123,7 @@ namespace osu.Framework.Platform
 
                 default:
                 {
-                    var defaultEnabled = new InputHandler[]
+                    return new InputHandler[]
                     {
                         new KeyboardHandler(),
                         new MouseHandler(),
@@ -133,16 +133,6 @@ namespace osu.Framework.Platform
                         new Input.Handlers.Tablet.OpenTabletDriverHandler()
 #endif
                     };
-
-                    var defaultDisabled = new InputHandler[]
-                    {
-                        new OsuTKRawMouseHandler(),
-                    };
-
-                    foreach (var h in defaultDisabled)
-                        h.Enabled.Value = false;
-
-                    return defaultEnabled.Concat(defaultDisabled);
                 }
             }
         }
