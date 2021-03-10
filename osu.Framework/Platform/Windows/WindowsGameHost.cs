@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -16,6 +18,8 @@ namespace osu.Framework.Platform.Windows
     public class WindowsGameHost : DesktopGameHost
     {
         private TimePeriod timePeriod;
+
+        private WindowsRawInputMouseHandler rawInputHandler;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
@@ -40,6 +44,18 @@ namespace osu.Framework.Platform.Windows
             }
 
             base.OpenFileExternally(filename);
+        }
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            // for windows platforms we want to override the relative mouse event handling behaviour.
+            return base.CreateAvailableInputHandlers()
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[]
+                       {
+                           rawInputHandler = new WindowsRawInputMouseHandler(),
+                           new WindowsMouseHandler(() => rawInputHandler.IsActive),
+                       });
         }
 
         protected override void SetupForRun()
