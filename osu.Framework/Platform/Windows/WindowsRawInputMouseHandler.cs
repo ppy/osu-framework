@@ -21,7 +21,7 @@ namespace osu.Framework.Platform.Windows
     {
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
-        private const int raw_input_coordinate_space = 65536;
+        private const int raw_input_coordinate_space = 65535;
 
         private SDL.SDL_WindowsMessageHook callback;
         private SDL2DesktopWindow window;
