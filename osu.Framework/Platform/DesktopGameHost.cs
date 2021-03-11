@@ -90,7 +90,7 @@ namespace osu.Framework.Platform
                 new JoystickHandler(),
                 new MidiInputHandler(),
 #if NET5_0
-                new Input.Handlers.Tablet.OpenTabletDriverHandler()
+                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif
             };
 
