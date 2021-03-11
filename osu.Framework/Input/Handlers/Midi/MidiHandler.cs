@@ -15,7 +15,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Input.Handlers.Midi
 {
-    public class MidiInputHandler : InputHandler
+    public class MidiHandler : InputHandler
     {
         public override bool IsActive => true;
         public override int Priority => 0;
