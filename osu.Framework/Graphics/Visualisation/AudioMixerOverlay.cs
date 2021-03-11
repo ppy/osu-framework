@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             stripContainer.Add(new ChannelStrip(mixer.MixerHandle));
 
+            addChannels(mixer.MixChannels);
+
             mixer.MixChannels.CollectionChanged += updateChannels;
         }
 
