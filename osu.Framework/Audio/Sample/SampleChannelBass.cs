@@ -157,7 +157,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                mixer?.PauseChannel(channel);
+                Dispose();
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
