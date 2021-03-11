@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class ChannelStrip : CompositeDrawable
         {
-            public int Handle { get; protected set; }
+            public int Handle { get; }
             public int BuffSize = 30;
 
             private float maxPeak = float.MinValue;
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Visualisation
                 Handle = handle;
 
                 RelativeSizeAxes = Axes.Y;
-                Width = 80;
+                Width = 60;
                 Height = 1f;
                 InternalChildren = new Drawable[]
                 {
@@ -149,9 +149,9 @@ namespace osu.Framework.Graphics.Visualisation
                         Direction = FillDirection.Vertical,
                         Children = new Drawable[]
                         {
-                            peakText = new SpriteText { Text = "N/A" },
-                            maxPeakText = new SpriteText { Text = "N/A" },
-                            channelInfoText = new TextFlowContainer(s => s.Font = FrameworkFont.Condensed.With(size: 14f))
+                            peakText = new SpriteText { Text = "N/A", Font = FrameworkFont.Condensed.With(size: 14f) },
+                            maxPeakText = new SpriteText { Text = "N/A", Font = FrameworkFont.Condensed.With(size: 14f) },
+                            channelInfoText = new TextFlowContainer(s => s.Font = FrameworkFont.Condensed.With(size: 12f))
                             {
                                 RelativeSizeAxes = Axes.X,
                                 Width = 1f,
