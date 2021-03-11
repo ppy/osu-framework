@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class ChannelStrip : CompositeDrawable
         {
-            public int Handle { get; }
+            public int MixerHandle { get; }
 
             private const int sample_window = 30;
             private float maxPeak = float.MinValue;
@@ -111,9 +111,9 @@ namespace osu.Framework.Graphics.Visualisation
             private readonly SpriteText maxPeakText;
             private readonly TextFlowContainer channelInfoText;
 
-            public ChannelStrip(int handle = 0)
+            public ChannelStrip(int mixerHandle = 0)
             {
-                Handle = handle;
+                MixerHandle = mixerHandle;
                 RelativeSizeAxes = Axes.Y;
                 Width = 60;
                 Height = 1f;
@@ -162,21 +162,21 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 base.Update();
 
-                if (Handle == 0) return;
+                if (MixerHandle == 0) return;
 
                 float[] levels = new float[2];
 
                 ChannelInfo chanInfo;
-                Bass.ChannelGetInfo(Handle, out chanInfo);
+                Bass.ChannelGetInfo(MixerHandle, out chanInfo);
 
                 if (chanInfo.ChannelType == ChannelType.Mixer)
                 {
-                    Bass.ChannelGetLevel(Handle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
+                    Bass.ChannelGetLevel(MixerHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.GreenYellow;
                 }
                 else
                 {
-                    BassMix.ChannelGetLevel(Handle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
+                    BassMix.ChannelGetLevel(MixerHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.Green;
                 }
 
