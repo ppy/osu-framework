@@ -834,6 +834,7 @@ namespace osu.Framework.Platform
                 MaximumUpdateHz = updateLimiter;
             };
 
+#pragma warning disable 618
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
@@ -859,6 +860,7 @@ namespace osu.Framework.Platform
             };
 
             cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+#pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
             {

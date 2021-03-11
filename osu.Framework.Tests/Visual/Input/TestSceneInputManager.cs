@@ -185,12 +185,16 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setCursorSensivityConfig(double x)
         {
+#pragma warning disable 618
             config.Set(FrameworkSetting.CursorSensitivity, x);
+#pragma warning restore 618
         }
 
         private void setRawInputConfig(bool x)
         {
+#pragma warning disable 618
             config.Set(FrameworkSetting.IgnoredInputHandlers, x ? string.Empty : $"{nameof(WindowsRawInputMouseHandler)}");
+#pragma warning restore 618
         }
 
         private void setConfineMouseModeConfig(bool x)
