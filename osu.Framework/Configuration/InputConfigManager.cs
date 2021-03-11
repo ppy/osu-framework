@@ -16,7 +16,7 @@ namespace osu.Framework.Configuration
     [Serializable]
     public class InputConfigManager
     {
-        private const string filename = "input.json";
+        public const string FILENAME = "input.json";
 
         private readonly Storage storage;
 
@@ -28,11 +28,11 @@ namespace osu.Framework.Configuration
             this.storage = storage;
             InputHandlers = inputHandlers;
 
-            if (storage.Exists(filename))
+            if (storage.Exists(FILENAME))
             {
                 try
                 {
-                    using (Stream stream = storage.GetStream(filename, FileAccess.Read, FileMode.Open))
+                    using (Stream stream = storage.GetStream(FILENAME, FileAccess.Read, FileMode.Open))
                     using (var sr = new StreamReader(stream))
                     {
                         JsonConvert.PopulateObject(sr.ReadToEnd(), this, new JsonSerializerSettings
@@ -51,7 +51,7 @@ namespace osu.Framework.Configuration
 
         public void Save()
         {
-            using (var stream = storage.GetStream(filename, FileAccess.Write, FileMode.Create))
+            using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
             using (var sw = new StreamWriter(stream))
             {
                 sw.Write(JsonConvert.SerializeObject(this));
