@@ -22,7 +22,7 @@ using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameHost : GameHost
+    public class AndroidGameHost : OsuTKGameHost
     {
         private readonly AndroidGameView gameView;
 

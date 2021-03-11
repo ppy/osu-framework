@@ -23,7 +23,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : GameHost
+    public class IOSGameHost : OsuTKGameHost
     {
         private readonly IOSGameView gameView;
         private IOSKeyboardHandler keyboardHandler;

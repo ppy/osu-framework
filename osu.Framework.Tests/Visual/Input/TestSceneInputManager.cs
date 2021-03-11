@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows;
 using osuTK;
 using osuTK.Graphics;
@@ -191,7 +190,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setRawInputConfig(bool x)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? $"{nameof(OsuTKMouseHandler)}" : $"{nameof(OsuTKRawMouseHandler)} {nameof(WindowsRawInputMouseHandler)}");
+            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? string.Empty : $"{nameof(WindowsRawInputMouseHandler)}");
         }
 
         private void setConfineMouseModeConfig(bool x)
