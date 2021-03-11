@@ -2380,7 +2380,9 @@ namespace osu.Framework.Graphics
                 nameof(OnFocusLost),
                 nameof(OnTouchDown),
                 nameof(OnTouchMove),
-                nameof(OnTouchUp)
+                nameof(OnTouchUp),
+                nameof(OnTabletPenButtonPress),
+                nameof(OnTabletPenButtonRelease)
             };
 
             private static readonly string[] non_positional_input_methods =
@@ -2392,7 +2394,9 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
                 nameof(OnJoystickRelease),
-                nameof(OnJoystickAxisMove)
+                nameof(OnJoystickAxisMove),
+                nameof(OnTabletAuxiliaryButtonPress),
+                nameof(OnTabletAuxiliaryButtonRelease)
             };
 
             private static readonly Type[] positional_input_interfaces =
