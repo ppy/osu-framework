@@ -78,7 +78,7 @@ namespace osu.Framework.Platform
         private Point position;
 
         /// <summary>
-        /// Returns or sets the window's position in screen space.
+        /// Returns or sets the window's position in screen space. Only valid when in <see cref="osu.Framework.Configuration.WindowMode.Windowed"/>
         /// </summary>
         public Point Position
         {

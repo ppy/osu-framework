@@ -30,8 +30,8 @@ namespace osu.Framework.Platform.Windows
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useOsuTK)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, portableInstallation)
         {
         }
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
         }
 
-        protected override IWindow CreateWindow() => UseOsuTK ? (IWindow)new OsuTKWindowsWindow() : new WindowsWindow();
+        protected override IWindow CreateWindow() => new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {
