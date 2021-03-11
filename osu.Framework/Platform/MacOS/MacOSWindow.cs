@@ -18,9 +18,9 @@ namespace osu.Framework.Platform.MacOS
         private static readonly IntPtr sel_respondstoselector_ = Selector.Get("respondsToSelector:");
 
         /// <summary>
-        /// The default fullscreen presentation options SDL uses: https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
+        /// The default borderless / "fullscreen desktop" presentation options SDL uses: https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
         /// </summary>
-        private const NSApplicationPresentationOptions default_fullscreen_presentation_options =
+        private const NSApplicationPresentationOptions default_borderless_presentation_options =
             NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
 
         private delegate uint WindowWillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
@@ -64,7 +64,9 @@ namespace osu.Framework.Platform.MacOS
 
         private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options)
         {
-            var fullscreenOptions = default_fullscreen_presentation_options;
+            var fullscreenOptions = WindowState == WindowState.FullscreenBorderless
+                ? default_borderless_presentation_options
+                : (NSApplicationPresentationOptions)options;
 
             if (shouldDisableCursorAssistance)
                 fullscreenOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
