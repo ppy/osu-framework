@@ -38,8 +38,10 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
+            // Add strip for the mixer/master out
             stripContainer.Add(new ChannelStrip(mixer.MixerHandle));
 
+            // Add strips for existing mix channels
             addChannels(mixer.MixChannels);
 
             mixer.MixChannels.CollectionChanged += updateChannels;
@@ -95,21 +97,14 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        // public void ResetPeaks()
-        // {
-        //     foreach (var entry in channelStrips)
-        //     {
-        //         entry.Value.ResetPeaks();
-        //     }
-        // }
-
         private class ChannelStrip : CompositeDrawable
         {
             public int Handle { get; }
-            public int BuffSize = 30;
 
+            private const int sample_window = 30;
             private float maxPeak = float.MinValue;
-            private float peak = float.MinValue;
+            private double peaksLastReset = 0;
+
             private readonly Box volBarL;
             private readonly Box volBarR;
             private readonly SpriteText peakText;
@@ -119,7 +114,6 @@ namespace osu.Framework.Graphics.Visualisation
             public ChannelStrip(int handle = 0)
             {
                 Handle = handle;
-
                 RelativeSizeAxes = Axes.Y;
                 Width = 60;
                 Height = 1f;
@@ -131,7 +125,7 @@ namespace osu.Framework.Graphics.Visualisation
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomLeft,
                         Colour = Colour4.White,
-                        Height = 1f,
+                        Height = 0f,
                         Width = 0.5f,
                     },
                     volBarR = new Box
@@ -140,7 +134,7 @@ namespace osu.Framework.Graphics.Visualisation
                         Origin = Anchor.BottomRight,
                         Anchor = Anchor.BottomRight,
                         Colour = Colour4.White,
-                        Height = 1f,
+                        Height = 0f,
                         Width = 0.5f,
                     },
                     new FillFlowContainer
@@ -177,30 +171,40 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (chanInfo.ChannelType == ChannelType.Mixer)
                 {
-                    Bass.ChannelGetLevel(Handle, levels, 1f / BuffSize, LevelRetrievalFlags.Stereo);
+                    Bass.ChannelGetLevel(Handle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.GreenYellow;
                 }
                 else
                 {
-                    BassMix.ChannelGetLevel(Handle, levels, 1f / BuffSize, LevelRetrievalFlags.Stereo);
+                    BassMix.ChannelGetLevel(Handle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.Green;
                 }
 
-                peak = (levels[0] + levels[1]) / 2f;
-                maxPeak = Math.Max(peak, maxPeak);
+                var curPeakL = levels[0];
+                var curPeakR = levels[1];
+                var curPeak = (curPeakL + curPeakR) / 2f;
 
-                volBarL.TransformTo(nameof(Drawable.Height), levels[0], BuffSize * 4);
-                volBarR.TransformTo(nameof(Drawable.Height), levels[1], BuffSize * 4);
-                peakText.Text = $"{BassUtils.LevelToDb(peak):F}dB";
-                maxPeakText.Text = $"{BassUtils.LevelToDb(maxPeak):F}dB";
+                if (Clock.CurrentTime - peaksLastReset > 5000)
+                {
+                    peaksLastReset = Clock.CurrentTime;
+                    ResetPeaks();
+                }
+
+                maxPeak = Math.Max(maxPeak, curPeak);
+
+                var peakDisplay = curPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(curPeak):F}";
+                var maxPeakDisplay = maxPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(maxPeak):F}";
+
+                volBarL.TransformTo(nameof(Drawable.Height), levelToDisplay(curPeakL), sample_window * 4);
+                volBarR.TransformTo(nameof(Drawable.Height), levelToDisplay(curPeakR), sample_window * 4);
+                peakText.Text = $"{peakDisplay}dB";
+                maxPeakText.Text = $"{maxPeakDisplay}dB";
                 channelInfoText.Text = chanInfo.ChannelType.ToString();
             }
 
-            public void ResetPeaks()
-            {
-                peak = float.MinValue;
-                maxPeak = float.MinValue;
-            }
+            public void ResetPeaks() => maxPeak = float.MinValue;
+
+            private float levelToDisplay(float vol) => MathF.Pow(vol, 1f / 4f);
         }
     }
 }

@@ -15,18 +15,6 @@ namespace osu.Framework.Audio
         public BindableList<int> MixChannels = new BindableList<int>();
         public int MixerHandle { get; protected set; }
 
-        public AudioMixer()
-        {
-            // handle device or something idk
-        }
-
-        // public override void Dispose()
-        // {
-        //     base.Dispose();
-        //
-        //     Logger.Log("[AudioMixer] DISPOSE WTF");
-        // }
-
         public void AddChannel(int channelHandle, bool addPaused = false)
         {
             EnqueueAction(() =>
@@ -68,7 +56,6 @@ namespace osu.Framework.Audio
 
         public bool PlayChannel(int channelHandle)
         {
-            // Bass.ChannelSetPosition(sfxHandle, 0);
             BassMix.ChannelFlags(channelHandle, BassFlags.Default, BassFlags.MixerChanPause);
 
             return Bass.LastError == Errors.OK;
