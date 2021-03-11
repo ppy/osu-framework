@@ -709,12 +709,7 @@ namespace osu.Framework.Platform
             foreach (var handler in AvailableInputHandlers)
             {
                 if (!handler.Initialize(this))
-                {
                     handler.Enabled.Value = false;
-                    continue;
-                }
-
-                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
             }
         }
 
@@ -863,6 +858,13 @@ namespace osu.Framework.Platform
             };
 
             Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
+
+            // one way binding to preserve compatibility.
+            cursorSensitivity.BindValueChanged(val =>
+            {
+                foreach (var h in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
+                    h.Sensitivity.Value = val.NewValue;
+            }, true);
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
