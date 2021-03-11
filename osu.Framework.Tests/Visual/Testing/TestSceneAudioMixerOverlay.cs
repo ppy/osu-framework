@@ -18,6 +18,14 @@ namespace osu.Framework.Tests.Visual.Testing
         private DrawableSample sample;
         private AudioMixerOverlay mixerOverlay;
 
+        protected override void Dispose(bool isDisposing)
+        {
+            bassTrack?.Dispose();
+            sample?.Dispose();
+
+            base.Dispose(isDisposing);
+        }
+
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks, AudioManager audio)
         {
@@ -38,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Testing
             });
             AddStep("load", () =>
             {
+                bassTrack?.Dispose();
                 bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
             });
             AddStep("play", () =>
