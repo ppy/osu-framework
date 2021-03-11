@@ -16,6 +16,7 @@ using System.Drawing;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Platform
@@ -39,6 +40,11 @@ namespace osu.Framework.Platform
         /// </summary>
         [CanBeNull]
         public event Action Exited;
+
+        /// <summary>
+        /// Invoked when the <see cref="OsuTKWindow"/> has resized.
+        /// </summary>
+        public event Action Resized;
 
         /// <summary>
         /// Invoked when any key has been pressed.
@@ -106,7 +112,11 @@ namespace osu.Framework.Platform
             // Moving or resizing the window needs to check to see if we've moved to a different display.
             // This will update the CurrentDisplay bindable.
             Move += (sender, e) => checkCurrentDisplay();
-            Resize += (sender, e) => checkCurrentDisplay();
+            Resize += (sender, e) =>
+            {
+                checkCurrentDisplay();
+                Resized?.Invoke();
+            };
 
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
@@ -184,11 +194,11 @@ namespace osu.Framework.Platform
             {
                 cursorState = value;
 
-                OsuTKGameWindow.Cursor = cursorState.HasFlag(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
+                OsuTKGameWindow.Cursor = cursorState.HasFlagFast(CursorState.Hidden) ? MouseCursor.Empty : MouseCursor.Default;
 
                 try
                 {
-                    OsuTKGameWindow.CursorGrabbed = cursorState.HasFlag(CursorState.Confined);
+                    OsuTKGameWindow.CursorGrabbed = cursorState.HasFlagFast(CursorState.Confined);
                 }
                 catch
                 {

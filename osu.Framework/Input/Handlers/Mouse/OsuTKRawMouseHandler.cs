@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using osuTK;
@@ -21,7 +21,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
-        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
         private readonly BindableBool mapAbsoluteInputToWindow = new BindableBool();
 
         private readonly List<OsuTKMouseState> lastEachDeviceStates = new List<OsuTKMouseState>();
@@ -34,10 +33,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             // Get the bindables we need to determine whether to confine the mouse to window or not
             if (host.Window is OsuTKDesktopWindow desktopWindow)
-            {
-                windowMode.BindTo(desktopWindow.WindowMode);
                 mapAbsoluteInputToWindow.BindTo(desktopWindow.MapAbsoluteInputToWindow);
-            }
 
             Enabled.BindValueChanged(e =>
             {
@@ -71,7 +67,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                                 var newState = new OsuTKPollMouseState(rawState, host.IsActive.Value, getUpdatedPosition(rawState, lastState));
 
-                                HandleState(newState, lastState, rawState.Flags.HasFlag(MouseStateFlags.MoveAbsolute));
+                                HandleState(newState, lastState, rawState.Flags.HasFlagFast(MouseStateFlags.MoveAbsolute));
 
                                 lastEachDeviceStates[i] = newState;
                                 lastUnfocusedState = null;
@@ -116,7 +112,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             Vector2 currentPosition;
 
-            if (state.Flags.HasFlag(MouseStateFlags.MoveAbsolute))
+            if (state.Flags.HasFlagFast(MouseStateFlags.MoveAbsolute))
             {
                 const int raw_input_resolution = 65536;
 
@@ -129,7 +125,7 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
                 else
                 {
-                    Rectangle screenRect = state.Flags.HasFlag(MouseStateFlags.VirtualDesktop)
+                    Rectangle screenRect = state.Flags.HasFlagFast(MouseStateFlags.VirtualDesktop)
                         ? Platform.Windows.Native.Input.GetVirtualScreenRect()
                         : new Rectangle(0, 0, DisplayDevice.Default.Width, DisplayDevice.Default.Height);
 

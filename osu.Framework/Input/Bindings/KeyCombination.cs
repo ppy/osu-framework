@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Input;
@@ -143,7 +144,11 @@ namespace osu.Framework.Input.Bindings
         /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
-        public string ReadableString() => string.Join('-', Keys.Select(getReadableKey));
+        public string ReadableString()
+        {
+            var sortedKeys = Keys.GetValuesInOrder();
+            return string.Join('-', sortedKeys.Select(getReadableKey));
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;

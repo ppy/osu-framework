@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input;
 using osuTK.Input;
 using SDL2;
@@ -13,7 +14,7 @@ namespace osu.Framework.Platform.SDL2
         {
             // Apple devices don't have the notion of NumLock (they have a Clear key instead).
             // treat them as if they always have NumLock on (the numpad always performs its primary actions).
-            bool numLockOn = sdlKeysym.mod.HasFlag(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
+            bool numLockOn = sdlKeysym.mod.HasFlagFast(SDL.SDL_Keymod.KMOD_NUM) || RuntimeInfo.IsApple;
 
             switch (sdlKeysym.scancode)
             {
@@ -446,18 +447,18 @@ namespace osu.Framework.Platform.SDL2
         public static WindowState ToWindowState(this SDL.SDL_WindowFlags windowFlags)
         {
             // NOTE: on macOS, SDL2 does not differentiate between "maximised" and "fullscreen desktop"
-            if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
-                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) ||
-                windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) && RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx)
+            if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
+                windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) ||
+                windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) && RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
                 return WindowState.FullscreenBorderless;
 
-            if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
+            if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
                 return WindowState.Minimised;
 
-            if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
+            if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN))
                 return WindowState.Fullscreen;
 
-            if (windowFlags.HasFlag(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED))
+            if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED))
                 return WindowState.Maximised;
 
             return WindowState.Normal;
@@ -474,7 +475,7 @@ namespace osu.Framework.Platform.SDL2
                     return SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
                 case WindowState.Maximised:
-                    return RuntimeInfo.OS == RuntimeInfo.Platform.MacOsx
+                    return RuntimeInfo.OS == RuntimeInfo.Platform.macOS
                         ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP
                         : SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
 

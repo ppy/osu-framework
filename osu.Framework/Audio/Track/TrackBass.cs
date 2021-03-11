@@ -38,14 +38,13 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        private long byteLength;
-
         /// <summary>
         /// The last position that a seek will succeed for.
         /// </summary>
         private double lastSeekablePosition;
 
         private FileCallbacks fileCallbacks;
+        private SyncCallback endMixtimeCallback;
         private SyncCallback stopCallback;
         private SyncCallback endCallback;
 
@@ -92,8 +91,10 @@ namespace osu.Framework.Audio.Track
 
                 activeStream = prepareStream(data, quick);
 
+                long byteLength = Bass.ChannelGetLength(activeStream);
+
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength = Bass.ChannelGetLength(activeStream));
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength);
 
                 bool success = seconds >= 0;
 
@@ -109,12 +110,22 @@ namespace osu.Framework.Audio.Track
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
-                        if (!Looping)
-                            RaiseCompleted();
+                        if (Looping) return;
+
+                        hasCompleted = true;
+                        RaiseCompleted();
+                    });
+                    endMixtimeCallback = new SyncCallback((a, b, c, d) =>
+                    {
+                        // this is separate from the above callback as this is required to be invoked on mixtime.
+                        // see "BASS_SYNC_MIXTIME" part of http://www.un4seen.com/doc/#bass/BASS_ChannelSetSync.html for reason why.
+                        if (Looping)
+                            seekInternal(RestartPoint);
                     });
 
                     Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
                     Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End | SyncFlags.Mixtime, 0, endMixtimeCallback.Callback, endMixtimeCallback.Handle);
 
                     isLoaded = true;
 
@@ -125,6 +136,12 @@ namespace osu.Framework.Audio.Track
 
             InvalidateState();
         }
+
+        private void setLoopFlag(bool value) => EnqueueAction(() =>
+        {
+            if (activeStream != 0)
+                Bass.ChannelFlags(activeStream, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
+        });
 
         private int prepareStream(Stream data, bool quick)
         {
@@ -191,15 +208,23 @@ namespace osu.Framework.Audio.Track
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
-            isRunning = running || (isPlayed && bytePosition != byteLength);
+            isRunning = running || (isPlayed && !hasCompleted);
 
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             bassAmplitudeProcessor?.Update();
         }
 
+        ~TrackBass()
+        {
+            Dispose(false);
+        }
+
         protected override void Dispose(bool disposing)
         {
+            if (IsDisposed)
+                return;
+
             if (activeStream != 0)
             {
                 isRunning = false;
@@ -220,6 +245,9 @@ namespace osu.Framework.Audio.Track
 
             endCallback?.Dispose();
             endCallback = null;
+
+            endMixtimeCallback?.Dispose();
+            endMixtimeCallback = null;
 
             base.Dispose(disposing);
         }
@@ -267,13 +295,25 @@ namespace osu.Framework.Audio.Track
             InvalidateState();
 
             // Bass will restart the track if it has reached its end. This behavior isn't desirable so block locally.
-            if (Bass.ChannelGetPosition(activeStream) == byteLength)
+            if (hasCompleted)
                 return false;
 
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return true;
 
+            setLoopFlag(Looping);
+
             return Bass.ChannelPlay(activeStream);
+        }
+
+        public override bool Looping
+        {
+            get => base.Looping;
+            set
+            {
+                base.Looping = value;
+                setLoopFlag(Looping);
+            }
         }
 
         public override bool Seek(double seek) => SeekAsync(seek).Result;
@@ -285,17 +325,22 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : lastSeekablePosition;
             double conservativeClamped = Math.Clamp(seek, 0, conservativeLength);
 
-            await EnqueueAction(() =>
-            {
-                double clamped = Math.Clamp(seek, 0, Length);
-
-                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
-
-                if (pos != Bass.ChannelGetPosition(activeStream))
-                    Bass.ChannelSetPosition(activeStream, pos);
-            });
+            await EnqueueAction(() => seekInternal(seek)).ConfigureAwait(false);
 
             return conservativeClamped == seek;
+        }
+
+        private void seekInternal(double seek)
+        {
+            double clamped = Math.Clamp(seek, 0, Length);
+
+            if (clamped < Length)
+                hasCompleted = false;
+
+            long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+
+            if (pos != Bass.ChannelGetPosition(activeStream))
+                Bass.ChannelSetPosition(activeStream, pos);
         }
 
         private double currentTime;
@@ -305,6 +350,10 @@ namespace osu.Framework.Audio.Track
         private volatile bool isRunning;
 
         public override bool IsRunning => isRunning;
+
+        private volatile bool hasCompleted;
+
+        public override bool HasCompleted => hasCompleted;
 
         internal override void OnStateChanged()
         {

@@ -55,7 +55,7 @@ namespace osu.Framework.Testing
                 return;
             }
 
-#if NETCOREAPP
+#if NET5_0
             referenceBuilder = new RoslynTypeReferenceBuilder();
 #else
             referenceBuilder = new EmptyTypeReferenceBuilder();
@@ -70,7 +70,7 @@ namespace osu.Framework.Testing
                 if (!Directory.Exists(basePath))
                     return;
 
-                await referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First());
+                await referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First()).ConfigureAwait(false);
 
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
@@ -104,7 +104,7 @@ namespace osu.Framework.Testing
             return d.GetFiles().Any(f => f.Extension == ".sln") ? d.FullName : getSolutionPath(d.Parent);
         }
 
-        private void onChange(object sender, FileSystemEventArgs args) => Task.Run(async () => await recompileAsync(target?.GetType(), args.FullPath));
+        private void onChange(object sender, FileSystemEventArgs args) => Task.Run(async () => await recompileAsync(target?.GetType(), args.FullPath).ConfigureAwait(false));
 
         private int currentVersion;
         private bool isCompiling;
@@ -125,10 +125,10 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile))
+                foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile).ConfigureAwait(false))
                     requiredFiles.Add(f);
 
-                var assemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile);
+                var assemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile).ConfigureAwait(false);
 
                 using (var pdbStream = new MemoryStream())
                 using (var peStream = new MemoryStream())
@@ -258,11 +258,6 @@ namespace osu.Framework.Testing
                 isDisposed = true;
                 watchers.ForEach(w => w.Dispose());
             }
-        }
-
-        ~DynamicClassCompiler()
-        {
-            Dispose(false);
         }
 
         public void Dispose()

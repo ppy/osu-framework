@@ -7,7 +7,7 @@ using System.Collections.Specialized;
 namespace osu.Framework.Bindables
 {
     /// <summary>
-    /// An readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.
+    /// A readonly interface which can be bound to other <see cref="IBindableList{T}"/>s in order to watch for state and content changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindableList{T}"/>.</typeparam>
     public interface IBindableList<T> : IReadOnlyList<T>, IBindable, INotifyCollectionChanged

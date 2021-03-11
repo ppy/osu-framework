@@ -132,7 +132,7 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return !(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
+            return !(await completionSource.Task.ConfigureAwait(false)).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
         }
 
         protected int LoadedGlyphCount;
@@ -167,25 +167,14 @@ namespace osu.Framework.IO.Stores
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        ~GlyphStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         #endregion

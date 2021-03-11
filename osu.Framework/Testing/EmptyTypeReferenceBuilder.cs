@@ -12,10 +12,10 @@ namespace osu.Framework.Testing
         public Task Initialise(string solutionFile) => Task.CompletedTask;
 
         public async Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile)
-            => await Task.FromResult(Array.Empty<string>());
+            => await Task.FromResult(Array.Empty<string>()).ConfigureAwait(false);
 
         public async Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile)
-            => await Task.FromResult(Array.Empty<AssemblyReference>());
+            => await Task.FromResult(Array.Empty<AssemblyReference>()).ConfigureAwait(false);
 
         public void Reset()
         {

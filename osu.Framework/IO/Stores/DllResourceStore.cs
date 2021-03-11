@@ -61,7 +61,7 @@ namespace osu.Framework.IO.Stores
                     return null;
 
                 byte[] buffer = new byte[input.Length];
-                await input.ReadAsync(buffer.AsMemory());
+                await input.ReadAsync(buffer.AsMemory()).ConfigureAwait(false);
                 return buffer;
             }
         }
@@ -100,25 +100,8 @@ namespace osu.Framework.IO.Stores
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        ~DllResourceStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         #endregion

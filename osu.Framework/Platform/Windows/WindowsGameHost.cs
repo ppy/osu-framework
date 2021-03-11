@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -17,10 +19,15 @@ namespace osu.Framework.Platform.Windows
     {
         private TimePeriod timePeriod;
 
+        private WindowsRawInputMouseHandler rawInputHandler;
+
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+#if NET5_0
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
@@ -37,6 +44,18 @@ namespace osu.Framework.Platform.Windows
             }
 
             base.OpenFileExternally(filename);
+        }
+
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            // for windows platforms we want to override the relative mouse event handling behaviour.
+            return base.CreateAvailableInputHandlers()
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[]
+                       {
+                           rawInputHandler = new WindowsRawInputMouseHandler(),
+                           new WindowsMouseHandler(() => rawInputHandler.IsActive),
+                       });
         }
 
         protected override void SetupForRun()

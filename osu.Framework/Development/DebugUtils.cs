@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace osu.Framework.Development
 {
@@ -20,7 +21,15 @@ namespace osu.Framework.Development
 
                 // when running under nunit + netcore, entry assembly becomes nunit itself (testhost, Version=15.0.0.0), which isn't what we want.
                 // when running under nunit + Rider > 2020.2 EAP6, entry assembly becomes ReSharperTestRunner[32|64], which isn't what we want.
-                return entry == null || entry.Location.Contains("testhost") || entry.Location.Contains("ReSharperTestRunner");
+                bool entryIsKnownTestAssembly = entry != null && (entry.Location.Contains("testhost") || entry.Location.Contains("ReSharperTestRunner"));
+
+                // null assembly can indicate nunit, but it can also indicate native code (e.g. android).
+                // to distinguish nunit runs from android launches, check the class name of the current test.
+                // if no actual test is running, nunit will make up an ad-hoc test context, which we can match on
+                // to eliminate such false positives.
+                bool nullEntryWithActualTestContext = entry == null && TestContext.CurrentContext.Test.ClassName != typeof(TestExecutionContext.AdhocContext).FullName;
+
+                return entryIsKnownTestAssembly || nullEntryWithActualTestContext;
             }
         );
 

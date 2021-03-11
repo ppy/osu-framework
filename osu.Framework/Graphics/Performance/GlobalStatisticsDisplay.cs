@@ -43,8 +43,6 @@ namespace osu.Framework.Graphics.Performance
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            listener = new DotNetRuntimeListener();
-
             performanceLogging = host.PerformanceLogging.GetBoundCopy();
         }
 
@@ -52,7 +50,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.LoadComplete();
 
-            GlobalStatistics.Statistics.CollectionChanged += (_, e) =>
+            GlobalStatistics.StatisticsChanged += (_, e) =>
             {
                 switch (e.Action)
                 {
@@ -66,8 +64,7 @@ namespace osu.Framework.Graphics.Performance
                 }
             };
 
-            // ToArray is to guard against collection modification in underlying bindable.
-            add(GlobalStatistics.Statistics.ToArray());
+            add(GlobalStatistics.GetStatistics());
 
             State.BindValueChanged(visibilityChanged, true);
         }
@@ -77,7 +74,12 @@ namespace osu.Framework.Graphics.Performance
             performanceLogging.Value = state.NewValue == Visibility.Visible;
 
             if (state.NewValue == Visibility.Visible)
+            {
                 GlobalStatistics.OutputToLog();
+                listener = new DotNetRuntimeListener();
+            }
+            else
+                listener?.Dispose();
         }
 
         private void remove(IEnumerable<IGlobalStatistic> stats) => Schedule(() =>

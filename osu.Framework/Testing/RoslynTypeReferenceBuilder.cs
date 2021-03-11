@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NETCOREAPP
+#if NET5_0
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using osu.Framework.Extensions;
 using osu.Framework.Lists;
 using osu.Framework.Logging;
 
@@ -29,7 +30,7 @@ namespace osu.Framework.Testing
 
         private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
         private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
-        private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
+        private readonly Dictionary<string, SemanticModel> semanticModelCache = new Dictionary<string, SemanticModel>();
         private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
         private readonly Dictionary<string, bool> syntaxExclusionMap = new Dictionary<string, bool>();
         private readonly HashSet<string> assembliesContainingReferencedInternalMembers = new HashSet<string>();
@@ -45,7 +46,7 @@ namespace osu.Framework.Testing
         public async Task Initialise(string solutionFile)
         {
             MSBuildLocator.RegisterDefaults();
-            solution = await MSBuildWorkspace.Create().OpenSolutionAsync(solutionFile);
+            solution = await MSBuildWorkspace.Create().OpenSolutionAsync(solutionFile).ConfigureAwait(false);
         }
 
         public async Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile)
@@ -53,7 +54,7 @@ namespace osu.Framework.Testing
             clearCaches();
             updateFile(changedFile);
 
-            await buildReferenceMapAsync(testType, changedFile);
+            await buildReferenceMapAsync(testType, changedFile).ConfigureAwait(false);
 
             var directedGraph = getDirectedGraph();
 
@@ -77,26 +78,17 @@ namespace osu.Framework.Testing
                 if (string.IsNullOrEmpty(assembly.Location))
                     return;
 
-                Type[] loadedTypes;
-
-                try
-                {
-                    loadedTypes = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException e)
-                {
-                    loadedTypes = e.Types;
-                }
+                Type[] loadedTypes = assembly.GetLoadableTypes();
 
                 // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
                 // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
-                if (!force && loadedTypes?.Any(t => t?.Namespace == jetbrains_annotations_namespace) == true)
+                if (!force && loadedTypes.Any(t => t.Namespace == jetbrains_annotations_namespace))
                     return;
 
                 bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i) == true);
                 assemblies.Add(new AssemblyReference(assembly, containsReferencedInternalMember));
             }
-        });
+        }).ConfigureAwait(false);
 
         public void Reset()
         {
@@ -136,7 +128,7 @@ namespace osu.Framework.Testing
 
             logger.Add("Building reference map...");
 
-            var compiledTestProject = await compileProjectAsync(findTestProject());
+            var compiledTestProject = await compileProjectAsync(findTestProject()).ConfigureAwait(false);
             var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
 
             if (compiledTestType == null)
@@ -169,22 +161,22 @@ namespace osu.Framework.Testing
                         break;
                     }
 
-                    var compilation = await compileProjectAsync(project);
-                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
-                    var semanticModel = await getSemanticModelAsync(syntaxTree);
-                    var referencedTypes = await getReferencedTypesAsync(semanticModel);
+                    var compilation = await compileProjectAsync(project).ConfigureAwait(false);
+                    var syntaxTree = compilation.SyntaxTrees.Single(tree => tree.FilePath == typePath);
+                    var semanticModel = await getSemanticModelAsync(syntaxTree).ConfigureAwait(false);
+                    var referencedTypes = await getReferencedTypesAsync(semanticModel).ConfigureAwait(false);
 
                     referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
 
                     foreach (var referenced in referencedTypes)
-                        await buildReferenceMapRecursiveAsync(referenced);
+                        await buildReferenceMapRecursiveAsync(referenced).ConfigureAwait(false);
                 }
             }
 
             if (referenceMap.Count == 0)
             {
                 // We have no cache available, so we must rebuild the whole map.
-                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType));
+                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType)).ConfigureAwait(false);
             }
         }
 
@@ -203,7 +195,7 @@ namespace osu.Framework.Testing
             while (searchQueue.Count > 0)
             {
                 var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck);
+                var referencedTypes = await getReferencedTypesAsync(toCheck).ConfigureAwait(false);
 
                 referenceMap[toCheck] = referencedTypes;
 
@@ -231,7 +223,10 @@ namespace osu.Framework.Testing
 
             foreach (var reference in typeReference.Symbol.DeclaringSyntaxReferences)
             {
-                foreach (var type in await getReferencedTypesAsync(await getSemanticModelAsync(reference.SyntaxTree)))
+                var semanticModel = await getSemanticModelAsync(reference.SyntaxTree).ConfigureAwait(false);
+                var referencedTypes = await getReferencedTypesAsync(semanticModel).ConfigureAwait(false);
+
+                foreach (var type in referencedTypes)
                     result.Add(type);
             }
 
@@ -247,7 +242,8 @@ namespace osu.Framework.Testing
         {
             var result = new HashSet<TypeReference>();
 
-            var root = await semanticModel.SyntaxTree.GetRootAsync();
+            var root = await semanticModel.SyntaxTree.GetRootAsync().ConfigureAwait(false);
+
             var descendantNodes = root.DescendantNodes(n =>
             {
                 var kind = n.Kind();
@@ -523,7 +519,7 @@ namespace osu.Framework.Testing
                 return existing;
 
             logger.Add($"Compiling project {project.Name}...");
-            return compilationCache[project] = await project.GetCompilationAsync();
+            return compilationCache[project] = await project.GetCompilationAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -533,10 +529,17 @@ namespace osu.Framework.Testing
         /// <returns>The corresponding <see cref="SemanticModel"/>.</returns>
         private async Task<SemanticModel> getSemanticModelAsync(SyntaxTree syntaxTree)
         {
-            if (semanticModelCache.TryGetValue(syntaxTree, out var existing))
+            string filePath = syntaxTree.FilePath;
+
+            if (semanticModelCache.TryGetValue(filePath, out var existing))
                 return existing;
 
-            return semanticModelCache[syntaxTree] = (await compileProjectAsync(getProjectFromFile(syntaxTree.FilePath))).GetSemanticModel(syntaxTree, true);
+            var compilation = await compileProjectAsync(getProjectFromFile(filePath)).ConfigureAwait(false);
+
+            // Syntax trees are identified with the compilation they're in, so they must be re-retrieved on the new compilation.
+            syntaxTree = compilation.SyntaxTrees.Single(t => t.FilePath == filePath);
+
+            return semanticModelCache[filePath] = compilation.GetSemanticModel(syntaxTree, true);
         }
 
         /// <summary>

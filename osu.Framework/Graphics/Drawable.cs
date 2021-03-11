@@ -22,8 +22,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input.Bindings;
@@ -64,14 +66,7 @@ namespace osu.Framework.Graphics
             AddLayout(requiredParentSizeToFitBacking);
         }
 
-        ~Drawable()
-        {
-            dispose(false);
-            finalize_disposals.Value++;
-        }
-
-        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), $"Total {nameof(Drawable)}s");
-        private static readonly GlobalStatistic<int> finalize_disposals = GlobalStatistics.Get<int>(nameof(Drawable), "Finalizer disposals");
+        private static readonly GlobalStatistic<int> total_count = GlobalStatistics.Get<int>(nameof(Drawable), "Total constructed");
 
         internal bool IsLongRunning => GetType().GetCustomAttribute<LongRunningLoadAttribute>() != null;
 
@@ -80,7 +75,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         public void Dispose()
         {
-            dispose(true);
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            lock (LoadLock) Dispose(true);
+
             GC.SuppressFinalize(this);
         }
 
@@ -91,36 +88,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void Dispose(bool isDisposing)
         {
-        }
+            if (IsDisposed)
+                return;
 
-        private void dispose(bool isDisposing)
-        {
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
-            lock (LoadLock)
-            {
-                if (IsDisposed)
-                    return;
+            UnbindAllBindables();
 
-                total_count.Value--;
+            // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
+            parent = null;
+            ChildID = 0;
 
-                Dispose(isDisposing);
-                UnbindAllBindables();
+            OnUpdate = null;
+            Invalidated = null;
 
-                // Bypass expensive operations as a result of setting the Parent property, by setting the field directly.
-                parent = null;
-                ChildID = 0;
+            OnDispose?.Invoke();
+            OnDispose = null;
 
-                OnUpdate = null;
-                Invalidated = null;
+            for (int i = 0; i < drawNodes.Length; i++)
+                drawNodes[i]?.Dispose();
 
-                OnDispose?.Invoke();
-                OnDispose = null;
-
-                for (int i = 0; i < drawNodes.Length; i++)
-                    drawNodes[i]?.Dispose();
-
-                IsDisposed = true;
-            }
+            IsDisposed = true;
         }
 
         /// <summary>
@@ -428,7 +414,7 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> Invalidated;
 
         /// <summary>
-        /// Fired after the <see cref="dispose(bool)"/> method is called.
+        /// Fired after the <see cref="Dispose(bool)"/> method is called.
         /// </summary>
         internal event Action OnDispose;
 
@@ -660,10 +646,10 @@ namespace osu.Framework.Graphics
                 {
                     offset = Parent.RelativeChildOffset;
 
-                    if (!RelativePositionAxes.HasFlag(Axes.X))
+                    if (!RelativePositionAxes.HasFlagFast(Axes.X))
                         offset.X = 0;
 
-                    if (!RelativePositionAxes.HasFlag(Axes.Y))
+                    if (!RelativePositionAxes.HasFlagFast(Axes.Y))
                         offset.Y = 0;
                 }
 
@@ -789,8 +775,8 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                if (relativeSizeAxes.HasFlag(Axes.X) && Width == 0) Width = 1;
-                if (relativeSizeAxes.HasFlag(Axes.Y) && Height == 0) Height = 1;
+                if (relativeSizeAxes.HasFlagFast(Axes.X) && Width == 0) Width = 1;
+                if (relativeSizeAxes.HasFlagFast(Axes.Y) && Height == 0) Height = 1;
 
                 updateBypassAutoSizeAxes();
 
@@ -884,9 +870,9 @@ namespace osu.Framework.Graphics
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
 
-                if (relativeAxes.HasFlag(Axes.X))
+                if (relativeAxes.HasFlagFast(Axes.X))
                     v.X *= conversion.X;
-                if (relativeAxes.HasFlag(Axes.Y))
+                if (relativeAxes.HasFlagFast(Axes.Y))
                     v.Y *= conversion.Y;
 
                 // FillMode only makes sense if both axes are relatively sized as the general rule
@@ -1121,14 +1107,14 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
 
                 Vector2 result = Vector2.Zero;
-                if (origin.HasFlag(Anchor.x1))
+                if (origin.HasFlagFast(Anchor.x1))
                     result.X = 0.5f;
-                else if (origin.HasFlag(Anchor.x2))
+                else if (origin.HasFlagFast(Anchor.x2))
                     result.X = 1;
 
-                if (origin.HasFlag(Anchor.y1))
+                if (origin.HasFlagFast(Anchor.y1))
                     result.Y = 0.5f;
-                else if (origin.HasFlag(Anchor.y2))
+                else if (origin.HasFlagFast(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1210,14 +1196,14 @@ namespace osu.Framework.Graphics
                     return customRelativeAnchorPosition;
 
                 Vector2 result = Vector2.Zero;
-                if (anchor.HasFlag(Anchor.x1))
+                if (anchor.HasFlagFast(Anchor.x1))
                     result.X = 0.5f;
-                else if (anchor.HasFlag(Anchor.x2))
+                else if (anchor.HasFlagFast(Anchor.x2))
                     result.X = 1;
 
-                if (anchor.HasFlag(Anchor.y1))
+                if (anchor.HasFlagFast(Anchor.y1))
                     result.Y = 0.5f;
-                else if (anchor.HasFlag(Anchor.y2))
+                else if (anchor.HasFlagFast(Anchor.y2))
                     result.Y = 1;
 
                 return result;
@@ -1255,14 +1241,14 @@ namespace osu.Framework.Graphics
         {
             Vector2 result = Vector2.Zero;
 
-            if (anchor.HasFlag(Anchor.x1))
+            if (anchor.HasFlagFast(Anchor.x1))
                 result.X = size.X / 2f;
-            else if (anchor.HasFlag(Anchor.x2))
+            else if (anchor.HasFlagFast(Anchor.x2))
                 result.X = size.X;
 
-            if (anchor.HasFlag(Anchor.y1))
+            if (anchor.HasFlagFast(Anchor.y1))
                 result.Y = size.Y / 2f;
-            else if (anchor.HasFlag(Anchor.y2))
+            else if (anchor.HasFlagFast(Anchor.y2))
                 result.Y = size.Y;
 
             return result;
@@ -2403,7 +2389,7 @@ namespace osu.Framework.Graphics
                 return value;
             }
 
-            private static bool compute(Type type, bool positional)
+            private static bool compute([NotNull] Type type, bool positional)
             {
                 var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 

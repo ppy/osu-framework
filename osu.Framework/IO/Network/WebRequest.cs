@@ -1,6 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#if NET5_0
+using System.Net.Sockets;
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -126,7 +129,17 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public bool AllowRetryOnTimeout { get; set; } = true;
 
-        private static readonly HttpClient client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate })
+        private static readonly HttpClient client = new HttpClient(
+#if NET5_0
+            new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                ConnectCallback = onConnect,
+            }
+#else
+            new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }
+#endif
+        )
         {
             // Timeout is controlled manually through cancellation tokens because
             // HttpClient does not properly timeout while reading chunked data
@@ -139,11 +152,6 @@ namespace osu.Framework.IO.Network
         {
             if (!string.IsNullOrEmpty(url))
                 Url = args.Length == 0 ? url : string.Format(url, args);
-        }
-
-        ~WebRequest()
-        {
-            Dispose(false);
         }
 
         private int responseBytesRead;
@@ -199,6 +207,7 @@ namespace osu.Framework.IO.Network
 
         public HttpResponseHeaders ResponseHeaders => response.Headers;
 
+        private CancellationToken? userToken;
         private CancellationTokenSource abortToken;
         private CancellationTokenSource timeoutToken;
 
@@ -214,14 +223,20 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Performs the request asynchronously.
         /// </summary>
-        public async Task PerformAsync()
+        public Task PerformAsync() => PerformAsync(default);
+
+        /// <summary>
+        /// Performs the request asynchronously.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the request.</param>
+        public async Task PerformAsync(CancellationToken cancellationToken)
         {
             if (Completed)
                 throw new InvalidOperationException($"The {nameof(WebRequest)} has already been run.");
 
             try
             {
-                await internalPerform();
+                await internalPerform(cancellationToken).ConfigureAwait(false);
             }
             catch (AggregateException ae)
             {
@@ -229,7 +244,7 @@ namespace osu.Framework.IO.Network
             }
         }
 
-        private async Task internalPerform()
+        private async Task internalPerform(CancellationToken cancellationToken = default)
         {
             var url = Url;
 
@@ -239,9 +254,13 @@ namespace osu.Framework.IO.Network
                 url = @"https://" + url.Replace(@"http://", @"");
             }
 
+            // If a user token already exists, keep it. Otherwise, take on the previous user token, as this could be a retry of the request.
+            userToken ??= cancellationToken;
+            cancellationToken = userToken.Value;
+
             using (abortToken ??= new CancellationTokenSource()) // don't recreate if already non-null. is used during retry logic.
             using (timeoutToken = new CancellationTokenSource())
-            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token))
+            using (var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(abortToken.Token, timeoutToken.Token, cancellationToken))
             {
                 try
                 {
@@ -265,7 +284,7 @@ namespace osu.Framework.IO.Network
                     {
                         request = new HttpRequestMessage(Method, url);
 
-                        Stream postContent;
+                        Stream postContent = null;
 
                         if (rawContent != null)
                         {
@@ -277,11 +296,11 @@ namespace osu.Framework.IO.Network
                             postContent = new MemoryStream();
                             rawContent.Position = 0;
 
-                            await rawContent.CopyToAsync(postContent, linkedToken.Token);
+                            await rawContent.CopyToAsync(postContent, linkedToken.Token).ConfigureAwait(false);
 
                             postContent.Position = 0;
                         }
-                        else
+                        else if (parameters.Count > 0 || files.Count > 0)
                         {
                             if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
                                 throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
@@ -300,19 +319,26 @@ namespace osu.Framework.IO.Network
                                 formData.Add(byteContent, p.Key, p.Key);
                             }
 
-                            postContent = await formData.ReadAsStreamAsync();
+#if NET5_0
+                            postContent = await formData.ReadAsStreamAsync(linkedToken.Token).ConfigureAwait(false);
+#else
+                            postContent = await formData.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
                         }
 
-                        requestStream = new LengthTrackingStream(postContent);
-                        requestStream.BytesRead.ValueChanged += e =>
+                        if (postContent != null)
                         {
-                            reportForwardProgress();
-                            UploadProgress?.Invoke(e.NewValue, contentLength);
-                        };
+                            requestStream = new LengthTrackingStream(postContent);
+                            requestStream.BytesRead.ValueChanged += e =>
+                            {
+                                reportForwardProgress();
+                                UploadProgress?.Invoke(e.NewValue, contentLength);
+                            };
 
-                        request.Content = new StreamContent(requestStream);
-                        if (!string.IsNullOrEmpty(ContentType))
-                            request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                            request.Content = new StreamContent(requestStream);
+                            if (!string.IsNullOrEmpty(ContentType))
+                                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(ContentType);
+                        }
                     }
 
                     request.Headers.UserAgent.TryParseAdd(UserAgent);
@@ -327,21 +353,23 @@ namespace osu.Framework.IO.Network
 
                     using (request)
                     {
-                        response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token);
+                        response = await client
+                                         .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedToken.Token)
+                                         .ConfigureAwait(false);
 
                         ResponseStream = CreateOutputStream();
 
                         if (Method == HttpMethod.Get)
                         {
                             //GETs are easy
-                            await beginResponse(linkedToken.Token);
+                            await beginResponse(linkedToken.Token).ConfigureAwait(false);
                         }
                         else
                         {
                             reportForwardProgress();
                             UploadProgress?.Invoke(0, contentLength);
 
-                            await beginResponse(linkedToken.Token);
+                            await beginResponse(linkedToken.Token).ConfigureAwait(false);
                         }
                     }
                 }
@@ -350,9 +378,9 @@ namespace osu.Framework.IO.Network
                     Complete(new WebException($"Request to {url} timed out after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes, retried {RetryCount} times).",
                         WebExceptionStatus.Timeout));
                 }
-                catch (Exception) when (abortToken.IsCancellationRequested)
+                catch (Exception) when (abortToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
-                    Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
+                    onAborted();
                 }
                 catch (Exception e)
                 {
@@ -362,6 +390,14 @@ namespace osu.Framework.IO.Network
 
                     Complete(e);
                 }
+            }
+
+            void onAborted()
+            {
+                // Aborting via the cancellation token will not set the correct aborted/completion states. Make sure they're set here.
+                Abort();
+
+                Complete(new WebException($"Request to {url} aborted by user.", WebExceptionStatus.RequestCanceled));
             }
         }
 
@@ -389,7 +425,15 @@ namespace osu.Framework.IO.Network
 
         private async Task beginResponse(CancellationToken cancellationToken)
         {
-            using (var responseStream = await response.Content.ReadAsStreamAsync())
+#if NET5_0
+            using (var responseStream = await response.Content
+                                                      .ReadAsStreamAsync(cancellationToken)
+                                                      .ConfigureAwait(false))
+#else
+            using (var responseStream = await response.Content
+                                                      .ReadAsStreamAsync()
+                                                      .ConfigureAwait(false))
+#endif
             {
                 reportForwardProgress();
                 Started?.Invoke();
@@ -400,13 +444,18 @@ namespace osu.Framework.IO.Network
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int read = await responseStream.ReadAsync(buffer.AsMemory(), cancellationToken);
+                    int read = await responseStream
+                                     .ReadAsync(buffer.AsMemory(), cancellationToken)
+                                     .ConfigureAwait(false);
 
                     reportForwardProgress();
 
                     if (read > 0)
                     {
-                        await ResponseStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                        await ResponseStream
+                              .WriteAsync(buffer.AsMemory(0, read), cancellationToken)
+                              .ConfigureAwait(false);
+
                         responseBytesRead += read;
                         DownloadProgress?.Invoke(responseBytesRead, response.Content.Headers.ContentLength ?? responseBytesRead);
                     }
@@ -662,6 +711,87 @@ namespace osu.Framework.IO.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        #endregion
+
+        #region IPv4 fallback implementation
+
+#if NET5_0
+        /// <summary>
+        /// Whether IPv6 should be preferred. Value may change based on runtime failures.
+        /// </summary>
+        private static bool useIPv6 = Socket.OSSupportsIPv6;
+
+        /// <summary>
+        /// Whether the initial IPv6 check has been performed (to determine whether v6 is available or not).
+        /// </summary>
+        private static bool hasResolvedIPv6Availability;
+
+        private const int connection_establish_timeout = 2000;
+
+        private static async ValueTask<Stream> onConnect(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+        {
+            // Until .NET supports an implementation of Happy Eyeballs (https://tools.ietf.org/html/rfc8305#section-2), let's make IPv4 fallback work in a simple way.
+            // This issue is being tracked at https://github.com/dotnet/runtime/issues/26177 and expected to be fixed in .NET 6.
+
+            if (useIPv6)
+            {
+                try
+                {
+                    var localToken = cancellationToken;
+
+                    if (!hasResolvedIPv6Availability)
+                    {
+                        // to make things move fast, use a very low timeout for the initial ipv6 attempt.
+                        var quickFailCts = new CancellationTokenSource(connection_establish_timeout);
+                        var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, quickFailCts.Token);
+
+                        localToken = linkedTokenSource.Token;
+                    }
+
+                    return await attemptConnection(AddressFamily.InterNetworkV6, context, localToken)
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                    // very naively fallback to ipv4 permanently for this execution based on the response of the first connection attempt.
+                    // note that this may cause users to eventually get switched to ipv4 (on a random failure when they are switching networks, for instance)
+                    // but in the interest of keeping this implementation simple, this is acceptable.
+                    useIPv6 = false;
+                }
+                finally
+                {
+                    hasResolvedIPv6Availability = true;
+                }
+            }
+
+            // fallback to IPv4.
+            return await attemptConnection(AddressFamily.InterNetwork, context, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async ValueTask<Stream> attemptConnection(AddressFamily addressFamily, SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+        {
+            // The following socket constructor will create a dual-mode socket on systems where IPV6 is available.
+            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp)
+            {
+                // Turn off Nagle's algorithm since it degrades performance in most HttpClient scenarios.
+                NoDelay = true
+            };
+
+            try
+            {
+                await socket.ConnectAsync(context.DnsEndPoint, cancellationToken).ConfigureAwait(false);
+                // The stream should take the ownership of the underlying socket,
+                // closing it when it's disposed.
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+#endif
 
         #endregion
 

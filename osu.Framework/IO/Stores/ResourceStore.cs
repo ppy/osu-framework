@@ -89,18 +89,11 @@ namespace osu.Framework.IO.Stores
 
             var filenames = GetFilenames(name);
 
-            // required for locking
-            IResourceStore<T>[] localStores;
-
-            lock (stores)
-                localStores = stores.ToArray();
-
-            // Cache miss - get the resource
-            foreach (IResourceStore<T> store in localStores)
+            foreach (IResourceStore<T> store in getStores())
             {
                 foreach (string f in filenames)
                 {
-                    T result = await store.GetAsync(f);
+                    T result = await store.GetAsync(f).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
@@ -121,17 +114,13 @@ namespace osu.Framework.IO.Stores
 
             var filenames = GetFilenames(name);
 
-            // Cache miss - get the resource
-            lock (stores)
+            foreach (IResourceStore<T> store in getStores())
             {
-                foreach (IResourceStore<T> store in stores)
+                foreach (string f in filenames)
                 {
-                    foreach (string f in filenames)
-                    {
-                        T result = store.Get(f);
-                        if (result != null)
-                            return result;
-                    }
+                    T result = store.Get(f);
+                    if (result != null)
+                        return result;
                 }
             }
 
@@ -145,17 +134,13 @@ namespace osu.Framework.IO.Stores
 
             var filenames = GetFilenames(name);
 
-            // Cache miss - get the resource
-            lock (stores)
+            foreach (IResourceStore<T> store in getStores())
             {
-                foreach (IResourceStore<T> store in stores)
+                foreach (string f in filenames)
                 {
-                    foreach (string f in filenames)
-                    {
-                        var result = store.GetStream(f);
-                        if (result != null)
-                            return result;
-                    }
+                    var result = store.GetStream(f);
+                    if (result != null)
+                        return result;
                 }
             }
 
@@ -204,9 +189,20 @@ namespace osu.Framework.IO.Stores
             lock (stores) return stores.SelectMany(s => s.GetAvailableResources()).ExcludeSystemFileNames();
         }
 
+        private IResourceStore<T>[] getStores()
+        {
+            lock (stores) return stores.ToArray();
+        }
+
         #region IDisposable Support
 
         private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -215,17 +211,6 @@ namespace osu.Framework.IO.Stores
                 isDisposed = true;
                 lock (stores) stores.ForEach(s => s.Dispose());
             }
-        }
-
-        ~ResourceStore()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         #endregion

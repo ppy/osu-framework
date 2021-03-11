@@ -71,6 +71,19 @@ namespace osu.Framework.Text
         }
 
         /// <summary>
+        /// Resets this <see cref="TextBuilder"/> to a default state.
+        /// </summary>
+        public virtual void Reset()
+        {
+            Bounds = Vector2.Zero;
+            Characters.Clear();
+
+            currentPos = startOffset;
+            currentLineHeight = 0;
+            currentNewLine = true;
+        }
+
+        /// <summary>
         /// Whether characters can be added to this <see cref="TextBuilder"/>.
         /// </summary>
         protected virtual bool CanAddCharacters => true;

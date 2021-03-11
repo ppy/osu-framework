@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -47,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        protected internal abstract string Label { get; set; }
+        protected internal abstract LocalisableString Label { get; set; }
 
         protected DropdownHeader()
         {

@@ -10,6 +10,7 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Threading;
 
 #pragma warning disable 4014
@@ -26,6 +27,12 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
             Bass.Init(0);
 
@@ -215,10 +222,12 @@ namespace osu.Framework.Tests.Audio
             Assert.Less(track.CurrentTime, 3000);
         }
 
-        [Test]
-        public void TestLoopingRestart()
+        [TestCase(0)]
+        [TestCase(1000)]
+        public void TestLoopingRestart(double restartPoint)
         {
             track.Looping = true;
+            track.RestartPoint = restartPoint;
 
             startPlaybackAt(track.Length - 1);
 
@@ -244,7 +253,8 @@ namespace osu.Framework.Tests.Audio
             if (loopCount == 50)
                 throw new TimeoutException("Track failed to start in time.");
 
-            Assert.LessOrEqual(track.CurrentTime, 1000);
+            Assert.GreaterOrEqual(track.CurrentTime, restartPoint);
+            Assert.LessOrEqual(track.CurrentTime, restartPoint + 1000);
         }
 
         [Test]
@@ -266,6 +276,46 @@ namespace osu.Framework.Tests.Audio
         {
             track.AddAdjustment(AdjustableProperty.Frequency, new BindableDouble(1.5f));
             Assert.AreEqual(1.5, track.Rate);
+        }
+
+        [Test]
+        public void TestLoopingTrackDoesntSetCompleted()
+        {
+            bool completedEvent = false;
+
+            track.Completed += () => completedEvent = true;
+            track.Looping = true;
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsFalse(track.HasCompleted);
+            Assert.IsFalse(completedEvent);
+
+            updateTrack();
+
+            Assert.IsTrue(track.IsRunning);
+        }
+
+        [Test]
+        public void TestHasCompletedResetsOnSeekBack()
+        {
+            // start playback and wait for completion.
+            startPlaybackAt(track.Length - 1);
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.IsTrue(track.HasCompleted);
+
+            // ensure seeking to end doesn't reset completed state.
+            track.SeekAsync(track.Length);
+            updateTrack();
+
+            Assert.IsTrue(track.HasCompleted);
+
+            // seeking back reset completed state.
+            track.SeekAsync(track.Length - 1);
+            updateTrack();
+
+            Assert.IsFalse(track.HasCompleted);
         }
 
         [Test]

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
@@ -86,6 +87,26 @@ namespace osu.Framework.Platform
             {
                 position = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowPosition(SDLWindowHandle, value.X, value.Y));
+            }
+        }
+
+        private bool relativeMouseMode;
+
+        /// <summary>
+        /// Set the state of SDL2's RelativeMouseMode (https://wiki.libsdl.org/SDL_SetRelativeMouseMode).
+        /// On all platforms, this will lock the mouse to the window (although escaping by setting <see cref="ConfineMouseMode"/> is still possible via a local implementation).
+        /// On windows, this will use raw input if available.
+        /// </summary>
+        public bool RelativeMouseMode
+        {
+            get => relativeMouseMode;
+            set
+            {
+                if (relativeMouseMode == value)
+                    return;
+
+                relativeMouseMode = value;
+                ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
         }
 
@@ -351,8 +372,8 @@ namespace osu.Framework.Platform
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                CursorVisible = !evt.NewValue.HasFlag(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlag(CursorState.Confined);
+                CursorVisible = !evt.NewValue.HasFlagFast(CursorState.Hidden);
+                CursorConfined = evt.NewValue.HasFlagFast(CursorState.Confined);
             };
 
             cursorInWindow.ValueChanged += evt =>
@@ -809,8 +830,13 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion) =>
-            ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+        private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
+        {
+            if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
+                ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+            else
+                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale)));
+        }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
         {
@@ -1136,6 +1162,7 @@ namespace osu.Framework.Platform
             config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
             config.BindWith(FrameworkSetting.WindowMode, WindowMode);
+            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
 
             WindowMode.BindValueChanged(evt =>
             {
@@ -1154,11 +1181,10 @@ namespace osu.Framework.Platform
                         break;
                 }
 
-                ConfineMouseMode.TriggerChange();
+                updateConfineMode();
             });
 
-            config.BindWith(FrameworkSetting.ConfineMouseMode, ConfineMouseMode);
-            ConfineMouseMode.BindValueChanged(confineMouseModeChanged);
+            ConfineMouseMode.BindValueChanged(_ => updateConfineMode());
         }
 
         public void CycleMode()
@@ -1185,6 +1211,13 @@ namespace osu.Framework.Platform
 
             WindowMode.Value = currentValue;
         }
+
+        /// <summary>
+        /// Update the host window manager's cursor position based on a location relative to window coordinates.
+        /// </summary>
+        /// <param name="position">A position inside the window.</param>
+        public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
+            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)position.X, (int)position.Y));
 
         public void SetIconFromStream(Stream stream)
         {
@@ -1214,11 +1247,11 @@ namespace osu.Framework.Platform
 
         internal virtual void SetIconFromImage(Image<Rgba32> iconImage) => setSDLIcon(iconImage);
 
-        private void confineMouseModeChanged(ValueChangedEvent<ConfineMouseMode> args)
+        private void updateConfineMode()
         {
             bool confine = false;
 
-            switch (args.NewValue)
+            switch (ConfineMouseMode.Value)
             {
                 case Input.ConfineMouseMode.Fullscreen:
                     confine = WindowMode.Value != Configuration.WindowMode.Windowed;
@@ -1335,6 +1368,11 @@ namespace osu.Framework.Platform
         public event Action<Vector2> MouseMove;
 
         /// <summary>
+        /// Invoked when the user moves the mouse cursor within the window (via relative / raw input).
+        /// </summary>
+        public event Action<Vector2> MouseMoveRelative;
+
+        /// <summary>
         /// Invoked when the user presses a mouse button.
         /// </summary>
         public event Action<MouseButton> MouseDown;
@@ -1394,6 +1432,7 @@ namespace osu.Framework.Platform
         protected void OnMoved(Point point) => Moved?.Invoke(point);
         protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
         protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
+        protected void OnMouseMoveRelative(Vector2 position) => MouseMoveRelative?.Invoke(position);
         protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
         protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
         protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
