@@ -66,7 +66,7 @@ namespace osu.Framework.Tests.Visual.Audio
             // Bass.ChannelSetAttribute(trackHandle, ChannelAttribute.Volume, BassUtils.DbToLevel(replayGain));
 
             // Add BGM Track to Mixer
-            BassMix.MixerAddChannel(mixerHandle, trackHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
+            BassMix.MixerAddChannel(mixerHandle, trackHandle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
             channelHandles[0] = trackHandle;
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Tests.Visual.Audio
             sfxHandle = Bass.CreateStream(sfxData, 0, sfxData.Length, BassFlags.Decode);
 
             // Add SFX1 to Mixer
-            BassMix.MixerAddChannel(mixerHandle, sfxHandle, BassFlags.MixerPause | BassFlags.MixerBuffer);
+            BassMix.MixerAddChannel(mixerHandle, sfxHandle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
             channelHandles[1] = sfxHandle;
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Tests.Visual.Audio
             sfx2Handle = Bass.CreateStream(sfx2Data, 0, sfx2Data.Length, BassFlags.Decode);
 
             // Add SFX1 to Mixer
-            BassMix.MixerAddChannel(mixerHandle, sfx2Handle, BassFlags.MixerPause | BassFlags.MixerBuffer);
+            BassMix.MixerAddChannel(mixerHandle, sfx2Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
             Logger.Log($"[BASSDLL] MixerAddChannel: {Bass.LastError}");
             channelHandles[2] = sfx2Handle;
 
@@ -107,11 +107,11 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("start track", () =>
             {
                 Bass.ChannelSetPosition(trackHandle, 0);
-                BassMix.ChannelFlags(trackHandle, BassFlags.Default, BassFlags.MixerPause);
+                BassMix.ChannelFlags(trackHandle, BassFlags.Default, BassFlags.MixerChanPause);
             });
             AddStep("stop track", () =>
             {
-                BassMix.ChannelFlags(trackHandle, BassFlags.MixerPause, BassFlags.MixerPause);
+                BassMix.ChannelFlags(trackHandle, BassFlags.MixerChanPause, BassFlags.MixerChanPause);
             });
 
             AddStep("Reverb on", () =>
@@ -153,13 +153,13 @@ namespace osu.Framework.Tests.Visual.Audio
             AddStep("Play SFX1", () =>
             {
                 Bass.ChannelSetPosition(sfxHandle, 0);
-                BassMix.ChannelFlags(sfxHandle, BassFlags.Default, BassFlags.MixerPause);
+                BassMix.ChannelFlags(sfxHandle, BassFlags.Default, BassFlags.MixerChanPause);
             });
 
             AddStep("Play SFX2", () =>
             {
                 Bass.ChannelSetPosition(sfx2Handle, 0);
-                BassMix.ChannelFlags(sfx2Handle, BassFlags.Default, BassFlags.MixerPause);
+                BassMix.ChannelFlags(sfx2Handle, BassFlags.Default, BassFlags.MixerChanPause);
             });
 
             AddStep("Reset Peaks", () =>
@@ -237,7 +237,6 @@ namespace osu.Framework.Tests.Visual.Audio
 
         private float maxPeak = float.MinValue;
         private float peak = float.MinValue;
-        private float gain;
         private Box volBarL;
         private Box volBarR;
         private SpriteText peakText;
