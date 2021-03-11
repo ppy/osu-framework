@@ -60,6 +60,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
+        /// <param name="mixer">The <see cref="AudioMixer"/> to plug this Track into.</param>
         public TrackBass(Stream data, bool quick = false, AudioMixer mixer = null)
         {
             if (data == null)
