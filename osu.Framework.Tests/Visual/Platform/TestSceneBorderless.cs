@@ -149,7 +149,6 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("set up screens", refreshScreens);
 
-            const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
 
             Point originalWindowPosition = Point.Empty;
