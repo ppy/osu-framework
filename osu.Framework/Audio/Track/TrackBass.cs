@@ -135,8 +135,6 @@ namespace osu.Framework.Audio.Track
 
                     relativeFrequencyHandler.SetChannel(ActiveStream);
                     bassAmplitudeProcessor?.SetChannel(ActiveStream);
-
-                    // mixer?.AddChannel(ActiveStream);
                 }
             });
 
@@ -236,7 +234,8 @@ namespace osu.Framework.Audio.Track
             if (ActiveStream != 0)
             {
                 isRunning = false;
-                Bass.ChannelStop(ActiveStream);
+                mixer.StopChannel(ActiveStream);
+                mixer.RemoveChannel(ActiveStream);
                 Bass.StreamFree(ActiveStream);
             }
 
@@ -266,7 +265,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            mixer.StopChannel(ActiveStream);
+            mixer.PauseChannel(ActiveStream);
             StopAsync().Wait();
         }
 
