@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Input.StateChanges;
 using osuTK;
 
 namespace osu.Framework.Input.States
@@ -15,11 +14,6 @@ namespace osu.Framework.Input.States
         public Vector2 Position { get; set; }
 
         public double Pressure { get; set; }
-
-        /// <summary>
-        /// The last input source to make a change to the state.
-        /// </summary>
-        public IInput LastSource { get; set; }
 
         public bool IsButtonPressed(TabletPenButton button) => PenButtons.IsPressed(button);
         public void SetButtonPressed(TabletPenButton button, bool pressed) => PenButtons.SetPressed(button, pressed);
