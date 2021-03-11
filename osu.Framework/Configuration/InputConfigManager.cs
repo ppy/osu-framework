@@ -1,0 +1,61 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Logging;
+using osu.Framework.Platform;
+
+#nullable enable
+
+namespace osu.Framework.Configuration
+{
+    [Serializable]
+    public class InputConfigManager
+    {
+        private const string filename = "input.json";
+
+        private readonly Storage storage;
+
+        [JsonConverter(typeof(TypedRepopulatingConverter<InputHandler>))]
+        public IReadOnlyList<InputHandler> InputHandlers { get; set; }
+
+        public InputConfigManager(Storage storage, IReadOnlyList<InputHandler> inputHandlers)
+        {
+            this.storage = storage;
+            InputHandlers = inputHandlers;
+
+            if (storage.Exists(filename))
+            {
+                try
+                {
+                    using (Stream stream = storage.GetStream(filename, FileAccess.Read, FileMode.Open))
+                    using (var sr = new StreamReader(stream))
+                    {
+                        JsonConvert.PopulateObject(sr.ReadToEnd(), this, new JsonSerializerSettings
+                        {
+                            ObjectCreationHandling = ObjectCreationHandling.Reuse,
+                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate
+                        });
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($"Error occurred when parsing input configuration: {e}");
+                }
+            }
+        }
+
+        public void Save()
+        {
+            using (var stream = storage.GetStream(filename, FileAccess.Write, FileMode.Create))
+            using (var sw = new StreamWriter(stream))
+            {
+                sw.Write(JsonConvert.SerializeObject(this));
+            }
+        }
+    }
+}

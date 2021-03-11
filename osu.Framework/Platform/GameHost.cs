@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
+        protected InputConfigManager InputConfig { get; private set; }
+
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
@@ -572,6 +574,8 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
+                resetInputHandlers();
+
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 if (Window != null)
@@ -583,8 +587,6 @@ namespace osu.Framework.Platform
 
                     IsActive.BindTo(Window.IsActive);
                 }
-
-                resetInputHandlers();
 
                 threadRunner.Start();
 
@@ -755,7 +757,7 @@ namespace osu.Framework.Platform
 
         private Bindable<string> ignoredInputHandlers;
 
-        private Bindable<double> cursorSensitivity;
+        private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
 
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
@@ -772,6 +774,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(Config = new FrameworkConfigManager(Storage, defaultOverrides));
+            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
             windowMode.BindValueChanged(mode =>
@@ -846,7 +849,8 @@ namespace osu.Framework.Platform
 
                 if (restoreDefaults)
                 {
-                    resetInputHandlers();
+                    // todo: reimplement by resetting the config file.
+                    //resetInputHandlers();
                     ignoredInputHandlers.Value = string.Join(' ', AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
                 }
                 else
@@ -859,7 +863,7 @@ namespace osu.Framework.Platform
                 }
             };
 
-            cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
@@ -926,6 +930,7 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
+            InputConfig?.Save();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
