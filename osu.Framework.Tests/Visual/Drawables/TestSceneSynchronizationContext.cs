@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             {
                 base.LoadComplete();
 
-                await waiter.WaitAsync();
+                await waiter.WaitAsync().ConfigureAwait(false);
 
                 this.RotateTo(180, 500);
             }
