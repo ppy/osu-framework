@@ -774,7 +774,6 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(DebugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(Config = new FrameworkConfigManager(Storage, defaultOverrides));
-            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
 
             windowMode = Config.GetBindable<WindowMode>(FrameworkSetting.WindowMode);
             windowMode.BindValueChanged(mode =>
@@ -888,6 +887,9 @@ namespace osu.Framework.Platform
                     t.Scheduler.Add(() => { t.CurrentCulture = culture; });
                 }
             }, true);
+
+            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
+            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
         }
 
         private void setVSyncMode()
