@@ -348,8 +348,8 @@ namespace osu.Framework.Audio.Track
 
             long pos = Bass.ChannelSeconds2Bytes(ActiveStream, clamped / 1000d);
 
-            if (pos != Bass.ChannelGetPosition(ActiveStream))
-                Bass.ChannelSetPosition(ActiveStream, pos);
+            if (pos != mixer.GetChannelPosition(ActiveStream))
+                mixer.SetChannelPosition(ActiveStream, pos);
         }
 
         private double currentTime;
