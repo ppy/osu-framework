@@ -2346,7 +2346,9 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
                 nameof(OnJoystickRelease),
-                nameof(OnJoystickAxisMove)
+                nameof(OnJoystickAxisMove),
+                nameof(OnMidiDown),
+                nameof(OnMidiUp)
             };
 
             private static readonly Type[] positional_input_interfaces =
