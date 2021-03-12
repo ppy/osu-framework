@@ -107,6 +107,10 @@ namespace osu.Framework.Audio
                 {
                     if (Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
                     {
+                        // HACK: avoid auto-cleanup of TrackBass channels - they are "Reverse" thanks to the tempo and reverse fx chain they have
+                        var info = Bass.ChannelGetInfo(channel);
+                        if (info.ChannelType == ChannelType.Reverse) return;
+
                         Logger.Log($"[AudioMixer] Channel gone, auto-removing ({channel})");
                         RemoveChannel(channel);
                     }
