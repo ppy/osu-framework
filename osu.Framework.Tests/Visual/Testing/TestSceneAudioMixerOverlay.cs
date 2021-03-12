@@ -53,6 +53,10 @@ namespace osu.Framework.Tests.Visual.Testing
             {
                 bassTrack?.Start();
             });
+            AddStep("restart", () =>
+            {
+                bassTrack?.Restart();
+            });
             AddStep("stop", () =>
             {
                 bassTrack?.Stop();

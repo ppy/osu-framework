@@ -19,10 +19,13 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly Dictionary<int, ChannelStrip> channelStrips = new Dictionary<int, ChannelStrip>();
         private readonly FillFlowContainer stripContainer;
+        private AudioMixer mixer;
 
         public AudioMixerOverlay(AudioMixer mixer)
             : base("AudioMixer", "(Ctrl+F9 to toggle)")
         {
+            this.mixer = mixer;
+
             ScrollContent.Expire();
             MainHorizontalContent.Add(new BasicScrollContainer(Direction.Horizontal)
             {
@@ -38,8 +41,12 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
+            AddButton(@"Toggle LMT", mixer.ToggleLimiter);
+            AddButton(@"Toggle CMP", mixer.ToggleCompressor);
+            AddButton(@"Toggle LP", mixer.ToggleFilter);
+
             // Add strip for the mixer/master out
-            stripContainer.Add(new ChannelStrip(mixer.MixerHandle));
+            stripContainer.Add(new ChannelStrip(mixer.MixerHandle, mixer));
 
             // Add strips for existing mix channels
             addChannels(mixer.MixChannels);
@@ -53,7 +60,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 if (!channelStrips.ContainsKey(item))
                 {
-                    channelStrips.Add(item, new ChannelStrip(item));
+                    channelStrips.Add(item, new ChannelStrip(item, mixer));
                     stripContainer.Add(channelStrips[item]);
                 }
             }
@@ -102,6 +109,8 @@ namespace osu.Framework.Graphics.Visualisation
             public int ChannelHandle { get; }
 
             private const int sample_window = 30;
+            private const int peak_hold_time = 3000;
+
             private float maxPeak = float.MinValue;
             private double peaksLastReset = 0;
 
@@ -111,8 +120,12 @@ namespace osu.Framework.Graphics.Visualisation
             private readonly SpriteText maxPeakText;
             private readonly TextFlowContainer channelInfoText;
 
-            public ChannelStrip(int channelHandle = 0)
+            private readonly AudioMixer mixer;
+
+            public ChannelStrip(int channelHandle, AudioMixer mixer)
             {
+                this.mixer = mixer;
+
                 ChannelHandle = channelHandle;
                 RelativeSizeAxes = Axes.Y;
                 Width = 60;
@@ -173,18 +186,30 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Bass.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.GreenYellow;
+
+                    string chanInfoTxt = chanInfo.ChannelType.ToString();
+
+                    if (mixer.FilterEnabled) chanInfoTxt += " (LP)";
+                    if (mixer.CompressorEnabled) chanInfoTxt += " (CMP)";
+                    if (mixer.LimiterEnabled) chanInfoTxt += " (LMT)";
+
+                    channelInfoText.Text = chanInfoTxt;
                 }
                 else
                 {
                     BassMix.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
                     volBarL.Colour = volBarR.Colour = Colour4.Green;
+                    channelInfoText.Text = chanInfo.ChannelType.ToString();
                 }
 
                 var curPeakL = levels[0];
                 var curPeakR = levels[1];
                 var curPeak = (curPeakL + curPeakR) / 2f;
 
-                if (Clock.CurrentTime - peaksLastReset > 5000)
+                if (curPeak > maxPeak)
+                    peaksLastReset = Clock.CurrentTime;
+
+                if (Clock.CurrentTime - peaksLastReset > peak_hold_time)
                 {
                     peaksLastReset = Clock.CurrentTime;
                     ResetPeaks();
@@ -199,7 +224,9 @@ namespace osu.Framework.Graphics.Visualisation
                 volBarR.TransformTo(nameof(Drawable.Height), levelToDisplay(curPeakR), sample_window * 4);
                 peakText.Text = $"{peakDisplay}dB";
                 maxPeakText.Text = $"{maxPeakDisplay}dB";
-                channelInfoText.Text = chanInfo.ChannelType.ToString();
+
+                peakText.Colour = BassUtils.LevelToDb(curPeak) > 0 ? Colour4.Red : Colour4.White;
+                maxPeakText.Colour = BassUtils.LevelToDb(maxPeak) > 0 ? Colour4.Red : Colour4.White;
             }
 
             public void ResetPeaks() => maxPeak = float.MinValue;
