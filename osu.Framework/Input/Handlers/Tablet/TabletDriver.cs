@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OpenTabletDriver;
@@ -25,33 +26,43 @@ namespace osu.Framework.Input.Handlers.Tablet
             Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
             DevicesChanged += (sender, args) =>
             {
+                // it's worth noting that this event fires on *any* device change system-wide, including non-tablet devices.
                 if (Tablet == null && args.Additions.Any())
                     DetectTablet();
             };
         }
 
-        private Task detectionTask;
+        private readonly object detectLock = new object();
+
+        private CancellationTokenSource cancellationSource;
 
         public void DetectTablet()
         {
-            if (detectionTask?.IsCompleted == false)
-                return;
-
-            detectionTask = Task.Run(() =>
+            lock (detectLock)
             {
-                var foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+                cancellationSource?.Cancel();
 
-                if (foundVendor > 0)
+                var cancellationToken = (cancellationSource = new CancellationTokenSource()).Token;
+
+                Task.Run(async () =>
                 {
-                    Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+                    // wait a small delay as multiple devices may appear over a very short interval.
+                    await Task.Delay(50, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var config in getConfigurations())
+                    var foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+
+                    if (foundVendor > 0)
                     {
-                        if (TryMatch(config))
-                            break;
+                        Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+
+                        foreach (var config in getConfigurations())
+                        {
+                            if (TryMatch(config))
+                                break;
+                        }
                     }
-                }
-            });
+                }, cancellationToken);
+            }
         }
 
         private IEnumerable<TabletConfiguration> getConfigurations()
