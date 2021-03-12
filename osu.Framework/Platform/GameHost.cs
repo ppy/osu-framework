@@ -708,7 +708,9 @@ namespace osu.Framework.Platform
             {
                 if (!handler.Initialize(this))
                 {
-                    handler.Enabled.Value = false;
+                    // some handlers may disable their enabled toggle if they are critical to operations.
+                    if (!handler.Enabled.Disabled)
+                        handler.Enabled.Value = false;
                     continue;
                 }
 
@@ -853,7 +855,10 @@ namespace osu.Framework.Platform
                     foreach (var handler in AvailableInputHandlers)
                     {
                         var handlerType = handler.ToString();
-                        handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
+
+                        // some handlers may disable their enabled toggle if they are critical to operations.
+                        if (!handler.Enabled.Disabled)
+                            handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                     }
                 }
             };
