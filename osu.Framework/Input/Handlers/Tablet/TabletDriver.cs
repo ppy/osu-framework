@@ -33,6 +33,8 @@ namespace osu.Framework.Input.Handlers.Tablet
         {
             if (CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).Any())
             {
+                Logger.Log("Tablet detected, searching for usable configuration...");
+
                 foreach (var config in getConfigurations())
                 {
                     if (TryMatch(config))

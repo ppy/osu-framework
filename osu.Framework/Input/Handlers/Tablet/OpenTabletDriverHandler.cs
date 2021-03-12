@@ -56,10 +56,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                 if (d.NewValue)
                 {
                     if (tabletDriver.Tablet == null)
-                    {
-                        Logger.Log("Detecting tablets...");
                         tabletDriver.DetectTablet();
-                    }
                 }
 
                 tabletDriver.EnableInput = d.NewValue;
