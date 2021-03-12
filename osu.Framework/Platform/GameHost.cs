@@ -934,7 +934,7 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
-            InputConfig?.Save();
+            InputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 

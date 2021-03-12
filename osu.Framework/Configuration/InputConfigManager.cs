@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Configuration
 {
     [Serializable]
-    public class InputConfigManager
+    public class InputConfigManager : ConfigManager
     {
         public const string FILENAME = "input.json";
 
@@ -28,6 +28,21 @@ namespace osu.Framework.Configuration
             this.storage = storage;
             InputHandlers = inputHandlers;
 
+            Load();
+        }
+
+        protected override bool PerformSave()
+        {
+            using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
+            using (var sw = new StreamWriter(stream))
+            {
+                sw.Write(JsonConvert.SerializeObject(this));
+                return true;
+            }
+        }
+
+        protected override void PerformLoad()
+        {
             if (storage.Exists(FILENAME))
             {
                 try
@@ -46,15 +61,6 @@ namespace osu.Framework.Configuration
                 {
                     Logger.Log($"Error occurred when parsing input configuration: {e}");
                 }
-            }
-        }
-
-        public void Save()
-        {
-            using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
-            using (var sw = new StreamWriter(stream))
-            {
-                sw.Write(JsonConvert.SerializeObject(this));
             }
         }
     }

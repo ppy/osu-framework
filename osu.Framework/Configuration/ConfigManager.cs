@@ -11,7 +11,7 @@ using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
 {
-    public abstract class ConfigManager<TLookup> : ITrackableConfigManager, IDisposable
+    public abstract class ConfigManager<TLookup> : ConfigManager, ITrackableConfigManager
         where TLookup : struct, Enum
     {
         /// <summary>
@@ -164,7 +164,7 @@ namespace osu.Framework.Configuration
         protected virtual void AddBindable<TBindable>(TLookup lookup, Bindable<TBindable> bindable)
         {
             ConfigStore[lookup] = bindable;
-            bindable.ValueChanged += _ => backgroundSave();
+            bindable.ValueChanged += _ => QueueBackgroundSave();
         }
 
         private TValue getDefault<TValue>(TLookup lookup, TValue fallback)
@@ -210,27 +210,6 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void BindWith<TValue>(TLookup lookup, Bindable<TValue> bindable) => bindable.BindTo(GetOriginalBindable<TValue>(lookup));
 
-        #region IDisposable Support
-
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                Save();
-                isDisposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
-
         public virtual TrackedSettings CreateTrackedSettings() => null;
 
         public void LoadInto(TrackedSettings settings) => settings.LoadFrom(this);
@@ -247,7 +226,10 @@ namespace osu.Framework.Configuration
             {
             }
         }
+    }
 
+    public abstract class ConfigManager : IDisposable
+    {
         private bool hasLoaded;
 
         public void Load()
@@ -259,11 +241,12 @@ namespace osu.Framework.Configuration
         private int lastSave;
 
         /// <summary>
-        /// Perform a save with debounce.
+        /// Queue a background save operation with debounce.
         /// </summary>
-        private void backgroundSave()
+        protected void QueueBackgroundSave()
         {
             var current = Interlocked.Increment(ref lastSave);
+
             Task.Delay(100).ContinueWith(task =>
             {
                 if (current == lastSave) Save();
@@ -286,5 +269,26 @@ namespace osu.Framework.Configuration
         protected abstract void PerformLoad();
 
         protected abstract bool PerformSave();
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                Save();
+                isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }
