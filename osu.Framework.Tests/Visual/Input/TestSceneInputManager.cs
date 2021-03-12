@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -9,7 +10,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Platform.Windows;
+using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -172,13 +174,16 @@ namespace osu.Framework.Tests.Visual.Input
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
-            AddToggleStep("Toggle raw input", setRawInputConfig);
-            setRawInputConfig(false);
+            AddToggleStep("Toggle relative move", setRelativeMode);
+            setRelativeMode(false);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             setConfineMouseModeConfig(false);
         }
@@ -190,16 +195,19 @@ namespace osu.Framework.Tests.Visual.Input
 #pragma warning restore 618
         }
 
-        private void setRawInputConfig(bool x)
+        private void setRelativeMode(bool enabled)
         {
-#pragma warning disable 618
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? string.Empty : $"{nameof(WindowsRawInputMouseHandler)}");
-#pragma warning restore 618
+            var mouseHandler = host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
+
+            if (mouseHandler == null)
+                return;
+
+            mouseHandler.UseRelativeMode = enabled;
         }
 
-        private void setConfineMouseModeConfig(bool x)
+        private void setConfineMouseModeConfig(bool enabled)
         {
-            config.Set(FrameworkSetting.ConfineMouseMode, x ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+            config.Set(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
         }
     }
 }
