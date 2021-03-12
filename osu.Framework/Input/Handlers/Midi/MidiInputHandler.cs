@@ -61,6 +61,9 @@ namespace osu.Framework.Input.Handlers.Midi
                 // check removed devices
                 foreach (string key in openedDevices.Keys.ToArray())
                 {
+                    if (string.IsNullOrEmpty(key))
+                        continue;
+
                     var device = openedDevices[key];
 
                     if (inputs.All(i => i.Id != key))
