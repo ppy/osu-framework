@@ -11,6 +11,7 @@ using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Logging;
+using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
@@ -20,7 +21,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public TabletDriver()
         {
-            Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}");
+            Log.Output += (sender, logMessage) => Logger.Log($"{logMessage.Group}: {logMessage.Message}", level: (LogLevel)logMessage.Level);
             DevicesChanged += (sender, args) =>
             {
                 if (Tablet == null && args.Additions.Any())
