@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OpenTabletDriver;
 using OpenTabletDriver.Plugin;
@@ -29,18 +30,28 @@ namespace osu.Framework.Input.Handlers.Tablet
             };
         }
 
+        private Task detectionTask;
+
         public void DetectTablet()
         {
-            if (CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).Any())
-            {
-                Logger.Log("Tablet detected, searching for usable configuration...");
+            if (detectionTask?.IsCompleted == false)
+                return;
 
-                foreach (var config in getConfigurations())
+            detectionTask = Task.Run(() =>
+            {
+                var foundVendor = CurrentDevices.Select(d => d.VendorID).Intersect(known_vendors).FirstOrDefault();
+
+                if (foundVendor > 0)
                 {
-                    if (TryMatch(config))
-                        break;
+                    Logger.Log($"Tablet detected (vid{foundVendor}), searching for usable configuration...");
+
+                    foreach (var config in getConfigurations())
+                    {
+                        if (TryMatch(config))
+                            break;
+                    }
                 }
-            }
+            });
         }
 
         private IEnumerable<TabletConfiguration> getConfigurations()
