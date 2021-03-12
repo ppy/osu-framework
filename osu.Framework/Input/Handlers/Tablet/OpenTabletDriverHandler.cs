@@ -8,7 +8,6 @@ using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
 using osu.Framework.Input.StateChanges;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
