@@ -584,7 +584,7 @@ namespace osu.Framework.Platform
                     IsActive.BindTo(Window.IsActive);
                 }
 
-                resetInputHandlers();
+                initialiseInputHandlers();
 
                 threadRunner.Start();
 
@@ -694,25 +694,38 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
-        private void resetInputHandlers()
+        private void initialiseInputHandlers()
         {
-            if (AvailableInputHandlers != null)
-            {
-                foreach (var h in AvailableInputHandlers)
-                    h.Dispose();
-            }
-
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
+
+            // disable any ignored handlers before performing initialisation.
+            ignoredInputHandlers.TriggerChange();
 
             foreach (var handler in AvailableInputHandlers)
             {
+                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
+
+                if (!handler.Enabled.Value)
+                    continue;
+
                 if (!handler.Initialize(this))
                 {
                     handler.Enabled.Value = false;
-                    continue;
                 }
+            }
+        }
 
-                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
+        /// <summary>
+        /// Reset all input handlers' settings to a default state.
+        /// </summary>
+        public void ResetInputHandlers()
+        {
+            // disable any ignored handlers before performing initialisation.
+            ignoredInputHandlers.TriggerChange();
+
+            foreach (var handler in AvailableInputHandlers)
+            {
+                (handler as IHasCursorSensitivity)?.Sensitivity.SetDefault();
             }
         }
 
@@ -839,22 +852,10 @@ namespace osu.Framework.Platform
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
-                // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
-                // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
-                bool restoreDefaults = !configIgnores.Any() || e.NewValue.Contains("OpenTK");
-
-                if (restoreDefaults)
+                foreach (var handler in AvailableInputHandlers)
                 {
-                    resetInputHandlers();
-                    ignoredInputHandlers.Value = string.Join(' ', AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
-                }
-                else
-                {
-                    foreach (var handler in AvailableInputHandlers)
-                    {
-                        var handlerType = handler.ToString();
-                        handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
-                    }
+                    var handlerType = handler.ToString();
+                    handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };
 
