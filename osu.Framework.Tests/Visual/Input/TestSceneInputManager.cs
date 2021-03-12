@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osu.Framework.Platform.Windows;
 using osuTK;
 using osuTK.Graphics;
@@ -172,6 +173,9 @@ namespace osu.Framework.Tests.Visual.Input
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -181,6 +185,7 @@ namespace osu.Framework.Tests.Visual.Input
             setRawInputConfig(false);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             setConfineMouseModeConfig(false);
+            AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
         private void setCursorSensivityConfig(double x)
