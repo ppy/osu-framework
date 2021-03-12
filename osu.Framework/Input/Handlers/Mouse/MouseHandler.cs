@@ -47,6 +47,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Vector2? lastPosition;
 
         private IBindable<bool> isActive;
+        private IBindable<bool> cursorInWindow;
 
         /// <summary>
         /// Whether a non-relative mouse event has ever been received.
@@ -63,6 +64,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             isActive = window.IsActive.GetBoundCopy();
             isActive.BindValueChanged(_ => updateRelativeMode());
+
+            cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
+            cursorInWindow.BindValueChanged(_ => updateRelativeMode());
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -94,10 +98,10 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!Enabled.Value)
                 return;
 
-            updateRelativeMode();
-
             if (window.RelativeMouseMode)
             {
+                updateRelativeMode();
+
                 // store the last mouse position to propagate back to the host window manager when exiting relative mode.
                 lastPosition = position;
 
