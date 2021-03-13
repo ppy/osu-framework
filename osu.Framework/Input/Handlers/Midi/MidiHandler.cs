@@ -17,6 +17,7 @@ namespace osu.Framework.Input.Handlers.Midi
 {
     public class MidiHandler : InputHandler
     {
+        public override string Description => "MIDI";
         public override bool IsActive => true;
         public override int Priority => 0;
 
