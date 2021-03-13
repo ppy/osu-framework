@@ -100,6 +100,9 @@ namespace osu.Framework.Platform
             get => resizable;
             set
             {
+                if (resizable == value)
+                    return;
+
                 resizable = value;
                 ScheduleCommand(() => SDL.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
@@ -986,6 +989,8 @@ namespace osu.Framework.Platform
                 currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
                 ScheduleEvent(() => OnDisplayChanged(currentDisplay));
             }
+
+            resizable = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
         }
 
         /// <summary>
