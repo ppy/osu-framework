@@ -10,6 +10,8 @@ namespace osu.Framework.Input.Handlers.Keyboard
 {
     public class KeyboardHandler : InputHandler
     {
+        public override string Description => "Keyboard";
+
         public override bool IsActive => true;
 
         public override int Priority => 0;
