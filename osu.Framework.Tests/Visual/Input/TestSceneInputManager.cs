@@ -182,7 +182,7 @@ namespace osu.Framework.Tests.Visual.Input
         {
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
-            AddToggleStep("Toggle relative move", setRelativeMode);
+            AddToggleStep("Toggle relative mode", setRelativeMode);
             setRelativeMode(false);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
             setConfineMouseModeConfig(false);

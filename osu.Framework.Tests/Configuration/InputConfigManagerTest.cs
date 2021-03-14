@@ -32,7 +32,7 @@ namespace osu.Framework.Tests.Configuration
                 }));
             }
 
-            // test with only InputConfigManager configuration file present
+            // test with only FrameworkConfigManager configuration file present
             storage.Delete(InputConfigManager.FILENAME);
 
             double sensitivity = 0;
