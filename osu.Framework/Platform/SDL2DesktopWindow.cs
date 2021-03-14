@@ -90,7 +90,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool resizable;
+        private bool resizable = true;
 
         /// <summary>
         /// Returns or sets whether the window is resizable or not.
@@ -989,8 +989,6 @@ namespace osu.Framework.Platform
                 currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
                 ScheduleEvent(() => OnDisplayChanged(currentDisplay));
             }
-
-            resizable = ((SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(SDLWindowHandle)).HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
         }
 
         /// <summary>
@@ -1011,6 +1009,7 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
+                    SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig();
                     break;
