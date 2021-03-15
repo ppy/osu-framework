@@ -61,6 +61,21 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             localisedText = localisation.GetLocalisedString(text);
+
+            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+
+            // Pre-cache the characters in the texture store
+            foreach (var character in localisedText.Value)
+            {
+                var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
+            }
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
             localisedText.BindValueChanged(str =>
             {
                 current.Value = localisedText.Value;
@@ -76,15 +91,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 invalidate(true);
             }, true);
-
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-
-            // Pre-cache the characters in the texture store
-            foreach (var character in displayedText)
-            {
-                var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
-            }
         }
 
         private LocalisableString text = string.Empty;

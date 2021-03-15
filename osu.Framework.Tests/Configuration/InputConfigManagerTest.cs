@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
@@ -21,7 +22,7 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestOldConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost(@"input-config-host"))
+            using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, config) =>
                 {
@@ -32,12 +33,12 @@ namespace osu.Framework.Tests.Configuration
                 }));
             }
 
-            // test with only InputConfigManager configuration file present
+            // test with only FrameworkConfigManager configuration file present
             storage.Delete(InputConfigManager.FILENAME);
 
             double sensitivity = 0;
 
-            using (var host = new TestHeadlessGameHost(@"input-config-host"))
+            using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
@@ -48,7 +49,7 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestNewConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost(@"input-config-host"))
+            using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, config) =>
                 {
@@ -62,7 +63,7 @@ namespace osu.Framework.Tests.Configuration
 
             double sensitivity = 0;
 
-            using (var host = new TestHeadlessGameHost(@"input-config-host"))
+            using (var host = new TestHeadlessGameHost())
             {
                 host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
             }
@@ -72,8 +73,8 @@ namespace osu.Framework.Tests.Configuration
 
         public class TestHeadlessGameHost : HeadlessGameHost
         {
-            public TestHeadlessGameHost(string name)
-                : base(name)
+            public TestHeadlessGameHost([CallerMemberName] string caller = "")
+                : base(caller)
             {
             }
 
