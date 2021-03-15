@@ -593,7 +593,6 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                ignoredInputHandlers.TriggerChange();
 
                 IsActive.BindValueChanged(active =>
                 {
