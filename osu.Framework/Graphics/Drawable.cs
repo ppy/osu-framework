@@ -2396,7 +2396,7 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickRelease),
                 nameof(OnJoystickAxisMove),
                 nameof(OnTabletAuxiliaryButtonPress),
-                nameof(OnTabletAuxiliaryButtonRelease)
+                nameof(OnTabletAuxiliaryButtonRelease),
                 nameof(OnMidiDown),
                 nameof(OnMidiUp)
             };
