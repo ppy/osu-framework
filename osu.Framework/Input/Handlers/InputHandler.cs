@@ -3,20 +3,40 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
     public abstract class InputHandler : IDisposable, IHasDescription
     {
+        private bool isInitialized;
+
         /// <summary>
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize(GameHost host);
+        public virtual bool Initialize(GameHost host)
+        {
+            if (isInitialized)
+                throw new InvalidOperationException($"{nameof(Initialize)} was run more than once");
+
+            isInitialized = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Reset this handler to a sane default state. This should reset any settings a consumer or user may have changed in order to attempt to make the handler usable again.
+        /// </summary>
+        /// <remarks>
+        /// An example would be a user setting the sensitivity too high to turn it back down, or restricting the navigable screen area too small.
+        /// Calling this would attempt to return the user to a sane state so they could re-attempt configuration changes.
+        /// </remarks>
+        public virtual void Reset()
+        {
+        }
 
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 

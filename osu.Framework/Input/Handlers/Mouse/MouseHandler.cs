@@ -47,6 +47,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             if (!(host.Window is SDL2DesktopWindow desktopWindow))
                 return false;
 
@@ -113,6 +116,12 @@ namespace osu.Framework.Input.Handlers.Mouse
                     }
                 }
             }
+        }
+
+        public override void Reset()
+        {
+            Sensitivity.SetDefault();
+            base.Reset();
         }
 
         private void updateRelativeMode()
