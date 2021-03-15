@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
+using System.Drawing;
 using System.Numerics;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
@@ -14,7 +15,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
-    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer
+    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer, ITabletHandler
     {
         public override bool IsActive => tabletDriver.EnableInput;
 
@@ -22,9 +23,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private TabletDriver tabletDriver;
 
-        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+        public BindableSize AreaOffset { get; } = new BindableSize();
 
-        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+        public BindableSize AreaSize { get; } = new BindableSize();
+
+        public IBindable<Size> TabletSize { get; } = new BindableSize(new Size(160, 100));
 
         public override bool Initialize(GameHost host)
         {
