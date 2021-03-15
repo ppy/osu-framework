@@ -7,6 +7,7 @@ using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
+using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -20,6 +21,10 @@ namespace osu.Framework.Input.Handlers.Tablet
         public override int Priority => 0;
 
         private TabletDriver tabletDriver;
+
+        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
         public override bool Initialize(GameHost host)
         {
