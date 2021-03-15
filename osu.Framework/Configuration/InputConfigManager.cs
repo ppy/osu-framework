@@ -59,7 +59,7 @@ namespace osu.Framework.Configuration
                 }
                 catch (Exception e)
                 {
-                    Logger.Log($"Error occurred when parsing input configuration: {e}");
+                    Logger.Error(e, "Error occurred when parsing input configuration");
                 }
             }
         }
