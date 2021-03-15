@@ -2397,6 +2397,8 @@ namespace osu.Framework.Graphics
                 nameof(OnJoystickAxisMove),
                 nameof(OnTabletAuxiliaryButtonPress),
                 nameof(OnTabletAuxiliaryButtonRelease)
+                nameof(OnMidiDown),
+                nameof(OnMidiUp)
             };
 
             private static readonly Type[] positional_input_interfaces =
