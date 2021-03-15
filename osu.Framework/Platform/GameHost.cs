@@ -718,7 +718,7 @@ namespace osu.Framework.Platform
 
             foreach (var handler in AvailableInputHandlers)
             {
-                (handler as IHasCursorSensitivity)?.Sensitivity.SetDefault();
+                handler.Reset();
             }
         }
 

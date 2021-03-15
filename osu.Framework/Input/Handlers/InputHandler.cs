@@ -27,6 +27,18 @@ namespace osu.Framework.Input.Handlers
             return true;
         }
 
+        /// <summary>
+        /// Reset this handler to a sane default state. This should reset any settings a consumer or user may have changed in order to attempt to make the handler usable again.
+        /// </summary>
+        /// <remarks>
+        /// An example would be a user setting the sensitivity too high to turn it back down, or restricting the navigable screen area too small.
+        /// Calling this would attempt to return the user to a sane state so they could re-attempt configuration changes.
+        /// </remarks>
+        /// <exception cref="NotImplementedException"></exception>
+        public virtual void Reset()
+        {
+        }
+
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
         private readonly object pendingInputsRetrievalLock = new object();

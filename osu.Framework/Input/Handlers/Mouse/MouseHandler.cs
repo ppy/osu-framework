@@ -121,6 +121,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
         }
 
+        public override void Reset()
+        {
+            Sensitivity.SetDefault();
+            base.Reset();
+        }
+
         private void updateRelativeMode()
         {
             window.RelativeMouseMode = useRelativeMode && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
