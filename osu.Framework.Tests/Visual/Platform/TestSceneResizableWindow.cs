@@ -7,17 +7,12 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
+    [Ignore("This test cannot be run in headless mode (a window instance is required).")]
     public class TestSceneResizableWindow : FrameworkTestScene
     {
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            if (host.Window == null)
-            {
-                Assert.Ignore("This test cannot be run in headless mode (a window instance is required).");
-                return;
-            }
-
             AddToggleStep("toggle resizable", state => ((SDL2DesktopWindow)host.Window).Resizable = state);
         }
     }
