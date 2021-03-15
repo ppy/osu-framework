@@ -19,8 +19,6 @@ namespace osu.Framework.Platform.Windows
     {
         private TimePeriod timePeriod;
 
-        private WindowsRawInputMouseHandler rawInputHandler;
-
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -51,11 +49,7 @@ namespace osu.Framework.Platform.Windows
             // for windows platforms we want to override the relative mouse event handling behaviour.
             return base.CreateAvailableInputHandlers()
                        .Where(t => !(t is MouseHandler))
-                       .Concat(new InputHandler[]
-                       {
-                           rawInputHandler = new WindowsRawInputMouseHandler(),
-                           new WindowsMouseHandler(() => rawInputHandler.IsActive),
-                       });
+                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
 
         protected override void SetupForRun()
