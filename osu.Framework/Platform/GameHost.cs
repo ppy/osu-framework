@@ -52,6 +52,8 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
+        protected InputConfigManager InputConfig { get; private set; }
+
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
@@ -572,6 +574,8 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
+                initialiseInputHandlers();
+
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 if (Window != null)
@@ -584,8 +588,6 @@ namespace osu.Framework.Platform
                     IsActive.BindTo(Window.IsActive);
                 }
 
-                initialiseInputHandlers();
-
                 threadRunner.Start();
 
                 DrawThread.WaitUntilInitialized();
@@ -593,7 +595,6 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                ignoredInputHandlers.TriggerChange();
 
                 IsActive.BindValueChanged(active =>
                 {
@@ -698,20 +699,12 @@ namespace osu.Framework.Platform
         {
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
-            // disable any ignored handlers before performing initialisation.
-            ignoredInputHandlers.TriggerChange();
-
             foreach (var handler in AvailableInputHandlers)
             {
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
 
-                if (!handler.Enabled.Value)
-                    continue;
-
                 if (!handler.Initialize(this))
-                {
                     handler.Enabled.Value = false;
-                }
             }
         }
 
@@ -720,12 +713,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public void ResetInputHandlers()
         {
-            // disable any ignored handlers before performing initialisation.
+            // restore any disable handlers per legacy configuration.
             ignoredInputHandlers.TriggerChange();
 
             foreach (var handler in AvailableInputHandlers)
             {
-                (handler as IHasCursorSensitivity)?.Sensitivity.SetDefault();
+                handler.Reset();
             }
         }
 
@@ -768,7 +761,7 @@ namespace osu.Framework.Platform
 
         private Bindable<string> ignoredInputHandlers;
 
-        private Bindable<double> cursorSensitivity;
+        private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
 
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
@@ -847,6 +840,7 @@ namespace osu.Framework.Platform
                 MaximumUpdateHz = updateLimiter;
             };
 
+#pragma warning disable 618
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
@@ -859,7 +853,15 @@ namespace osu.Framework.Platform
                 }
             };
 
-            cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
+
+            // one way binding to preserve compatibility.
+            cursorSensitivity.BindValueChanged(val =>
+            {
+                foreach (var h in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
+                    h.Sensitivity.Value = val.NewValue;
+            }, true);
+#pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
             {
@@ -883,6 +885,9 @@ namespace osu.Framework.Platform
                     t.Scheduler.Add(() => { t.CurrentCulture = culture; });
                 }
             }, true);
+
+            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
+            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
         }
 
         private void setVSyncMode()
@@ -925,6 +930,7 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
+            InputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
