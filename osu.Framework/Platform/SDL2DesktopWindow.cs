@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
         private bool resizable = true;
 
         /// <summary>
-        /// Returns or sets whether the window is resizable or not.
+        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="WindowState.Normal"/>.
         /// </summary>
         public bool Resizable
         {

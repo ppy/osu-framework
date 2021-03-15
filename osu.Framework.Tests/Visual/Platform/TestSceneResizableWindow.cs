@@ -11,7 +11,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
-            AddToggleStep("toggle resizable", (state) => ((SDL2DesktopWindow)host.Window).Resizable = state);
+            AddToggleStep("toggle resizable", state => ((SDL2DesktopWindow)host.Window).Resizable = state);
         }
     }
 }
