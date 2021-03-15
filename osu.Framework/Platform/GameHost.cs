@@ -697,9 +697,6 @@ namespace osu.Framework.Platform
         {
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
-            // disable any ignored handlers before performing initialisation.
-            ignoredInputHandlers.TriggerChange();
-
             foreach (var handler in AvailableInputHandlers)
             {
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
@@ -716,7 +713,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void ResetInputHandlers()
         {
-            // disable any ignored handlers before performing initialisation.
+            // restore any disable handlers per legacy configuration.
             ignoredInputHandlers.TriggerChange();
 
             foreach (var handler in AvailableInputHandlers)
