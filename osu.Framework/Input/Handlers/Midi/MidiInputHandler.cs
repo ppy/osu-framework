@@ -32,6 +32,9 @@ namespace osu.Framework.Input.Handlers.Midi
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             Enabled.BindValueChanged(e =>
             {
                 if (e.NewValue)

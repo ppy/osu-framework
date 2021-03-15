@@ -3,20 +3,29 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
     public abstract class InputHandler : IDisposable
     {
+        private bool isInitialized;
+
         /// <summary>
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize(GameHost host);
+        public virtual bool Initialize(GameHost host)
+        {
+            if (isInitialized)
+                throw new InvalidOperationException($"{nameof(Initialize)} was run more than once");
+
+            isInitialized = true;
+            return true;
+        }
 
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 

@@ -31,6 +31,9 @@ namespace osu.Framework.Platform.Windows
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             if (!(host.Window is SDL2DesktopWindow desktopWindow))
                 return false;
 
