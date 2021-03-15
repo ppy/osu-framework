@@ -191,7 +191,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setCursorSensivityConfig(double sensitivity)
         {
-            var mouseHandler = getMousehHandler();
+            var mouseHandler = getMouseHandler();
 
             if (mouseHandler == null)
                 return;
@@ -201,7 +201,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setRelativeMode(bool enabled)
         {
-            var mouseHandler = getMousehHandler();
+            var mouseHandler = getMouseHandler();
 
             if (mouseHandler == null)
                 return;
@@ -209,7 +209,7 @@ namespace osu.Framework.Tests.Visual.Input
             mouseHandler.UseRelativeMode = enabled;
         }
 
-        private MouseHandler getMousehHandler()
+        private MouseHandler getMouseHandler()
         {
             return host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
         }
