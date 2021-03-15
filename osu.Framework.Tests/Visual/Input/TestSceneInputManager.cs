@@ -10,8 +10,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform;
+using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 using osuTK.Graphics;
 
@@ -182,27 +182,37 @@ namespace osu.Framework.Tests.Visual.Input
         {
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
-            AddToggleStep("Toggle relative move", setRelativeMode);
-            setRelativeMode(false);
+            AddToggleStep("Toggle relative mode", setRelativeMode);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
+
+            setRelativeMode(false);
             setConfineMouseModeConfig(false);
+            AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
-        private void setCursorSensivityConfig(double x)
+        private void setCursorSensivityConfig(double sensitivity)
         {
-#pragma warning disable 618
-            config.Set(FrameworkSetting.CursorSensitivity, x);
-#pragma warning restore 618
+            var mouseHandler = getMouseHandler();
+
+            if (mouseHandler == null)
+                return;
+
+            mouseHandler.Sensitivity.Value = sensitivity;
         }
 
         private void setRelativeMode(bool enabled)
         {
-            var mouseHandler = host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
+            var mouseHandler = getMouseHandler();
 
             if (mouseHandler == null)
                 return;
 
             mouseHandler.UseRelativeMode = enabled;
+        }
+
+        private MouseHandler getMouseHandler()
+        {
+            return host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
         }
 
         private void setConfineMouseModeConfig(bool enabled)

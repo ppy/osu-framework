@@ -33,12 +33,21 @@ namespace osu.Framework.Configuration
 
         protected override bool PerformSave()
         {
-            using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
-            using (var sw = new StreamWriter(stream))
+            try
             {
-                sw.Write(JsonConvert.SerializeObject(this));
-                return true;
+                using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
+                using (var sw = new StreamWriter(stream))
+                {
+                    sw.Write(JsonConvert.SerializeObject(this));
+                    return true;
+                }
             }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Error occurred when saving input configuration");
+            }
+
+            return false;
         }
 
         protected override void PerformLoad()
@@ -59,7 +68,7 @@ namespace osu.Framework.Configuration
                 }
                 catch (Exception e)
                 {
-                    Logger.Log($"Error occurred when parsing input configuration: {e}");
+                    Logger.Error(e, "Error occurred when parsing input configuration");
                 }
             }
         }

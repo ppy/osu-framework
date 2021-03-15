@@ -574,7 +574,7 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                resetInputHandlers();
+                initialiseInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
@@ -595,7 +595,6 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                ignoredInputHandlers.TriggerChange();
 
                 IsActive.BindValueChanged(active =>
                 {
@@ -696,20 +695,30 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
-        private void resetInputHandlers()
+        private void initialiseInputHandlers()
         {
-            if (AvailableInputHandlers != null)
-            {
-                foreach (var h in AvailableInputHandlers)
-                    h.Dispose();
-            }
-
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
+                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
+
                 if (!handler.Initialize(this))
                     handler.Enabled.Value = false;
+            }
+        }
+
+        /// <summary>
+        /// Reset all input handlers' settings to a default state.
+        /// </summary>
+        public void ResetInputHandlers()
+        {
+            // restore any disable handlers per legacy configuration.
+            ignoredInputHandlers.TriggerChange();
+
+            foreach (var handler in AvailableInputHandlers)
+            {
+                handler.Reset();
             }
         }
 
@@ -837,23 +846,10 @@ namespace osu.Framework.Platform
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
-                // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
-                // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
-                bool restoreDefaults = !configIgnores.Any() || e.NewValue.Contains("OpenTK");
-
-                if (restoreDefaults)
+                foreach (var handler in AvailableInputHandlers)
                 {
-                    // todo: reimplement by resetting the config file.
-                    //resetInputHandlers();
-                    ignoredInputHandlers.Value = string.Join(' ', AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
-                }
-                else
-                {
-                    foreach (var handler in AvailableInputHandlers)
-                    {
-                        var handlerType = handler.ToString();
-                        handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
-                    }
+                    var handlerType = handler.ToString();
+                    handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };
 
