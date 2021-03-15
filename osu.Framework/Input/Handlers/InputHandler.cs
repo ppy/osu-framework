@@ -34,7 +34,6 @@ namespace osu.Framework.Input.Handlers
         /// An example would be a user setting the sensitivity too high to turn it back down, or restricting the navigable screen area too small.
         /// Calling this would attempt to return the user to a sane state so they could re-attempt configuration changes.
         /// </remarks>
-        /// <exception cref="NotImplementedException"></exception>
         public virtual void Reset()
         {
         }
