@@ -50,5 +50,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.8.0">
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
     </PackageReference>
+    <PackageReference Include="OpenTabletDriver" Version="0.5.2.1" />
   </ItemGroup>
 </Project>
