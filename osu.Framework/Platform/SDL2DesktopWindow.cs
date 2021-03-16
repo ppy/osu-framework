@@ -90,6 +90,24 @@ namespace osu.Framework.Platform
             }
         }
 
+        private bool resizable = true;
+
+        /// <summary>
+        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
+        /// </summary>
+        public bool Resizable
+        {
+            get => resizable;
+            set
+            {
+                if (resizable == value)
+                    return;
+
+                resizable = value;
+                ScheduleCommand(() => SDL.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+            }
+        }
+
         private bool relativeMouseMode;
 
         /// <summary>
@@ -991,6 +1009,7 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
+                    SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig();
                     break;
