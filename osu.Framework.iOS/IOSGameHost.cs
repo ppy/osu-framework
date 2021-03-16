@@ -102,7 +102,7 @@ namespace osu.Framework.iOS
                 keyboardHandler = new IOSKeyboardHandler(gameView),
                 rawKeyboardHandler = new IOSRawKeyboardHandler(),
                 new IOSMouseHandler(gameView),
-                new MidiInputHandler()
+                new MidiHandler()
             };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
