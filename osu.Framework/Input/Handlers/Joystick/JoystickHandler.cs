@@ -14,6 +14,8 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private readonly JoystickButton[] axisDirectionButtons = new JoystickButton[(int)JoystickAxisSource.AxisCount];
 
+        public override string Description => "Joystick / Gamepad";
+
         public override bool IsActive => true;
 
         public override int Priority => 0;

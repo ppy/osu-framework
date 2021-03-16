@@ -88,7 +88,7 @@ namespace osu.Framework.Platform
                 new KeyboardHandler(),
                 new MouseHandler(),
                 new JoystickHandler(),
-                new MidiInputHandler(),
+                new MidiHandler(),
             };
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);

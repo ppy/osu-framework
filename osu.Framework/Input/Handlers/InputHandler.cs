@@ -10,7 +10,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
-    public abstract class InputHandler : IDisposable
+    public abstract class InputHandler : IDisposable, IHasDescription
     {
         private bool isInitialized;
 
@@ -66,9 +66,14 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         /// <summary>
+        /// A user-readable description of this input handler, for display in settings.
+        /// </summary>
+        public virtual string Description => ToString().Replace("Handler", string.Empty);
+
+        /// <summary>
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
-        public readonly BindableBool Enabled = new BindableBool(true);
+        public BindableBool Enabled { get; } = new BindableBool(true);
 
         public override string ToString() => GetType().Name;
 
