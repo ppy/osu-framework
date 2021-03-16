@@ -20,6 +20,9 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 
