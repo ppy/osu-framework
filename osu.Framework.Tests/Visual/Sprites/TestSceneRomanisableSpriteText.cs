@@ -4,6 +4,7 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -15,6 +16,8 @@ namespace osu.Framework.Tests.Visual.Sprites
     public class TestSceneRomanisableSpriteText : FrameworkTestScene
     {
         private readonly FillFlowContainer flow;
+
+        private Bindable<bool> showUnicodeBindable;
 
         public TestSceneRomanisableSpriteText()
         {
@@ -41,16 +44,19 @@ namespace osu.Framework.Tests.Visual.Sprites
             flow.Add(new SpriteText { Text = new RomanisableString("ongaku", "") });
         }
 
-        [Resolved]
-        private FrameworkConfigManager config { get; set; }
+        [BackgroundDependencyLoader]
+        private void load(FrameworkConfigManager config)
+        {
+            showUnicodeBindable = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
+        }
 
         [Test]
         public void TestToggleRomanisedState()
         {
-            AddStep("prefer romanised", () => config.Set(FrameworkSetting.ShowUnicode, false));
+            AddStep("prefer romanised", () => showUnicodeBindable.Value = false);
             AddAssert("check strings correct", () => flow.OfType<SpriteText>().Select(st => st.Current.Value).SequenceEqual(new[] { "music", "music", "ongaku" }));
 
-            AddStep("prefer unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
+            AddStep("prefer unicode", () => showUnicodeBindable.Value = true);
             AddAssert("check strings correct", () => flow.OfType<SpriteText>().Select(st => st.Current.Value).SequenceEqual(new[] { "ongaku", "music", "ongaku" }));
         }
     }

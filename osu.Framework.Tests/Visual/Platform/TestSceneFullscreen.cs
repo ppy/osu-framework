@@ -31,6 +31,8 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
+        private Bindable<ConfineMouseMode> confineModeBindable;
+
         public TestSceneFullscreen()
         {
             var currentBindableSize = new SpriteText();
@@ -61,8 +63,11 @@ namespace osu.Framework.Tests.Visual.Platform
         private void load(GameHost host)
         {
             window = host.Window;
+
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
+            confineModeBindable = config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode);
+
             currentWindowMode.Text = $"Window Mode: {windowMode}";
 
             if (window == null)
@@ -131,9 +136,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestConfineModes()
         {
-            AddStep("set confined to never", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
-            AddStep("set confined to fullscreen", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
-            AddStep("set confined to always", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+            AddStep("set confined to never", () => confineModeBindable.Value = ConfineMouseMode.Never);
+            AddStep("set confined to fullscreen", () => confineModeBindable.Value = ConfineMouseMode.Fullscreen);
+            AddStep("set confined to always", () => confineModeBindable.Value = ConfineMouseMode.Always);
         }
 
         protected override void Update()
