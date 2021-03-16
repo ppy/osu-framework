@@ -207,7 +207,7 @@ namespace osu.Framework.Tests.Visual.Input
             if (mouseHandler == null)
                 return;
 
-            mouseHandler.UseRelativeMode = enabled;
+            mouseHandler.UseRelativeMode.Value = enabled;
         }
 
         private MouseHandler getMouseHandler()

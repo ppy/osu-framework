@@ -17,30 +17,21 @@ namespace osu.Framework.Input.Handlers.Mouse
     /// </summary>
     public class MouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
     {
+        /// <summary>
+        /// Whether relative mode should be preferred when the window has focus and the cursor is contained.
+        /// </summary>
+        public BindableBool UseRelativeMode { get; } = new BindableBool(true)
+        {
+            Description = "Allows for sensitivity adjustment and tighter control of input",
+        };
+
         public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
+
+        public override string Description => "Mouse";
 
         public override bool IsActive => true;
 
         public override int Priority => 0;
-
-        private bool useRelativeMode = true;
-
-        /// <summary>
-        /// Whether relative mode should be preferred when the window has focus and the cursor is contained.
-        /// </summary>
-        public bool UseRelativeMode
-        {
-            get => useRelativeMode;
-            set
-            {
-                if (value == useRelativeMode)
-                    return;
-
-                useRelativeMode = value;
-                if (window != null)
-                    updateRelativeMode();
-            }
-        }
 
         private SDL2DesktopWindow window;
 
@@ -70,6 +61,12 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
             cursorInWindow.BindValueChanged(_ => updateRelativeMode());
+
+            UseRelativeMode.BindValueChanged(_ =>
+            {
+                if (window != null)
+                    updateRelativeMode();
+            });
 
             Enabled.BindValueChanged(enabled =>
             {
@@ -133,7 +130,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void updateRelativeMode()
         {
-            window.RelativeMouseMode = useRelativeMode && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+            window.RelativeMouseMode = UseRelativeMode.Value && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();
