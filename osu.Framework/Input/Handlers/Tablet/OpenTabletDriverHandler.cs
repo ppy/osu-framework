@@ -29,6 +29,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public IBindable<Size> TabletSize { get; } = new BindableSize(new Size(160, 100));
 
+        public string DeviceName => tabletDriver.Tablet?.TabletProperties.Name ?? string.Empty;
+
         public override bool Initialize(GameHost host)
         {
             tabletDriver = new TabletDriver

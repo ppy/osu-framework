@@ -18,6 +18,8 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         IBindable<Size> TabletSize { get; }
 
+        string DeviceName { get; }
+
         BindableBool Enabled { get; }
     }
 }
