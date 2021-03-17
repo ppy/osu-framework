@@ -51,12 +51,30 @@ namespace osu.Framework.Configuration
             var bindable = GetOriginalBindable<TValue>(lookup);
 
             if (bindable == null)
-                Set(lookup, value);
+                SetDefault(lookup, value);
             else
                 bindable.Value = value;
         }
 
-        protected BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null) => SetDefault(lookup, value, min, max, precision);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null) => SetDefault(lookup, value, min, max, precision);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null) => SetDefault(lookup, value, min, max);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableBool Set(TLookup lookup, bool value) => SetDefault(lookup, value);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null) => SetDefault(lookup, value, min, max);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value) => SetDefault(lookup, value);
+
+        protected BindableDouble SetDefault(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -78,7 +96,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        protected BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
+        protected BindableFloat SetDefault(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -100,7 +118,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        protected BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null)
+        protected BindableInt SetDefault(TLookup lookup, int value, int? min = null, int? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -121,7 +139,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        protected BindableBool Set(TLookup lookup, bool value)
+        protected BindableBool SetDefault(TLookup lookup, bool value)
         {
             value = getDefault(lookup, value);
 
@@ -140,7 +158,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        protected BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null)
+        protected BindableSize SetDefault(TLookup lookup, Size value, Size? min = null, Size? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -161,7 +179,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        protected Bindable<TValue> Set<TValue>(TLookup lookup, TValue value)
+        protected Bindable<TValue> SetDefault<TValue>(TLookup lookup, TValue value)
         {
             value = getDefault(lookup, value);
 
