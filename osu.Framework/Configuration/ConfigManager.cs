@@ -40,6 +40,22 @@ namespace osu.Framework.Configuration
         {
         }
 
+        /// <summary>
+        /// Sets a configuration value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The configuration value. Will also become the default value if one has not already been initialised.</param>
+        /// <typeparam name="TValue">The type of value.</typeparam>
+        public void SetValue<TValue>(TLookup lookup, TValue value)
+        {
+            var bindable = GetOriginalBindable<TValue>(lookup);
+
+            if (bindable == null)
+                Set(lookup, value);
+            else
+                bindable.Value = value;
+        }
+
         protected BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             value = getDefault(lookup, value);
