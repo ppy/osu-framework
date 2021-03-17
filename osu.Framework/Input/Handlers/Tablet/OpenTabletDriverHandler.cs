@@ -2,24 +2,33 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
-using System.Numerics;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
 using OpenTabletDriver.Plugin.Tablet;
+using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osuTK;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
-    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer
+    public class OpenTabletDriverHandler : InputHandler, IAbsolutePointer, IVirtualTablet, IRelativePointer, ITabletHandler
     {
         public override bool IsActive => tabletDriver.EnableInput;
 
         public override int Priority => 0;
 
         private TabletDriver tabletDriver;
+
+        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+
+        public IBindable<TabletInfo> Tablet => tablet;
+
+        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
         public override bool Initialize(GameHost host)
         {
@@ -31,9 +40,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             };
 
             updateOutputArea(host.Window);
-            updateInputArea();
 
             host.Window.Resized += () => updateOutputArea(host.Window);
+
+            AreaOffset.BindValueChanged(_ => updateInputArea());
+            AreaSize.BindValueChanged(_ => updateInputArea(), true);
 
             tabletDriver.TabletChanged += (sender, e) => updateInputArea();
             tabletDriver.ReportReceived += (sender, report) =>
@@ -64,11 +75,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             return true;
         }
 
-        void IAbsolutePointer.SetPosition(Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new osuTK.Vector2(pos.X, pos.Y) });
+        void IAbsolutePointer.SetPosition(System.Numerics.Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new Vector2(pos.X, pos.Y) });
 
         void IVirtualTablet.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        void IRelativePointer.Translate(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new osuTK.Vector2(delta.X, delta.Y) });
+        void IRelativePointer.Translate(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
 
         private void updateOutputArea(IWindow window)
         {
@@ -83,7 +94,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     {
                         Width = outputWidth = window.ClientSize.Width,
                         Height = outputHeight = window.ClientSize.Height,
-                        Position = new Vector2(outputWidth / 2, outputHeight / 2)
+                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
                     };
                     break;
                 }
@@ -93,21 +104,39 @@ namespace osu.Framework.Input.Handlers.Tablet
         private void updateInputArea()
         {
             if (tabletDriver.Tablet == null)
+            {
+                tablet.Value = null;
                 return;
+            }
+
+            float inputWidth = tabletDriver.Tablet.Digitizer.Width;
+            float inputHeight = tabletDriver.Tablet.Digitizer.Height;
+
+            AreaSize.Default = new Vector2(inputWidth, inputHeight);
+
+            // if it's clear the user has not configured the area, take the full area from the tablet that was just found.
+            if (AreaSize.Value == Vector2.Zero)
+                AreaSize.SetDefault();
+
+            AreaOffset.Default = new Vector2(inputWidth / 2, inputHeight / 2);
+
+            // likewise with the position, use the centre point if it has not been configured.
+            // it's safe to assume no user would set their centre point to 0,0 for now.
+            if (AreaOffset.Value == Vector2.Zero)
+                AreaOffset.SetDefault();
+
+            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Default);
 
             switch (tabletDriver.OutputMode)
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float inputWidth = tabletDriver.Tablet.Digitizer.Width;
-                    float inputHeight = tabletDriver.Tablet.Digitizer.Height;
-
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
-                        Width = inputWidth,
-                        Height = inputHeight,
-                        Position = new Vector2(inputWidth / 2, inputHeight / 2),
+                        Width = AreaSize.Value.X,
+                        Height = AreaSize.Value.Y,
+                        Position = new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
                         Rotation = 0
                     };
                     break;
