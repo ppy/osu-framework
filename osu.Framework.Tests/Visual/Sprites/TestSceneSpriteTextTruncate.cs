@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
@@ -18,12 +19,13 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Children = new Drawable[]
             {
-                new BasicScrollContainer
+                new TooltipContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Children = new[]
+                    Child = new BasicScrollContainer
                     {
-                        flow = new FillFlowContainer
+                        RelativeSizeAxes = Axes.Both,
+                        Child = flow = new FillFlowContainer
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Y,
