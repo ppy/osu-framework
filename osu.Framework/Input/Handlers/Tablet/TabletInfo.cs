@@ -7,7 +7,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     /// <summary>
     /// A class that carries the information we care about from the tablet provider.
-    /// Note that we are note using the exposed classes from OTD due to conditional compilation pains.
+    /// Can be considered for removal when we no longer require dual targeting against netstandard.
     /// </summary>
     public class TabletInfo
     {

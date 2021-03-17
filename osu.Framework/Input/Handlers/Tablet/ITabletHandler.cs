@@ -8,7 +8,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 {
     /// <summary>
     /// An interface to access OpenTabletDriverHandler.
-    /// Can be removed when we no longer require dual targeting against netstandard5.0.
+    /// Can be considered for removal when we no longer require dual targeting against netstandard.
     /// </summary>
     public interface ITabletHandler
     {
