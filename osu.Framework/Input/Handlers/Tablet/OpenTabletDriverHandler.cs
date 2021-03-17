@@ -40,9 +40,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             };
 
             updateOutputArea(host.Window);
-            updateInputArea();
 
             host.Window.Resized += () => updateOutputArea(host.Window);
+
+            AreaOffset.BindValueChanged(_ => updateInputArea());
+            AreaSize.BindValueChanged(_ => updateInputArea(), true);
 
             tabletDriver.TabletChanged += (sender, e) => updateInputArea();
             tabletDriver.ReportReceived += (sender, report) =>
@@ -110,7 +112,16 @@ namespace osu.Framework.Input.Handlers.Tablet
             float inputWidth = tabletDriver.Tablet.Digitizer.Width;
             float inputHeight = tabletDriver.Tablet.Digitizer.Height;
 
-            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, new Vector2(inputWidth, inputHeight));
+            // if it's clear the user has not configured the area, take the full area from the tablet that was just found.
+            if (AreaSize.Value == Vector2.Zero)
+                AreaSize.Value = new Vector2(inputWidth, inputHeight);
+
+            // likewise with the position, use the centre point if it has not been configured.
+            // it's safe to assume no user would set their centre point to 0,0 for now.
+            if (AreaOffset.Value == Vector2.Zero)
+                AreaOffset.Value = new Vector2(inputWidth / 2, inputHeight / 2);
+
+            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Value);
 
             switch (tabletDriver.OutputMode)
             {
@@ -119,9 +130,9 @@ namespace osu.Framework.Input.Handlers.Tablet
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
-                        Width = inputWidth,
-                        Height = inputHeight,
-                        Position = new System.Numerics.Vector2(inputWidth / 2, inputHeight / 2),
+                        Width = AreaSize.Value.X,
+                        Height = AreaSize.Value.Y,
+                        Position = new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
                         Rotation = 0
                     };
                     break;
