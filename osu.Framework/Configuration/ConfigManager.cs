@@ -41,10 +41,10 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// Sets a configuration value.
+        /// Sets a configuration's value.
         /// </summary>
         /// <param name="lookup">The lookup key.</param>
-        /// <param name="value">The configuration value. Will also become the default value if one has not already been initialised.</param>
+        /// <param name="value">The value. Will also become the default value if one has not already been initialised.</param>
         /// <typeparam name="TValue">The type of value.</typeparam>
         public void SetValue<TValue>(TLookup lookup, TValue value)
         {
@@ -74,6 +74,15 @@ namespace osu.Framework.Configuration
         [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
         public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value) => SetDefault(lookup, value);
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="precision">The value precision.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected BindableDouble SetDefault(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             value = getDefault(lookup, value);
@@ -96,6 +105,15 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="precision">The value precision.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected BindableFloat SetDefault(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
             value = getDefault(lookup, value);
@@ -118,6 +136,14 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected BindableInt SetDefault(TLookup lookup, int value, int? min = null, int? max = null)
         {
             value = getDefault(lookup, value);
@@ -139,6 +165,12 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected BindableBool SetDefault(TLookup lookup, bool value)
         {
             value = getDefault(lookup, value);
@@ -158,6 +190,14 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected BindableSize SetDefault(TLookup lookup, Size value, Size? min = null, Size? max = null)
         {
             value = getDefault(lookup, value);
@@ -179,6 +219,12 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
         protected Bindable<TValue> SetDefault<TValue>(TLookup lookup, TValue value)
         {
             value = getDefault(lookup, value);
