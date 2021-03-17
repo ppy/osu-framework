@@ -1236,7 +1236,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="position">A position inside the window.</param>
         public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
-            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)position.X, (int)position.Y));
+            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(position.X / Scale), (int)(position.Y / Scale)));
 
         public void SetIconFromStream(Stream stream)
         {
