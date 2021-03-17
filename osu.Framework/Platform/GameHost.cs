@@ -228,12 +228,9 @@ namespace osu.Framework.Platform
         {
             Name = gameName;
 
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
-                Converters = new List<JsonConverter>()
-                {
-                    new Vector2Converter()
-                }
+                Converters = new List<JsonConverter> { new Vector2Converter() }
             };
         }
 
