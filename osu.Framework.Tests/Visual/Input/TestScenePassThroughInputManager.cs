@@ -215,6 +215,30 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("pass-through handled mouse", () => testInputManager.CurrentState.Mouse.Buttons.Single() == MouseButton.Left);
         }
 
+        [Test]
+        public void TestTabletButtonInput()
+        {
+            addTestInputManagerStep();
+
+            AddStep("press primary pen button", () => InputManager.PressTabletPenButton(TabletPenButton.Primary));
+            AddStep("press auxiliary button 4", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button4));
+
+            AddStep("UseParentInput = false", () => testInputManager.UseParentInput = false);
+
+            AddStep("release primary pen button", () => InputManager.ReleaseTabletPenButton(TabletPenButton.Primary));
+            AddStep("press tertiary pen button", () => InputManager.PressTabletPenButton(TabletPenButton.Tertiary));
+            AddStep("release auxiliary button 4", () => InputManager.ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton.Button4));
+            AddStep("press auxiliary button 2", () => InputManager.PressTabletAuxiliaryButton(TabletAuxiliaryButton.Button2));
+
+            AddStep("UseParentInput = true", () => testInputManager.UseParentInput = true);
+            AddAssert("pen buttons synced properly", () =>
+                !testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Primary)
+                && testInputManager.CurrentState.Tablet.PenButtons.Contains(TabletPenButton.Tertiary));
+            AddAssert("auxiliary buttons synced properly", () =>
+                !testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button4)
+                && testInputManager.CurrentState.Tablet.AuxiliaryButtons.Contains(TabletAuxiliaryButton.Button2));
+        }
+
         public class TestInputManager : ManualInputManager
         {
             public readonly TestSceneInputManager.ContainingInputManagerStatusText Status;

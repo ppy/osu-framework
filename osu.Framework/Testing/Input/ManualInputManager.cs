@@ -127,6 +127,12 @@ namespace osu.Framework.Testing.Input
         public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
         public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
 
+        public void PressTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, true));
+        public void ReleaseTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, false));
+
+        public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
+        public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
+
         private class ManualInputHandler : InputHandler
         {
             public override bool Initialize(GameHost host) => true;
