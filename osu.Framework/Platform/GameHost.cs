@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -36,6 +37,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
+using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp.Memory;
 using Image = SixLabors.ImageSharp.Image;
@@ -225,6 +227,11 @@ namespace osu.Framework.Platform
         protected GameHost(string gameName = @"")
         {
             Name = gameName;
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new Vector2Converter() }
+            };
         }
 
         /// <summary>
