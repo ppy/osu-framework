@@ -48,6 +48,7 @@ namespace osu.Framework.Testing
         public readonly List<Type> TestTypes = new List<Type>();
 
         private ConfigManager<TestBrowserSetting> config;
+        private Bindable<string> lastTestBindable;
 
         private DynamicClassCompiler<TestScene> backgroundCompiler;
 
@@ -129,7 +130,9 @@ namespace osu.Framework.Testing
         private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
         {
             interactive = host.Window != null;
+
             config = new TestBrowserConfig(storage);
+            lastTestBindable = config.GetBindable<string>(TestBrowserSetting.LastTest);
 
             exit = host.Exit;
 
@@ -338,12 +341,10 @@ namespace osu.Framework.Testing
 
             if (CurrentTest == null)
             {
-                var lastTest = config.Get<string>(TestBrowserSetting.LastTest);
-
-                var foundTest = TestTypes.Find(t => t.FullName == lastTest)
+                var foundTest = TestTypes.Find(t => t.FullName == lastTestBindable.Value)
                                 // full name was not always stored in this value, so fallback to matching on just test name.
                                 // can be removed 20210622
-                                ?? TestTypes.Find(t => t.Name == lastTest);
+                                ?? TestTypes.Find(t => t.Name == lastTestBindable.Value);
 
                 LoadTest(foundTest);
             }
@@ -429,7 +430,7 @@ namespace osu.Framework.Testing
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testType?.FullName ?? string.Empty);
+            lastTestBindable.Value = testType?.FullName ?? string.Empty;
 
             if (testType == null)
                 return;

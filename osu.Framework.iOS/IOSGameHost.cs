@@ -79,7 +79,7 @@ namespace osu.Framework.iOS
 
             base.SetupConfig(defaultOverrides);
 
-            DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
+            DebugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass).Value = true;
         }
 
         protected override void PerformExit(bool immediately)
