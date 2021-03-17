@@ -112,14 +112,18 @@ namespace osu.Framework.Input.Handlers.Tablet
             float inputWidth = tabletDriver.Tablet.Digitizer.Width;
             float inputHeight = tabletDriver.Tablet.Digitizer.Height;
 
+            AreaSize.Default = new Vector2(inputWidth, inputHeight);
+
             // if it's clear the user has not configured the area, take the full area from the tablet that was just found.
             if (AreaSize.Value == Vector2.Zero)
-                AreaSize.Value = new Vector2(inputWidth, inputHeight);
+                AreaSize.SetDefault();
+
+            AreaOffset.Default = new Vector2(inputWidth / 2, inputHeight / 2);
 
             // likewise with the position, use the centre point if it has not been configured.
             // it's safe to assume no user would set their centre point to 0,0 for now.
             if (AreaOffset.Value == Vector2.Zero)
-                AreaOffset.Value = new Vector2(inputWidth / 2, inputHeight / 2);
+                AreaOffset.SetDefault();
 
             tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Value);
 
