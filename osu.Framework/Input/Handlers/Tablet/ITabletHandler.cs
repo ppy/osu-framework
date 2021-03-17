@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Drawing;
 using osu.Framework.Bindables;
+using osuTK;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
@@ -12,13 +12,20 @@ namespace osu.Framework.Input.Handlers.Tablet
     /// </summary>
     public interface ITabletHandler
     {
-        BindableSize AreaOffset { get; }
+        /// <summary>
+        /// The offset of the area which should be mapped to the game window.
+        /// </summary>
+        Bindable<Vector2> AreaOffset { get; }
 
-        BindableSize AreaSize { get; }
+        /// <summary>
+        /// The size of the area which should be mapped to the game window.
+        /// </summary>
+        Bindable<Vector2> AreaSize { get; }
 
-        IBindable<Size> TabletSize { get; }
-
-        string DeviceName { get; }
+        /// <summary>
+        /// Information on the currently connected tablet device./ May be null if no tablet is detected.
+        /// </summary>
+        IBindable<TabletInfo> Tablet { get; }
 
         BindableBool Enabled { get; }
     }

@@ -2,8 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 #if NET5_0
-using System.Drawing;
-using System.Numerics;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Platform.Pointer;
@@ -12,6 +10,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osuTK;
 
 namespace osu.Framework.Input.Handlers.Tablet
 {
@@ -23,13 +22,11 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         private TabletDriver tabletDriver;
 
-        public BindableSize AreaOffset { get; } = new BindableSize();
+        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
 
-        public BindableSize AreaSize { get; } = new BindableSize();
+        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
-        public IBindable<Size> TabletSize { get; } = new BindableSize(new Size(160, 100));
-
-        public string DeviceName => tabletDriver.Tablet?.TabletProperties.Name ?? string.Empty;
+        public IBindable<TabletInfo> Tablet { get; } = new Bindable<TabletInfo>();
 
         public override bool Initialize(GameHost host)
         {
@@ -74,11 +71,11 @@ namespace osu.Framework.Input.Handlers.Tablet
             return true;
         }
 
-        void IAbsolutePointer.SetPosition(Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new osuTK.Vector2(pos.X, pos.Y) });
+        void IAbsolutePointer.SetPosition(System.Numerics.Vector2 pos) => enqueueInput(new MousePositionAbsoluteInput { Position = new Vector2(pos.X, pos.Y) });
 
         void IVirtualTablet.SetPressure(float percentage) => enqueueInput(new MouseButtonInput(osuTK.Input.MouseButton.Left, percentage > 0));
 
-        void IRelativePointer.Translate(Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new osuTK.Vector2(delta.X, delta.Y) });
+        void IRelativePointer.Translate(System.Numerics.Vector2 delta) => enqueueInput(new MousePositionRelativeInput { Delta = new Vector2(delta.X, delta.Y) });
 
         private void updateOutputArea(IWindow window)
         {
@@ -93,7 +90,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     {
                         Width = outputWidth = window.ClientSize.Width,
                         Height = outputHeight = window.ClientSize.Height,
-                        Position = new Vector2(outputWidth / 2, outputHeight / 2)
+                        Position = new System.Numerics.Vector2(outputWidth / 2, outputHeight / 2)
                     };
                     break;
                 }
@@ -117,7 +114,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                     {
                         Width = inputWidth,
                         Height = inputHeight,
-                        Position = new Vector2(inputWidth / 2, inputHeight / 2),
+                        Position = new System.Numerics.Vector2(inputWidth / 2, inputHeight / 2),
                         Rotation = 0
                     };
                     break;
