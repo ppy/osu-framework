@@ -13,12 +13,16 @@ namespace osu.Framework.Tests.Visual.Platform
     public class TestSceneActiveState : FrameworkTestScene
     {
         private IBindable<bool> isActive;
+        private IBindable<bool> cursorInWindow;
+
         private Box isActiveBox;
+        private Box cursorInWindowBox;
 
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
             isActive = host.IsActive.GetBoundCopy();
+            cursorInWindow = host.Window?.CursorInWindow.GetBoundCopy();
         }
 
         protected override void LoadComplete()
@@ -30,11 +34,21 @@ namespace osu.Framework.Tests.Visual.Platform
                 isActiveBox = new Box
                 {
                     Colour = Color4.Black,
+                    Width = 0.5f,
                     RelativeSizeAxes = Axes.Both,
+                },
+                cursorInWindowBox = new Box
+                {
+                    Colour = Color4.Black,
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 0.5f,
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
                 },
             };
 
-            isActive.BindValueChanged(active => isActiveBox.Colour = active.NewValue ? Color4.Green : Color4.Red);
+            isActive.BindValueChanged(active => isActiveBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
+            cursorInWindow?.BindValueChanged(active => cursorInWindowBox.Colour = active.NewValue ? Color4.Green : Color4.Red, true);
         }
     }
 }

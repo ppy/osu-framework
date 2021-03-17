@@ -61,7 +61,8 @@ namespace osu.Framework.Input
             new KeyboardState(),
             new TouchState(),
             new JoystickState(),
-            new MidiState()
+            new MidiState(),
+            new TabletState()
         );
 
         /// <summary>
@@ -132,6 +133,8 @@ namespace osu.Framework.Input
         private readonly Dictionary<MouseButton, MouseButtonEventManager> mouseButtonEventManagers = new Dictionary<MouseButton, MouseButtonEventManager>();
         private readonly Dictionary<Key, KeyEventManager> keyButtonEventManagers = new Dictionary<Key, KeyEventManager>();
         private readonly Dictionary<TouchSource, TouchEventManager> touchEventManagers = new Dictionary<TouchSource, TouchEventManager>();
+        private readonly Dictionary<TabletPenButton, TabletPenButtonEventManager> tabletPenButtonEventManagers = new Dictionary<TabletPenButton, TabletPenButtonEventManager>();
+        private readonly Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager> tabletAuxiliaryButtonEventManagers = new Dictionary<TabletAuxiliaryButton, TabletAuxiliaryButtonEventManager>();
         private readonly Dictionary<JoystickButton, JoystickButtonEventManager> joystickButtonEventManagers = new Dictionary<JoystickButton, JoystickButtonEventManager>();
         private readonly Dictionary<MidiKey, MidiKeyEventManager> midiKeyEventManagers = new Dictionary<MidiKey, MidiKeyEventManager>();
 
@@ -233,6 +236,50 @@ namespace osu.Framework.Input
             var manager = CreateButtonEventManagerFor(source);
             manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="TabletPenButtonEventManager"/> for a specified tablet pen button.
+        /// </summary>
+        /// <param name="button">The button to be handled by the returned manager.</param>
+        /// <returns>The <see cref="TabletPenButtonEventManager"/>.</returns>
+        protected virtual TabletPenButtonEventManager CreateButtonEventManagerFor(TabletPenButton button) => new TabletPenButtonEventManager(button);
+
+        /// <summary>
+        /// Get the <see cref="TabletPenButtonEventManager"/> responsible for a specified tablet pen button.
+        /// </summary>
+        /// <param name="button">The button to find the manager for.</param>
+        /// <returns>The <see cref="TabletPenButtonEventManager"/>.</returns>
+        public TabletPenButtonEventManager GetButtonEventManagerFor(TabletPenButton button)
+        {
+            if (tabletPenButtonEventManagers.TryGetValue(button, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(button);
+            manager.GetInputQueue = () => PositionalInputQueue;
+            return tabletPenButtonEventManagers[button] = manager;
+        }
+
+        /// <summary>
+        /// Create a <see cref="TabletAuxiliaryButtonEventManager"/> for a specified tablet auxiliary button.
+        /// </summary>
+        /// <param name="button">The button to be handled by the returned manager.</param>
+        /// <returns>The <see cref="TabletAuxiliaryButtonEventManager"/>.</returns>
+        protected virtual TabletAuxiliaryButtonEventManager CreateButtonEventManagerFor(TabletAuxiliaryButton button) => new TabletAuxiliaryButtonEventManager(button);
+
+        /// <summary>
+        /// Get the <see cref="TabletAuxiliaryButtonEventManager"/> responsible for a specified tablet auxiliary button.
+        /// </summary>
+        /// <param name="button">The button to find the manager for.</param>
+        /// <returns>The <see cref="TabletAuxiliaryButtonEventManager"/>.</returns>
+        public TabletAuxiliaryButtonEventManager GetButtonEventManagerFor(TabletAuxiliaryButton button)
+        {
+            if (tabletAuxiliaryButtonEventManagers.TryGetValue(button, out var existing))
+                return existing;
+
+            var manager = CreateButtonEventManagerFor(button);
+            manager.GetInputQueue = () => NonPositionalInputQueue;
+            return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
 
         /// <summary>
@@ -624,6 +671,12 @@ namespace osu.Framework.Input
             return true;
         }
 
+        protected virtual void HandleTabletPenButtonStateChange(ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange)
+            => GetButtonEventManagerFor(tabletPenButtonStateChange.Button).HandleButtonStateChange(tabletPenButtonStateChange.State, tabletPenButtonStateChange.Kind);
+
+        protected virtual void HandleTabletAuxiliaryButtonStateChange(ButtonStateChangeEvent<TabletAuxiliaryButton> tabletAuxiliaryButtonStateChange)
+            => GetButtonEventManagerFor(tabletAuxiliaryButtonStateChange.Button).HandleButtonStateChange(tabletAuxiliaryButtonStateChange.State, tabletAuxiliaryButtonStateChange.Kind);
+
         protected virtual void HandleJoystickButtonStateChange(ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange)
             => GetButtonEventManagerFor(joystickButtonStateChange.Button).HandleButtonStateChange(joystickButtonStateChange.State, joystickButtonStateChange.Kind);
 
@@ -664,6 +717,14 @@ namespace osu.Framework.Input
                     if (!touchWasHandled && !touchIsHandled)
                         HandleMouseTouchStateChange(touchChange);
 
+                    return;
+
+                case ButtonStateChangeEvent<TabletPenButton> tabletPenButtonStateChange:
+                    HandleTabletPenButtonStateChange(tabletPenButtonStateChange);
+                    return;
+
+                case ButtonStateChangeEvent<TabletAuxiliaryButton> tabletAuxiliaryButtonStateChange:
+                    HandleTabletAuxiliaryButtonStateChange(tabletAuxiliaryButtonStateChange);
                     return;
 
                 case ButtonStateChangeEvent<JoystickButton> joystickButtonStateChange:
