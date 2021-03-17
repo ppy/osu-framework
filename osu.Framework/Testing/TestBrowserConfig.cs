@@ -18,7 +18,7 @@ namespace osu.Framework.Testing
         protected override void InitialiseDefaults()
         {
             base.InitialiseDefaults();
-            Set(TestBrowserSetting.LastTest, string.Empty);
+            SetDefault(TestBrowserSetting.LastTest, string.Empty);
         }
     }
 

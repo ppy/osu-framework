@@ -20,28 +20,28 @@ namespace osu.Framework.Configuration
 
         protected override void InitialiseDefaults()
         {
-            Set(FrameworkSetting.ShowLogOverlay, false);
+            SetDefault(FrameworkSetting.ShowLogOverlay, false);
 
-            Set(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
-            Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
-            Set(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
-            Set(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
-            Set(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
-            Set(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
-            Set(FrameworkSetting.AudioDevice, string.Empty);
-            Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
-            Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
-            Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
-            Set(FrameworkSetting.ShowUnicode, false);
-            Set(FrameworkSetting.Locale, string.Empty);
+            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
+            SetDefault(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
+            SetDefault(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
+            SetDefault(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
+            SetDefault(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
+            SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
+            SetDefault(FrameworkSetting.AudioDevice, string.Empty);
+            SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
+            SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
+            SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            SetDefault(FrameworkSetting.ShowUnicode, false);
+            SetDefault(FrameworkSetting.Locale, string.Empty);
 
 #pragma warning disable 618
-            Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
-            Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
-            Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
+            SetDefault(FrameworkSetting.MapAbsoluteInputToWindow, false);
+            SetDefault(FrameworkSetting.IgnoredInputHandlers, string.Empty);
+            SetDefault(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
 #pragma warning restore 618
         }
 

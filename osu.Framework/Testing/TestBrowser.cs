@@ -429,7 +429,7 @@ namespace osu.Framework.Testing
             if (testType == null && TestTypes.Count > 0)
                 testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testType?.FullName ?? string.Empty);
+            config.SetValue(TestBrowserSetting.LastTest, testType?.FullName ?? string.Empty);
 
             if (testType == null)
                 return;

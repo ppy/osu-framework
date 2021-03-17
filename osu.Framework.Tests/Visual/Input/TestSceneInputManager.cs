@@ -217,7 +217,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setConfineMouseModeConfig(bool enabled)
         {
-            config.Set(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+            config.SetValue(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
         }
     }
 }
