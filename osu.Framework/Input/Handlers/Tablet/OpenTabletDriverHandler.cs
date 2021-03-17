@@ -125,7 +125,7 @@ namespace osu.Framework.Input.Handlers.Tablet
             if (AreaOffset.Value == Vector2.Zero)
                 AreaOffset.SetDefault();
 
-            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Value);
+            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, AreaSize.Default);
 
             switch (tabletDriver.OutputMode)
             {
