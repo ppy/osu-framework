@@ -67,7 +67,7 @@ namespace osu.Framework.Configuration
                             }
                         }
                         else if (AddMissingEntries)
-                            Set(lookup, val);
+                            SetDefault(lookup, val);
                     }
                 }
             }

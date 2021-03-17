@@ -137,9 +137,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private void load(FrameworkConfigManager config, GameHost host)
         {
             window = host.Window as SDL2DesktopWindow;
-
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
-            var windowedSizeBindable = config.GetBindable<Size>(FrameworkSetting.WindowedSize);
 
             if (window == null)
             {
@@ -161,7 +159,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("set client size to 1280x720", () => windowedSizeBindable.Value = new Size(1280, 720));
+                AddStep("set client size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
                 AddStep("store window position", () => originalWindowPosition = window.Position);
 
                 // borderless alignment tests

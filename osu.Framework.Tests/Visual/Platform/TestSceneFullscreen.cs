@@ -31,8 +31,6 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly BindableSize sizeFullscreen = new BindableSize();
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
-        private Bindable<ConfineMouseMode> confineModeBindable;
-
         public TestSceneFullscreen()
         {
             var currentBindableSize = new SpriteText();
@@ -63,11 +61,8 @@ namespace osu.Framework.Tests.Visual.Platform
         private void load(GameHost host)
         {
             window = host.Window;
-
             config.BindWith(FrameworkSetting.SizeFullscreen, sizeFullscreen);
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
-            confineModeBindable = config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode);
-
             currentWindowMode.Text = $"Window Mode: {windowMode}";
 
             if (window == null)
@@ -97,7 +92,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
                 AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
+                AddStep("change window size", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(640, 640)));
             }
 
             // if we support borderless, test that it can be used
@@ -136,9 +131,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestConfineModes()
         {
-            AddStep("set confined to never", () => confineModeBindable.Value = ConfineMouseMode.Never);
-            AddStep("set confined to fullscreen", () => confineModeBindable.Value = ConfineMouseMode.Fullscreen);
-            AddStep("set confined to always", () => confineModeBindable.Value = ConfineMouseMode.Always);
+            AddStep("set confined to never", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
+            AddStep("set confined to fullscreen", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
+            AddStep("set confined to always", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
         }
 
         protected override void Update()

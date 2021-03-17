@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -30,8 +29,6 @@ namespace osu.Framework.Tests.Visual.Containers
         private SpriteText labelFrag2;
         private float currentScale = 1;
 
-        private Bindable<bool> frontToBack;
-
         private const int cell_count = 4;
 
         protected override DrawNode CreateDrawNode() => drawNode = new QueryingCompositeDrawableDrawNode(this);
@@ -44,8 +41,6 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager debugConfig, TextureStore store)
         {
-            frontToBack = debugConfig.GetBindable<bool>(DebugSetting.BypassFrontToBackPass);
-
             var texture = store.Get(@"sample-texture");
             var repeatedTexture = store.Get(@"sample-texture", WrapMode.Repeat, WrapMode.Repeat);
             var edgeClampedTexture = store.Get(@"sample-texture", WrapMode.ClampToEdge, WrapMode.ClampToEdge);
@@ -59,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel, new RectangleF(0, 0, 1, 1)));
             AddToggleStep("disable front to back", val =>
             {
-                frontToBack.Value = val;
+                debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val);
                 Invalidate(Invalidation.DrawNode); // reset counts
             });
 
