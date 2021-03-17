@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Configuration
                 {
                     storage = h.Storage;
 #pragma warning disable 618
-                    config.GetBindable<double>(FrameworkSetting.CursorSensitivity).Value = 5.0;
+                    config.Set(FrameworkSetting.CursorSensitivity, 5.0);
 #pragma warning restore 618
                 }));
             }

@@ -3,7 +3,6 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -20,8 +19,6 @@ namespace osu.Framework.Tests.Visual.Input
 {
     public class TestSceneInputManager : FrameworkTestScene
     {
-        private Bindable<ConfineMouseMode> confineModeBindable;
-
         public TestSceneInputManager()
         {
             Add(new Container
@@ -175,13 +172,14 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Resolved]
+        private FrameworkConfigManager config { get; set; }
+
+        [Resolved]
         private GameHost host { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
+        private void load()
         {
-            confineModeBindable = config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode);
-
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
@@ -219,7 +217,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private void setConfineMouseModeConfig(bool enabled)
         {
-            confineModeBindable.Value = enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen;
+            config.Set(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
         }
     }
 }

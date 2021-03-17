@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 localisation.AddLanguage("en", new FakeStorage("en"));
                 localisation.AddLanguage("ja", new FakeStorage("ja"));
 
-                config.GetBindable<string>(FrameworkSetting.Locale).Value = "ja";
+                config.Set(FrameworkSetting.Locale, "ja");
             }
         }
 
