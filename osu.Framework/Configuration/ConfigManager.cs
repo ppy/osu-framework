@@ -40,7 +40,7 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
+        protected BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -62,7 +62,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
+        protected BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null)
+        protected BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -105,7 +105,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableBool Set(TLookup lookup, bool value)
+        protected BindableBool Set(TLookup lookup, bool value)
         {
             value = getDefault(lookup, value);
 
@@ -124,7 +124,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null)
+        protected BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -145,7 +145,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value)
+        protected Bindable<TValue> Set<TValue>(TLookup lookup, TValue value)
         {
             value = getDefault(lookup, value);
 
