@@ -26,7 +26,9 @@ namespace osu.Framework.Input.Handlers.Tablet
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
 
-        public IBindable<TabletInfo> Tablet { get; } = new Bindable<TabletInfo>();
+        public IBindable<TabletInfo> Tablet => tablet;
+
+        private readonly Bindable<TabletInfo> tablet = new Bindable<TabletInfo>();
 
         public override bool Initialize(GameHost host)
         {
@@ -100,15 +102,20 @@ namespace osu.Framework.Input.Handlers.Tablet
         private void updateInputArea()
         {
             if (tabletDriver.Tablet == null)
+            {
+                tablet.Value = null;
                 return;
+            }
+
+            float inputWidth = tabletDriver.Tablet.Digitizer.Width;
+            float inputHeight = tabletDriver.Tablet.Digitizer.Height;
+
+            tablet.Value = new TabletInfo(tabletDriver.Tablet.TabletProperties.Name, new Vector2(inputWidth, inputHeight));
 
             switch (tabletDriver.OutputMode)
             {
                 case AbsoluteOutputMode absoluteOutputMode:
                 {
-                    float inputWidth = tabletDriver.Tablet.Digitizer.Width;
-                    float inputHeight = tabletDriver.Tablet.Digitizer.Height;
-
                     // Set input area in millimeters
                     absoluteOutputMode.Input = new Area
                     {
