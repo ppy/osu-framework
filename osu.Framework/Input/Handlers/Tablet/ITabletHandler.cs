@@ -23,7 +23,7 @@ namespace osu.Framework.Input.Handlers.Tablet
         Bindable<Vector2> AreaSize { get; }
 
         /// <summary>
-        /// Information on the currently connected tablet device./ May be null if no tablet is detected.
+        /// Information on the currently connected tablet device. May be null if no tablet is detected.
         /// </summary>
         IBindable<TabletInfo> Tablet { get; }
 
