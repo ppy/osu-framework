@@ -5,7 +5,6 @@ using System;
 using ManagedBass;
 using ManagedBass.Mix;
 using ManagedBass.Fx;
-// using NReplayGain;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
@@ -187,46 +186,6 @@ namespace osu.Framework.Tests.Visual.Audio
                 channelStrips[i].Handle = channelHandles[i];
             }
         }
-
-        // private double calculateReplayGain(byte[] data)
-        // {
-        //     int replayGainProcessingStream = Bass.CreateStream(data, 0, data.Length, BassFlags.Decode);
-        //     TrackGain trackGain = new TrackGain(44100, 16);
-        //
-        //     const int buf_len = 1024;
-        //     short[] buf = new short[buf_len];
-        //
-        //     List<int> leftSamples = new List<int>();
-        //     List<int> rightSamples = new List<int>();
-        //
-        //     while (true)
-        //     {
-        //         int length = Bass.ChannelGetData(replayGainProcessingStream, buf, buf_len * sizeof(short));
-        //         if (length == -1) break;
-        //
-        //         for (int a = 0; a < length / sizeof(short); a += 2)
-        //         {
-        //             leftSamples.Add(buf[a]);
-        //             rightSamples.Add(buf[a + 1]);
-        //         }
-        //     }
-        //
-        //     trackGain.AnalyzeSamples(leftSamples.ToArray(), rightSamples.ToArray());
-        //
-        //     double gain = trackGain.GetGain();
-        //     double peak = trackGain.GetPeak();
-        //
-        //     Logger.Log($"REPLAYGAIN GAIN: {gain}");
-        //     Logger.Log($"REPLAYGAIN PEAK: {peak}");
-        //
-        //     Bass.StreamFree(replayGainProcessingStream);
-        //
-        //     return gain;
-        // }
-    }
-
-    public class MixerChannel : AudioComponent
-    {
     }
 
     public class ChannelStrip : CompositeDrawable
@@ -269,8 +228,6 @@ namespace osu.Framework.Tests.Visual.Audio
                 },
                 new FillFlowContainer
                 {
-                    // Anchor = Anchor.TopCentre,
-                    // Origin = Anchor.TopCentre,
                     AutoSizeAxes = Axes.Both,
                     Direction = FillDirection.Vertical,
                     Children = new[]
@@ -309,9 +266,6 @@ namespace osu.Framework.Tests.Visual.Audio
 
             peak = (levels[0] + levels[1]) / 2f;
             maxPeak = Math.Max(peak, maxPeak);
-
-            // if (levels[0] > 0 || levels[1] > 0)
-            //     Logger.Log($"L: {levels[0]} ({BassUtil.LevelToDisplay(levels[0])}), R: {levels[1]} ({BassUtil.LevelToDisplay(levels[1])})");
 
             volBarL.TransformTo(nameof(Drawable.Height), (float)levels[0], BuffSize * 4);
             volBarR.TransformTo(nameof(Drawable.Height), (float)levels[1], BuffSize * 4);
