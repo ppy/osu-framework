@@ -113,9 +113,9 @@ namespace osu.Framework.Audio
                 {
                     fAttack = 5f,
                     fRelease = 100f,
-                    fThreshold = -6f,
+                    fThreshold = -10f,
                     fGain = 0f,
-                    fRatio = 4f,
+                    fRatio = 8f,
                 });
                 Logger.Log($"[AudioMixer] EnableCompressor: {Bass.LastError}");
 
@@ -246,7 +246,7 @@ namespace osu.Framework.Audio
                 Logger.Log($"[AudioMixer] ChannelPlay(mixer): {Bass.LastError}");
 
                 EnableCompressor();
-                EnableLimiter();
+                // EnableLimiter();
             });
         }
 
