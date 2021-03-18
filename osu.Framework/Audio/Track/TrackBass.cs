@@ -26,7 +26,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// The handle for this track, if there is one.
         /// </summary>
-        public int ActiveStream { get; private set; }
+        private int activeStream;
 
         /// <summary>
         /// The handle for adjusting tempo.
@@ -94,12 +94,12 @@ namespace osu.Framework.Audio.Track
             {
                 Preview = quick;
 
-                ActiveStream = prepareStream(data, quick);
+                activeStream = prepareStream(data, quick);
 
-                long byteLength = Bass.ChannelGetLength(ActiveStream);
+                long byteLength = Bass.ChannelGetLength(activeStream);
 
                 // will be -1 in case of an error
-                double seconds = Bass.ChannelBytes2Seconds(ActiveStream, byteLength);
+                double seconds = Bass.ChannelBytes2Seconds(activeStream, byteLength);
 
                 bool success = seconds >= 0;
 
@@ -108,9 +108,9 @@ namespace osu.Framework.Audio.Track
                     Length = seconds * 1000;
 
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
-                    lastSeekablePosition = Bass.ChannelBytes2Seconds(ActiveStream, byteLength - BYTES_PER_SAMPLE) * 1000;
+                    lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
-                    bitrate = (int)Bass.ChannelGetAttribute(ActiveStream, ChannelAttribute.Bitrate);
+                    bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
@@ -128,14 +128,14 @@ namespace osu.Framework.Audio.Track
                             seekInternal(RestartPoint);
                     });
 
-                    Bass.ChannelSetSync(ActiveStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
-                    Bass.ChannelSetSync(ActiveStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
-                    Bass.ChannelSetSync(ActiveStream, SyncFlags.End | SyncFlags.Mixtime, 0, endMixtimeCallback.Callback, endMixtimeCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
+                    Bass.ChannelSetSync(activeStream, SyncFlags.End | SyncFlags.Mixtime, 0, endMixtimeCallback.Callback, endMixtimeCallback.Handle);
 
                     isLoaded = true;
 
-                    relativeFrequencyHandler.SetChannel(ActiveStream);
-                    bassAmplitudeProcessor?.SetChannel(ActiveStream);
+                    relativeFrequencyHandler.SetChannel(activeStream);
+                    bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });
 
@@ -144,8 +144,8 @@ namespace osu.Framework.Audio.Track
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
         {
-            if (ActiveStream != 0)
-                Bass.ChannelFlags(ActiveStream, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
+            if (activeStream != 0)
+                Bass.ChannelFlags(activeStream, value ? BassFlags.Loop : BassFlags.Default, BassFlags.Loop);
         });
 
         private int prepareStream(Stream data, bool quick)
@@ -189,7 +189,7 @@ namespace osu.Framework.Audio.Track
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            Bass.ChannelSetDevice(ActiveStream, deviceIndex);
+            Bass.ChannelSetDevice(activeStream, deviceIndex);
             BassUtils.CheckFaulted(true);
 
             // Bass may leave us in an invalid state after the output device changes (this is true for "No sound" device)
@@ -209,15 +209,15 @@ namespace osu.Framework.Audio.Track
         {
             base.UpdateState();
 
-            var running = isRunningState(Bass.ChannelIsActive(ActiveStream));
-            var bytePosition = Bass.ChannelGetPosition(ActiveStream);
+            var running = isRunningState(Bass.ChannelIsActive(activeStream));
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = /*running ||*/ (isPlayed && !hasCompleted);
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(ActiveStream, bytePosition) * 1000);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
 
             bassAmplitudeProcessor?.Update();
         }
@@ -232,15 +232,15 @@ namespace osu.Framework.Audio.Track
             if (IsDisposed)
                 return;
 
-            if (ActiveStream != 0)
+            if (activeStream != 0)
             {
                 isRunning = false;
-                mixer.StopChannel(ActiveStream);
-                mixer.RemoveChannel(ActiveStream);
-                Bass.StreamFree(ActiveStream);
+                mixer.StopChannel(activeStream);
+                mixer.RemoveChannel(activeStream);
+                Bass.StreamFree(activeStream);
             }
 
-            ActiveStream = 0;
+            activeStream = 0;
 
             dataStream?.Dispose();
             dataStream = null;
@@ -266,7 +266,7 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            mixer.PauseChannel(ActiveStream);
+            mixer.PauseChannel(activeStream);
             StopAsync().Wait();
         }
 
@@ -276,14 +276,14 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(ActiveStream)) && mixer.PauseChannel(ActiveStream);
+        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && mixer.PauseChannel(activeStream);
 
         private int direction;
 
         private void setDirection(bool reverse)
         {
             direction = reverse ? -1 : 1;
-            Bass.ChannelSetAttribute(ActiveStream, ChannelAttribute.ReverseDirection, direction);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.ReverseDirection, direction);
         }
 
         public override void Start()
@@ -313,7 +313,7 @@ namespace osu.Framework.Audio.Track
 
             setLoopFlag(Looping);
 
-            return mixer.PlayChannel(ActiveStream);
+            return mixer.PlayChannel(activeStream);
         }
 
         public override bool Looping
@@ -347,10 +347,10 @@ namespace osu.Framework.Audio.Track
             if (clamped < Length)
                 hasCompleted = false;
 
-            long pos = Bass.ChannelSeconds2Bytes(ActiveStream, clamped / 1000d);
+            long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
-            if (pos != mixer.GetChannelPosition(ActiveStream))
-                mixer.SetChannelPosition(ActiveStream, pos);
+            if (pos != mixer.GetChannelPosition(activeStream))
+                mixer.SetChannelPosition(activeStream, pos);
         }
 
         private double currentTime;
@@ -369,13 +369,13 @@ namespace osu.Framework.Audio.Track
         {
             base.OnStateChanged();
 
-            if (ActiveStream == 0)
+            if (activeStream == 0)
                 return;
 
             setDirection(AggregateFrequency.Value < 0);
 
-            Bass.ChannelSetAttribute(ActiveStream, ChannelAttribute.Volume, AggregateVolume.Value);
-            Bass.ChannelSetAttribute(ActiveStream, ChannelAttribute.Pan, AggregateBalance.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, AggregateVolume.Value);
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Pan, AggregateBalance.Value);
             relativeFrequencyHandler.SetFrequency(AggregateFrequency.Value);
 
             Bass.ChannelSetAttribute(tempoAdjustStream, ChannelAttribute.Tempo, (Math.Abs(AggregateTempo.Value) - 1) * 100);
@@ -385,6 +385,6 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(ActiveStream)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
     }
 }
