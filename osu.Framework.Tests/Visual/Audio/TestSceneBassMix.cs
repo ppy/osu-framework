@@ -59,10 +59,6 @@ namespace osu.Framework.Tests.Visual.Audio
             // Load BGM Track
             var bgmData = resources.Get("Resources.Tracks.bgm_main.ogg");
             trackHandle = Bass.CreateStream(bgmData, 0, bgmData.Length, BassFlags.Decode | BassFlags.Loop);
-            // double replayGain = calculateReplayGain(bgmData);
-
-            // Apply ReplayGain
-            // Bass.ChannelSetAttribute(trackHandle, ChannelAttribute.Volume, BassUtils.DbToLevel(replayGain));
 
             // Add BGM Track to Mixer
             BassMix.MixerAddChannel(mixerHandle, trackHandle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
@@ -115,7 +111,6 @@ namespace osu.Framework.Tests.Visual.Audio
 
             AddStep("Reverb on", () =>
             {
-                // reverbHandle = Bass.ChannelSetFX(mixerHandle, EffectType.Freeverb, 100);
                 reverbHandle = Bass.ChannelSetFX(sfxHandle, EffectType.Freeverb, 100);
                 Bass.FXSetParameters(reverbHandle, new ReverbParameters
                 {
