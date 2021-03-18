@@ -151,7 +151,7 @@ namespace osu.Framework.Audio.Sample
             if (relativeFrequencyHandler.IsFrequencyZero)
                 return;
 
-            mixer?.PlayChannel(channel);
+            mixer.PlayChannel(channel);
         });
 
         private void stopChannel() => EnqueueAction(() =>
@@ -176,7 +176,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            mixer?.AddChannel(channel);
+            mixer.AddChannel(channel);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
