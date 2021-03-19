@@ -92,7 +92,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
                 AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
+                AddStep("change window size", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(640, 640)));
             }
 
             // if we support borderless, test that it can be used
@@ -131,9 +131,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestConfineModes()
         {
-            AddStep("set confined to never", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
-            AddStep("set confined to fullscreen", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
-            AddStep("set confined to always", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+            AddStep("set confined to never", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
+            AddStep("set confined to fullscreen", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
+            AddStep("set confined to always", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
         }
 
         protected override void Update()

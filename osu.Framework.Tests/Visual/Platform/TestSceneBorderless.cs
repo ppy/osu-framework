@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private static readonly Color4 window_fill = new Color4(95, 113, 197, 255);
         private static readonly Color4 window_stroke = new Color4(36, 59, 166, 255);
 
-        private OsuTKDesktopWindow window;
+        private SDL2DesktopWindow window;
         private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public TestSceneBorderless()
@@ -136,7 +136,7 @@ namespace osu.Framework.Tests.Visual.Platform
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config, GameHost host)
         {
-            window = host.Window as OsuTKDesktopWindow;
+            window = host.Window as SDL2DesktopWindow;
             config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             if (window == null)
@@ -149,8 +149,9 @@ namespace osu.Framework.Tests.Visual.Platform
 
             AddStep("set up screens", refreshScreens);
 
-            const string desc1 = "Check whether the borderless window is properly set to the top left corner, even if it is obstructed by the taskbar";
             const string desc2 = "Check whether the window size is one pixel wider than the screen in each direction";
+
+            Point originalWindowPosition = Point.Empty;
 
             foreach (var display in window.Displays)
             {
@@ -158,20 +159,19 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // set up window
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("set client size to 1280x720", () => window.ClientSize = new Size(1280, 720));
-                AddStep("center window on screen " + display.Index, () => window.CentreToScreen(display));
+                AddStep("set client size to 1280x720", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(1280, 720)));
+                AddStep("store window position", () => originalWindowPosition = window.Position);
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
-                AddAssert("check window location", () => window.Location == display.Bounds.Location, desc1);
-                AddAssert("check window size", () => new Size(window.Width - 1, window.Height - 1) == display.Bounds.Size, desc2);
-                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value == display);
+                AddAssert("check window size", () => new Size(window.Size.Width - 1, window.Size.Height - 1) == display.Bounds.Size, desc2);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
 
                 // verify the window size is restored correctly
                 AddStep("switch to windowed", () => windowMode.Value = WindowMode.Windowed);
                 AddAssert("check client size", () => window.ClientSize == new Size(1280, 720));
-                AddAssert("check window position", () => Math.Abs(window.Position.X - 0.5f) < 0.01 && Math.Abs(window.Position.Y - 0.5f) < 0.01);
-                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value == display);
+                AddAssert("check window position", () => originalWindowPosition == window.Position);
+                AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
             }
         }
 
@@ -205,10 +205,10 @@ namespace osu.Framework.Tests.Visual.Platform
             bool fullscreen = window.WindowMode.Value == WindowMode.Fullscreen;
             var currentBounds = window.CurrentDisplayBindable.Value.Bounds;
 
-            windowContainer.X = window.X;
-            windowContainer.Y = window.Y;
-            windowContainer.Width = fullscreen ? currentBounds.Width : window.Width;
-            windowContainer.Height = fullscreen ? currentBounds.Height : window.Height;
+            windowContainer.X = window.Position.X;
+            windowContainer.Y = window.Position.Y;
+            windowContainer.Width = fullscreen ? currentBounds.Width : window.Size.Width;
+            windowContainer.Height = fullscreen ? currentBounds.Height : window.Size.Height;
             windowContainer.Position -= screenContainerOffset;
             windowCaption.Text = $"{windowMode}\nSize: {window.Size.Width}x{window.Size.Height}\nClient: {window.ClientSize.Width}x{window.ClientSize.Height}";
         }

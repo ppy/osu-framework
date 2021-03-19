@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Configuration;
 
 #nullable enable
@@ -11,7 +12,7 @@ namespace osu.Framework.Localisation
     /// A string that has a romanised fallback to allow a better experience for users that potentially can't read the original script.
     /// See <see cref="FrameworkSetting.ShowUnicode"/>, which can toggle the display of romanised variants.
     /// </summary>
-    public class RomanisableString
+    public class RomanisableString : IEquatable<RomanisableString>
     {
         /// <summary>
         /// The string in its original script. May be null.
@@ -51,5 +52,28 @@ namespace osu.Framework.Localisation
         }
 
         public override string ToString() => GetPreferred(false);
+
+        public bool Equals(RomanisableString? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return Original == other.Original
+                   && Romanised == other.Romanised;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+
+            return Equals((RomanisableString)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Original, Romanised);
+        }
     }
 }

@@ -2332,5 +2332,143 @@ namespace osu.Framework.Input.Bindings
         MidiC8,
 
         #endregion
+
+        #region Tablet pen
+
+        /// <summary>
+        /// Indicates the first available tablet button.
+        /// </summary>
+        FirstTabletPenButton = 9216 + 1,
+
+        /// <summary>
+        /// The primary button on the tablet pen.
+        /// </summary>
+        TabletPenPrimaryButton = FirstTabletPenButton,
+
+        /// <summary>
+        /// The secondary button on the tablet pen.
+        /// </summary>
+        TabletPenSecondaryButton,
+
+        /// <summary>
+        /// The tertiary button on the tablet pen.
+        /// </summary>
+        TabletPenTertiaryButton,
+
+        /// <summary>
+        /// Button 4 on the tablet pen.
+        /// </summary>
+        TabletPenButton4,
+
+        /// <summary>
+        /// Button 5 on the tablet pen.
+        /// </summary>
+        TabletPenButton5,
+
+        /// <summary>
+        /// Button 6 on the tablet pen.
+        /// </summary>
+        TabletPenButton6,
+
+        /// <summary>
+        /// Button 7 on the tablet pen.
+        /// </summary>
+        TabletPenButton7,
+
+        /// <summary>
+        /// Button 8 on the tablet pen.
+        /// </summary>
+        TabletPenButton8,
+
+        #endregion
+
+        #region Auxiliary tablet buttons
+
+        /// <summary>
+        /// Indicates the first available auxiliary tablet button.
+        /// </summary>
+        FirstTabletAuxiliaryButton = 10240 + 1,
+
+        /// <summary>
+        /// Auxiliary tablet button 1.
+        /// </summary>
+        TabletAuxiliaryButton1,
+
+        /// <summary>
+        /// Auxiliary tablet button 2.
+        /// </summary>
+        TabletAuxiliaryButton2,
+
+        /// <summary>
+        /// Auxiliary tablet button 3.
+        /// </summary>
+        TabletAuxiliaryButton3,
+
+        /// <summary>
+        /// Auxiliary tablet button 4.
+        /// </summary>
+        TabletAuxiliaryButton4,
+
+        /// <summary>
+        /// Auxiliary tablet button 5.
+        /// </summary>
+        TabletAuxiliaryButton5,
+
+        /// <summary>
+        /// Auxiliary tablet button 6.
+        /// </summary>
+        TabletAuxiliaryButton6,
+
+        /// <summary>
+        /// Auxiliary tablet button 7.
+        /// </summary>
+        TabletAuxiliaryButton7,
+
+        /// <summary>
+        /// Auxiliary tablet button 8.
+        /// </summary>
+        TabletAuxiliaryButton8,
+
+        /// <summary>
+        /// Auxiliary tablet button 9.
+        /// </summary>
+        TabletAuxiliaryButton9,
+
+        /// <summary>
+        /// Auxiliary tablet button 10.
+        /// </summary>
+        TabletAuxiliaryButton10,
+
+        /// <summary>
+        /// Auxiliary tablet button 11.
+        /// </summary>
+        TabletAuxiliaryButton11,
+
+        /// <summary>
+        /// Auxiliary tablet button 12.
+        /// </summary>
+        TabletAuxiliaryButton12,
+
+        /// <summary>
+        /// Auxiliary tablet button 13.
+        /// </summary>
+        TabletAuxiliaryButton13,
+
+        /// <summary>
+        /// Auxiliary tablet button 14.
+        /// </summary>
+        TabletAuxiliaryButton14,
+
+        /// <summary>
+        /// Auxiliary tablet button 15.
+        /// </summary>
+        TabletAuxiliaryButton15,
+
+        /// <summary>
+        /// Auxiliary tablet button 16.
+        /// </summary>
+        TabletAuxiliaryButton16,
+
+        #endregion
     }
 }

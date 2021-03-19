@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
@@ -14,7 +13,6 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
-using osuTK;
 
 namespace osu.Framework.Platform
 {
@@ -24,14 +22,11 @@ namespace osu.Framework.Platform
         private readonly bool bindIPCPort;
         private Thread ipcThread;
 
-        internal bool UseOsuTK { get; }
-
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
-            : base(gameName, toolkitOptions)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false, bool portableInstallation = false)
+            : base(gameName)
         {
             this.bindIPCPort = bindIPCPort;
             IsPortableInstallation = portableInstallation;
-            UseOsuTK = useOsuTK;
         }
 
         protected sealed override Storage GetDefaultGameStorage()
@@ -50,12 +45,6 @@ namespace osu.Framework.Platform
                 startIPC();
 
             base.SetupForRun();
-        }
-
-        protected override void SetupToolkit()
-        {
-            if (UseOsuTK)
-                base.SetupToolkit();
         }
 
         private void startIPC()
@@ -93,53 +82,17 @@ namespace osu.Framework.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-        {
-            switch (Window)
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
+            new InputHandler[]
             {
-                case OsuTKWindow _:
-                {
-                    var defaultEnabled = new InputHandler[]
-                    {
-                        new OsuTKMouseHandler(),
-                        new OsuTKKeyboardHandler(),
-                        new OsuTKJoystickHandler(),
-                        new MidiInputHandler(),
-                    };
-
-                    var defaultDisabled = new InputHandler[]
-                    {
-                        new OsuTKRawMouseHandler(),
-                    };
-
-                    foreach (var h in defaultDisabled)
-                        h.Enabled.Value = false;
-
-                    return defaultEnabled.Concat(defaultDisabled);
-                }
-
-                default:
-                {
-                    var defaultEnabled = new InputHandler[]
-                    {
-                        new KeyboardHandler(),
-                        new MouseHandler(),
-                        new JoystickHandler(),
-                        new MidiInputHandler(),
-                    };
-
-                    var defaultDisabled = new InputHandler[]
-                    {
-                        new OsuTKRawMouseHandler(),
-                    };
-
-                    foreach (var h in defaultDisabled)
-                        h.Enabled.Value = false;
-
-                    return defaultEnabled.Concat(defaultDisabled);
-                }
-            }
-        }
+                new KeyboardHandler(),
+                new MouseHandler(),
+                new JoystickHandler(),
+                new MidiHandler(),
+#if NET5_0
+                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
+#endif
+            };
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
 

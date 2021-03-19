@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 localisation.AddLanguage("en", new FakeStorage("en"));
                 localisation.AddLanguage("ja", new FakeStorage("ja"));
 
-                config.Set(FrameworkSetting.Locale, "ja");
+                config.SetValue(FrameworkSetting.Locale, "ja");
             }
         }
 
@@ -269,8 +269,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             protected override void InitialiseDefaults()
             {
-                Set(FrameworkSetting.Locale, "ja");
-                Set(FrameworkSetting.ShowUnicode, false);
+                SetDefault(FrameworkSetting.Locale, "ja");
+                SetDefault(FrameworkSetting.ShowUnicode, false);
             }
         }
 
@@ -289,7 +289,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 EffectiveCulture = new CultureInfo(locale);
             }
 
-            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name));
+            public async Task<string> GetAsync(string name) => await Task.Run(() => Get(name)).ConfigureAwait(false);
 
             public string Get(string name)
             {

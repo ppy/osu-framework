@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration.Tracking;
@@ -19,26 +20,29 @@ namespace osu.Framework.Configuration
 
         protected override void InitialiseDefaults()
         {
-            Set(FrameworkSetting.ShowLogOverlay, false);
+            SetDefault(FrameworkSetting.ShowLogOverlay, false);
 
-            Set(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
-            Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
-            Set(FrameworkSetting.MapAbsoluteInputToWindow, false);
-            Set(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
-            Set(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
-            Set(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
-            Set(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
-            Set(FrameworkSetting.AudioDevice, string.Empty);
-            Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            Set(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
-            Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
-            Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
-            Set(FrameworkSetting.ShowUnicode, false);
-            Set(FrameworkSetting.IgnoredInputHandlers, string.Empty);
-            Set(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
-            Set(FrameworkSetting.Locale, string.Empty);
+            SetDefault(FrameworkSetting.WindowedSize, new Size(1366, 768), new Size(640, 480));
+            SetDefault(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
+            SetDefault(FrameworkSetting.ExecutionMode, ExecutionMode.MultiThreaded);
+            SetDefault(FrameworkSetting.WindowedPositionX, 0.5, -0.5, 1.5);
+            SetDefault(FrameworkSetting.WindowedPositionY, 0.5, -0.5, 1.5);
+            SetDefault(FrameworkSetting.LastDisplayDevice, DisplayIndex.Default);
+            SetDefault(FrameworkSetting.AudioDevice, string.Empty);
+            SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
+            SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
+            SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
+            SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            SetDefault(FrameworkSetting.ShowUnicode, false);
+            SetDefault(FrameworkSetting.Locale, string.Empty);
+
+#pragma warning disable 618
+            SetDefault(FrameworkSetting.MapAbsoluteInputToWindow, false);
+            SetDefault(FrameworkSetting.IgnoredInputHandlers, string.Empty);
+            SetDefault(FrameworkSetting.CursorSensitivity, 1.0, 0.1, 6, 0.01);
+#pragma warning restore 618
         }
 
         public FrameworkConfigManager(Storage storage, IDictionary<FrameworkSetting, object> defaultOverrides = null)
@@ -52,13 +56,15 @@ namespace osu.Framework.Configuration
             new TrackedSetting<string>(FrameworkSetting.AudioDevice, v => new SettingDescription(v, "Audio Device", string.IsNullOrEmpty(v) ? "Default" : v, v)),
             new TrackedSetting<bool>(FrameworkSetting.ShowLogOverlay, v => new SettingDescription(v, "Debug Logs", v ? "visible" : "hidden", "Ctrl+F10")),
             new TrackedSetting<Size>(FrameworkSetting.WindowedSize, v => new SettingDescription(v, "Screen resolution", $"{v.Width}x{v.Height}")),
+            new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter")),
+#pragma warning disable 618
             new TrackedSetting<double>(FrameworkSetting.CursorSensitivity, v => new SettingDescription(v, "Cursor Sensitivity", v.ToString(@"0.##x"), "Ctrl+Alt+R to reset")),
             new TrackedSetting<string>(FrameworkSetting.IgnoredInputHandlers, v =>
             {
                 bool raw = !v.Contains("Raw");
                 return new SettingDescription(raw, "Raw Input", raw ? "enabled" : "disabled", "Ctrl+Alt+R to reset");
             }),
-            new TrackedSetting<WindowMode>(FrameworkSetting.WindowMode, v => new SettingDescription(v, "Screen Mode", v.ToString(), "Alt+Enter"))
+#pragma warning restore 618
         };
     }
 
@@ -85,8 +91,14 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
+
+        [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
         IgnoredInputHandlers,
+
+        [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
         CursorSensitivity,
+
+        [Obsolete("Input-related settings are now stored in InputConfigManager. Adjustments should be made via Host.AvailableInputHandlers bindables directly.")] // can be removed 20210911
         MapAbsoluteInputToWindow,
     }
 }

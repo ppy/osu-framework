@@ -47,10 +47,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestToggleRomanisedState()
         {
-            AddStep("prefer romanised", () => config.Set(FrameworkSetting.ShowUnicode, false));
+            AddStep("prefer romanised", () => config.SetValue(FrameworkSetting.ShowUnicode, false));
             AddAssert("check strings correct", () => flow.OfType<SpriteText>().Select(st => st.Current.Value).SequenceEqual(new[] { "music", "music", "ongaku" }));
 
-            AddStep("prefer unicode", () => config.Set(FrameworkSetting.ShowUnicode, true));
+            AddStep("prefer unicode", () => config.SetValue(FrameworkSetting.ShowUnicode, true));
             AddAssert("check strings correct", () => flow.OfType<SpriteText>().Select(st => st.Current.Value).SequenceEqual(new[] { "ongaku", "music", "ongaku" }));
         }
     }

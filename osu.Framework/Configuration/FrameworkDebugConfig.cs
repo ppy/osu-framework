@@ -16,7 +16,7 @@ namespace osu.Framework.Configuration
         {
             base.InitialiseDefaults();
 
-            Set(DebugSetting.BypassFrontToBackPass, false);
+            SetDefault(DebugSetting.BypassFrontToBackPass, false);
         }
     }
 

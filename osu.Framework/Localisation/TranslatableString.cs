@@ -5,6 +5,7 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Localisation
@@ -12,7 +13,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A string that can be translated with optional formattable arguments.
     /// </summary>
-    public class TranslatableString
+    public class TranslatableString : IEquatable<TranslatableString>
     {
         public readonly string Key;
         public readonly string Fallback;
@@ -68,5 +69,34 @@ namespace osu.Framework.Localisation
         }
 
         public override string ToString() => string.Format(CultureInfo.InvariantCulture, Fallback, Args);
+
+        public bool Equals(TranslatableString? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return Key == other.Key
+                   && Fallback == other.Fallback
+                   && Args.SequenceEqual(other.Args);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+
+            return Equals((TranslatableString)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(Key);
+            hashCode.Add(Fallback);
+            foreach (var arg in Args)
+                hashCode.Add(arg);
+            return hashCode.ToHashCode();
+        }
     }
 }

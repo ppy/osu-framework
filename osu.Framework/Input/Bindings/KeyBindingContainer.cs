@@ -4,12 +4,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Input.Bindings
@@ -133,6 +135,20 @@ namespace osu.Framework.Input.Bindings
 
                 case MidiUpEvent midiUp:
                     handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
+                    return false;
+
+                case TabletPenButtonPressEvent tabletPenButtonPress:
+                    return handleNewPressed(state, KeyCombination.FromTabletPenButton(tabletPenButtonPress.Button), false);
+
+                case TabletPenButtonReleaseEvent tabletPenButtonRelease:
+                    handleNewReleased(state, KeyCombination.FromTabletPenButton(tabletPenButtonRelease.Button));
+                    return false;
+
+                case TabletAuxiliaryButtonPressEvent tabletAuxiliaryButtonPress:
+                    return handleNewPressed(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonPress.Button), false);
+
+                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonRelease:
+                    handleNewReleased(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonRelease.Button));
                     return false;
 
                 case ScrollEvent scroll:
@@ -325,6 +341,13 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
+        // This is only specified here (rather than in PlatformContainer, where it is consumed) to workaround
+        // a critical iOS / Xamarin bug, where consumer applications may crash during startup at an unmanaged level.
+        // It should eventually be removed when the issue is identified and fixed upstream.
+        // See https://github.com/ppy/osu-framework/pull/4263 for discussion.
+        [Resolved]
+        protected GameHost Host { get; private set; }
+
         protected IEnumerable<IKeyBinding> KeyBindings;
 
         public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }

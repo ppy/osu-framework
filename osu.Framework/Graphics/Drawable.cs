@@ -2063,6 +2063,20 @@ namespace osu.Framework.Graphics
                     OnMidiUp(midiUp);
                     return false;
 
+                case TabletPenButtonPressEvent tabletPenButtonPress:
+                    return OnTabletPenButtonPress(tabletPenButtonPress);
+
+                case TabletPenButtonReleaseEvent tabletPenButtonRelease:
+                    OnTabletPenButtonRelease(tabletPenButtonRelease);
+                    return false;
+
+                case TabletAuxiliaryButtonPressEvent tabletAuxiliaryButtonPress:
+                    return OnTabletAuxiliaryButtonPress(tabletAuxiliaryButtonPress);
+
+                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonRelease:
+                    OnTabletAuxiliaryButtonRelease(tabletAuxiliaryButtonRelease);
+                    return false;
+
                 default:
                     return Handle(e);
             }
@@ -2272,6 +2286,38 @@ namespace osu.Framework.Graphics
         /// <param name="e">The <see cref="MidiUpEvent"/> containing information about the input event.</param>
         protected virtual void OnMidiUp(MidiUpEvent e) => Handle(e);
 
+        /// <summary>
+        /// An event that occurs when a <see cref="TabletPenButton"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="TabletPenButtonPressEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTabletPenButtonPress(TabletPenButtonPressEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="TabletPenButton"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnTabletPenButtonPress"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="TabletPenButtonReleaseEvent"/> containing information about the input event.</param>
+        protected virtual void OnTabletPenButtonRelease(TabletPenButtonReleaseEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="TabletAuxiliaryButton"/> is pressed.
+        /// </summary>
+        /// <param name="e">The <see cref="TabletAuxiliaryButtonPressEvent"/> containing information about the input event.</param>
+        /// <returns>Whether to block the event from propagating to other <see cref="Drawable"/>s in the hierarchy.</returns>
+        protected virtual bool OnTabletAuxiliaryButtonPress(TabletAuxiliaryButtonPressEvent e) => Handle(e);
+
+        /// <summary>
+        /// An event that occurs when a <see cref="TabletAuxiliaryButton"/> is released.
+        /// </summary>
+        /// <remarks>
+        /// This is guaranteed to be invoked if <see cref="OnTabletAuxiliaryButtonPress"/> was invoked.
+        /// </remarks>
+        /// <param name="e">The <see cref="TabletAuxiliaryButtonReleaseEvent"/> containing information about the input event.</param>
+        protected virtual void OnTabletAuxiliaryButtonRelease(TabletAuxiliaryButtonReleaseEvent e) => Handle(e);
+
         #endregion
 
         /// <summary>
@@ -2334,7 +2380,9 @@ namespace osu.Framework.Graphics
                 nameof(OnFocusLost),
                 nameof(OnTouchDown),
                 nameof(OnTouchMove),
-                nameof(OnTouchUp)
+                nameof(OnTouchUp),
+                nameof(OnTabletPenButtonPress),
+                nameof(OnTabletPenButtonRelease)
             };
 
             private static readonly string[] non_positional_input_methods =
@@ -2346,7 +2394,11 @@ namespace osu.Framework.Graphics
                 nameof(OnKeyUp),
                 nameof(OnJoystickPress),
                 nameof(OnJoystickRelease),
-                nameof(OnJoystickAxisMove)
+                nameof(OnJoystickAxisMove),
+                nameof(OnTabletAuxiliaryButtonPress),
+                nameof(OnTabletAuxiliaryButtonRelease),
+                nameof(OnMidiDown),
+                nameof(OnMidiUp)
             };
 
             private static readonly Type[] positional_input_interfaces =

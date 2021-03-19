@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// A <see cref="Container"/> that is automatically cached and provides a <see cref="BindableSafeArea"/> representing
     /// the desired safe area margins. Should be used in conjunction with child <see cref="SafeAreaContainer"/>s.
     /// The root of the scenegraph contains an instance of this container, with <see cref="BindableSafeArea"/> automatically bound
-    /// to the host <see cref="OsuTKWindow"/>'s <see cref="OsuTKWindow.SafeAreaPadding"/>.
+    /// to the host <see cref="IWindow"/>'s <see cref="IWindow.SafeAreaPadding"/>.
     /// </summary>
     [Cached(typeof(ISafeArea))]
     public class SafeAreaDefiningContainer : Container<Drawable>, ISafeArea

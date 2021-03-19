@@ -155,6 +155,11 @@ namespace osu.Framework.Input.Bindings
 
         private string getReadableKey(InputKey key)
         {
+            if (key >= InputKey.FirstTabletAuxiliaryButton)
+                return $"Tablet Aux {key - InputKey.FirstTabletAuxiliaryButton + 1}";
+            if (key >= InputKey.FirstTabletPenButton)
+                return $"Tablet Pen {key - InputKey.FirstTabletPenButton + 1}";
+
             if (key >= InputKey.MidiA0)
                 return key.ToString().Substring("Midi".Length).Replace("Sharp", "#");
 
@@ -416,6 +421,10 @@ namespace osu.Framework.Input.Bindings
 
         public static InputKey FromMidiKey(MidiKey key) => (InputKey)((int)InputKey.MidiA0 + key - MidiKey.A0);
 
+        public static InputKey FromTabletPenButton(TabletPenButton penButton) => (InputKey)((int)InputKey.FirstTabletPenButton + penButton);
+
+        public static InputKey FromTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => (InputKey)((int)InputKey.FirstTabletAuxiliaryButton + auxiliaryButton);
+
         /// <summary>
         /// Construct a new instance from input state.
         /// </summary>
@@ -471,6 +480,12 @@ namespace osu.Framework.Input.Bindings
 
             if (state.Midi != null)
                 keys.AddRange(state.Midi.Keys.Select(FromMidiKey));
+
+            if (state.Tablet != null)
+            {
+                keys.AddRange(state.Tablet.PenButtons.Select(FromTabletPenButton));
+                keys.AddRange(state.Tablet.AuxiliaryButtons.Select(FromTabletAuxiliaryButton));
+            }
 
             Debug.Assert(!keys.Contains(InputKey.None)); // Having None in pressed keys will break IsPressed
             keys.Sort();
