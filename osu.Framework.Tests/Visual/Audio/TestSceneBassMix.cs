@@ -54,10 +54,9 @@ namespace osu.Framework.Tests.Visual.Audio
             Bass.ChannelPlay(mixerHandle);
             Logger.Log($"[BASSDLL] ChannelPlay: {Bass.LastError}");
             channelHandles[num_mix_channels - 1] = mixerHandle;
-            // bassTrack = (TrackBass)tracks.Get("sample-track.mp3");
 
             // Load BGM Track
-            var bgmData = resources.Get("Resources.Tracks.bgm_main.ogg");
+            var bgmData = resources.Get("Resources.Tracks.sample-track.mp3");
             trackHandle = Bass.CreateStream(bgmData, 0, bgmData.Length, BassFlags.Decode | BassFlags.Loop);
 
             // Add BGM Track to Mixer
@@ -66,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Audio
             channelHandles[0] = trackHandle;
 
             // Load SFX1
-            var sfxData = resources.Get("Resources.Samples.se_common_move2.ogg");
+            var sfxData = resources.Get("Resources.Samples.long.mp3");
             sfxHandle = Bass.CreateStream(sfxData, 0, sfxData.Length, BassFlags.Decode);
 
             // Add SFX1 to Mixer
@@ -75,7 +74,7 @@ namespace osu.Framework.Tests.Visual.Audio
             channelHandles[1] = sfxHandle;
 
             // Load SFX2
-            var sfx2Data = resources.Get("Resources.Samples.loud.wav");
+            var sfx2Data = resources.Get("Resources.Samples.tone.wav");
             sfx2Handle = Bass.CreateStream(sfx2Data, 0, sfx2Data.Length, BassFlags.Decode);
 
             // Add SFX1 to Mixer
