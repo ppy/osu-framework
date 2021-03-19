@@ -171,7 +171,7 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
                 return;
 
-            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.BASS_SAMCHAN_STREAM | BassFlags.Decode);
+            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.SampleChannelStream | BassFlags.Decode);
 
             if (!hasChannel)
                 return;
