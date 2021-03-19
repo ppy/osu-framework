@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="Project">
-    <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateProgramFile>false</GenerateProgramFile>
