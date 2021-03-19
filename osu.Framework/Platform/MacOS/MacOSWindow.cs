@@ -43,7 +43,10 @@ namespace osu.Framework.Platform.MacOS
             if (!hasPrecise)
             {
                 // calls the unswizzled [SDLView scrollWheel:(NSEvent *)] method if this is a regular scroll wheel event
-                Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+                // the receiver may sometimes not be SDLView, use original scroll method nonexistence to indicate that.
+                if (Cocoa.SendBool(receiver, sel_respondstoselector_, originalScrollWheel))
+                    Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+
                 return;
             }
 
