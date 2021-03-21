@@ -25,7 +25,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             Description = "Allows for sensitivity adjustment and tighter control of input",
         };
 
-        public BindableDouble Sensitivity { get; } = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
+        public BindableDouble Sensitivity { get; } = new BindableDouble(1)
+        {
+            MinValue = 0.1,
+            MaxValue = 10,
+            Precision = 0.01
+        };
 
         public override string Description => "Mouse";
 
