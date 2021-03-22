@@ -128,10 +128,22 @@ namespace osu.Framework.Platform
             }
         }
 
+        private Size size = new Size(default_width, default_height);
+
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        public Size Size { get; private set; } = new Size(default_width, default_height);
+        public Size Size
+        {
+            get => size;
+            private set
+            {
+                if (value.Equals(size)) return;
+
+                size = value;
+                ScheduleEvent(() => OnResized());
+            }
+        }
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
@@ -491,17 +503,11 @@ namespace osu.Framework.Platform
         private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
-            var newSize = new Size(w, h);
 
             SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
             Scale = (float)w / actualW;
 
-            if (!newSize.Equals(Size))
-            {
-                Size = newSize;
-
-                ScheduleEvent(() => OnResized());
-            }
+            Size = new Size(w, h);
         }
 
         /// <summary>
