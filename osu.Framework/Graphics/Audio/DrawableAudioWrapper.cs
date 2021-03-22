@@ -6,7 +6,9 @@ using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -69,11 +71,36 @@ namespace osu.Framework.Graphics.Audio
             component.BindAdjustments(adjustments);
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(IAggregateAudioAdjustment parentAdjustment)
+        private IAggregateAudioAdjustment parentAdjustment;
+
+        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            if (parentAdjustment != null)
-                adjustments.BindAdjustments(parentAdjustment);
+            // because these components may be pooled, relying on DI is not feasible.
+            // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
+            if (source != InvalidationSource.Child && invalidation.HasFlagFast(Invalidation.Parent))
+            {
+                if (parentAdjustment != null)
+                    adjustments.UnbindAdjustments(parentAdjustment);
+
+                Drawable cursor = this;
+
+                while ((cursor = cursor.Parent) != null)
+                {
+                    if (!(cursor is IAggregateAudioAdjustment candidate))
+                        continue;
+
+                    // components may be delegating the aggregates of a contained child.
+                    // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                    if (candidate.AggregateVolume != adjustments.AggregateVolume)
+                    {
+                        parentAdjustment = candidate;
+                        adjustments.BindAdjustments(parentAdjustment);
+                        break;
+                    }
+                }
+            }
+
+            return base.OnInvalidate(invalidation, source);
         }
 
         protected override void Dispose(bool isDisposing)
