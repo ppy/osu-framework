@@ -155,6 +155,9 @@ namespace osu.Framework.Graphics.Pooling
 
             GlobalStatistics.Remove(statistic);
 
+            foreach (var x in pool)
+                x.Dispose();
+
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
         }
