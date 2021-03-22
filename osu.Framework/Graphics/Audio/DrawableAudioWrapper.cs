@@ -48,6 +48,10 @@ namespace osu.Framework.Graphics.Audio
 
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
+        private IAggregateAudioAdjustment parentAdjustment;
+
+        private readonly LayoutValue parentAdjustmentLayout = new LayoutValue(Invalidation.Parent);
+
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
         /// Generally used to add adjustments to a hierarchy without adding an audio component.
@@ -56,6 +60,7 @@ namespace osu.Framework.Graphics.Audio
         protected DrawableAudioWrapper(Drawable content)
         {
             AddInternal(content);
+            AddLayout(parentAdjustmentLayout);
         }
 
         /// <summary>
@@ -71,36 +76,37 @@ namespace osu.Framework.Graphics.Audio
             component.BindAdjustments(adjustments);
         }
 
-        private IAggregateAudioAdjustment parentAdjustment;
+        protected override void Update()
+        {
+            base.Update();
 
-        protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
+            if (!parentAdjustmentLayout.IsValid)
+                refreshAdjustments();
+        }
+
+        private void refreshAdjustments()
         {
             // because these components may be pooled, relying on DI is not feasible.
             // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
-            if (source != InvalidationSource.Child && invalidation.HasFlagFast(Invalidation.Parent))
+            if (parentAdjustment != null)
+                adjustments.UnbindAdjustments(parentAdjustment);
+
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
             {
-                if (parentAdjustment != null)
-                    adjustments.UnbindAdjustments(parentAdjustment);
+                if (!(cursor is IAggregateAudioAdjustment candidate))
+                    continue;
 
-                Drawable cursor = this;
-
-                while ((cursor = cursor.Parent) != null)
+                // components may be delegating the aggregates of a contained child.
+                // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                if (candidate.AggregateVolume != adjustments.AggregateVolume)
                 {
-                    if (!(cursor is IAggregateAudioAdjustment candidate))
-                        continue;
-
-                    // components may be delegating the aggregates of a contained child.
-                    // to avoid binding to one's self, check reference equality on an arbitrary bindable.
-                    if (candidate.AggregateVolume != adjustments.AggregateVolume)
-                    {
-                        parentAdjustment = candidate;
-                        adjustments.BindAdjustments(parentAdjustment);
-                        break;
-                    }
+                    parentAdjustment = candidate;
+                    adjustments.BindAdjustments(parentAdjustment);
+                    break;
                 }
             }
-
-            return base.OnInvalidate(invalidation, source);
         }
 
         protected override void Dispose(bool isDisposing)
