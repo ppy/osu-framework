@@ -168,27 +168,20 @@ namespace osu.Framework.Utils
             Vector2 b = controlPoints[1];
             Vector2 c = controlPoints[2];
 
-            float aSq = (b - c).LengthSquared;
-            float bSq = (a - c).LengthSquared;
-            float cSq = (a - b).LengthSquared;
+            // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
+            if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
+                return ApproximateBezier(controlPoints);
 
-            // If we have a degenerate triangle where a side-length is almost zero, then give up and fall
-            // back to a more numerically stable method.
-            if (Precision.AlmostEquals(aSq, 0) || Precision.AlmostEquals(bSq, 0) || Precision.AlmostEquals(cSq, 0))
-                return new List<Vector2>();
+            // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
+            float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
+            float aSq = a.LengthSquared;
+            float bSq = b.LengthSquared;
+            float cSq = c.LengthSquared;
 
-            float s = aSq * (bSq + cSq - aSq);
-            float t = bSq * (aSq + cSq - bSq);
-            float u = cSq * (aSq + bSq - cSq);
+            Vector2 centre = new Vector2(
+                aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
+                aSq * (c - b).X + bSq * (a - c).X + cSq * (b - a).X) / d;
 
-            float sum = s + t + u;
-
-            // If we have a degenerate triangle with an almost-zero size, then give up and fall
-            // back to a more numerically stable method.
-            if (Precision.AlmostEquals(sum, 0))
-                return new List<Vector2>();
-
-            Vector2 centre = (s * a + t * b + u * c) / sum;
             Vector2 dA = a - centre;
             Vector2 dC = c - centre;
 
