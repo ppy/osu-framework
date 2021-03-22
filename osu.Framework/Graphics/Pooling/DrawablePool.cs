@@ -149,14 +149,14 @@ namespace osu.Framework.Graphics.Pooling
         {
             base.Dispose(isDisposing);
 
+            foreach (var x in pool)
+                x.Dispose();
+
             CountInUse = 0;
             CountConstructed = 0;
             CountAvailable = 0;
 
             GlobalStatistics.Remove(statistic);
-
-            foreach (var x in pool)
-                x.Dispose();
 
             // Disallow any further Gets/Returns to adjust the statistics.
             statistic = null;
