@@ -2751,7 +2751,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// A <see cref="Drawable.Parent"/> has changed.
-        /// This <see cref="Invalidation"/> flag always propagates to children.
+        /// Unlike other <see cref="Invalidation"/> flag, this propagates to all children regardless of their <see cref="IsAlive"/> state.
         /// </summary>
         Parent = 1 << 6,
 
