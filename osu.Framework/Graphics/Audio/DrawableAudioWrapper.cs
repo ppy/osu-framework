@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -46,6 +47,10 @@ namespace osu.Framework.Graphics.Audio
 
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
+        private IAggregateAudioAdjustment parentAdjustment;
+
+        private readonly LayoutValue parentAdjustmentLayout = new LayoutValue(Invalidation.Parent);
+
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
         /// Generally used to add adjustments to a hierarchy without adding an audio component.
@@ -54,6 +59,7 @@ namespace osu.Framework.Graphics.Audio
         protected DrawableAudioWrapper(Drawable content)
         {
             AddInternal(content);
+            AddLayout(parentAdjustmentLayout);
         }
 
         /// <summary>
@@ -69,11 +75,43 @@ namespace osu.Framework.Graphics.Audio
             component.BindAdjustments(adjustments);
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(IAggregateAudioAdjustment parentAdjustment)
+        protected override void Update()
         {
+            base.Update();
+
+            if (!parentAdjustmentLayout.IsValid)
+            {
+                refreshAdjustments();
+                parentAdjustmentLayout.Validate();
+            }
+        }
+
+        private void refreshAdjustments()
+        {
+            // because these components may be pooled, relying on DI is not feasible.
+            // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
             if (parentAdjustment != null)
-                adjustments.BindAdjustments(parentAdjustment);
+            {
+                adjustments.UnbindAdjustments(parentAdjustment);
+                parentAdjustment = null;
+            }
+
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+            {
+                if (!(cursor is IAggregateAudioAdjustment candidate))
+                    continue;
+
+                // components may be delegating the aggregates of a contained child.
+                // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                if (candidate.AggregateVolume != adjustments.AggregateVolume)
+                {
+                    parentAdjustment = candidate;
+                    adjustments.BindAdjustments(parentAdjustment);
+                    break;
+                }
+            }
         }
 
         protected override void Dispose(bool isDisposing)
