@@ -88,7 +88,10 @@ namespace osu.Framework.Graphics.Audio
             // because these components may be pooled, relying on DI is not feasible.
             // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
             if (parentAdjustment != null)
+            {
                 adjustments.UnbindAdjustments(parentAdjustment);
+                parentAdjustment = null;
+            }
 
             Drawable cursor = this;
 
