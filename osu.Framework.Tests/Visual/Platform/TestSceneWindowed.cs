@@ -5,7 +5,6 @@ using System;
 using System.Drawing;
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
