@@ -80,7 +80,10 @@ namespace osu.Framework.Graphics.Audio
             base.Update();
 
             if (!parentAdjustmentLayout.IsValid)
+            {
                 refreshAdjustments();
+                parentAdjustmentLayout.Validate();
+            }
         }
 
         private void refreshAdjustments()
