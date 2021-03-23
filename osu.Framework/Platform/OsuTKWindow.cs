@@ -416,18 +416,6 @@ namespace osu.Framework.Platform
             set => OsuTKGameWindow.ClientSize = value;
         }
 
-        public Size MinSize
-        {
-            get => new Size(0, 0);
-            set { }
-        }
-
-        public Size MaxSize
-        {
-            get => new Size(int.MaxValue, int.MaxValue);
-            set { }
-        }
-
         public void Close() => OsuTKGameWindow.Close();
         public void ProcessEvents() => OsuTKGameWindow.ProcessEvents();
         public Point PointToClient(Point point) => OsuTKGameWindow.PointToClient(point);
