@@ -149,8 +149,8 @@ namespace osu.Framework.Graphics.Pooling
         {
             base.Dispose(isDisposing);
 
-            foreach (var x in pool)
-                x.Dispose();
+            foreach (var p in pool)
+                p.Dispose();
 
             CountInUse = 0;
             CountConstructed = 0;
