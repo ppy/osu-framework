@@ -167,6 +167,16 @@ namespace osu.Framework.Platform
         Size ClientSize { get; }
 
         /// <summary>
+        /// The minimum size of the window.
+        /// </summary>
+        Size MinSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the window.
+        /// </summary>
+        Size MaxSize { get; set; }
+
+        /// <summary>
         /// The window title.
         /// </summary>
         string Title { get; set; }
