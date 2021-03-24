@@ -148,7 +148,7 @@ namespace osu.Framework.Platform
         private Size minSize;
 
         /// <summary>
-        /// Returns or sets the window's minimum size.
+        /// Returns or sets the window's minimum size, after scaling.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or size greater than <see cref="MaxSize"/>.</exception>
         public Size MinSize
@@ -166,6 +166,8 @@ namespace osu.Framework.Platform
                     throw new InvalidOperationException($"Expected a size less than {nameof(MaxSize)} ({MaxSize}), got {value}");
 
                 minSize = value;
+
+                value = (value / Scale).ToSize();
                 sizeWindowed.MinValue = value;
 
                 ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
@@ -175,7 +177,7 @@ namespace osu.Framework.Platform
         private Size maxSize;
 
         /// <summary>
-        /// Returns or sets the window's maximum size.
+        /// Returns or sets the window's maximum size, after scaling.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or size less than or equal to <see cref="MinSize"/>.</exception>
         public Size MaxSize
@@ -193,6 +195,8 @@ namespace osu.Framework.Platform
                     throw new InvalidOperationException($"Expected a size greater than {nameof(MinSize)} ({MinSize}), got {value}");
 
                 maxSize = value;
+
+                value = (value / Scale).ToSize();
                 sizeWindowed.MaxValue = value;
 
                 ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
@@ -486,9 +490,6 @@ namespace osu.Framework.Platform
 
             Exists = true;
 
-            MaxSize = new Size(int.MaxValue, int.MaxValue);
-            MinSize = new Size(640, 480);
-
             MouseEntered += () => cursorInWindow.Value = true;
             MouseLeft += () => cursorInWindow.Value = false;
 
@@ -496,6 +497,10 @@ namespace osu.Framework.Platform
 
             updateWindowSpecifics();
             updateWindowSize();
+
+            MaxSize = new Size(int.MaxValue, int.MaxValue);
+            MinSize = new Size(640, 480);
+
             WindowMode.TriggerChange();
         }
 
