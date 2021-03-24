@@ -882,7 +882,7 @@ namespace osu.Framework.Platform
         {
             Key key = evtKey.keysym.ToKey();
 
-            if (key == Key.Unknown || key == Key.CapsLock)
+            if (key == Key.Unknown)
                 return;
 
             switch (evtKey.type)
