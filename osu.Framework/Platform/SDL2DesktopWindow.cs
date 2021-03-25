@@ -123,6 +123,9 @@ namespace osu.Framework.Platform
                 if (relativeMouseMode == value)
                     return;
 
+                if (value && !CursorState.HasFlagFast(CursorState.Hidden))
+                    throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
+
                 relativeMouseMode = value;
                 ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
