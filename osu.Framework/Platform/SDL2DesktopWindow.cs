@@ -384,6 +384,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
+
         private bool firstDraw = true;
 
         private readonly BindableSize sizeFullscreen = new BindableSize();

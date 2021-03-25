@@ -70,6 +70,8 @@ namespace osu.Framework.Platform
 
         public bool IsPortableInstallation { get; }
 
+        public override bool CapsLockEnabled => (Window as SDL2DesktopWindow)?.CapsLockPressed == true;
+
         public override void OpenFileExternally(string filename) => openUsingShellExecute(filename);
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
