@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
@@ -112,7 +113,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                 // handle the case where relative / raw input is active, but the cursor may have exited the window
                 // bounds and is not intended to be confined.
-                if (!window.CursorConfined)
+                if (!window.CursorState.HasFlagFast(CursorState.Confined))
                 {
                     bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
 
@@ -135,7 +136,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void updateRelativeMode()
         {
-            window.RelativeMouseMode = UseRelativeMode.Value && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorConfined));
+            window.RelativeMouseMode = UseRelativeMode.Value && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorState.HasFlagFast(CursorState.Confined)));
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();

@@ -222,36 +222,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool cursorVisible = true;
+        private void updateCursorVisibility(bool visible) =>
+            ScheduleCommand(() => SDL.SDL_ShowCursor(visible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
 
-        /// <summary>
-        /// Returns or sets the cursor's visibility within the window.
-        /// </summary>
-        public bool CursorVisible
-        {
-            get => cursorVisible;
-            set
-            {
-                cursorVisible = value;
-                ScheduleCommand(() => SDL.SDL_ShowCursor(value ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
-            }
-        }
-
-        private bool cursorConfined;
-
-        /// <summary>
-        /// Returns or sets whether the cursor is confined to the window's
-        /// drawable area.
-        /// </summary>
-        public bool CursorConfined
-        {
-            get => cursorConfined;
-            set
-            {
-                cursorConfined = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-            }
-        }
+        private void updateCursorConfined(bool confined) =>
+            ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
 
         private WindowState windowState = WindowState.Normal;
 
@@ -404,8 +379,8 @@ namespace osu.Framework.Platform
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                CursorVisible = !evt.NewValue.HasFlagFast(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlagFast(CursorState.Confined);
+                updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
+                updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
             };
 
             cursorInWindow.ValueChanged += evt =>
