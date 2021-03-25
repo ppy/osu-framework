@@ -17,10 +17,30 @@ namespace osu.Framework.Platform.MacOS
         private static readonly IntPtr sel_scrollingdeltay = Selector.Get("scrollingDeltaY");
         private static readonly IntPtr sel_respondstoselector_ = Selector.Get("respondsToSelector:");
 
+        /// <summary>
+        /// The default borderless / "fullscreen desktop" presentation options SDL uses: https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
+        /// </summary>
+        private const NSApplicationPresentationOptions default_borderless_presentation_options =
+            NSApplicationPresentationOptions.HideDock | NSApplicationPresentationOptions.HideMenuBar | NSApplicationPresentationOptions.FullScreen;
+
+        private delegate uint WindowWillUseFullScreenDelegate(IntPtr self, IntPtr cmd, IntPtr window, uint options);
+
         private delegate void ScrollWheelDelegate(IntPtr handle, IntPtr selector, IntPtr theEvent); // v@:@
+
+        private WindowWillUseFullScreenDelegate windowWillUseFullScreenHandler;
 
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
+
+        public override bool CursorVisible
+        {
+            get => base.CursorVisible;
+            set
+            {
+                base.CursorVisible = value;
+                updateCursorAssistanceState();
+            }
+        }
 
         public override void Create()
         {
@@ -30,6 +50,36 @@ namespace osu.Framework.Platform.MacOS
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+
+            // handle invisible cursor when providing presentation options for "fullscreen desktop" mode.
+            // as SDL overwrites the options there, see https://github.com/libsdl-org/SDL/blob/a4ddb175f1f1d832960c830191daaab7eb25638f/src/video/cocoa/SDL_cocoawindow.m#L899-L906.
+            var windowClass = Class.Get("Cocoa_WindowListener");
+            windowWillUseFullScreenHandler = windowWillUseFullScreen;
+            Class.RegisterMethod(windowClass, windowWillUseFullScreenHandler, "window:willUseFullScreenPresentationOptions:", "I@:@I");
+
+            CursorInWindow.BindValueChanged(_ => updateCursorAssistanceState(), true);
+        }
+
+        private bool shouldDisableCursorAssistance => CursorInWindow.Value && !CursorVisible;
+
+        private uint windowWillUseFullScreen(IntPtr self, IntPtr cmd, IntPtr window, uint options)
+        {
+            var fullscreenOptions = WindowState == WindowState.FullscreenBorderless
+                ? default_borderless_presentation_options
+                : (NSApplicationPresentationOptions)options;
+
+            if (shouldDisableCursorAssistance)
+                fullscreenOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+
+            return (uint)fullscreenOptions;
+        }
+
+        private void updateCursorAssistanceState()
+        {
+            if (shouldDisableCursorAssistance)
+                NSApplication.PresentationOptions |= NSApplicationPresentationOptions.DisableCursorLocationAssistance;
+            else
+                NSApplication.PresentationOptions &= ~NSApplicationPresentationOptions.DisableCursorLocationAssistance;
         }
 
         /// <summary>

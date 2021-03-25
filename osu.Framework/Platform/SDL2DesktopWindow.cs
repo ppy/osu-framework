@@ -227,7 +227,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Returns or sets the cursor's visibility within the window.
         /// </summary>
-        public bool CursorVisible
+        public virtual bool CursorVisible
         {
             get => cursorVisible;
             set
