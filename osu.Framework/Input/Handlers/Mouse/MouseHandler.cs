@@ -19,7 +19,7 @@ namespace osu.Framework.Input.Handlers.Mouse
     public class MouseHandler : InputHandler, IHasCursorSensitivity, INeedsMousePositionFeedback
     {
         /// <summary>
-        /// Whether relative mode should be preferred when the window has focus and the cursor is contained.
+        /// Whether relative mode should be preferred when the window has focus, the cursor is contained and the OS cursor is not visible.
         /// </summary>
         public BindableBool UseRelativeMode { get; } = new BindableBool(true)
         {
@@ -45,6 +45,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private IBindable<bool> isActive;
         private IBindable<bool> cursorInWindow;
+        private Bindable<CursorState> cursorState;
 
         /// <summary>
         /// Whether a non-relative mouse event has ever been received.
@@ -67,6 +68,9 @@ namespace osu.Framework.Input.Handlers.Mouse
 
             cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
             cursorInWindow.BindValueChanged(_ => updateRelativeMode());
+
+            cursorState = desktopWindow.CursorStateBindable.GetBoundCopy();
+            cursorState.BindValueChanged(_ => updateRelativeMode());
 
             UseRelativeMode.BindValueChanged(_ =>
             {
@@ -136,7 +140,17 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         private void updateRelativeMode()
         {
-            window.RelativeMouseMode = UseRelativeMode.Value && Enabled.Value && absolutePositionReceived && (isActive.Value && (window.CursorInWindow.Value || window.CursorState.HasFlagFast(CursorState.Confined)));
+            window.RelativeMouseMode =
+                // check whether this handler is actually enabled.
+                Enabled.Value
+                // check whether the consumer has requested to use relative mode when feasible.
+                && UseRelativeMode.Value
+                // relative mode requires at least one absolute input to arrive, to gain an additional position to work with.
+                && absolutePositionReceived
+                // relative mode only works when the window is active and the cursor is contained. aka the OS cursor isn't being displayed outside the window.
+                && (isActive.Value && (window.CursorInWindow.Value || window.CursorState.HasFlagFast(CursorState.Confined)))
+                // relative mode shouldn't ever be enabled if the framework or a consumer has chosen not to hide the cursor.
+                && window.CursorState.HasFlagFast(CursorState.Hidden);
 
             if (!window.RelativeMouseMode)
                 transferLastPositionToHostCursor();
