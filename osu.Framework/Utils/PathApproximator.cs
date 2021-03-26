@@ -164,67 +164,27 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
         {
-            Vector2 a = controlPoints[0];
-            Vector2 b = controlPoints[1];
-            Vector2 c = controlPoints[2];
-
-            // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
-            if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
-                return ApproximateBezier(controlPoints);
-
-            // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
-            float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
-            float aSq = a.LengthSquared;
-            float bSq = b.LengthSquared;
-            float cSq = c.LengthSquared;
-
-            Vector2 centre = new Vector2(
-                aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
-                aSq * (c - b).X + bSq * (a - c).X + cSq * (b - a).X) / d;
-
-            Vector2 dA = a - centre;
-            Vector2 dC = c - centre;
-
-            float r = dA.Length;
-
-            double thetaStart = Math.Atan2(dA.Y, dA.X);
-            double thetaEnd = Math.Atan2(dC.Y, dC.X);
-
-            while (thetaEnd < thetaStart)
-                thetaEnd += 2 * Math.PI;
-
-            double dir = 1;
-            double thetaRange = thetaEnd - thetaStart;
-
-            // Decide in which direction to draw the circle, depending on which side of
-            // AC B lies.
-            Vector2 orthoAtoC = c - a;
-            orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
-
-            if (Vector2.Dot(orthoAtoC, b - a) < 0)
+            return circularArcHelper(controlPoints, (thetaStart, thetaRange, dir, r, centre) =>
             {
-                dir = -dir;
-                thetaRange = 2 * Math.PI - thetaRange;
-            }
+                // We select the amount of points for the approximation by requiring the discrete curvature
+                // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
+                // is: 2 * Math.Acos(1 - TOLERANCE / r)
+                // The special case is required for extremely short sliders where the radius is smaller than
+                // the tolerance. This is a pathological rather than a realistic case.
+                int amountPoints = 2 * r <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(thetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / r))));
 
-            // We select the amount of points for the approximation by requiring the discrete curvature
-            // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
-            // is: 2 * Math.Acos(1 - TOLERANCE / r)
-            // The special case is required for extremely short sliders where the radius is smaller than
-            // the tolerance. This is a pathological rather than a realistic case.
-            int amountPoints = 2 * r <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(thetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / r))));
+                List<Vector2> output = new List<Vector2>(amountPoints);
 
-            List<Vector2> output = new List<Vector2>(amountPoints);
+                for (int i = 0; i < amountPoints; ++i)
+                {
+                    double fract = (double)i / (amountPoints - 1);
+                    double theta = thetaStart + dir * fract * thetaRange;
+                    Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * r;
+                    output.Add(centre + o);
+                }
 
-            for (int i = 0; i < amountPoints; ++i)
-            {
-                double fract = (double)i / (amountPoints - 1);
-                double theta = thetaStart + dir * fract * thetaRange;
-                Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * r;
-                output.Add(centre + o);
-            }
-
-            return output;
+                return output;
+            });
         }
 
         /// <summary>
@@ -274,6 +234,62 @@ namespace osu.Framework.Utils
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Computes all arguments necessary to approximate a circular arc given its control points.
+        /// These arguments are then passed to the given function, the result of which is returned.
+        /// </summary>
+        /// <param name="controlPoints">Three distinct points on the arc.</param>
+        /// <param name="pointsFunc">A function whose resulting points are returned. It is given a
+        /// start angle, delta angle, direction, radius, and centre.</param>
+        /// <returns>A list of vectors returned from the function provided.</returns>
+        private static List<Vector2> circularArcHelper(ReadOnlySpan<Vector2> controlPoints, Func<double, double, double, float, Vector2, List<Vector2>> pointsFunc)
+        {
+            Vector2 a = controlPoints[0];
+            Vector2 b = controlPoints[1];
+            Vector2 c = controlPoints[2];
+
+            // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
+            if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
+                return ApproximateBezier(controlPoints);
+
+            // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
+            float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
+            float aSq = a.LengthSquared;
+            float bSq = b.LengthSquared;
+            float cSq = c.LengthSquared;
+
+            Vector2 centre = new Vector2(
+                aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
+                aSq * (c - b).X + bSq * (a - c).X + cSq * (b - a).X) / d;
+
+            Vector2 dA = a - centre;
+            Vector2 dC = c - centre;
+
+            float r = dA.Length;
+
+            double thetaStart = Math.Atan2(dA.Y, dA.X);
+            double thetaEnd = Math.Atan2(dC.Y, dC.X);
+
+            while (thetaEnd < thetaStart)
+                thetaEnd += 2 * Math.PI;
+
+            double dir = 1;
+            double thetaRange = thetaEnd - thetaStart;
+
+            // Decide in which direction to draw the circle, depending on which side of
+            // AC B lies.
+            Vector2 orthoAtoC = c - a;
+            orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
+
+            if (Vector2.Dot(orthoAtoC, b - a) < 0)
+            {
+                dir = -dir;
+                thetaRange = 2 * Math.PI - thetaRange;
+            }
+
+            return pointsFunc(thetaStart, thetaRange, dir, r, centre);
         }
 
         /// <summary>
