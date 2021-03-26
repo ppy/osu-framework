@@ -496,12 +496,35 @@ namespace osu.Framework.Input
 
         private readonly List<IInput> inputs = new List<IInput>();
 
+        private InputHandler mouseSource;
+
+        private int sourceRetainCount;
+
         protected virtual List<IInput> GetPendingInputs()
         {
             inputs.Clear();
 
             foreach (var h in InputHandlers)
-                h.CollectPendingInputs(inputs);
+            {
+                var localInputs = new List<IInput>();
+
+                h.CollectPendingInputs(localInputs);
+
+                if (localInputs.Any(i => i is MousePositionAbsoluteInput))
+                {
+                    if (mouseSource != null && mouseSource != h)
+                    {
+                        // if a different source reports enough, let it take over
+                        if (sourceRetainCount++ < 50)
+                            continue;
+                    }
+
+                    mouseSource = h;
+                    sourceRetainCount = 0;
+                }
+
+                inputs.AddRange(localInputs);
+            }
 
             return inputs;
         }
