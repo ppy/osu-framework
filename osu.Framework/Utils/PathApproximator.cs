@@ -280,7 +280,7 @@ namespace osu.Framework.Utils
 
             return new RectangleF(minX, minY, maxX - minX, maxY - minY);
         }
-        
+
         /// <summary>
         /// Computes all arguments necessary to approximate a circular arc given its control points.
         /// These arguments are then passed to the given function, the result of which is returned.
