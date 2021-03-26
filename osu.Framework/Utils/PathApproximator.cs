@@ -166,27 +166,28 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
         {
-            return circularArcHelper(controlPoints, (thetaStart, thetaRange, dir, r, centre) =>
+            CircularArcProperties pr = circularArcProperties(controlPoints);
+            if (pr == null)
+                return ApproximateBezier(controlPoints);
+
+            // We select the amount of points for the approximation by requiring the discrete curvature
+            // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
+            // is: 2 * Math.Acos(1 - TOLERANCE / r)
+            // The special case is required for extremely short sliders where the radius is smaller than
+            // the tolerance. This is a pathological rather than a realistic case.
+            int amountPoints = 2 * pr.Radius <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(pr.ThetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / pr.Radius))));
+
+            List<Vector2> output = new List<Vector2>(amountPoints);
+
+            for (int i = 0; i < amountPoints; ++i)
             {
-                // We select the amount of points for the approximation by requiring the discrete curvature
-                // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
-                // is: 2 * Math.Acos(1 - TOLERANCE / r)
-                // The special case is required for extremely short sliders where the radius is smaller than
-                // the tolerance. This is a pathological rather than a realistic case.
-                int amountPoints = 2 * r <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(thetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / r))));
+                double fract = (double)i / (amountPoints - 1);
+                double theta = pr.ThetaStart + pr.Direction * fract * pr.ThetaRange;
+                Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * pr.Radius;
+                output.Add(pr.Centre + o);
+            }
 
-                List<Vector2> output = new List<Vector2>(amountPoints);
-
-                for (int i = 0; i < amountPoints; ++i)
-                {
-                    double fract = (double)i / (amountPoints - 1);
-                    double theta = thetaStart + dir * fract * thetaRange;
-                    Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * r;
-                    output.Add(centre + o);
-                }
-
-                return output;
-            });
+            return output;
         }
 
         /// <summary>
@@ -245,33 +246,32 @@ namespace osu.Framework.Utils
         /// <returns>The rectangle inscribing the circular arc.</returns>
         public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
         {
-            List<Vector2> points = circularArcHelper(controlPoints, (thetaStart, thetaRange, dir, r, centre) =>
+            CircularArcProperties pr = circularArcProperties(controlPoints);
+            if (pr == null)
+                return RectangleF.Empty;
+
+            List<Vector2> points = new List<Vector2>
             {
-                List<Vector2> definingPoints = new List<Vector2>
-                {
-                    new Vector2((float)Math.Cos(thetaStart), (float)Math.Sin(thetaStart)) * r,
-                    new Vector2((float)Math.Cos(thetaStart + thetaRange), (float)Math.Sin(thetaStart + thetaRange)) * r
-                };
+                new Vector2((float)Math.Cos(pr.ThetaStart), (float)Math.Sin(pr.ThetaStart)) * pr.Radius,
+                new Vector2((float)Math.Cos(pr.ThetaStart + pr.ThetaRange), (float)Math.Sin(pr.ThetaStart + pr.ThetaRange)) * pr.Radius
+            };
 
-                // We find the bounding box using the end-points, as well as
-                // each 90 degree angle inside the range of the arc
-                double remainder = thetaStart % (Math.PI / 2);
-                if (dir < 0)
-                    remainder = Math.PI / 2 - remainder;
-                double closestRightAngle = thetaStart + remainder;
+            // We find the bounding box using the end-points, as well as
+            // each 90 degree angle inside the range of the arc
+            double remainder = pr.ThetaStart % (Math.PI / 2);
+            if (pr.Direction < 0)
+                remainder = Math.PI / 2 - remainder;
+            double closestRightAngle = pr.ThetaStart + remainder;
 
-                int rightAngles = Math.Min((int)Math.Floor(thetaRange / (Math.PI / 2)), 4);
+            int rightAngles = Math.Min((int)Math.Floor(pr.ThetaRange / (Math.PI / 2)), 4);
 
-                for (int i = 0; i < rightAngles; ++i)
-                {
-                    double step = Math.PI * 2 / 4 * dir;
-                    double angle = closestRightAngle + step * i;
-                    Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * r;
-                    definingPoints.Add(centre + o);
-                }
-
-                return definingPoints;
-            });
+            for (int i = 0; i < rightAngles; ++i)
+            {
+                double step = Math.PI * 2 / 4 * pr.Direction;
+                double angle = closestRightAngle + step * i;
+                Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * pr.Radius;
+                points.Add(pr.Centre + o);
+            }
 
             float minX = points.Min(p => p.X);
             float minY = points.Min(p => p.Y);
@@ -281,15 +281,30 @@ namespace osu.Framework.Utils
             return new RectangleF(minX, minY, maxX - minX, maxY - minY);
         }
 
+        private class CircularArcProperties
+        {
+            public readonly double ThetaStart;
+            public readonly double ThetaRange;
+            public readonly double Direction;
+            public readonly float Radius;
+            public readonly Vector2 Centre;
+
+            public CircularArcProperties(double thetaStart, double thetaRange, double direction, float radius, Vector2 centre)
+            {
+                ThetaStart = thetaStart;
+                ThetaRange = thetaRange;
+                Direction = direction;
+                Radius = radius;
+                Centre = centre;
+            }
+        }
+
         /// <summary>
-        /// Computes all arguments necessary to approximate a circular arc given its control points.
-        /// These arguments are then passed to the given function, the result of which is returned.
+        /// Computes various properties that can be used to approximate the circular arc.
         /// </summary>
         /// <param name="controlPoints">Three distinct points on the arc.</param>
-        /// <param name="pointsFunc">A function whose resulting points are returned. It is given a
-        /// start angle, delta angle, direction, radius, and centre.</param>
-        /// <returns>A list of vectors returned from the function provided.</returns>
-        private static List<Vector2> circularArcHelper(ReadOnlySpan<Vector2> controlPoints, Func<double, double, double, float, Vector2, List<Vector2>> pointsFunc)
+        /// <returns></returns>
+        private static CircularArcProperties circularArcProperties(ReadOnlySpan<Vector2> controlPoints)
         {
             Vector2 a = controlPoints[0];
             Vector2 b = controlPoints[1];
@@ -297,7 +312,7 @@ namespace osu.Framework.Utils
 
             // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
             if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
-                return ApproximateBezier(controlPoints);
+                return null;
 
             // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
             float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
@@ -334,7 +349,7 @@ namespace osu.Framework.Utils
                 thetaRange = 2 * Math.PI - thetaRange;
             }
 
-            return pointsFunc(thetaStart, thetaRange, dir, r, centre);
+            return new CircularArcProperties(thetaStart, thetaRange, dir, r, centre);
         }
 
         /// <summary>
