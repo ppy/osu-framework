@@ -213,6 +213,10 @@ namespace osu.Framework.Utils
             double step = right_angle * pr.Direction;
 
             double quotient = pr.ThetaStart / right_angle;
+            // choose an initial right angle, closest to ThetaStart, going in the direction of the arc.
+            // if the direction/step is positive - choose the smallest multiple of PI / 2 greater than ThetaStart.
+            // if the direction/step is negative - choose the greatest multiple of PI / 2 smaller than ThetaStart.
+            // thanks to this, when looping over quadrant points to check if they lie on the arc, we only need to check against ThetaEnd.
             double closestRightAngle = right_angle * (pr.Direction > 0 ? Math.Ceiling(quotient) : Math.Floor(quotient));
 
             // at most, four quadrant points must be considered.
@@ -220,7 +224,7 @@ namespace osu.Framework.Utils
             {
                 double angle = closestRightAngle + step * i;
 
-                // check whether angle exceeds the range [ThetaStart, ThetaEnd].
+                // check whether angle has exceeded ThetaEnd.
                 // multiplying by Direction eliminates branching caused by the fact that step can be either positive or negative.
                 if (Precision.DefinitelyBigger((angle - pr.ThetaEnd) * pr.Direction, 0))
                     break;
