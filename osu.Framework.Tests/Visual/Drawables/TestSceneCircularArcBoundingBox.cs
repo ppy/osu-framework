@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
@@ -26,17 +27,21 @@ namespace osu.Framework.Tests.Visual.Drawables
         [BackgroundDependencyLoader]
         private void load()
         {
-            Children = new Drawable[]
+            Child = new Container
             {
-                boundingBox = new Box
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.None,
-                    Colour = Color4.Red
-                },
-                path = new SmoothPath
-                {
-                    Colour = Color4.White,
-                    PathRadius = 2
+                    boundingBox = new Box
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Colour = Color4.Red
+                    },
+                    path = new SmoothPath
+                    {
+                        Colour = Color4.White,
+                        PathRadius = 2
+                    }
                 }
             };
 
@@ -71,6 +76,27 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 var bounds = PathApproximator.CircularArcBoundingBox(copy);
                 boundingBox.Size = bounds.Size;
+
+                // because SmoothPath's bounding box is not exact,
+                // adjust our box's anchoring so that it's always aligned correctly to encapsulate the arc.
+
+                Anchor anchor = 0;
+
+                if (path.Vertices.All(v => v.X < 0))
+                    anchor |= Anchor.x0;
+                else if (path.Vertices.All(v => v.X > 0))
+                    anchor |= Anchor.x2;
+                else
+                    anchor |= Anchor.x1;
+
+                if (path.Vertices.All(v => v.Y < 0))
+                    anchor |= Anchor.y0;
+                else if (path.Vertices.All(v => v.Y > 0))
+                    anchor |= Anchor.y2;
+                else
+                    anchor |= Anchor.y1;
+
+                boundingBox.Anchor = boundingBox.Origin = anchor;
             });
         }
 
