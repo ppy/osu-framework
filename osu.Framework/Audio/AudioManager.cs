@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using ManagedBass.Wasapi;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
@@ -99,7 +100,7 @@ namespace osu.Framework.Audio
 
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
-
+        private bool usingWasapi;
         private bool didInitialise;
 
         /// <summary>
@@ -311,6 +312,62 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
+            // If on windows try to initialize through BASSWasapi
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows)
+            {
+
+                // Get the bass info on this device
+                DeviceInfo bassInfo = new DeviceInfo();
+                Bass.GetDeviceInfo(device, out bassInfo);
+
+                // Find the corresponding Wasapi Device
+                WasapiDeviceInfo info = new WasapiDeviceInfo();
+                bool validDevice = false;
+                int wasapiDevice = 0;
+                while (true)
+                {
+                    validDevice = BassWasapi.GetDeviceInfo(wasapiDevice, out info);
+
+                    if (!validDevice)
+                    {
+                        Logger.Log("Wasapi could not find the target device. Falling back to lone BASS Initialization");
+                        break;
+
+                    }
+                    else if (info.Name == bassInfo.Name)
+                    {
+                        break;
+                    }
+                    wasapiDevice++;
+                }
+
+                // As long as the device was found, continue and initialize Wasapi and BASS on it
+                if (validDevice)
+                {
+                    Bass.Configure(ManagedBass.Configuration.DevicePeriod, 5);
+
+                    // Device update period: 5ms    Device buffer length: 10ms
+                    bool success = BassWasapi.Init(wasapiDevice, 0, 0, WasapiInitFlags.Shared, 0.01f, 0.005f);
+                    success &= Bass.Init(BassWasapi.GetBassDevice(wasapiDevice));
+                    BassWasapi.Start();
+
+                    if (success)
+                    {
+                        Logger.Log($@"BASSWasapi Initialized
+                                      BASSWasapi Version:         {BassWasapi.Version}");
+                        usingWasapi = true;
+                        didInitialise = true;
+                        return true;
+                    }
+                    else
+                    {
+                        Logger.Log($@"Wasapi failed with error:
+                                      {Bass.LastError.ToString()}
+                                      Falling Back to lone BASS Initialization");
+                    }
+                }
+            }
+
             didInitialise = true;
 
             return Bass.Init(device);
@@ -321,6 +378,10 @@ namespace osu.Framework.Audio
             if (!didInitialise) return;
 
             Bass.Free();
+            if (usingWasapi)
+                BassWasapi.Free();
+
+            usingWasapi = false;
             didInitialise = false;
         }
 
