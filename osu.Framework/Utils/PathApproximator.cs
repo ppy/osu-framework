@@ -250,25 +250,30 @@ namespace osu.Framework.Utils
             if (pr == null)
                 return RectangleF.Empty;
 
-            List<Vector2> points = new List<Vector2>
-            {
-                new Vector2((float)Math.Cos(pr.ThetaStart), (float)Math.Sin(pr.ThetaStart)) * pr.Radius,
-                new Vector2((float)Math.Cos(pr.ThetaStart + pr.ThetaRange), (float)Math.Sin(pr.ThetaStart + pr.ThetaRange)) * pr.Radius
-            };
-
             // We find the bounding box using the end-points, as well as
             // each 90 degree angle inside the range of the arc
-            double remainder = pr.ThetaStart % (Math.PI / 2);
-            if (pr.Direction < 0)
-                remainder = Math.PI / 2 - remainder;
-            double closestRightAngle = pr.ThetaStart + remainder;
-
-            int rightAngles = Math.Min((int)Math.Floor(pr.ThetaRange / (Math.PI / 2)), 4);
-
-            for (int i = 0; i < rightAngles; ++i)
+            List<Vector2> points = new List<Vector2>
             {
-                double step = Math.PI * 2 / 4 * pr.Direction;
+                controlPoints[0],
+                controlPoints[2]
+            };
+
+            const double right_angle = Math.PI / 2;
+            double step = right_angle * pr.Direction;
+
+            double quotient = pr.ThetaStart / right_angle;
+            double closestRightAngle = right_angle * (pr.Direction > 0 ? Math.Ceiling(quotient) : Math.Floor(quotient));
+
+            // at most, four quadrant points must be considered.
+            for (int i = 0; i < 4; ++i)
+            {
                 double angle = closestRightAngle + step * i;
+
+                // check whether angle exceeds the range [ThetaStart, ThetaEnd].
+                // multiplying by Direction eliminates branching caused by the fact that step can be either positive or negative.
+                if (Precision.DefinitelyBigger((angle - pr.ThetaEnd) * pr.Direction, 0))
+                    break;
+
                 Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * pr.Radius;
                 points.Add(pr.Centre + o);
             }
@@ -286,6 +291,8 @@ namespace osu.Framework.Utils
             public readonly double ThetaStart;
             public readonly double ThetaRange;
             public readonly double Direction;
+            public double ThetaEnd => ThetaStart + ThetaRange * Direction;
+
             public readonly float Radius;
             public readonly Vector2 Centre;
 
