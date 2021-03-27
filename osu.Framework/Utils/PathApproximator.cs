@@ -191,6 +191,53 @@ namespace osu.Framework.Utils
         }
 
         /// <summary>
+        /// Computes the bounding box of a circular arc.
+        /// </summary>
+        /// <param name="controlPoints">Three distinct points on the arc.</param>
+        /// <returns>The rectangle inscribing the circular arc.</returns>
+        public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
+        {
+            CircularArcProperties pr = circularArcProperties(controlPoints);
+            if (pr == null)
+                return RectangleF.Empty;
+
+            // We find the bounding box using the end-points, as well as
+            // each 90 degree angle inside the range of the arc
+            List<Vector2> points = new List<Vector2>
+            {
+                controlPoints[0],
+                controlPoints[2]
+            };
+
+            const double right_angle = Math.PI / 2;
+            double step = right_angle * pr.Direction;
+
+            double quotient = pr.ThetaStart / right_angle;
+            double closestRightAngle = right_angle * (pr.Direction > 0 ? Math.Ceiling(quotient) : Math.Floor(quotient));
+
+            // at most, four quadrant points must be considered.
+            for (int i = 0; i < 4; ++i)
+            {
+                double angle = closestRightAngle + step * i;
+
+                // check whether angle exceeds the range [ThetaStart, ThetaEnd].
+                // multiplying by Direction eliminates branching caused by the fact that step can be either positive or negative.
+                if (Precision.DefinitelyBigger((angle - pr.ThetaEnd) * pr.Direction, 0))
+                    break;
+
+                Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * pr.Radius;
+                points.Add(pr.Centre + o);
+            }
+
+            float minX = points.Min(p => p.X);
+            float minY = points.Min(p => p.Y);
+            float maxX = points.Max(p => p.X);
+            float maxY = points.Max(p => p.Y);
+
+            return new RectangleF(minX, minY, maxX - minX, maxY - minY);
+        }
+
+        /// <summary>
         /// Creates a piecewise-linear approximation of a linear curve.
         /// Basically, returns the input.
         /// </summary>
@@ -237,53 +284,6 @@ namespace osu.Framework.Utils
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Computes the bounding box of a circular arc.
-        /// </summary>
-        /// <param name="controlPoints">Three distinct points on the arc.</param>
-        /// <returns>The rectangle inscribing the circular arc.</returns>
-        public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
-        {
-            CircularArcProperties pr = circularArcProperties(controlPoints);
-            if (pr == null)
-                return RectangleF.Empty;
-
-            // We find the bounding box using the end-points, as well as
-            // each 90 degree angle inside the range of the arc
-            List<Vector2> points = new List<Vector2>
-            {
-                controlPoints[0],
-                controlPoints[2]
-            };
-
-            const double right_angle = Math.PI / 2;
-            double step = right_angle * pr.Direction;
-
-            double quotient = pr.ThetaStart / right_angle;
-            double closestRightAngle = right_angle * (pr.Direction > 0 ? Math.Ceiling(quotient) : Math.Floor(quotient));
-
-            // at most, four quadrant points must be considered.
-            for (int i = 0; i < 4; ++i)
-            {
-                double angle = closestRightAngle + step * i;
-
-                // check whether angle exceeds the range [ThetaStart, ThetaEnd].
-                // multiplying by Direction eliminates branching caused by the fact that step can be either positive or negative.
-                if (Precision.DefinitelyBigger((angle - pr.ThetaEnd) * pr.Direction, 0))
-                    break;
-
-                Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * pr.Radius;
-                points.Add(pr.Centre + o);
-            }
-
-            float minX = points.Min(p => p.X);
-            float minY = points.Min(p => p.Y);
-            float maxX = points.Max(p => p.X);
-            float maxY = points.Max(p => p.Y);
-
-            return new RectangleF(minX, minY, maxX - minX, maxY - minY);
         }
 
         private class CircularArcProperties
