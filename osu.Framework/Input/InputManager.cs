@@ -532,7 +532,7 @@ namespace osu.Framework.Input
                     // report mouse position data at a time. Handlers are given priority based on their constructed order.
                     // Devices which higher priority are allowed to take over control immediately, after which a delay is enforced (on every subsequent positional report)
                     // before a lower priority device can obtain control.
-                    if (i is MousePositionAbsoluteInput)
+                    if (i is MousePositionAbsoluteInput || i is MousePositionRelativeInput)
                     {
                         if (mouseSource == null // a new device taking control when no existing preference is present.
                             || mouseSource == h // if this is the device which currently has control, renew the debounce delay.
