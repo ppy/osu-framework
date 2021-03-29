@@ -101,10 +101,15 @@ namespace osu.Framework.Input.Handlers.Mouse
             return true;
         }
 
-        public void FeedbackMousePositionChange(Vector2 position)
+        public void FeedbackMousePositionChange(Vector2 position, bool isSelfFeedback)
         {
             if (!Enabled.Value)
                 return;
+
+            if (!isSelfFeedback)
+                // if another handler has updated the cursor position, handle updating the OS cursor so we can seamlessly revert
+                // to mouse control at any point.
+                window.UpdateMousePosition(position);
 
             if (window.RelativeMouseMode)
             {
