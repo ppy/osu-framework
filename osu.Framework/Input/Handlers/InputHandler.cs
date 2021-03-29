@@ -61,11 +61,6 @@ namespace osu.Framework.Input.Handlers
         public abstract bool IsActive { get; }
 
         /// <summary>
-        /// Indicated how high of a priority this handler has. The active handler with the highest priority is controlling the cursor at any given time.
-        /// </summary>
-        public abstract int Priority { get; }
-
-        /// <summary>
         /// A user-readable description of this input handler, for display in settings.
         /// </summary>
         public virtual string Description => ToString().Replace("Handler", string.Empty);

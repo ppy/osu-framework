@@ -15,8 +15,6 @@ namespace osu.Framework.iOS.Input
         internal bool KeyboardActive = true;
         public override bool IsActive => KeyboardActive;
 
-        public override int Priority => 0;
-
         public override bool Initialize(GameHost host)
         {
             if (!(UIApplication.SharedApplication is GameUIApplication game))

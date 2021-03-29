@@ -18,8 +18,6 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         public override bool Initialize(GameHost host)
         {
             if (!base.Initialize(host))

@@ -19,8 +19,6 @@ namespace osu.Framework.Input.Handlers.Midi
     {
         public override string Description => "MIDI";
         public override bool IsActive => active;
-        public override int Priority => 0;
-
         private bool active = true;
 
         private ScheduledDelegate scheduledRefreshDevices;

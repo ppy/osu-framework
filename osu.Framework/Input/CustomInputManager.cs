@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,16 +22,7 @@ namespace osu.Framework.Input
             if (!handler.Initialize(Host)) return;
 
             var existingHandlers = new List<InputHandler>(inputHandlers);
-
-            // find the correct location to insert based on priority.
-            int index = existingHandlers.BinarySearch(handler, new InputHandlerPriorityComparer());
-
-            if (index < 0)
-            {
-                index = ~index;
-            }
-
-            existingHandlers.Insert(index, handler);
+            existingHandlers.Add(handler);
             inputHandlers = existingHandlers.ToImmutableArray();
         }
 
@@ -47,17 +37,6 @@ namespace osu.Framework.Input
                 h.Dispose();
 
             base.Dispose(isDisposing);
-        }
-
-        private class InputHandlerPriorityComparer : IComparer<InputHandler>
-        {
-            public int Compare(InputHandler h1, InputHandler h2)
-            {
-                if (h1 == null) throw new ArgumentNullException(nameof(h1));
-                if (h2 == null) throw new ArgumentNullException(nameof(h2));
-
-                return h2.Priority.CompareTo(h1.Priority);
-            }
         }
     }
 }
