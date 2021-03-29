@@ -496,36 +496,68 @@ namespace osu.Framework.Input
 
         private readonly List<IInput> inputs = new List<IInput>();
 
+        private readonly List<IInput> dequeuedInputs = new List<IInput>();
+
         private InputHandler mouseSource;
 
-        private int sourceRetainCount;
+        private double sourceDebounceTimeRemaining;
+
+        private double lastPendingInputRetrievalTime;
+
+        /// <summary>
+        /// The length in time after which a lower priority input handler is allowed to take over mouse control from a high priority handler that is no longer reporting.
+        /// It's safe to assume that all input devices are reporting at higher than the debounce time specified here (20hz).
+        /// If the delay seen between device swaps is ever considered to be too slow, this can likely be further increased up to 100hz.
+        /// </summary>
+        private const int mouse_source_debounce_time = 50;
 
         protected virtual List<IInput> GetPendingInputs()
         {
+            var now = Clock.CurrentTime;
+            double elapsed = now - lastPendingInputRetrievalTime;
+            lastPendingInputRetrievalTime = now;
+
             inputs.Clear();
+
+            bool reachedPreviousMouseSource = false;
 
             foreach (var h in InputHandlers)
             {
-                var localInputs = new List<IInput>();
+                dequeuedInputs.Clear();
+                h.CollectPendingInputs(dequeuedInputs);
 
-                h.CollectPendingInputs(localInputs);
-
-                if (localInputs.Any(i => i is MousePositionAbsoluteInput))
+                foreach (var i in dequeuedInputs)
                 {
-                    if (mouseSource != null && mouseSource != h)
+                    // To avoid the same device reporting via two channels (and causing feedback), only one handler should be allowed to
+                    // report mouse position data at a time. Handlers are given priority based on their constructed order.
+                    // Devices which higher priority are allowed to take over control immediately, after which a delay is enforced (on every subsequent positional report)
+                    // before a lower priority device can obtain control.
+                    if (i is MousePositionAbsoluteInput)
                     {
-                        // if a different source reports enough, let it take over
-                        if (sourceRetainCount++ < 50)
+                        if (mouseSource == null // a new device taking control when no existing preference is present.
+                            || mouseSource == h // if this is the device which currently has control, renew the debounce delay.
+                            || !reachedPreviousMouseSource // we have not reached the previous mouse source, so a higher priority device can take over control.
+                            || sourceDebounceTimeRemaining <= 0) // a lower priority device taking over control if the debounce delay has elapsed.
+                        {
+                            mouseSource = h;
+                            sourceDebounceTimeRemaining = mouse_source_debounce_time;
+                        }
+                        else
+                        {
+                            // drop positional input if we did not meet the criteria to be the current reporting handler.
                             continue;
+                        }
                     }
 
-                    mouseSource = h;
-                    sourceRetainCount = 0;
+                    inputs.Add(i);
                 }
 
-                inputs.AddRange(localInputs);
+                // track whether we have passed the handler which is currently in control of positional handling.
+                if (mouseSource == h)
+                    reachedPreviousMouseSource = true;
             }
 
+            sourceDebounceTimeRemaining -= elapsed;
             return inputs;
         }
 
