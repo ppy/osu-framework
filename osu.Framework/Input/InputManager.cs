@@ -553,6 +553,7 @@ namespace osu.Framework.Input
                 }
 
                 // track whether we have passed the handler which is currently in control of positional handling.
+                // importantly, this is updated regardless of whether the handler has reported any new inputs.
                 if (mouseSource == h)
                     reachedPreviousMouseSource = true;
             }
