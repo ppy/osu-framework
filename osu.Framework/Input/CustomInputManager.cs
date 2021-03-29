@@ -21,9 +21,7 @@ namespace osu.Framework.Input
         {
             if (!handler.Initialize(Host)) return;
 
-            var existingHandlers = new List<InputHandler>(inputHandlers);
-            existingHandlers.Add(handler);
-            inputHandlers = existingHandlers.ToImmutableArray();
+            inputHandlers = inputHandlers.Append(handler).ToImmutableArray();
         }
 
         protected void RemoveHandler(InputHandler handler)
