@@ -500,7 +500,7 @@ namespace osu.Framework.Input
 
         private InputHandler mouseSource;
 
-        private double sourceDebounceTimeRemaining;
+        private double mouseSourceDebounceTimeRemaining;
 
         private double lastPendingInputRetrievalTime;
 
@@ -537,10 +537,10 @@ namespace osu.Framework.Input
                         if (mouseSource == null // a new device taking control when no existing preference is present.
                             || mouseSource == h // if this is the device which currently has control, renew the debounce delay.
                             || !reachedPreviousMouseSource // we have not reached the previous mouse source, so a higher priority device can take over control.
-                            || sourceDebounceTimeRemaining <= 0) // a lower priority device taking over control if the debounce delay has elapsed.
+                            || mouseSourceDebounceTimeRemaining <= 0) // a lower priority device taking over control if the debounce delay has elapsed.
                         {
                             mouseSource = h;
-                            sourceDebounceTimeRemaining = mouse_source_debounce_time;
+                            mouseSourceDebounceTimeRemaining = mouse_source_debounce_time;
                         }
                         else
                         {
@@ -557,7 +557,7 @@ namespace osu.Framework.Input
                     reachedPreviousMouseSource = true;
             }
 
-            sourceDebounceTimeRemaining -= elapsed;
+            mouseSourceDebounceTimeRemaining -= elapsed;
             return inputs;
         }
 
