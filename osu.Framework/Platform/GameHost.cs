@@ -904,6 +904,9 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
+        /// <summary>
+        /// Construct all input handlers for this host. The order here decides the priority given to handlers, with the earliest occurring having higher priority.
+        /// </summary>
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }

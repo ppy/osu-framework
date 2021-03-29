@@ -37,8 +37,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         private SDL2DesktopWindow window;
 
         private Vector2? lastPosition;
