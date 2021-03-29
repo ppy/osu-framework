@@ -167,7 +167,7 @@ namespace osu.Framework.Utils
         public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
         {
             CircularArcProperties pr = circularArcProperties(controlPoints);
-            if (pr == null)
+            if (!pr.IsValid)
                 return ApproximateBezier(controlPoints);
 
             // We select the amount of points for the approximation by requiring the discrete curvature
@@ -198,7 +198,7 @@ namespace osu.Framework.Utils
         public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
         {
             CircularArcProperties pr = circularArcProperties(controlPoints);
-            if (pr == null)
+            if (!pr.IsValid)
                 return RectangleF.Empty;
 
             // We find the bounding box using the end-points, as well as
@@ -288,18 +288,20 @@ namespace osu.Framework.Utils
             return result;
         }
 
-        private class CircularArcProperties
+        private readonly struct CircularArcProperties
         {
+            public readonly bool IsValid;
             public readonly double ThetaStart;
             public readonly double ThetaRange;
             public readonly double Direction;
-            public double ThetaEnd => ThetaStart + ThetaRange * Direction;
-
             public readonly float Radius;
             public readonly Vector2 Centre;
 
+            public double ThetaEnd => ThetaStart + ThetaRange * Direction;
+
             public CircularArcProperties(double thetaStart, double thetaRange, double direction, float radius, Vector2 centre)
             {
+                IsValid = true;
                 ThetaStart = thetaStart;
                 ThetaRange = thetaRange;
                 Direction = direction;
@@ -321,7 +323,7 @@ namespace osu.Framework.Utils
 
             // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
             if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
-                return null;
+                return default; // Implicitly sets `IsValid` to false
 
             // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
             float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
