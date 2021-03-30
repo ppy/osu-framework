@@ -88,12 +88,13 @@ namespace osu.Framework.Platform
             new InputHandler[]
             {
                 new KeyboardHandler(),
+#if NET5_0
+                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
+                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
+#endif
                 new MouseHandler(),
                 new JoystickHandler(),
                 new MidiHandler(),
-#if NET5_0
-                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
-#endif
             };
 
         public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);

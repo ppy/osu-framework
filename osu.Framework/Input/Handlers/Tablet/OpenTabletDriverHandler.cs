@@ -18,8 +18,6 @@ namespace osu.Framework.Input.Handlers.Tablet
     {
         public override bool IsActive => tabletDriver.EnableInput;
 
-        public override int Priority => 0;
-
         private TabletDriver tabletDriver;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();

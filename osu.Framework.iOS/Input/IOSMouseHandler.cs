@@ -33,7 +33,6 @@ namespace osu.Framework.iOS.Input
         }
 
         public override bool IsActive => true;
-        public override int Priority => 1; // Touches always take priority
 
         public override bool Initialize(GameHost host)
         {
