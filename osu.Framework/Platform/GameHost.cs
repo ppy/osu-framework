@@ -249,7 +249,7 @@ namespace osu.Framework.Platform
             var exception = (Exception)args.ExceptionObject;
 
             logException(exception, "unhandled");
-            abortExecutionFromException(sender, exception);
+            abortExecutionFromException(sender, exception, args.IsTerminating);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
@@ -268,7 +268,8 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="sender">The source, generally a <see cref="GameThread"/>.</param>
         /// <param name="exception">The unhandled exception.</param>
-        private void abortExecutionFromException(object sender, Exception exception)
+        /// <param name="isTerminating">Whether the CLR is terminating.</param>
+        private void abortExecutionFromException(object sender, Exception exception, bool isTerminating)
         {
             // nothing needs to be done if the consumer has requested continuing execution.
             if (ExceptionThrown?.Invoke(exception) == true) return;
@@ -304,10 +305,11 @@ namespace osu.Framework.Platform
 
             void waitForThrow()
             {
-                // This is bypassed for GameThread sources in two situations where deadlocks can occur:
-                // 1. When the exceptioning thread is the input thread.
+                // This is bypassed for sources in a few situations where deadlocks can occur:
+                // 1. When the exceptioning thread is GameThread.Input.
                 // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
-                if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                // 3. When the CLR is terminating. We can't guarantee the input thread is still running, and may delay application termination.
+                if (isTerminating || sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
                     return;
 
                 // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
