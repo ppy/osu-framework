@@ -117,10 +117,18 @@ namespace osu.Framework.Input.Bindings
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
 
-                    return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat);
+                    foreach (var key in KeyCombination.FromKey(keyDown.Key))
+                    {
+                        if (handleNewPressed(state, key, keyDown.Repeat))
+                            return true;
+                    }
+
+                    return false;
 
                 case KeyUpEvent keyUp:
-                    handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));
+                    foreach (var key in KeyCombination.FromKey(keyUp.Key))
+                        handleNewReleased(state, key);
+
                     return false;
 
                 case JoystickPressEvent joystickPress:
@@ -171,6 +179,8 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
+            Logger.Log($"new key pressed {newKey}");
+
             var scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
@@ -203,6 +213,8 @@ namespace osu.Framework.Input.Bindings
 
             foreach (var newBinding in newlyPressed)
             {
+                Logger.Log($"new binding pressed {newBinding}");
+
                 // we handled a new binding and there is an existing one. if we don't want concurrency, let's propagate a released event.
                 if (simultaneousMode == SimultaneousBindingMode.None)
                     releasePressedActions();
@@ -222,6 +234,7 @@ namespace osu.Framework.Input.Bindings
                 // we only want to handle the first valid binding (the one with the most keys) in non-simultaneous mode.
                 if (simultaneousMode == SimultaneousBindingMode.None && handled)
                     break;
+                Logger.Log($"new binding pressed {newBinding}");
             }
 
             return handled;

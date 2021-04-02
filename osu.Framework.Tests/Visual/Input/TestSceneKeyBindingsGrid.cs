@@ -342,10 +342,14 @@ namespace osu.Framework.Tests.Visual.Input
             Shift_A,
             Shift_S,
             Shift_D_or_F,
+            RShift_A,
+            RShift_S,
+            RShift_D_or_F,
             Ctrl_Shift_A,
             Ctrl_Shift_S,
             Ctrl_Shift_D_or_F,
             Ctrl,
+            RShift,
             Shift,
             Alt,
             Alt_and_Shift,
@@ -384,6 +388,11 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(new[] { InputKey.Shift, InputKey.D }, TestAction.Shift_D_or_F),
                 new KeyBinding(new[] { InputKey.Shift, InputKey.F }, TestAction.Shift_D_or_F),
 
+                new KeyBinding(new[] { InputKey.RShift, InputKey.A }, TestAction.RShift_A),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.S }, TestAction.RShift_S),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.D }, TestAction.RShift_D_or_F),
+                new KeyBinding(new[] { InputKey.RShift, InputKey.F }, TestAction.RShift_D_or_F),
+
                 new KeyBinding(new[] { InputKey.Alt, InputKey.A }, TestAction.Alt_A),
                 new KeyBinding(new[] { InputKey.Alt, InputKey.S }, TestAction.Alt_S),
                 new KeyBinding(new[] { InputKey.Alt, InputKey.D }, TestAction.Alt_D_or_F),
@@ -396,6 +405,7 @@ namespace osu.Framework.Tests.Visual.Input
 
                 new KeyBinding(new[] { InputKey.Control }, TestAction.Ctrl),
                 new KeyBinding(new[] { InputKey.Shift }, TestAction.Shift),
+                new KeyBinding(new[] { InputKey.RShift }, TestAction.RShift),
                 new KeyBinding(new[] { InputKey.Alt }, TestAction.Alt),
                 new KeyBinding(new[] { InputKey.Alt, InputKey.Shift }, TestAction.Alt_and_Shift),
                 new KeyBinding(new[] { InputKey.Control, InputKey.Shift }, TestAction.Ctrl_and_Shift),
@@ -524,6 +534,7 @@ namespace osu.Framework.Tests.Visual.Input
                 if (Action == action)
                 {
                     ++OnReleasedCount;
+
                     if (Concurrency != SimultaneousBindingMode.All)
                         Trace.Assert(OnPressedCount == OnReleasedCount);
                     else
@@ -554,8 +565,8 @@ namespace osu.Framework.Tests.Visual.Input
                 {
                     if (t.ToString().Contains("Wheel"))
                         return new ScrollTestButton(t, concurrency);
-                    else
-                        return new TestButton(t, concurrency);
+
+                    return new TestButton(t, concurrency);
                 }).ToArray();
 
                 Children = new Drawable[]
