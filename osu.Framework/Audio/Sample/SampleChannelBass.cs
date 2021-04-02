@@ -10,10 +10,27 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly SampleBass sample;
         private volatile int channel;
+
+        /// <summary>
+        /// Whether the channel is currently playing.
+        /// </summary>
+        /// <remarks>
+        /// This is set to <c>true</c> immediately upon <see cref="Play"/>, but the channel may not be audibly playing yet.
+        /// </remarks>
+        public override bool Playing => playing || enqueuedPlaybackStart;
+
+        private volatile bool playing;
+
+        /// <summary>
+        /// <c>true</c> if the user last called <see cref="Play"/>.
+        /// <c>false</c> if the user last called <see cref="Stop"/>.
+        /// </summary>
         private volatile bool userRequestedPlay;
 
-        public override bool Playing => playing;
-        private volatile bool playing;
+        /// <summary>
+        /// Whether the playback start has been enqueued.
+        /// </summary>
+        private volatile bool enqueuedPlaybackStart;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor bassAmplitudeProcessor;
@@ -40,19 +57,10 @@ namespace osu.Framework.Audio.Sample
         {
             userRequestedPlay = true;
 
-            // Enqueue the playback to start.
-            //
-            // The playing state set below combined with the call to base.Play() will make this channel visible to the audio thread if it's not already.
-            // If the audio thread were to update and see the channel not playing, it would reset the playing state and remove the channel from the audio thread's visibility.
-            //
-            // In order to prevent this race, playback is enqueued first so that the audio thread is guaranteed to play the channel when it becomes visible to it.
-            playChannel();
-
-            // The playing state keeps the channel alive to receive updates from the audio thread. It will not receive updates until base.Play().
-            playing = true;
-
-            // Notifies Sample/SampleBassFactory that this channel has come alive.
+            // Makes this channel alive in the parenting Sample.
             base.Play();
+
+            playChannel();
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
@@ -129,28 +137,41 @@ namespace osu.Framework.Audio.Sample
 
         private bool hasChannel => channel != 0;
 
-        private void playChannel() => EnqueueAction(() =>
+        private void playChannel()
         {
-            // Channel may have been freed via UpdateDevice().
-            ensureChannel();
+            enqueuedPlaybackStart = true;
 
-            if (!hasChannel)
-                return;
+            EnqueueAction(() =>
+            {
+                try
+                {
+                    // Channel may have been freed via UpdateDevice().
+                    ensureChannel();
 
-            // Ensure state is correct before starting.
-            InvalidateState();
+                    if (!hasChannel)
+                        return;
 
-            // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
-            // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
-            // to indicate the natural stoppage of a sample as a result of having reaching the end.
-            if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
-                return;
+                    // Ensure state is correct before starting.
+                    InvalidateState();
 
-            if (relativeFrequencyHandler.IsFrequencyZero)
-                return;
+                    // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
+                    // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
+                    // to indicate the natural stoppage of a sample as a result of having reaching the end.
+                    if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                        return;
 
-            Bass.ChannelPlay(channel);
-        });
+                    if (relativeFrequencyHandler.IsFrequencyZero)
+                        return;
+
+                    Bass.ChannelPlay(channel);
+                    playing = true;
+                }
+                finally
+                {
+                    enqueuedPlaybackStart = false;
+                }
+            });
+        }
 
         private void stopChannel() => EnqueueAction(() =>
         {
