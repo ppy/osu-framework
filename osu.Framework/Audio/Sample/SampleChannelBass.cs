@@ -57,7 +57,10 @@ namespace osu.Framework.Audio.Sample
         {
             userRequestedPlay = true;
 
-            // Makes this channel alive in the parenting Sample.
+            // Pin Playing and IsAlive to true so that the channel isn't killed by the next update. This is only reset after playback is started.
+            enqueuedPlaybackStart = true;
+
+            // Bring this channel alive, allowing it to receive updates.
             base.Play();
 
             playChannel();
@@ -137,41 +140,36 @@ namespace osu.Framework.Audio.Sample
 
         private bool hasChannel => channel != 0;
 
-        private void playChannel()
+        private void playChannel() => EnqueueAction(() =>
         {
-            enqueuedPlaybackStart = true;
-
-            EnqueueAction(() =>
+            try
             {
-                try
-                {
-                    // Channel may have been freed via UpdateDevice().
-                    ensureChannel();
+                // Channel may have been freed via UpdateDevice().
+                ensureChannel();
 
-                    if (!hasChannel)
-                        return;
+                if (!hasChannel)
+                    return;
 
-                    // Ensure state is correct before starting.
-                    InvalidateState();
+                // Ensure state is correct before starting.
+                InvalidateState();
 
-                    // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
-                    // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
-                    // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                    if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
-                        return;
+                // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
+                // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
+                // to indicate the natural stoppage of a sample as a result of having reaching the end.
+                if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                    return;
 
-                    if (relativeFrequencyHandler.IsFrequencyZero)
-                        return;
+                if (relativeFrequencyHandler.IsFrequencyZero)
+                    return;
 
-                    Bass.ChannelPlay(channel);
-                    playing = true;
-                }
-                finally
-                {
-                    enqueuedPlaybackStart = false;
-                }
-            });
-        }
+                Bass.ChannelPlay(channel);
+                playing = true;
+            }
+            finally
+            {
+                enqueuedPlaybackStart = false;
+            }
+        });
 
         private void stopChannel() => EnqueueAction(() =>
         {
