@@ -100,7 +100,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="pressedKey">The keys which have been pressed by a user.</param>
         /// <param name="candidateKey">The candidate key binding to match against.</param>
-        /// <param name="exactModifiers">Whether exact matching should be used (ie. no excess keys can be pressed).</param>
+        /// <param name="exactModifiers">Whether exact matching should be used (ie. no excess modifier keys can be pressed).</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, bool exactModifiers)
