@@ -275,6 +275,18 @@ namespace osu.Framework.Input.Bindings
                 case InputKey.None:
                     return string.Empty;
 
+                case InputKey.Shift:
+                    return "Shift";
+
+                case InputKey.Control:
+                    return "Ctrl";
+
+                case InputKey.Alt:
+                    return "Alt";
+
+                case InputKey.Super:
+                    return "Win";
+
                 case InputKey.LShift:
                     return "LShift";
 
