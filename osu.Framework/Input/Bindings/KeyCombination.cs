@@ -78,21 +78,7 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
-            switch (matchingMode)
-            {
-                case KeyCombinationMatchingMode.Any:
-                    return ContainsAll(pressedKeys.Keys, Keys, false);
-
-                case KeyCombinationMatchingMode.Exact:
-                    // Keys are always ordered
-                    return pressedKeys.Keys.SequenceEqual(Keys);
-
-                case KeyCombinationMatchingMode.Modifiers:
-                    return ContainsAll(pressedKeys.Keys, Keys, true);
-
-                default:
-                    return false;
-            }
+            return ContainsAll(pressedKeys.Keys, Keys, matchingMode);
         }
 
         /// <summary>
@@ -100,10 +86,10 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         /// <param name="pressedKey">The keys which have been pressed by a user.</param>
         /// <param name="candidateKey">The candidate key binding to match against.</param>
-        /// <param name="exactModifiers">Whether exact matching should be used (ie. no excess modifier keys can be pressed).</param>
+        /// <param name="matchingMode">The matching mode to be used when checking.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, bool exactModifiers)
+        internal static bool ContainsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, KeyCombinationMatchingMode matchingMode)
         {
             // can be local function once attribute on local functions are implemented
             // optimized to avoid allocation
@@ -114,13 +100,25 @@ namespace osu.Framework.Input.Bindings
                     return false;
             }
 
-            if (exactModifiers)
+            switch (matchingMode)
             {
-                foreach (var key in pressedKey)
-                {
-                    if (IsModifierKey(key) && !ContainsKey(candidateKey, key))
-                        return false;
-                }
+                case KeyCombinationMatchingMode.Exact:
+                    foreach (var key in pressedKey)
+                    {
+                        if (!ContainsKey(candidateKey, key))
+                            return false;
+                    }
+
+                    break;
+
+                case KeyCombinationMatchingMode.Modifiers:
+                    foreach (var key in pressedKey)
+                    {
+                        if (IsModifierKey(key) && !ContainsKey(candidateKey, key))
+                            return false;
+                    }
+
+                    break;
             }
 
             return true;
