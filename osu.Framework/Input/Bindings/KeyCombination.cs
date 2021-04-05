@@ -78,25 +78,25 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
-            return ContainsAll(pressedKeys.Keys, Keys, matchingMode);
+            return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 
         /// <summary>
         /// Check whether the provided set of pressed keys matches the candidate binding.
         /// </summary>
-        /// <param name="pressedKey">The keys which have been pressed by a user.</param>
         /// <param name="candidateKey">The candidate key binding to match against.</param>
+        /// <param name="pressedKey">The keys which have been pressed by a user.</param>
         /// <param name="matchingMode">The matching mode to be used when checking.</param>
         /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool ContainsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, KeyCombinationMatchingMode matchingMode)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
         {
             // can be local function once attribute on local functions are implemented
             // optimized to avoid allocation
             // Usually Keys.Count <= 3. Does not worth special logic for Contains().
             foreach (var key in candidateKey)
             {
-                if (!pressedKey.Contains(key))
+                if (!PressedKeysRelevantToCandidateKey(pressedKey, key))
                     return false;
             }
 
@@ -122,6 +122,44 @@ namespace osu.Framework.Input.Bindings
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
+        /// </summary>
+        /// <param name="pressedKeys">The keys which are pressed by the user.</param>
+        /// <param name="candidateKey">A single key from a candidate binding to check against.</param>
+        /// <returns>Whether this is a match.</returns>
+        internal static bool PressedKeysRelevantToCandidateKey(ImmutableArray<InputKey> pressedKeys, InputKey candidateKey)
+        {
+            switch (candidateKey)
+            {
+                case InputKey.Control:
+                    if (pressedKeys.Contains(InputKey.LControl) || pressedKeys.Contains(InputKey.RControl))
+                        return true;
+
+                    break;
+
+                case InputKey.Shift:
+                    if (pressedKeys.Contains(InputKey.LShift) || pressedKeys.Contains(InputKey.RShift))
+                        return true;
+
+                    break;
+
+                case InputKey.Alt:
+                    if (pressedKeys.Contains(InputKey.LAlt) || pressedKeys.Contains(InputKey.RAlt))
+                        return true;
+
+                    break;
+
+                case InputKey.Super:
+                    if (pressedKeys.Contains(InputKey.LSuper) || pressedKeys.Contains(InputKey.RSuper))
+                        return true;
+
+                    break;
+            }
+
+            return pressedKeys.Contains(candidateKey);
         }
 
         /// <summary>
