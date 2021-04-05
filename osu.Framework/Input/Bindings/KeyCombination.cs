@@ -96,7 +96,7 @@ namespace osu.Framework.Input.Bindings
             // Usually Keys.Count <= 3. Does not worth special logic for Contains().
             foreach (var key in candidateKey)
             {
-                if (!ContainsKey(pressedKey, key))
+                if (!pressedKey.Contains(key))
                     return false;
             }
 

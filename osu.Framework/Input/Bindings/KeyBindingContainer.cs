@@ -1,8 +1,7 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -126,6 +125,8 @@ namespace osu.Framework.Input.Bindings
                     return false;
 
                 case KeyUpEvent keyUp:
+                    // this is releasing the common shift when a remaining shift is still held.
+                    // ie. press LShift, press RShift, release RShift will result in InputKey.Shift being incorrectly released.
                     foreach (var key in KeyCombination.FromKey(keyUp.Key))
                         handleNewReleased(state, key);
 
@@ -187,8 +188,7 @@ namespace osu.Framework.Input.Bindings
             bool handled = false;
             var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<IKeyBinding>();
             var newlyPressed = bindings.Where(m =>
-                m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
+                m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
             if (KeyCombination.IsModifierKey(newKey))
             {
@@ -297,12 +297,14 @@ namespace osu.Framework.Input.Bindings
 
         private void handleNewReleased(InputState state, InputKey releasedKey)
         {
+            Logger.Log($"new key released {releasedKey}");
+
             var pressedCombination = KeyCombination.FromInputState(state);
 
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
+            // Trace.Assert(newlyReleased.All(b => KeyCombination.ContainsKey(b.KeyCombination.Keys, releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
