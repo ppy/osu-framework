@@ -206,6 +206,36 @@ namespace osu.Framework.Tests.Visual.Input
         }
 
         [Test]
+        public void PerSideModifierKeys()
+        {
+            wrapTest(() =>
+            {
+                toggleKey(Key.ShiftLeft);
+                checkPressed(TestAction.AnyShift, 1, 1, 1, 1, 1);
+                checkPressed(TestAction.LShift, 0, 0, 0, 1, 1);
+                checkPressed(TestAction.RShift, 0, 0, 0, 0, 0);
+
+                toggleKey(Key.A);
+                checkPressed(TestAction.AnyShift_A, 0, 0, 0, 1, 1);
+                checkPressed(TestAction.LShift_A, 1, 1, 1, 1, 1);
+                checkReleased(TestAction.AnyShift, 1, 1, 1, 0, 0);
+
+                toggleKey(Key.ShiftRight);
+                checkReleased(TestAction.LShift_A, 1, 0, 0, 0, 0);
+                checkPressed(TestAction.RShift, 1, 0, 0, 1, 1);
+                checkPressed(TestAction.AnyShift, 0, 0, 0, 0, 0);
+
+                toggleKey(Key.ShiftLeft);
+                checkReleased(TestAction.LShift, 0, 0, 0, 1, 1);
+                checkReleased(TestAction.LShift_A, 0, 1, 1, 1, 1);
+                checkReleased(TestAction.AnyShift, 0, 0, 0, 0, 0);
+
+                toggleKey(Key.ShiftRight);
+                checkReleased(TestAction.AnyShift, 0, 0, 0, 1, 1);
+            });
+        }
+
+        [Test]
         public void BothSideModifierKeys()
         {
             wrapTest(() =>
