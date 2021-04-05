@@ -96,7 +96,7 @@ namespace osu.Framework.Input.Bindings
             // Usually Keys.Count <= 3. Does not worth special logic for Contains().
             foreach (var key in candidateKey)
             {
-                if (!PressedKeysRelevantToCandidateKey(pressedKey, key))
+                if (!ContainsKey(pressedKey, key))
                     return false;
             }
 
@@ -105,7 +105,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Exact:
                     foreach (var key in pressedKey)
                     {
-                        if (!ContainsKey(candidateKey, key))
+                        if (!ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
 
@@ -114,7 +114,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Modifiers:
                     foreach (var key in pressedKey)
                     {
-                        if (IsModifierKey(key) && !ContainsKey(candidateKey, key))
+                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
 
@@ -125,50 +125,13 @@ namespace osu.Framework.Input.Bindings
         }
 
         /// <summary>
-        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
-        /// </summary>
-        /// <param name="pressedKeys">The keys which are pressed by the user.</param>
-        /// <param name="candidateKey">A single key from a candidate binding to check against.</param>
-        /// <returns>Whether this is a match.</returns>
-        internal static bool PressedKeysRelevantToCandidateKey(ImmutableArray<InputKey> pressedKeys, InputKey candidateKey)
-        {
-            switch (candidateKey)
-            {
-                case InputKey.Control:
-                    if (pressedKeys.Contains(InputKey.LControl) || pressedKeys.Contains(InputKey.RControl))
-                        return true;
-
-                    break;
-
-                case InputKey.Shift:
-                    if (pressedKeys.Contains(InputKey.LShift) || pressedKeys.Contains(InputKey.RShift))
-                        return true;
-
-                    break;
-
-                case InputKey.Alt:
-                    if (pressedKeys.Contains(InputKey.LAlt) || pressedKeys.Contains(InputKey.RAlt))
-                        return true;
-
-                    break;
-
-                case InputKey.Super:
-                    if (pressedKeys.Contains(InputKey.LSuper) || pressedKeys.Contains(InputKey.RSuper))
-                        return true;
-
-                    break;
-            }
-
-            return pressedKeys.Contains(candidateKey);
-        }
-
-        /// <summary>
         /// Check whether the provided key is part of the candidate binding.
+        /// This will match bidirectionally for modifier keys (LShift and Shift being present in both of the two parameters in either order will return true).
         /// </summary>
         /// <param name="candidate">The candidate key binding to match against.</param>
         /// <param name="key">The key which has been pressed by a user.</param>
         /// <returns>Whether this is a match.</returns>
-        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey key)
+        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey key)
         {
             switch (key)
             {
@@ -199,7 +162,22 @@ namespace osu.Framework.Input.Bindings
                         return true;
 
                     break;
+            }
 
+            return ContainsKey(candidate, key);
+        }
+
+        /// <summary>
+        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
+        /// If the <paramref name="key"/> contains a left/right specific modifier, the <paramref name="candidate"/> must also for this to match.
+        /// </summary>
+        /// <param name="candidate">The candidate key binding to match against.</param>
+        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <returns>Whether this is a match.</returns>
+        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey key)
+        {
+            switch (key)
+            {
                 case InputKey.Control:
                     if (candidate.Contains(InputKey.LControl) || candidate.Contains(InputKey.RControl))
                         return true;
