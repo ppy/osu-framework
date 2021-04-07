@@ -65,7 +65,7 @@ namespace osu.Framework.iOS
         {
             base.SetupForRun();
 
-            AllowScreenSuspension.BindValueChanged(allow =>
+            AllowScreenSuspension.Result.BindValueChanged(allow =>
                     InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
                 true);
         }
