@@ -205,7 +205,9 @@ namespace osu.Framework.Input.Handlers.Midi
         {
             Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
 
-            switch (eventType)
+            // Low nibble only contains channel data in note on/off messages
+            // Ignore to receive messages from all channels
+            switch (eventType & 0xF0)
             {
                 case MidiEvent.NoteOn when velocity != 0:
                     Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");
