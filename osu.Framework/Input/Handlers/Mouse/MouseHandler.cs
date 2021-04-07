@@ -62,7 +62,13 @@ namespace osu.Framework.Input.Handlers.Mouse
             window = desktopWindow;
 
             isActive = window.IsActive.GetBoundCopy();
-            isActive.BindValueChanged(_ => updateRelativeMode());
+            isActive.BindValueChanged(active =>
+            {
+                // importantly, we shouldn't trigger an update when the window becomes inactive.
+                // this can cause windows to get stuck in fullscreen.
+                if (active.NewValue)
+                    updateRelativeMode();
+            });
 
             cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
             cursorInWindow.BindValueChanged(_ => updateRelativeMode());
