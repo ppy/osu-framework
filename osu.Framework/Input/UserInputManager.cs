@@ -16,7 +16,7 @@ namespace osu.Framework.Input
     {
         protected override ImmutableArray<InputHandler> InputHandlers => Host.AvailableInputHandlers;
 
-        protected override bool HandleHoverEvents => Host.Window?.CursorInWindow.Value ?? true;
+        public override bool HandleHoverEvents => Host.Window?.CursorInWindow.Value ?? true;
 
         protected internal override bool ShouldBeAlive => true;
 
