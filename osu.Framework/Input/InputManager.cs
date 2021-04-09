@@ -606,7 +606,11 @@ namespace osu.Framework.Input
             return positionalInputQueue.AsSlimReadOnly();
         }
 
-        protected virtual bool HandleHoverEvents => true;
+        /// <summary>
+        /// Whether this input manager is in a state it should handle hover events.
+        /// This could for instance be set to false when the window/target does not have input focus.
+        /// </summary>
+        public virtual bool HandleHoverEvents => true;
 
         private void updateHoverEvents(InputState state)
         {

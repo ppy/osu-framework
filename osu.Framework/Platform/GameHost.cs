@@ -67,7 +67,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// To preserve battery life on mobile devices, this should be left on whenever possible.
         /// </remarks>
-        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
+        public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 

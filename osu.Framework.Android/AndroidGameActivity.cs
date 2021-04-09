@@ -60,7 +60,7 @@ namespace osu.Framework.Android
 
             gameView.HostStarted += host =>
             {
-                host.AllowScreenSuspension.BindValueChanged(allow =>
+                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
                 {
                     RunOnUiThread(() =>
                     {
