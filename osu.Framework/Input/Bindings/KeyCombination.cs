@@ -78,46 +78,132 @@ namespace osu.Framework.Input.Bindings
             if (Keys == pressedKeys.Keys) // Fast test for reference equality of underlying array
                 return true;
 
-            switch (matchingMode)
-            {
-                case KeyCombinationMatchingMode.Any:
-                    return containsAll(pressedKeys.Keys, Keys, false);
-
-                case KeyCombinationMatchingMode.Exact:
-                    // Keys are always ordered
-                    return pressedKeys.Keys.SequenceEqual(Keys);
-
-                case KeyCombinationMatchingMode.Modifiers:
-                    return containsAll(pressedKeys.Keys, Keys, true);
-
-                default:
-                    return false;
-            }
+            return ContainsAll(Keys, pressedKeys.Keys, matchingMode);
         }
 
+        /// <summary>
+        /// Check whether the provided set of pressed keys matches the candidate binding.
+        /// </summary>
+        /// <param name="candidateKey">The candidate key binding to match against.</param>
+        /// <param name="pressedKey">The keys which have been pressed by a user.</param>
+        /// <param name="matchingMode">The matching mode to be used when checking.</param>
+        /// <returns>Whether this is a match.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool containsAll(ImmutableArray<InputKey> pressedKey, ImmutableArray<InputKey> candidateKey, bool exactModifiers)
+        internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
         {
             // can be local function once attribute on local functions are implemented
             // optimized to avoid allocation
             // Usually Keys.Count <= 3. Does not worth special logic for Contains().
             foreach (var key in candidateKey)
             {
-                if (!pressedKey.Contains(key))
+                if (!ContainsKey(pressedKey, key))
                     return false;
             }
 
-            if (exactModifiers)
+            switch (matchingMode)
             {
-                foreach (var key in pressedKey)
-                {
-                    if (IsModifierKey(key) &&
-                        !candidateKey.Contains(key))
-                        return false;
-                }
+                case KeyCombinationMatchingMode.Exact:
+                    foreach (var key in pressedKey)
+                    {
+                        if (!ContainsKeyPermissive(candidateKey, key))
+                            return false;
+                    }
+
+                    break;
+
+                case KeyCombinationMatchingMode.Modifiers:
+                    foreach (var key in pressedKey)
+                    {
+                        if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
+                            return false;
+                    }
+
+                    break;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Check whether the provided key is part of the candidate binding.
+        /// This will match bidirectionally for modifier keys (LShift and Shift being present in both of the two parameters in either order will return true).
+        /// </summary>
+        /// <param name="candidate">The candidate key binding to match against.</param>
+        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <returns>Whether this is a match.</returns>
+        internal static bool ContainsKeyPermissive(ImmutableArray<InputKey> candidate, InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.LControl:
+                case InputKey.RControl:
+                    if (candidate.Contains(InputKey.Control))
+                        return true;
+
+                    break;
+
+                case InputKey.LShift:
+                case InputKey.RShift:
+                    if (candidate.Contains(InputKey.Shift))
+                        return true;
+
+                    break;
+
+                case InputKey.RAlt:
+                case InputKey.LAlt:
+                    if (candidate.Contains(InputKey.Alt))
+                        return true;
+
+                    break;
+
+                case InputKey.LSuper:
+                case InputKey.RSuper:
+                    if (candidate.Contains(InputKey.Super))
+                        return true;
+
+                    break;
+            }
+
+            return ContainsKey(candidate, key);
+        }
+
+        /// <summary>
+        /// Check whether a single key from a candidate binding is relevant to the currently pressed keys.
+        /// If the <paramref name="key"/> contains a left/right specific modifier, the <paramref name="candidate"/> must also for this to match.
+        /// </summary>
+        /// <param name="candidate">The candidate key binding to match against.</param>
+        /// <param name="key">The key which has been pressed by a user.</param>
+        /// <returns>Whether this is a match.</returns>
+        internal static bool ContainsKey(ImmutableArray<InputKey> candidate, InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.Control:
+                    if (candidate.Contains(InputKey.LControl) || candidate.Contains(InputKey.RControl))
+                        return true;
+
+                    break;
+
+                case InputKey.Shift:
+                    if (candidate.Contains(InputKey.LShift) || candidate.Contains(InputKey.RShift))
+                        return true;
+
+                    break;
+
+                case InputKey.Alt:
+                    if (candidate.Contains(InputKey.LAlt) || candidate.Contains(InputKey.RAlt))
+                        return true;
+
+                    break;
+
+                case InputKey.Super:
+                    if (candidate.Contains(InputKey.LSuper) || candidate.Contains(InputKey.RSuper))
+                        return true;
+
+                    break;
+            }
+
+            return candidate.Contains(key);
         }
 
         public bool Equals(KeyCombination other) => Keys.SequenceEqual(other.Keys);
@@ -151,7 +237,27 @@ namespace osu.Framework.Input.Bindings
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsModifierKey(InputKey key) => key == InputKey.Control || key == InputKey.Shift || key == InputKey.Alt || key == InputKey.Super;
+        public static bool IsModifierKey(InputKey key)
+        {
+            switch (key)
+            {
+                case InputKey.LControl:
+                case InputKey.LShift:
+                case InputKey.LAlt:
+                case InputKey.LSuper:
+                case InputKey.RControl:
+                case InputKey.RShift:
+                case InputKey.RAlt:
+                case InputKey.RSuper:
+                case InputKey.Control:
+                case InputKey.Shift:
+                case InputKey.Alt:
+                case InputKey.Super:
+                    return true;
+            }
+
+            return false;
+        }
 
         private string getReadableKey(InputKey key)
         {
@@ -194,6 +300,30 @@ namespace osu.Framework.Input.Bindings
 
                 case InputKey.Super:
                     return "Win";
+
+                case InputKey.LShift:
+                    return "LShift";
+
+                case InputKey.LControl:
+                    return "LCtrl";
+
+                case InputKey.LAlt:
+                    return "LAlt";
+
+                case InputKey.LSuper:
+                    return "LWin";
+
+                case InputKey.RShift:
+                    return "RShift";
+
+                case InputKey.RControl:
+                    return "RCtrl";
+
+                case InputKey.RAlt:
+                    return "RAlt";
+
+                case InputKey.RSuper:
+                    return "RWin";
 
                 case InputKey.Escape:
                     return "Esc";
@@ -364,24 +494,28 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
-        public static InputKey FromKey(Key key)
+        public static InputKey[] FromKey(Key key)
         {
             switch (key)
             {
-                case Key.RShift:
-                    return InputKey.Shift;
+                case Key.LShift: return new[] { InputKey.Shift, InputKey.LShift };
 
-                case Key.RAlt:
-                    return InputKey.Alt;
+                case Key.RShift: return new[] { InputKey.Shift, InputKey.RShift };
 
-                case Key.RControl:
-                    return InputKey.Control;
+                case Key.LControl: return new[] { InputKey.Control, InputKey.LControl };
 
-                case Key.RWin:
-                    return InputKey.Super;
+                case Key.RControl: return new[] { InputKey.Control, InputKey.RControl };
+
+                case Key.LAlt: return new[] { InputKey.Alt, InputKey.LAlt };
+
+                case Key.RAlt: return new[] { InputKey.Alt, InputKey.RAlt };
+
+                case Key.LWin: return new[] { InputKey.Super, InputKey.LSuper };
+
+                case Key.RWin: return new[] { InputKey.Super, InputKey.RSuper };
             }
 
-            return (InputKey)key;
+            return new[] { (InputKey)key };
         }
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
@@ -449,25 +583,10 @@ namespace osu.Framework.Input.Bindings
             {
                 foreach (var key in state.Keyboard.Keys)
                 {
-                    InputKey iKey = FromKey(key);
-
-                    switch (key)
+                    foreach (var iKey in FromKey(key))
                     {
-                        case Key.LShift:
-                        case Key.RShift:
-                        case Key.LAlt:
-                        case Key.RAlt:
-                        case Key.LControl:
-                        case Key.RControl:
-                        case Key.LWin:
-                        case Key.RWin:
-                            if (!keys.Contains(iKey))
-                                keys.Add(iKey);
-                            break;
-
-                        default:
+                        if (!keys.Contains(iKey))
                             keys.Add(iKey);
-                            break;
                     }
                 }
             }
