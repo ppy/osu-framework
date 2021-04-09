@@ -43,6 +43,7 @@
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.114-alpha" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
+    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" />
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
@@ -51,8 +52,5 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.9.0">
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\osu.Framework.NativeLibs\osu.Framework.NativeLibs.csproj" />
   </ItemGroup>
 </Project>

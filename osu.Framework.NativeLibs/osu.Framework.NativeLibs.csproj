@@ -3,7 +3,7 @@
     <OutputType>Library</OutputType>
     <AssemblyTitle>osu!framework Libraries</AssemblyTitle>
     <AssemblyName>osu.Framework.NativeLibs</AssemblyName>
-    <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <IsPackable>true</IsPackable>
