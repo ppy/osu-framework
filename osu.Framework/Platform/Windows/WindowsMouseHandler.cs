@@ -24,7 +24,6 @@ namespace osu.Framework.Platform.Windows
         private SDL2DesktopWindow window;
 
         public override bool IsActive => Enabled.Value;
-        public override int Priority => 0;
 
         public override bool Initialize(GameHost host)
         {

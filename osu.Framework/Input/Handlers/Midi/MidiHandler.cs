@@ -18,8 +18,8 @@ namespace osu.Framework.Input.Handlers.Midi
     public class MidiHandler : InputHandler
     {
         public override string Description => "MIDI";
-        public override bool IsActive => true;
-        public override int Priority => 0;
+        public override bool IsActive => active;
+        private bool active = true;
 
         private ScheduledDelegate scheduledRefreshDevices;
 
@@ -103,7 +103,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     ? "Couldn't list input devices. Is libasound2-dev installed?"
                     : "Couldn't list input devices. There may be another application already using MIDI.");
 
-                Enabled.Value = false;
+                active = false;
                 return false;
             }
         }
@@ -205,7 +205,9 @@ namespace osu.Framework.Input.Handlers.Midi
         {
             Logger.Log($"Handling MIDI event {eventType:X2}:{key:X2}:{velocity:X2}");
 
-            switch (eventType)
+            // Low nibble only contains channel data in note on/off messages
+            // Ignore to receive messages from all channels
+            switch (eventType & 0xF0)
             {
                 case MidiEvent.NoteOn when velocity != 0:
                     Logger.Log($"NoteOn: {(MidiKey)key}/{velocity / 128f:P}");

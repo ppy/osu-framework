@@ -605,7 +605,7 @@ namespace osu.Framework.Tests.IO
 
             Assert.IsTrue(request.Completed);
             Assert.IsFalse(request.Aborted);
-            Assert.AreEqual(0, responseJson.Headers.ContentLength);
+            Assert.AreEqual(0, responseJson?.Headers.ContentLength);
         }
 
         [Test, Retry(5)]

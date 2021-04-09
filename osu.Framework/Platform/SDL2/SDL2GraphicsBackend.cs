@@ -22,7 +22,12 @@ namespace osu.Framework.Platform.SDL2
         protected override IntPtr CreateContext()
         {
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-            return SDL.SDL_GL_CreateContext(sdlWindowHandle);
+
+            IntPtr context = SDL.SDL_GL_CreateContext(sdlWindowHandle);
+            if (context == IntPtr.Zero)
+                throw new InvalidOperationException($"Failed to create an SDL2 GL context ({SDL.SDL_GetError()})");
+
+            return context;
         }
 
         protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);

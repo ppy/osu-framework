@@ -184,6 +184,7 @@ namespace osu.Framework.Tests.Visual.Input
             setCursorSensivityConfig(1);
             AddToggleStep("Toggle relative mode", setRelativeMode);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
+            AddToggleStep("Toggle cursor visibility", setCursorVisibility);
 
             setRelativeMode(false);
             setConfineMouseModeConfig(false);
@@ -213,6 +214,17 @@ namespace osu.Framework.Tests.Visual.Input
         private MouseHandler getMouseHandler()
         {
             return host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
+        }
+
+        private void setCursorVisibility(bool visible)
+        {
+            if (host.Window == null)
+                return;
+
+            if (visible)
+                host.Window.CursorState &= ~CursorState.Hidden;
+            else
+                host.Window.CursorState |= CursorState.Hidden;
         }
 
         private void setConfineMouseModeConfig(bool enabled)

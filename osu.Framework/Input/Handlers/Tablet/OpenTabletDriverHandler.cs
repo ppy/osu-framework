@@ -18,13 +18,13 @@ namespace osu.Framework.Input.Handlers.Tablet
     {
         public override bool IsActive => tabletDriver.EnableInput;
 
-        public override int Priority => 0;
-
         private TabletDriver tabletDriver;
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
 
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+
+        public Bindable<float> Rotation { get; } = new Bindable<float>();
 
         public IBindable<TabletInfo> Tablet => tablet;
 
@@ -45,6 +45,7 @@ namespace osu.Framework.Input.Handlers.Tablet
 
             AreaOffset.BindValueChanged(_ => updateInputArea());
             AreaSize.BindValueChanged(_ => updateInputArea(), true);
+            Rotation.BindValueChanged(_ => updateInputArea(), true);
 
             tabletDriver.TabletChanged += (sender, e) => updateInputArea();
             tabletDriver.ReportReceived += (sender, report) =>
@@ -137,7 +138,7 @@ namespace osu.Framework.Input.Handlers.Tablet
                         Width = AreaSize.Value.X,
                         Height = AreaSize.Value.Y,
                         Position = new System.Numerics.Vector2(AreaOffset.Value.X, AreaOffset.Value.Y),
-                        Rotation = 0
+                        Rotation = Rotation.Value
                     };
                     break;
                 }
