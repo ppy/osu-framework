@@ -163,7 +163,7 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
-        private readonly BindableBool isActive = new BindableBool(true);
+        private readonly BindableBool isActive = new BindableBool();
 
         public IBindable<bool> IsActive => isActive;
 
