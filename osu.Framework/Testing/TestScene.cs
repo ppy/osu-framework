@@ -394,7 +394,6 @@ namespace osu.Framework.Testing
         /// Remove the "TestScene" prefix from a name.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
         public static string RemovePrefix(string name)
         {
             return name.Replace("TestCase", string.Empty) // TestScene used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.
