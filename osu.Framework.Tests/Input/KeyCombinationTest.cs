@@ -18,7 +18,10 @@ namespace osu.Framework.Tests.Input
             new object[] { new KeyCombination(InputKey.LAlt, InputKey.F4), "LAlt-F4" },
             new object[] { new KeyCombination(InputKey.D, InputKey.LControl), "LCtrl-D" },
             new object[] { new KeyCombination(InputKey.LShift, InputKey.F, InputKey.LControl), "LCtrl-LShift-F" },
-            new object[] { new KeyCombination(InputKey.LAlt, InputKey.LControl, InputKey.LSuper, InputKey.LShift), "LCtrl-LAlt-LShift-LWin" }
+            new object[] { new KeyCombination(InputKey.LAlt, InputKey.LControl, InputKey.LSuper, InputKey.LShift), "LCtrl-LAlt-LShift-LWin" },
+            new object[] { new KeyCombination(InputKey.Alt, InputKey.LAlt, InputKey.RControl, InputKey.A), "RCtrl-LAlt-A" },
+            new object[] { new KeyCombination(InputKey.Shift, InputKey.LControl, InputKey.X), "LCtrl-Shift-X" },
+            new object[] { new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Alt, InputKey.Super, InputKey.LAlt, InputKey.RShift, InputKey.LSuper), "Ctrl-LAlt-RShift-LWin" },
         };
 
         [TestCaseSource(nameof(key_combination_display_test_cases))]
