@@ -232,8 +232,39 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString()
         {
-            var sortedKeys = Keys.GetValuesInOrder();
-            return string.Join('-', sortedKeys.Select(getReadableKey));
+            var sortedKeys = Keys.GetValuesInOrder().ToArray();
+
+            return string.Join('-', sortedKeys.Select(key =>
+            {
+                switch (key)
+                {
+                    case InputKey.Control:
+                        if (sortedKeys.Contains(InputKey.LControl) || sortedKeys.Contains(InputKey.RControl))
+                            return null;
+
+                        break;
+
+                    case InputKey.Shift:
+                        if (sortedKeys.Contains(InputKey.LShift) || sortedKeys.Contains(InputKey.RShift))
+                            return null;
+
+                        break;
+
+                    case InputKey.Alt:
+                        if (sortedKeys.Contains(InputKey.LAlt) || sortedKeys.Contains(InputKey.RAlt))
+                            return null;
+
+                        break;
+
+                    case InputKey.Super:
+                        if (sortedKeys.Contains(InputKey.LSuper) || sortedKeys.Contains(InputKey.RSuper))
+                            return null;
+
+                        break;
+                }
+
+                return getReadableKey(key);
+            }).Where(s => !string.IsNullOrEmpty(s)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -259,7 +290,7 @@ namespace osu.Framework.Input.Bindings
             return false;
         }
 
-        private string getReadableKey(InputKey key)
+        private static string getReadableKey(InputKey key)
         {
             if (key >= InputKey.FirstTabletAuxiliaryButton)
                 return $"Tablet Aux {key - InputKey.FirstTabletAuxiliaryButton + 1}";
