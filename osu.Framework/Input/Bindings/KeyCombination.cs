@@ -232,7 +232,7 @@ namespace osu.Framework.Input.Bindings
 
         public string ReadableString()
         {
-            var sortedKeys = Keys.GetValuesInOrder();
+            var sortedKeys = Keys.GetValuesInOrder().ToArray();
 
             return string.Join('-', sortedKeys.Select(key =>
             {
