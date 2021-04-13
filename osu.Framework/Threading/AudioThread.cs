@@ -44,6 +44,7 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
+        private readonly HashSet<int> initialisedDevices = new HashSet<int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -78,6 +79,12 @@ namespace osu.Framework.Threading
                 managers.Remove(manager);
         }
 
+        public void RegisterInitialisedDevice(int deviceId)
+        {
+            lock (initialisedDevices)
+                initialisedDevices.Add(deviceId);
+        }
+
         protected override void PerformExit()
         {
             base.PerformExit();
@@ -102,7 +109,27 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            while (Bass.Free()) { }
+            lock (initialisedDevices)
+            {
+                foreach (var d in initialisedDevices)
+                    freeDevice(d);
+            }
+        }
+
+        private void freeDevice(int deviceId)
+        {
+            int lastDevice = Bass.CurrentDevice;
+
+            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
+            // Todo: Reproduce in native code and report to BASS at some point.
+            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            {
+                Bass.CurrentDevice = deviceId;
+                Bass.Free();
+            }
+
+            if (lastDevice != deviceId)
+                Bass.CurrentDevice = lastDevice;
         }
     }
 }
