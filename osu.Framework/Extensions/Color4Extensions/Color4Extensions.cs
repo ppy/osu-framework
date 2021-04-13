@@ -85,7 +85,6 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// </summary>
         /// <param name="colour">Original colour</param>
         /// <param name="scalar">A scalar to multiply with</param>
-        /// <returns></returns>
         public static Color4 Multiply(this Color4 colour, float scalar)
         {
             if (scalar < 0)
@@ -180,7 +179,6 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <param name="h">The hue, between 0 and 360.</param>
         /// <param name="s">The saturation, between 0 and 1.</param>
         /// <param name="v">The value, between 0 and 1.</param>
-        /// <returns></returns>
         public static Color4 FromHSV(float h, float s, float v)
         {
             if (h < 0 || h > 360)

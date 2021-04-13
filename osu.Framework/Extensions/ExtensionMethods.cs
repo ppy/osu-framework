@@ -56,7 +56,6 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
-        /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
         /// <summary>

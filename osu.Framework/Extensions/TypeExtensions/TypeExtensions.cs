@@ -40,7 +40,6 @@ namespace osu.Framework.Extensions.TypeExtensions
         /// Return every base type until (and excluding) <see cref="object"/>
         /// </summary>
         /// <param name="t"></param>
-        /// <returns></returns>
         public static IEnumerable<Type> EnumerateBaseTypes(this Type t)
         {
             while (t != null && t != typeof(object))
