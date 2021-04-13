@@ -100,7 +100,7 @@ namespace osu.Framework.Audio
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
-        private bool didInitialise;
+        private Thread syncDeviceThread;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -137,7 +137,7 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 // sync audioDevices every 1000ms
-                new Thread(() =>
+                syncDeviceThread = new Thread(() =>
                 {
                     while (!token.IsCancellationRequested)
                     {
@@ -150,22 +150,21 @@ namespace osu.Framework.Audio
                         {
                         }
                     }
-                })
-                {
-                    IsBackground = true
-                }.Start();
+                }) { IsBackground = true };
+
+                syncDeviceThread.Start();
             });
         }
 
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
+            syncDeviceThread?.Join(TimeSpan.FromSeconds(10));
+
             thread.UnregisterManager(this);
 
             OnNewDevice = null;
             OnLostDevice = null;
-
-            FreeBass();
 
             base.Dispose(disposing);
         }
@@ -251,18 +250,7 @@ namespace osu.Framework.Audio
 
             // initialize new device
             bool initSuccess = InitBass(deviceIndex);
-
-            if (Bass.LastError == Errors.Already)
-            {
-                // We check if the initialization error is that we already initialized the device
-                // If it is, it means we can just tell Bass to use the already initialized device without much
-                // other fuzz.
-                Bass.CurrentDevice = deviceIndex;
-                FreeBass();
-                initSuccess = InitBass(deviceIndex);
-            }
-
-            if (BassUtils.CheckFaulted(false))
+            if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
                 return false;
 
             if (!initSuccess)
@@ -311,17 +299,19 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
-            didInitialise = true;
+            bool didInit = Bass.Init(device);
 
-            return Bass.Init(device);
-        }
+            // If the device was already initialised, the device can be used without much fuss.
+            if (Bass.LastError == Errors.Already)
+            {
+                Bass.CurrentDevice = device;
+                didInit = true;
+            }
 
-        protected void FreeBass()
-        {
-            if (!didInitialise) return;
+            if (didInit)
+                thread.RegisterInitialisedDevice(device);
 
-            Bass.Free();
-            didInitialise = false;
+            return didInit;
         }
 
         private void syncAudioDevices()

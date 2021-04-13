@@ -4,6 +4,7 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -44,6 +45,7 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
+        private readonly HashSet<int> initialisedDevices = new HashSet<int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -61,7 +63,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void RegisterManager(AudioManager manager)
+        internal void RegisterManager(AudioManager manager)
         {
             lock (managers)
             {
@@ -72,10 +74,16 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void UnregisterManager(AudioManager manager)
+        internal void UnregisterManager(AudioManager manager)
         {
             lock (managers)
                 managers.Remove(manager);
+        }
+
+        internal void RegisterInitialisedDevice(int deviceId)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+            initialisedDevices.Add(deviceId);
         }
 
         protected override void PerformExit()
@@ -102,7 +110,24 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            while (Bass.Free()) { }
+            foreach (var d in initialisedDevices)
+                freeDevice(d);
+        }
+
+        private void freeDevice(int deviceId)
+        {
+            int lastDevice = Bass.CurrentDevice;
+
+            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
+            // Todo: Reproduce in native code and report to BASS at some point.
+            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            {
+                Bass.CurrentDevice = deviceId;
+                Bass.Free();
+            }
+
+            if (lastDevice != deviceId)
+                Bass.CurrentDevice = lastDevice;
         }
     }
 }
