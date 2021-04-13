@@ -101,6 +101,7 @@ namespace osu.Framework.Audio
         private readonly Lazy<SampleStore> globalSampleStore;
 
         private bool didInitialise;
+        private Thread syncDeviceThread;
 
         /// <summary>
         /// Constructs an AudioStore given a track resource store, and a sample resource store.
@@ -137,7 +138,7 @@ namespace osu.Framework.Audio
             scheduler.Add(() =>
             {
                 // sync audioDevices every 1000ms
-                new Thread(() =>
+                syncDeviceThread = new Thread(() =>
                 {
                     while (!token.IsCancellationRequested)
                     {
@@ -150,16 +151,17 @@ namespace osu.Framework.Audio
                         {
                         }
                     }
-                })
-                {
-                    IsBackground = true
-                }.Start();
+                }) { IsBackground = true };
+
+                syncDeviceThread.Start();
             });
         }
 
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
+            syncDeviceThread?.Join(TimeSpan.FromSeconds(10));
+
             thread.UnregisterManager(this);
 
             OnNewDevice = null;
