@@ -4,6 +4,7 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -62,7 +63,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void RegisterManager(AudioManager manager)
+        internal void RegisterManager(AudioManager manager)
         {
             lock (managers)
             {
@@ -73,16 +74,16 @@ namespace osu.Framework.Threading
             }
         }
 
-        public void UnregisterManager(AudioManager manager)
+        internal void UnregisterManager(AudioManager manager)
         {
             lock (managers)
                 managers.Remove(manager);
         }
 
-        public void RegisterInitialisedDevice(int deviceId)
+        internal void RegisterInitialisedDevice(int deviceId)
         {
-            lock (initialisedDevices)
-                initialisedDevices.Add(deviceId);
+            Debug.Assert(ThreadSafety.IsAudioThread);
+            initialisedDevices.Add(deviceId);
         }
 
         protected override void PerformExit()
@@ -109,11 +110,8 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            lock (initialisedDevices)
-            {
-                foreach (var d in initialisedDevices)
-                    freeDevice(d);
-            }
+            foreach (var d in initialisedDevices)
+                freeDevice(d);
         }
 
         private void freeDevice(int deviceId)
