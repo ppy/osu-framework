@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Layout;
 using osuTK;
 
@@ -269,7 +270,7 @@ namespace osu.Framework.Graphics.Containers
                             for (int r = 0; r < cellRows; r++)
                             {
                                 var cell = Content[r]?[i];
-                                if (cell == null || cell.RelativeSizeAxes == axis)
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
                                     continue;
 
                                 size = Math.Max(size, getCellWidth(cell));
@@ -281,7 +282,7 @@ namespace osu.Framework.Graphics.Containers
                             for (int c = 0; c < cellColumns; c++)
                             {
                                 var cell = Content[i]?[c];
-                                if (cell == null || cell.RelativeSizeAxes == axis)
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
                                     continue;
 
                                 size = Math.Max(size, getCellHeight(cell));
