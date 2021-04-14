@@ -54,7 +54,11 @@ namespace osu.Framework.Timing
         public override double Rate
         {
             get => Source?.Rate ?? 1;
-            set => adjustableSource.Rate = value;
+            set
+            {
+                if (adjustableSource != null)
+                    adjustableSource.Rate = value;
+            }
         }
 
         public void ResetSpeedAdjustments() => Rate = 1;
