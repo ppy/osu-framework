@@ -55,13 +55,13 @@ namespace osu.Framework.Timing
 
         public virtual double Rate
         {
-            get => FramedSourceClock.Rate;
+            get => FramedSourceClock?.Rate ?? 1;
             set => throw new NotSupportedException();
         }
 
         public virtual bool IsRunning => sourceIsRunning;
 
-        public virtual double Drift => CurrentTime - FramedSourceClock.CurrentTime;
+        public virtual double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
 
         public virtual double ElapsedFrameTime => CurrentInterpolatedTime - LastInterpolatedTime;
 
