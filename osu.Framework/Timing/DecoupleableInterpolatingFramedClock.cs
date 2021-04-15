@@ -56,8 +56,10 @@ namespace osu.Framework.Timing
             get => Source?.Rate ?? 1;
             set
             {
-                if (adjustableSource != null)
-                    adjustableSource.Rate = value;
+                if (adjustableSource == null)
+                    throw new NotSupportedException("Source is not adjustable.");
+
+                adjustableSource.Rate = value;
             }
         }
 
