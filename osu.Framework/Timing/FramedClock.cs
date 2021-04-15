@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Extensions.TypeExtensions;
 using System;
 
@@ -19,10 +21,12 @@ namespace osu.Framework.Timing
         /// </summary>
         /// <param name="source">A source clock which will be used as the backing time source. If null, a StopwatchClock will be created. When provided, the CurrentTime of <paramref name="source"/> will be transferred instantly.</param>
         /// <param name="processSource">Whether the source clock's <see cref="ProcessFrame"/> method should be called during this clock's process call.</param>
-        public FramedClock(IClock source = null, bool processSource = true)
+        public FramedClock(IClock? source = null, bool processSource = true)
         {
             this.processSource = processSource;
-            ChangeSource(source ?? new StopwatchClock(true));
+            Source = source ?? new StopwatchClock(true);
+
+            ChangeSource(Source);
         }
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
@@ -39,7 +43,7 @@ namespace osu.Framework.Timing
 
         public double ElapsedFrameTime => CurrentTime - LastFrameTime;
 
-        public bool IsRunning => Source?.IsRunning ?? false;
+        public bool IsRunning => Source.IsRunning;
 
         private readonly bool processSource;
 
