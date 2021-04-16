@@ -18,6 +18,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
+using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Graphics
 {
@@ -2866,7 +2868,10 @@ namespace osu.Framework.Graphics
 
     public enum RotationDirection
     {
+        [Description("Clockwise")]
         Clockwise,
+
+        [Description("Counter-clockwise")]
         CounterClockwise,
     }
 
