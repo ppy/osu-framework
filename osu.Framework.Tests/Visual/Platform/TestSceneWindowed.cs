@@ -51,9 +51,6 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("set minimum size to 1024x768", () => sdlWindow.MinSize = new Size(1024, 768));
             assertWindowClientSize(new Size(1024, 768));
 
-            // todo: propagating min value changes with BindableSize not supported. (https://github.com/ppy/osu-framework/issues/4307)
-            //AddAssert("minimum size passed to config", () => ((BindableSize)config.GetBindable<Size>(FrameworkSetting.WindowedSize)).MinValue == new Size(1024, 768));
-
             AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = sdlWindow.MaxSize + new Size(1, 1)));
             AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MinSize = new Size(-500, -500)));
         }
@@ -64,9 +61,6 @@ namespace osu.Framework.Tests.Visual.Platform
             AddStep("set client size to 1024x768", () => setWindowClientSize(new Size(1024, 768)));
             AddStep("set maximum size to 720x720", () => sdlWindow.MaxSize = new Size(720, 720));
             assertWindowClientSize(new Size(720, 720));
-
-            // todo: propagating max value changes with BindableSize not supported. (https://github.com/ppy/osu-framework/issues/4307)
-            //AddAssert("maximum size passed to config", () => ((BindableSize)config.GetBindable<Size>(FrameworkSetting.WindowedSize)).MaxValue == new Size(720, 720));
 
             AddStep("overlapping size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = sdlWindow.MinSize - new Size(1, 1)));
             AddStep("negative size throws", () => Assert.Throws<InvalidOperationException>(() => sdlWindow.MaxSize = new Size(-1, -1)));

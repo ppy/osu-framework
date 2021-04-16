@@ -168,8 +168,6 @@ namespace osu.Framework.Platform
                 minSize = value;
 
                 value = (value / Scale).ToSize();
-                sizeWindowed.MinValue = value;
-
                 ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
             }
         }
@@ -197,8 +195,6 @@ namespace osu.Framework.Platform
                 maxSize = value;
 
                 value = (value / Scale).ToSize();
-                sizeWindowed.MaxValue = value;
-
                 ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
             }
         }
