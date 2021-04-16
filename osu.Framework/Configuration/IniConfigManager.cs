@@ -61,7 +61,7 @@ namespace osu.Framework.Configuration
                             try
                             {
                                 if (!(b is IParseable parseable))
-                                    throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not IParseable.");
+                                    throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not {nameof(IParseable)}.");
 
                                 parseable.Parse(val);
                             }
