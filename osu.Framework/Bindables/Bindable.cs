@@ -19,7 +19,7 @@ namespace osu.Framework.Bindables
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, IBindable, IParseable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
