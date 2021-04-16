@@ -11,7 +11,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList
+    public class BindableList<T> : IBindableList<T>, IBindable, IParseable, IList<T>, IList
     {
         /// <summary>
         /// An event which is raised when this <see cref="BindableList{T}"/> changes.
