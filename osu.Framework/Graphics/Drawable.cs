@@ -2871,8 +2871,8 @@ namespace osu.Framework.Graphics
         [Description("Clockwise")]
         Clockwise,
 
-        [Description("Counter-clockwise")]
-        CounterClockwise,
+        [Description("Counterclockwise")]
+        Counterclockwise,
     }
 
     /// <summary>
