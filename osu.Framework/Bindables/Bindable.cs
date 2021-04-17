@@ -252,12 +252,12 @@ namespace osu.Framework.Bindables
                     Value = bindable.Value;
                     break;
 
-                case string s when underlyingType.IsEnum:
-                    Value = (T)Enum.Parse(underlyingType, s);
-                    break;
-
                 default:
-                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                    if (underlyingType.IsEnum)
+                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                    else
+                        Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+
                     break;
             }
         }
