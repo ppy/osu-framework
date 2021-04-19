@@ -6,6 +6,9 @@ using System.Drawing;
 
 namespace osu.Framework.Bindables
 {
+    /// <summary>
+    /// Represents a <see cref="Size"/> bindable with defined component-wise constraints applied to it.
+    /// </summary>
     public class BindableSize : ConstrainedBindable<Size>
     {
         protected override Size DefaultMinValue => new Size(int.MinValue, int.MinValue);
@@ -39,9 +42,10 @@ namespace osu.Framework.Bindables
 
         protected override Size ClampValue(Size value, Size minValue, Size maxValue)
         {
-            return new Size(
-                Math.Max(minValue.Width, Math.Min(value.Width, maxValue.Width)),
-                Math.Max(minValue.Height, Math.Min(value.Height, maxValue.Height))
+            return new Size
+            (
+                Math.Clamp(value.Width, minValue.Width, maxValue.Width),
+                Math.Clamp(value.Height, minValue.Height, maxValue.Height)
             );
         }
 

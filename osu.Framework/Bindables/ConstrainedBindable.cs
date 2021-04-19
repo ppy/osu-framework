@@ -12,12 +12,6 @@ namespace osu.Framework.Bindables
 
         public event Action<T> MaxValueChanged;
 
-        public override T Value
-        {
-            get => base.Value;
-            set => base.Value = ClampValue(value, minValue, maxValue);
-        }
-
         private T minValue;
 
         public T MinValue
@@ -46,6 +40,22 @@ namespace osu.Framework.Bindables
             }
         }
 
+        public override T Value
+        {
+            get => base.Value;
+            set => base.Value = ClampValue(value, minValue, maxValue);
+        }
+
+        /// <summary>
+        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
+        /// </summary>
+        protected abstract T DefaultMinValue { get; }
+
+        /// <summary>
+        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <typeparamref name="T"/>.
+        /// </summary>
+        protected abstract T DefaultMaxValue { get; }
+
         /// <summary>
         /// Whether this bindable has a user-defined range that is not the full range of the <typeparamref name="T"/> type.
         /// </summary>
@@ -58,8 +68,8 @@ namespace osu.Framework.Bindables
             minValue = DefaultMinValue;
             maxValue = DefaultMaxValue;
 
-            // Re-apply the current value to apply the default min/max values.
-            setValue(Value);
+            // Reapply the default value here for respecting the defined default min/max values.
+            Value = defaultValue;
         }
 
         /// <summary>
@@ -75,8 +85,8 @@ namespace osu.Framework.Bindables
 
             if (updateCurrentValue)
             {
-                // Re-apply the current value to apply the new minimum value
-                setValue(Value);
+                // Reapply the current value to respect the new minimum value.
+                Value = base.Value;
             }
         }
 
@@ -93,8 +103,8 @@ namespace osu.Framework.Bindables
 
             if (updateCurrentValue)
             {
-                // Re-apply the current value to apply the new maximum value
-                setValue(Value);
+                // Reapply the current value to respect the new maximum value.
+                Value = base.Value;
             }
         }
 
@@ -117,8 +127,8 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    if (b is ConstrainedBindable<T> bn)
-                        bn.SetMinValue(minValue, false, this);
+                    if (b is ConstrainedBindable<T> cb)
+                        cb.SetMinValue(minValue, false, this);
                 }
             }
 
@@ -137,8 +147,8 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    if (b is ConstrainedBindable<T> bn)
-                        bn.SetMaxValue(maxValue, false, this);
+                    if (b is ConstrainedBindable<T> cb)
+                        cb.SetMaxValue(maxValue, false, this);
                 }
             }
 
@@ -168,16 +178,6 @@ namespace osu.Framework.Bindables
         public new ConstrainedBindable<T> GetUnboundCopy() => (ConstrainedBindable<T>)base.GetUnboundCopy();
 
         /// <summary>
-        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
-        /// </summary>
-        protected abstract T DefaultMinValue { get; }
-
-        /// <summary>
-        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <typeparamref name="T"/>.
-        /// </summary>
-        protected abstract T DefaultMaxValue { get; }
-
-        /// <summary>
         /// Clamps the given <paramref name="value"/>.
         /// </summary>
         protected abstract T ClampValue(T value, T minValue, T maxValue);
@@ -187,9 +187,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="x">The first value to compare.</param>
         /// <param name="y">The second value to compare.</param>
-        /// <returns>-1 if <paramref name="x"/> is less than <paramref name="y"/>, 0 if they're both equal, 1 if <paramref name="x"/> is greater than <paramref name="y"/>.</returns>
+        /// <returns>-1 if <paramref name="x"/> is considered less than <paramref name="y"/>, 0 if they're both equal, 1 if <paramref name="x"/> is considered greater than <paramref name="y"/>.</returns>
         protected abstract int Compare(T x, T y);
-
-        private void setValue(T value) => base.Value = ClampValue(value, minValue, maxValue);
     }
 }
