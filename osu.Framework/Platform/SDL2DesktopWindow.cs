@@ -881,11 +881,13 @@ namespace osu.Framework.Platform
                     SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
                     var newPosition = new Point(x, y);
 
-                    if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
+                    if (!newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        storeWindowPositionToConfig();
                         ScheduleEvent(() => Moved?.Invoke(newPosition));
+
+                        if (WindowMode.Value == Configuration.WindowMode.Windowed)
+                            storeWindowPositionToConfig();
                     }
 
                     break;
