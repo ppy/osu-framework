@@ -174,8 +174,10 @@ namespace osu.Framework.Extensions
         }
 
         public static string GetDescription(this object value)
-            => value.GetType().GetField(value.ToString())
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            => value.GetType()
+                    .GetField(value.ToString())?
+                    .GetCustomAttribute<DescriptionAttribute>()?.Description
+               ?? value.ToString();
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
