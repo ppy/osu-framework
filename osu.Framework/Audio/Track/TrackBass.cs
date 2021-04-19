@@ -151,7 +151,7 @@ namespace osu.Framework.Audio.Track
             BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
 
-            bitrate = (int)Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate);
+            bitrate = (int)Math.Round(Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate));
 
             if (!Preview)
             {
