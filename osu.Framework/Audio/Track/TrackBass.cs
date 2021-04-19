@@ -105,8 +105,6 @@ namespace osu.Framework.Audio.Track
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
                     lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
-                    bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
-
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
@@ -152,6 +150,8 @@ namespace osu.Framework.Audio.Track
 
             BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
+
+            bitrate = (int)Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate);
 
             if (!Preview)
             {
