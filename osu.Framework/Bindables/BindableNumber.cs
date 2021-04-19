@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableNumber<T> : ConstraintedBindable<T>, IBindableNumber<T>
+    public class BindableNumber<T> : ConstrainedBindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         public event Action<T> PrecisionChanged;

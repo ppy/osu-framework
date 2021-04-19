@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableSize : ConstraintedBindable<Size>
+    public class BindableSize : ConstrainedBindable<Size>
     {
         protected override Size DefaultMinValue => new Size(int.MinValue, int.MinValue);
         protected override Size DefaultMaxValue => new Size(int.MaxValue, int.MaxValue);

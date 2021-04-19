@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Bindables
 {
-    public abstract class ConstraintedBindable<T> : Bindable<T>
+    public abstract class ConstrainedBindable<T> : Bindable<T>
     {
         public event Action<T> MinValueChanged;
 
@@ -52,7 +52,7 @@ namespace osu.Framework.Bindables
         public bool HasDefinedRange => !EqualityComparer<T>.Default.Equals(MinValue, DefaultMinValue) ||
                                        !EqualityComparer<T>.Default.Equals(MaxValue, DefaultMaxValue);
 
-        protected ConstraintedBindable(T defaultValue = default)
+        protected ConstrainedBindable(T defaultValue = default)
             : base(defaultValue)
         {
             minValue = DefaultMinValue;
@@ -68,7 +68,7 @@ namespace osu.Framework.Bindables
         /// <param name="minValue">The new minimum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMinValue(T minValue, bool updateCurrentValue, ConstraintedBindable<T> source)
+        internal void SetMinValue(T minValue, bool updateCurrentValue, ConstrainedBindable<T> source)
         {
             this.minValue = minValue;
             TriggerMinValueChange(source);
@@ -86,7 +86,7 @@ namespace osu.Framework.Bindables
         /// <param name="maxValue">The new maximum value.</param>
         /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
         /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMaxValue(T maxValue, bool updateCurrentValue, ConstraintedBindable<T> source)
+        internal void SetMaxValue(T maxValue, bool updateCurrentValue, ConstrainedBindable<T> source)
         {
             this.maxValue = maxValue;
             TriggerMaxValueChange(source);
@@ -106,7 +106,7 @@ namespace osu.Framework.Bindables
             TriggerMaxValueChange(this, false);
         }
 
-        protected void TriggerMinValueChange(ConstraintedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMinValueChange(ConstrainedBindable<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = minValue;
@@ -117,7 +117,7 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    if (b is ConstraintedBindable<T> bn)
+                    if (b is ConstrainedBindable<T> bn)
                         bn.SetMinValue(minValue, false, this);
                 }
             }
@@ -126,7 +126,7 @@ namespace osu.Framework.Bindables
                 MinValueChanged?.Invoke(minValue);
         }
 
-        protected void TriggerMaxValueChange(ConstraintedBindable<T> source = null, bool propagateToBindings = true)
+        protected void TriggerMaxValueChange(ConstrainedBindable<T> source = null, bool propagateToBindings = true)
         {
             // check a bound bindable hasn't changed the value again (it will fire its own event)
             T beforePropagation = maxValue;
@@ -137,7 +137,7 @@ namespace osu.Framework.Bindables
                 {
                     if (b == source) continue;
 
-                    if (b is ConstraintedBindable<T> bn)
+                    if (b is ConstrainedBindable<T> bn)
                         bn.SetMaxValue(maxValue, false, this);
                 }
             }
@@ -148,7 +148,7 @@ namespace osu.Framework.Bindables
 
         public override void BindTo(Bindable<T> them)
         {
-            if (them is ConstraintedBindable<T> other)
+            if (them is ConstrainedBindable<T> other)
             {
                 MinValue = other.MinValue;
                 MaxValue = other.MaxValue;
@@ -163,9 +163,9 @@ namespace osu.Framework.Bindables
             base.BindTo(them);
         }
 
-        public new ConstraintedBindable<T> GetBoundCopy() => (ConstraintedBindable<T>)base.GetBoundCopy();
+        public new ConstrainedBindable<T> GetBoundCopy() => (ConstrainedBindable<T>)base.GetBoundCopy();
 
-        public new ConstraintedBindable<T> GetUnboundCopy() => (ConstraintedBindable<T>)base.GetUnboundCopy();
+        public new ConstrainedBindable<T> GetUnboundCopy() => (ConstrainedBindable<T>)base.GetUnboundCopy();
 
         /// <summary>
         /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
