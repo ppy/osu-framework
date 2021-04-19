@@ -103,6 +103,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
+                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position == new Point(0, 0));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
