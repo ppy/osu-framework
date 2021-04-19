@@ -111,7 +111,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             if (!Enabled.Value)
                 return;
 
-            if (!isSelfFeedback && cursorCaptured)
+            if (!isSelfFeedback && isActive.Value)
                 // if another handler has updated the cursor position, handle updating the OS cursor so we can seamlessly revert
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
