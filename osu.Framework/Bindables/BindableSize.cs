@@ -51,10 +51,13 @@ namespace osu.Framework.Bindables
 
         protected override int Compare(Size x, Size y)
         {
-            if (x.Width == y.Width && x.Height == y.Height)
-                return 0;
+            if (x.Width < y.Width || x.Height < y.Height)
+                return -1;
 
-            return Math.Max(x.Width.CompareTo(y.Width), x.Height.CompareTo(y.Height));
+            if (x.Width > y.Width || x.Height > y.Height)
+                return 1;
+
+            return 0;
         }
     }
 }
