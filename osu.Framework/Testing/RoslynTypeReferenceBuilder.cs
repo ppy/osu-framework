@@ -189,6 +189,8 @@ namespace osu.Framework.Testing
         /// <param name="rootReference">The root, where the map should start being build from.</param>
         private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference)
         {
+            var seenSyntaxes = new HashSet<string>();
+
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
 
@@ -243,7 +245,6 @@ namespace osu.Framework.Testing
             var result = new HashSet<TypeReference>();
 
             var root = await semanticModel.SyntaxTree.GetRootAsync().ConfigureAwait(false);
-
             var descendantNodes = root.DescendantNodes(n =>
             {
                 var kind = n.Kind();
@@ -258,6 +259,10 @@ namespace osu.Framework.Testing
                        && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
             });
 
+            // This hashset is used to prevent re-exploring syntaxes with the same name.
+            // Todo: This can be used across all files, but care needs to be taken for redefined types (via using X = y), using the same-named type from a different namespace, or via type hiding.
+            var seenSyntaxes = new HashSet<string>();
+
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
             foreach (var node in descendantNodes)
             {
@@ -266,6 +271,9 @@ namespace osu.Framework.Testing
                     case SyntaxKind.GenericName:
                     case SyntaxKind.IdentifierName:
                     {
+                        if (seenSyntaxes.Contains(node.ToString()))
+                            continue;
+
                         if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
                             addTypeSymbol(t);
                         break;
@@ -278,11 +286,16 @@ namespace osu.Framework.Testing
                     case SyntaxKind.CastExpression:
                     case SyntaxKind.ObjectCreationExpression:
                     {
+                        if (seenSyntaxes.Contains(node.ToString()))
+                            continue;
+
                         if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
                             addTypeSymbol(t);
                         break;
                     }
                 }
+
+                seenSyntaxes.Add(node.ToString());
             }
 
             return result;
@@ -490,7 +503,7 @@ namespace osu.Framework.Testing
 
             // When used via a nuget package, the local type name seems to always be more qualified than the symbol's type name.
             // E.g. Type name: osu.Framework.Game, symbol name: Framework.Game.
-            if (typeof(Game).FullName?.Contains(reference.Symbol.ToString()) == true)
+            if (typeof(Game).FullName?.Contains(reference.ToString()) == true)
                 return typeInheritsFromGameCache[reference] = true;
 
             if (reference.Symbol.BaseType == null)
@@ -584,24 +597,28 @@ namespace osu.Framework.Testing
         private readonly struct TypeReference : IEquatable<TypeReference>
         {
             public readonly INamedTypeSymbol Symbol;
+            public readonly string ContainingNamespace;
+            public readonly string SymbolName;
 
             public TypeReference(INamedTypeSymbol symbol)
             {
                 Symbol = symbol;
+                ContainingNamespace = symbol.ContainingNamespace.ToString();
+                SymbolName = symbol.ToString();
             }
 
             public bool Equals(TypeReference other)
-                => Symbol.ContainingNamespace.ToString() == other.Symbol.ContainingNamespace.ToString()
-                   && Symbol.ToString() == other.Symbol.ToString();
+                => ContainingNamespace == other.ContainingNamespace
+                   && SymbolName == other.SymbolName;
 
             public override int GetHashCode()
             {
                 var hash = new HashCode();
-                hash.Add(Symbol.ToString(), StringComparer.Ordinal);
+                hash.Add(SymbolName, StringComparer.Ordinal);
                 return hash.ToHashCode();
             }
 
-            public override string ToString() => Symbol.ToString();
+            public override string ToString() => SymbolName;
 
             public static TypeReference FromSymbol(INamedTypeSymbol symbol) => new TypeReference(symbol);
         }
