@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Testing
 {
@@ -35,5 +37,16 @@ namespace osu.Framework.Testing
         /// Resets this <see cref="ITypeReferenceBuilder"/>.
         /// </summary>
         void Reset();
+    }
+
+    /// <summary>
+    /// Indicates that there was no link between a given test type and the changed file.
+    /// </summary>
+    internal class NoLinkBetweenTypesException : Exception
+    {
+        public NoLinkBetweenTypesException(Type testType, string changedFile)
+            : base($"The changed file \"{Path.GetFileName(changedFile)}\" is not used by the test \"{testType.ReadableName()}\".")
+        {
+        }
     }
 }
