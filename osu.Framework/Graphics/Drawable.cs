@@ -425,6 +425,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnUnbindAllBindables;
 
+        /// <summary>
+        /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
+        /// </summary>
+        private readonly object schedulerAcquisitionLock = new object();
+
         private Scheduler scheduler;
 
         /// <summary>
@@ -438,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (LoadLock)
+                lock (schedulerAcquisitionLock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }

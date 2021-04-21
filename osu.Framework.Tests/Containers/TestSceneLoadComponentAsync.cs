@@ -107,6 +107,28 @@ namespace osu.Framework.Tests.Containers
                                                   && composite.LoadedChildren.First() == composite.AsyncChild1);
         }
 
+        [Test]
+        public void TestScheduleDuringAsyncLoad()
+        {
+            TestLoadBlockingDrawable composite = null;
+
+            bool scheduleRun = false;
+
+            AddStep("Async load drawable", () =>
+            {
+                LoadComponentAsync(composite = new TestLoadBlockingDrawable(), d => Child = d);
+            });
+
+            AddStep("Attempt to schedule on child 1", () =>
+            {
+                composite.Schedule(() => scheduleRun = true);
+            });
+
+            AddStep("Allow child 1 load", () => composite.AllowLoad.Set());
+
+            AddUntilStep("Scheduled content run", () => scheduleRun);
+        }
+
         private class AsyncChildrenLoadingComposite : CompositeDrawable
         {
             public IEnumerable<TestLoadBlockingDrawable> LoadedChildren;
