@@ -282,11 +282,13 @@ namespace osu.Framework.Testing
                     case SyntaxKind.CastExpression:
                     case SyntaxKind.ObjectCreationExpression:
                     {
-                        if (seenSyntaxes.Contains(node.ToString()))
+                        string nodeString = node.ToString();
+
+                        if (seenSyntaxes.Contains(nodeString))
                             continue;
 
                         if (tryNode(node))
-                            seenSyntaxes.Add(node.ToString());
+                            seenSyntaxes.Add(nodeString);
 
                         break;
                     }
