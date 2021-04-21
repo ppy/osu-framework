@@ -270,19 +270,6 @@ namespace osu.Framework.Testing
                 {
                     case SyntaxKind.GenericName:
                     case SyntaxKind.IdentifierName:
-                    {
-                        if (seenSyntaxes.Contains(node.ToString()))
-                            continue;
-
-                        if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
-                        {
-                            addTypeSymbol(t);
-                            seenSyntaxes.Add(node.ToString());
-                        }
-
-                        break;
-                    }
-
                     case SyntaxKind.AsExpression:
                     case SyntaxKind.IsExpression:
                     case SyntaxKind.SizeOfExpression:
@@ -293,11 +280,8 @@ namespace osu.Framework.Testing
                         if (seenSyntaxes.Contains(node.ToString()))
                             continue;
 
-                        if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
-                        {
-                            addTypeSymbol(t);
+                        if (tryNode(node))
                             seenSyntaxes.Add(node.ToString());
-                        }
 
                         break;
                     }
@@ -305,6 +289,23 @@ namespace osu.Framework.Testing
             }
 
             return result;
+
+            bool tryNode(SyntaxNode node)
+            {
+                if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol sType)
+                {
+                    addTypeSymbol(sType);
+                    return true;
+                }
+
+                if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol tType)
+                {
+                    addTypeSymbol(tType);
+                    return true;
+                }
+
+                return false;
+            }
 
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
