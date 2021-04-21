@@ -189,8 +189,6 @@ namespace osu.Framework.Testing
         /// <param name="rootReference">The root, where the map should start being build from.</param>
         private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference)
         {
-            var seenSyntaxes = new HashSet<string>();
-
             var searchQueue = new Queue<TypeReference>();
             searchQueue.Enqueue(rootReference);
 
@@ -259,7 +257,7 @@ namespace osu.Framework.Testing
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
                        && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
-                       && (kind != SyntaxKind.VariableDeclarator);
+                       && kind != SyntaxKind.VariableDeclarator;
             });
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
@@ -311,6 +309,7 @@ namespace osu.Framework.Testing
                     return true;
                 }
 
+                // Todo: Reduce the number of cases that fall through here.
                 return false;
             }
 
