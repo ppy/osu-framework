@@ -56,9 +56,11 @@ namespace osu.Framework.Testing
 
             await buildReferenceMapAsync(testType, changedFile).ConfigureAwait(false);
 
-            var directedGraph = getDirectedGraph();
+            var sources = getTypesFromFile(changedFile).ToArray();
+            if (sources.Length == 0)
+                throw new NoLinkBetweenTypesException(testType, changedFile);
 
-            return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
+            return getReferencedFiles(sources, getDirectedGraph());
         }
 
         public async Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
