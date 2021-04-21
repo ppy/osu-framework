@@ -253,10 +253,13 @@ namespace osu.Framework.Testing
                 // - Entire using lines.
                 // - Namespace names (not entire namespaces).
                 // - Entire static classes.
+                // - Variable declarators (names of variables).
+                // - The first IdentifierName child of an assignment expression (variable name), below.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
-                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
+                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
+                       && (kind != SyntaxKind.VariableDeclarator);
             });
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
@@ -266,6 +269,10 @@ namespace osu.Framework.Testing
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
             foreach (var node in descendantNodes)
             {
+                // Ignore the variable name of assignment expressions.
+                if (node.Kind() == SyntaxKind.IdentifierName && node.Parent is AssignmentExpressionSyntax)
+                    continue;
+
                 switch (node.Kind())
                 {
                     case SyntaxKind.GenericName:
