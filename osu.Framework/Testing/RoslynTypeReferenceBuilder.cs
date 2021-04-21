@@ -282,11 +282,24 @@ namespace osu.Framework.Testing
                     case SyntaxKind.CastExpression:
                     case SyntaxKind.ObjectCreationExpression:
                     {
-                        if (seenTypes.Contains(node.ToString()))
+                        string syntaxName = node.ToString();
+
+                        if (seenTypes.Contains(syntaxName))
                             continue;
 
-                        // The syntax name may differ from the finalised symbol name (e.g. member access).
-                        if (tryNode(node, out var symbol))
+                        if (!tryNode(node, out var symbol))
+                            continue;
+
+                        // The node has been processed so we want to avoid re-processing the same node again if possible, as this is a costly operation.
+                        // Note that the syntax name may differ from the finalised symbol name (e.g. member access).
+                        // We can only prevent future reprocessing if the symbol name and syntax name exactly match because we can't determine that the type won't be accessed later, such as:
+                        //
+                        // A.X = 5;    // Syntax name = A, Symbol name = B
+                        // B.X = 5;    // Syntax name = B, Symbol name = A
+                        // public A B;
+                        // public B A;
+                        //
+                        if (symbol.Name == syntaxName)
                             seenTypes.Add(symbol.Name);
 
                         break;
