@@ -262,7 +262,7 @@ namespace osu.Framework.Testing
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
             // Todo: This can be used across all files, but care needs to be taken for redefined types (via using X = y), using the same-named type from a different namespace, or via type hiding.
-            var seenSyntaxes = new HashSet<string>();
+            var seenTypes = new HashSet<string>();
 
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
             foreach (var node in descendantNodes)
@@ -282,13 +282,12 @@ namespace osu.Framework.Testing
                     case SyntaxKind.CastExpression:
                     case SyntaxKind.ObjectCreationExpression:
                     {
-                        string nodeString = node.ToString();
-
-                        if (seenSyntaxes.Contains(nodeString))
+                        if (seenTypes.Contains(node.ToString()))
                             continue;
 
-                        if (tryNode(node))
-                            seenSyntaxes.Add(nodeString);
+                        // The syntax name may differ from the finalised symbol name (e.g. member access).
+                        if (tryNode(node, out var symbol))
+                            seenTypes.Add(symbol.Name);
 
                         break;
                     }
@@ -297,21 +296,24 @@ namespace osu.Framework.Testing
 
             return result;
 
-            bool tryNode(SyntaxNode node)
+            bool tryNode(SyntaxNode node, out INamedTypeSymbol symbol)
             {
                 if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol sType)
                 {
                     addTypeSymbol(sType);
+                    symbol = sType;
                     return true;
                 }
 
                 if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol tType)
                 {
                     addTypeSymbol(tType);
+                    symbol = tType;
                     return true;
                 }
 
                 // Todo: Reduce the number of cases that fall through here.
+                symbol = null;
                 return false;
             }
 
