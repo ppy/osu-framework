@@ -275,7 +275,11 @@ namespace osu.Framework.Testing
                             continue;
 
                         if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
+                        {
                             addTypeSymbol(t);
+                            seenSyntaxes.Add(node.ToString());
+                        }
+
                         break;
                     }
 
@@ -290,12 +294,14 @@ namespace osu.Framework.Testing
                             continue;
 
                         if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
+                        {
                             addTypeSymbol(t);
+                            seenSyntaxes.Add(node.ToString());
+                        }
+
                         break;
                     }
                 }
-
-                seenSyntaxes.Add(node.ToString());
             }
 
             return result;
