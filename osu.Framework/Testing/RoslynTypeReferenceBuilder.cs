@@ -259,6 +259,10 @@ namespace osu.Framework.Testing
                 // - The name of namespace declarations.
                 // - Name-colon syntaxes.
                 // - The expression of invocation expressions. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
+                // - The single IdentifierName child of a foreach expression (source variable name), below.
+                // - The single 'var' IdentifierName child of a variable declaration, below.
+                // - Element access expressions.
+                // - Generic type argument lists.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
@@ -266,6 +270,10 @@ namespace osu.Framework.Testing
                        && kind != SyntaxKind.VariableDeclarator
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
                        && kind != SyntaxKind.NameColon
+                       && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
+                       && kind != SyntaxKind.NameColon
+                       && kind != SyntaxKind.ElementAccessExpression
+                       && kind != SyntaxKind.TypeArgumentList
                        && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
 
@@ -276,19 +284,20 @@ namespace osu.Framework.Testing
             // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
             foreach (var node in descendantNodes)
             {
-                if (node.Kind() == SyntaxKind.IdentifierName)
+                if (node.Kind() == SyntaxKind.IdentifierName && node.Parent != null)
                 {
                     // Ignore the variable name of assignment expressions.
                     if (node.Parent is AssignmentExpressionSyntax)
                         continue;
 
-                    // Ignore the variable name of arguments.
-                    if (node.Parent is ArgumentSyntax)
-                        continue;
-
-                    // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
-                    if (node.Parent?.Kind() == SyntaxKind.InvocationExpression)
-                        continue;
+                    switch (node.Parent.Kind())
+                    {
+                        case SyntaxKind.Argument: // Ignore the variable name of arguments.
+                        case SyntaxKind.InvocationExpression: // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
+                        case SyntaxKind.ForEachStatement: // Ignore a single identifier of a foreach statement (the source).
+                        case SyntaxKind.VariableDeclaration when node.ToString() == "var": // Ignore the single 'var' identifier of a variable declaration.
+                            continue;
+                    }
                 }
 
                 switch (node.Kind())
