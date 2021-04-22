@@ -265,6 +265,7 @@ namespace osu.Framework.Testing
                        && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
                        && kind != SyntaxKind.VariableDeclarator
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
+                       && kind != SyntaxKind.NameColon
                        && (!(n.Parent is InvocationExpressionSyntax invocation) || n != invocation.Expression);
             });
 
@@ -285,10 +286,6 @@ namespace osu.Framework.Testing
                     if (node.Parent is ArgumentSyntax)
                         continue;
                 }
-
-                // Ignore name-colon syntaxes (arguments).
-                if (node.Kind() == SyntaxKind.NameColon)
-                    continue;
 
                 switch (node.Kind())
                 {
