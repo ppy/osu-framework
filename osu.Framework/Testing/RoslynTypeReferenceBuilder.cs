@@ -287,7 +287,7 @@ namespace osu.Framework.Testing
                         continue;
 
                     // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
-                    if (node.Parent.Kind() == SyntaxKind.InvocationExpression)
+                    if (node.Parent?.Kind() == SyntaxKind.InvocationExpression)
                         continue;
                 }
 
