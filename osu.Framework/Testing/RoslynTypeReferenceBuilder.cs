@@ -258,7 +258,7 @@ namespace osu.Framework.Testing
                 // - The single IdentifierName child of an argument syntax (variable name), below.
                 // - The name of namespace declarations.
                 // - Name-colon syntaxes.
-                // - The expression of invocations. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
+                // - The expression of invocation expressions. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
@@ -266,7 +266,7 @@ namespace osu.Framework.Testing
                        && kind != SyntaxKind.VariableDeclarator
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
                        && kind != SyntaxKind.NameColon
-                       && (!(n.Parent is InvocationExpressionSyntax invocation) || n != invocation.Expression);
+                       && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
@@ -284,6 +284,10 @@ namespace osu.Framework.Testing
 
                     // Ignore the variable name of arguments.
                     if (node.Parent is ArgumentSyntax)
+                        continue;
+
+                    // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
+                    if (node.Parent.Kind() == SyntaxKind.InvocationExpression)
                         continue;
                 }
 
