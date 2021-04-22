@@ -3,6 +3,7 @@
 
 #if NET5_0
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,12 +29,12 @@ namespace osu.Framework.Testing
 
         private readonly Logger logger;
 
-        private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
-        private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
-        private readonly Dictionary<string, SemanticModel> semanticModelCache = new Dictionary<string, SemanticModel>();
-        private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
-        private readonly Dictionary<string, bool> syntaxExclusionMap = new Dictionary<string, bool>();
-        private readonly HashSet<string> assembliesContainingReferencedInternalMembers = new HashSet<string>();
+        private readonly ConcurrentDictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new ConcurrentDictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
+        private readonly ConcurrentDictionary<Project, Compilation> compilationCache = new ConcurrentDictionary<Project, Compilation>();
+        private readonly ConcurrentDictionary<string, SemanticModel> semanticModelCache = new ConcurrentDictionary<string, SemanticModel>();
+        private readonly ConcurrentDictionary<TypeReference, bool> typeInheritsFromGameCache = new ConcurrentDictionary<TypeReference, bool>();
+        private readonly ConcurrentDictionary<string, bool> syntaxExclusionMap = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<string, byte> assembliesContainingReferencedInternalMembers = new ConcurrentDictionary<string, byte>();
 
         private Solution solution;
 
@@ -89,7 +90,7 @@ namespace osu.Framework.Testing
                 if (!force && loadedTypes.Any(t => t.Namespace == jetbrains_annotations_namespace))
                     return;
 
-                bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i) == true);
+                bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i.Key) == true);
                 assemblies.Add(new AssemblyReference(assembly, containsReferencedInternalMember));
             }
         }).ConfigureAwait(false);
@@ -147,8 +148,8 @@ namespace osu.Framework.Testing
 
                 foreach (var t in oldTypes)
                 {
-                    referenceMap.Remove(t);
-                    typeInheritsFromGameCache.Remove(t);
+                    referenceMap.TryRemove(t, out _);
+                    typeInheritsFromGameCache.TryRemove(t, out _);
                 }
 
                 foreach (var t in oldTypes)
@@ -170,7 +171,7 @@ namespace osu.Framework.Testing
                     var semanticModel = await getSemanticModelAsync(syntaxTree).ConfigureAwait(false);
                     var referencedTypes = await getReferencedTypesAsync(semanticModel).ConfigureAwait(false);
 
-                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
+                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes.ToHashSet();
 
                     foreach (var referenced in referencedTypes)
                         await buildReferenceMapRecursiveAsync(referenced).ConfigureAwait(false);
@@ -193,26 +194,25 @@ namespace osu.Framework.Testing
         /// <param name="rootReference">The root, where the map should start being build from.</param>
         private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference)
         {
-            var searchQueue = new Queue<TypeReference>();
-            searchQueue.Enqueue(rootReference);
+            var searchQueue = new ConcurrentBag<TypeReference> { rootReference };
 
             while (searchQueue.Count > 0)
             {
-                var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck).ConfigureAwait(false);
+                var toProcess = searchQueue.ToArray();
+                searchQueue.Clear();
 
-                referenceMap[toCheck] = referencedTypes;
-
-                foreach (var referenced in referencedTypes)
+                await Task.WhenAll(toProcess.Select(async toCheck =>
                 {
-                    // We don't want to cycle over types that have already been explored.
-                    if (!referenceMap.ContainsKey(referenced))
+                    var referencedTypes = await getReferencedTypesAsync(toCheck).ConfigureAwait(false);
+                    referenceMap[toCheck] = referencedTypes;
+
+                    foreach (var referenced in referencedTypes)
                     {
-                        // Used for de-duping, so it must be added to the dictionary immediately.
-                        referenceMap[referenced] = null;
-                        searchQueue.Enqueue(referenced);
+                        // We don't want to cycle over types that have already been explored.
+                        if (referenceMap.TryAdd(referenced, null))
+                            searchQueue.Add(referenced);
                     }
-                }
+                }));
             }
         }
 
@@ -242,9 +242,9 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="semanticModel">The target <see cref="SemanticModel"/>.</param>
         /// <returns>All <see cref="TypeReference"/>s referenced by <paramref name="semanticModel"/>.</returns>
-        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel)
+        private async Task<ICollection<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel)
         {
-            var result = new HashSet<TypeReference>();
+            var result = new ConcurrentDictionary<TypeReference, byte>();
 
             var root = await semanticModel.SyntaxTree.GetRootAsync().ConfigureAwait(false);
             var descendantNodes = root.DescendantNodes(n =>
@@ -281,16 +281,15 @@ namespace osu.Framework.Testing
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
             // Todo: This can be used across all files, but care needs to be taken for redefined types (via using X = y), using the same-named type from a different namespace, or via type hiding.
-            var seenTypes = new HashSet<string>();
+            var seenTypes = new ConcurrentDictionary<string, byte>();
 
-            // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
-            foreach (var node in descendantNodes)
+            await Task.WhenAll(descendantNodes.Select(node => Task.Run(() =>
             {
                 if (node.Kind() == SyntaxKind.IdentifierName && node.Parent != null)
                 {
                     // Ignore the variable name of assignment expressions.
                     if (node.Parent is AssignmentExpressionSyntax)
-                        continue;
+                        return;
 
                     switch (node.Parent.Kind())
                     {
@@ -298,7 +297,7 @@ namespace osu.Framework.Testing
                         case SyntaxKind.InvocationExpression: // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
                         case SyntaxKind.ForEachStatement: // Ignore a single identifier of a foreach statement (the source).
                         case SyntaxKind.VariableDeclaration when node.ToString() == "var": // Ignore the single 'var' identifier of a variable declaration.
-                            continue;
+                            return;
                     }
                 }
 
@@ -309,11 +308,11 @@ namespace osu.Framework.Testing
                     {
                         string syntaxName = node.ToString();
 
-                        if (seenTypes.Contains(syntaxName))
-                            continue;
+                        if (seenTypes.ContainsKey(syntaxName))
+                            return;
 
                         if (!tryNode(node, out var symbol))
-                            continue;
+                            return;
 
                         // The node has been processed so we want to avoid re-processing the same node again if possible, as this is a costly operation.
                         // Note that the syntax name may differ from the finalised symbol name (e.g. member access).
@@ -325,14 +324,14 @@ namespace osu.Framework.Testing
                         // public B A;
                         //
                         if (symbol.Name == syntaxName)
-                            seenTypes.Add(symbol.Name);
+                            seenTypes.TryAdd(symbol.Name, 0);
 
                         break;
                     }
                 }
-            }
+            })));
 
-            return result;
+            return result.Keys;
 
             bool tryNode(SyntaxNode node, out INamedTypeSymbol symbol)
             {
@@ -384,9 +383,9 @@ namespace osu.Framework.Testing
                 }
 
                 if (typeSymbol.DeclaredAccessibility == Accessibility.Internal)
-                    assembliesContainingReferencedInternalMembers.Add(typeSymbol.ContainingAssembly.Name);
+                    assembliesContainingReferencedInternalMembers.TryAdd(typeSymbol.ContainingAssembly.Name, 0);
 
-                result.Add(reference);
+                result.TryAdd(reference, 0);
             }
         }
 
