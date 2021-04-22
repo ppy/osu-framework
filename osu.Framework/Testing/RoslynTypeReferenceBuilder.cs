@@ -258,14 +258,15 @@ namespace osu.Framework.Testing
                 // - The single IdentifierName child of an argument syntax (variable name), below.
                 // - The name of namespace declarations.
                 // - Name-colon syntaxes.
-                // - Invocation expressions. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
+                // - The expression of invocation expressions. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
                        && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
                        && kind != SyntaxKind.VariableDeclarator
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
-                       && (kind != SyntaxKind.InvocationExpression);
+                       && kind != SyntaxKind.NameColon
+                       && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
 
             // This hashset is used to prevent re-exploring syntaxes with the same name.
@@ -284,11 +285,11 @@ namespace osu.Framework.Testing
                     // Ignore the variable name of arguments.
                     if (node.Parent is ArgumentSyntax)
                         continue;
-                }
 
-                // Ignore name-colon syntaxes (arguments).
-                if (node.Kind() == SyntaxKind.NameColon)
-                    continue;
+                    // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
+                    if (node.Parent?.Kind() == SyntaxKind.InvocationExpression)
+                        continue;
+                }
 
                 switch (node.Kind())
                 {
@@ -519,11 +520,16 @@ namespace osu.Framework.Testing
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
             {
+                int nextLevel = level + 1;
+
                 // Right-bound outlier test - exclude parents greater than 3x IQR. Always expand left-bound parents as they are unlikely to cause compilation errors.
                 if (p.ExpansionFactor > rightBound)
+                {
+                    logger.Add($"{(nextLevel > 0 ? $".{new string(' ', nextLevel * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor} (rb: {rightBound}): {node} (!! EXCLUDED !!)");
                     continue;
+                }
 
-                getReferencedFilesRecursive(p, result, seenTypes, level + 1, expansions);
+                getReferencedFilesRecursive(p, result, seenTypes, nextLevel, expansions);
             }
         }
 
