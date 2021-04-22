@@ -519,11 +519,16 @@ namespace osu.Framework.Testing
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
             {
+                int nextLevel = level + 1;
+
                 // Right-bound outlier test - exclude parents greater than 3x IQR. Always expand left-bound parents as they are unlikely to cause compilation errors.
                 if (p.ExpansionFactor > rightBound)
+                {
+                    logger.Add($"{(nextLevel > 0 ? $".{new string(' ', nextLevel * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor} (rb: {rightBound}): {node} (!! EXCLUDED !!)");
                     continue;
+                }
 
-                getReferencedFilesRecursive(p, result, seenTypes, level + 1, expansions);
+                getReferencedFilesRecursive(p, result, seenTypes, nextLevel, expansions);
             }
         }
 
