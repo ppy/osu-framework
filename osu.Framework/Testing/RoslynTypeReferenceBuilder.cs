@@ -69,6 +69,8 @@ namespace osu.Framework.Testing
 
             var assemblies = new HashSet<AssemblyReference>();
 
+            foreach (var asm in compilationCache.Values.SelectMany(c => c.ReferencedAssemblyNames))
+                addReference(Assembly.Load(asm.Name), false);
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
                 addReference(asm, false);
             addReference(typeof(JetBrains.Annotations.NotNullAttribute).Assembly, true);
