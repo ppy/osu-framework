@@ -41,7 +41,12 @@ namespace osu.Framework.Tests.Visual.Input
             base.LoadComplete();
 
             AddToggleStep("toggle midi handler", enabled =>
-                host.AvailableInputHandlers.OfType<MidiHandler>().First().Enabled.Value = enabled);
+            {
+                var midiHandler = host.AvailableInputHandlers.OfType<MidiHandler>().FirstOrDefault();
+
+                if (midiHandler != null)
+                    midiHandler.Enabled.Value = enabled;
+            });
         }
 
         protected override bool OnMidiDown(MidiDownEvent e)
