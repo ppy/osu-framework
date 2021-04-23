@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using ManagedBass;
@@ -203,14 +204,13 @@ namespace osu.Framework.Audio.Track
             base.UpdateState();
 
             var running = isRunningState(Bass.ChannelIsActive(activeStream));
-            var bytePosition = Bass.ChannelGetPosition(activeStream);
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = running || (isPlayed && !hasCompleted);
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
+            updateCurrentTime();
 
             bassAmplitudeProcessor?.Update();
         }
@@ -341,6 +341,16 @@ namespace osu.Framework.Audio.Track
 
             if (pos != Bass.ChannelGetPosition(activeStream))
                 Bass.ChannelSetPosition(activeStream, pos);
+
+            updateCurrentTime();
+        }
+
+        private void updateCurrentTime()
+        {
+            Debug.Assert(CanPerformInline);
+
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
         private double currentTime;
