@@ -2,12 +2,16 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.Handlers.Midi;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 
@@ -27,6 +31,17 @@ namespace osu.Framework.Tests.Visual.Input
                 keyFlow.Add(new MidiKeyHandler(k));
 
             Child = keyFlow;
+        }
+
+        [Resolved]
+        private GameHost host { get; set; }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            AddToggleStep("toggle midi handler", enabled =>
+                host.AvailableInputHandlers.OfType<MidiHandler>().First().Enabled.Value = enabled);
         }
 
         protected override bool OnMidiDown(MidiDownEvent e)
