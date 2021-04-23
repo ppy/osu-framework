@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            track = new TrackVirtual(10000);
+            track = new TrackVirtual(60000);
             updateTrack();
         }
 
@@ -251,6 +251,16 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(1.5, track.Rate);
 
             testPlaybackRate(1.5);
+        }
+
+        [Test]
+        public void TestCurrentTimeUpdatedAfterInlineSeek()
+        {
+            track.Start();
+            updateTrack();
+
+            RunOnAudioThread(() => track.Seek(20000));
+            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
         private void testPlaybackRate(double expectedRate)
