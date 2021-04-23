@@ -583,9 +583,11 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                initialiseInputHandlers();
+                populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
+
+                initialiseInputHandlers();
 
                 if (Window != null)
                 {
@@ -704,10 +706,13 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
-        private void initialiseInputHandlers()
+        private void populateInputHandlers()
         {
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
+        }
 
+        private void initialiseInputHandlers()
+        {
             foreach (var handler in AvailableInputHandlers)
             {
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
