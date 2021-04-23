@@ -10,7 +10,6 @@ using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
-using osu.Framework.Development;
 
 namespace osu.Framework.Audio.Track
 {
@@ -348,7 +347,7 @@ namespace osu.Framework.Audio.Track
 
         private void updateCurrentTime()
         {
-            Debug.Assert(ThreadSafety.IsAudioThread);
+            Debug.Assert(CanPerformInline);
 
             var bytePosition = Bass.ChannelGetPosition(activeStream);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
