@@ -391,7 +391,7 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestCurrentTimeUpdatedAfterSeek()
+        public void TestCurrentTimeUpdatedAfterInlineSeek()
         {
             track.StartAsync();
             updateTrack();
