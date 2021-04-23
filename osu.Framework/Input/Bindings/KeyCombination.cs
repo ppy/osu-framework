@@ -378,44 +378,64 @@ namespace osu.Framework.Input.Bindings
                     return "Caps";
 
                 case InputKey.Number0:
-                case InputKey.Keypad0:
                     return "0";
 
+                case InputKey.Keypad0:
+                    return "Numpad0";
+
                 case InputKey.Number1:
-                case InputKey.Keypad1:
                     return "1";
 
+                case InputKey.Keypad1:
+                    return "Numpad1";
+
                 case InputKey.Number2:
-                case InputKey.Keypad2:
                     return "2";
 
+                case InputKey.Keypad2:
+                    return "Numpad2";
+
                 case InputKey.Number3:
-                case InputKey.Keypad3:
                     return "3";
 
+                case InputKey.Keypad3:
+                    return "Numpad3";
+
                 case InputKey.Number4:
-                case InputKey.Keypad4:
                     return "4";
 
+                case InputKey.Keypad4:
+                    return "Numpad4";
+
                 case InputKey.Number5:
-                case InputKey.Keypad5:
                     return "5";
 
+                case InputKey.Keypad5:
+                    return "Numpad5";
+
                 case InputKey.Number6:
-                case InputKey.Keypad6:
                     return "6";
 
+                case InputKey.Keypad6:
+                    return "Numpad6";
+
                 case InputKey.Number7:
-                case InputKey.Keypad7:
                     return "7";
 
+                case InputKey.Keypad7:
+                    return "Numpad7";
+
                 case InputKey.Number8:
-                case InputKey.Keypad8:
                     return "8";
 
+                case InputKey.Keypad8:
+                    return "Numpad8";
+
                 case InputKey.Number9:
-                case InputKey.Keypad9:
                     return "9";
+
+                case InputKey.Keypad9:
+                    return "Numpad9";
 
                 case InputKey.Tilde:
                     return "~";
