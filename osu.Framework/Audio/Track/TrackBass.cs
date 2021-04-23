@@ -342,7 +342,11 @@ namespace osu.Framework.Audio.Track
             if (pos != Bass.ChannelGetPosition(activeStream))
                 Bass.ChannelSetPosition(activeStream, pos);
 
-            updateCurrentTime();
+            // current time updates are safe to perform from enqueued actions,
+            // but not always safe to perform from BASS callbacks, since those can sometimes use a separate thread.
+            // if it's not safe to update immediately here, the next UpdateState() call is guaranteed to update the time safely anyway.
+            if (CanPerformInline)
+                updateCurrentTime();
         }
 
         private void updateCurrentTime()
