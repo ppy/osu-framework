@@ -38,14 +38,10 @@ namespace osu.Framework.Platform.Windows
         {
             SDL.SDL_SetWindowBordered(SDLWindowHandle, SDL.SDL_bool.SDL_FALSE);
 
-            Size positionOffsetHack = new Size(1, 1);
+            var newSize = CurrentDisplay.Bounds.Size;
 
-            var newSize = CurrentDisplay.Bounds.Size + positionOffsetHack;
-            var newPosition = CurrentDisplay.Bounds.Location - positionOffsetHack;
-
-            // for now let's use the same 1px hack that we've always used to force borderless.
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            Position = newPosition;
+            Position = CurrentDisplay.Bounds.Location;
 
             return newSize;
         }
