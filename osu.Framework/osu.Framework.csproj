@@ -24,7 +24,7 @@
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="Markdig" Version="0.22.1" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.4" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.5" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="NuGet.ProjectModel" Version="5.9.0" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
@@ -36,17 +36,17 @@
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.173" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.114-alpha" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.225-alpha" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.115.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
-    <PackageReference Include="OpenTabletDriver" Version="0.5.2.3" />
+    <PackageReference Include="OpenTabletDriver" Version="0.5.3.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.9.0">
       <NoWarn>NU1701</NoWarn> <!-- Requires .NETFramework for MSBuild, but we use Microsoft.Build.Locator which allows this package to work in .NETCoreApp. -->

@@ -314,7 +314,6 @@ namespace osu.Framework.Utils
         /// Computes various properties that can be used to approximate the circular arc.
         /// </summary>
         /// <param name="controlPoints">Three distinct points on the arc.</param>
-        /// <returns></returns>
         private static CircularArcProperties circularArcProperties(ReadOnlySpan<Vector2> controlPoints)
         {
             Vector2 a = controlPoints[0];

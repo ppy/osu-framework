@@ -19,7 +19,7 @@ namespace osu.Framework.Bindables
     /// A generic implementation of a <see cref="IBindable"/>
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Value"/>.</typeparam>
-    public class Bindable<T> : IBindable<T>, ISerializableBindable
+    public class Bindable<T> : IBindable<T>, IBindable, IParseable, ISerializableBindable
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed (or manually via <see cref="TriggerValueChange"/>).
@@ -252,12 +252,12 @@ namespace osu.Framework.Bindables
                     Value = bindable.Value;
                     break;
 
-                case string s when underlyingType.IsEnum:
-                    Value = (T)Enum.Parse(underlyingType, s);
-                    break;
-
                 default:
-                    Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+                    if (underlyingType.IsEnum)
+                        Value = (T)Enum.Parse(underlyingType, input.ToString());
+                    else
+                        Value = (T)Convert.ChangeType(input, underlyingType, CultureInfo.InvariantCulture);
+
                     break;
             }
         }

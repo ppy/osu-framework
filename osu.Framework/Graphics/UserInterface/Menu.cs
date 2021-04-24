@@ -538,7 +538,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
-        /// <returns></returns>
         protected abstract Menu CreateSubMenu();
 
         /// <summary>

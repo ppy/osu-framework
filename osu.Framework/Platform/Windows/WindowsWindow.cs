@@ -45,7 +45,7 @@ namespace osu.Framework.Platform.Windows
 
             // for now let's use the same 1px hack that we've always used to force borderless.
             SDL.SDL_SetWindowSize(SDLWindowHandle, newSize.Width, newSize.Height);
-            SDL.SDL_SetWindowPosition(SDLWindowHandle, newPosition.X, newPosition.Y);
+            Position = newPosition;
 
             return newSize;
         }

@@ -36,7 +36,9 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void Teardown()
         {
-            Bass.Free();
+            // See AudioThread.freeDevice().
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                Bass.Free();
         }
 
         [Test]
