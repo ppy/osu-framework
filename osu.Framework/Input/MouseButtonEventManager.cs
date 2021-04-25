@@ -208,9 +208,9 @@ namespace osu.Framework.Input
 
             if (DraggedDrawable == null) return;
 
+            DraggedDrawable.IsDragged = false;
             PropagateButtonEvent(new[] { DraggedDrawable }, new DragEndEvent(state, Button, MouseDownPosition));
 
-            DraggedDrawable.IsDragged = false;
             DraggedDrawable = null;
         }
     }
