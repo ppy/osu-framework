@@ -206,15 +206,13 @@ namespace osu.Framework.Input
         {
             DragStarted = false;
 
-            var previousDragged = DraggedDrawable;
+            if (DraggedDrawable == null) return;
 
+            var previousDragged = DraggedDrawable;
+            previousDragged.IsDragged = false;
             DraggedDrawable = null;
 
-            if (previousDragged != null)
-            {
-                previousDragged.IsDragged = false;
-                PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
-            }
+            PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
         }
     }
 }
