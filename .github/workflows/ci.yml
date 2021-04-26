@@ -23,11 +23,14 @@ jobs:
   
         - name: Restore Tools
           run: dotnet tool restore
+        
+        - name: Restore Packages
+          run: dotnet restore
     
         - name: Inspect
           run: |
             dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
             dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
-        
+
         
            
