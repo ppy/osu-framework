@@ -3,7 +3,7 @@ name: Continuous Integration
 
 jobs:
   inspect-code:
-     name: CQ Check
+     name: Code Quality
      runs-on: ubuntu-latest
      steps:
         - name: Checkout
@@ -27,7 +27,7 @@ jobs:
         - name: Restore Packages
           run: dotnet restore
 
-        - name: CodeFileSanity Check
+        - name: CodeFileSanity
           run: |
             echo "TBD! This step will not do anything for now!"
             exit 0
@@ -35,7 +35,7 @@ jobs:
         - name: .NET Format (Dry Run)
           run: dotnet format --dry-run --check
 
-        - name: Inspect
+        - name: InspectCode
           run: |
             dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
             dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
@@ -58,7 +58,6 @@ jobs:
             sudo apt-get update && \
             sudo apt-get install ffmpeg;
         
-        #TODO: Figure out what build.cake#91 means.
         - name: Test
           run: dotnet test -c Debug osu.Framework.Tests --logger:nunit
 
