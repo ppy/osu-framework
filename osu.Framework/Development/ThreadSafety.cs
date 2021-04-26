@@ -37,32 +37,47 @@ namespace osu.Framework.Development
         public static bool IsAudioThread { get; internal set; }
 
         /// <summary>
-        /// Asserts that the current code is executing on the input thread. Debug only.
+        /// Asserts that the current code is executing on the input thread.
         /// </summary>
+        /// <remarks>
+        /// Only asserts in debug builds due to performance concerns.
+        /// </remarks>
         [Conditional("DEBUG")]
         internal static void EnsureInputThread() => Debug.Assert(IsInputThread);
 
         /// <summary>
-        /// Asserts that the current code is executing on the update thread. Debug only.
+        /// Asserts that the current code is executing on the update thread.
         /// </summary>
+        /// <remarks>
+        /// Only asserts in debug builds due to performance concerns.
+        /// </remarks>
         [Conditional("DEBUG")]
         internal static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
 
         /// <summary>
-        /// Asserts that the current code is not executing on the update thread. Debug only.
+        /// Asserts that the current code is not executing on the update thread.
         /// </summary>
+        /// <remarks>
+        /// Only asserts in debug builds due to performance concerns.
+        /// </remarks>
         [Conditional("DEBUG")]
         internal static void EnsureNotUpdateThread() => Debug.Assert(!IsUpdateThread);
 
         /// <summary>
-        /// Asserts that the current code is executing on the draw thread. Debug only.
+        /// Asserts that the current code is executing on the draw thread.
         /// </summary>
+        /// <remarks>
+        /// Only asserts in debug builds due to performance concerns.
+        /// </remarks>
         [Conditional("DEBUG")]
         internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
 
         /// <summary>
-        /// Asserts that the current code is executing on the audio thread. Debug only.
+        /// Asserts that the current code is executing on the audio thread.
         /// </summary>
+        /// <remarks>
+        /// Only asserts in debug builds due to performance concerns.
+        /// </remarks>
         [Conditional("DEBUG")]
         internal static void EnsureAudioThread() => Debug.Assert(IsAudioThread);
 
