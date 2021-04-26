@@ -1,4 +1,15 @@
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '**/*.sln'
+  pull_request:
+    paths:
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '**/*.sln'
+
 name: Continuous Integration
 
 jobs:
