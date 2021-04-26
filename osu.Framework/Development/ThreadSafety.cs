@@ -13,36 +13,6 @@ namespace osu.Framework.Development
     public static class ThreadSafety
     {
         /// <summary>
-        /// Asserts that the current code is executing on the input thread. Debug only.
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void EnsureInputThread() => Debug.Assert(IsInputThread);
-
-        /// <summary>
-        /// Asserts that the current code is executing on the update thread. Debug only.
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
-
-        /// <summary>
-        /// Asserts that the current code is not executing on the update thread. Debug only.
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void EnsureNotUpdateThread() => Debug.Assert(!IsUpdateThread);
-
-        /// <summary>
-        /// Asserts that the current code is executing on the draw thread. Debug only.
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
-
-        /// <summary>
-        /// Asserts that the current code is executing on the audio thread. Debug only.
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void EnsureAudioThread() => Debug.Assert(IsAudioThread);
-
-        /// <summary>
         /// Whether the current code is executing on the input thread.
         /// </summary>
         [field: ThreadStatic]
@@ -65,6 +35,36 @@ namespace osu.Framework.Development
         /// </summary>
         [field: ThreadStatic]
         public static bool IsAudioThread { get; internal set; }
+
+        /// <summary>
+        /// Asserts that the current code is executing on the input thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void EnsureInputThread() => Debug.Assert(IsInputThread);
+
+        /// <summary>
+        /// Asserts that the current code is executing on the update thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void EnsureUpdateThread() => Debug.Assert(IsUpdateThread);
+
+        /// <summary>
+        /// Asserts that the current code is not executing on the update thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void EnsureNotUpdateThread() => Debug.Assert(!IsUpdateThread);
+
+        /// <summary>
+        /// Asserts that the current code is executing on the draw thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void EnsureDrawThread() => Debug.Assert(IsDrawThread);
+
+        /// <summary>
+        /// Asserts that the current code is executing on the audio thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        internal static void EnsureAudioThread() => Debug.Assert(IsAudioThread);
 
         /// <summary>
         /// The current execution mode.
