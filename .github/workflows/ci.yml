@@ -61,7 +61,12 @@ jobs:
         - name: Install .NET 5.0.x
           uses: actions/setup-dotnet@v1
           with:
-             dotnet-version: '5.0.x'       
+             dotnet-version: '5.0.x' 
+        
+        - name: Install Native Dependencies
+          run: |
+            sudo apt-get update && \
+            sudo apt-get install ffmpeg;
         
         #TODO: Figure out what build.cake#91 means.
         - name: Test
