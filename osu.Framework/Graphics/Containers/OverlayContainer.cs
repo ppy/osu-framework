@@ -18,6 +18,13 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool BlockPositionalInput => true;
 
         /// <summary>
+        /// Scroll events are sometimes required to be handled differently to general positional input.
+        /// This covers whether scroll events that occur within this overlay's bounds are blocked or not.
+        /// Defaults to the same value as <see cref="BlockPositionalInput"/>
+        /// </summary>
+        protected virtual bool BlockScrollInput => BlockPositionalInput;
+
+        /// <summary>
         /// Whether we should block any non-positional input from interacting with things behind us.
         /// </summary>
         protected virtual bool BlockNonPositionalInput => false;
@@ -41,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
             switch (e)
             {
                 case ScrollEvent _:
-                    if (BlockPositionalInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
+                    if (BlockScrollInput && base.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
                         return true;
 
                     break;

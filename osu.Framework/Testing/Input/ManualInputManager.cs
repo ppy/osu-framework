@@ -137,7 +137,6 @@ namespace osu.Framework.Testing.Input
         {
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
-            public override int Priority => 0;
 
             public void EnqueueInput(IInput input)
             {

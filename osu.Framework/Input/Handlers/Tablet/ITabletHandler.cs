@@ -27,6 +27,11 @@ namespace osu.Framework.Input.Handlers.Tablet
         /// </summary>
         IBindable<TabletInfo> Tablet { get; }
 
+        /// <summary>
+        /// The rotation of the tablet area in degrees.
+        /// </summary>
+        Bindable<float> Rotation { get; }
+
         BindableBool Enabled { get; }
     }
 }

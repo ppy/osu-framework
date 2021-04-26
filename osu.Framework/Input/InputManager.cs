@@ -496,13 +496,72 @@ namespace osu.Framework.Input
 
         private readonly List<IInput> inputs = new List<IInput>();
 
+        private readonly List<IInput> dequeuedInputs = new List<IInput>();
+
+        private InputHandler mouseSource;
+
+        private double mouseSourceDebounceTimeRemaining;
+
+        private double lastPendingInputRetrievalTime;
+
+        /// <summary>
+        /// The length in time after which a lower priority input handler is allowed to take over mouse control from a high priority handler that is no longer reporting.
+        /// It's safe to assume that all input devices are reporting at higher than the debounce time specified here (20hz).
+        /// If the delay seen between device swaps is ever considered to be too slow, this can likely be further increased up to 100hz.
+        /// </summary>
+        private const int mouse_source_debounce_time = 50;
+
         protected virtual List<IInput> GetPendingInputs()
         {
+            var now = Clock.CurrentTime;
+            double elapsed = now - lastPendingInputRetrievalTime;
+            lastPendingInputRetrievalTime = now;
+
             inputs.Clear();
 
-            foreach (var h in InputHandlers)
-                h.CollectPendingInputs(inputs);
+            bool reachedPreviousMouseSource = false;
 
+            foreach (var h in InputHandlers)
+            {
+                if (!h.IsActive)
+                    continue;
+
+                dequeuedInputs.Clear();
+                h.CollectPendingInputs(dequeuedInputs);
+
+                foreach (var i in dequeuedInputs)
+                {
+                    // To avoid the same device reporting via two channels (and causing feedback), only one handler should be allowed to
+                    // report mouse position data at a time. Handlers are given priority based on their constructed order.
+                    // Devices which higher priority are allowed to take over control immediately, after which a delay is enforced (on every subsequent positional report)
+                    // before a lower priority device can obtain control.
+                    if (i is MousePositionAbsoluteInput || i is MousePositionRelativeInput)
+                    {
+                        if (mouseSource == null // a new device taking control when no existing preference is present.
+                            || mouseSource == h // if this is the device which currently has control, renew the debounce delay.
+                            || !reachedPreviousMouseSource // we have not reached the previous mouse source, so a higher priority device can take over control.
+                            || mouseSourceDebounceTimeRemaining <= 0) // a lower priority device taking over control if the debounce delay has elapsed.
+                        {
+                            mouseSource = h;
+                            mouseSourceDebounceTimeRemaining = mouse_source_debounce_time;
+                        }
+                        else
+                        {
+                            // drop positional input if we did not meet the criteria to be the current reporting handler.
+                            continue;
+                        }
+                    }
+
+                    inputs.Add(i);
+                }
+
+                // track whether we have passed the handler which is currently in control of positional handling.
+                // importantly, this is updated regardless of whether the handler has reported any new inputs.
+                if (mouseSource == h)
+                    reachedPreviousMouseSource = true;
+            }
+
+            mouseSourceDebounceTimeRemaining -= elapsed;
             return inputs;
         }
 
@@ -550,7 +609,11 @@ namespace osu.Framework.Input
             return positionalInputQueue.AsSlimReadOnly();
         }
 
-        protected virtual bool HandleHoverEvents => true;
+        /// <summary>
+        /// Whether this input manager is in a state it should handle hover events.
+        /// This could for instance be set to false when the window/target does not have input focus.
+        /// </summary>
+        public virtual bool HandleHoverEvents => true;
 
         private void updateHoverEvents(InputState state)
         {
@@ -752,7 +815,7 @@ namespace osu.Framework.Input
             foreach (var h in InputHandlers)
             {
                 if (h.Enabled.Value && h is INeedsMousePositionFeedback handler)
-                    handler.FeedbackMousePositionChange(mouse.Position);
+                    handler.FeedbackMousePositionChange(mouse.Position, h == mouseSource);
             }
 
             handleMouseMove(state, e.LastPosition);

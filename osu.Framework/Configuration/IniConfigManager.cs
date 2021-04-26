@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -59,7 +60,10 @@ namespace osu.Framework.Configuration
                         {
                             try
                             {
-                                b.Parse(val);
+                                if (!(b is IParseable parseable))
+                                    throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not {nameof(IParseable)}.");
+
+                                parseable.Parse(val);
                             }
                             catch (Exception e)
                             {
