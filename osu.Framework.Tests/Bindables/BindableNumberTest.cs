@@ -111,25 +111,5 @@ namespace osu.Framework.Tests.Bindables
         }
 
         private object createBindable(Type type) => Activator.CreateInstance(typeof(BindableNumber<>).MakeGenericType(type), Convert.ChangeType(0, type));
-
-        private class BindableNumberWithDefaultMaxValue : BindableInt
-        {
-            public BindableNumberWithDefaultMaxValue(int value = 0)
-                : base(value)
-            {
-            }
-
-            protected override int DefaultMaxValue => 1;
-        }
-
-        private class BindableNumberWithDefaultMinValue : BindableInt
-        {
-            public BindableNumberWithDefaultMinValue(int value = 0)
-                : base(value)
-            {
-            }
-
-            protected override int DefaultMinValue => 3;
-        }
     }
 }
