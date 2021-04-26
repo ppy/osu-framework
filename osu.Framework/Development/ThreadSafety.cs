@@ -13,6 +13,12 @@ namespace osu.Framework.Development
     public static class ThreadSafety
     {
         /// <summary>
+        /// Asserts that the current code is executing on the input thread. Debug only.
+        /// </summary>
+        [Conditional("DEBUG")]
+        public static void EnsureInputThread() => Debug.Assert(IsInputThread);
+
+        /// <summary>
         /// Asserts that the current code is executing on the update thread. Debug only.
         /// </summary>
         [Conditional("DEBUG")]
