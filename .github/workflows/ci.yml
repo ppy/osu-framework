@@ -1,0 +1,23 @@
+on: [push, pull_request]
+name: Continuous Integration
+
+jobs:
+  inspect-code:
+     name: CQ Check
+     runs-on: ubuntu-latest
+     steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Install .NET
+          uses: actions/setup-dotnet@v1
+          with:
+            dotnet-version: 5.0
+        
+        - name: Restore Tools
+          run: dotnet tool restore
+    
+        - name: Inspect
+          run: |
+            dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml
+           
