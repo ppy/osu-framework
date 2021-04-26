@@ -12,12 +12,15 @@ jobs:
         - name: Install .NET
           uses: actions/setup-dotnet@v1
           with:
-            dotnet-version: 5.0
+             dotnet-version: '5.0.x'
         
         - name: Restore Tools
           run: dotnet tool restore
     
         - name: Inspect
           run: |
-            dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml
+            dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
+            dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
+        
+        
            
