@@ -11,11 +11,16 @@ jobs:
 
         # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x. 
         # Looks like we won't change this until 6.0 LTS releases on 11/2021.
-        - name: Install .NET
+        - name: Install .NET 5.0.x
+          uses: actions/setup-dotnet@v1
+          with:
+             dotnet-version: '5.0.x'
+
+        - name: Install .NET 3.1.x LTS
           uses: actions/setup-dotnet@v1
           with:
              dotnet-version: '3.1.x'
-        
+  
         - name: Restore Tools
           run: dotnet tool restore
     
