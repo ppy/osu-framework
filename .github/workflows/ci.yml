@@ -1,15 +1,4 @@
-on:
-  push:
-    paths:
-      - '**/*.cs'
-      - '**/*.csproj'
-      - '**/*.sln'
-  pull_request:
-    paths:
-      - '**/*.cs'
-      - '**/*.csproj'
-      - '**/*.sln'
-
+on: [push, pull_request]
 name: Continuous Integration
 
 jobs:
@@ -20,8 +9,8 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
 
-        # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x. 
-        # Looks like we won't change this until 6.0 LTS releases on 11/2021.
+        # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
+        # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
         - name: Install .NET 5.0.x
           uses: actions/setup-dotnet@v1
           with:
@@ -37,19 +26,20 @@ jobs:
         
         - name: Restore Packages
           run: dotnet restore
- 
-        - name: Inspect
-          run: |
-            dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
-            dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
-        
-        - name: .NET Format (Dry Run)
-          run: dotnet format --dry-run --check
-        
+
         - name: CodeFileSanity Check
           run: |
             echo "TBD! This step will not do anything for now!"
             exit 0
+
+        - name: .NET Format (Dry Run)
+          run: dotnet format --dry-run --check
+
+        - name: Inspect
+          run: |
+            dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
+            dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
+ 
   test:
     name: Test 
     needs: inspect-code
