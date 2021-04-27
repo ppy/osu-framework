@@ -86,11 +86,6 @@ jobs:
          steps:
             - name: Checkout
               uses: actions/checkout@v2
-
-            # As we don't have the equivalent of AppVeyor's Local NuGet repos
-            # We're going to use the actor's GHPR instead.
-            # FIXME: GHPR requires authentication, see:https://docs.github.com/en/packages/guides/configuring-dotnet-cli-for-use-with-github-packages.
-            # Workaround to authentication requirement is enabled "improved container support" to allow anonymous pulling.
             
             - name: Set Variables
               id: deployment
