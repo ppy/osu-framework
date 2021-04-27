@@ -16,7 +16,7 @@ jobs:
 
         - name: Compile
           run: dotnet build -c Debug build/Desktop.proj
-        
+
         - name: Test
           run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger:nunit
           shell: powershell
@@ -51,7 +51,7 @@ jobs:
           uses: actions/setup-dotnet@v1
           with:
              dotnet-version: '5.0.x'
-  
+ 
         - name: Restore Tools
           run: dotnet tool restore
         
@@ -86,7 +86,7 @@ jobs:
          steps:
             - name: Checkout
               uses: actions/checkout@v2
-            
+          
             - name: Set Variables
               id: deployment
               shell: bash
@@ -96,11 +96,11 @@ jobs:
                else
                  echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
                fi
-              
+       
             - name: Set Artifacts Directory
               id: artifactsPath
               run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
-                
+   
 
             # FIXME: 3.1 LTS is required here because iOS builds still uses 3.1.
             # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
@@ -119,10 +119,10 @@ jobs:
 
             - name: Pack (Framework)
               run: dotnet pack -c Release osu.Framework /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
-            
+
             - name: Pack (iOS Framework)
               run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
-            
+
             - name: Pack (Android Framework)
               run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
 
@@ -144,4 +144,4 @@ jobs:
               if: ${{ github.event == 'release' }}
               run: |
                     dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
-                    dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --skip-duplicate --source authed-nuget 
+                    dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --skip-duplicate --source authed-nuget
