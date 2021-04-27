@@ -9,13 +9,13 @@
       ]
     },
     "dotnet-format": {
-      "version": "3.1.37601",
+      "version": "5.0.211103 ",
       "commands": [
         "dotnet-format"
       ]
     },
     "jetbrains.resharper.globaltools": {
-      "version": "2020.3.2",
+      "version": "2021.1.2",
       "commands": [
         "jb"
       ]
