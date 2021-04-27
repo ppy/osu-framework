@@ -212,7 +212,7 @@ namespace osu.Framework.Testing
                         if (referenceMap.TryAdd(referenced, null))
                             searchQueue.Add(referenced);
                     }
-                }));
+                })).ConfigureAwait(false);
             }
         }
 
@@ -329,7 +329,7 @@ namespace osu.Framework.Testing
                         break;
                     }
                 }
-            })));
+            }))).ConfigureAwait(false);
 
             return result.Keys;
 
