@@ -156,12 +156,9 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Invoked when the lifetime of an entry has changed, so that an appropriate sorting order is maintained.
+        /// Invoked when the lifetime of an entry is going to changed.
         /// </summary>
-        /// <param name="entry">The <see cref="LifetimeEntry"/> that changed.</param>
-        /// <param name="lifetimeStart">The new start time.</param>
-        /// <param name="lifetimeEnd">The new end time.</param>
-        private void requestLifetimeUpdate(LifetimeEntry entry, double lifetimeStart, double lifetimeEnd)
+        private void requestLifetimeUpdate(LifetimeEntry entry)
         {
             // Entries in the past/future sets need to be re-sorted to prevent the comparer from becoming unstable.
             // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry's state must not be updated immediately.
@@ -178,9 +175,6 @@ namespace osu.Framework.Graphics.Performance
                 // Enqueue the entry to be processed in the next Update().
                 newEntries.Add(entry);
             }
-
-            // Since the comparer has now been resolved, the lifetime update can proceed.
-            entry.SetLifetime(lifetimeStart, lifetimeEnd);
         }
 
         /// <summary>
