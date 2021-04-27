@@ -70,7 +70,20 @@ namespace osu.Framework.Input.Handlers.Mouse
             isActive.BindValueChanged(_ => updateRelativeMode());
 
             cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
-            cursorInWindow.BindValueChanged(_ => updateRelativeMode());
+            cursorInWindow.BindValueChanged(inWindow =>
+            {
+                if (inWindow.NewValue)
+                    // If we were to immediately update relative mode, there is a possibility that the next FeedbackMousePositionChange
+                    // will disable relative mode beacuse it thinks the cursor is outside the window (this is due to how inputs are batch-processed,
+                    // the first input in the queue might still be outside the window, but the last one is inside).
+                    // If relative mode gets disabled here, we will end up in an invalid state where relative mode is disabled, but the cursor is in the window.
+                    // To work around this, we queue the CursorInWindowChange so that relative mode is updated only after we are certain
+                    // that all the events leading up to the cursor entering the window are processed.
+                    enqueueInput(new CursorInWindowChange());
+                else
+                    // update as soon as possible when leaving the window
+                    updateRelativeMode();
+            });
 
             cursorState = desktopWindow.CursorStateBindable.GetBoundCopy();
             cursorState.BindValueChanged(_ => updateRelativeMode());
@@ -139,6 +152,8 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }
         }
+
+        public void FeedbackCursorInWindowChange() => updateRelativeMode();
 
         public override void Reset()
         {

@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Immutable;
+using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Platform;
@@ -58,5 +60,7 @@ namespace osu.Framework.Input
 
             base.HandleInputStateChange(inputStateChange);
         }
+
+        public void HandleCursorInWindowChange() => InputHandlers.OfType<MouseHandler>().FirstOrDefault().FeedbackCursorInWindowChange();
     }
 }
