@@ -25,6 +25,12 @@
       "commands": [
         "nvika"
       ]
+    },
+    "codefilesanity": {
+      "version": "15.0.0",
+      "commands": [
+        "CodeFileSanity"
+      ]
     }
   }
 }

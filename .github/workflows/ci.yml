@@ -1,25 +1,56 @@
-on: [push, pull_request]
+on: [push, pull_request, release]
 name: Continuous Integration
 
 jobs:
-  inspect-code:
-     name: Code Quality
-     runs-on: ubuntu-latest
-     steps:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
         - name: Checkout
           uses: actions/checkout@v2
 
-        # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
-        # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
         - name: Install .NET 5.0.x
           uses: actions/setup-dotnet@v1
           with:
              dotnet-version: '5.0.x'
 
+        - name: Compile
+          run: dotnet build -c Debug build/Desktop.proj
+        
+        - name: Test
+          run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger:nunit
+          shell: powershell
+
+        - name: Report NUnit Logs
+          uses: MirrorNG/nunit-reporter@v1.0.9
+          with:
+            path: './TestResults/TestResults.xml'
+            access-token: ${{ secrets.GITHUB_TOKEN }}
+
+  inspect-code:
+     name: Code Quality
+     needs: test
+     runs-on: ubuntu-latest
+     steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS and 2.1 LTS side by side.
+        # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
+        - name: Install .NET 2.1.x LTS
+          uses: actions/setup-dotnet@v1
+          with:
+            dotnet-version: '2.1.x'
+
         - name: Install .NET 3.1.x LTS
           uses: actions/setup-dotnet@v1
           with:
              dotnet-version: '3.1.x'
+
+        - name: Install .NET 5.0.x
+          uses: actions/setup-dotnet@v1
+          with:
+             dotnet-version: '5.0.x'
   
         - name: Restore Tools
           run: dotnet tool restore
@@ -29,8 +60,13 @@ jobs:
 
         - name: CodeFileSanity
           run: |
-            echo "TBD! This step will not do anything for now!"
-            exit 0
+            # Suppress warnings from templates project
+            # https://unix.stackexchange.com/questions/104641/how-can-i-suppress-output-from-grep-so-that-it-only-returns-the-exit-status
+            dotnet codefilesanity | while read -r line; do
+               if [ $(echo $line| grep -q "./osu.Framework.Templates/"; echo $?) == 1 ]; then
+                 echo "::warning::$line"
+               fi
+            done
 
         - name: .NET Format (Dry Run)
           run: dotnet format --dry-run --check
@@ -38,31 +74,79 @@ jobs:
         - name: InspectCode
           run: |
             dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
-            dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors 
- 
-  test:
-    name: Test 
-    needs: inspect-code
-    runs-on: ubuntu-latest
-    steps:
-        - name: Checkout
-          uses: actions/checkout@v2
+            dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors
 
-        - name: Install .NET 5.0.x
-          uses: actions/setup-dotnet@v1
-          with:
-             dotnet-version: '5.0.x' 
-        
-        - name: Install Native Dependencies
-          run: |
-            sudo apt-get update && \
-            sudo apt-get install ffmpeg;
-        
-        - name: Test
-          run: dotnet test -c Debug osu.Framework.Tests --logger:nunit
+  pack-n-publish:
+         name: Pack and Publish
+         runs-on: windows-latest
+         needs: inspect-code
+         defaults:
+           run:
+             shell: powershell
+         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
 
-        - name: Report NUnit Logs
-          uses: MirrorNG/nunit-reporter@v1.0.9
-          with:
-            path: 'osu.Framework.Tests/TestResults/*.xml'
-            access-token: ${{ secrets.GITHUB_TOKEN }}
+            # As we don't have the equivalent of AppVeyor's Local NuGet repos
+            # We're going to use the actor's GHPR instead.
+            # FIXME: GHPR requires authentication, see:https://docs.github.com/en/packages/guides/configuring-dotnet-cli-for-use-with-github-packages.
+            # Workaround to authentication requirement is enabled "improved container support" to allow anonymous pulling.
+            
+            - name: Set Variables
+              id: deployment
+              shell: bash
+              run: |
+               if [ ${{ github.event == 'release' && github.actor == 'peppy' }} == true ]; then
+                 echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+               else
+                 echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+               fi
+              
+            - name: Set Artifacts Directory
+              id: artifactsPath
+              run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+                
+
+            # FIXME: 3.1 LTS is required here because iOS builds still uses 3.1.
+            # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
+            - name: Install .NET 3.1.x LTS
+              uses: actions/setup-dotnet@v1
+              with:
+                  dotnet-version: '3.1.x'
+
+            - name: Install .NET 5.0.x
+              uses: actions/setup-dotnet@v1
+              with:
+                dotnet-version: '5.0.x'
+
+            - name: Add msbuild to PATH
+              uses: microsoft/setup-msbuild@v1.0.2
+
+            - name: Pack (Framework)
+              run: dotnet pack -c Release osu.Framework /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+            
+            - name: Pack (iOS Framework)
+              run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+            
+            - name: Pack (Android Framework)
+              run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+            - name: Pack (Native Libraries)
+              run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+            - name: Pack (Template)
+              run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v2
+              if: ${{ github.event != 'release' }}
+              with:
+                 path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+
+            # Manually authenticate for now as setup-dotnet ignores our auth tokens
+            # See: https://github.com/actions/setup-dotnet/issues/190
+            - name: Publish to NuGet
+              if: ${{ github.event == 'release' }}
+              run: |
+                    dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
+                    dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --skip-duplicate --source authed-nuget 
