@@ -1,14 +1,13 @@
 using FlappyDon.Game.Elements;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
-using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Tests.Visual
 {
     /// <summary>
     /// A scene to test the layout and positioning and rotation of two pipe sprites.
     /// </summary>
-    public class TestScenePipeObstacle : TestScene
+    public class TestScenePipeObstacle : FlappyDonTestScene
     {
         [BackgroundDependencyLoader]
         private void load()
