@@ -41,7 +41,7 @@
     <PackageReference Include="StbiSharp" Version="1.0.13" />
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.225-alpha" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.115.0" />
