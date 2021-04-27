@@ -124,7 +124,7 @@ Task("CodeFileSanity")
     });
 
 Task("DotnetFormat")
-    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
+    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--check"));
 
 Task("PackFramework")
     .Does(() => {
