@@ -116,10 +116,10 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
 
-            updateRelativeMode();
-
             if (window.RelativeMouseMode)
             {
+                updateRelativeMode();
+
                 // store the last mouse position to propagate back to the host window manager when exiting relative mode.
                 lastPosition = position;
 
