@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Performance
         /// </summary>
         /// <param name="start">The new <see cref="LifetimeStart"/> value.</param>
         /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
-        protected virtual void SetLifetime(double start, double end)
+        protected void SetLifetime(double start, double end)
         {
             RequestLifetimeUpdate?.Invoke(this);
 
