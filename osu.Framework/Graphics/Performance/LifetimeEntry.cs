@@ -21,13 +21,8 @@ namespace osu.Framework.Graphics.Performance
         public double LifetimeStart
         {
             get => lifetimeStart;
-            set
-            {
-                if (lifetimeStart == value)
-                    return;
-
-                SetLifetime(value, lifetimeEnd);
-            }
+            // A method is used as C# doesn't allow the combination of a non-virtual getter and a virtual setter.
+            set => SetLifetimeStart(value);
         }
 
         private double lifetimeEnd = double.MaxValue;
@@ -38,13 +33,7 @@ namespace osu.Framework.Graphics.Performance
         public double LifetimeEnd
         {
             get => lifetimeEnd;
-            set
-            {
-                if (lifetimeEnd == value)
-                    return;
-
-                SetLifetime(lifetimeStart, value);
-            }
+            set => SetLifetimeEnd(value);
         }
 
         /// <summary>
@@ -53,11 +42,29 @@ namespace osu.Framework.Graphics.Performance
         internal event Action<LifetimeEntry> RequestLifetimeUpdate;
 
         /// <summary>
+        /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry"/>.
+        /// </summary>
+        protected virtual void SetLifetimeStart(double start)
+        {
+            if (start != lifetimeStart)
+                SetLifetime(start, lifetimeEnd);
+        }
+
+        /// <summary>
+        /// Update <see cref="LifetimeEnd"/> of this <see cref="LifetimeEntry"/>.
+        /// </summary>
+        protected virtual void SetLifetimeEnd(double end)
+        {
+            if (end != lifetimeEnd)
+                SetLifetime(lifetimeStart, end);
+        }
+
+        /// <summary>
         /// Updates the stored lifetimes of this <see cref="LifetimeEntry"/>.
         /// </summary>
         /// <param name="start">The new <see cref="LifetimeStart"/> value.</param>
         /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
-        public virtual void SetLifetime(double start, double end)
+        protected virtual void SetLifetime(double start, double end)
         {
             RequestLifetimeUpdate?.Invoke(this);
 
