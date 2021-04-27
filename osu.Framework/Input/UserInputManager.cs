@@ -61,6 +61,6 @@ namespace osu.Framework.Input
             base.HandleInputStateChange(inputStateChange);
         }
 
-        public void HandleCursorInWindowChange() => InputHandlers.OfType<MouseHandler>().FirstOrDefault().FeedbackCursorInWindowChange();
+        public void HandleCursorInWindowChange() => InputHandlers.OfType<MouseHandler>().FirstOrDefault()?.FeedbackCursorInWindowChange();
     }
 }
