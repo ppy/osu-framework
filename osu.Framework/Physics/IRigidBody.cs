@@ -2,8 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK;
 using osu.Framework.Graphics;
+using osuTK;
 
 namespace osu.Framework.Physics
 {

@@ -7,18 +7,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Development;
 using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osu.Framework.Statistics;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Platform;
-using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.OpenGL
 {

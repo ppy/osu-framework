@@ -10,8 +10,8 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Platform;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform;
 using osuTK;
 using osuTK.Graphics;
 

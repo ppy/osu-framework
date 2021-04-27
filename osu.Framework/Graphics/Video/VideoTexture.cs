@@ -3,11 +3,11 @@
 
 using System;
 using System.Diagnostics;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Platform;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Video
 {

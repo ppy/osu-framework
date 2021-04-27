@@ -8,9 +8,9 @@ using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Statistics
 {

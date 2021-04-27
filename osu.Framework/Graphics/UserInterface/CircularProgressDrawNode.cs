@@ -1,15 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Graphics.Textures;
-using osuTK.Graphics.ES30;
-using osuTK;
 using System;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Primitives;
-using osuTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
+using osuTK;
+using osuTK.Graphics;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.UserInterface
 {

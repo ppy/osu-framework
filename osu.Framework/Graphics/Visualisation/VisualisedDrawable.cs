@@ -4,16 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Input.Events;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Allocation;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Graphics.Textures;
-using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.Visualisation
 {

@@ -4,12 +4,12 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using osuTK;
-using osuTK.Input;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.Cursor
 {

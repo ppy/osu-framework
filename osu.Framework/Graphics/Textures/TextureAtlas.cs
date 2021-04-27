@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using osu.Framework.Graphics.OpenGL.Textures;
-using osuTK.Graphics.ES30;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
+using osuTK.Graphics.ES30;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

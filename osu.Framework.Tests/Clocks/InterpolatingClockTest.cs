@@ -4,8 +4,8 @@
 using System;
 using System.Threading;
 using NUnit.Framework;
-using osu.Framework.Utils;
 using osu.Framework.Timing;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Tests.Clocks
 {

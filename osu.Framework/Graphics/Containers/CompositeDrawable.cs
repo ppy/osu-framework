@@ -1,33 +1,33 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Lists;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
-using osuTK;
-using osuTK.Graphics;
-using osu.Framework.Graphics.Shaders;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transforms;
-using osu.Framework.Timing;
-using osu.Framework.Threading;
-using osu.Framework.Statistics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using osu.Framework.Allocation;
 using osu.Framework.Development;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ExceptionExtensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
+using osu.Framework.Lists;
+using osu.Framework.Statistics;
 using osu.Framework.Testing;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
 using osu.Framework.Utils;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers
 {

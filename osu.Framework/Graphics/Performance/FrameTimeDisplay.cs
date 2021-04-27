@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Statistics;
-using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {

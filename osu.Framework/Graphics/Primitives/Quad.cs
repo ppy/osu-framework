@@ -4,8 +4,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using osuTK;
 using osu.Framework.Utils;
+using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
 {

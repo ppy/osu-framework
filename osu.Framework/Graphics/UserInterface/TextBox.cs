@@ -5,22 +5,22 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Caching;
+using osu.Framework.Development;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
+using osu.Framework.Timing;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
-using osu.Framework.Allocation;
-using osu.Framework.Bindables;
-using osu.Framework.Development;
-using osu.Framework.Platform;
-using osu.Framework.Input.Bindings;
-using osu.Framework.Input.Events;
-using osu.Framework.Timing;
-using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {

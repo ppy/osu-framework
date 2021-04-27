@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
-using osu.Framework.Statistics;
-using osu.Framework.Timing;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Statistics;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Threading
 {

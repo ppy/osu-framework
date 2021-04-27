@@ -1,18 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Batches;
-using osuTK;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Colour;
-using System;
-using System.Runtime.CompilerServices;
-using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {

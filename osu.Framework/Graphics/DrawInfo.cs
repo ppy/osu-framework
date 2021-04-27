@@ -3,9 +3,9 @@
 
 using System;
 using osu.Framework.Extensions.MatrixExtensions;
-using osuTK;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Utils;
+using osuTK;
 
 namespace osu.Framework.Graphics
 {

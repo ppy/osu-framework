@@ -3,8 +3,8 @@
 
 #nullable enable
 
-using osu.Framework.Extensions.TypeExtensions;
 using System;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Timing
 {

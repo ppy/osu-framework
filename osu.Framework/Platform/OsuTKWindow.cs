@@ -3,21 +3,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
+using JetBrains.Annotations;
+using osu.Framework.Bindables;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
-using osuTK.Platform;
 using osuTK.Input;
-using System.ComponentModel;
-using System.Drawing;
-using JetBrains.Annotations;
-using osu.Framework.Bindables;
-using osu.Framework.Extensions;
-using osu.Framework.Extensions.EnumExtensions;
-using osu.Framework.Threading;
+using osuTK.Platform;
 
 namespace osu.Framework.Platform
 {

@@ -3,10 +3,10 @@
 
 using System;
 using System.Buffers;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Threading;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Threading;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Graphics.Performance

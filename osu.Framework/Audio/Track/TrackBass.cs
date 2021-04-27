@@ -5,11 +5,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.IO;
-using System.Threading.Tasks;
 using osu.Framework.Audio.Callbacks;
+using osu.Framework.IO;
 
 namespace osu.Framework.Audio.Track
 {

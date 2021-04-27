@@ -1,23 +1,23 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK.Graphics;
-using osuTK.Input;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Utils;
+using osu.Framework.Input.Events;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
+using osuTK.Input;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

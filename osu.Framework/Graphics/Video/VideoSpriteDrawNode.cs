@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace osu.Framework.Graphics.Video
 {
