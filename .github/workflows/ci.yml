@@ -54,7 +54,7 @@ jobs:
  
         - name: Restore Tools
           run: dotnet tool restore
-        
+
         - name: Restore Packages
           run: dotnet restore
 
@@ -96,11 +96,10 @@ jobs:
                else
                  echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
                fi
-       
+
             - name: Set Artifacts Directory
               id: artifactsPath
               run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
-   
 
             # FIXME: 3.1 LTS is required here because iOS builds still uses 3.1.
             # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
