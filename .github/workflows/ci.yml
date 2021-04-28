@@ -159,15 +159,15 @@ jobs:
         with:
           name: osu-framework-templates
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
-  
+
   pack-android:
-     name: Pack (Android)
-     runs-on: windows-latest
-     needs: inspect-code
-     defaults:
+    name: Pack (Android)
+    runs-on: windows-latest
+    needs: inspect-code
+    defaults:
       run:
         shell: powershell
-     steps:
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -184,6 +184,7 @@ jobs:
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
@@ -198,13 +199,13 @@ jobs:
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
   pack-ios:
-     name: Pack (iOS)
-     runs-on: macos-latest
-     needs: inspect-code
-     defaults:
-       run:
-         shell: bash
-     steps:
+    name: Pack (iOS)
+    runs-on: macos-latest
+    needs: inspect-code
+    defaults:
+      run:
+        shell: bash
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -220,8 +221,6 @@ jobs:
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Pack (iOS Framework)
         run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
