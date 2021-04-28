@@ -1,12 +1,4 @@
-on:
-  pull_request:
-    branches:
-      - "*"
-  push:
-    branches:
-      - "*"
-    tags:
-      - "*"
+on: [push, pull_request]
 
 name: Continuous Integration
 
