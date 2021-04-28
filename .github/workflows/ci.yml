@@ -71,7 +71,7 @@ jobs:
       - name: ReSharper
         uses: glassechidna/resharper-action@master
         with:
-          report: ${{github.workspace}}/inspectcodereport.xml
+          solution: ${{github.workspace}}/osu-framework.Desktop.slnf
 
   pack-framework:
     name: Pack (Framework)
