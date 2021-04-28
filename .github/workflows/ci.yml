@@ -68,10 +68,13 @@ jobs:
       - name: .NET Format (Dry Run)
         run: dotnet format --dry-run --check
 
+      - name: InspectCode
+        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
+
       - name: ReSharper
         uses: glassechidna/resharper-action@master
         with:
-          solution: ${{github.workspace}}/osu-framework.Desktop.slnf
+          report: ${{github.workspace}}/inspectcodereport.xml
 
   pack-framework:
     name: Pack (Framework)
