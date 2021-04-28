@@ -219,7 +219,7 @@ jobs:
 
       - name: Set Artifacts Directory
         id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
