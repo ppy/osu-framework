@@ -254,7 +254,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: ${{github.workspace}}/artifacts/
-   
+
         # Artifacts create their own directories. Let's fix that!
         # https://github.com/actions/download-artifact#download-all-artifacts
       - name: Move Artifacts to root of subdirectory
