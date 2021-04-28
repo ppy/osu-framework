@@ -1,4 +1,11 @@
-on: [push, pull_request, release]
+on:
+  pull_request:
+    branches:
+      - "*"
+  push:
+    branches:
+      - "*"
+
 name: Continuous Integration
 
 jobs:
@@ -68,10 +75,10 @@ jobs:
       - name: .NET Format (Dry Run)
         run: dotnet format --dry-run --check
 
-      - name: InspectCode
-        run: |
-          dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
-          dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors
+      - name: ReSharper
+        uses: glassechidna/resharper-action@master
+        with:
+          report: ${{github.workspace}}/inspectcodereport.xml
 
   pack-framework:
     name: Pack (Framework)
