@@ -264,7 +264,6 @@ namespace osu.Framework.Testing
                 // - The single IdentifierName child of a foreach expression (source variable name), below.
                 // - The single 'var' IdentifierName child of a variable declaration, below.
                 // - Element access expressions.
-                // - Generic type argument lists.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
@@ -274,7 +273,6 @@ namespace osu.Framework.Testing
                        && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
                        && kind != SyntaxKind.NameColon
                        && kind != SyntaxKind.ElementAccessExpression
-                       && kind != SyntaxKind.TypeArgumentList
                        && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
 
