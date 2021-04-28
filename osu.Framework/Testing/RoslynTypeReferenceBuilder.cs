@@ -269,7 +269,6 @@ namespace osu.Framework.Testing
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
                        && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
-                       && kind != SyntaxKind.VariableDeclarator
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
                        && kind != SyntaxKind.NameColon
                        && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
@@ -293,6 +292,7 @@ namespace osu.Framework.Testing
 
                     switch (node.Parent.Kind())
                     {
+                        case SyntaxKind.VariableDeclarator: // Ignore the variable name of variable declarators.
                         case SyntaxKind.Argument: // Ignore the variable name of arguments.
                         case SyntaxKind.InvocationExpression: // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
                         case SyntaxKind.ForEachStatement: // Ignore a single identifier of a foreach statement (the source).
