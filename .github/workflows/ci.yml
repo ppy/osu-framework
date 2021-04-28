@@ -35,12 +35,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS and 2.1 LTS side by side.
+      # FIXME: Tools won't run in .NET 5.0 unless you install 3.1.x LTS side by side.
       # https://itnext.io/how-to-support-multiple-net-sdks-in-github-actions-workflows-b988daa884e
-      - name: Install .NET 2.1.x LTS
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "2.1.x"
 
       - name: Install .NET 3.1.x LTS
         uses: actions/setup-dotnet@v1
@@ -77,8 +73,8 @@ jobs:
           dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
           dotnet nvika parsereport $(pwd)/inspectcodereport.xml  --treatwarningsaserrors
 
-  pack-n-publish:
-    name: Pack and Publish
+  pack-framework:
+    name: Pack (Framework)
     runs-on: windows-latest
     needs: inspect-code
     defaults:
@@ -114,20 +110,45 @@ jobs:
         with:
           dotnet-version: "5.0.x"
 
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
-
       - name: Pack (Framework)
         run: dotnet pack -c Release osu.Framework /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
-      - name: Pack (iOS Framework)
-        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        if: ${{ github.event != 'release' }}
+        with:
+          name: osu-framework
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
-      - name: Pack (Android Framework)
-        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+  pack-template:
+    name: Pack (Templates)
+    runs-on: windows-latest
+    needs: inspect-code
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: Pack (Native Libraries)
-        run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+      - name: Set Variables
+        id: deployment
+        shell: bash
+        run: |
+          if [ ${{ github.event == 'release' && github.actor == 'peppy' }} == true ]; then
+            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          else
+            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+          fi
+
+      - name: Set Artifacts Directory
+        id: artifactsPath
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+
+      - name: Install .NET 5.0.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
 
       - name: Pack (Template)
         run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
@@ -136,12 +157,78 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ github.event != 'release' }}
         with:
+          name: osu-framework-templates
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+  
+  pack-android:
+     name: Pack (Android)
+     runs-on: windows-latest
+     needs: inspect-code
+     defaults:
+      run:
+        shell: powershell
+     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set Variables
+        id: deployment
+        shell: bash
+        run: |
+          if [ ${{ github.event == 'release' && github.actor == 'peppy' }} == true ]; then
+            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          else
+            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+          fi
+
+      - name: Set Artifacts Directory
+        id: artifactsPath
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Pack (Android Framework)
+        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        if: ${{ github.event != 'release' }}
+        with:
+          name: osu-framework-android
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
-######## TODO: Move releases in it's own workflow. For now it's commented out.
-######## Manually authenticate for now as setup-dotnet ignores our auth tokens
-######## See: https://github.com/actions/setup-dotnet/issues/190
-#      - name: Publish to NuGet
-#        run: |
-#          dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
-#          dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --skip-duplicate --source authed-nuget
+  pack-ios:
+     name: Pack (iOS)
+     runs-on: macos-latest
+     needs: inspect-code
+     defaults:
+       run:
+         shell: bash
+     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set Variables
+        id: deployment
+        run: |
+          if [ ${{ github.event == 'release' && github.actor == 'peppy' }} == true ]; then
+            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          else
+            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+          fi
+
+      - name: Set Artifacts Directory
+        id: artifactsPath
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Pack (iOS Framework)
+        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        if: ${{ github.event != 'release' }}
+        with:
+          name: osu-framework-ios
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
