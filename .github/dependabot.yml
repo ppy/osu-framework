@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "17:00"
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: Markdig
+    versions:
+    - "> 0.22.1, < 1"
+  - dependency-name: System.Memory
+    versions:
+    - "> 4.5.0, < 4.6"
+  - dependency-name: ppy.osu.Framework.iOS
+    versions:
+    - 2021.128.0
+    - 2021.226.0
+    - 2021.330.0
+  - dependency-name: FFmpeg.AutoGen
+    versions:
+    - 4.3.1
+  - dependency-name: NUnit
+    versions:
+    - 3.13.1
