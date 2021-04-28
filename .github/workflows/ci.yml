@@ -30,7 +30,6 @@ jobs:
 
   inspect-code:
     name: Code Quality
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,7 +60,8 @@ jobs:
 
       - name: CodeFileSanity
         run: |
-          # Suppress warnings from templates project
+          # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
+          # FIXME: Suppress warnings from templates project
           # https://unix.stackexchange.com/questions/104641/how-can-i-suppress-output-from-grep-so-that-it-only-returns-the-exit-status
           dotnet codefilesanity | while read -r line; do
              if [ $(echo $line| grep -q "./osu.Framework.Templates/"; echo $?) == 1 ]; then
@@ -130,7 +130,7 @@ jobs:
         run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.NativeLibs /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -138,10 +138,10 @@ jobs:
         with:
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
 
-      # Manually authenticate for now as setup-dotnet ignores our auth tokens
-      # See: https://github.com/actions/setup-dotnet/issues/190
+######## TODO: Move releases in it's own workflow. For now it's commented out.
+######## Manually authenticate for now as setup-dotnet ignores our auth tokens
+######## See: https://github.com/actions/setup-dotnet/issues/190
 #      - name: Publish to NuGet
-#        if: ${{ github.event == 'release' }}
 #        run: |
 #          dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
 #          dotnet nuget push ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg --skip-duplicate --source authed-nuget
