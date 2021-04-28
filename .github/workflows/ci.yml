@@ -241,6 +241,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [pack-android, pack-framework, pack-template, pack-ios]
+    if: ${{ github.event != 'pull_request' }}
     continue-on-error: true
     steps:
       - name: Get Git tag
@@ -270,6 +271,6 @@ jobs:
             echo "Skipping publish, no tag detected."
             exit 0;
           else
-            echo "TBD! This is just to evaluate if this release pipeline works."
-            exit 0;
+            dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
+            dotnet nuget push ${{github.workspace}}/artifacts/*.nupkg --skip-duplicate --source authed-nuget
           fi
