@@ -69,7 +69,7 @@ jobs:
         run: dotnet format --dry-run --check
 
       - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
+        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
 
       - name: ReSharper
         uses: glassechidna/resharper-action@master
