@@ -247,10 +247,27 @@ jobs:
         id: tag
         uses: olegtarasov/get-tag@v2.1
 
-      - name: Push to NuGet
+      - name: Create Artifact Directory
+        run: mkdir ${{github.workspace}}/artifacts/
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{github.workspace}}/artifacts/
+        
+        # Artifacts create their own directories. Let's fix that!
+        # https://github.com/actions/download-artifact#download-all-artifacts
+      - name: Move Artifacts to root of subdirectory
+        working-directory: ${{github.workspace}}/artifacts/
         run: |
-          if [ -z ${{steps.tag.outputs.tag}} ]; 
-            echo "::warn::Skipping publish, no tag detected."
+          mv -v **/*.nupkg $(pwd)
+          rm -rfv */
+
+      - name: Deploy
+        if: ${{ always() }}
+        run: |
+          if [ -z ${{steps.tag.outputs.tag}} ];
+            echo "Skipping publish, no tag detected."
             exit 0;
           else
             echo "TBD! This is just to evaluate if this release pipeline works."
