@@ -262,7 +262,9 @@ jobs:
       - name: Deploy
         if: ${{ always() }}
         run: |
-          if [ -z ${{steps.tag.outputs.tag}} ];
+          version=${{steps.tag.outputs.tag}}
+
+          if [ -z $version ]; then
             echo "Skipping publish, no tag detected."
             exit 0;
           else
