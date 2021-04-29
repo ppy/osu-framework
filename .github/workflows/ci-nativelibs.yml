@@ -19,7 +19,7 @@ jobs:
           fi
   deploy:
     name: Deploy
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: check-if-tag
     steps:
       - name: Checkout
@@ -41,10 +41,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: osu-framework-nativelibs
-          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}\*.nupkg
+          path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
 
       - name: Deploy
-        shell: bash
         run: |
           if [ $(echo ${{needs.check-if-tag.outputs.version}} | grep -q "0.0.0+${{github.run_id}}"; echo $?) == 0 ]; then
             echo "Skipping publish, no tag detected."
