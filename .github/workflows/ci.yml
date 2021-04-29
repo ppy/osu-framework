@@ -231,7 +231,7 @@ jobs:
 
       - name: Deploy
         run: |
-          if [ $(echo {{needs.check-if-tag.outputs.version}}| grep -q "0.0.0+${{github.run_id}}"; echo $?) == 0 ]; then
+          if [ $(echo ${{needs.check-if-tag.outputs.version}} | grep -q "0.0.0+${{github.run_id}}"; echo $?) == 0 ]; then
             echo "Skipping publish, no tag detected."
             exit 0;
           else
