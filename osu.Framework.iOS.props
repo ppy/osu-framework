@@ -79,6 +79,6 @@
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
-    <PackageReference Include="System.Memory" Version="4.5.0" NoWarn="NU1605" />
+    <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605" />
   </ItemGroup>
 </Project>
