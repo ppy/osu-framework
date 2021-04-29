@@ -1,8 +1,22 @@
 on: [push, pull_request]
-
 name: Continuous Integration
 
 jobs:
+  check-if-tag:
+    name: Get Git Tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{steps.deployment.outputs.version}}
+    steps:
+      - name: Set Variables
+        id: deployment
+        shell: bash
+        run: |
+          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
+            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          else
+            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+          fi
   test:
     name: Test
     runs-on: windows-latest
@@ -79,23 +93,13 @@ jobs:
   pack-framework:
     name: Pack (Framework)
     runs-on: windows-latest
-    needs: inspect-code
+    needs: [inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
-          else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
-          fi
 
       - name: Set Artifacts Directory
         id: artifactsPath
@@ -114,7 +118,7 @@ jobs:
           dotnet-version: "5.0.x"
 
       - name: Pack (Framework)
-        run: dotnet pack -c Release osu.Framework /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true  -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -125,23 +129,13 @@ jobs:
   pack-template:
     name: Pack (Templates)
     runs-on: windows-latest
-    needs: inspect-code
+    needs: [inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
-          else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
-          fi
 
       - name: Set Artifacts Directory
         id: artifactsPath
@@ -153,7 +147,7 @@ jobs:
           dotnet-version: "5.0.x"
 
       - name: Pack (Template)
-        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{steps.deployment.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: dotnet pack -c Release osu.Framework.Templates /p:Configuration=Release /p:Version=${{needs.check-if-tag.outputs.version}} /p:GenerateDocumentationFile=true /p:NoDefaultExcludes=true -o ${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -164,23 +158,13 @@ jobs:
   pack-android:
     name: Pack (Android)
     runs-on: windows-latest
-    needs: inspect-code
+    needs: [inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
-          else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
-          fi
 
       - name: Set Artifacts Directory
         id: artifactsPath
@@ -190,7 +174,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
 
       - name: Pack (Android Framework)
-        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.Android/osu.Framework.Android.csproj -p:Configuration=Release -p:Version=${{needs.check-if-tag.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -201,7 +185,7 @@ jobs:
   pack-ios:
     name: Pack (iOS)
     runs-on: macos-latest
-    needs: inspect-code
+    needs: [inspect-code, check-if-tag]
     defaults:
       run:
         shell: bash
@@ -209,21 +193,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set Variables
-        id: deployment
-        run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
-          else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
-          fi
-
       - name: Set Artifacts Directory
         id: artifactsPath
         run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
       - name: Pack (iOS Framework)
-        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{steps.deployment.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
+        run: msbuild -bl:msbuildlog.binlog -v:m -target:Pack -r osu.Framework.iOS/osu.Framework.iOS.csproj -p:Configuration=Release -p:Version=${{needs.check-if-tag.outputs.version}} -p:PackageOutputPath=${{steps.artifactsPath.outputs.nuget_artifacts}}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
@@ -235,14 +210,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [pack-android, pack-framework, pack-template, pack-ios]
+    needs: [check-if-tag, pack-android, pack-framework, pack-template, pack-ios]
     if: ${{ github.event != 'pull_request' }}
-    continue-on-error: true
     steps:
-      - name: Get Git tag
-        id: tag
-        uses: olegtarasov/get-tag@v2.1
-
       - name: Create Artifact Directory
         run: mkdir ${{github.workspace}}/artifacts/
 
@@ -260,11 +230,8 @@ jobs:
           rm -rfv */
 
       - name: Deploy
-        if: ${{ always() }}
         run: |
-          version=${{steps.tag.outputs.tag}}
-
-          if [ -z $version ]; then
+          if [ $(echo {{needs.check-if-tag.outputs.version}}| grep -q "0.0.0+${{github.run_id}}"; echo $?) == 0 ]; then
             echo "Skipping publish, no tag detected."
             exit 0;
           else
