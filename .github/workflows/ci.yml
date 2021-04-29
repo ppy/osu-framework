@@ -74,7 +74,7 @@ jobs:
           # FIXME: Suppress warnings from templates project
           # https://unix.stackexchange.com/questions/104641/how-can-i-suppress-output-from-grep-so-that-it-only-returns-the-exit-status
           dotnet codefilesanity | while read -r line; do
-             if [ $(echo $line| grep -q "./osu.Framework.Templates/"; echo $?) == 1 ]; then
+             if [[ "$line" != *"/osu.Framework.Templates/"* ]]; then
                echo "::warning::$line"
              fi
           done
