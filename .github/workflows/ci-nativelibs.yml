@@ -27,7 +27,7 @@ jobs:
 
       - name: Set Artifacts Directory
         id: artifactsPath
-        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}\artifacts"
+        run: echo "::set-output name=NUGET_ARTIFACTS::${{github.workspace}}/artifacts"
 
       - name: Setup .NET 5.0.x
         uses: actions/setup-dotnet@v1
