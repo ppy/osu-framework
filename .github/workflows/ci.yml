@@ -72,7 +72,6 @@ jobs:
         run: |
           # TODO: Add ignore filters and GitHub Workflow Command Reporting in CFS. That way we don't have to do this workaround.
           # FIXME: Suppress warnings from templates project
-          # https://unix.stackexchange.com/questions/104641/how-can-i-suppress-output-from-grep-so-that-it-only-returns-the-exit-status
           dotnet codefilesanity | while read -r line; do
              if [[ "$line" != *"/osu.Framework.Templates/"* ]]; then
                echo "::warning::$line"
@@ -202,7 +201,6 @@ jobs:
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
-        if: ${{ github.event != 'release' }}
         with:
           name: osu-framework-ios
           path: ${{steps.artifactsPath.outputs.nuget_artifacts}}/*.nupkg
