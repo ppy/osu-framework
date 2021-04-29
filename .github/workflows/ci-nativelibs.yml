@@ -6,7 +6,7 @@ jobs:
     name: Get Git Tag
     runs-on: ubuntu-latest
     outputs:
-      version: ${{needs.check-if-tag.outputs.version}}
+      version: ${{steps.deployment.outputs.version}}
     steps:
       - name: Set Variables
         id: deployment
