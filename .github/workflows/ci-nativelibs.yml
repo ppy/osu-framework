@@ -3,7 +3,7 @@ name: Continuous Integration - NativeLibs
 
 jobs:
   check-if-tag:
-    name: Get Git Tag
+    name: Set Package Version
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.deployment.outputs.version}}
