@@ -1,0 +1,17 @@
+name: "Test Report"
+on:
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types:
+      - completed
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Continuous Integration Test Report
+        uses: dorny/test-reporter@v1.4.2
+        with:
+          artifact: osu-framework-test-results
+          name: Test Results
+          path: "*.trx"
+          reporter: dotnet-trx
