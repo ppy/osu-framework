@@ -92,7 +92,7 @@ jobs:
   pack-framework:
     name: Pack (Framework)
     runs-on: windows-latest
-    needs: [inspect-code, check-if-tag]
+    needs: [test, inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
@@ -128,7 +128,7 @@ jobs:
   pack-template:
     name: Pack (Templates)
     runs-on: windows-latest
-    needs: [inspect-code, check-if-tag]
+    needs: [test, inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
@@ -157,7 +157,7 @@ jobs:
   pack-android:
     name: Pack (Android)
     runs-on: windows-latest
-    needs: [inspect-code, check-if-tag]
+    needs: [test, inspect-code, check-if-tag]
     defaults:
       run:
         shell: powershell
@@ -184,7 +184,7 @@ jobs:
   pack-ios:
     name: Pack (iOS)
     runs-on: macos-latest
-    needs: [inspect-code, check-if-tag]
+    needs: [test, inspect-code, check-if-tag]
     defaults:
       run:
         shell: bash
