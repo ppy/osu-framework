@@ -41,7 +41,7 @@ jobs:
         if: ${{ always() }}
         with:
           name: osu-framework-test-results
-          path: ${{github.workspace}}\TestResults.trx
+          path: ${{github.workspace}}\TestResults\TestResults.trx
 
   inspect-code:
     name: Code Quality
