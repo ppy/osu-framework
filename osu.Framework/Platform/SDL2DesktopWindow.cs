@@ -167,7 +167,7 @@ namespace osu.Framework.Platform
 
         public IBindable<bool> IsActive => isActive;
 
-        private readonly BindableBool cursorInWindow = new BindableBool(true);
+        private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
