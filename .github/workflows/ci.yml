@@ -36,6 +36,8 @@ jobs:
         run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults.trx"
         shell: powershell
 
+      # Attempt to upload results even if test fails.
+      # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
       - name: Upload Test Results
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
