@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-    <PackageReference Include="nunit" Version="3.13.1" />
+    <PackageReference Include="nunit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <!-- The following two are unused, but resolves warning MSB3277. -->
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
