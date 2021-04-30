@@ -1,3 +1,7 @@
+# This is a workaround to allow PRs to report their coverage. This will run inside the base repository.
+# See:
+#   * https://github.com/dorny/test-reporter#recommended-setup-for-public-repositories
+#   * https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token
 name: "Test Report"
 on:
   workflow_run:
