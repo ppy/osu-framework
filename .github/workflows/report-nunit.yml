@@ -1,4 +1,4 @@
-# This is a workaround to allow PRs to report their coverage. This will run inside the base repository.
+# HACK: This is a workaround to allow PRs to report their coverage. This will run inside the base repository.
 # See:
 #   * https://github.com/dorny/test-reporter#recommended-setup-for-public-repositories
 #   * https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token
@@ -12,6 +12,8 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
+      # FIXME: Do not run if workflow is cancelled!
+      # https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_run
       - name: Continuous Integration Test Report
         uses: dorny/test-reporter@v1.4.2
         with:
