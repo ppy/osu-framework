@@ -161,6 +161,7 @@ namespace osu.Framework.Platform
 
             // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
             activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
+            Logger.Log($"Execution mode changed to {activeExecutionMode}");
 
             pauseAllThreads();
 
