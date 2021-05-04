@@ -3,20 +3,40 @@
 
 using System;
 using System.Collections.Concurrent;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input.Handlers
 {
-    public abstract class InputHandler : IDisposable
+    public abstract class InputHandler : IDisposable, IHasDescription
     {
+        private bool isInitialized;
+
         /// <summary>
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize(GameHost host);
+        public virtual bool Initialize(GameHost host)
+        {
+            if (isInitialized)
+                throw new InvalidOperationException($"{nameof(Initialize)} was run more than once");
+
+            isInitialized = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Reset this handler to a sane default state. This should reset any settings a consumer or user may have changed in order to attempt to make the handler usable again.
+        /// </summary>
+        /// <remarks>
+        /// An example would be a user setting the sensitivity too high to turn it back down, or restricting the navigable screen area too small.
+        /// Calling this would attempt to return the user to a sane state so they could re-attempt configuration changes.
+        /// </remarks>
+        public virtual void Reset()
+        {
+        }
 
         protected ConcurrentQueue<IInput> PendingInputs = new ConcurrentQueue<IInput>();
 
@@ -41,14 +61,14 @@ namespace osu.Framework.Input.Handlers
         public abstract bool IsActive { get; }
 
         /// <summary>
-        /// Indicated how high of a priority this handler has. The active handler with the highest priority is controlling the cursor at any given time.
+        /// A user-readable description of this input handler, for display in settings.
         /// </summary>
-        public abstract int Priority { get; }
+        public virtual string Description => ToString().Replace("Handler", string.Empty);
 
         /// <summary>
         /// Whether this InputHandler should be collecting <see cref="IInput"/>s to return on the next <see cref="CollectPendingInputs"/> call
         /// </summary>
-        public readonly BindableBool Enabled = new BindableBool(true);
+        public BindableBool Enabled { get; } = new BindableBool(true);
 
         public override string ToString() => GetType().Name;
 
@@ -63,11 +83,6 @@ namespace osu.Framework.Input.Handlers
 
             Enabled.Value = false;
             IsDisposed = true;
-        }
-
-        ~InputHandler()
-        {
-            Dispose(false);
         }
 
         public void Dispose()

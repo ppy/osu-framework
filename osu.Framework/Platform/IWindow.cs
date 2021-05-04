@@ -148,17 +148,15 @@ namespace osu.Framework.Platform
         bool Focused { get; }
 
         /// <summary>
-        /// Convert a window based coordinate to global screen space.
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        Point PointToClient(Point point);
-
-        /// <summary>
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
-        /// <returns></returns>
+        Point PointToClient(Point point);
+
+        /// <summary>
+        /// Convert a window based coordinate to global screen space.
+        /// </summary>
+        /// <param name="point"></param>
         Point PointToScreen(Point point);
 
         /// <summary>

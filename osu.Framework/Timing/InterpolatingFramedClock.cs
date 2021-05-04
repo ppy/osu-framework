@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 
 namespace osu.Framework.Timing
@@ -13,9 +15,9 @@ namespace osu.Framework.Timing
     {
         private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
 
-        public IClock Source { get; private set; }
+        public IClock? Source { get; private set; }
 
-        protected IFrameBasedClock FramedSourceClock;
+        protected IFrameBasedClock? FramedSourceClock;
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
@@ -23,7 +25,7 @@ namespace osu.Framework.Timing
 
         public double FramesPerSecond => 0;
 
-        public virtual void ChangeSource(IClock source)
+        public virtual void ChangeSource(IClock? source)
         {
             if (source != null)
             {
@@ -35,7 +37,7 @@ namespace osu.Framework.Timing
             CurrentInterpolatedTime = 0;
         }
 
-        public InterpolatingFramedClock(IClock source = null)
+        public InterpolatingFramedClock(IClock? source = null)
         {
             ChangeSource(source);
         }
@@ -53,13 +55,13 @@ namespace osu.Framework.Timing
 
         public virtual double Rate
         {
-            get => FramedSourceClock.Rate;
+            get => FramedSourceClock?.Rate ?? 1;
             set => throw new NotSupportedException();
         }
 
         public virtual bool IsRunning => sourceIsRunning;
 
-        public virtual double Drift => CurrentTime - FramedSourceClock.CurrentTime;
+        public virtual double Drift => CurrentTime - (FramedSourceClock?.CurrentTime ?? 0);
 
         public virtual double ElapsedFrameTime => CurrentInterpolatedTime - LastInterpolatedTime;
 

@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Graphics.ES30;
@@ -36,6 +37,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Video;
+using osu.Framework.IO.Serialization;
 using osu.Framework.IO.Stores;
 using SixLabors.ImageSharp.Memory;
 using Image = SixLabors.ImageSharp.Image;
@@ -52,6 +54,8 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config { get; private set; }
 
+        protected InputConfigManager InputConfig { get; private set; }
+
         /// <summary>
         /// Whether the <see cref="IWindow"/> is active (in the foreground).
         /// </summary>
@@ -63,7 +67,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// To preserve battery life on mobile devices, this should be left on whenever possible.
         /// </remarks>
-        public readonly Bindable<bool> AllowScreenSuspension = new Bindable<bool>(true);
+        public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
@@ -218,16 +222,16 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        private Toolkit toolkit;
-
-        private readonly ToolkitOptions toolkitOptions;
-
         private bool suspended;
 
-        protected GameHost(string gameName = @"", ToolkitOptions toolkitOptions = default)
+        protected GameHost(string gameName = @"")
         {
-            this.toolkitOptions = toolkitOptions;
             Name = gameName;
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new Vector2Converter() }
+            };
         }
 
         /// <summary>
@@ -243,61 +247,74 @@ namespace osu.Framework.Platform
         private void unhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var exception = (Exception)args.ExceptionObject;
-            exception.Data["unhandled"] = "unhandled";
-            handleException(sender, exception);
+
+            logException(exception, "unhandled");
+            abortExecutionFromException(sender, exception, args.IsTerminating);
         }
 
         private void unobservedExceptionHandler(object sender, UnobservedTaskExceptionEventArgs args)
         {
-            args.Exception.Data["unhandled"] = "unobserved";
-            handleException(sender, args.Exception);
+            // unobserved exceptions are logged but left unhandled (most of the time they are not intended to be critical).
+            logException(args.Exception, "unobserved");
         }
 
-        private void handleException(object sender, Exception exception)
+        private void logException(Exception exception, string type)
         {
-            if (ExceptionThrown?.Invoke(exception) != true)
+            Logger.Error(exception, $"An {type} error has occurred.", recursive: true);
+        }
+
+        /// <summary>
+        /// Give the running application a last change to handle an otherwise unhandled exception, and potentially ignore it.
+        /// </summary>
+        /// <param name="sender">The source, generally a <see cref="GameThread"/>.</param>
+        /// <param name="exception">The unhandled exception.</param>
+        /// <param name="isTerminating">Whether the CLR is terminating.</param>
+        private void abortExecutionFromException(object sender, Exception exception, bool isTerminating)
+        {
+            // nothing needs to be done if the consumer has requested continuing execution.
+            if (ExceptionThrown?.Invoke(exception) == true) return;
+
+            // otherwise, we need to unwind and abort execution.
+
+            AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
+            TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
+
+            var captured = ExceptionDispatchInfo.Capture(exception);
+            var thrownEvent = new ManualResetEventSlim(false);
+
+            //we want to throw this exception on the input thread to interrupt window and also headless execution.
+            InputThread.Scheduler.Add(() =>
             {
-                AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
-                TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
-
-                var captured = ExceptionDispatchInfo.Capture(exception);
-                var thrownEvent = new ManualResetEventSlim(false);
-
-                //we want to throw this exception on the input thread to interrupt window and also headless execution.
-                InputThread.Scheduler.Add(() =>
+                try
                 {
-                    try
-                    {
-                        captured.Throw();
-                    }
-                    finally
-                    {
-                        thrownEvent.Set();
-                    }
-                });
-
-                // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
-                // To avoid this, pause the exceptioning thread until the rethrow takes place.
-                waitForThrow();
-
-                // schedule an exit to the input thread.
-                // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-                PerformExit(false);
-
-                void waitForThrow()
-                {
-                    // This is bypassed for GameThread sources in two situations where deadlocks can occur:
-                    // 1. When the exceptioning thread is the input thread.
-                    // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
-                    if (sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
-                        return;
-
-                    // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
-                    thrownEvent.Wait(TimeSpan.FromSeconds(10));
+                    captured.Throw();
                 }
-            }
+                finally
+                {
+                    thrownEvent.Set();
+                }
+            });
 
-            Logger.Error(exception, $"An {exception.Data["unhandled"]} error has occurred.", recursive: true);
+            // Stopping running threads before the exception is rethrown on the input thread causes some debuggers (e.g. Rider 2020.2) to not properly display the stack.
+            // To avoid this, pause the exceptioning thread until the rethrow takes place.
+            waitForThrow();
+
+            // schedule an exit to the input thread.
+            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
+            PerformExit(false);
+
+            void waitForThrow()
+            {
+                // This is bypassed for sources in a few situations where deadlocks can occur:
+                // 1. When the exceptioning thread is GameThread.Input.
+                // 2. When the game is running in single-threaded mode. Single threaded stacks will be displayed correctly at the point of rethrow.
+                // 3. When the CLR is terminating. We can't guarantee the input thread is still running, and may delay application termination.
+                if (isTerminating || sender is GameThread && (sender == InputThread || executionMode.Value == ExecutionMode.SingleThread))
+                    return;
+
+                // The process can deadlock in an extreme case such as the input thread dying before the delegate executes, so wait up to a maximum of 10 seconds at all times.
+                thrownEvent.Wait(TimeSpan.FromSeconds(10));
+            }
         }
 
         protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => Activated?.Invoke());
@@ -471,7 +488,7 @@ namespace osu.Framework.Platform
                 });
 
                 // this is required as attempting to use a TaskCompletionSource blocks the thread calling SetResult on some configurations.
-                await Task.Run(completionEvent.Wait);
+                await Task.Run(completionEvent.Wait).ConfigureAwait(false);
 
                 var image = Image.LoadPixelData<Rgba32>(pixelData.Memory.Span, width, height);
                 image.Mutate(c => c.Flip(FlipMode.Vertical));
@@ -530,8 +547,6 @@ namespace osu.Framework.Platform
 
             try
             {
-                SetupToolkit();
-
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -568,6 +583,8 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
+                initialiseInputHandlers();
+
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
                 if (Window != null)
@@ -580,8 +597,6 @@ namespace osu.Framework.Platform
                     IsActive.BindTo(Window.IsActive);
                 }
 
-                resetInputHandlers();
-
                 threadRunner.Start();
 
                 DrawThread.WaitUntilInitialized();
@@ -589,7 +604,6 @@ namespace osu.Framework.Platform
                 bootstrapSceneGraph(game);
 
                 frameSyncMode.TriggerChange();
-                ignoredInputHandlers.TriggerChange();
 
                 IsActive.BindValueChanged(active =>
                 {
@@ -690,30 +704,30 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
-        protected virtual void SetupToolkit()
+        private void initialiseInputHandlers()
         {
-            toolkit = toolkitOptions != null ? Toolkit.Init(toolkitOptions) : Toolkit.Init();
-        }
-
-        private void resetInputHandlers()
-        {
-            if (AvailableInputHandlers != null)
-            {
-                foreach (var h in AvailableInputHandlers)
-                    h.Dispose();
-            }
-
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
 
             foreach (var handler in AvailableInputHandlers)
             {
-                if (!handler.Initialize(this))
-                {
-                    handler.Enabled.Value = false;
-                    continue;
-                }
-
                 (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
+
+                if (!handler.Initialize(this))
+                    handler.Enabled.Value = false;
+            }
+        }
+
+        /// <summary>
+        /// Reset all input handlers' settings to a default state.
+        /// </summary>
+        public void ResetInputHandlers()
+        {
+            // restore any disable handlers per legacy configuration.
+            ignoredInputHandlers.TriggerChange();
+
+            foreach (var handler in AvailableInputHandlers)
+            {
+                handler.Reset();
             }
         }
 
@@ -756,7 +770,7 @@ namespace osu.Framework.Platform
 
         private Bindable<string> ignoredInputHandlers;
 
-        private Bindable<double> cursorSensitivity;
+        private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
 
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
@@ -835,31 +849,28 @@ namespace osu.Framework.Platform
                 MaximumUpdateHz = updateLimiter;
             };
 
+#pragma warning disable 618
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
                 var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
 
-                // for now, we always want at least one handler disabled (don't want raw and non-raw mouse at once).
-                // Todo: We renamed OpenTK to osuTK, the second condition can be removed after some time has passed
-                bool restoreDefaults = !configIgnores.Any() || e.NewValue.Contains("OpenTK");
-
-                if (restoreDefaults)
+                foreach (var handler in AvailableInputHandlers)
                 {
-                    resetInputHandlers();
-                    ignoredInputHandlers.Value = string.Join(' ', AvailableInputHandlers.Where(h => !h.Enabled.Value).Select(h => h.ToString()));
-                }
-                else
-                {
-                    foreach (var handler in AvailableInputHandlers)
-                    {
-                        var handlerType = handler.ToString();
-                        handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
-                    }
+                    var handlerType = handler.ToString();
+                    handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };
 
-            cursorSensitivity = Config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
+            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
+
+            // one way binding to preserve compatibility.
+            cursorSensitivity.BindValueChanged(val =>
+            {
+                foreach (var h in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
+                    h.Sensitivity.Value = val.NewValue;
+            }, true);
+#pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
             {
@@ -883,6 +894,9 @@ namespace osu.Framework.Platform
                     t.Scheduler.Add(() => { t.CurrentCulture = culture; });
                 }
             }, true);
+
+            // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
+            Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
         }
 
         private void setVSyncMode()
@@ -892,6 +906,9 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Window.VerticalSync = frameSyncMode.Value == FrameSync.VSync);
         }
 
+        /// <summary>
+        /// Construct all input handlers for this host. The order here decides the priority given to handlers, with the earliest occurring having higher priority.
+        /// </summary>
         protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
 
         public ImmutableArray<InputHandler> AvailableInputHandlers { get; private set; }
@@ -925,19 +942,13 @@ namespace osu.Framework.Platform
 
             stoppedEvent.Dispose();
 
+            InputConfig?.Dispose();
             Config?.Dispose();
             DebugConfig?.Dispose();
 
             Window?.Dispose();
 
-            toolkit?.Dispose();
-
             Logger.Flush();
-        }
-
-        ~GameHost()
-        {
-            Dispose(false);
         }
 
         public void Dispose()

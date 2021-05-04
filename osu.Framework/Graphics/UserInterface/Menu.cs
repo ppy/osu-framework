@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -362,8 +363,8 @@ namespace osu.Framework.Graphics.UserInterface
                 height = Math.Min(MaxHeight, height);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
-                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
+                width = RelativeSizeAxes.HasFlagFast(Axes.X) ? Width : width;
+                height = RelativeSizeAxes.HasFlagFast(Axes.Y) ? Height : height;
 
                 if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;
@@ -537,7 +538,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
-        /// <returns></returns>
         protected abstract Menu CreateSubMenu();
 
         /// <summary>

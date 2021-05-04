@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using osu.Framework.Audio;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
 using osuTK;
@@ -40,8 +41,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 base.Size = new Vector2(
-                    RelativeSizeAxes.HasFlag(Axes.X) ? 1 : value.X,
-                    RelativeSizeAxes.HasFlag(Axes.Y) ? 1 : value.Y);
+                    RelativeSizeAxes.HasFlagFast(Axes.X) ? 1 : value.X,
+                    RelativeSizeAxes.HasFlagFast(Axes.Y) ? 1 : value.Y);
 
                 container.Size = value;
             }

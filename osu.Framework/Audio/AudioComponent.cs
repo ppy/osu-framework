@@ -60,21 +60,6 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// States if this component should repeat.
-        /// </summary>
-        public virtual bool Looping { get; set; }
-
-        /// <summary>
-        /// Invoked when the component should loop.
-        /// </summary>
-        /// <remarks>
-        /// Used to restart the playback when looping is enabled and playback has completed.
-        /// </remarks>
-        protected virtual void OnLooping()
-        {
-        }
-
-        /// <summary>
         /// Run each loop of the audio thread's execution after queued actions are completed to allow components to perform any additional operations.
         /// </summary>
         protected virtual void UpdateState()
@@ -105,12 +90,7 @@ namespace osu.Framework.Audio
                 task.RunSynchronously();
 
             if (!IsDisposed)
-            {
                 UpdateState();
-
-                if (Looping && HasCompleted)
-                    OnLooping();
-            }
 
             UpdateChildren();
         }
@@ -132,24 +112,19 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        ~AudioComponent()
-        {
-            Dispose(false);
-        }
-
         protected volatile bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            IsDisposed = true;
-        }
-
-        public virtual void Dispose()
+        public void Dispose()
         {
             acceptingActions = false;
             PendingActions.Enqueue(new Task(() => Dispose(true)));
 
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            IsDisposed = true;
         }
 
         #endregion

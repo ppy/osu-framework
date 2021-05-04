@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 if (Children.Count != 1)
-                    throw new InvalidOperationException($"{nameof(Child)} is only available when there's only 1 in {nameof(Children)}!");
+                    throw new InvalidOperationException($"Cannot call {nameof(InternalChild)} unless there's exactly one {nameof(Drawable)} in {nameof(Children)} (currently {Children.Count})!");
 
                 return Children[0];
             }

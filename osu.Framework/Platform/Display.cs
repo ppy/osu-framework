@@ -59,7 +59,6 @@ namespace osu.Framework.Platform
         /// <param name="size">The <see cref="Size"/> to match.</param>
         /// <param name="bitsPerPixel">The bits per pixel to match. If null, the highest available bits per pixel will be used.</param>
         /// <param name="refreshRate">The refresh rate in hertz. If null, the highest available refresh rate will be used.</param>
-        /// <returns></returns>
         public DisplayMode FindDisplayMode(Size size, int? bitsPerPixel = null, int? refreshRate = null) =>
             DisplayModes.Where(mode => mode.Size.Width <= size.Width && mode.Size.Height <= size.Height &&
                                        (bitsPerPixel == null || mode.BitsPerPixel == bitsPerPixel) &&

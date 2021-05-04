@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -14,7 +15,7 @@ namespace osu.Framework.Graphics.Audio
     /// A wrapper which allows audio components (or adjustments) to exist in the draw hierarchy.
     /// </summary>
     [Cached(typeof(IAggregateAudioAdjustment))]
-    public abstract class DrawableAudioWrapper : CompositeDrawable, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public abstract class DrawableAudioWrapper : CompositeDrawable, IAdjustableAudioComponent
     {
         /// <summary>
         /// The volume of this component.
@@ -36,11 +37,19 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         public BindableNumber<double> Tempo => adjustments.Tempo;
 
-        private readonly AdjustableAudioComponent component;
+        public void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+
+        public void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
+
+        private readonly IAdjustableAudioComponent component;
 
         private readonly bool disposeUnderlyingComponentOnDispose;
 
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
+
+        private IAggregateAudioAdjustment parentAdjustment;
+
+        private readonly LayoutValue parentAdjustmentLayout = new LayoutValue(Invalidation.Parent);
 
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
@@ -50,6 +59,7 @@ namespace osu.Framework.Graphics.Audio
         protected DrawableAudioWrapper(Drawable content)
         {
             AddInternal(content);
+            AddLayout(parentAdjustmentLayout);
         }
 
         /// <summary>
@@ -57,7 +67,7 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         /// <param name="component">The audio component to wrap.</param>
         /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
-        protected DrawableAudioWrapper([NotNull] AdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+        protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
@@ -65,11 +75,43 @@ namespace osu.Framework.Graphics.Audio
             component.BindAdjustments(adjustments);
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(IAggregateAudioAdjustment parentAdjustment)
+        protected override void Update()
         {
+            base.Update();
+
+            if (!parentAdjustmentLayout.IsValid)
+            {
+                refreshAdjustments();
+                parentAdjustmentLayout.Validate();
+            }
+        }
+
+        private void refreshAdjustments()
+        {
+            // because these components may be pooled, relying on DI is not feasible.
+            // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
             if (parentAdjustment != null)
-                adjustments.BindAdjustments(parentAdjustment);
+            {
+                adjustments.UnbindAdjustments(parentAdjustment);
+                parentAdjustment = null;
+            }
+
+            Drawable cursor = this;
+
+            while ((cursor = cursor.Parent) != null)
+            {
+                if (!(cursor is IAggregateAudioAdjustment candidate))
+                    continue;
+
+                // components may be delegating the aggregates of a contained child.
+                // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                if (candidate.AggregateVolume != adjustments.AggregateVolume)
+                {
+                    parentAdjustment = candidate;
+                    adjustments.BindAdjustments(parentAdjustment);
+                    break;
+                }
+            }
         }
 
         protected override void Dispose(bool isDisposing)
@@ -78,13 +120,13 @@ namespace osu.Framework.Graphics.Audio
             component?.UnbindAdjustments(adjustments);
 
             if (disposeUnderlyingComponentOnDispose)
-                component?.Dispose();
+                (component as IDisposable)?.Dispose();
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable)
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
             => adjustments.RemoveAdjustment(type, adjustBindable);
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);

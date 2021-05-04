@@ -20,7 +20,7 @@ namespace osu.Framework.IO.Stores
             {
                 using (WebRequest req = new WebRequest($@"{url}"))
                 {
-                    await req.PerformAsync();
+                    await req.PerformAsync().ConfigureAwait(false);
                     return req.GetResponseData();
                 }
             }
@@ -30,7 +30,7 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public byte[] Get(string url)
+        public virtual byte[] Get(string url)
         {
             if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                 return null;
@@ -64,25 +64,8 @@ namespace osu.Framework.IO.Stores
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        ~OnlineStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         #endregion

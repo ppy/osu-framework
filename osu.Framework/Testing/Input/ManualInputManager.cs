@@ -1,18 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
-using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Testing.Input
@@ -132,156 +127,20 @@ namespace osu.Framework.Testing.Input
         public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
         public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
 
+        public void PressTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, true));
+        public void ReleaseTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, false));
+
+        public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
+        public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
+
         private class ManualInputHandler : InputHandler
         {
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
-            public override int Priority => 0;
 
             public void EnqueueInput(IInput input)
             {
                 PendingInputs.Enqueue(input);
-            }
-        }
-
-        private class TestCursorContainer : CursorContainer
-        {
-            protected override Drawable CreateCursor() => new TestCursor();
-
-            private class TestCursor : CompositeDrawable
-            {
-                private readonly Container circle;
-
-                private readonly Container border;
-                private readonly Container left;
-                private readonly Container right;
-
-                public TestCursor()
-                {
-                    Size = new Vector2(30);
-
-                    Origin = Anchor.Centre;
-
-                    InternalChildren = new Drawable[]
-                    {
-                        left = new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            Alpha = 0,
-                            Width = 0.5f,
-                            Child = new CircularContainer
-                            {
-                                Size = new Vector2(30),
-                                Masking = true,
-                                BorderThickness = 5,
-                                BorderColour = Color4.Cyan,
-                                Child = new Box
-                                {
-                                    Colour = Color4.Black,
-                                    Alpha = 0.1f,
-                                    RelativeSizeAxes = Axes.Both,
-                                },
-                            },
-                        },
-                        right = new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            Alpha = 0,
-                            Width = 0.5f,
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            Child = new CircularContainer
-                            {
-                                Size = new Vector2(30),
-                                X = -15,
-                                Masking = true,
-                                BorderThickness = 5,
-                                BorderColour = Color4.Cyan,
-                                Child = new Box
-                                {
-                                    Colour = Color4.Black,
-                                    Alpha = 0.1f,
-                                    RelativeSizeAxes = Axes.Both,
-                                },
-                            },
-                        },
-                        border = new CircularContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderThickness = 2,
-                            BorderColour = Color4.Cyan,
-                            Child = new Box
-                            {
-                                Colour = Color4.Black,
-                                Alpha = 0.1f,
-                                RelativeSizeAxes = Axes.Both,
-                            },
-                        },
-                        circle = new CircularContainer
-                        {
-                            Size = new Vector2(8),
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Masking = true,
-                            BorderThickness = 2,
-                            BorderColour = Color4.White,
-                            Child = new Box
-                            {
-                                Colour = Color4.Red,
-                                RelativeSizeAxes = Axes.Both,
-                            },
-                        },
-                    };
-                }
-
-                protected override bool OnMouseDown(MouseDownEvent e)
-                {
-                    switch (e.Button)
-                    {
-                        case MouseButton.Left:
-                            left.FadeIn();
-                            break;
-
-                        case MouseButton.Right:
-                            right.FadeIn();
-                            break;
-                    }
-
-                    updateBorder(e);
-                    return base.OnMouseDown(e);
-                }
-
-                protected override void OnMouseUp(MouseUpEvent e)
-                {
-                    switch (e.Button)
-                    {
-                        case MouseButton.Left:
-                            left.FadeOut(500);
-                            break;
-
-                        case MouseButton.Right:
-                            right.FadeOut(500);
-                            break;
-                    }
-
-                    updateBorder(e);
-                    base.OnMouseUp(e);
-                }
-
-                protected override bool OnScroll(ScrollEvent e)
-                {
-                    var delta = new Vector2(e.ScrollDelta.X, -e.ScrollDelta.Y);
-                    circle.MoveTo(circle.Position + delta * 10).MoveTo(Vector2.Zero, 500, Easing.OutQuint);
-                    return base.OnScroll(e);
-                }
-
-                private void updateBorder(MouseButtonEvent e)
-                {
-                    border.BorderColour = e.CurrentState.Mouse.Buttons.Any() ? Color4.Red : Color4.Cyan;
-                }
             }
         }
     }

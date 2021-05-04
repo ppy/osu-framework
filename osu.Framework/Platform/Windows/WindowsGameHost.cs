@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -26,8 +28,8 @@ namespace osu.Framework.Platform.Windows
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useOsuTK = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useOsuTK)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, portableInstallation)
         {
         }
 
@@ -42,6 +44,14 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            // for windows platforms we want to override the relative mouse event handling behaviour.
+            return base.CreateAvailableInputHandlers()
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
+        }
+
         protected override void SetupForRun()
         {
             base.SetupForRun();
@@ -52,7 +62,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
         }
 
-        protected override IWindow CreateWindow() => UseOsuTK ? (IWindow)new OsuTKWindowsWindow() : new WindowsWindow();
+        protected override IWindow CreateWindow() => new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {

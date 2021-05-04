@@ -185,7 +185,7 @@ namespace osu.Framework.Audio.Track
             if (pointCount == 0 || readTask == null)
                 return new Waveform(null);
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
 
             return await Task.Run(() =>
             {
@@ -256,7 +256,7 @@ namespace osu.Framework.Audio.Track
                     points = generatedPoints,
                     channels = channels
                 };
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -272,7 +272,8 @@ namespace osu.Framework.Audio.Track
             if (readTask == null)
                 return points;
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
+
             return points;
         }
 
@@ -289,16 +290,12 @@ namespace osu.Framework.Audio.Track
             if (readTask == null)
                 return channels;
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
+
             return channels;
         }
 
         #region Disposal
-
-        ~Waveform()
-        {
-            Dispose(false);
-        }
 
         public void Dispose()
         {

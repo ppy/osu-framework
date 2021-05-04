@@ -8,7 +8,7 @@ namespace osu.Framework.Bindables
     /// <summary>
     /// An interface which can be bound to other <see cref="IBindable"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled">Disabled</see> changes.
     /// </summary>
-    public interface IBindable : IParseable, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+    public interface IBindable : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
         /// Binds ourselves to another bindable such that we receive any value limitations of the bindable we bind width.
@@ -20,7 +20,7 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        public sealed IBindable BindTarget
+        sealed IBindable BindTarget
         {
             set => BindTo(value);
         }
@@ -38,7 +38,7 @@ namespace osu.Framework.Bindables
     /// An interface which can be bound to other <see cref="IBindable{T}"/>s in order to watch for (and react to) <see cref="ICanBeDisabled.Disabled">Disabled</see> and <see cref="IBindable{T}.Value">Value</see> changes.
     /// </summary>
     /// <typeparam name="T">The type of value encapsulated by this <see cref="IBindable{T}"/>.</typeparam>
-    public interface IBindable<T> : IBindable
+    public interface IBindable<T> : ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
     {
         /// <summary>
         /// An event which is raised when <see cref="Value"/> has changed.
@@ -65,7 +65,7 @@ namespace osu.Framework.Bindables
         /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
         /// Passes the provided value as the foreign (more permanent) bindable.
         /// </summary>
-        new IBindable<T> BindTarget
+        IBindable<T> BindTarget
         {
             set => BindTo(value);
         }
@@ -83,6 +83,6 @@ namespace osu.Framework.Bindables
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        new IBindable<T> GetBoundCopy();
+        IBindable<T> GetBoundCopy();
     }
 }

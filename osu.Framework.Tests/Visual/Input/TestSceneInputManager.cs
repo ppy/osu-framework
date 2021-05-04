@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
@@ -9,6 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 using osuTK.Graphics;
@@ -172,30 +174,62 @@ namespace osu.Framework.Tests.Visual.Input
         [Resolved]
         private FrameworkConfigManager config { get; set; }
 
+        [Resolved]
+        private GameHost host { get; set; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
             AddSliderStep("Cursor sensivity", 0.5, 5, 1, setCursorSensivityConfig);
             setCursorSensivityConfig(1);
-            AddToggleStep("Toggle raw input", setRawInputConfig);
-            setRawInputConfig(false);
+            AddToggleStep("Toggle relative mode", setRelativeMode);
             AddToggleStep("Toggle ConfineMouseMode", setConfineMouseModeConfig);
+            AddToggleStep("Toggle cursor visibility", setCursorVisibility);
+
+            setRelativeMode(false);
             setConfineMouseModeConfig(false);
+            AddStep("Reset handlers", () => host.ResetInputHandlers());
         }
 
-        private void setCursorSensivityConfig(double x)
+        private void setCursorSensivityConfig(double sensitivity)
         {
-            config.Set(FrameworkSetting.CursorSensitivity, x);
+            var mouseHandler = getMouseHandler();
+
+            if (mouseHandler == null)
+                return;
+
+            mouseHandler.Sensitivity.Value = sensitivity;
         }
 
-        private void setRawInputConfig(bool x)
+        private void setRelativeMode(bool enabled)
         {
-            config.Set(FrameworkSetting.IgnoredInputHandlers, x ? $"{nameof(OsuTKMouseHandler)} {nameof(MouseHandler)}" : nameof(OsuTKRawMouseHandler));
+            var mouseHandler = getMouseHandler();
+
+            if (mouseHandler == null)
+                return;
+
+            mouseHandler.UseRelativeMode.Value = enabled;
         }
 
-        private void setConfineMouseModeConfig(bool x)
+        private MouseHandler getMouseHandler()
         {
-            config.Set(FrameworkSetting.ConfineMouseMode, x ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
+            return host.AvailableInputHandlers.OfType<MouseHandler>().FirstOrDefault();
+        }
+
+        private void setCursorVisibility(bool visible)
+        {
+            if (host.Window == null)
+                return;
+
+            if (visible)
+                host.Window.CursorState &= ~CursorState.Hidden;
+            else
+                host.Window.CursorState |= CursorState.Hidden;
+        }
+
+        private void setConfineMouseModeConfig(bool enabled)
+        {
+            config.SetValue(FrameworkSetting.ConfineMouseMode, enabled ? ConfineMouseMode.Always : ConfineMouseMode.Fullscreen);
         }
     }
 }

@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -50,6 +49,30 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             };
         });
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAutoSizeDoesNotConsiderRelativeSizeChildren(bool row)
+        {
+            Box relativeBox = null;
+            Box absoluteBox = null;
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    relativeBox = new FillBox { RelativeSizeAxes = Axes.Both },
+                    absoluteBox = new FillBox
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Size = new Vector2(100)
+                    }
+                }
+            }, new[] { new Dimension(GridSizeMode.AutoSize) }, row);
+
+            AddStep("resize absolute box", () => absoluteBox.Size = new Vector2(50));
+            AddAssert("relative box has length 50", () => Precision.AlmostEquals(row ? relativeBox.DrawHeight : relativeBox.DrawWidth, 50, 1));
+        }
 
         [Test]
         public void TestBlankGrid()
@@ -794,7 +817,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Replace bottom right box with a SpriteText", () =>
             {
                 gridContentChangeEventWasFired = false;
-                grid.Content[1][1] = new SpriteText { Text = new LocalisedString("test") };
+                grid.Content[1][1] = new SpriteText { Text = "test" };
             });
             assertContentChangeEventWasFired();
             AddAssert("[1][1] cell contains a SpriteText", () => grid.Content[1][1].GetType() == typeof(SpriteText));
@@ -802,7 +825,7 @@ namespace osu.Framework.Tests.Visual.Layout
             AddStep("Replace top line with [SpriteText][null]", () =>
             {
                 gridContentChangeEventWasFired = false;
-                grid.Content[0] = new Drawable[] { new SpriteText { Text = new LocalisedString("test") }, null };
+                grid.Content[0] = new Drawable[] { new SpriteText { Text = "test" }, null };
             });
             assertContentChangeEventWasFired();
             AddAssert("[0][0] cell contains a SpriteText", () => grid.Content[0][0].GetType() == typeof(SpriteText));

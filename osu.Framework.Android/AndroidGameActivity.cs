@@ -55,9 +55,12 @@ namespace osu.Framework.Android
                 }
             };
 
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+                Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.ShortEdges;
+
             gameView.HostStarted += host =>
             {
-                host.AllowScreenSuspension.BindValueChanged(allow =>
+                host.AllowScreenSuspension.Result.BindValueChanged(allow =>
                 {
                     RunOnUiThread(() =>
                     {

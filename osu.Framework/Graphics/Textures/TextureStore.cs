@@ -6,6 +6,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Logging;
@@ -16,7 +17,6 @@ namespace osu.Framework.Graphics.Textures
     public class TextureStore : ResourceStore<TextureUpload>
     {
         private readonly Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
-        private readonly object retrievalLock = new object();
 
         private readonly All filteringMode;
         private readonly bool manualMipmaps;
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name), wrapModeS, wrapModeT);
+        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name).ConfigureAwait(false), wrapModeS, wrapModeT);
 
         private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
 
@@ -101,6 +101,8 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new Texture Get(string name) => Get(name, default, default);
 
+        private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
+
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
@@ -114,30 +116,58 @@ namespace osu.Framework.Graphics.Textures
 
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
-            // Check if the texture exists in the cache.
-            if (TryGetCached(key, out var cached))
-                return cached;
+            TaskCompletionSource<Texture> tcs = null;
+            Task task;
 
-            // Take an exclusive lock on retrieval of the texture.
-            lock (retrievalLock)
+            lock (retrievalCompletionSources)
             {
-                // If another retrieval of the texture happened before us, we should check if the texture exists in the cache again.
-                if (TryGetCached(key, out cached))
+                // Check if the texture exists in the cache.
+                if (TryGetCached(key, out var cached))
                     return cached;
 
-                this.LogIfNonBackgroundThread(key);
+                // check if an existing lookup was already started for this key.
+                if (!retrievalCompletionSources.TryGetValue(key, out task))
+                    // if not, take responsibility for the lookup.
+                    retrievalCompletionSources[key] = (tcs = new TaskCompletionSource<Texture>()).Task;
+            }
 
-                try
-                {
-                    var tex = getTexture(name, wrapModeS, wrapModeT);
-                    if (tex != null)
-                        tex.LookupKey = key;
+            // handle the case where a lookup is already in progress.
+            if (task != null)
+            {
+                task.Wait();
 
-                    return CacheAndReturnTexture(key, tex);
-                }
-                catch (TextureTooLargeForGLException)
+                // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
+                if (TryGetCached(key, out var cached))
+                    return cached;
+
+                return null;
+            }
+
+            this.LogIfNonBackgroundThread(key);
+
+            Texture tex = null;
+
+            try
+            {
+                tex = getTexture(name, wrapModeS, wrapModeT);
+                if (tex != null)
+                    tex.LookupKey = key;
+
+                return CacheAndReturnTexture(key, tex);
+            }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+            }
+            finally
+            {
+                // notify other lookups waiting on the same name lookup.
+                lock (retrievalCompletionSources)
                 {
-                    Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+                    Debug.Assert(tcs != null);
+
+                    tcs.SetResult(tex);
+                    retrievalCompletionSources.Remove(key);
                 }
             }
 

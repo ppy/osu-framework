@@ -10,12 +10,15 @@ namespace osu.Framework.Input.Handlers.Keyboard
 {
     public class KeyboardHandler : InputHandler
     {
-        public override bool IsActive => true;
+        public override string Description => "Keyboard";
 
-        public override int Priority => 0;
+        public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 

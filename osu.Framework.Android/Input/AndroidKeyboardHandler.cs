@@ -23,8 +23,6 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         public override bool Initialize(GameHost host) => true;
 
         private void keyDown(Keycode keycode, KeyEvent e)

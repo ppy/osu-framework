@@ -44,6 +44,8 @@ namespace osu.Framework.Input
 
         private bool useParentInput = true;
 
+        public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
+
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!PropagateNonPositionalInputSubTree) return false;
@@ -119,6 +121,8 @@ namespace osu.Framework.Input
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
                 case JoystickAxisMoveEvent _:
+                case TabletPenButtonEvent _:
+                case TabletAuxiliaryButtonEvent _:
                     SyncInputState(e.CurrentState);
                     break;
             }
@@ -179,6 +183,9 @@ namespace osu.Framework.Input
             new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
 
             new MidiKeyInput(state?.Midi, CurrentState.Midi).Apply(CurrentState, this);
+
+            new TabletPenButtonInput(state?.Tablet.PenButtons, CurrentState.Tablet.PenButtons).Apply(CurrentState, this);
+            new TabletAuxiliaryButtonInput(state?.Tablet.AuxiliaryButtons, CurrentState.Tablet.AuxiliaryButtons).Apply(CurrentState, this);
         }
     }
 }

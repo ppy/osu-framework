@@ -16,12 +16,9 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool IsDummyDevice => true;
 
-        /// <summary>
-        /// Point in time in milliseconds to restart the track to on loop or <see cref="Restart"/>.
-        /// </summary>
         public double RestartPoint { get; set; }
 
-        protected override void OnLooping() => Restart();
+        public virtual bool Looping { get; set; }
 
         /// <summary>
         /// Reset this track to a logical default state.
@@ -113,7 +110,11 @@ namespace osu.Framework.Audio.Track
         protected override void UpdateState()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
+
             base.UpdateState();
+
+            if (Looping && HasCompleted)
+                Restart();
         }
     }
 }

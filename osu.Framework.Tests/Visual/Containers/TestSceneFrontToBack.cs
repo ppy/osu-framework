@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Containers
             AddStep("add boxes", () => addMoreDrawables(Texture.WhitePixel, new RectangleF(0, 0, 1, 1)));
             AddToggleStep("disable front to back", val =>
             {
-                debugConfig.Set(DebugSetting.BypassFrontToBackPass, val);
+                debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val);
                 Invalidate(Invalidation.DrawNode); // reset counts
             });
 

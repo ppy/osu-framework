@@ -22,7 +22,7 @@ using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameHost : GameHost
+    public class AndroidGameHost : OsuTKGameHost
     {
         private readonly AndroidGameView gameView;
 
@@ -47,11 +47,15 @@ namespace osu.Framework.Android
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
-        public override ITextInputSource GetTextInput()
-            => new AndroidTextInput(gameView);
+        public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
+            new InputHandler[]
+            {
+                new AndroidKeyboardHandler(gameView),
+                new AndroidTouchHandler(gameView),
+                new MidiHandler()
+            };
 
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
