@@ -163,11 +163,11 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
-        private readonly BindableBool isActive = new BindableBool(true);
+        private readonly BindableBool isActive = new BindableBool();
 
         public IBindable<bool> IsActive => isActive;
 
-        private readonly BindableBool cursorInWindow = new BindableBool(true);
+        private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
@@ -881,11 +881,13 @@ namespace osu.Framework.Platform
                     SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
                     var newPosition = new Point(x, y);
 
-                    if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
+                    if (!newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        storeWindowPositionToConfig();
                         ScheduleEvent(() => Moved?.Invoke(newPosition));
+
+                        if (WindowMode.Value == Configuration.WindowMode.Windowed)
+                            storeWindowPositionToConfig();
                     }
 
                     break;

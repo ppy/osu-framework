@@ -164,6 +164,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
                 // borderless alignment tests
                 AddStep("switch to borderless", () => windowMode.Value = WindowMode.Borderless);
+                AddAssert("check window position", () => new Point(window.Position.X + 1, window.Position.Y + 1) == display.Bounds.Location);
                 AddAssert("check window size", () => new Size(window.Size.Width - 1, window.Size.Height - 1) == display.Bounds.Size, desc2);
                 AddAssert("check current screen", () => window.CurrentDisplayBindable.Value.Index == display.Index);
 

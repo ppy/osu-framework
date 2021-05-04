@@ -26,7 +26,6 @@ namespace osu.Framework.Utils
         /// <param name="final">The end value.</param>
         /// <param name="base">The base of the exponential. The valid range is [0, 1], where smaller values mean that the final value is achieved more quickly, and values closer to 1 results in slow convergence to the final value.</param>
         /// <param name="exponent">The exponent of the exponential. An exponent of 0 results in the start values, whereas larger exponents make the result converge to the final value.</param>
-        /// <returns></returns>
         public static double Damp(double start, double final, double @base, double exponent)
         {
             if (@base < 0 || @base > 1)

@@ -523,6 +523,9 @@ namespace osu.Framework.Input
 
             foreach (var h in InputHandlers)
             {
+                if (!h.IsActive)
+                    continue;
+
                 dequeuedInputs.Clear();
                 h.CollectPendingInputs(dequeuedInputs);
 

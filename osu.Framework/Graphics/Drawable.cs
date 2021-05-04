@@ -18,6 +18,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK.Input;
+using Container = osu.Framework.Graphics.Containers.Container;
 
 namespace osu.Framework.Graphics
 {
@@ -423,6 +425,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnUnbindAllBindables;
 
+        /// <summary>
+        /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
+        /// </summary>
+        private readonly object schedulerAcquisitionLock = new object();
+
         private Scheduler scheduler;
 
         /// <summary>
@@ -436,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (LoadLock)
+                lock (schedulerAcquisitionLock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
@@ -2866,8 +2873,11 @@ namespace osu.Framework.Graphics
 
     public enum RotationDirection
     {
+        [Description("Clockwise")]
         Clockwise,
-        CounterClockwise,
+
+        [Description("Counterclockwise")]
+        Counterclockwise,
     }
 
     /// <summary>

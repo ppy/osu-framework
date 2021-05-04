@@ -1,6 +1,5 @@
 using FlappyDon.Game.Elements;
 using osu.Framework.Allocation;
-using osu.Framework.Testing;
 
 namespace FlappyDon.Game.Tests.Visual
 {
@@ -8,7 +7,7 @@ namespace FlappyDon.Game.Tests.Visual
     /// A test scene for testing the alignment
     /// and placement of the sprites that make up the backdrop
     /// </summary>
-    public class TestSceneBackdrop : TestScene
+    public class TestSceneBackdrop : FlappyDonTestScene
     {
         [BackgroundDependencyLoader]
         private void load()
