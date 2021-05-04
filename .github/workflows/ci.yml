@@ -39,6 +39,13 @@ jobs:
         with:
           dotnet-version: "5.0.x"
 
+      # FIXME: libavformat is not included in Ubuntu. Let's fix that.
+      - name: Install libavformat-dev
+        if: ${{matrix.os.fullname == "ubuntu-latest"}}
+        run: |
+         sudo apt-get update && \
+         sudo apt-get -y install libavformat-dev
+
       - name: Compile
         run: dotnet build -c Debug build/Desktop.proj
 
