@@ -19,7 +19,14 @@ jobs:
           fi
   test:
     name: Test
-    runs-on: windows-latest
+    runs-on: ${{matrix.os.fullname}}
+    strategy:
+       matrix:
+          os:
+            - { prettyname: Windows, fullname: windows-latest }
+            - { prettyname: macOS, fullname: macos-latest }
+            - { prettyname: Linux, fullname: ubuntu-latest }
+          threadingMode: ['SingleThread', 'MultiThread']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -33,7 +40,7 @@ jobs:
         run: dotnet build -c Debug build/Desktop.proj
 
       - name: Test
-        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults.trx"
+        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}.trx"
         shell: powershell
 
       # Attempt to upload results even if test fails.
@@ -43,7 +50,7 @@ jobs:
         if: ${{ always() }}
         with:
           name: osu-framework-test-results
-          path: ${{github.workspace}}\TestResults\TestResults.trx
+          path: ${{github.workspace}}\TestResults\TestResults-${{matrix.os.prettyname}}.trx
 
   inspect-code:
     name: Code Quality
