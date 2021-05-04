@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: osu-framework-test-results
+          name: osu-framework-test-results-${{matrix.os.prettyname}}
           path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}.trx
 
   inspect-code:
