@@ -9,6 +9,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
@@ -63,15 +64,12 @@ namespace osu.Framework.Audio.Track
         /// <param name="data">The sample data stream.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to plug this Track into.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, AudioMixer mixer, bool quick = false)
+        public TrackBass([NotNull] Stream data, [NotNull] AudioMixer mixer, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            if (mixer == null)
-                throw new ArgumentNullException(nameof(mixer));
-
-            this.mixer = mixer;
+            this.mixer = mixer ?? throw new ArgumentNullException(nameof(mixer));
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
