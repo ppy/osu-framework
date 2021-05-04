@@ -30,8 +30,9 @@ namespace osu.Framework.Tests.Visual.Audio
         private int compressorHandle;
 
         private const int num_mix_channels = 8;
-        private int[] channelHandles = new int[num_mix_channels];
-        private ChannelStrip[] channelStrips = new ChannelStrip[num_mix_channels];
+
+        private readonly int[] channelHandles = new int[num_mix_channels];
+        private readonly ChannelStrip[] channelStrips = new ChannelStrip[num_mix_channels];
 
         [BackgroundDependencyLoader]
         private void load(ITrackStore tracks)
@@ -190,10 +191,10 @@ namespace osu.Framework.Tests.Visual.Audio
 
         private float maxPeak = float.MinValue;
         private float peak = float.MinValue;
-        private Box volBarL;
-        private Box volBarR;
-        private SpriteText peakText;
-        private SpriteText maxPeakText;
+        private readonly Box volBarL;
+        private readonly Box volBarR;
+        private readonly SpriteText peakText;
+        private readonly SpriteText maxPeakText;
 
         public ChannelStrip(int handle = -1)
         {
@@ -261,8 +262,8 @@ namespace osu.Framework.Tests.Visual.Audio
             peak = (levels[0] + levels[1]) / 2f;
             maxPeak = Math.Max(peak, maxPeak);
 
-            volBarL.TransformTo(nameof(Drawable.Height), (float)levels[0], BuffSize * 4);
-            volBarR.TransformTo(nameof(Drawable.Height), (float)levels[1], BuffSize * 4);
+            volBarL.TransformTo(nameof(Drawable.Height), levels[0], BuffSize * 4);
+            volBarR.TransformTo(nameof(Drawable.Height), levels[1], BuffSize * 4);
             peakText.Text = $"{BassUtils.LevelToDb(peak):F}dB";
             maxPeakText.Text = $"{BassUtils.LevelToDb(maxPeak):F}dB";
         }

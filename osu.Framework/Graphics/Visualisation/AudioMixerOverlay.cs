@@ -19,7 +19,8 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly Dictionary<int, ChannelStrip> channelStrips = new Dictionary<int, ChannelStrip>();
         private readonly FillFlowContainer stripContainer;
-        private AudioMixer mixer;
+
+        private readonly AudioMixer mixer;
 
         public AudioMixerOverlay(AudioMixer mixer)
             : base("AudioMixer", "(Ctrl+F9 to toggle)")
@@ -112,7 +113,8 @@ namespace osu.Framework.Graphics.Visualisation
             private const int peak_hold_time = 3000;
 
             private float maxPeak = float.MinValue;
-            private double peaksLastReset = 0;
+
+            private double peaksLastReset;
 
             private readonly Box volBarL;
             private readonly Box volBarR;

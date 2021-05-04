@@ -54,7 +54,8 @@ namespace osu.Framework.Audio.Track
         public override bool IsLoaded => isLoaded;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
-        private AudioMixer mixer;
+
+        private readonly AudioMixer mixer;
 
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
