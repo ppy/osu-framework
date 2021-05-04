@@ -20,13 +20,16 @@ jobs:
   test:
     name: Test
     runs-on: ${{matrix.os.fullname}}
+    continue-on-error: true
+    env:
+      OSU_EXECUTION_MODE: ${{matrix.threadingMode}}
     strategy:
        matrix:
           os:
             - { prettyname: Windows, fullname: windows-latest }
             - { prettyname: macOS, fullname: macos-latest }
             - { prettyname: Linux, fullname: ubuntu-latest }
-          threadingMode: ['SingleThread', 'MultiThread']
+          threadingMode: ['SingleThread', 'MultiThreaded']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
