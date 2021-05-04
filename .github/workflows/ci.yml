@@ -20,10 +20,10 @@ jobs:
   test:
     name: Test
     runs-on: ${{matrix.os.fullname}}
-    continue-on-error: true
     env:
       OSU_EXECUTION_MODE: ${{matrix.threadingMode}}
     strategy:
+       fail-fast: false
        matrix:
           os:
             - { prettyname: Windows, fullname: windows-latest }
