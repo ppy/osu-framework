@@ -252,24 +252,21 @@ namespace osu.Framework.Audio
 
         protected override void UpdateState()
         {
-            EnqueueAction(() =>
+            var channels = MixChannels.ToArray();
+
+            // not sure if we want to be doing this every UpdateState?
+            foreach (var channel in channels)
             {
-                var channels = MixChannels.ToArray();
-
-                // not sure if we want to be doing this every UpdateState?
-                foreach (var channel in channels)
+                if (Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
                 {
-                    if (Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
-                    {
-                        // HACK: avoid auto-cleanup of TrackBass channels - they are "Reverse" thanks to the tempo and reverse fx chain they have
-                        var info = Bass.ChannelGetInfo(channel);
-                        if (info.ChannelType == ChannelType.Reverse) return;
+                    // HACK: avoid auto-cleanup of TrackBass channels - they are "Reverse" thanks to the tempo and reverse fx chain they have
+                    var info = Bass.ChannelGetInfo(channel);
+                    if (info.ChannelType == ChannelType.Reverse) return;
 
-                        Logger.Log($"[AudioMixer] Channel gone, auto-removing ({channel})");
-                        RemoveChannel(channel);
-                    }
+                    Logger.Log($"[AudioMixer] Channel gone, auto-removing ({channel})");
+                    RemoveChannel(channel);
                 }
-            });
+            }
 
             FrameStatistics.Add(StatisticsCounterType.MixChannels, MixChannels.Count);
 
