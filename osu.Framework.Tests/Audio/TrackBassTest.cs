@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Audio
         private TrackBass track;
 
         private AudioMixer mixer;
+        private TrackStore trackStore;
 
         [SetUp]
         public void Setup()
@@ -43,7 +44,8 @@ namespace osu.Framework.Tests.Audio
             mixer = new AudioMixer();
             mixer.Init();
 
-            track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"), mixer);
+            trackStore = new TrackStore(resources, mixer);
+            track = (TrackBass)trackStore.Get("Resources.Tracks.sample-track.mp3");
             updateTrack();
         }
 
@@ -422,7 +424,7 @@ namespace osu.Framework.Tests.Audio
         private void updateTrack() => runOnAudioThread(() =>
         {
             mixer.Update();
-            track.Update();
+            trackStore.Update();
         });
 
         private void restartTrack()
