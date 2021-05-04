@@ -11,7 +11,6 @@ A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 ## Requirements
 
 - A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
-- When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
 - When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
 - When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
 
@@ -46,6 +45,7 @@ Note that while we already have certain standards in place, nothing is set in st
 For those interested, we love to reward quality contributions via [bounties](https://docs.google.com/spreadsheets/d/1jNXfj_S3Pb5PErA-czDdC9DUu4IgUbe1Lt8E7CYUJuE/view?&rm=minimal#gid=523803337), paid out via paypal or osu! supporter tags. Don't hesitate to [request a bounty](https://docs.google.com/forms/d/e/1FAIpQLSet_8iFAgPMG526pBZ2Kic6HSh7XPM3fE8xPcnWNkMzINDdYg/viewform) for your work on this project.
 
 ## Licence
+This framework uses libraries from the FFmpeg project under the LGPLv2.1.
 
 This framework is licensed under the [MIT licence](https://opensource.org/licenses/MIT). Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/mit-license) you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.
 
