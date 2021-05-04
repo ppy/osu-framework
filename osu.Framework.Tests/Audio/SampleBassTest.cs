@@ -30,6 +30,8 @@ namespace osu.Framework.Tests.Audio
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 
             var mixer = new AudioMixer();
+            mixer.Init();
+
             sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
             sample = sampleFactory.CreateSample();
 

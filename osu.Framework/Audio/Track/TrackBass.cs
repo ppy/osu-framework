@@ -61,15 +61,17 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
-        /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         /// <param name="mixer">The <see cref="AudioMixer"/> to plug this Track into.</param>
-        public TrackBass(Stream data, bool quick = false, AudioMixer mixer = null)
+        /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
+        public TrackBass(Stream data, AudioMixer mixer, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            if (mixer != null)
-                this.mixer = mixer;
+            if (mixer == null)
+                throw new ArgumentNullException(nameof(mixer));
+
+            this.mixer = mixer;
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
