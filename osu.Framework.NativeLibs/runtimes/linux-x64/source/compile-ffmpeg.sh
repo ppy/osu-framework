@@ -1,7 +1,8 @@
 #!/bin/sh
-#You may need to compile on a distro that has an older version of GLIBC to avoid some issues.
-#Also, GCC 5.4.0 or Clang 3.8.0 is recommended.
-#Tested on Ubuntu 16.04 and Ubuntu 20.10, works fine.
+#Compile on a distro that has an older version of GLIBC/gcc is recommended to avoid some issues.
+#Tested on Ubuntu21.04, works fine.
+#Built on Deepin 20.2 with gcc-7 (Debian 7.4.0-6) 7.4.0, libc6 version 2.28.12-1+eagle
+#Not using 4.4 because it causes "symbol lookup error: /tmp/.mount_osu!-xzhQaym/usr/bin/libavformat.so: undefined symbol: avpriv_packet_list_put, version LIBAVCODEC_58"
 
 ffmpeg_version="4.3.2"
 
