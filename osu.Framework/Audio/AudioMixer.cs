@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -252,19 +251,18 @@ namespace osu.Framework.Audio
 
         protected override void UpdateState()
         {
-            var channels = MixChannels.ToArray();
-
-            // not sure if we want to be doing this every UpdateState?
-            foreach (var channel in channels)
+            for (int i = 0; i < MixChannels.Count; i++)
             {
+                var channel = MixChannels[i];
+
                 if (Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
                 {
                     // HACK: avoid auto-cleanup of TrackBass channels - they are "Reverse" thanks to the tempo and reverse fx chain they have
-                    var info = Bass.ChannelGetInfo(channel);
-                    if (info.ChannelType == ChannelType.Reverse) return;
+                    if (Bass.ChannelGetInfo(channel).ChannelType == ChannelType.Reverse) return;
 
                     Logger.Log($"[AudioMixer] Channel gone, auto-removing ({channel})");
                     RemoveChannel(channel);
+                    i--;
                 }
             }
 
