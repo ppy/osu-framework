@@ -41,7 +41,7 @@ jobs:
 
       - name: Test
         run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}.trx"
-        shell: powershell
+        shell: pwsh
 
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
@@ -50,7 +50,7 @@ jobs:
         if: ${{ always() }}
         with:
           name: osu-framework-test-results
-          path: ${{github.workspace}}\TestResults\TestResults-${{matrix.os.prettyname}}.trx
+          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}.trx
 
   inspect-code:
     name: Code Quality
