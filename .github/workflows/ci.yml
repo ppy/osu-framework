@@ -41,7 +41,7 @@ jobs:
 
       # FIXME: libavformat is not included in Ubuntu. Let's fix that.
       - name: Install libavformat-dev
-        if: ${{matrix.os.fullname == "ubuntu-latest"}}
+        if: ${{matrix.os.fullname == 'ubuntu-latest'}}
         run: |
          sudo apt-get update && \
          sudo apt-get -y install libavformat-dev
