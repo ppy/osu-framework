@@ -267,7 +267,6 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            mixer.PauseChannel(activeStream);
             StopAsync().Wait();
         }
 
