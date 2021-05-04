@@ -8,7 +8,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// An audio component which allows for basic bindable adjustments to be applied.
     /// </summary>
-    public class AdjustableAudioComponent : AudioComponent, IAggregateAudioAdjustment, IAdjustableAudioComponent
+    public class AdjustableAudioComponent : AudioComponent, IAdjustableAudioComponent
     {
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
@@ -40,31 +40,42 @@ namespace osu.Framework.Audio
             AggregateTempo.ValueChanged += InvalidateState;
         }
 
-        public void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.AddAdjustment(type, adjustBindable);
 
-        public void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable) =>
+        public void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable) =>
             adjustments.RemoveAdjustment(type, adjustBindable);
 
         public void RemoveAllAdjustments(AdjustableProperty type) => adjustments.RemoveAllAdjustments(type);
 
-        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null) => EnqueueAction(OnStateChanged);
+        private bool invalidationPending;
+
+        internal void InvalidateState(ValueChangedEvent<double> valueChangedEvent = null)
+        {
+            if (CanPerformInline)
+                OnStateChanged();
+            else
+                invalidationPending = true;
+        }
 
         internal virtual void OnStateChanged()
         {
         }
 
-        /// <summary>
-        /// Bind all adjustments to another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+        protected override void UpdateState()
+        {
+            base.UpdateState();
 
-        /// <summary>
-        /// Unbind all adjustments from another component's aggregated results.
-        /// </summary>
-        /// <param name="component">The other component (generally a direct parent).</param>
-        internal void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
+            if (invalidationPending)
+            {
+                invalidationPending = false;
+                OnStateChanged();
+            }
+        }
+
+        public void BindAdjustments(IAggregateAudioAdjustment component) => adjustments.BindAdjustments(component);
+
+        public void UnbindAdjustments(IAggregateAudioAdjustment component) => adjustments.UnbindAdjustments(component);
 
         public IBindable<double> AggregateVolume => adjustments.AggregateVolume;
 
@@ -73,8 +84,6 @@ namespace osu.Framework.Audio
         public IBindable<double> AggregateFrequency => adjustments.AggregateFrequency;
 
         public IBindable<double> AggregateTempo => adjustments.AggregateTempo;
-
-        public IBindable<double> GetAggregate(AdjustableProperty type) => adjustments.GetAggregate(type);
 
         protected override void Dispose(bool disposing)
         {

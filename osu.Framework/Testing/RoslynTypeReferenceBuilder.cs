@@ -1,8 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#if NETCOREAPP
+#if NET5_0
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,21 +15,26 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
+using osu.Framework.Extensions;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Testing
 {
-    public class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
+    internal class RoslynTypeReferenceBuilder : ITypeReferenceBuilder
     {
         // The "Attribute" suffix disappears when used via a nuget package, so it is trimmed here.
         private static readonly string exclude_attribute_name = nameof(ExcludeFromDynamicCompileAttribute).Replace(nameof(Attribute), string.Empty);
+        private const string jetbrains_annotations_namespace = "JetBrains.Annotations";
 
         private readonly Logger logger;
 
-        private readonly Dictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new Dictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
-        private readonly Dictionary<Project, Compilation> compilationCache = new Dictionary<Project, Compilation>();
-        private readonly Dictionary<SyntaxTree, SemanticModel> semanticModelCache = new Dictionary<SyntaxTree, SemanticModel>();
-        private readonly Dictionary<TypeReference, bool> typeInheritsFromGameCache = new Dictionary<TypeReference, bool>();
+        private readonly ConcurrentDictionary<TypeReference, IReadOnlyCollection<TypeReference>> referenceMap = new ConcurrentDictionary<TypeReference, IReadOnlyCollection<TypeReference>>();
+        private readonly ConcurrentDictionary<Project, Compilation> compilationCache = new ConcurrentDictionary<Project, Compilation>();
+        private readonly ConcurrentDictionary<string, SemanticModel> semanticModelCache = new ConcurrentDictionary<string, SemanticModel>();
+        private readonly ConcurrentDictionary<TypeReference, bool> typeInheritsFromGameCache = new ConcurrentDictionary<TypeReference, bool>();
+        private readonly ConcurrentDictionary<string, bool> syntaxExclusionMap = new ConcurrentDictionary<string, bool>();
+        private readonly ConcurrentDictionary<string, byte> assembliesContainingReferencedInternalMembers = new ConcurrentDictionary<string, byte>();
 
         private Solution solution;
 
@@ -41,7 +47,7 @@ namespace osu.Framework.Testing
         public async Task Initialise(string solutionFile)
         {
             MSBuildLocator.RegisterDefaults();
-            solution = await MSBuildWorkspace.Create().OpenSolutionAsync(solutionFile);
+            solution = await MSBuildWorkspace.Create().OpenSolutionAsync(solutionFile).ConfigureAwait(false);
         }
 
         public async Task<IReadOnlyCollection<string>> GetReferencedFiles(Type testType, string changedFile)
@@ -49,25 +55,45 @@ namespace osu.Framework.Testing
             clearCaches();
             updateFile(changedFile);
 
-            await buildReferenceMapAsync(testType, changedFile);
+            await buildReferenceMapAsync(testType, changedFile).ConfigureAwait(false);
 
-            var directedGraph = getDirectedGraph();
+            var sources = getTypesFromFile(changedFile).ToArray();
+            if (sources.Length == 0)
+                throw new NoLinkBetweenTypesException(testType, changedFile);
 
-            return getReferencedFiles(getTypesFromFile(changedFile), directedGraph);
+            return getReferencedFiles(sources, getDirectedGraph());
         }
 
-        public async Task<IReadOnlyCollection<string>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
+        public async Task<IReadOnlyCollection<AssemblyReference>> GetReferencedAssemblies(Type testType, string changedFile) => await Task.Run(() =>
         {
             // Todo: This is temporary, and is potentially missing assemblies.
 
-            var assemblies = new HashSet<string>();
+            var assemblies = new HashSet<AssemblyReference>();
 
-            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
-                assemblies.Add(ass.Location);
-            assemblies.Add(typeof(JetBrains.Annotations.NotNullAttribute).Assembly.Location);
+            foreach (var asm in compilationCache.Values.SelectMany(c => c.ReferencedAssemblyNames))
+                addReference(Assembly.Load(asm.Name), false);
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic))
+                addReference(asm, false);
+            addReference(typeof(JetBrains.Annotations.NotNullAttribute).Assembly, true);
 
             return assemblies;
-        });
+
+            void addReference(Assembly assembly, bool force)
+            {
+                if (string.IsNullOrEmpty(assembly.Location))
+                    return;
+
+                Type[] loadedTypes = assembly.GetLoadableTypes();
+
+                // JetBrains.Annotations is a special namespace that some libraries define to take advantage of R# annotations.
+                // Since internals are exposed to the compiler, these libraries would cause type conflicts and are thus excluded.
+                if (!force && loadedTypes.Any(t => t.Namespace == jetbrains_annotations_namespace))
+                    return;
+
+                bool containsReferencedInternalMember = assembliesContainingReferencedInternalMembers.Any(i => assembly.FullName?.Contains(i.Key) == true);
+                assemblies.Add(new AssemblyReference(assembly, containsReferencedInternalMember));
+            }
+        }).ConfigureAwait(false);
 
         public void Reset()
         {
@@ -107,7 +133,7 @@ namespace osu.Framework.Testing
 
             logger.Add("Building reference map...");
 
-            var compiledTestProject = await compileProjectAsync(findTestProject());
+            var compiledTestProject = await compileProjectAsync(findTestProject()).ConfigureAwait(false);
             var compiledTestType = compiledTestProject.GetTypeByMetadataName(testType.FullName);
 
             if (compiledTestType == null)
@@ -122,8 +148,8 @@ namespace osu.Framework.Testing
 
                 foreach (var t in oldTypes)
                 {
-                    referenceMap.Remove(t);
-                    typeInheritsFromGameCache.Remove(t);
+                    referenceMap.TryRemove(t, out _);
+                    typeInheritsFromGameCache.TryRemove(t, out _);
                 }
 
                 foreach (var t in oldTypes)
@@ -140,22 +166,22 @@ namespace osu.Framework.Testing
                         break;
                     }
 
-                    var compilation = await compileProjectAsync(project);
-                    var syntaxTree = compilation.SyntaxTrees.First(tree => tree.FilePath == typePath);
-                    var semanticModel = await getSemanticModelAsync(syntaxTree);
-                    var referencedTypes = await getReferencedTypesAsync(semanticModel);
+                    var compilation = await compileProjectAsync(project).ConfigureAwait(false);
+                    var syntaxTree = compilation.SyntaxTrees.Single(tree => tree.FilePath == typePath);
+                    var semanticModel = await getSemanticModelAsync(syntaxTree).ConfigureAwait(false);
+                    var referencedTypes = await getReferencedTypesAsync(semanticModel).ConfigureAwait(false);
 
-                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes;
+                    referenceMap[TypeReference.FromSymbol(t.Symbol)] = referencedTypes.ToHashSet();
 
                     foreach (var referenced in referencedTypes)
-                        await buildReferenceMapRecursiveAsync(referenced);
+                        await buildReferenceMapRecursiveAsync(referenced).ConfigureAwait(false);
                 }
             }
 
             if (referenceMap.Count == 0)
             {
                 // We have no cache available, so we must rebuild the whole map.
-                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType));
+                await buildReferenceMapRecursiveAsync(TypeReference.FromSymbol(compiledTestType)).ConfigureAwait(false);
             }
         }
 
@@ -168,26 +194,25 @@ namespace osu.Framework.Testing
         /// <param name="rootReference">The root, where the map should start being build from.</param>
         private async Task buildReferenceMapRecursiveAsync(TypeReference rootReference)
         {
-            var searchQueue = new Queue<TypeReference>();
-            searchQueue.Enqueue(rootReference);
+            var searchQueue = new ConcurrentBag<TypeReference> { rootReference };
 
             while (searchQueue.Count > 0)
             {
-                var toCheck = searchQueue.Dequeue();
-                var referencedTypes = await getReferencedTypesAsync(toCheck);
+                var toProcess = searchQueue.ToArray();
+                searchQueue.Clear();
 
-                referenceMap[toCheck] = referencedTypes;
-
-                foreach (var referenced in referencedTypes)
+                await Task.WhenAll(toProcess.Select(async toCheck =>
                 {
-                    // We don't want to cycle over types that have already been explored.
-                    if (!referenceMap.ContainsKey(referenced))
+                    var referencedTypes = await getReferencedTypesAsync(toCheck).ConfigureAwait(false);
+                    referenceMap[toCheck] = referencedTypes;
+
+                    foreach (var referenced in referencedTypes)
                     {
-                        // Used for de-duping, so it must be added to the dictionary immediately.
-                        referenceMap[referenced] = null;
-                        searchQueue.Enqueue(referenced);
+                        // We don't want to cycle over types that have already been explored.
+                        if (referenceMap.TryAdd(referenced, null))
+                            searchQueue.Add(referenced);
                     }
-                }
+                })).ConfigureAwait(false);
             }
         }
 
@@ -202,7 +227,10 @@ namespace osu.Framework.Testing
 
             foreach (var reference in typeReference.Symbol.DeclaringSyntaxReferences)
             {
-                foreach (var type in await getReferencedTypesAsync(await getSemanticModelAsync(reference.SyntaxTree)))
+                var semanticModel = await getSemanticModelAsync(reference.SyntaxTree).ConfigureAwait(false);
+                var referencedTypes = await getReferencedTypesAsync(semanticModel).ConfigureAwait(false);
+
+                foreach (var type in referencedTypes)
                     result.Add(type);
             }
 
@@ -214,11 +242,11 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="semanticModel">The target <see cref="SemanticModel"/>.</param>
         /// <returns>All <see cref="TypeReference"/>s referenced by <paramref name="semanticModel"/>.</returns>
-        private async Task<HashSet<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel)
+        private async Task<ICollection<TypeReference>> getReferencedTypesAsync(SemanticModel semanticModel)
         {
-            var result = new HashSet<TypeReference>();
+            var result = new ConcurrentDictionary<TypeReference, byte>();
 
-            var root = await semanticModel.SyntaxTree.GetRootAsync();
+            var root = await semanticModel.SyntaxTree.GetRootAsync().ConfigureAwait(false);
             var descendantNodes = root.DescendantNodes(n =>
             {
                 var kind = n.Kind();
@@ -227,50 +255,105 @@ namespace osu.Framework.Testing
                 // - Entire using lines.
                 // - Namespace names (not entire namespaces).
                 // - Entire static classes.
+                // - Variable declarators (names of variables).
+                // - The single IdentifierName child of an assignment expression (variable name), below.
+                // - The single IdentifierName child of an argument syntax (variable name), below.
+                // - The name of namespace declarations.
+                // - Name-colon syntaxes.
+                // - The expression of invocation expressions. Static classes are explicitly disallowed so the target type of an invocation must be available elsewhere in the syntax tree.
+                // - The single IdentifierName child of a foreach expression (source variable name), below.
+                // - The single 'var' IdentifierName child of a variable declaration, below.
+                // - Element access expressions.
 
                 return kind != SyntaxKind.UsingDirective
                        && kind != SyntaxKind.NamespaceKeyword
-                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword));
+                       && (kind != SyntaxKind.ClassDeclaration || ((ClassDeclarationSyntax)n).Modifiers.All(m => m.Kind() != SyntaxKind.StaticKeyword))
+                       && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
+                       && kind != SyntaxKind.NameColon
+                       && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
+                       && kind != SyntaxKind.NameColon
+                       && kind != SyntaxKind.ElementAccessExpression
+                       && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
 
-            // Find all the named type symbols in the syntax tree, and mark + recursively iterate through them.
-            foreach (var node in descendantNodes)
+            // This hashset is used to prevent re-exploring syntaxes with the same name.
+            // Todo: This can be used across all files, but care needs to be taken for redefined types (via using X = y), using the same-named type from a different namespace, or via type hiding.
+            var seenTypes = new ConcurrentDictionary<string, byte>();
+
+            await Task.WhenAll(descendantNodes.Select(node => Task.Run(() =>
             {
+                if (node.Kind() == SyntaxKind.IdentifierName && node.Parent != null)
+                {
+                    // Ignore the variable name of assignment expressions.
+                    if (node.Parent is AssignmentExpressionSyntax)
+                        return;
+
+                    switch (node.Parent.Kind())
+                    {
+                        case SyntaxKind.VariableDeclarator: // Ignore the variable name of variable declarators.
+                        case SyntaxKind.Argument: // Ignore the variable name of arguments.
+                        case SyntaxKind.InvocationExpression: // Ignore a single identifier name expression of an invocation expression (e.g. IdentifierName()).
+                        case SyntaxKind.ForEachStatement: // Ignore a single identifier of a foreach statement (the source).
+                        case SyntaxKind.VariableDeclaration when node.ToString() == "var": // Ignore the single 'var' identifier of a variable declaration.
+                            return;
+                    }
+                }
+
                 switch (node.Kind())
                 {
                     case SyntaxKind.GenericName:
                     case SyntaxKind.IdentifierName:
                     {
-                        if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol t)
-                            addTypeSymbol(t);
-                        break;
-                    }
+                        string syntaxName = node.ToString();
 
-                    case SyntaxKind.AsExpression:
-                    case SyntaxKind.IsExpression:
-                    case SyntaxKind.SizeOfExpression:
-                    case SyntaxKind.TypeOfExpression:
-                    case SyntaxKind.CastExpression:
-                    case SyntaxKind.ObjectCreationExpression:
-                    {
-                        if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol t)
-                            addTypeSymbol(t);
+                        if (seenTypes.ContainsKey(syntaxName))
+                            return;
+
+                        if (!tryNode(node, out var symbol))
+                            return;
+
+                        // The node has been processed so we want to avoid re-processing the same node again if possible, as this is a costly operation.
+                        // Note that the syntax name may differ from the finalised symbol name (e.g. member access).
+                        // We can only prevent future reprocessing if the symbol name and syntax name exactly match because we can't determine that the type won't be accessed later, such as:
+                        //
+                        // A.X = 5;    // Syntax name = A, Symbol name = B
+                        // B.X = 5;    // Syntax name = B, Symbol name = A
+                        // public A B;
+                        // public B A;
+                        //
+                        if (symbol.Name == syntaxName)
+                            seenTypes.TryAdd(symbol.Name, 0);
+
                         break;
                     }
                 }
-            }
+            }))).ConfigureAwait(false);
 
-            return result;
+            return result.Keys;
+
+            bool tryNode(SyntaxNode node, out INamedTypeSymbol symbol)
+            {
+                if (semanticModel.GetSymbolInfo(node).Symbol is INamedTypeSymbol sType)
+                {
+                    addTypeSymbol(sType);
+                    symbol = sType;
+                    return true;
+                }
+
+                if (semanticModel.GetTypeInfo(node).Type is INamedTypeSymbol tType)
+                {
+                    addTypeSymbol(tType);
+                    symbol = tType;
+                    return true;
+                }
+
+                // Todo: Reduce the number of cases that fall through here.
+                symbol = null;
+                return false;
+            }
 
             void addTypeSymbol(INamedTypeSymbol typeSymbol)
             {
-                // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
-                if (typeSymbol.GetAttributes().Any(attrib => attrib.AttributeClass?.Name.Contains(exclude_attribute_name) ?? false))
-                {
-                    logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
-                    return;
-                }
-
                 var reference = TypeReference.FromSymbol(typeSymbol);
 
                 if (typeInheritsFromGame(reference))
@@ -279,7 +362,28 @@ namespace osu.Framework.Testing
                     return;
                 }
 
-                result.Add(reference);
+                // Exclude types marked with the [ExcludeFromDynamicCompile] attribute
+                // When multiple types exist in one file, the exclusion attribute may be omitted from some types, causing references to those types to indirectly compile explicitly excluded types.
+                // If this type hasn't been seen before, do a manual pass over all its syntaxes to determine if an exclusion attribute is present anywhere in the file.
+                if (!referenceMap.ContainsKey(reference))
+                {
+                    foreach (var syntax in typeSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (!syntaxExclusionMap.TryGetValue(syntax.SyntaxTree.FilePath, out bool containsExclusion))
+                            containsExclusion = syntaxExclusionMap[syntax.SyntaxTree.FilePath] = syntax.SyntaxTree.ToString().Contains(exclude_attribute_name);
+
+                        if (containsExclusion)
+                        {
+                            logger.Add($"Type {typeSymbol.Name} referenced but marked for exclusion.");
+                            return;
+                        }
+                    }
+                }
+
+                if (typeSymbol.DeclaredAccessibility == Accessibility.Internal)
+                    assembliesContainingReferencedInternalMembers.TryAdd(typeSymbol.ContainingAssembly.Name, 0);
+
+                result.TryAdd(reference, 0);
             }
         }
 
@@ -349,25 +453,14 @@ namespace osu.Framework.Testing
             foreach (var s in sources)
                 computeExpansionFactors(directedGraph[s]);
 
+            // Invert the expansion factors such the changed file and the test will have the lowest values, and the centre of the graph will have the greatest values.
+            ulong maxExpansionFactor = sources.Select(s => directedGraph[s].ExpansionFactor).Max();
+            foreach (var (_, node) in directedGraph)
+                node.ExpansionFactor = Math.Min(node.ExpansionFactor, maxExpansionFactor - node.ExpansionFactor);
+
             var result = new HashSet<string>();
-
             foreach (var s in sources)
-            {
-                var node = directedGraph[s];
-
-                // This shouldn't be super tight (e.g. log_2), but tight enough that a significant number of nodes do get excluded.
-                double range = Math.Log(Math.Max(1, node.ExpansionFactor), 1.25d);
-
-                var exclusionRange = (
-                    min: range,
-                    max: node.ExpansionFactor - range);
-
-                // This covers for two cases: max < min, and relaxes the expansion for small hierarchies (100 intermediate nodes).
-                if (Math.Abs(exclusionRange.max - exclusionRange.min) < 100)
-                    exclusionRange = (double.MaxValue, double.MaxValue);
-
-                getReferencedFilesRecursive(directedGraph[s], result, exclusionRange);
-            }
+                getReferencedFilesRecursive(directedGraph[s], result);
 
             return result;
         }
@@ -391,22 +484,38 @@ namespace osu.Framework.Testing
             return true;
         }
 
-        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, (double min, double max) exclusionRange, HashSet<DirectedTypeNode> seenTypes = null,
-                                                 int level = 0)
+        private void getReferencedFilesRecursive(DirectedTypeNode node, HashSet<string> result, HashSet<DirectedTypeNode> seenTypes = null, int level = 0, SortedList<ulong> childExpansions = null)
         {
-            // Expansion is allowed on either side of the non-expansion range, i.e. all values satisfying the condition (min < X < max) are discarded.
-            if (node.ExpansionFactor > exclusionRange.min && node.ExpansionFactor < exclusionRange.max)
-                return;
-
-            // A '.' is prepended since the logger trims lines.
-            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor}: {node}");
-
             // Don't go through duplicate nodes (multiple references from different types).
             seenTypes ??= new HashSet<DirectedTypeNode>();
             if (seenTypes.Contains(node))
                 return;
 
             seenTypes.Add(node);
+
+            // Concatenate the expansion factors from ourselves and the child.
+            var expansions = new SortedList<ulong>();
+            if (childExpansions != null)
+                expansions.AddRange(childExpansions);
+            expansions.AddRange(node.Parents.Where(p => p != node).Select(p => p.ExpansionFactor));
+
+            // Compute the "right bound" after which far outlier parents that expand too many nodes shouldn't be traversed.
+            // This is calculated as 3x the inter-quartile range (see: https://en.wikipedia.org/wiki/Outlier#Tukey's_fences).
+            double rightBound = double.PositiveInfinity;
+
+            if (expansions.Count > 1)
+            {
+                var q1 = getMedian(expansions.Take(expansions.Count / 2).ToList(), out var q1Centre);
+                var q3 = getMedian(expansions.Skip((int)Math.Ceiling(expansions.Count / 2f)).ToList(), out _);
+
+                rightBound = q3 + 3 * (q3 - q1);
+
+                // Finally, remove all left-bound elements as they would skew the results as parents are traversed.
+                expansions.RemoveRange(0, q1Centre);
+            }
+
+            // Output the current iteration to the log. A '.' is prepended since the logger trims lines.
+            logger.Add($"{(level > 0 ? $".{new string(' ', level * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor} (rb: {rightBound}): {node}");
 
             // Add all the current type's locations to the resulting set.
             foreach (var location in node.Reference.Symbol.Locations)
@@ -418,7 +527,30 @@ namespace osu.Framework.Testing
 
             // Follow through the process for all parents.
             foreach (var p in node.Parents)
-                getReferencedFilesRecursive(p, result, exclusionRange, seenTypes, level + 1);
+            {
+                int nextLevel = level + 1;
+
+                // Right-bound outlier test - exclude parents greater than 3x IQR. Always expand left-bound parents as they are unlikely to cause compilation errors.
+                if (p.ExpansionFactor > rightBound)
+                {
+                    logger.Add($"{(nextLevel > 0 ? $".{new string(' ', nextLevel * 2 - 1)}| " : string.Empty)} {node.ExpansionFactor} (rb: {rightBound}): {node} (!! EXCLUDED !!)");
+                    continue;
+                }
+
+                getReferencedFilesRecursive(p, result, seenTypes, nextLevel, expansions);
+            }
+        }
+
+        private ulong getMedian(List<ulong> range, out int centre)
+        {
+            centre = range.Count / 2;
+
+            // If count is odd - return the middle element.
+            if (range.Count % 2 == 1)
+                return range[centre];
+
+            // If count is even, return the average of the two nearest elements (centre is essentially the upper index).
+            return (range[centre - 1] + range[centre]) / 2;
         }
 
         private bool typeInheritsFromGame(TypeReference reference)
@@ -428,7 +560,7 @@ namespace osu.Framework.Testing
 
             // When used via a nuget package, the local type name seems to always be more qualified than the symbol's type name.
             // E.g. Type name: osu.Framework.Game, symbol name: Framework.Game.
-            if (typeof(Game).FullName?.Contains(reference.Symbol.ToString()) == true)
+            if (typeof(Game).FullName?.Contains(reference.ToString()) == true)
                 return typeInheritsFromGameCache[reference] = true;
 
             if (reference.Symbol.BaseType == null)
@@ -457,7 +589,7 @@ namespace osu.Framework.Testing
                 return existing;
 
             logger.Add($"Compiling project {project.Name}...");
-            return compilationCache[project] = await project.GetCompilationAsync();
+            return compilationCache[project] = await project.GetCompilationAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -467,10 +599,17 @@ namespace osu.Framework.Testing
         /// <returns>The corresponding <see cref="SemanticModel"/>.</returns>
         private async Task<SemanticModel> getSemanticModelAsync(SyntaxTree syntaxTree)
         {
-            if (semanticModelCache.TryGetValue(syntaxTree, out var existing))
+            string filePath = syntaxTree.FilePath;
+
+            if (semanticModelCache.TryGetValue(filePath, out var existing))
                 return existing;
 
-            return semanticModelCache[syntaxTree] = (await compileProjectAsync(getProjectFromFile(syntaxTree.FilePath))).GetSemanticModel(syntaxTree, true);
+            var compilation = await compileProjectAsync(getProjectFromFile(filePath)).ConfigureAwait(false);
+
+            // Syntax trees are identified with the compilation they're in, so they must be re-retrieved on the new compilation.
+            syntaxTree = compilation.SyntaxTrees.Single(t => t.FilePath == filePath);
+
+            return semanticModelCache[filePath] = compilation.GetSemanticModel(syntaxTree, true);
         }
 
         /// <summary>
@@ -494,6 +633,7 @@ namespace osu.Framework.Testing
         {
             compilationCache.Clear();
             semanticModelCache.Clear();
+            syntaxExclusionMap.Clear();
         }
 
         /// <summary>
@@ -514,24 +654,28 @@ namespace osu.Framework.Testing
         private readonly struct TypeReference : IEquatable<TypeReference>
         {
             public readonly INamedTypeSymbol Symbol;
+            public readonly string ContainingNamespace;
+            public readonly string SymbolName;
 
             public TypeReference(INamedTypeSymbol symbol)
             {
                 Symbol = symbol;
+                ContainingNamespace = symbol.ContainingNamespace.ToString();
+                SymbolName = symbol.ToString();
             }
 
             public bool Equals(TypeReference other)
-                => Symbol.ContainingNamespace.ToString() == other.Symbol.ContainingNamespace.ToString()
-                   && Symbol.ToString() == other.Symbol.ToString();
+                => ContainingNamespace == other.ContainingNamespace
+                   && SymbolName == other.SymbolName;
 
             public override int GetHashCode()
             {
                 var hash = new HashCode();
-                hash.Add(Symbol.ToString(), StringComparer.Ordinal);
+                hash.Add(SymbolName, StringComparer.Ordinal);
                 return hash.ToHashCode();
             }
 
-            public override string ToString() => Symbol.ToString();
+            public override string ToString() => SymbolName;
 
             public static TypeReference FromSymbol(INamedTypeSymbol symbol) => new TypeReference(symbol);
         }

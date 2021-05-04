@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -22,6 +23,9 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private FillFlowContainer<Container> flow;
         private TestScrollContainer scroll;
+
+        [Resolved]
+        private Game game { get; set; }
 
         [SetUp]
         public void SetUp() => Schedule(() =>
@@ -99,6 +103,44 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("scroll to start", () => scroll.ScrollToStart());
 
             AddUntilStep("references restored", () => references.Count() == 16);
+        }
+
+        [Test]
+        public void TestTasksCanceledDuringLoadSequence()
+        {
+            var references = new WeakList<TestBox>();
+
+            AddStep("populate panels", () =>
+            {
+                references.Clear();
+
+                for (int i = 0; i < 16; i++)
+                {
+                    DelayedLoadUnloadWrapper loadUnloadWrapper;
+
+                    flow.Add(new Container
+                    {
+                        Size = new Vector2(128),
+                        Child = loadUnloadWrapper = new DelayedLoadUnloadWrapper(() =>
+                        {
+                            var content = new TestBox { RelativeSizeAxes = Axes.Both };
+                            references.Add(content);
+                            return content;
+                        }, 0),
+                    });
+
+                    // cancel load tasks after the delayed load has started.
+                    loadUnloadWrapper.DelayedLoadStarted += _ => game.Schedule(() => loadUnloadWrapper.UnbindAllBindables());
+                }
+            });
+
+            AddStep("remove all panels", () => flow.Clear(false));
+
+            AddUntilStep("references lost", () =>
+            {
+                GC.Collect();
+                return !references.Any();
+            });
         }
 
         [Test]
@@ -372,6 +414,51 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("wait for unload", () => wrapper.Content?.IsLoaded != true);
         }
 
+        [Test]
+        public void TestUnloadedWhenAsyncLoadCompletedAndMaskedAway()
+        {
+            BasicScrollContainer scrollContainer = null;
+            DelayedLoadTestDrawable child = null;
+
+            AddStep("add panel", () =>
+            {
+                Child = scrollContainer = new BasicScrollContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(128),
+                    Child = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Height = 1000,
+                        Child = new Container
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 128,
+                            Child = new DelayedLoadUnloadWrapper(() => child = new DelayedLoadTestDrawable { RelativeSizeAxes = Axes.Both }, 0, 1000)
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 128
+                            }
+                        }
+                    }
+                };
+            });
+
+            // Check that the child is disposed when its async-load completes while the DLUW is masked away.
+            AddAssert("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddStep("scroll to end", () => scrollContainer.ScrollToEnd(false));
+            AddStep("allow load", () => child.AllowLoad.Set());
+            AddUntilStep("drawable disposed", () => child.IsDisposed);
+
+            // Check that reuse of the child is not attempted.
+            Drawable lastChild = null;
+            AddStep("store child", () => lastChild = child);
+            AddStep("scroll to start", () => scrollContainer.ScrollToStart(false));
+            AddWaitStep("wait some frames", 2);
+            AddAssert("child not loaded", () => lastChild.LoadState != LoadState.Loaded);
+        }
+
         public class TestScrollContainer : BasicScrollContainer
         {
             public new Scheduler Scheduler => base.Scheduler;
@@ -399,6 +486,18 @@ namespace osu.Framework.Tests.Visual.Drawables
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                 };
+            }
+        }
+
+        public class DelayedLoadTestDrawable : CompositeDrawable
+        {
+            public readonly ManualResetEventSlim AllowLoad = new ManualResetEventSlim(false);
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                if (!AllowLoad.Wait(TimeSpan.FromSeconds(10)))
+                    throw new TimeoutException();
             }
         }
     }

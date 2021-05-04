@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -19,6 +20,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestSceneTabControl : FrameworkTestScene
     {
         private readonly TestEnum[] items;
+
+        private FillFlowContainer tabControlContainer;
 
         private StyledTabControl pinnedAndAutoSort;
         private StyledTabControl switchingTabControl;
@@ -28,6 +31,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private StyledMultilineTabControl multilineTabControl;
         private StyledTabControl simpleTabcontrol;
         private StyledTabControl simpleTabcontrolNoSwitchOnRemove;
+        private BasicTabControl<TestEnum?> basicTabControl;
 
         public TestSceneTabControl()
         {
@@ -39,7 +43,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             Clear();
 
-            Add(new FillFlowContainer
+            Add(tabControlContainer = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Full,
@@ -82,6 +86,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Size = new Vector2(200, 30)
                     },
+                    basicTabControl = new BasicTabControl<TestEnum?>
+                    {
+                        Size = new Vector2(200, 20)
+                    }
                 }
             });
 
@@ -92,6 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 multilineTabControl.AddItem(item);
                 switchingTabControl.AddItem(item);
                 withoutDropdownTabControl.AddItem(item);
+                basicTabControl.AddItem(item);
             }
 
             items.Take(7).ForEach(item => pinnedAndAutoSort.AddItem(item));
@@ -349,6 +358,26 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("contained items match added items", () => tabControl.Items.SequenceEqual(items));
         }
 
+        [TestCase(false, null)]
+        [TestCase(true, TestEnum.Test0)]
+        public void TestInitialSelection(bool selectFirstByDefault, TestEnum? expectedInitialSelection)
+        {
+            StyledTabControl tabControl = null;
+
+            AddStep("create tab control", () =>
+            {
+                tabControlContainer.Add(tabControl = new StyledTabControl
+                {
+                    Size = new Vector2(200, 30),
+                    Items = items.Cast<TestEnum?>().ToList(),
+                    SelectFirstTabByDefault = selectFirstByDefault
+                });
+            });
+
+            AddUntilStep("wait for loaded", () => tabControl.IsLoaded);
+            AddAssert("initial selection is correct", () => tabControl.Current.Value == expectedInitialSelection);
+        }
+
         private class StyledTabControlWithoutDropdown : TabControl<TestEnum>
         {
             protected override Dropdown<TestEnum> CreateDropdown() => null;
@@ -423,7 +452,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class StyledDropdownHeader : DropdownHeader
         {
-            protected internal override string Label { get; set; }
+            protected internal override LocalisableString Label { get; set; }
 
             public StyledDropdownHeader()
             {

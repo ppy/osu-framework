@@ -23,6 +23,12 @@ namespace osu.Framework.Audio
         private bool acceptingActions = true;
 
         /// <summary>
+        /// Whether an audio thread specific action can be performed inline.
+        /// </summary>
+        protected bool CanPerformInline =>
+            ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread && ThreadSafety.IsUpdateThread);
+
+        /// <summary>
         /// Enqueues an action to be performed on the audio thread.
         /// </summary>
         /// <param name="action">The action to perform.</param>
@@ -38,7 +44,7 @@ namespace osu.Framework.Audio
                     throw new InvalidOperationException("Cannot perform audio operation from input thread.");
             }
 
-            if (ThreadSafety.IsAudioThread || (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread && ThreadSafety.IsUpdateThread))
+            if (CanPerformInline)
             {
                 action();
                 return Task.CompletedTask;
@@ -54,27 +60,10 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
-        /// States if this component should repeat.
-        /// </summary>
-        public virtual bool Looping { get; set; }
-
-        /// <summary>
-        /// Invoked when the component should loop.
-        /// </summary>
-        /// <remarks>
-        /// Used to restart the playback when looping is enabled and playback has completed.
-        /// </remarks>
-        protected virtual void OnLooping()
-        {
-        }
-
-        /// <summary>
         /// Run each loop of the audio thread's execution after queued actions are completed to allow components to perform any additional operations.
         /// </summary>
         protected virtual void UpdateState()
         {
-            if (Looping && HasCompleted)
-                OnLooping();
         }
 
         /// <summary>
@@ -123,24 +112,19 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        ~AudioComponent()
-        {
-            Dispose(false);
-        }
-
         protected volatile bool IsDisposed;
 
-        protected virtual void Dispose(bool disposing)
-        {
-            IsDisposed = true;
-        }
-
-        public virtual void Dispose()
+        public void Dispose()
         {
             acceptingActions = false;
             PendingActions.Enqueue(new Task(() => Dispose(true)));
 
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            IsDisposed = true;
         }
 
         #endregion

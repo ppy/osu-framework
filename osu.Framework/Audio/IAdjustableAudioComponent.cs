@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Audio
 {
-    public interface IAdjustableAudioComponent
+    public interface IAdjustableAudioComponent : IAggregateAudioAdjustment
     {
         /// <summary>
         /// The volume of this component.
@@ -31,18 +31,30 @@ namespace osu.Framework.Audio
         BindableNumber<double> Tempo { get; }
 
         /// <summary>
+        /// Bind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void BindAdjustments(IAggregateAudioAdjustment component);
+
+        /// <summary>
+        /// Unbind all adjustments from an <see cref="IAggregateAudioAdjustment"/>.
+        /// </summary>
+        /// <param name="component">The adjustment source.</param>
+        void UnbindAdjustments(IAggregateAudioAdjustment component);
+
+        /// <summary>
         /// Add a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>
         /// <param name="adjustBindable">The bindable adjustment.</param>
-        void AddAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable);
+        void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable);
 
         /// <summary>
         /// Remove a bindable adjustment source.
         /// </summary>
         /// <param name="type">The target type for this adjustment.</param>
         /// <param name="adjustBindable">The bindable adjustment.</param>
-        void RemoveAdjustment(AdjustableProperty type, BindableNumber<double> adjustBindable);
+        void RemoveAdjustment(AdjustableProperty type, IBindable<double> adjustBindable);
 
         /// <summary>
         /// Removes all adjustments of a type.

@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
-            public override IEnumerable<KeyBinding> DefaultKeyBindings => null;
+            public override IEnumerable<IKeyBinding> DefaultKeyBindings => null;
         }
 
         private enum TestAction

@@ -39,17 +39,23 @@ namespace osu.Framework.Platform
             defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
 
             base.SetupConfig(defaultOverrides);
+
+            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            {
+                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
+                Logger.Log($"Startup execution mode set to {mode} from envvar");
+            }
         }
 
         protected override void SetupForRun()
         {
             base.SetupForRun();
 
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
-        }
+            MaximumDrawHz = double.MaxValue;
+            MaximumUpdateHz = double.MaxValue;
+            MaximumInactiveHz = double.MaxValue;
 
-        protected override void SetupToolkit()
-        {
+            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
         }
 
         protected override void DrawFrame()

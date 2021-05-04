@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Bindables;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Statistics
 {
@@ -12,10 +14,17 @@ namespace osu.Framework.Statistics
     /// </summary>
     public static class GlobalStatistics
     {
-        // ReSharper disable once InconsistentlySynchronizedField
-        internal static IBindableList<IGlobalStatistic> Statistics => statistics;
+        /// <summary>
+        /// An event which is raised when the available statistics change.
+        /// </summary>
+        internal static event NotifyCollectionChangedEventHandler StatisticsChanged;
 
         private static readonly BindableList<IGlobalStatistic> statistics = new BindableList<IGlobalStatistic>();
+
+        static GlobalStatistics()
+        {
+            statistics.BindCollectionChanged((o, e) => StatisticsChanged?.Invoke(o, e));
+        }
 
         /// <summary>
         /// Retrieve a <see cref="IGlobalStatistic"/> of specified type.
@@ -24,12 +33,11 @@ namespace osu.Framework.Statistics
         /// <param name="group">The group specification.</param>
         /// <param name="name">The name specification.</param>
         /// <typeparam name="T">The type.</typeparam>
-        /// <returns></returns>
         public static GlobalStatistic<T> Get<T>(string group, string name)
         {
             lock (statistics)
             {
-                var existing = Statistics.OfType<GlobalStatistic<T>>().FirstOrDefault(s => s.Name == name && s.Group == group);
+                var existing = statistics.OfType<GlobalStatistic<T>>().FirstOrDefault(s => s.Name == name && s.Group == group);
                 if (existing != null)
                     return existing;
 
@@ -56,6 +64,16 @@ namespace osu.Framework.Statistics
         }
 
         /// <summary>
+        /// Remove a specific statistic.
+        /// </summary>
+        /// <param name="statistic">The statistic to remove.</param>
+        public static void Remove(IGlobalStatistic statistic)
+        {
+            lock (statistics)
+                statistics.Remove(statistic);
+        }
+
+        /// <summary>
         /// Register a new statistic type.
         /// </summary>
         /// <param name="stat">The statistic to register.</param>
@@ -63,6 +81,29 @@ namespace osu.Framework.Statistics
         {
             lock (statistics)
                 statistics.Add(stat);
+        }
+
+        public static void OutputToLog()
+        {
+            var statisticsSnapshot = GetStatistics();
+
+            Logger.Log("----- Global Statistics -----", LoggingTarget.Performance);
+
+            foreach (var group in statisticsSnapshot.GroupBy(s => s.Group))
+            {
+                Logger.Log($"# {group.Key}", LoggingTarget.Performance);
+
+                foreach (var i in group)
+                    Logger.Log($"{i.Name.PadRight(30)}: {i.DisplayValue}", LoggingTarget.Performance);
+            }
+
+            Logger.Log("--- Global Statistics End ---", LoggingTarget.Performance);
+        }
+
+        internal static IGlobalStatistic[] GetStatistics()
+        {
+            lock (statistics)
+                return statistics.ToArray();
         }
     }
 }

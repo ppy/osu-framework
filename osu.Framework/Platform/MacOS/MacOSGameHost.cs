@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osuTK;
 using osuTK.Graphics.OpenGL;
 
@@ -13,13 +16,12 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSGameHost : DesktopGameHost
     {
-        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
+        internal MacOSGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, portableInstallation)
         {
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new MacOSGameWindow() : new DesktopWindow();
+        protected override IWindow CreateWindow() => new MacOSWindow();
 
         public override string UserStoragePath
         {
@@ -56,6 +58,19 @@ namespace osu.Framework.Platform.MacOS
                 GL.Finish();
         }
 
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            var handlers = base.CreateAvailableInputHandlers();
+
+            foreach (var h in handlers.OfType<MouseHandler>())
+            {
+                // There are several bugs we need to fix with macOS / SDL2 cursor handling before switching this on.
+                h.UseRelativeMode.Value = false;
+            }
+
+            return handlers;
+        }
+
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), new PlatformAction(PlatformActionType.Cut)),
@@ -84,6 +99,9 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), new PlatformAction(PlatformActionType.DocumentNext)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.W), new PlatformAction(PlatformActionType.DocumentClose)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.T), new PlatformAction(PlatformActionType.TabNew)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.T), new PlatformAction(PlatformActionType.TabRestore)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.S), new PlatformAction(PlatformActionType.Save)),

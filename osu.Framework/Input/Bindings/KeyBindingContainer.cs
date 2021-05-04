@@ -4,12 +4,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Input.Bindings
@@ -37,7 +39,7 @@ namespace osu.Framework.Input.Bindings
             this.matchingMode = matchingMode;
         }
 
-        private readonly List<KeyBinding> pressedBindings = new List<KeyBinding>();
+        private readonly List<IKeyBinding> pressedBindings = new List<IKeyBinding>();
 
         private readonly List<T> pressedActions = new List<T>();
 
@@ -46,7 +48,7 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         public IEnumerable<T> PressedActions => pressedActions;
 
-        private readonly Dictionary<KeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<KeyBinding, List<Drawable>>();
+        private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
         private readonly List<Drawable> queue = new List<Drawable>();
 
         /// <summary>
@@ -115,10 +117,20 @@ namespace osu.Framework.Input.Bindings
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
 
-                    return handleNewPressed(state, KeyCombination.FromKey(keyDown.Key), keyDown.Repeat);
+                    foreach (var key in KeyCombination.FromKey(keyDown.Key))
+                    {
+                        if (handleNewPressed(state, key, keyDown.Repeat))
+                            return true;
+                    }
+
+                    return false;
 
                 case KeyUpEvent keyUp:
-                    handleNewReleased(state, KeyCombination.FromKey(keyUp.Key));
+                    // this is releasing the common shift when a remaining shift is still held.
+                    // ie. press LShift, press RShift, release RShift will result in InputKey.Shift being incorrectly released.
+                    foreach (var key in KeyCombination.FromKey(keyUp.Key))
+                        handleNewReleased(state, key);
+
                     return false;
 
                 case JoystickPressEvent joystickPress:
@@ -135,13 +147,30 @@ namespace osu.Framework.Input.Bindings
                     handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
                     return false;
 
+                case TabletPenButtonPressEvent tabletPenButtonPress:
+                    return handleNewPressed(state, KeyCombination.FromTabletPenButton(tabletPenButtonPress.Button), false);
+
+                case TabletPenButtonReleaseEvent tabletPenButtonRelease:
+                    handleNewReleased(state, KeyCombination.FromTabletPenButton(tabletPenButtonRelease.Button));
+                    return false;
+
+                case TabletAuxiliaryButtonPressEvent tabletAuxiliaryButtonPress:
+                    return handleNewPressed(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonPress.Button), false);
+
+                case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonRelease:
+                    handleNewReleased(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonRelease.Button));
+                    return false;
+
                 case ScrollEvent scroll:
                 {
-                    var key = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
-                    if (key == InputKey.None) return false;
+                    var keys = KeyCombination.FromScrollDelta(scroll.ScrollDelta);
+                    bool handled = false;
 
-                    var handled = handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
-                    handleNewReleased(state, key);
+                    foreach (var key in keys)
+                    {
+                        handled |= handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
+                        handleNewReleased(state, key);
+                    }
 
                     return handled;
                 }
@@ -152,18 +181,13 @@ namespace osu.Framework.Input.Bindings
 
         private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
-            float scrollAmount = 0;
-            if (newKey == InputKey.MouseWheelUp)
-                scrollAmount = scrollDelta?.Y ?? 0;
-            else if (newKey == InputKey.MouseWheelDown)
-                scrollAmount = -(scrollDelta?.Y ?? 0);
+            var scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
 
             bool handled = false;
-            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<KeyBinding>();
+            var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<IKeyBinding>();
             var newlyPressed = bindings.Where(m =>
-                m.KeyCombination.Keys.Contains(newKey) // only handle bindings matching current key (not required for correct logic)
-                && m.KeyCombination.IsPressed(pressedCombination, matchingMode));
+                m.KeyCombination.IsPressed(pressedCombination, matchingMode));
 
             if (KeyCombination.IsModifierKey(newKey))
             {
@@ -212,6 +236,27 @@ namespace osu.Framework.Input.Bindings
             return handled;
         }
 
+        private static float getScrollAmount(InputKey newKey, Vector2? scrollDelta)
+        {
+            switch (newKey)
+            {
+                case InputKey.MouseWheelUp:
+                    return scrollDelta?.Y ?? 0;
+
+                case InputKey.MouseWheelDown:
+                    return -(scrollDelta?.Y ?? 0);
+
+                case InputKey.MouseWheelRight:
+                    return scrollDelta?.X ?? 0;
+
+                case InputKey.MouseWheelLeft:
+                    return -(scrollDelta?.X ?? 0);
+
+                default:
+                    return 0;
+            }
+        }
+
         protected virtual Drawable PropagatePressed(IEnumerable<Drawable> drawables, T pressed, float scrollAmount = 0, bool isPrecise = false)
         {
             Drawable handled = null;
@@ -253,7 +298,7 @@ namespace osu.Framework.Input.Bindings
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
 
-            Trace.Assert(newlyReleased.All(b => b.KeyCombination.Keys.Contains(releasedKey)));
+            Trace.Assert(newlyReleased.All(b => KeyCombination.ContainsKey(b.KeyCombination.Keys, releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
@@ -286,7 +331,7 @@ namespace osu.Framework.Input.Bindings
             PropagatePressed(KeyBindingInputQueue, pressed);
         }
 
-        private List<Drawable> getInputQueue(KeyBinding binding, bool rebuildIfEmpty = false)
+        private List<Drawable> getInputQueue(IKeyBinding binding, bool rebuildIfEmpty = false)
         {
             if (!keyBindingQueues.ContainsKey(binding))
                 keyBindingQueues.Add(binding, new List<Drawable>());
@@ -305,9 +350,16 @@ namespace osu.Framework.Input.Bindings
     /// </summary>
     public abstract class KeyBindingContainer : Container
     {
-        protected IEnumerable<KeyBinding> KeyBindings;
+        // This is only specified here (rather than in PlatformContainer, where it is consumed) to workaround
+        // a critical iOS / Xamarin bug, where consumer applications may crash during startup at an unmanaged level.
+        // It should eventually be removed when the issue is identified and fixed upstream.
+        // See https://github.com/ppy/osu-framework/pull/4263 for discussion.
+        [Resolved]
+        protected GameHost Host { get; private set; }
 
-        public abstract IEnumerable<KeyBinding> DefaultKeyBindings { get; }
+        protected IEnumerable<IKeyBinding> KeyBindings;
+
+        public abstract IEnumerable<IKeyBinding> DefaultKeyBindings { get; }
 
         protected override void LoadComplete()
         {

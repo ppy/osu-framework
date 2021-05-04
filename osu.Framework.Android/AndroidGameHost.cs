@@ -22,19 +22,13 @@ using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
 {
-    public class AndroidGameHost : GameHost
+    public class AndroidGameHost : OsuTKGameHost
     {
         private readonly AndroidGameView gameView;
 
         public AndroidGameHost(AndroidGameView gameView)
         {
             this.gameView = gameView;
-        }
-
-        protected override void SetupForRun()
-        {
-            base.SetupForRun();
-            AndroidGameWindow.View = gameView;
         }
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
@@ -45,7 +39,7 @@ namespace osu.Framework.Android
             base.SetupConfig(defaultOverrides);
         }
 
-        protected override IWindow CreateWindow() => new AndroidGameWindow();
+        protected override IWindow CreateWindow() => new AndroidGameWindow(gameView);
 
         protected override bool LimitedMemoryEnvironment => true;
 
@@ -53,11 +47,15 @@ namespace osu.Framework.Android
 
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
-        public override ITextInputSource GetTextInput()
-            => new AndroidTextInput(gameView);
+        public override ITextInputSource GetTextInput() => new AndroidTextInput(gameView);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-            => new InputHandler[] { new AndroidKeyboardHandler(gameView), new AndroidTouchHandler(gameView), new MidiInputHandler() };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
+            new InputHandler[]
+            {
+                new AndroidKeyboardHandler(gameView),
+                new AndroidTouchHandler(gameView),
+                new MidiHandler()
+            };
 
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 

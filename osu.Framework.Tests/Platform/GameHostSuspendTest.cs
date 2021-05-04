@@ -12,7 +12,7 @@ namespace osu.Framework.Tests.Platform
     public class GameHostSuspendTest
     {
         private TestTestGame game;
-        private TestHeadlessGameHost host;
+        private HeadlessGameHost host;
 
         private const int timeout = 10000;
 
@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Platform
 
             var task = Task.Run(() =>
             {
-                using (host = new TestHeadlessGameHost(@"host", false))
+                using (host = new HeadlessGameHost(@"host", false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();
@@ -55,14 +55,6 @@ namespace osu.Framework.Tests.Platform
             game.Exit();
 
             Assert.IsTrue(task.Wait(timeout));
-        }
-
-        private class TestHeadlessGameHost : HeadlessGameHost
-        {
-            public TestHeadlessGameHost(string hostname, bool bindIPC)
-                : base(hostname, bindIPC)
-            {
-            }
         }
 
         private class TestTestGame : TestGame

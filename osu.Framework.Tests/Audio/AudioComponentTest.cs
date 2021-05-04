@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
@@ -39,9 +39,7 @@ namespace osu.Framework.Tests.Audio
 
             manager?.Dispose();
 
-            Thread.Sleep(500);
-
-            Assert.IsTrue(thread.Exited);
+            AudioThreadTest.WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
         }
 
         [Test]

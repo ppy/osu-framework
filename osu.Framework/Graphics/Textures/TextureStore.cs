@@ -6,7 +6,9 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Logging;
 using osuTK.Graphics.ES30;
 
@@ -47,7 +49,7 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name), wrapModeS, wrapModeT);
+        private async Task<Texture> getTextureAsync(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(await base.GetAsync(name).ConfigureAwait(false), wrapModeS, wrapModeT);
 
         private Texture getTexture(string name, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None) => loadRaw(base.Get(name), wrapModeS, wrapModeT);
 
@@ -60,7 +62,11 @@ namespace osu.Framework.Graphics.Textures
             if (Atlas != null)
             {
                 if ((glTexture = Atlas.Add(upload.Width, upload.Height, wrapModeS, wrapModeT)) == null)
-                    Logger.Log($"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.", LoggingTarget.Performance);
+                {
+                    Logger.Log(
+                        $"Texture requested ({upload.Width}x{upload.Height}) which exceeds {nameof(TextureStore)}'s atlas size ({max_atlas_size}x{max_atlas_size}) - bypassing atlasing. Consider using {nameof(LargeTextureStore)}.",
+                        LoggingTarget.Performance);
+                }
             }
 
             glTexture ??= new TextureGLSingle(upload.Width, upload.Height, manualMipmaps, filteringMode, wrapModeS, wrapModeT);
@@ -85,7 +91,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>The texture.</returns>
-        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) => Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
+        public Task<Texture> GetAsync(string name, WrapMode wrapModeT, WrapMode wrapModeS) =>
+            Task.Run(() => Get(name, wrapModeS, wrapModeT)); // TODO: best effort. need to re-think textureCache data structure to fix this.
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -93,6 +100,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
         public new Texture Get(string name) => Get(name, default, default);
+
+        private readonly Dictionary<string, Task> retrievalCompletionSources = new Dictionary<string, Task>();
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
@@ -107,28 +116,87 @@ namespace osu.Framework.Graphics.Textures
 
             string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}";
 
+            TaskCompletionSource<Texture> tcs = null;
+            Task task;
+
+            lock (retrievalCompletionSources)
+            {
+                // Check if the texture exists in the cache.
+                if (TryGetCached(key, out var cached))
+                    return cached;
+
+                // check if an existing lookup was already started for this key.
+                if (!retrievalCompletionSources.TryGetValue(key, out task))
+                    // if not, take responsibility for the lookup.
+                    retrievalCompletionSources[key] = (tcs = new TaskCompletionSource<Texture>()).Task;
+            }
+
+            // handle the case where a lookup is already in progress.
+            if (task != null)
+            {
+                task.Wait();
+
+                // always perform re-lookups through TryGetCached (see LargeTextureStore which has a custom implementation of this where it matters).
+                if (TryGetCached(key, out var cached))
+                    return cached;
+
+                return null;
+            }
+
             this.LogIfNonBackgroundThread(key);
 
-            lock (textureCache)
-            {
-                // refresh the texture if no longer available (may have been previously disposed).
-                if (!textureCache.TryGetValue(key, out var tex))
-                {
-                    try
-                    {
-                        tex = getTexture(name, wrapModeS, wrapModeT);
-                        if (tex != null)
-                            tex.LookupKey = key;
-                        textureCache[key] = tex;
-                    }
-                    catch (TextureTooLargeForGLException)
-                    {
-                        Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
-                    }
-                }
+            Texture tex = null;
 
-                return tex;
+            try
+            {
+                tex = getTexture(name, wrapModeS, wrapModeT);
+                if (tex != null)
+                    tex.LookupKey = key;
+
+                return CacheAndReturnTexture(key, tex);
             }
+            catch (TextureTooLargeForGLException)
+            {
+                Logger.Log($"Texture \"{name}\" exceeds the maximum size supported by this device ({GLWrapper.MaxTextureSize}px).", level: LogLevel.Error);
+            }
+            finally
+            {
+                // notify other lookups waiting on the same name lookup.
+                lock (retrievalCompletionSources)
+                {
+                    Debug.Assert(tcs != null);
+
+                    tcs.SetResult(tex);
+                    retrievalCompletionSources.Remove(key);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Attempts to retrieve an existing cached texture.
+        /// </summary>
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The returned texture. Null if the texture did not exist in the cache.</param>
+        /// <returns>Whether a cached texture was retrieved.</returns>
+        protected virtual bool TryGetCached([NotNull] string lookupKey, [CanBeNull] out Texture texture)
+        {
+            lock (textureCache)
+                return textureCache.TryGetValue(lookupKey, out texture);
+        }
+
+        /// <summary>
+        /// Caches and returns the given texture.
+        /// </summary>
+        /// <param name="lookupKey">The lookup key that uniquely identifies textures in the cache.</param>
+        /// <param name="texture">The texture to be cached and returned.</param>
+        /// <returns>The texture to be returned.</returns>
+        [CanBeNull]
+        protected virtual Texture CacheAndReturnTexture([NotNull] string lookupKey, [CanBeNull] Texture texture)
+        {
+            lock (textureCache)
+                return textureCache[lookupKey] = texture;
         }
 
         /// <summary>

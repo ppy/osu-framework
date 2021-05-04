@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [BackgroundDependencyLoader]
         private void load(FrameworkDebugConfigManager debugConfig)
         {
-            AddToggleStep("disable front to back", val => debugConfig.Set(DebugSetting.BypassFrontToBackPass, val));
+            AddToggleStep("disable front to back", val => debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val));
         }
 
         [Test]

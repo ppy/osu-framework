@@ -56,7 +56,6 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
-        /// <returns></returns>
         public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
 
         /// <summary>
@@ -152,7 +151,7 @@ namespace osu.Framework.Extensions
 
         public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
 
-        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        public static Type[] GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
@@ -162,13 +161,23 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types ?? Enumerable.Empty<Type>();
+                // the following warning disables are caused by netstandard2.1 and net5.0 differences
+                // the former declares Types as Type[], while the latter declares as Type?[]:
+                // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
+                // which trips some inspectcode errors which are only "valid" for the first of the two.
+                // TODO: remove if netstandard2.1 is removed
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                // ReSharper disable once ConstantConditionalAccessQualifier
+                // ReSharper disable once ConstantNullCoalescingCondition
+                return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
             }
         }
 
         public static string GetDescription(this object value)
-            => value.GetType().GetField(value.ToString())
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            => value.GetType()
+                    .GetField(value.ToString())?
+                    .GetCustomAttribute<DescriptionAttribute>()?.Description
+               ?? value.ToString();
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
@@ -263,6 +272,6 @@ namespace osu.Framework.Extensions
         /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
         /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
         internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
-            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate));
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
     }
 }

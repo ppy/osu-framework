@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -21,7 +22,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public Action Action { get; set; }
 
-        public string Text
+        public LocalisableString Text
         {
             get => SpriteText.Text;
             set => SpriteText.Text = value;
@@ -39,12 +40,16 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
         }
 
+        public readonly bool IsSetupStep;
+
         protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        protected StepButton()
+        protected StepButton(bool isSetupStep = false)
         {
+            IsSetupStep = isSetupStep;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Box
@@ -137,6 +142,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             Light.FadeColour(Color4.YellowGreen);
         }
 
-        public override string ToString() => Text;
+        public override string ToString() => Text.ToString();
     }
 }

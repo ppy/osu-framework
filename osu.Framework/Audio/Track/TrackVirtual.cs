@@ -81,8 +81,13 @@ namespace osu.Framework.Audio.Track
             {
                 if (clock.IsRunning && CurrentTime >= Length)
                 {
-                    Stop();
-                    RaiseCompleted();
+                    if (Looping)
+                        Restart();
+                    else
+                    {
+                        Stop();
+                        RaiseCompleted();
+                    }
                 }
             }
         }
@@ -92,7 +97,7 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo.Value * AggregateFrequency.Value;
+                clock.Rate = Rate;
         }
     }
 }

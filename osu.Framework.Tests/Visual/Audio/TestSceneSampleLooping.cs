@@ -11,7 +11,8 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public class TestSceneSampleLooping : FrameworkTestScene
     {
-        private SampleChannel sampleChannel;
+        private Sample sample;
+        private SampleChannel channel;
 
         [Resolved]
         private AudioManager audioManager { get; set; }
@@ -20,7 +21,11 @@ namespace osu.Framework.Tests.Visual.Audio
         public void SetUpSteps()
         {
             AddUntilStep("audio device ready", () => audioManager.IsLoaded);
-            AddStep("create looping sample", createLoopingSample);
+            AddStep("create looping sample", () =>
+            {
+                sample?.Dispose();
+                sample = audioManager.Samples.Get("tone.wav");
+            });
         }
 
         [Test]
@@ -28,8 +33,8 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             playAndCheckSample();
 
-            AddStep("disable looping", () => sampleChannel.Looping = false);
-            AddUntilStep("ensure stops", () => !sampleChannel.Playing);
+            AddStep("disable looping", () => channel.Looping = false);
+            AddUntilStep("ensure stops", () => !channel.Playing);
         }
 
         [Test]
@@ -37,18 +42,20 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             playAndCheckSample();
 
-            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
-            AddAssert("is still playing", () => sampleChannel.Playing);
+            AddStep("set frequency to 0", () => channel.Frequency.Value = 0);
+            AddWaitStep("wait for audio thread", 3);
+            AddAssert("is still playing", () => channel.Playing);
         }
 
         [Test]
         public void TestZeroFrequencyOnStart()
         {
-            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
+            AddStep("set frequency to 0", () => sample.Frequency.Value = 0);
             playAndCheckSample();
 
-            AddStep("set frequency to 1", () => sampleChannel.Frequency.Value = 1);
-            AddAssert("is still playing", () => sampleChannel.Playing);
+            AddStep("set frequency to 1", () => channel.Frequency.Value = 1);
+            AddWaitStep("wait for audio thread", 3);
+            AddAssert("is still playing", () => channel.Playing);
         }
 
         [Test]
@@ -56,8 +63,9 @@ namespace osu.Framework.Tests.Visual.Audio
         {
             stopAndCheckSample();
 
-            AddStep("set frequency to 0", () => sampleChannel.Frequency.Value = 0);
-            AddAssert("still stopped", () => !sampleChannel.Playing);
+            AddStep("set frequency to 0", () => channel.Frequency.Value = 0);
+            AddWaitStep("wait for audio thread", 3);
+            AddAssert("still stopped", () => !channel.Playing);
         }
 
         [TearDownSteps]
@@ -68,32 +76,30 @@ namespace osu.Framework.Tests.Visual.Audio
 
         private void playAndCheckSample()
         {
-            AddStep("play sample", () => sampleChannel.Play());
+            AddStep("play sample", () =>
+            {
+                channel = sample.GetChannel();
+                channel.Looping = true;
+
+                // reduce volume of the tone due to how loud it normally is.
+                channel.Volume.Value = 0.05;
+                channel.Play();
+            });
 
             // ensures that it is in fact looping given that the loaded sample length is very short.
             AddWaitStep("wait", 10);
-            AddAssert("is playing", () => sampleChannel.Playing);
+            AddAssert("is playing", () => channel.Playing);
         }
 
         private void stopAndCheckSample()
         {
-            AddStep("stop playing", () => sampleChannel.Stop());
-            AddUntilStep("stopped", () => !sampleChannel.Playing);
-        }
-
-        private void createLoopingSample()
-        {
-            sampleChannel?.Dispose();
-            sampleChannel = audioManager.Samples.Get("tone.wav");
-
-            // reduce volume of the tone due to how loud it normally is.
-            sampleChannel.Volume.Value = 0.05;
-            sampleChannel.Looping = true;
+            AddStep("stop playing", () => channel?.Stop());
+            AddUntilStep("stopped", () => channel?.Playing != true);
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            sampleChannel?.Dispose();
+            sample?.Dispose();
             base.Dispose(isDisposing);
         }
     }

@@ -28,12 +28,18 @@ namespace osu.Framework.Tests.Threading
 
             int invocations = 0;
 
-            scheduler.Add(() => invocations++, forceScheduled);
+            var del = scheduler.Add(() => invocations++, forceScheduled);
 
             if (fromMainThread && !forceScheduled)
+            {
                 Assert.AreEqual(1, invocations);
+                Assert.That(del, Is.Null);
+            }
             else
+            {
                 Assert.AreEqual(0, invocations);
+                Assert.That(del, Is.Not.Null);
+            }
 
             scheduler.Update();
             Assert.AreEqual(1, invocations);
@@ -202,6 +208,35 @@ namespace osu.Framework.Tests.Threading
                     expectedInvocations += 1 + (int)((d - 1000) / 500);
 
                 Assert.AreEqual(expectedInvocations, invocations);
+            }
+        }
+
+        [Test]
+        public void TestZeroDelayRepeatingDelegate()
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            Assert.Zero(scheduler.TotalPendingTasks);
+
+            scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 0));
+
+            Assert.AreEqual(1, scheduler.TotalPendingTasks);
+
+            int expectedInvocations = 0;
+
+            for (double d = 0; d <= 2500; d += 100)
+            {
+                clock.Seek(d);
+                scheduler.Update();
+
+                if (d >= 500)
+                    expectedInvocations++;
+
+                Assert.AreEqual(expectedInvocations, invocations);
+                Assert.AreEqual(1, scheduler.TotalPendingTasks);
             }
         }
 

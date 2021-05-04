@@ -11,7 +11,7 @@ using osu.Framework.Configuration.Tracking;
 
 namespace osu.Framework.Configuration
 {
-    public abstract class ConfigManager<TLookup> : ITrackableConfigManager, IDisposable
+    public abstract class ConfigManager<TLookup> : ConfigManager, ITrackableConfigManager
         where TLookup : struct, Enum
     {
         /// <summary>
@@ -40,7 +40,50 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
+        /// <summary>
+        /// Sets a configuration's value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The value. Will also become the default value if one has not already been initialised.</param>
+        /// <typeparam name="TValue">The type of value.</typeparam>
+        public void SetValue<TValue>(TLookup lookup, TValue value)
+        {
+            var bindable = GetOriginalBindable<TValue>(lookup);
+
+            if (bindable == null)
+                SetDefault(lookup, value);
+            else
+                bindable.Value = value;
+        }
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableDouble Set(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null) => SetDefault(lookup, value, min, max, precision);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null) => SetDefault(lookup, value, min, max, precision);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null) => SetDefault(lookup, value, min, max);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableBool Set(TLookup lookup, bool value) => SetDefault(lookup, value);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null) => SetDefault(lookup, value, min, max);
+
+        [Obsolete("In derived classes, use SetDefault() to set the default value. In public contexts, use SetValue() to set the value.")] // Can be removed 20210915
+        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value) => SetDefault(lookup, value);
+
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="precision">The value precision.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableDouble SetDefault(TLookup lookup, double value, double? min = null, double? max = null, double? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -62,7 +105,16 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableFloat Set(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="precision">The value precision.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableFloat SetDefault(TLookup lookup, float value, float? min = null, float? max = null, float? precision = null)
         {
             value = getDefault(lookup, value);
 
@@ -84,7 +136,15 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableInt Set(TLookup lookup, int value, int? min = null, int? max = null)
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableInt SetDefault(TLookup lookup, int value, int? min = null, int? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -105,7 +165,13 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableBool Set(TLookup lookup, bool value)
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableBool SetDefault(TLookup lookup, bool value)
         {
             value = getDefault(lookup, value);
 
@@ -124,7 +190,15 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableSize Set(TLookup lookup, Size value, Size? min = null, Size? max = null)
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected BindableSize SetDefault(TLookup lookup, Size value, Size? min = null, Size? max = null)
         {
             value = getDefault(lookup, value);
 
@@ -145,7 +219,13 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public Bindable<TValue> Set<TValue>(TLookup lookup, TValue value)
+        /// <summary>
+        /// Sets a configuration's default value.
+        /// </summary>
+        /// <param name="lookup">The lookup key.</param>
+        /// <param name="value">The default value.</param>
+        /// <returns>The original bindable (not a bound copy).</returns>
+        protected Bindable<TValue> SetDefault<TValue>(TLookup lookup, TValue value)
         {
             value = getDefault(lookup, value);
 
@@ -164,7 +244,7 @@ namespace osu.Framework.Configuration
         protected virtual void AddBindable<TBindable>(TLookup lookup, Bindable<TBindable> bindable)
         {
             ConfigStore[lookup] = bindable;
-            bindable.ValueChanged += _ => backgroundSave();
+            bindable.ValueChanged += _ => QueueBackgroundSave();
         }
 
         private TValue getDefault<TValue>(TLookup lookup, TValue fallback)
@@ -210,32 +290,6 @@ namespace osu.Framework.Configuration
         /// </summary>
         public void BindWith<TValue>(TLookup lookup, Bindable<TValue> bindable) => bindable.BindTo(GetOriginalBindable<TValue>(lookup));
 
-        #region IDisposable Support
-
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                Save();
-                isDisposed = true;
-            }
-        }
-
-        ~ConfigManager()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        #endregion
-
         public virtual TrackedSettings CreateTrackedSettings() => null;
 
         public void LoadInto(TrackedSettings settings) => settings.LoadFrom(this);
@@ -252,7 +306,10 @@ namespace osu.Framework.Configuration
             {
             }
         }
+    }
 
+    public abstract class ConfigManager : IDisposable
+    {
         private bool hasLoaded;
 
         public void Load()
@@ -264,11 +321,12 @@ namespace osu.Framework.Configuration
         private int lastSave;
 
         /// <summary>
-        /// Perform a save with debounce.
+        /// Queue a background save operation with debounce.
         /// </summary>
-        private void backgroundSave()
+        protected void QueueBackgroundSave()
         {
             var current = Interlocked.Increment(ref lastSave);
+
             Task.Delay(100).ContinueWith(task =>
             {
                 if (current == lastSave) Save();
@@ -291,5 +349,26 @@ namespace osu.Framework.Configuration
         protected abstract void PerformLoad();
 
         protected abstract bool PerformSave();
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                Save();
+                isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        #endregion
     }
 }

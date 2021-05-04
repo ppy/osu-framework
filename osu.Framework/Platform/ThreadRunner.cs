@@ -16,7 +16,7 @@ using osu.Framework.Threading;
 namespace osu.Framework.Platform
 {
     /// <summary>
-    /// Runs a game host in a specifc threading mode.
+    /// Runs a game host in a specific threading mode.
     /// </summary>
     public class ThreadRunner
     {
@@ -135,7 +135,15 @@ namespace osu.Framework.Platform
             Threads.ForEach(t => t.Exit());
             Threads.Where(t => t.Running).ForEach(t =>
             {
-                if (!t.Thread.Join(thread_join_timeout))
+                var thread = t.Thread;
+
+                if (thread == null)
+                {
+                    // has already been cleaned up (or never started)
+                    return;
+                }
+
+                if (!thread.Join(thread_join_timeout))
                     Logger.Log($"Thread {t.Name} failed to exit in allocated time ({thread_join_timeout}ms).", LoggingTarget.Runtime, LogLevel.Important);
             });
 
@@ -153,6 +161,7 @@ namespace osu.Framework.Platform
 
             // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
             activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
+            Logger.Log($"Execution mode changed to {activeExecutionMode}");
 
             pauseAllThreads();
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using osu.Framework.Audio;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Effects;
 using osuTK;
@@ -17,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     /// <remarks>
     /// This is a bare-minimal implementation of a container, so it may be required to be nested inside a <see cref="Container"/> for some use cases.
     /// </remarks>
-    /// <typeparam name="T">The tyoe of <see cref="Drawable"/>.</typeparam>
+    /// <typeparam name="T">The type of <see cref="Drawable"/>.</typeparam>
     public class AudioContainer<T> : DrawableAudioWrapper, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
@@ -40,8 +41,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 base.Size = new Vector2(
-                    RelativeSizeAxes.HasFlag(Axes.X) ? 1 : value.X,
-                    RelativeSizeAxes.HasFlag(Axes.Y) ? 1 : value.Y);
+                    RelativeSizeAxes.HasFlagFast(Axes.X) ? 1 : value.X,
+                    RelativeSizeAxes.HasFlagFast(Axes.Y) ? 1 : value.Y);
 
                 container.Size = value;
             }

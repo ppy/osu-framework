@@ -19,7 +19,6 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
-using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -101,7 +100,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (IsInitialized) return;
 
-            if (host.Window is GameWindow win)
+            if (host.Window is OsuTKWindow win)
                 IsEmbedded = win.IsEmbedded;
 
             GLWrapper.host = new WeakReference<GameHost>(host);
@@ -113,26 +112,23 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
 
             IsInitialized = true;
+
+            reset_scheduler.AddDelayed(checkPendingDisposals, 0, true);
         }
+
+        private static readonly GLDisposalQueue disposal_queue = new GLDisposalQueue();
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            int frameCount = 0;
-
-            if (host != null && host.TryGetTarget(out GameHost h))
-                h.UpdateThread.Scheduler.Add(scheduleNextDisposal);
+            if (host != null && host.TryGetTarget(out _))
+                disposal_queue.ScheduleDisposal(disposalAction);
             else
                 disposalAction.Invoke();
+        }
 
-            void scheduleNextDisposal() => reset_scheduler.Add(() =>
-            {
-                // There may be a number of DrawNodes queued to be drawn
-                // Disposal should only take place after
-                if (frameCount++ >= MAX_DRAW_NODES)
-                    disposalAction.Invoke();
-                else
-                    scheduleNextDisposal();
-            });
+        private static void checkPendingDisposals()
+        {
+            disposal_queue.CheckPendingDisposals();
         }
 
         private static readonly GlobalStatistic<int> stat_expensive_operations_queued = GlobalStatistics.Get<int>(nameof(GLWrapper), "Expensive operation queue length");
@@ -223,8 +219,9 @@ namespace osu.Framework.Graphics.OpenGL
                     break;
             }
 
-            Array.Clear(last_bound_texture, 0, last_bound_texture.Length);
-            Array.Clear(last_bound_texture_is_atlas, 0, last_bound_texture_is_atlas.Length);
+            last_bound_texture.AsSpan().Clear();
+            last_bound_texture_is_atlas.AsSpan().Clear();
+            last_bound_buffers.AsSpan().Clear();
         }
 
         private static ClearInfo currentClearInfo;

@@ -10,8 +10,9 @@ A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
 ## Requirements
 
-- A desktop platform with the [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download) or higher installed.
-- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/dependencies?tabs=netcore31&pivots=os-windows)** may be required to correctly run .NET Core applications if your operating system is not up-to-date with the latest service packs.
+- A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
+- When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
+- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
 - When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
 
 ## Objectives
@@ -27,7 +28,6 @@ This framework is intended to take steps beyond what you would normally expect f
 Build configurations for the recommended IDEs (listed above) are included. You should use the provided Build/Run functionality of your IDE to get things going. When testing or building new components, it's highly encouraged you use the `VisualTests` project/configuration. More information on this provided [below](#contributing).
 
 - Visual Studio / Rider users should load the project via one of the platform-specific .slnf files, rather than the main .sln. This will allow access to template run configurations.
-- Visual Studio Code users must run the `Restore` task before any build attempt.
 
 ### Code analysis
 
@@ -51,13 +51,19 @@ This framework is licensed under the [MIT licence](https://opensource.org/licens
 
 The BASS audio library (a dependency of this framework) is a commercial product. While it is free for non-commercial use, please ensure to [obtain a valid licence](http://www.un4seen.com/bass.html#license) if you plan on distributing any application using it commercially.
 
-For video decoding, this software uses libraries from the FFmpeg project under the LGPLv2.1.
+## Developing a game using osu!framework
+
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
 
 ## Projects that use osu!framework
 
 [osu!](https://github.com/ppy/osu) – rhythm is just a *click* away!
 
 [GDEdit](https://github.com/gd-edit/GDE) - A third-party Geometry Dash editor.
+
+[Vignette](https://github.com/vignette-project/vignette) - An OpenCV-based facial recognition software for Live2D
+
+[IWBTM](https://github.com/EVAST9919/iwbtm) - A platform game with level editor based off of "I Wanna..." games
 
 <!--
 We love to see people using our framework! Add your project here via a PR!

@@ -13,7 +13,6 @@ using osu.Framework.Logging;
 using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
@@ -133,7 +132,7 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            return !(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
+            return !(await completionSource.Task.ConfigureAwait(false)).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
         }
 
         protected int LoadedGlyphCount;
@@ -144,8 +143,6 @@ namespace osu.Framework.IO.Stores
             LoadedGlyphCount++;
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
-
-            var dest = image.GetPixelSpan();
             var source = page.Data;
 
             // the spritesheet may have unused pixels trimmed
@@ -154,11 +151,11 @@ namespace osu.Framework.IO.Stores
 
             for (int y = 0; y < character.Height; y++)
             {
+                var pixelRowSpan = image.GetPixelRowSpan(y);
                 int readOffset = (character.Y + y) * page.Width + character.X;
-                int writeOffset = y * character.Width;
 
                 for (int x = 0; x < character.Width; x++)
-                    dest[writeOffset + x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
+                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);
@@ -170,25 +167,14 @@ namespace osu.Framework.IO.Stores
 
         #region IDisposable Support
 
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-            }
-        }
-
-        ~GlyphStore()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         #endregion

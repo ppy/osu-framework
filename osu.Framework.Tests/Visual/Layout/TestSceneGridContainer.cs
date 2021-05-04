@@ -9,6 +9,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -48,6 +49,30 @@ namespace osu.Framework.Tests.Visual.Layout
                 }
             };
         });
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAutoSizeDoesNotConsiderRelativeSizeChildren(bool row)
+        {
+            Box relativeBox = null;
+            Box absoluteBox = null;
+
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    relativeBox = new FillBox { RelativeSizeAxes = Axes.Both },
+                    absoluteBox = new FillBox
+                    {
+                        RelativeSizeAxes = Axes.None,
+                        Size = new Vector2(100)
+                    }
+                }
+            }, new[] { new Dimension(GridSizeMode.AutoSize) }, row);
+
+            AddStep("resize absolute box", () => absoluteBox.Size = new Vector2(50));
+            AddAssert("relative box has length 50", () => Precision.AlmostEquals(row ? relativeBox.DrawHeight : relativeBox.DrawWidth, 50, 1));
+        }
 
         [Test]
         public void TestBlankGrid()
@@ -430,7 +455,7 @@ namespace osu.Framework.Tests.Visual.Layout
                                 new Drawable[] { new FillBox(), boxes[3] = new FillBox(), },
                             }
                         }
-                    },
+                    }
                 };
             });
 
@@ -766,6 +791,47 @@ namespace osu.Framework.Tests.Visual.Layout
 
             AddAssert("box 0 has correct size", () => Precision.AlmostEquals(getDimension(boxes[0], row), 75f));
             AddAssert("box 2 has correct size", () => Precision.AlmostEquals(getDimension(boxes[2], row), getDimension(grid, row) - 125f));
+        }
+
+        private bool gridContentChangeEventWasFired;
+
+        [Test]
+        public void TestSetContentByIndex()
+        {
+            setSingleDimensionContent(() => new[]
+            {
+                new Drawable[]
+                {
+                    new FillBox(),
+                    new FillBox()
+                },
+                new Drawable[]
+                {
+                    new FillBox(),
+                    new FillBox()
+                }
+            });
+
+            AddStep("Subscribe to event", () => grid.Content.ArrayElementChanged += () => gridContentChangeEventWasFired = true);
+
+            AddStep("Replace bottom right box with a SpriteText", () =>
+            {
+                gridContentChangeEventWasFired = false;
+                grid.Content[1][1] = new SpriteText { Text = "test" };
+            });
+            assertContentChangeEventWasFired();
+            AddAssert("[1][1] cell contains a SpriteText", () => grid.Content[1][1].GetType() == typeof(SpriteText));
+
+            AddStep("Replace top line with [SpriteText][null]", () =>
+            {
+                gridContentChangeEventWasFired = false;
+                grid.Content[0] = new Drawable[] { new SpriteText { Text = "test" }, null };
+            });
+            assertContentChangeEventWasFired();
+            AddAssert("[0][0] cell contains a SpriteText", () => grid.Content[0][0].GetType() == typeof(SpriteText));
+            AddAssert("[0][1] cell contains null", () => grid.Content[0][1] == null);
+
+            void assertContentChangeEventWasFired() => AddAssert("Content change event was fired", () => gridContentChangeEventWasFired);
         }
 
         /// <summary>

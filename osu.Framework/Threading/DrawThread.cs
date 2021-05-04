@@ -8,7 +8,6 @@ using osu.Framework.Development;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Platform;
 using osuTK;
-using osuTK.Graphics;
 
 namespace osu.Framework.Threading
 {
@@ -51,9 +50,7 @@ namespace osu.Framework.Threading
         {
             base.Cleanup();
 
-            // specifically for mobile platforms so SDL does not need to be considered yet
-            if (GraphicsContext.CurrentContext != null)
-                GraphicsContext.CurrentContext.MakeCurrent(null);
+            host.Window?.ClearCurrent();
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]

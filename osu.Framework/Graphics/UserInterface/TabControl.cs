@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -91,6 +92,11 @@ namespace osu.Framework.Graphics.UserInterface
         protected TabItem<T> SelectedTab { get; private set; }
 
         /// <summary>
+        /// When <c>true</c>, the first available tab (if any) will be selected at the point of <see cref="LoadComplete"/>.
+        /// </summary>
+        public bool SelectFirstTabByDefault { get; set; } = true;
+
+        /// <summary>
         /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
         /// </summary>
         public bool IsSwitchable { get; set; }
@@ -163,8 +169,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 AddInternal(Dropdown);
 
-                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+                Trace.Assert(Dropdown.Header.Anchor.HasFlagFast(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlagFast(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
             }
 
             AddInternal(TabContainer = CreateTabFlow());
@@ -193,8 +199,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void LoadComplete()
         {
-            // Default to first selection in list
-            if (firstSelection && !Current.Disabled && Items.Any())
+            // Default to first selection in list, if we can
+            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
                 Current.Value = Items.First();
 
             Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);

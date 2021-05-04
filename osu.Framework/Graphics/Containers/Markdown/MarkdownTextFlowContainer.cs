@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                                     var emphases = new List<string>();
 
-                                    while (parent != null && parent is EmphasisInline e)
+                                    while (parent is EmphasisInline e)
                                     {
                                         emphases.Add(e.DelimiterCount == 2 ? new string(e.DelimiterChar, 2) : e.DelimiterChar.ToString());
                                         parent = parent.Parent;

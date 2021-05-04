@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Utils;
+
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
     /// A collection of keys, mouse and other controllers' buttons.
     /// </summary>
+    [HasOrderedElements(AllowPartialOrdering = true)]
     public enum InputKey
     {
         /// <summary>
@@ -16,21 +19,25 @@ namespace osu.Framework.Input.Bindings
         /// <summary>
         /// The shift key.
         /// </summary>
+        [Order(3)]
         Shift = 1,
 
         /// <summary>
         /// The control key.
         /// </summary>
+        [Order(1)]
         Control = 3,
 
         /// <summary>
         /// The alt key.
         /// </summary>
+        [Order(2)]
         Alt = 5,
 
         /// <summary>
-        /// The win key.
+        /// The windows/command key.
         /// </summary>
+        [Order(4)]
         Super = 7,
 
         /// <summary>
@@ -736,7 +743,7 @@ namespace osu.Framework.Input.Bindings
         ExtraMouseButton7 = 141,
 
         /// <summary>
-        /// The eigth extra mouse button.
+        /// The eighth extra mouse button.
         /// </summary>
         ExtraMouseButton8 = 142,
 
@@ -759,6 +766,18 @@ namespace osu.Framework.Input.Bindings
         /// Mouse wheel rolled down.
         /// </summary>
         MouseWheelDown = 146,
+
+        /// <summary>
+        /// Mouse wheel rolled right.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelRight = 147,
+
+        /// <summary>
+        /// Mouse wheel rolled left.
+        /// Only supported by some mice with a secondary horizontal scroll wheel.
+        /// </summary>
+        MouseWheelLeft = 148,
 
         /// <summary>
         /// The media mute key.
@@ -794,6 +813,54 @@ namespace osu.Framework.Input.Bindings
         /// The media next key.
         /// </summary>
         TrackNext,
+
+        /// <summary>
+        /// The left shift key.
+        /// </summary>
+        [Order(3)]
+        LShift,
+
+        /// <summary>
+        /// The right shift key.
+        /// </summary>
+        [Order(3)]
+        RShift,
+
+        /// <summary>
+        /// The left control key.
+        /// </summary>
+        [Order(1)]
+        LControl,
+
+        /// <summary>
+        /// The right control key.
+        /// </summary>
+        [Order(1)]
+        RControl,
+
+        /// <summary>
+        /// The left alt key.
+        /// </summary>
+        [Order(2)]
+        LAlt,
+
+        /// <summary>
+        /// The right alt key.
+        /// </summary>
+        [Order(2)]
+        RAlt,
+
+        /// <summary>
+        /// The left windows/command key.
+        /// </summary>
+        [Order(4)]
+        LSuper,
+
+        /// <summary>
+        /// The right windows/command key.
+        /// </summary>
+        [Order(4)]
+        RSuper,
 
         /// <summary>
         /// Indicates the first available joystick button.
@@ -2311,6 +2378,144 @@ namespace osu.Framework.Input.Bindings
         /// C8 key on a MIDI input device.
         /// </summary>
         MidiC8,
+
+        #endregion
+
+        #region Tablet pen
+
+        /// <summary>
+        /// Indicates the first available tablet button.
+        /// </summary>
+        FirstTabletPenButton = 9216 + 1,
+
+        /// <summary>
+        /// The primary button on the tablet pen.
+        /// </summary>
+        TabletPenPrimaryButton = FirstTabletPenButton,
+
+        /// <summary>
+        /// The secondary button on the tablet pen.
+        /// </summary>
+        TabletPenSecondaryButton,
+
+        /// <summary>
+        /// The tertiary button on the tablet pen.
+        /// </summary>
+        TabletPenTertiaryButton,
+
+        /// <summary>
+        /// Button 4 on the tablet pen.
+        /// </summary>
+        TabletPenButton4,
+
+        /// <summary>
+        /// Button 5 on the tablet pen.
+        /// </summary>
+        TabletPenButton5,
+
+        /// <summary>
+        /// Button 6 on the tablet pen.
+        /// </summary>
+        TabletPenButton6,
+
+        /// <summary>
+        /// Button 7 on the tablet pen.
+        /// </summary>
+        TabletPenButton7,
+
+        /// <summary>
+        /// Button 8 on the tablet pen.
+        /// </summary>
+        TabletPenButton8,
+
+        #endregion
+
+        #region Auxiliary tablet buttons
+
+        /// <summary>
+        /// Indicates the first available auxiliary tablet button.
+        /// </summary>
+        FirstTabletAuxiliaryButton = 10240 + 1,
+
+        /// <summary>
+        /// Auxiliary tablet button 1.
+        /// </summary>
+        TabletAuxiliaryButton1,
+
+        /// <summary>
+        /// Auxiliary tablet button 2.
+        /// </summary>
+        TabletAuxiliaryButton2,
+
+        /// <summary>
+        /// Auxiliary tablet button 3.
+        /// </summary>
+        TabletAuxiliaryButton3,
+
+        /// <summary>
+        /// Auxiliary tablet button 4.
+        /// </summary>
+        TabletAuxiliaryButton4,
+
+        /// <summary>
+        /// Auxiliary tablet button 5.
+        /// </summary>
+        TabletAuxiliaryButton5,
+
+        /// <summary>
+        /// Auxiliary tablet button 6.
+        /// </summary>
+        TabletAuxiliaryButton6,
+
+        /// <summary>
+        /// Auxiliary tablet button 7.
+        /// </summary>
+        TabletAuxiliaryButton7,
+
+        /// <summary>
+        /// Auxiliary tablet button 8.
+        /// </summary>
+        TabletAuxiliaryButton8,
+
+        /// <summary>
+        /// Auxiliary tablet button 9.
+        /// </summary>
+        TabletAuxiliaryButton9,
+
+        /// <summary>
+        /// Auxiliary tablet button 10.
+        /// </summary>
+        TabletAuxiliaryButton10,
+
+        /// <summary>
+        /// Auxiliary tablet button 11.
+        /// </summary>
+        TabletAuxiliaryButton11,
+
+        /// <summary>
+        /// Auxiliary tablet button 12.
+        /// </summary>
+        TabletAuxiliaryButton12,
+
+        /// <summary>
+        /// Auxiliary tablet button 13.
+        /// </summary>
+        TabletAuxiliaryButton13,
+
+        /// <summary>
+        /// Auxiliary tablet button 14.
+        /// </summary>
+        TabletAuxiliaryButton14,
+
+        /// <summary>
+        /// Auxiliary tablet button 15.
+        /// </summary>
+        TabletAuxiliaryButton15,
+
+        /// <summary>
+        /// Auxiliary tablet button 16.
+        /// </summary>
+        TabletAuxiliaryButton16,
 
         #endregion
     }

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private readonly Transformable transformable;
 
-        private readonly List<Action> removalActions = new List<Action>();
+        private readonly Queue<Action> removalActions = new Queue<Action>();
 
         /// <summary>
         /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Transforms
                             i--;
 
                             if (u.OnAbort != null)
-                                removalActions.Add(u.OnAbort);
+                                removalActions.Enqueue(u.OnAbort);
                         }
                         else
                             u.AppliedToEnd = true;
@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.Transforms
                             flushAppliedCache = true;
                         }
                         else if (t.OnComplete != null)
-                            removalActions.Add(t.OnComplete);
+                            removalActions.Enqueue(t.OnComplete);
                     }
                 }
 
@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.Transforms
                 {
                     transforms.RemoveAt(i--);
                     if (t.OnAbort != null)
-                        removalActions.Add(t.OnAbort);
+                        removalActions.Enqueue(t.OnAbort);
                 }
             }
 
@@ -303,6 +303,12 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (Transform t in toFlush)
             {
+                if (!t.HasStartValue)
+                {
+                    t.ReadIntoStartValue();
+                    t.HasStartValue = true;
+                }
+
                 t.Apply(t.EndTime);
                 t.OnComplete?.Invoke();
             }
@@ -310,14 +316,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private void invokePendingRemovalActions()
         {
-            if (removalActions.Count > 0)
-            {
-                var toRemove = removalActions.ToArray();
-                removalActions.Clear();
-
-                foreach (var action in toRemove)
-                    action();
-            }
+            while (removalActions.TryDequeue(out var action))
+                action();
         }
 
         /// <summary>
@@ -327,7 +327,17 @@ namespace osu.Framework.Graphics.Transforms
         private int getLastAppliedIndex(string targetMember = null)
         {
             if (targetMember == null)
-                return lastAppliedTransformIndices.Values.Min();
+            {
+                int min = int.MaxValue;
+
+                foreach (int i in lastAppliedTransformIndices.Values)
+                {
+                    if (i < min)
+                        min = i;
+                }
+
+                return min;
+            }
 
             if (lastAppliedTransformIndices.TryGetValue(targetMember, out int val))
                 return val;

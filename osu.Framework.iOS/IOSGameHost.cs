@@ -23,7 +23,7 @@ using UIKit;
 
 namespace osu.Framework.iOS
 {
-    public class IOSGameHost : GameHost
+    public class IOSGameHost : OsuTKGameHost
     {
         private readonly IOSGameView gameView;
         private IOSKeyboardHandler keyboardHandler;
@@ -64,14 +64,13 @@ namespace osu.Framework.iOS
         protected override void SetupForRun()
         {
             base.SetupForRun();
-            IOSGameWindow.GameView = gameView;
 
-            AllowScreenSuspension.BindValueChanged(allow =>
+            AllowScreenSuspension.Result.BindValueChanged(allow =>
                     InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
                 true);
         }
 
-        protected override IWindow CreateWindow() => new IOSGameWindow();
+        protected override IWindow CreateWindow() => new IOSGameWindow(gameView);
 
         protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
         {
@@ -80,7 +79,7 @@ namespace osu.Framework.iOS
 
             base.SetupConfig(defaultOverrides);
 
-            DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
+            DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);
         }
 
         protected override void PerformExit(bool immediately)
@@ -103,7 +102,7 @@ namespace osu.Framework.iOS
                 keyboardHandler = new IOSKeyboardHandler(gameView),
                 rawKeyboardHandler = new IOSRawKeyboardHandler(),
                 new IOSMouseHandler(gameView),
-                new MidiInputHandler()
+                new MidiHandler()
             };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);

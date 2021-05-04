@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -20,10 +18,11 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osuTK;
 
 namespace osu.Framework
 {
-    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IHandleGlobalKeyboardInput
+    public abstract class Game : Container, IKeyBindingHandler<FrameworkAction>, IKeyBindingHandler<PlatformAction>, IHandleGlobalKeyboardInput
     {
         public IWindow Window => Host?.Window;
 
@@ -149,7 +148,7 @@ namespace osu.Framework
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             dependencies.Cache(Shaders);
 
-            var cacheStorage = Host.Storage.GetStorageForDirectory(Path.Combine("cache", "fonts"));
+            var cacheStorage = Host.CacheStorage.GetStorageForDirectory("fonts");
 
             // base store is for user fonts
             Fonts = new FontStore(useAtlas: true, cacheStorage: cacheStorage);
@@ -158,9 +157,9 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Regular");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Italic");
+            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-RegularItalic");
             addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
@@ -339,6 +338,22 @@ namespace osu.Framework
         {
         }
 
+        public virtual bool OnPressed(PlatformAction action)
+        {
+            switch (action.ActionType)
+            {
+                case PlatformActionType.Exit:
+                    Host.Window?.Close();
+                    return true;
+            }
+
+            return false;
+        }
+
+        public virtual void OnReleased(PlatformAction action)
+        {
+        }
+
         public void Exit()
         {
             if (Host == null)
@@ -351,6 +366,15 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            // ensure any async disposals are completed before we begin to rip components out.
+            // if we were to not wait, async disposals may throw unexpected exceptions.
+            AsyncDisposalQueue.WaitForEmpty();
+
+            base.Dispose(isDisposing);
+
+            // call a second time to protect against anything being potentially async disposed in the base.Dispose call.
+            AsyncDisposalQueue.WaitForEmpty();
+
             Audio?.Dispose();
             Audio = null;
 
@@ -359,8 +383,6 @@ namespace osu.Framework
 
             localFonts?.Dispose();
             localFonts = null;
-
-            base.Dispose(isDisposing);
         }
     }
 }

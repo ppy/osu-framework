@@ -103,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestWaveform graph = null;
 
             AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
-            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
         [Test]
@@ -112,7 +112,21 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestWaveform graph = null;
 
             AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
-            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddUntilStep("wait for load", () => graph.Regenerated);
+        }
+
+        [Test]
+        public void TestWaveformAlpha()
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1)
+            {
+                Waveform = waveform,
+                Alpha = 0.5f,
+            });
+
+            AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
         private void startStop()
@@ -154,7 +168,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.Both,
                         Resolution = resolution,
-                        Colour = new Color4(232, 78, 6, 255),
+                        BaseColour = new Color4(232, 78, 6, 255),
                         LowColour = new Color4(255, 232, 100, 255),
                         MidColour = new Color4(255, 153, 19, 255),
                         HighColour = new Color4(255, 46, 7, 255),
@@ -191,12 +205,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             }
 
+            public bool Regenerated => graph.Regenerated;
+
             public Waveform Waveform
             {
                 set => graph.Waveform = value;
             }
-
-            public Waveform ResampledWaveform => graph.ResampledWaveform;
 
             protected override void Update()
             {
@@ -239,7 +253,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestWaveformGraph : WaveformGraph
         {
-            public new Waveform ResampledWaveform => base.ResampledWaveform;
+            public bool Regenerated { get; private set; }
+
+            protected override void OnWaveformRegenerated(Waveform waveform)
+            {
+                base.OnWaveformRegenerated(waveform);
+                Regenerated = true;
+            }
         }
     }
 }

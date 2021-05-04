@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
+using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Utils;
 using osu.Framework.Timing;
 using osuTK;
@@ -408,6 +409,36 @@ namespace osu.Framework.Tests.Visual.Drawables
             checkAtTime(750, box => box.Y == 0.375f);
         }
 
+        [Test]
+        public void TestMoveToOffsetRespectsRelevantTransforms()
+        {
+            boxTest(box =>
+            {
+                box.MoveToY(0.25f, 250);
+                box.Delay(500).MoveToOffset(new Vector2(0, 0.25f), 250);
+            });
+
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.25f);
+            checkAtTime(500, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.5f);
+        }
+
+        [Test]
+        public void TestMoveToOffsetRespectsTransformsOrder()
+        {
+            boxTest(box =>
+            {
+                box.Delay(500).MoveToOffset(new Vector2(0, 0.25f), 250);
+                box.MoveToY(0.25f, 250);
+            });
+
+            checkAtTime(0, box => box.Y == 0);
+            checkAtTime(250, box => box.Y == 0.25f);
+            checkAtTime(500, box => box.Y == 0.25f);
+            checkAtTime(750, box => box.Y == 0.5f);
+        }
+
         private Box box;
 
         private void checkAtTime(double time, Func<Box, bool> assert)
@@ -556,38 +587,8 @@ namespace osu.Framework.Tests.Visual.Drawables
                 {
                     transforms.Clear();
                     foreach (var t in ExaminableDrawable.Transforms)
-                        transforms.Add(new DrawableTransform(t));
+                        transforms.Add(new DrawableTransform(t, 15));
                     displayedTransforms = new List<Transform>(ExaminableDrawable.Transforms);
-                }
-            }
-
-            private class DrawableTransform : CompositeDrawable
-            {
-                private readonly Transform transform;
-                private readonly Box applied;
-                private readonly Box appliedToEnd;
-                private readonly SpriteText text;
-                private const float height = 15;
-
-                public DrawableTransform(Transform transform)
-                {
-                    this.transform = transform;
-                    RelativeSizeAxes = Axes.X;
-                    Height = height;
-                    InternalChildren = new Drawable[]
-                    {
-                        applied = new Box { Size = new Vector2(height) },
-                        appliedToEnd = new Box { X = height + 2, Size = new Vector2(height) },
-                        text = new SpriteText { X = (height + 2) * 2, Font = new FontUsage(size: height) },
-                    };
-                }
-
-                protected override void Update()
-                {
-                    base.Update();
-                    applied.Colour = transform.Applied ? Color4.Green : Color4.Red;
-                    appliedToEnd.Colour = transform.AppliedToEnd ? Color4.Green : Color4.Red;
-                    text.Text = transform.ToString();
                 }
             }
 

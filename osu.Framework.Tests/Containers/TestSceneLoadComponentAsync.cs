@@ -18,6 +18,35 @@ namespace osu.Framework.Tests.Containers
     public class TestSceneLoadComponentAsync : FrameworkTestScene
     {
         [Test]
+        public void TestEnumerableOnlyInvokedOnce()
+        {
+            int invocationCount = 0;
+
+            IEnumerable<AsyncChildLoadingComposite> composite = getEnumerableComponent(() =>
+            {
+                invocationCount++;
+
+                var result = new AsyncChildLoadingComposite();
+                result.AllowChildLoad();
+
+                return result;
+            });
+
+            AddStep("clear all children", () => Clear());
+
+            AddStep("load async", () => LoadComponentsAsync(composite, AddRange));
+
+            AddUntilStep("component loaded", () => Children.Count == 1);
+
+            AddAssert("invocation count is 1", () => invocationCount == 1);
+        }
+
+        private IEnumerable<AsyncChildLoadingComposite> getEnumerableComponent(Func<AsyncChildLoadingComposite> createComponent)
+        {
+            yield return createComponent();
+        }
+
+        [Test]
         public void TestUnpublishedChildDisposal()
         {
             AsyncChildLoadingComposite composite = null;
@@ -76,6 +105,28 @@ namespace osu.Framework.Tests.Containers
 
             AddAssert("Only child1 loaded", () => composite.LoadedChildren.Count() == 1
                                                   && composite.LoadedChildren.First() == composite.AsyncChild1);
+        }
+
+        [Test]
+        public void TestScheduleDuringAsyncLoad()
+        {
+            TestLoadBlockingDrawable composite = null;
+
+            bool scheduleRun = false;
+
+            AddStep("Async load drawable", () =>
+            {
+                LoadComponentAsync(composite = new TestLoadBlockingDrawable(), d => Child = d);
+            });
+
+            AddStep("Attempt to schedule on child 1", () =>
+            {
+                composite.Schedule(() => scheduleRun = true);
+            });
+
+            AddStep("Allow child 1 load", () => composite.AllowLoad.Set());
+
+            AddUntilStep("Scheduled content run", () => scheduleRun);
         }
 
         private class AsyncChildrenLoadingComposite : CompositeDrawable

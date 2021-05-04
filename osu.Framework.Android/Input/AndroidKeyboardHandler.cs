@@ -23,8 +23,6 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         public override bool Initialize(GameHost host) => true;
 
         private void keyDown(Keycode keycode, KeyEvent e)
@@ -156,7 +154,7 @@ namespace osu.Framework.Android.Input
             if (Enum.TryParse(keyCode.ToString(), out Key key))
                 return key;
 
-            // this is the worst case senario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
+            // this is the worst case scenario. Please note that the osu-framework keyboard handling cannot cope with Key.Unknown.
             return Key.Unknown;
         }
 

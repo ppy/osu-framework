@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
-                    Font = new FontUsage("OpenSans", i, i % 4 > 1 ? "Bold" : null, i % 2 == 1),
+                    Font = new FontUsage("OpenSans", i, i % 4 > 1 ? "Bold" : "Regular", i % 2 == 1),
                     AllowMultiline = true,
                     RelativeSizeAxes = Axes.X,
                 };

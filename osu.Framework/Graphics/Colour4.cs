@@ -89,7 +89,6 @@ namespace osu.Framework.Graphics
         /// The final alpha is clamped to the 0-1 range.
         /// </summary>
         /// <param name="scalar">The value that the existing alpha will be multiplied by.</param>
-        /// <returns></returns>
         public Colour4 MultiplyAlpha(float scalar)
         {
             if (scalar < 0)
@@ -309,8 +308,8 @@ namespace osu.Framework.Graphics
                     return new Colour4(
                         (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
                         (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17));
+                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
+                        (byte)(byte.Parse(hexSpan.Slice(3, 1), NumberStyles.HexNumber) * 17));
 
                 case 8:
                     return new Colour4(

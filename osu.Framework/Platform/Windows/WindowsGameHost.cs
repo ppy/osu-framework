@@ -2,8 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using osu.Framework.Input;
+using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 
@@ -17,10 +23,13 @@ namespace osu.Framework.Platform.Windows
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+#if NET5_0
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
-        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false, bool useSdl = false)
-            : base(gameName, bindIPC, toolkitOptions, portableInstallation, useSdl)
+        internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+            : base(gameName, bindIPC, portableInstallation)
         {
         }
 
@@ -35,6 +44,14 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            // for windows platforms we want to override the relative mouse event handling behaviour.
+            return base.CreateAvailableInputHandlers()
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
+        }
+
         protected override void SetupForRun()
         {
             base.SetupForRun();
@@ -45,8 +62,12 @@ namespace osu.Framework.Platform.Windows
             timePeriod = new TimePeriod(1) { Active = true };
         }
 
-        protected override IWindow CreateWindow() =>
-            !UseSdl ? (IWindow)new WindowsGameWindow() : new DesktopWindow();
+        protected override IWindow CreateWindow() => new WindowsWindow();
+
+        public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
+        {
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), new PlatformAction(PlatformActionType.Exit))
+        }).ToList();
 
         protected override void Dispose(bool isDisposing)
         {

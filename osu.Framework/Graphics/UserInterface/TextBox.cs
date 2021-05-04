@@ -20,6 +20,7 @@ using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Timing;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -84,7 +85,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
-        public OnCommitHandler OnCommit;
+        /// <summary>
+        /// Fired whenever text is committed via a user action.
+        /// This usually happens on pressing enter, but can also be triggered on focus loss automatically, via <see cref="CommitOnFocusLost"/>.
+        /// </summary>
+        public event OnCommitHandler OnCommit;
 
         private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
 
@@ -598,7 +603,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected SpriteText Placeholder;
 
-        public string PlaceholderText
+        public LocalisableString PlaceholderText
         {
             get => Placeholder.Text;
             set => Placeholder.Text = value;
@@ -730,8 +735,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string lastCommitText;
 
-        private bool hasNewComittableText => text != lastCommitText;
-
         private void killFocus()
         {
             var manager = GetContainingInputManager();
@@ -752,10 +755,11 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
             }
 
-            OnTextCommitted(hasNewComittableText);
-            OnCommit?.Invoke(this, hasNewComittableText);
-
+            bool isNew = text != lastCommitText;
             lastCommitText = text;
+
+            OnTextCommitted(isNew);
+            OnCommit?.Invoke(this, isNew);
         }
 
         protected override void OnKeyUp(KeyUpEvent e)

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using osu.Framework.Graphics.Primitives;
 using osuTK;
 
 namespace osu.Framework.Utils
@@ -25,27 +27,78 @@ namespace osu.Framework.Utils
         /// Creates a piecewise-linear approximation of a bezier curve, by adaptively repeatedly subdividing
         /// the control points until their approximation error vanishes below a given threshold.
         /// </summary>
+        /// <param name="controlPoints">The control points.</param>
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateBezier(ReadOnlySpan<Vector2> controlPoints)
         {
+            return ApproximateBSpline(controlPoints);
+        }
+
+        /// <summary>
+        /// Creates a piecewise-linear approximation of a clamped uniform B-spline with polynomial order p,
+        /// by dividing it into a series of bezier control points at its knots, then adaptively repeatedly
+        /// subdividing those until their approximation error vanishes below a given threshold.
+        /// Retains previous bezier approximation functionality when p is 0 or too large to create knots.
+        /// Algorithm unsuitable for large values of p with many knots.
+        /// </summary>
+        /// <param name="controlPoints">The control points.</param>
+        /// <param name="p">The polynomial order.</param>
+        /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
+        public static List<Vector2> ApproximateBSpline(ReadOnlySpan<Vector2> controlPoints, int p = 0)
+        {
             List<Vector2> output = new List<Vector2>();
-            int count = controlPoints.Length;
+            int n = controlPoints.Length - 1;
 
-            if (count == 0)
+            if (n < 0)
                 return output;
-
-            var subdivisionBuffer1 = new Vector2[count];
-            var subdivisionBuffer2 = new Vector2[count * 2 - 1];
 
             Stack<Vector2[]> toFlatten = new Stack<Vector2[]>();
             Stack<Vector2[]> freeBuffers = new Stack<Vector2[]>();
 
+            var points = controlPoints.ToArray();
+
+            if (p > 0 && p < n)
+            {
+                // Subdivide B-spline into bezier control points at knots.
+                for (int i = 0; i < n - p; i++)
+                {
+                    var subBezier = new Vector2[p + 1];
+                    subBezier[0] = points[i];
+
+                    // Destructively insert the knot p-1 times via Boehm's algorithm.
+                    for (int j = 0; j < p - 1; j++)
+                    {
+                        subBezier[j + 1] = points[i + 1];
+
+                        for (int k = 1; k < p - j; k++)
+                        {
+                            int l = Math.Min(k, n - p - i);
+                            points[i + k] = (l * points[i + k] + points[i + k + 1]) / (l + 1);
+                        }
+                    }
+
+                    subBezier[p] = points[i + 1];
+                    toFlatten.Push(subBezier);
+                }
+
+                toFlatten.Push(points[(n - p)..]);
+                // Reverse the stack so elements can be accessed in order.
+                toFlatten = new Stack<Vector2[]>(toFlatten);
+            }
+            else
+            {
+                // B-spline subdivision unnecessary, degenerate to single bezier.
+                p = n;
+                toFlatten.Push(points);
+            }
             // "toFlatten" contains all the curves which are not yet approximated well enough.
             // We use a stack to emulate recursion without the risk of running into a stack overflow.
             // (More specifically, we iteratively and adaptively refine our curve with a
             // <a href="https://en.wikipedia.org/wiki/Depth-first_search">Depth-first search</a>
             // over the tree resulting from the subdivisions we make.)
-            toFlatten.Push(controlPoints.ToArray());
+
+            var subdivisionBuffer1 = new Vector2[p + 1];
+            var subdivisionBuffer2 = new Vector2[p * 2 + 1];
 
             Vector2[] leftChild = subdivisionBuffer2;
 
@@ -59,7 +112,7 @@ namespace osu.Framework.Utils
                     // an extension to De Casteljau's algorithm to obtain a piecewise-linear approximation
                     // of the bezier curve represented by our control points, consisting of the same amount
                     // of points as there are control points.
-                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, count);
+                    bezierApproximate(parent, output, subdivisionBuffer1, subdivisionBuffer2, p + 1);
 
                     freeBuffers.Push(parent);
                     continue;
@@ -67,18 +120,18 @@ namespace osu.Framework.Utils
 
                 // If we do not yet have a sufficiently "flat" (in other words, detailed) approximation we keep
                 // subdividing the curve we are currently operating on.
-                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[count];
-                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, count);
+                Vector2[] rightChild = freeBuffers.Count > 0 ? freeBuffers.Pop() : new Vector2[p + 1];
+                bezierSubdivide(parent, leftChild, rightChild, subdivisionBuffer1, p + 1);
 
                 // We re-use the buffer of the parent for one of the children, so that we save one allocation per iteration.
-                for (int i = 0; i < count; ++i)
+                for (int i = 0; i < p + 1; ++i)
                     parent[i] = leftChild[i];
 
                 toFlatten.Push(rightChild);
                 toFlatten.Push(parent);
             }
 
-            output.Add(controlPoints[count - 1]);
+            output.Add(controlPoints[n]);
             return output;
         }
 
@@ -113,74 +166,77 @@ namespace osu.Framework.Utils
         /// <returns>A list of vectors representing the piecewise-linear approximation.</returns>
         public static List<Vector2> ApproximateCircularArc(ReadOnlySpan<Vector2> controlPoints)
         {
-            Vector2 a = controlPoints[0];
-            Vector2 b = controlPoints[1];
-            Vector2 c = controlPoints[2];
-
-            float aSq = (b - c).LengthSquared;
-            float bSq = (a - c).LengthSquared;
-            float cSq = (a - b).LengthSquared;
-
-            // If we have a degenerate triangle where a side-length is almost zero, then give up and fall
-            // back to a more numerically stable method.
-            if (Precision.AlmostEquals(aSq, 0) || Precision.AlmostEquals(bSq, 0) || Precision.AlmostEquals(cSq, 0))
-                return new List<Vector2>();
-
-            float s = aSq * (bSq + cSq - aSq);
-            float t = bSq * (aSq + cSq - bSq);
-            float u = cSq * (aSq + bSq - cSq);
-
-            float sum = s + t + u;
-
-            // If we have a degenerate triangle with an almost-zero size, then give up and fall
-            // back to a more numerically stable method.
-            if (Precision.AlmostEquals(sum, 0))
-                return new List<Vector2>();
-
-            Vector2 centre = (s * a + t * b + u * c) / sum;
-            Vector2 dA = a - centre;
-            Vector2 dC = c - centre;
-
-            float r = dA.Length;
-
-            double thetaStart = Math.Atan2(dA.Y, dA.X);
-            double thetaEnd = Math.Atan2(dC.Y, dC.X);
-
-            while (thetaEnd < thetaStart)
-                thetaEnd += 2 * Math.PI;
-
-            double dir = 1;
-            double thetaRange = thetaEnd - thetaStart;
-
-            // Decide in which direction to draw the circle, depending on which side of
-            // AC B lies.
-            Vector2 orthoAtoC = c - a;
-            orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
-
-            if (Vector2.Dot(orthoAtoC, b - a) < 0)
-            {
-                dir = -dir;
-                thetaRange = 2 * Math.PI - thetaRange;
-            }
+            CircularArcProperties pr = circularArcProperties(controlPoints);
+            if (!pr.IsValid)
+                return ApproximateBezier(controlPoints);
 
             // We select the amount of points for the approximation by requiring the discrete curvature
             // to be smaller than the provided tolerance. The exact angle required to meet the tolerance
             // is: 2 * Math.Acos(1 - TOLERANCE / r)
             // The special case is required for extremely short sliders where the radius is smaller than
             // the tolerance. This is a pathological rather than a realistic case.
-            int amountPoints = 2 * r <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(thetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / r))));
+            int amountPoints = 2 * pr.Radius <= circular_arc_tolerance ? 2 : Math.Max(2, (int)Math.Ceiling(pr.ThetaRange / (2 * Math.Acos(1 - circular_arc_tolerance / pr.Radius))));
 
             List<Vector2> output = new List<Vector2>(amountPoints);
 
             for (int i = 0; i < amountPoints; ++i)
             {
                 double fract = (double)i / (amountPoints - 1);
-                double theta = thetaStart + dir * fract * thetaRange;
-                Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * r;
-                output.Add(centre + o);
+                double theta = pr.ThetaStart + pr.Direction * fract * pr.ThetaRange;
+                Vector2 o = new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta)) * pr.Radius;
+                output.Add(pr.Centre + o);
             }
 
             return output;
+        }
+
+        /// <summary>
+        /// Computes the bounding box of a circular arc.
+        /// </summary>
+        /// <param name="controlPoints">Three distinct points on the arc.</param>
+        /// <returns>The rectangle inscribing the circular arc.</returns>
+        public static RectangleF CircularArcBoundingBox(ReadOnlySpan<Vector2> controlPoints)
+        {
+            CircularArcProperties pr = circularArcProperties(controlPoints);
+            if (!pr.IsValid)
+                return RectangleF.Empty;
+
+            // We find the bounding box using the end-points, as well as
+            // each 90 degree angle inside the range of the arc
+            List<Vector2> points = new List<Vector2>
+            {
+                controlPoints[0],
+                controlPoints[2]
+            };
+
+            const double right_angle = Math.PI / 2;
+            double step = right_angle * pr.Direction;
+
+            double quotient = pr.ThetaStart / right_angle;
+            // choose an initial right angle, closest to ThetaStart, going in the direction of the arc.
+            // thanks to this, when looping over quadrant points to check if they lie on the arc, we only need to check against ThetaEnd.
+            double closestRightAngle = right_angle * (pr.Direction > 0 ? Math.Ceiling(quotient) : Math.Floor(quotient));
+
+            // at most, four quadrant points must be considered.
+            for (int i = 0; i < 4; ++i)
+            {
+                double angle = closestRightAngle + step * i;
+
+                // check whether angle has exceeded ThetaEnd.
+                // multiplying by Direction eliminates branching caused by the fact that step can be either positive or negative.
+                if (Precision.DefinitelyBigger((angle - pr.ThetaEnd) * pr.Direction, 0))
+                    break;
+
+                Vector2 o = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * pr.Radius;
+                points.Add(pr.Centre + o);
+            }
+
+            float minX = points.Min(p => p.X);
+            float minY = points.Min(p => p.Y);
+            float maxX = points.Max(p => p.X);
+            float maxY = points.Max(p => p.Y);
+
+            return new RectangleF(minX, minY, maxX - minX, maxY - minY);
         }
 
         /// <summary>
@@ -230,6 +286,80 @@ namespace osu.Framework.Utils
             }
 
             return result;
+        }
+
+        private readonly struct CircularArcProperties
+        {
+            public readonly bool IsValid;
+            public readonly double ThetaStart;
+            public readonly double ThetaRange;
+            public readonly double Direction;
+            public readonly float Radius;
+            public readonly Vector2 Centre;
+
+            public double ThetaEnd => ThetaStart + ThetaRange * Direction;
+
+            public CircularArcProperties(double thetaStart, double thetaRange, double direction, float radius, Vector2 centre)
+            {
+                IsValid = true;
+                ThetaStart = thetaStart;
+                ThetaRange = thetaRange;
+                Direction = direction;
+                Radius = radius;
+                Centre = centre;
+            }
+        }
+
+        /// <summary>
+        /// Computes various properties that can be used to approximate the circular arc.
+        /// </summary>
+        /// <param name="controlPoints">Three distinct points on the arc.</param>
+        private static CircularArcProperties circularArcProperties(ReadOnlySpan<Vector2> controlPoints)
+        {
+            Vector2 a = controlPoints[0];
+            Vector2 b = controlPoints[1];
+            Vector2 c = controlPoints[2];
+
+            // If we have a degenerate triangle where a side-length is almost zero, then give up and fallback to a more numerically stable method.
+            if (Precision.AlmostEquals(0, (b.Y - a.Y) * (c.X - a.X) - (b.X - a.X) * (c.Y - a.Y)))
+                return default; // Implicitly sets `IsValid` to false
+
+            // See: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
+            float d = 2 * (a.X * (b - c).Y + b.X * (c - a).Y + c.X * (a - b).Y);
+            float aSq = a.LengthSquared;
+            float bSq = b.LengthSquared;
+            float cSq = c.LengthSquared;
+
+            Vector2 centre = new Vector2(
+                aSq * (b - c).Y + bSq * (c - a).Y + cSq * (a - b).Y,
+                aSq * (c - b).X + bSq * (a - c).X + cSq * (b - a).X) / d;
+
+            Vector2 dA = a - centre;
+            Vector2 dC = c - centre;
+
+            float r = dA.Length;
+
+            double thetaStart = Math.Atan2(dA.Y, dA.X);
+            double thetaEnd = Math.Atan2(dC.Y, dC.X);
+
+            while (thetaEnd < thetaStart)
+                thetaEnd += 2 * Math.PI;
+
+            double dir = 1;
+            double thetaRange = thetaEnd - thetaStart;
+
+            // Decide in which direction to draw the circle, depending on which side of
+            // AC B lies.
+            Vector2 orthoAtoC = c - a;
+            orthoAtoC = new Vector2(orthoAtoC.Y, -orthoAtoC.X);
+
+            if (Vector2.Dot(orthoAtoC, b - a) < 0)
+            {
+                dir = -dir;
+                thetaRange = 2 * Math.PI - thetaRange;
+            }
+
+            return new CircularArcProperties(thetaStart, thetaRange, dir, r, centre);
         }
 
         /// <summary>

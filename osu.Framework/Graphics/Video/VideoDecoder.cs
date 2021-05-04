@@ -521,7 +521,7 @@ namespace osu.Framework.Graphics.Video
         protected virtual FFmpegFuncs CreateFuncs()
         {
             // other frameworks should handle native libraries themselves
-#if NETCOREAPP
+#if NET5_0
             AGffmpeg.GetOrLoadLibrary = name =>
             {
                 int version = AGffmpeg.LibraryVersionMap[name];
@@ -531,7 +531,7 @@ namespace osu.Framework.Graphics.Video
                 // "lib" prefix and extensions are resolved by .net core
                 switch (RuntimeInfo.OS)
                 {
-                    case RuntimeInfo.Platform.MacOsx:
+                    case RuntimeInfo.Platform.macOS:
                         libraryName = $"{name}.{version}";
                         break;
 

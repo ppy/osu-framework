@@ -10,36 +10,43 @@ namespace osu.Framework.Input.Handlers.Keyboard
 {
     public class KeyboardHandler : InputHandler
     {
-        public override bool IsActive => true;
+        public override string Description => "Keyboard";
 
-        public override int Priority => 0;
+        public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)
         {
-            if (!(host.Window is DesktopWindow window))
+            if (!base.Initialize(host))
+                return false;
+
+            if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 
             Enabled.BindValueChanged(e =>
             {
                 if (e.NewValue)
                 {
-                    window.KeyDown += handleKeyboardEvent;
-                    window.KeyUp += handleKeyboardEvent;
+                    window.KeyDown += handleKeyDown;
+                    window.KeyUp += handleKeyUp;
                 }
                 else
                 {
-                    window.KeyDown -= handleKeyboardEvent;
-                    window.KeyUp -= handleKeyboardEvent;
+                    window.KeyDown -= handleKeyDown;
+                    window.KeyUp -= handleKeyUp;
                 }
             }, true);
 
             return true;
         }
 
-        private void handleKeyboardEvent(KeyboardKeyInput keyEvent)
+        private void enqueueInput(IInput input)
         {
-            PendingInputs.Enqueue(keyEvent);
+            PendingInputs.Enqueue(input);
             FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
+
+        private void handleKeyDown(TKKey key) => enqueueInput(new KeyboardKeyInput(key, true));
+
+        private void handleKeyUp(TKKey key) => enqueueInput(new KeyboardKeyInput(key, false));
     }
 }
