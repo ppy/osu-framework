@@ -889,10 +889,7 @@ namespace osu.Framework.Platform
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-                foreach (var t in Threads)
-                {
-                    t.Scheduler.Add(() => { t.CurrentCulture = culture; });
-                }
+                threadRunner.SetCulture(culture);
             }, true);
 
             // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
