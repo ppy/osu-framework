@@ -43,10 +43,10 @@ namespace osu.Framework.Bindables
         protected sealed override Size ClampValue(Size value, Size minValue, Size maxValue)
         {
             return new Size
-            (
-                Math.Clamp(value.Width, minValue.Width, maxValue.Width),
-                Math.Clamp(value.Height, minValue.Height, maxValue.Height)
-            );
+            {
+                Width = Math.Clamp(value.Width, minValue.Width, maxValue.Width),
+                Height = Math.Clamp(value.Height, minValue.Height, maxValue.Height)
+            };
         }
 
         protected sealed override bool IsValidRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
