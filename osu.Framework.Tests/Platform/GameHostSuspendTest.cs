@@ -43,7 +43,7 @@ namespace osu.Framework.Tests.Platform
 
             // in single-threaded execution, the main thread may already be in the process of updating one last time.
             int gameUpdates = 0;
-            game.Schedule(() => ++gameUpdates);
+            game.Scheduler.AddDelayed(() => ++gameUpdates, 0, true);
             Assert.That(() => gameUpdates, Is.LessThan(2).After(timeout / 10));
 
             // check that scheduler doesn't process while suspended..
