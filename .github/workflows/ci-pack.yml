@@ -1,5 +1,4 @@
-# This is triggered by the CI if ref matches ref/tags via an API call.
-# There is no manual way to call this out via UI.
+# There is no manual way to call this out to run this on tags via UI.
 # See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
 on: workflow_dispatch
 name: Continuous Integration - Pack

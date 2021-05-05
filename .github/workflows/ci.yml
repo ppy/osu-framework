@@ -94,21 +94,3 @@ jobs:
         uses: glassechidna/resharper-action@master
         with:
           report: ${{github.workspace}}/inspectcodereport.xml
-
-  dispatch-release:
-     name: Dispatch Release
-     needs: [test, inspect-code]
-     if: ${{ github.event != 'pull_request' && contains(github.ref, 'refs/heads/')  != true || github.event == 'pull_request' }}
-     runs-on: ubuntu-latest
-     steps:
-       - name: Dispatch Release (Framework Libraries)
-         uses: benc-uk/workflow-dispatch@v1
-         with:
-           workflow: 'Continuous Integration - Pack'
-           token: ${{ secrets.GITHUB_TOKEN }}
-
-       - name: Dispatch Release (Native Libraries)
-         uses: benc-uk/workflow-dispatch@v1
-         with:
-           workflow: 'Continuous Integration - NativeLibs'
-           token: ${{ secrets.GITHUB_TOKEN }}
