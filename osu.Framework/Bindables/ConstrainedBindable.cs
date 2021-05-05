@@ -163,7 +163,7 @@ namespace osu.Framework.Bindables
                 MinValue = other.MinValue;
                 MaxValue = other.MaxValue;
 
-                if (Compare(MinValue, MaxValue) > 0)
+                if (!IsOverlappingRange(MinValue, MaxValue))
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
@@ -183,11 +183,10 @@ namespace osu.Framework.Bindables
         protected abstract T ClampValue(T value, T minValue, T maxValue);
 
         /// <summary>
-        /// Compares two values.
+        /// Whether a given range has a minimum value less than or equal to its maximum value (i.e. overlapping range).
         /// </summary>
-        /// <param name="x">The first value to compare.</param>
-        /// <param name="y">The second value to compare.</param>
-        /// <returns>-1 if <paramref name="x"/> is considered less than <paramref name="y"/>, 0 if they're both equal, 1 if <paramref name="x"/> is considered greater than <paramref name="y"/>.</returns>
-        protected abstract int Compare(T x, T y);
+        /// <param name="min">The range's minimum value.</param>
+        /// <param name="max">The range's maximum value.</param>
+        protected abstract bool IsOverlappingRange(T min, T max);
     }
 }

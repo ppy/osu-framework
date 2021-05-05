@@ -49,15 +49,6 @@ namespace osu.Framework.Bindables
             );
         }
 
-        protected override int Compare(Size x, Size y)
-        {
-            if (x.Width < y.Width || x.Height < y.Height)
-                return -1;
-
-            if (x.Width > y.Width || x.Height > y.Height)
-                return 1;
-
-            return 0;
-        }
+        protected override bool IsOverlappingRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
     }
 }
