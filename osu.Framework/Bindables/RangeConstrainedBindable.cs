@@ -160,14 +160,14 @@ namespace osu.Framework.Bindables
         {
             if (them is RangeConstrainedBindable<T> other)
             {
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
-
-                if (!IsValidRange(MinValue, MaxValue))
+                if (!IsValidRange(other.MinValue, other.MaxValue))
                 {
                     throw new ArgumentOutOfRangeException(
-                        nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
+                        nameof(them), $"Can not bind to bindables with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
                 }
+
+                MinValue = other.MinValue;
+                MaxValue = other.MaxValue;
             }
 
             base.BindTo(them);
