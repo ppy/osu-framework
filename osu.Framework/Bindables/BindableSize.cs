@@ -9,7 +9,7 @@ namespace osu.Framework.Bindables
     /// <summary>
     /// Represents a <see cref="Size"/> bindable with defined component-wise constraints applied to it.
     /// </summary>
-    public class BindableSize : ConstrainedBindable<Size>
+    public class BindableSize : RangeConstrainedBindable<Size>
     {
         protected override Size DefaultMinValue => new Size(int.MinValue, int.MinValue);
         protected override Size DefaultMaxValue => new Size(int.MaxValue, int.MaxValue);
