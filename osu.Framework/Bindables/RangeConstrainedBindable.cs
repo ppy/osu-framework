@@ -43,7 +43,7 @@ namespace osu.Framework.Bindables
         public override T Value
         {
             get => base.Value;
-            set => base.Value = ClampValue(value, minValue, maxValue);
+            set => setValue(value);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace osu.Framework.Bindables
             maxValue = DefaultMaxValue;
 
             // Reapply the default value here for respecting the defined default min/max values.
-            Value = defaultValue;
+            setValue(defaultValue);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Reapply the current value to respect the new minimum value.
-                Value = base.Value;
+                setValue(Value);
             }
         }
 
@@ -104,7 +104,7 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Reapply the current value to respect the new maximum value.
-                Value = base.Value;
+                setValue(Value);
             }
         }
 
@@ -188,5 +188,7 @@ namespace osu.Framework.Bindables
         /// <param name="min">The range's minimum value.</param>
         /// <param name="max">The range's maximum value.</param>
         protected abstract bool IsValidRange(T min, T max);
+
+        private void setValue(T value) => base.Value = ClampValue(value, minValue, maxValue);
     }
 }
