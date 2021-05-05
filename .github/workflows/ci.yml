@@ -98,7 +98,7 @@ jobs:
   dispatch-release:
      name: Dispatch Release
      needs: [test, inspect-code]
-     if: ${{ github.event != 'pull_request' && contains(github.ref, 'refs/heads/')  != true }}
+     if: ${{ ${{ github.event != 'pull_request' && contains(github.ref, 'refs/heads/')  != true }} || github.event == 'pull_request' }}
      runs-on: ubuntu-latest
      steps:
        - name: Dispatch Release (Framework Libraries)
