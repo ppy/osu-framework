@@ -14,14 +14,16 @@ jobs:
         id: deployment
         shell: bash
         run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          if [ $(git describe --exact-match --tags HEAD | echo $?) == 0 ]; then
+            echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
           else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+            echo "No tag detected in HEAD. Deployment will be skipped."
+            echo "::set-output name=VERSION::skip"
           fi
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    if: ${{ needs.check-if-tag.outputs.version != 'skip' }}
     needs: check-if-tag
     steps:
       - name: Checkout
