@@ -76,7 +76,7 @@ namespace osu.Framework.Bindables
         {
             if (Precision.CompareTo(DefaultPrecision) > 0)
             {
-                double doubleValue = value.ToDouble(NumberFormatInfo.InvariantInfo);
+                double doubleValue = ClampValue(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
                 doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
 
                 base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
