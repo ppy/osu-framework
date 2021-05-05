@@ -40,7 +40,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        protected override Size ClampValue(Size value, Size minValue, Size maxValue)
+        protected sealed override Size ClampValue(Size value, Size minValue, Size maxValue)
         {
             return new Size
             (
@@ -49,6 +49,6 @@ namespace osu.Framework.Bindables
             );
         }
 
-        protected override bool IsValidRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
+        protected sealed override bool IsValidRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
     }
 }
