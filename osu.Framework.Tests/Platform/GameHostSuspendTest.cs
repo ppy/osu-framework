@@ -41,19 +41,21 @@ namespace osu.Framework.Tests.Platform
 
             host.Suspend();
 
-            completed.Reset();
+            // in single-threaded execution, the main thread may already be in the process of updating one last time.
+            int gameUpdates = 0;
+            game.Scheduler.AddDelayed(() => ++gameUpdates, 0, true);
+            Assert.That(() => gameUpdates, Is.LessThan(2).After(timeout / 10));
 
             // check that scheduler doesn't process while suspended..
+            completed.Reset();
             game.Schedule(() => completed.Set());
             Assert.IsFalse(completed.Wait(timeout / 10));
 
-            host.Resume();
-
             // ..and does after resume.
+            host.Resume();
             Assert.IsTrue(completed.Wait(timeout / 10));
 
             game.Exit();
-
             Assert.IsTrue(task.Wait(timeout));
         }
 
