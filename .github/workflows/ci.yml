@@ -19,7 +19,17 @@ jobs:
           fi
   test:
     name: Test
-    runs-on: windows-latest
+    runs-on: ${{matrix.os.fullname}}
+    env:
+      OSU_EXECUTION_MODE: ${{matrix.threadingMode}}
+    strategy:
+       fail-fast: false
+       matrix:
+          os:
+            - { prettyname: Windows, fullname: windows-latest }
+            - { prettyname: macOS, fullname: macos-latest }
+            - { prettyname: Linux, fullname: ubuntu-latest }
+          threadingMode: ['SingleThread', 'MultiThreaded']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -29,12 +39,21 @@ jobs:
         with:
           dotnet-version: "5.0.x"
 
+      # FIXME: libavformat is not included in Ubuntu. Let's fix that.
+      # https://github.com/ppy/osu-framework/issues/4349
+      # Remove this once https://github.com/actions/virtual-environments/issues/3306 has been resolved.
+      - name: Install libavformat-dev
+        if: ${{matrix.os.fullname == 'ubuntu-latest'}}
+        run: |
+         sudo apt-get update && \
+         sudo apt-get -y install libavformat-dev
+
       - name: Compile
         run: dotnet build -c Debug build/Desktop.proj
 
       - name: Test
-        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults.trx"
-        shell: powershell
+        run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+        shell: pwsh
 
       # Attempt to upload results even if test fails.
       # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#always
@@ -42,8 +61,8 @@ jobs:
         uses: actions/upload-artifact@v2
         if: ${{ always() }}
         with:
-          name: osu-framework-test-results
-          path: ${{github.workspace}}\TestResults\TestResults.trx
+          name: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
+          path: ${{github.workspace}}/TestResults/TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx
 
   inspect-code:
     name: Code Quality
