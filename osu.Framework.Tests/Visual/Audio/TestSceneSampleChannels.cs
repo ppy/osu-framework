@@ -5,6 +5,8 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
+using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Visual.Audio
 {
@@ -12,6 +14,9 @@ namespace osu.Framework.Tests.Visual.Audio
     {
         [Resolved]
         private ISampleStore sampleStore { get; set; }
+
+        [Resolved]
+        private GameHost host { get; set; }
 
         private Sample sample;
 
@@ -36,17 +41,21 @@ namespace osu.Framework.Tests.Visual.Audio
             AddUntilStep("wait for channel 1 to end", () => !channel.Playing);
             AddStep("play channel 1 again", () => channel.Play());
 
-            // Create another channel purely for tracking purposes in order to avoid timing issues.
-            // When this channel is playing, the audio thread is guaranteed to have processed the above channel.
-            SampleChannel channel2 = null;
-            AddStep("play a silent channel 2", () =>
+            int audioFrames = 0;
+            AddStep("begin tracking audio frames", () =>
             {
-                channel2 = sample.GetChannel();
-                channel2.Volume.Value = 0;
-                channel2.Play();
+                audioFrames = 0;
+
+                ScheduledDelegate del = null;
+                del = host.AudioThread.Scheduler.AddDelayed(() =>
+                {
+                    // ReSharper disable once AccessToModifiedClosure
+                    if (++audioFrames >= 2)
+                        del?.Cancel();
+                }, 0, true);
             });
 
-            AddUntilStep("channel 2 playing", () => channel2.Playing);
+            AddUntilStep("wait for two audio frames", () => audioFrames >= 2);
             AddAssert("channel 1 not playing", () => !channel.Playing);
         }
 
