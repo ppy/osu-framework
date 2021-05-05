@@ -134,7 +134,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         {
             Container wrapped = null;
             DelayedLoadWrapper wrapper = null;
-            double lifetimeEnd = 0;
+            double lifetimeStart = 0;
 
             AddStep("create child", () =>
             {
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         wrapper = new DelayedLoadWrapper(wrapped = new Container
                         {
                             // this lifetime will be overwritten by the one on the wrapper.
-                            LifetimeEnd = Time.Current + 4000,
+                            LifetimeStart = Time.Current + 4000,
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
@@ -154,7 +154,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                             }
                         })
                         {
-                            LifetimeEnd = lifetimeEnd = Time.Current + 2000,
+                            LifetimeStart = lifetimeStart = Time.Current + 2000,
                         }
                     }
                 });
@@ -162,10 +162,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddUntilStep("wait for load", () => wrapper.DelayedLoadCompleted);
 
-            AddAssert("wrapper lifetime is correct", () => wrapper.LifetimeEnd == lifetimeEnd);
-            AddAssert("content lifetime is correct", () => wrapped.LifetimeEnd == lifetimeEnd);
-
-            AddUntilStep("wrapper expired", () => !wrapper.IsAlive);
+            AddAssert("wrapper lifetime is correct", () => wrapper.LifetimeStart == lifetimeStart);
+            AddAssert("content lifetime is correct", () => wrapped.LifetimeStart == lifetimeStart);
         }
 
         [TestCase(false)]
