@@ -105,6 +105,8 @@ namespace osu.Framework.Audio
         {
             if (CompressorEnabled) return;
 
+            CompressorEnabled = true;
+
             EnqueueAction(() =>
             {
                 compressorHandle = Bass.ChannelSetFX(MixerHandle, EffectType.Compressor, compressor_priority);
@@ -117,8 +119,6 @@ namespace osu.Framework.Audio
                     fRatio = 8f,
                 });
                 Logger.Log($"[AudioMixer] EnableCompressor: {Bass.LastError}");
-
-                CompressorEnabled = true;
             });
         }
 
@@ -126,12 +126,12 @@ namespace osu.Framework.Audio
         {
             if (!CompressorEnabled) return;
 
+            CompressorEnabled = false;
+
             EnqueueAction(() =>
             {
                 Bass.ChannelRemoveFX(MixerHandle, compressorHandle);
                 Logger.Log($"[AudioMixer] DisableCompressor: {Bass.LastError}");
-
-                CompressorEnabled = false;
             });
         }
 
@@ -151,6 +151,8 @@ namespace osu.Framework.Audio
         {
             if (LimiterEnabled) return;
 
+            LimiterEnabled = true;
+
             EnqueueAction(() =>
             {
                 limiterHandle = Bass.ChannelSetFX(MixerHandle, EffectType.Compressor, limiter_priority);
@@ -163,8 +165,6 @@ namespace osu.Framework.Audio
                     fRatio = 20f,
                 });
                 Logger.Log($"[AudioMixer] EnableLimiter: {Bass.LastError}");
-
-                LimiterEnabled = true;
             });
         }
 
@@ -172,12 +172,12 @@ namespace osu.Framework.Audio
         {
             if (!LimiterEnabled) return;
 
+            LimiterEnabled = false;
+
             EnqueueAction(() =>
             {
                 Bass.ChannelRemoveFX(MixerHandle, limiterHandle);
                 Logger.Log($"[AudioMixer] DisableLimiter: {Bass.LastError}");
-
-                LimiterEnabled = false;
             });
         }
 
@@ -197,6 +197,8 @@ namespace osu.Framework.Audio
         {
             if (FilterEnabled) return;
 
+            FilterEnabled = true;
+
             EnqueueAction(() =>
             {
                 filterHandle = Bass.ChannelSetFX(MixerHandle, EffectType.BQF, filter_priority);
@@ -206,8 +208,6 @@ namespace osu.Framework.Audio
                     fCenter = 150
                 });
                 Logger.Log($"[AudioMixer] EnableFilter: {Bass.LastError}");
-
-                FilterEnabled = true;
             });
         }
 
@@ -215,12 +215,12 @@ namespace osu.Framework.Audio
         {
             if (!FilterEnabled) return;
 
+            FilterEnabled = false;
+
             EnqueueAction(() =>
             {
                 Bass.ChannelRemoveFX(MixerHandle, filterHandle);
                 Logger.Log($"[AudioMixer] DisableFilter: {Bass.LastError}");
-
-                FilterEnabled = false;
             });
         }
 
@@ -237,16 +237,14 @@ namespace osu.Framework.Audio
         public void Init()
         {
             Logger.Log("[AudioMixer] Init()");
-            EnqueueAction(() =>
-            {
-                MixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
-                Logger.Log($"[AudioMixer] CreateMixerStream: {Bass.LastError}");
-                Bass.ChannelPlay(MixerHandle);
-                Logger.Log($"[AudioMixer] ChannelPlay(mixer): {Bass.LastError}");
 
-                EnableCompressor();
-                // EnableLimiter();
-            });
+            MixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            Logger.Log($"[AudioMixer] CreateMixerStream: {Bass.LastError}");
+            Bass.ChannelPlay(MixerHandle);
+            Logger.Log($"[AudioMixer] ChannelPlay(mixer): {Bass.LastError}");
+
+            EnableCompressor();
+            // EnableLimiter();
         }
 
         protected override void UpdateState()
