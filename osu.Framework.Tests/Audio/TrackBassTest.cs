@@ -37,6 +37,7 @@ namespace osu.Framework.Tests.Audio
             }
 
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
