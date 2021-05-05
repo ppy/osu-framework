@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -218,6 +220,23 @@ namespace osu.Framework.Platform
             {
                 mainThread.ActiveHz = GameThread.DEFAULT_ACTIVE_HZ;
                 mainThread.InactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
+            }
+        }
+
+        /// <summary>
+        /// Sets the current culture of all threads to the supplied <paramref name="culture"/>.
+        /// </summary>
+        public void SetCulture(CultureInfo culture)
+        {
+            // for single-threaded mode, switch the current (assumed to be main) thread's culture, since it's actually the one that's running the frames.
+            Thread.CurrentThread.CurrentCulture = culture;
+
+            // for multi-threaded mode, schedule the culture change on all threads.
+            // note that if the threads haven't been created yet (e.g. if the game started single-threaded), this will only store the culture in GameThread.CurrentCulture.
+            // in that case, the stored value will be set on the actual threads after the next Start() call.
+            foreach (var t in Threads)
+            {
+                t.Scheduler.Add(() => t.CurrentCulture = culture);
             }
         }
     }
