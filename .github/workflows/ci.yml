@@ -2,21 +2,6 @@ on: [push, pull_request]
 name: Continuous Integration
 
 jobs:
-  check-if-tag:
-    name: Set Package Version
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{steps.deployment.outputs.version}}
-    steps:
-      - name: Set Variables
-        id: deployment
-        shell: bash
-        run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
-          else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
-          fi
   test:
     name: Test
     runs-on: ${{matrix.os.fullname}}
@@ -109,3 +94,20 @@ jobs:
         uses: glassechidna/resharper-action@master
         with:
           report: ${{github.workspace}}/inspectcodereport.xml
+
+  dispatch-release:
+     name: Dispatch Release
+     if: ${{ github.event != 'pull_request' && contains(github.ref, 'refs/heads/')  != true }}
+     runs-on: ubuntu-latest
+     steps:
+       - name: Dispatch Release (Framework Libraries)
+         uses: benc-uk/workflow-dispatch@v1
+         with:
+           workflow: 'Continuous Integration - Pack'
+           token: ${{ secrets.GITHUB_TOKEN }}
+
+       - name: Dispatch Release (Native Libraries)
+         uses: benc-uk/workflow-dispatch@v1
+         with:
+           workflow: 'Continuous Integration - NativeLibs'
+           token: ${{ secrets.GITHUB_TOKEN }}
