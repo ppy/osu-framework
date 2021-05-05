@@ -39,21 +39,26 @@ namespace osu.Framework.Tests.Platform
             game.Schedule(() => completed.Set());
             Assert.IsTrue(completed.Wait(timeout / 10));
 
-            host.Suspend();
-
+            // suspend from the update thread, otherwise the thread may update one last time
             completed.Reset();
+            game.Schedule(() =>
+            {
+                host.Suspend();
+                completed.Set();
+            });
+
+            Assert.IsTrue(completed.Wait(timeout / 10));
 
             // check that scheduler doesn't process while suspended..
+            completed.Reset();
             game.Schedule(() => completed.Set());
             Assert.IsFalse(completed.Wait(timeout / 10));
 
-            host.Resume();
-
             // ..and does after resume.
+            host.Resume();
             Assert.IsTrue(completed.Wait(timeout / 10));
 
             game.Exit();
-
             Assert.IsTrue(task.Wait(timeout));
         }
 
