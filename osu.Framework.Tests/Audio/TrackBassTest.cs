@@ -77,6 +77,11 @@ namespace osu.Framework.Tests.Audio
             track.StartAsync();
             updateTrack();
 
+            Thread.Sleep(50);
+
+            updateTrack();
+            Assert.Greater(track.CurrentTime, 0);
+
             track.StopAsync();
             updateTrack();
 
