@@ -7,7 +7,7 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Tests.Bindables
 {
     [TestFixture]
-    public class ConstrainedBindableTest
+    public class RangeConstrainedBindableTest
     {
         /// <summary>
         /// Tests that the value of a bindable is updated when the maximum value is changed.
