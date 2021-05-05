@@ -163,7 +163,7 @@ namespace osu.Framework.Bindables
                 MinValue = other.MinValue;
                 MaxValue = other.MaxValue;
 
-                if (!IsOverlappingRange(MinValue, MaxValue))
+                if (!IsValidRange(MinValue, MaxValue))
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
@@ -187,6 +187,6 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="min">The range's minimum value.</param>
         /// <param name="max">The range's maximum value.</param>
-        protected abstract bool IsOverlappingRange(T min, T max);
+        protected abstract bool IsValidRange(T min, T max);
     }
 }

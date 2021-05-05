@@ -49,6 +49,6 @@ namespace osu.Framework.Bindables
             );
         }
 
-        protected override bool IsOverlappingRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
+        protected override bool IsValidRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
     }
 }

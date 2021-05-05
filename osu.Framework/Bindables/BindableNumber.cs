@@ -315,7 +315,7 @@ namespace osu.Framework.Bindables
 
         protected override T ClampValue(T value, T minValue, T maxValue) => max(minValue, min(maxValue, value));
 
-        protected override bool IsOverlappingRange(T min, T max) => min.CompareTo(max) <= 0;
+        protected override bool IsValidRange(T min, T max) => min.CompareTo(max) <= 0;
 
         private static T max(T value1, T value2)
         {
