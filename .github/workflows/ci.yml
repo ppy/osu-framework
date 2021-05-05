@@ -97,6 +97,7 @@ jobs:
 
   dispatch-release:
      name: Dispatch Release
+     needs: [test, inspect-code]
      if: ${{ github.event != 'pull_request' && contains(github.ref, 'refs/heads/')  != true }}
      runs-on: ubuntu-latest
      steps:
