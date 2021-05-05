@@ -28,7 +28,7 @@ namespace osu.Framework.Audio
         private const int compressor_priority = 2;
         private const int filter_priority = 3;
 
-        private const int frequency = 48000;
+        private const int frequency = 44100;
 
         public void AddChannel(int channelHandle, bool addPaused = false)
         {
