@@ -1,7 +1,7 @@
 # There is no manual way to call this out to run this on tags via UI.
 # See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
 on: workflow_dispatch
-name: Continuous Integration - Pack
+name: Deploy - Framework
 
 jobs:
   check-if-tag:
@@ -30,13 +30,13 @@ jobs:
           if [ $(git describe --exact-match --tags HEAD &> /dev/null; echo $?) == 0 ]; then
             echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
           else
-            echo "::set-output name=VERSION::"
+            echo "fatal: no tag detected for HEAD. Workflow will now stop."
+            exit 128;
           fi
 
   pack-framework:
     name: Pack (Framework)
     runs-on: windows-latest
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     needs: [check-if-tag]
     defaults:
       run:
@@ -73,7 +73,6 @@ jobs:
   pack-template:
     name: Pack (Templates)
     runs-on: windows-latest
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     needs: [check-if-tag]
     defaults:
       run:
@@ -103,7 +102,6 @@ jobs:
   pack-android:
     name: Pack (Android)
     runs-on: windows-latest
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     needs: [check-if-tag]
     defaults:
       run:
@@ -131,7 +129,6 @@ jobs:
   pack-ios:
     name: Pack (iOS)
     runs-on: macos-latest
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     needs: [check-if-tag]
     defaults:
       run:
@@ -157,7 +154,6 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [check-if-tag, pack-android, pack-framework, pack-template, pack-ios]
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     steps:
       - name: Create Artifact Directory
         run: mkdir ${{github.workspace}}/artifacts/

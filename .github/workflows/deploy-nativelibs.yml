@@ -1,7 +1,7 @@
 # There is no manual way to call this out to run this on tags via UI.
 # See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
 on: workflow_dispatch
-name: Continuous Integration - NativeLibs
+name: Deploy - NativeLibs
 
 jobs:
   check-if-tag:
@@ -30,7 +30,8 @@ jobs:
           if [ $(git describe --exact-match --tags HEAD &> /dev/null; echo $?) == 0 ]; then
             echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
           else
-            echo "::set-output name=VERSION::"
+            echo "fatal: no tag detected for HEAD. Workflow will now stop."
+            exit 128;
           fi
 
   deploy:
