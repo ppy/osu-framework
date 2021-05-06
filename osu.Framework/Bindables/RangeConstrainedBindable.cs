@@ -178,12 +178,13 @@ namespace osu.Framework.Bindables
         public new RangeConstrainedBindable<T> GetUnboundCopy() => (RangeConstrainedBindable<T>)base.GetUnboundCopy();
 
         /// <summary>
-        /// Clamps the given <paramref name="value"/>.
+        /// Clamps <paramref name="value"/> to the range defined by <paramref name="minValue"/> and <paramref name="maxValue"/>.
         /// </summary>
         protected abstract T ClampValue(T value, T minValue, T maxValue);
 
         /// <summary>
-        /// Whether a given range has a minimum value less than or equal to its maximum value (i.e. overlapping range).
+        /// Whether <paramref name="min"/> and <paramref name="max"/> constitute a valid range
+        /// (usually used to check that <paramref name="min"/> is indeed lesser than or equal to <paramref name="max"/>).
         /// </summary>
         /// <param name="min">The range's minimum value.</param>
         /// <param name="max">The range's maximum value.</param>
