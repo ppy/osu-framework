@@ -55,7 +55,7 @@ namespace osu.Framework.Bindables
             };
         }
 
-        protected override bool IsValidRange(MarginPadding min, MarginPadding max)
+        protected sealed override bool IsValidRange(MarginPadding min, MarginPadding max)
         {
             return min.Top <= max.Top &&
                    min.Left <= max.Left &&
