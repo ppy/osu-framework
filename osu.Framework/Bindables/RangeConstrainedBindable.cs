@@ -163,7 +163,7 @@ namespace osu.Framework.Bindables
                 if (!IsValidRange(other.MinValue, other.MaxValue))
                 {
                     throw new ArgumentOutOfRangeException(
-                        nameof(them), $"Can not bind to bindables with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
+                        nameof(them), $"The target bindable has specified an invalid range of [{other.MinValue} - {other.MaxValue}].");
                 }
 
                 MinValue = other.MinValue;
