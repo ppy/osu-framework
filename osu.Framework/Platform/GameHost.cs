@@ -715,8 +715,6 @@ namespace osu.Framework.Platform
         {
             foreach (var handler in AvailableInputHandlers)
             {
-                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
-
                 if (!handler.Initialize(this))
                     handler.Enabled.Value = false;
             }
@@ -855,6 +853,7 @@ namespace osu.Framework.Platform
             };
 
 #pragma warning disable 618
+            // pragma region can be removed 20210911
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
@@ -869,12 +868,17 @@ namespace osu.Framework.Platform
 
             Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
 
-            // one way binding to preserve compatibility.
+            var cursorSensitivityHandlers = AvailableInputHandlers.OfType<IHasCursorSensitivity>();
+
+            // one way bindings to preserve compatibility.
             cursorSensitivity.BindValueChanged(val =>
             {
-                foreach (var h in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
+                foreach (var h in cursorSensitivityHandlers)
                     h.Sensitivity.Value = val.NewValue;
             }, true);
+
+            foreach (var h in cursorSensitivityHandlers)
+                h.Sensitivity.BindValueChanged(s => cursorSensitivity.Value = s.NewValue);
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
