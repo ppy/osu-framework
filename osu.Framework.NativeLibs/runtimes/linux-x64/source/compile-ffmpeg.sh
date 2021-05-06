@@ -1,5 +1,5 @@
 #!/bin/sh
-#Compile on a distro that has an older version of GLIBC/gcc is recommended to avoid some issues.
+#Compile on a distribution has an older version of GLIBC/gcc is recommended to improve binary compatibility with older distributions.
 #Tested on Ubuntu21.04, works fine.
 #Built on Deepin 20.2 with gcc-7 (Debian 7.4.0-6) 7.4.0, libc6 version 2.28.12-1+eagle
 #Not using 4.4 because it causes "symbol lookup error: /tmp/.mount_osu!-xzhQaym/usr/bin/libavformat.so: undefined symbol: avpriv_packet_list_put, version LIBAVCODEC_58"
