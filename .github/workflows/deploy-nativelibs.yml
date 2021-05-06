@@ -37,7 +37,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    if: ${{ contains(needs.check-if-tag.outputs.version, '')  == false }}
     needs: check-if-tag
     steps:
       - name: Checkout
