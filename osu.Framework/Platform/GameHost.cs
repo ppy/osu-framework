@@ -583,9 +583,11 @@ namespace osu.Framework.Platform
 
                 ExecutionState = ExecutionState.Running;
 
-                initialiseInputHandlers();
+                populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
+
+                initialiseInputHandlers();
 
                 if (Window != null)
                 {
@@ -704,14 +706,15 @@ namespace osu.Framework.Platform
             Logger.Storage = Storage.GetStorageForDirectory("logs");
         }
 
-        private void initialiseInputHandlers()
+        private void populateInputHandlers()
         {
             AvailableInputHandlers = CreateAvailableInputHandlers().ToImmutableArray();
+        }
 
+        private void initialiseInputHandlers()
+        {
             foreach (var handler in AvailableInputHandlers)
             {
-                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
-
                 if (!handler.Initialize(this))
                     handler.Enabled.Value = false;
             }
@@ -850,6 +853,7 @@ namespace osu.Framework.Platform
             };
 
 #pragma warning disable 618
+            // pragma region can be removed 20210911
             ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
             ignoredInputHandlers.ValueChanged += e =>
             {
@@ -864,12 +868,17 @@ namespace osu.Framework.Platform
 
             Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
 
-            // one way binding to preserve compatibility.
+            var cursorSensitivityHandlers = AvailableInputHandlers.OfType<IHasCursorSensitivity>();
+
+            // one way bindings to preserve compatibility.
             cursorSensitivity.BindValueChanged(val =>
             {
-                foreach (var h in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
+                foreach (var h in cursorSensitivityHandlers)
                     h.Sensitivity.Value = val.NewValue;
             }, true);
+
+            foreach (var h in cursorSensitivityHandlers)
+                h.Sensitivity.BindValueChanged(s => cursorSensitivity.Value = s.NewValue);
 #pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
@@ -889,10 +898,7 @@ namespace osu.Framework.Platform
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-                foreach (var t in Threads)
-                {
-                    t.Scheduler.Add(() => { t.CurrentCulture = culture; });
-                }
+                threadRunner.SetCulture(culture);
             }, true);
 
             // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.

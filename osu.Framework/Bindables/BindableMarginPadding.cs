@@ -7,57 +7,14 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableMarginPadding : Bindable<MarginPadding>
+    public class BindableMarginPadding : RangeConstrainedBindable<MarginPadding>
     {
-        public BindableMarginPadding(MarginPadding value = default)
-            : base(value)
+        protected override MarginPadding DefaultMinValue => new MarginPadding(float.MinValue);
+        protected override MarginPadding DefaultMaxValue => new MarginPadding(float.MaxValue);
+
+        public BindableMarginPadding(MarginPadding defaultValue = default)
+            : base(defaultValue)
         {
-            MinValue = DefaultMinValue;
-            MaxValue = DefaultMaxValue;
-        }
-
-        public MarginPadding MinValue { get; set; }
-        public MarginPadding MaxValue { get; set; }
-
-        protected MarginPadding DefaultMinValue => new MarginPadding(float.MinValue);
-        protected MarginPadding DefaultMaxValue => new MarginPadding(float.MaxValue);
-
-        public override MarginPadding Value
-        {
-            get => base.Value;
-            set => base.Value = clamp(value, MinValue, MaxValue);
-        }
-
-        public override void BindTo(Bindable<MarginPadding> them)
-        {
-            if (them is BindableMarginPadding other)
-            {
-                MinValue = new MarginPadding
-                {
-                    Top = Math.Max(MinValue.Top, other.MinValue.Top),
-                    Left = Math.Max(MinValue.Left, other.MinValue.Left),
-                    Bottom = Math.Max(MinValue.Bottom, other.MinValue.Bottom),
-                    Right = Math.Max(MinValue.Right, other.MinValue.Right)
-                };
-
-                MaxValue = new MarginPadding
-                {
-                    Top = Math.Min(MaxValue.Top, other.MaxValue.Top),
-                    Left = Math.Min(MaxValue.Left, other.MaxValue.Left),
-                    Bottom = Math.Min(MaxValue.Bottom, other.MaxValue.Bottom),
-                    Right = Math.Min(MaxValue.Right, other.MaxValue.Right)
-                };
-
-                if (MinValue.Top > MaxValue.Top || MinValue.Left > MaxValue.Left || MinValue.Bottom > MaxValue.Bottom || MinValue.Right > MaxValue.Right)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(them),
-                        $"Can not weld BindableMarginPaddings with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}]."
-                    );
-                }
-            }
-
-            base.BindTo(them);
         }
 
         public override string ToString() => Value.ToString();
@@ -87,13 +44,23 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private static MarginPadding clamp(MarginPadding value, MarginPadding minValue, MarginPadding maxValue) =>
-            new MarginPadding
+        protected sealed override MarginPadding ClampValue(MarginPadding value, MarginPadding minValue, MarginPadding maxValue)
+        {
+            return new MarginPadding
             {
-                Top = Math.Max(minValue.Top, Math.Min(maxValue.Top, value.Top)),
-                Left = Math.Max(minValue.Left, Math.Min(maxValue.Left, value.Left)),
-                Bottom = Math.Max(minValue.Bottom, Math.Min(maxValue.Bottom, value.Bottom)),
-                Right = Math.Max(minValue.Right, Math.Min(maxValue.Right, value.Right))
+                Top = Math.Clamp(value.Top, minValue.Top, maxValue.Top),
+                Left = Math.Clamp(value.Left, minValue.Left, maxValue.Left),
+                Bottom = Math.Clamp(value.Bottom, minValue.Bottom, maxValue.Bottom),
+                Right = Math.Clamp(value.Right, minValue.Right, maxValue.Right)
             };
+        }
+
+        protected sealed override bool IsValidRange(MarginPadding min, MarginPadding max)
+        {
+            return min.Top <= max.Top &&
+                   min.Left <= max.Left &&
+                   min.Bottom <= max.Bottom &&
+                   min.Right <= max.Right;
+        }
     }
 }

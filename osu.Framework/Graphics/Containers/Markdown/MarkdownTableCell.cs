@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             }
         }
 
-        public MarkdownTextFlowContainer CreateTextFlow()
+        public virtual MarkdownTextFlowContainer CreateTextFlow()
         {
             var flow = parentFlowComponent.CreateTextFlow();
             flow.Padding = new MarginPadding(10);

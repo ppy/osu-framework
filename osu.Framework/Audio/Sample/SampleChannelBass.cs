@@ -161,11 +161,10 @@ namespace osu.Framework.Audio.Sample
                 if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
                     return;
 
-                if (relativeFrequencyHandler.IsFrequencyZero)
-                    return;
-
-                mixer.PlayChannel(channel);
                 playing = true;
+
+                if (!relativeFrequencyHandler.IsFrequencyZero)
+                    mixer.PlayChannel(channel);
             }
             finally
             {
