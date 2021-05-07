@@ -39,6 +39,12 @@ namespace osu.Framework.Platform
             defaultOverrides[FrameworkSetting.AudioDevice] = "No sound";
 
             base.SetupConfig(defaultOverrides);
+
+            if (Enum.TryParse<ExecutionMode>(Environment.GetEnvironmentVariable("OSU_EXECUTION_MODE"), out var mode))
+            {
+                Config.SetValue(FrameworkSetting.ExecutionMode, mode);
+                Logger.Log($"Startup execution mode set to {mode} from envvar");
+            }
         }
 
         protected override void SetupForRun()

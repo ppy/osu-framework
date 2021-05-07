@@ -159,11 +159,10 @@ namespace osu.Framework.Audio.Sample
                 if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
                     return;
 
-                if (relativeFrequencyHandler.IsFrequencyZero)
-                    return;
-
-                Bass.ChannelPlay(channel);
                 playing = true;
+
+                if (!relativeFrequencyHandler.IsFrequencyZero)
+                    Bass.ChannelPlay(channel);
             }
             finally
             {

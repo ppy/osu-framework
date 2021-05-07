@@ -242,10 +242,6 @@ namespace osu.Framework.Audio
             if (!device.IsEnabled)
                 return false;
 
-            // same device
-            if (device.IsInitialized && deviceIndex == Bass.CurrentDevice)
-                return true;
-
             // initialize new device
             bool initSuccess = InitBass(deviceIndex);
             if (Bass.LastError != Errors.Already && BassUtils.CheckFaulted(false))
