@@ -1,5 +1,7 @@
+# There is no manual way to call this out to run this on tags via UI.
+# See: https://github.community/t/workflow-dispatch-from-a-tag-in-actions-tab/130561
 on: workflow_dispatch
-name: Continuous Integration - NativeLibs
+name: Deploy - NativeLibs
 
 jobs:
   check-if-tag:
@@ -8,15 +10,30 @@ jobs:
     outputs:
       version: ${{steps.deployment.outputs.version}}
     steps:
+      - name: Checkout
+        run: |
+          REPOSITORY="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
+          BRANCH="${GITHUB_REF/#refs\/heads\//}"
+
+          git version
+          git clone --no-checkout ${REPOSITORY} .
+          git config --local gc.auto 0
+
+          git -c protocol.version=2 fetch --no-tags --prune --progress --depth=2 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
+          git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
+
+
       - name: Set Variables
         id: deployment
         shell: bash
         run: |
-          if [ $(echo ${{github.ref}} | grep -q "refs/tags/"; echo $?) == 0 ]; then
-            echo "::set-output name=VERSION::${GITHUB_REF#/refs\/tags\//}"
+          if [ $(git describe --exact-match --tags HEAD &> /dev/null; echo $?) == 0 ]; then
+            echo "::set-output name=VERSION::$(git describe --exact-match --tags HEAD)"
           else
-            echo "::set-output name=VERSION::0.0.0+${{github.run_id}}"
+            echo "fatal: no tag detected for HEAD. Workflow will now stop."
+            exit 128;
           fi
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
@@ -45,10 +62,5 @@ jobs:
 
       - name: Deploy
         run: |
-          if [ $(echo ${{needs.check-if-tag.outputs.version}} | grep -q "0.0.0+${{github.run_id}}"; echo $?) == 0 ]; then
-            echo "Skipping publish, no tag detected."
-            exit 0;
-          else
             dotnet nuget add source https://api.nuget.org/v3/index.json -n authed-nuget -u ${{secrets.NUGET_USER_NAME}} -p ${{secrets.NUGET_AUTH_TOKEN}}
             dotnet nuget push ${{github.workspace}}/artifacts/*.nupkg --skip-duplicate --source authed-nuget
-          fi
