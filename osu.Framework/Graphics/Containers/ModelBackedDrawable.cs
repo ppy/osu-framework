@@ -144,6 +144,8 @@ namespace osu.Framework.Graphics.Containers
 
             var showTransforms = ApplyShowTransforms(wrapper);
 
+            // If the wrapper hasn't changed then this invocation must be a result of a reload (e.g. DelayedLoadUnloadWrapper)
+            // In that case, we do not want to apply hide transforms and expire the last wrapper.
             if (displayedWrapper != null && displayedWrapper != wrapper)
             {
                 var lastWrapper = displayedWrapper;
