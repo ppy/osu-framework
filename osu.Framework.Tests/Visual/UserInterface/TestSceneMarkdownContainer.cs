@@ -9,6 +9,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Containers.Markdown;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Network;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -297,6 +298,8 @@ soft break with '\'";
                 UrlAdded = url => Links.Add(url)
             };
 
+            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans"));
+
             private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {
                 public Action<LinkInline> UrlAdded;
@@ -307,6 +310,8 @@ soft break with '\'";
 
                     UrlAdded?.Invoke(linkInline);
                 }
+
+                protected override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans"));
             }
         }
     }
