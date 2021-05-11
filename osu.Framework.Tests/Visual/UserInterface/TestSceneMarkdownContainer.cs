@@ -298,7 +298,7 @@ soft break with '\'";
                 UrlAdded = url => Links.Add(url)
             };
 
-            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans"));
+            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans", weight: "Regular"));
 
             private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {
@@ -310,8 +310,6 @@ soft break with '\'";
 
                     UrlAdded?.Invoke(linkInline);
                 }
-
-                protected override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans"));
             }
         }
     }
