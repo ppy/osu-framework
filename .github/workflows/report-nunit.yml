@@ -12,11 +12,19 @@ jobs:
   report:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    strategy:
+       fail-fast: false
+       matrix:
+          os:
+            - { prettyname: Windows }
+            - { prettyname: macOS }
+            - { prettyname: Linux }
+          threadingMode: ['SingleThread', 'MultiThreaded']
     steps:
       - name: Continuous Integration Test Report
         uses: dorny/test-reporter@v1.4.2
         with:
-          artifact: osu-framework-test-results
-          name: Test Results
+          artifact: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}
+          name: Test Results (${{matrix.os.prettyname}}, ${{matrix.threadingMode}})
           path: "*.trx"
           reporter: dotnet-trx
