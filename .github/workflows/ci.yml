@@ -34,7 +34,7 @@ jobs:
          sudo apt-get -y install libavformat-dev
 
       - name: Compile
-        run: dotnet build -c Debug build/Desktop.proj
+        run: dotnet build -c Debug -warnaserror build/Desktop.proj
 
       - name: Test
         run: dotnet test $pwd/*.Tests/bin/Debug/*/*.Tests.dll --settings $pwd/build/vstestconfig.runsettings --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
