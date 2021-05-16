@@ -41,7 +41,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestUnloading()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-1));
+            AddStep("mask away", () => mbd.Position = new Vector2(-2));
             AddUntilStep("drawable unloaded", () => initialDrawable.IsDisposed && mbd.DisplayedDrawable == null);
 
             AddStep("return back", () => mbd.Position = Vector2.Zero);
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestChangeWhileMaskedAway()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-1));
+            AddStep("mask away", () => mbd.Position = new Vector2(-2));
             AddUntilStep("wait for drawable unload", () => mbd.DisplayedDrawable == null);
 
             AddStep("change model", () => mbd.Model = 1);
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestTransformsAppliedOnReloading()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-1));
+            AddStep("mask away", () => mbd.Position = new Vector2(-2));
             AddUntilStep("wait for drawable unload", () => mbd.DisplayedDrawable == null);
 
             AddStep("reset transform counters", () => mbd.ResetTransformCounters());
