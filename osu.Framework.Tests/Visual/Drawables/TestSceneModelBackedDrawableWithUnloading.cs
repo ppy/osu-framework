@@ -14,18 +14,17 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
-    [System.ComponentModel.Description("MBD behaviour with unloading wrapper")]
-    public class TestSceneUnloadingModelBackedDrawable : FrameworkTestScene
+    public class TestSceneModelBackedDrawableWithUnloading : FrameworkTestScene
     {
-        private TestUnloadingModelBackedDrawable mbd;
+        private TestUnloadingModelBackedDrawable backedDrawable;
         private Drawable initialDrawable;
 
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("setup mbd", () =>
+            AddStep("setup drawable", () =>
             {
-                Child = mbd = new TestUnloadingModelBackedDrawable(TimePerAction)
+                Child = backedDrawable = new TestUnloadingModelBackedDrawable(TimePerAction)
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -34,48 +33,48 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             });
 
-            AddUntilStep("wait for load", () => mbd.DisplayedDrawable != null);
-            AddStep("get displayed drawable", () => initialDrawable = mbd.DisplayedDrawable);
+            AddUntilStep("wait for load", () => backedDrawable.DisplayedDrawable != null);
+            AddStep("get displayed drawable", () => initialDrawable = backedDrawable.DisplayedDrawable);
         }
 
         [Test]
         public void TestUnloading()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-2));
-            AddUntilStep("drawable unloaded", () => initialDrawable.IsDisposed && mbd.DisplayedDrawable == null);
+            AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
+            AddUntilStep("drawable unloaded", () => initialDrawable.IsDisposed && backedDrawable.DisplayedDrawable == null);
 
-            AddStep("return back", () => mbd.Position = Vector2.Zero);
-            AddUntilStep("new drawable displayed", () => mbd.DisplayedDrawable != null && mbd.DisplayedDrawable != initialDrawable);
+            AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
+            AddUntilStep("new drawable displayed", () => backedDrawable.DisplayedDrawable != null && backedDrawable.DisplayedDrawable != initialDrawable);
         }
 
         [Test]
         public void TestChangeWhileMaskedAway()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-2));
-            AddUntilStep("wait for drawable unload", () => mbd.DisplayedDrawable == null);
+            AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
+            AddUntilStep("wait for drawable unload", () => backedDrawable.DisplayedDrawable == null);
 
-            AddStep("change model", () => mbd.Model = 1);
+            AddStep("change model", () => backedDrawable.Model = 1);
             AddWaitStep("wait a bit", 5);
-            AddAssert("no drawable loaded", () => mbd.DisplayedDrawable == null);
+            AddAssert("no drawable loaded", () => backedDrawable.DisplayedDrawable == null);
 
-            AddStep("return back", () => mbd.Position = Vector2.Zero);
-            AddUntilStep("new drawable displayed", () => mbd.DisplayedDrawable != null);
+            AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
+            AddUntilStep("new drawable displayed", () => backedDrawable.DisplayedDrawable != null);
         }
 
         [Test]
         public void TestTransformsAppliedOnReloading()
         {
-            AddStep("mask away", () => mbd.Position = new Vector2(-2));
-            AddUntilStep("wait for drawable unload", () => mbd.DisplayedDrawable == null);
+            AddStep("mask away", () => backedDrawable.Position = new Vector2(-2));
+            AddUntilStep("wait for drawable unload", () => backedDrawable.DisplayedDrawable == null);
 
-            AddStep("reset transform counters", () => mbd.ResetTransformCounters());
-            AddStep("return back", () => mbd.Position = Vector2.Zero);
-            AddUntilStep("wait for new drawable", () => mbd.DisplayedDrawable != null);
+            AddStep("reset transform counters", () => backedDrawable.ResetTransformCounters());
+            AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
+            AddUntilStep("wait for new drawable", () => backedDrawable.DisplayedDrawable != null);
 
             // on loading, mbd applies immediate hide transform on new drawable then applies show transform.
-            AddAssert("initial hide transform applied", () => mbd.HideTransforms == 1);
-            AddAssert("show transform applied", () => mbd.ShowTransforms == 1);
-            AddUntilStep("new drawable alpha = 1", () => mbd.DisplayedDrawable.Alpha == 1);
+            AddAssert("initial hide transform applied", () => backedDrawable.HideTransforms == 1);
+            AddAssert("show transform applied", () => backedDrawable.ShowTransforms == 1);
+            AddUntilStep("new drawable alpha = 1", () => backedDrawable.DisplayedDrawable.Alpha == 1);
         }
 
         private class TestUnloadingModelBackedDrawable : ModelBackedDrawable<int>
