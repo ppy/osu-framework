@@ -23,7 +23,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private float calculatedHeight;
         private readonly TestDropdown testDropdown, testDropdownMenu, bindableDropdown, emptyDropdown, disabledDropdown;
         private readonly PlatformActionContainer platformActionContainerKeyboardSelection, platformActionContainerKeyboardPreselection, platformActionContainerEmptyDropdown;
-        private readonly BindableList<string> bindableList = new BindableList<string>();
+        private readonly BindableList<TestModel> bindableList = new BindableList<TestModel>();
 
         private int previousIndex;
         private int lastVisibleIndexOnTheCurrentPage, lastVisibleIndexOnTheNextPage;
@@ -31,7 +31,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         public TestSceneDropdown()
         {
-            var testItems = new string[10];
+            var testItems = new TestModel[10];
             int i = 0;
             while (i < items_to_add)
                 testItems[i] = @"test " + i++;
@@ -87,6 +87,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestExternalBindableChangeKeepsSelection()
+        {
+            toggleDropdownViaClick(testDropdown, "dropdown1");
+            AddStep("click item 4", () => testDropdown.SelectItem(testDropdown.Menu.Items[4]));
+
+            AddAssert("item 4 is selected", () => testDropdown.Current.Value.Identifier == "test 4");
+
+            AddStep("replace items", () =>
+            {
+                testDropdown.Items = testDropdown.Items.Select(i => new TestModel(i.ToString())).ToArray();
+            });
+
+            AddAssert("item 4 is selected", () => testDropdown.Current.Value.Identifier == "test 4");
+        }
+
+        [Test]
         public void TestBasic()
         {
             var i = items_to_add;
@@ -110,10 +126,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("click item 13", () => testDropdown.SelectItem(testDropdown.Menu.Items[13]));
 
             AddAssert("dropdown1 is closed", () => testDropdown.Menu.State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(13));
+            AddAssert("item 13 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(13)));
 
             AddStep("select item 15", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(15));
-            AddAssert("item 15 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(15));
+            AddAssert("item 15 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(15)));
 
             toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown1 is open", () => testDropdown.Menu.State == MenuState.Open);
@@ -125,26 +141,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("select 'invalid'", () => testDropdown.Current.Value = "invalid");
 
-            AddAssert("'invalid' is selected", () => testDropdown.Current.Value == "invalid");
+            AddAssert("'invalid' is selected", () => testDropdown.Current.Value.Identifier == "invalid");
             AddAssert("label shows 'invalid'", () => testDropdown.Header.Label.ToString() == "invalid");
 
             AddStep("select item 2", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(2));
-            AddAssert("item 2 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(2));
+            AddAssert("item 2 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(2)));
 
             AddStep("clear bindable list", () => bindableList.Clear());
             toggleDropdownViaClick(bindableDropdown, "dropdown3");
             AddAssert("no elements in bindable dropdown", () => !bindableDropdown.Items.Any());
 
-            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }));
-            AddAssert("three items in dropdown", () => bindableDropdown.Items.Count() == 3);
-
+            AddStep("add items to bindable", () => bindableList.AddRange(new[] { "one", "two", "three" }.Select(s => new TestModel(s))));
             AddStep("select three", () => bindableDropdown.Current.Value = "three");
             AddStep("remove first item from bindable", () => bindableList.RemoveAt(0));
             AddAssert("two items in dropdown", () => bindableDropdown.Items.Count() == 2);
-            AddAssert("current value still three", () => bindableDropdown.Current.Value == "three");
+            AddAssert("current value still three", () => bindableDropdown.Current.Value.Identifier == "three");
 
             AddStep("remove three", () => bindableList.Remove("three"));
-            AddAssert("current value should be two", () => bindableDropdown.Current.Value == "two");
+            AddAssert("current value should be two", () => bindableDropdown.Current.Value.Identifier == "two");
         }
 
         private void performKeypress(Drawable drawable, Key key)
@@ -295,7 +309,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestSelectNull()
         {
             AddStep("select item 1", () => testDropdown.Current.Value = testDropdown.Items.ElementAt(1));
-            AddAssert("item 1 is selected", () => testDropdown.Current.Value == testDropdown.Items.ElementAt(1));
+            AddAssert("item 1 is selected", () => testDropdown.Current.Value.Equals(testDropdown.Items.ElementAt(1)));
             AddStep("select item null", () => testDropdown.Current.Value = null);
             AddAssert("null is selected", () => testDropdown.Current.Value == null);
         }
@@ -303,7 +317,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestDisabledCurrent()
         {
-            string originalValue = null;
+            TestModel originalValue = null;
 
             AddStep("store original value", () => originalValue = disabledDropdown.Current.Value);
 
@@ -329,7 +343,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("disable current", () => disabledDropdown.Current.Disabled = true);
             assertDropdownIsClosed(disabledDropdown);
 
-            void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value == originalValue);
+            void valueIsUnchanged() => AddAssert("value is unchanged", () => disabledDropdown.Current.Value.Equals(originalValue));
         }
 
         private void toggleDropdownViaClick(TestDropdown dropdown, string dropdownName = null) => AddStep($"click {dropdownName ?? "dropdown"}", () =>
@@ -342,7 +356,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void assertDropdownIsClosed(TestDropdown dropdown) => AddAssert("dropdown is closed", () => dropdown.Menu.State == MenuState.Closed);
 
-        private class TestDropdown : BasicDropdown<string>
+        private class TestModel : IEquatable<TestModel>
+        {
+            public readonly string Identifier;
+
+            public TestModel(string identifier)
+            {
+                Identifier = identifier;
+            }
+
+            public bool Equals(TestModel other)
+            {
+                if (other == null)
+                    return false;
+
+                return other.Identifier == Identifier;
+            }
+
+            public override string ToString() => Identifier;
+
+            public static implicit operator TestModel(string str) => new TestModel(str);
+        }
+
+        private class TestDropdown : BasicDropdown<TestModel>
         {
             public new DropdownMenu Menu => base.Menu;
 
@@ -358,7 +394,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     .TriggerEvent(new ClickEvent(GetContainingInputManager().CurrentState, MouseButton.Left));
             }
 
-            internal new DropdownMenuItem<string> SelectedItem => base.SelectedItem;
+            internal new DropdownMenuItem<TestModel> SelectedItem => base.SelectedItem;
 
             public int SelectedIndex => Menu.DrawableMenuItems.Select(d => d.Item).ToList().IndexOf(SelectedItem);
             public int PreselectedIndex => Menu.DrawableMenuItems.ToList().IndexOf(Menu.PreselectedItem);
