@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
             AddUntilStep("wait for new drawable", () => backedDrawable.DisplayedDrawable != null);
 
-            // on loading, mbd applies immediate hide transform on new drawable then applies show transform.
+            // on loading, ModelBackedDrawable applies immediate hide transform on new drawable then applies show transform.
             AddAssert("initial hide transform applied", () => backedDrawable.HideTransforms == 1);
             AddAssert("show transform applied", () => backedDrawable.ShowTransforms == 1);
             AddUntilStep("new drawable alpha = 1", () => backedDrawable.DisplayedDrawable.Alpha == 1);
