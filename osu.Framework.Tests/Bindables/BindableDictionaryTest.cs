@@ -210,6 +210,34 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestSetNotifiesSubscribersOfAddWhenItemDoesNotExist()
+        {
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
+            bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringByteDictionary["0"] = 0;
+
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Add));
+            Assert.That(triggeredArgs.OldItems, Is.Null);
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 0).Yield()));
+        }
+
+        [Test]
+        public void TestSetNotifiesSubscribersOfReplacementWhenItemExists()
+        {
+            bindableStringByteDictionary["0"] = 0;
+
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
+            bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
+
+            bindableStringByteDictionary["0"] = 1;
+
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Replace));
+            Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 0).Yield()));
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 1).Yield()));
+        }
+
+        [Test]
         public void TestSetMutatesObjectAtIndex()
         {
             bindableStringByteDictionary.Add("0", 0);
@@ -235,21 +263,6 @@ namespace osu.Framework.Tests.Bindables
             bindableStringByteDictionary.Disabled = true;
 
             Assert.Throws<InvalidOperationException>(() => bindableStringByteDictionary["0"] = 1);
-        }
-
-        [Test]
-        public void TestSetNotifiesSubscribers()
-        {
-            bindableStringByteDictionary.Add("0", 0);
-
-            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
-            bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
-
-            bindableStringByteDictionary["0"] = 1;
-
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Replace));
-            Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 0).Yield()));
-            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 1).Yield()));
         }
 
         [Test]
