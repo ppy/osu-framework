@@ -305,7 +305,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="input">The input which is to be parsed.</param>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
-        public void Parse(object input)
+        public void Parse(object? input)
         {
             ensureMutationAllowed();
 
