@@ -313,14 +313,35 @@ namespace osu.Framework.Bindables
                         return;
 
                     Clear();
-
-                    foreach (var (key, value) in enumerable)
-                        Add(key, value);
+                    addRange(newItems, null);
                     break;
 
                 default:
                     throw new ArgumentException($@"Could not parse provided {input.GetType()} ({input}) to {typeof(KeyValuePair<TKey, TValue>)}.");
             }
+        }
+
+        private void addRange(IList items, BindableDictionary<TKey, TValue>? caller)
+        {
+            ensureMutationAllowed();
+
+            foreach (var (key, value) in (IList<KeyValuePair<TKey, TValue>>)items)
+                collection.Add(key, value);
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    Debug.Assert(b != null);
+
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.addRange(items, this);
+                }
+            }
+
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
         }
 
         #endregion
