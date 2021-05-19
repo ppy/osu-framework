@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
@@ -88,7 +87,7 @@ namespace osu.Framework.Tests.Bindables
         {
             var dict = new BindableDictionary<string, byte> { { "a", 1 } };
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.BindCollectionChanged((_, args) => triggeredArgs = args);
 
             Assert.That(triggeredArgs, Is.Null);
@@ -99,10 +98,10 @@ namespace osu.Framework.Tests.Bindables
         {
             var dict = new BindableDictionary<string, byte> { { "a", 1 } };
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.BindCollectionChanged((_, args) => triggeredArgs = args, true);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(dict));
         }
 
@@ -125,7 +124,7 @@ namespace osu.Framework.Tests.Bindables
                 { "d", 7 }
             };
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.BindCollectionChanged((_, args) => triggeredArgs = args);
             dict.BindTo(otherDict);
 
@@ -151,7 +150,7 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("d", 7)
             };
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.BindCollectionChanged((_, args) => triggeredArgs = args);
             dict.Parse(enumerable);
 
@@ -181,17 +180,17 @@ namespace osu.Framework.Tests.Bindables
             var dict = new BindableDictionary<string, byte>(firstDictContents);
             var otherDict = new BindableDictionary<string, byte>(otherDictContents);
 
-            var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
+            var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             dict.BindCollectionChanged((_, args) => triggeredArgs.Add(args));
             dict.BindTo(otherDict);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
 
-            var removeEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyCollectionChangedAction.Remove);
+            var removeEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyDictionaryChangedAction.Remove);
             Assert.That(removeEvent, Is.Not.Null);
             Assert.That(removeEvent.OldItems, Is.EquivalentTo(firstDictContents));
 
-            var addEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyCollectionChangedAction.Add);
+            var addEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyDictionaryChangedAction.Add);
             Assert.That(addEvent, Is.Not.Null);
             Assert.That(addEvent.NewItems, Is.EquivalentTo(otherDict));
         }
@@ -243,12 +242,12 @@ namespace osu.Framework.Tests.Bindables
         {
             bindableStringByteDictionary.Add("0", 0);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary["0"] = 1;
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Replace));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 0).Yield()));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 1).Yield()));
         }
@@ -261,12 +260,12 @@ namespace osu.Framework.Tests.Bindables
             var dict = new BindableDictionary<string, byte>();
             dict.BindTo(bindableStringByteDictionary);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary["0"] = 1;
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Replace));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Replace));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 0).Yield()));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("0", 1).Yield()));
         }
@@ -288,12 +287,12 @@ namespace osu.Framework.Tests.Bindables
         [TestCase("", 1, Description = "Empty string")]
         public void TestAddWithStringNotifiesSubscriber(string key, byte value)
         {
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Add(key, value);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>(key, value).Yield()));
         }
 
@@ -301,7 +300,7 @@ namespace osu.Framework.Tests.Bindables
         [TestCase("", 1, Description = "Empty string")]
         public void TestAddWithStringNotifiesSubscriberOnce(string key, byte value)
         {
-            var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
+            var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringByteDictionary.Add(key, value);
@@ -313,9 +312,9 @@ namespace osu.Framework.Tests.Bindables
         [TestCase("", 1, Description = "Empty string")]
         public void TestAddWithStringNotifiesMultipleSubscribers(string key, byte value)
         {
-            NotifyCollectionChangedEventArgs triggeredArgsA = null;
-            NotifyCollectionChangedEventArgs triggeredArgsB = null;
-            NotifyCollectionChangedEventArgs triggeredArgsC = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsC = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsA = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsB = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsC = args;
@@ -331,9 +330,9 @@ namespace osu.Framework.Tests.Bindables
         [TestCase("", 1, Description = "Empty string")]
         public void TestAddWithStringNotifiesMultipleSubscribersOnlyAfterTheAdd(string key, byte value)
         {
-            NotifyCollectionChangedEventArgs triggeredArgsA = null;
-            NotifyCollectionChangedEventArgs triggeredArgsB = null;
-            NotifyCollectionChangedEventArgs triggeredArgsC = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsC = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsA = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsB = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsC = args;
@@ -446,12 +445,12 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Remove(item);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("item", 0).Yield()));
         }
 
@@ -461,7 +460,7 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
 
             bindableStringByteDictionary.Remove(item);
 
@@ -478,9 +477,9 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
 
-            NotifyCollectionChangedEventArgs triggeredArgsA = null;
-            NotifyCollectionChangedEventArgs triggeredArgsB = null;
-            NotifyCollectionChangedEventArgs triggeredArgsC = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsC = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsA = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsB = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsC = args;
@@ -535,12 +534,12 @@ namespace osu.Framework.Tests.Bindables
             var dict = new BindableDictionary<string, byte>();
             dict.BindTo(bindableStringByteDictionary);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             dict.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Remove(item);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>(item, 0).Yield()));
         }
 
@@ -552,16 +551,16 @@ namespace osu.Framework.Tests.Bindables
             var dictA = new BindableDictionary<string, byte>();
             dictA.BindTo(bindableStringByteDictionary);
 
-            NotifyCollectionChangedEventArgs triggeredArgsA1 = null;
-            NotifyCollectionChangedEventArgs triggeredArgsA2 = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA1 = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA2 = null;
             dictA.CollectionChanged += (_, args) => triggeredArgsA1 = args;
             dictA.CollectionChanged += (_, args) => triggeredArgsA2 = args;
 
             var dictB = new BindableDictionary<string, byte>();
             dictB.BindTo(bindableStringByteDictionary);
 
-            NotifyCollectionChangedEventArgs triggeredArgsB1 = null;
-            NotifyCollectionChangedEventArgs triggeredArgsB2 = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB1 = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB2 = null;
             dictB.CollectionChanged += (_, args) => triggeredArgsB1 = args;
             dictB.CollectionChanged += (_, args) => triggeredArgsB2 = args;
 
@@ -579,7 +578,7 @@ namespace osu.Framework.Tests.Bindables
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             Assert.That(triggeredArgs, Is.Null);
@@ -644,12 +643,12 @@ namespace osu.Framework.Tests.Bindables
             foreach (var (key, value) in items)
                 bindableStringByteDictionary.Add(key, value);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Clear();
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
             Assert.That(triggeredArgs.OldItems, Is.EquivalentTo(items));
         }
 
@@ -659,7 +658,7 @@ namespace osu.Framework.Tests.Bindables
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"test{i}", i);
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs = args;
 
             Assert.That(triggeredArgs, Is.Null);
@@ -673,9 +672,9 @@ namespace osu.Framework.Tests.Bindables
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"test{i}", i);
 
-            NotifyCollectionChangedEventArgs triggeredArgsA = null;
-            NotifyCollectionChangedEventArgs triggeredArgsB = null;
-            NotifyCollectionChangedEventArgs triggeredArgsC = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsA = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsB = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgsC = null;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsA = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsB = args;
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgsC = args;
@@ -938,13 +937,13 @@ namespace osu.Framework.Tests.Bindables
             foreach (var (key, value) in array)
                 bindableStringByteDictionary.Add(key, value);
 
-            var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
+            var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringByteDictionary.Parse(null);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(1));
-            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
             Assert.That(triggeredArgs.First().OldItems, Is.EquivalentTo(array));
         }
 
@@ -959,15 +958,15 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("testB", 1),
             };
 
-            var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
+            var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();
             bindableStringByteDictionary.CollectionChanged += (_, args) => triggeredArgs.Add(args);
 
             bindableStringByteDictionary.Parse(array);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
-            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyCollectionChangedAction.Remove));
+            Assert.That(triggeredArgs.First().Action, Is.EqualTo(NotifyDictionaryChangedAction.Remove));
             Assert.That(triggeredArgs.First().OldItems, Is.EquivalentTo(new KeyValuePair<string, byte>("test123", 0).Yield()));
-            Assert.That(triggeredArgs.ElementAt(1).Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
+            Assert.That(triggeredArgs.ElementAt(1).Action, Is.EqualTo(NotifyDictionaryChangedAction.Add));
             Assert.That(triggeredArgs.ElementAt(1).NewItems, Is.EquivalentTo(array));
         }
 
@@ -980,12 +979,12 @@ namespace osu.Framework.Tests.Bindables
         {
             var boundCopy = bindableStringByteDictionary.GetBoundCopy();
 
-            NotifyCollectionChangedEventArgs triggeredArgs = null;
+            NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
             boundCopy.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Add("test", 0);
 
-            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
+            Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyDictionaryChangedAction.Add));
             Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(new KeyValuePair<string, byte>("test", 0).Yield()));
         }
 

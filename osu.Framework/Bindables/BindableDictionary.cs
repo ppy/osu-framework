@@ -21,7 +21,7 @@ namespace osu.Framework.Bindables
         /// <summary>
         /// An event which is raised when this <see cref="BindableDictionary{TKey, TValue}"/> changes.
         /// </summary>
-        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+        public event NotifyDictionaryChangedEventHandler<TKey, TValue>? CollectionChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
@@ -106,7 +106,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value), collection.Count - 1));
+            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
         }
 
         public bool ContainsKey(TKey key) => collection.ContainsKey(key);
@@ -150,7 +150,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value)));
+            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, new KeyValuePair<TKey, TValue>(key, value)));
 
             return true;
         }
@@ -190,13 +190,9 @@ namespace osu.Framework.Bindables
             }
 
             if (hasPreviousValue)
-            {
-                notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
-                    new KeyValuePair<TKey, TValue>(key, value),
-                    new KeyValuePair<TKey, TValue>(key, lastValue!)));
-            }
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!)));
             else
-                notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
         }
 
         public ICollection<TKey> Keys => collection.Keys;
@@ -224,7 +220,7 @@ namespace osu.Framework.Bindables
                 return;
 
             // Preserve items for subscribers
-            var clearedItems = collection.ToList();
+            var clearedItems = collection.ToArray();
 
             collection.Clear();
 
@@ -241,7 +237,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
+            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Remove, clearedItems));
         }
 
         bool IDictionary.Contains(object key)
@@ -354,7 +350,9 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            foreach (var (key, value) in (IList<KeyValuePair<TKey, TValue>>)items)
+            var typedItems = (IList<KeyValuePair<TKey, TValue>>)items;
+
+            foreach (var (key, value) in typedItems)
                 collection.Add(key, value);
 
             if (bindings != null)
@@ -370,7 +368,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items));
+            notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, typedItems));
         }
 
         #endregion
@@ -528,11 +526,11 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="onChange">The action to perform when this <see cref="BindableDictionary{TKey, TValue}"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
-        public void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false)
+        public void BindCollectionChanged(NotifyDictionaryChangedEventHandler<TKey, TValue> onChange, bool runOnceImmediately = false)
         {
             CollectionChanged += onChange;
             if (runOnceImmediately)
-                onChange(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, collection.ToArray()));
+                onChange(this, new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, collection.ToArray()));
         }
 
         private void addWeakReference(WeakReference<BindableDictionary<TKey, TValue>> weakReference)
@@ -573,7 +571,7 @@ namespace osu.Framework.Bindables
 
         #endregion IEnumerable
 
-        private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
+        private void notifyDictionaryChanged(NotifyDictionaryChangedEventArgs<TKey, TValue> args) => CollectionChanged?.Invoke(this, args);
 
         private void ensureMutationAllowed()
         {
