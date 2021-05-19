@@ -1,12 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
 namespace osu.Framework.Bindables
 {
     public interface IBindableDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+        where TKey : notnull
     {
         /// <summary>
         /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
