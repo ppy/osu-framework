@@ -482,7 +482,7 @@ namespace osu.Framework.Bindables
         {
             CollectionChanged += onChange;
             if (runOnceImmediately)
-                onChange(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, collection));
+                onChange(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, collection.ToArray()));
         }
 
         private void addWeakReference(WeakReference<BindableDictionary<TKey, TValue>> weakReference)
