@@ -189,10 +189,9 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            if (hasPreviousValue)
-                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!)));
-            else
-                notifyDictionaryChanged(new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
+            notifyDictionaryChanged(hasPreviousValue
+                ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
+                : new NotifyDictionaryChangedEventArgs<TKey, TValue>(NotifyDictionaryChangedAction.Add, new KeyValuePair<TKey, TValue>(key, value)));
         }
 
         public ICollection<TKey> Keys => collection.Keys;
