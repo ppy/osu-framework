@@ -99,13 +99,23 @@ namespace osu.Framework.Bindables
         /// <returns><code>true</code> if the removal was successful.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(TKey key)
-            => remove(key, null);
+            => remove(key, out _, null);
 
-        private bool remove(TKey key, BindableDictionary<TKey, TValue>? caller)
+        /// <summary>
+        /// Removes an item from this <see cref="BindableDictionary{TKey,TValue}"/>.
+        /// </summary>
+        /// <param name="key">The item key.</param>
+        /// <param name="value">The removed item value.</param>
+        /// <returns><code>true</code> if the removal was successful.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
+        public bool Remove(TKey key, [MaybeNullWhen(false)] out TValue value)
+            => remove(key, out value, null);
+
+        private bool remove(TKey key, [MaybeNullWhen(false)] out TValue value, BindableDictionary<TKey, TValue>? caller)
         {
             ensureMutationAllowed();
 
-            if (!TryGetValue(key, out TValue value))
+            if (!collection.Remove(key, out value))
                 return false;
 
             if (bindings != null)
@@ -117,7 +127,7 @@ namespace osu.Framework.Bindables
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
-                        b.remove(key, this);
+                        b.remove(key, out _, this);
                 }
             }
 
