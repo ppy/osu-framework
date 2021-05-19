@@ -1,0 +1,42 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+using System.Collections.Generic;
+using System.Collections.Specialized;
+
+namespace osu.Framework.Bindables
+{
+    public interface IBindableDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, ICanBeDisabled, IHasDefaultValue, IUnbindable, IHasDescription
+    {
+        /// <summary>
+        /// Binds self to another bindable such that we receive any values and value limitations of the bindable we bind width.
+        /// </summary>
+        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
+        void BindTo(IBindableDictionary<TKey, TValue> them);
+
+        /// <summary>
+        /// Bind an action to <see cref="INotifyCollectionChanged.CollectionChanged"/> with the option of running the bound action once immediately
+        /// with an <see cref="NotifyCollectionChangedAction.Add"/> event for the entire contents of this <see cref="BindableDictionary{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="onChange">The action to perform when this <see cref="BindableList{T}"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
+        void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false);
+
+        /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        sealed IBindableDictionary<TKey, TValue> BindTarget
+        {
+            set => BindTo(value);
+        }
+
+        /// <summary>
+        /// Retrieve a new bindable instance weakly bound to the configuration backing.
+        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
+        /// a local reference.
+        /// </summary>
+        /// <returns>A weakly bound copy of the specified bindable.</returns>
+        IBindableDictionary<TKey, TValue> GetBoundCopy();
+    }
+}
