@@ -86,10 +86,10 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestBindCollectionChangedWithoutRunningImmediately()
         {
-            var list = new BindableDictionary<string, byte> { { "a", 1 } };
+            var dict = new BindableDictionary<string, byte> { { "a", 1 } };
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.BindCollectionChanged((_, args) => triggeredArgs = args);
+            dict.BindCollectionChanged((_, args) => triggeredArgs = args);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -97,19 +97,19 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestBindCollectionChangedWithRunImmediately()
         {
-            var list = new BindableDictionary<string, byte> { { "a", 1 } };
+            var dict = new BindableDictionary<string, byte> { { "a", 1 } };
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.BindCollectionChanged((_, args) => triggeredArgs = args, true);
+            dict.BindCollectionChanged((_, args) => triggeredArgs = args, true);
 
             Assert.That(triggeredArgs.Action, Is.EqualTo(NotifyCollectionChangedAction.Add));
-            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(list));
+            Assert.That(triggeredArgs.NewItems, Is.EquivalentTo(dict));
         }
 
         [Test]
-        public void TestBindCollectionChangedNotRunIfBoundToSequenceEqualList()
+        public void TestBindCollectionChangedNotRunIfBoundToSequenceEqualDictionary()
         {
-            var list = new BindableDictionary<string, byte>
+            var dict = new BindableDictionary<string, byte>
             {
                 { "a", 1 },
                 { "b", 3 },
@@ -117,7 +117,7 @@ namespace osu.Framework.Tests.Bindables
                 { "d", 7 }
             };
 
-            var otherList = new BindableDictionary<string, byte>
+            var otherDict = new BindableDictionary<string, byte>
             {
                 { "a", 1 },
                 { "b", 3 },
@@ -126,8 +126,8 @@ namespace osu.Framework.Tests.Bindables
             };
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.BindCollectionChanged((_, args) => triggeredArgs = args);
-            list.BindTo(otherList);
+            dict.BindCollectionChanged((_, args) => triggeredArgs = args);
+            dict.BindTo(otherDict);
 
             Assert.That(triggeredArgs, Is.Null);
         }
@@ -135,7 +135,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestBindCollectionChangedNotRunIfParsingSequenceEqualEnumerable()
         {
-            var list = new BindableDictionary<string, byte>
+            var dict = new BindableDictionary<string, byte>
             {
                 { "a", 1 },
                 { "b", 3 },
@@ -152,16 +152,16 @@ namespace osu.Framework.Tests.Bindables
             };
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.BindCollectionChanged((_, args) => triggeredArgs = args);
-            list.Parse(enumerable);
+            dict.BindCollectionChanged((_, args) => triggeredArgs = args);
+            dict.Parse(enumerable);
 
             Assert.That(triggeredArgs, Is.Null);
         }
 
         [Test]
-        public void TestBindCollectionChangedEventsRanIfBoundToDifferentList()
+        public void TestBindCollectionChangedEventsRanIfBoundToDifferentDictionary()
         {
-            var firstListContents = new[]
+            var firstDictContents = new[]
             {
                 new KeyValuePair<string, byte>("a", 1),
                 new KeyValuePair<string, byte>("b", 3),
@@ -169,7 +169,7 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("d", 7),
             };
 
-            var otherListContents = new[]
+            var otherDictContents = new[]
             {
                 new KeyValuePair<string, byte>("a", 2),
                 new KeyValuePair<string, byte>("b", 4),
@@ -178,22 +178,22 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("e", 10),
             };
 
-            var list = new BindableDictionary<string, byte>(firstListContents);
-            var otherList = new BindableDictionary<string, byte>(otherListContents);
+            var dict = new BindableDictionary<string, byte>(firstDictContents);
+            var otherDict = new BindableDictionary<string, byte>(otherDictContents);
 
             var triggeredArgs = new List<NotifyCollectionChangedEventArgs>();
-            list.BindCollectionChanged((_, args) => triggeredArgs.Add(args));
-            list.BindTo(otherList);
+            dict.BindCollectionChanged((_, args) => triggeredArgs.Add(args));
+            dict.BindTo(otherDict);
 
             Assert.That(triggeredArgs, Has.Count.EqualTo(2));
 
             var removeEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyCollectionChangedAction.Remove);
             Assert.That(removeEvent, Is.Not.Null);
-            Assert.That(removeEvent.OldItems, Is.EquivalentTo(firstListContents));
+            Assert.That(removeEvent.OldItems, Is.EquivalentTo(firstDictContents));
 
             var addEvent = triggeredArgs.SingleOrDefault(ev => ev.Action == NotifyCollectionChangedAction.Add);
             Assert.That(addEvent, Is.Not.Null);
-            Assert.That(addEvent.NewItems, Is.EquivalentTo(otherList));
+            Assert.That(addEvent.NewItems, Is.EquivalentTo(otherDict));
         }
 
         #endregion
@@ -254,15 +254,15 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestSetNotifiesBoundLists()
+        public void TestSetNotifiesBoundDictionaries()
         {
             bindableStringByteDictionary.Add("0", 0);
 
-            var list = new BindableDictionary<string, byte>();
-            list.BindTo(bindableStringByteDictionary);
+            var dict = new BindableDictionary<string, byte>();
+            dict.BindTo(bindableStringByteDictionary);
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.CollectionChanged += (_, args) => triggeredArgs = args;
+            dict.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary["0"] = 1;
 
@@ -347,37 +347,37 @@ namespace osu.Framework.Tests.Bindables
 
         [TestCase("a random string", 0)]
         [TestCase("", 1, Description = "Empty string")]
-        public void TestAddWithStringNotifiesBoundList(string key, byte value)
+        public void TestAddWithStringNotifiesBoundDictionary(string key, byte value)
         {
-            var list = new BindableDictionary<string, byte>();
-            list.BindTo(bindableStringByteDictionary);
+            var dict = new BindableDictionary<string, byte>();
+            dict.BindTo(bindableStringByteDictionary);
 
             bindableStringByteDictionary.Add(key, value);
 
-            Assert.That(list, Contains.Key(key));
+            Assert.That(dict, Contains.Key(key));
         }
 
         [TestCase("a random string", 0)]
         [TestCase("", 1, Description = "Empty string")]
-        public void TestAddWithStringNotifiesBoundLists(string key, byte value)
+        public void TestAddWithStringNotifiesBoundDictionaries(string key, byte value)
         {
-            var listA = new BindableDictionary<string, byte>();
-            var listB = new BindableDictionary<string, byte>();
-            var listC = new BindableDictionary<string, byte>();
-            listA.BindTo(bindableStringByteDictionary);
-            listB.BindTo(bindableStringByteDictionary);
-            listC.BindTo(bindableStringByteDictionary);
+            var dictA = new BindableDictionary<string, byte>();
+            var dictB = new BindableDictionary<string, byte>();
+            var dictC = new BindableDictionary<string, byte>();
+            dictA.BindTo(bindableStringByteDictionary);
+            dictB.BindTo(bindableStringByteDictionary);
+            dictC.BindTo(bindableStringByteDictionary);
 
             bindableStringByteDictionary.Add(key, value);
 
-            Assert.That(listA, Contains.Key(key));
-            Assert.That(listB, Contains.Key(key));
-            Assert.That(listC, Contains.Key(key));
+            Assert.That(dictA, Contains.Key(key));
+            Assert.That(dictB, Contains.Key(key));
+            Assert.That(dictC, Contains.Key(key));
         }
 
         [TestCase("a random string", 0)]
         [TestCase("", 1, Description = "Empty string")]
-        public void TestAddWithDisabledListThrowsInvalidOperationException(string key, byte value)
+        public void TestAddWithDisabledDictionaryThrowsInvalidOperationException(string key, byte value)
         {
             bindableStringByteDictionary.Disabled = true;
 
@@ -386,7 +386,7 @@ namespace osu.Framework.Tests.Bindables
 
         [TestCase("a random string", 0)]
         [TestCase("", 1, Description = "Empty string")]
-        public void TestAddWithListContainingItemsDoesNotOverrideItems(string key, byte value)
+        public void TestAddWithDictionaryContainingItemsDoesNotOverrideItems(string key, byte value)
         {
             const string item = "existing string";
             bindableStringByteDictionary.Add(item, 0);
@@ -402,7 +402,7 @@ namespace osu.Framework.Tests.Bindables
         #region .Remove(key)
 
         [Test]
-        public void TestRemoveWithDisabledListThrowsInvalidOperationException()
+        public void TestRemoveWithDisabledDictionaryThrowsInvalidOperationException()
         {
             const string item = "hi";
             bindableStringByteDictionary.Add(item, 0);
@@ -412,7 +412,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveWithAnItemThatIsNotInTheListReturnsFalse()
+        public void TestRemoveWithAnItemThatIsNotInTheDictionaryReturnsFalse()
         {
             bool gotRemoved = bindableStringByteDictionary.Remove("hm");
 
@@ -420,7 +420,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveWhenListIsDisabledThrowsInvalidOperationException()
+        public void TestRemoveWhenDictionaryIsDisabledThrowsInvalidOperationException()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
@@ -430,7 +430,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveWithAnItemThatIsInTheListReturnsTrue()
+        public void TestRemoveWithAnItemThatIsInTheDictionaryReturnsTrue()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
@@ -493,50 +493,50 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveNotifiesBoundList()
+        public void TestRemoveNotifiesBoundDictionary()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
-            var list = new BindableDictionary<string, byte>();
-            list.BindTo(bindableStringByteDictionary);
+            var dict = new BindableDictionary<string, byte>();
+            dict.BindTo(bindableStringByteDictionary);
 
             bindableStringByteDictionary.Remove(item);
 
-            Assert.IsEmpty(list);
+            Assert.IsEmpty(dict);
         }
 
         [Test]
-        public void TestRemoveNotifiesBoundLists()
+        public void TestRemoveNotifiesBoundDictionaries()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
-            var listA = new BindableDictionary<string, byte>();
-            listA.BindTo(bindableStringByteDictionary);
-            var listB = new BindableDictionary<string, byte>();
-            listB.BindTo(bindableStringByteDictionary);
-            var listC = new BindableDictionary<string, byte>();
-            listC.BindTo(bindableStringByteDictionary);
+            var dictA = new BindableDictionary<string, byte>();
+            dictA.BindTo(bindableStringByteDictionary);
+            var dictB = new BindableDictionary<string, byte>();
+            dictB.BindTo(bindableStringByteDictionary);
+            var dictC = new BindableDictionary<string, byte>();
+            dictC.BindTo(bindableStringByteDictionary);
 
             bindableStringByteDictionary.Remove(item);
 
             Assert.Multiple(() =>
             {
-                Assert.False(listA.ContainsKey(item));
-                Assert.False(listB.ContainsKey(item));
-                Assert.False(listC.ContainsKey(item));
+                Assert.False(dictA.ContainsKey(item));
+                Assert.False(dictB.ContainsKey(item));
+                Assert.False(dictC.ContainsKey(item));
             });
         }
 
         [Test]
-        public void TestRemoveNotifiesBoundListSubscription()
+        public void TestRemoveNotifiesBoundDictionarySubscription()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
-            var list = new BindableDictionary<string, byte>();
-            list.BindTo(bindableStringByteDictionary);
+            var dict = new BindableDictionary<string, byte>();
+            dict.BindTo(bindableStringByteDictionary);
 
             NotifyCollectionChangedEventArgs triggeredArgs = null;
-            list.CollectionChanged += (_, args) => triggeredArgs = args;
+            dict.CollectionChanged += (_, args) => triggeredArgs = args;
 
             bindableStringByteDictionary.Remove(item);
 
@@ -545,25 +545,25 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestRemoveNotifiesBoundListSubscriptions()
+        public void TestRemoveNotifiesBoundDictionarySubscriptions()
         {
             const string item = "item";
             bindableStringByteDictionary.Add(item, 0);
-            var listA = new BindableDictionary<string, byte>();
-            listA.BindTo(bindableStringByteDictionary);
+            var dictA = new BindableDictionary<string, byte>();
+            dictA.BindTo(bindableStringByteDictionary);
 
             NotifyCollectionChangedEventArgs triggeredArgsA1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsA2 = null;
-            listA.CollectionChanged += (_, args) => triggeredArgsA1 = args;
-            listA.CollectionChanged += (_, args) => triggeredArgsA2 = args;
+            dictA.CollectionChanged += (_, args) => triggeredArgsA1 = args;
+            dictA.CollectionChanged += (_, args) => triggeredArgsA2 = args;
 
-            var listB = new BindableDictionary<string, byte>();
-            listB.BindTo(bindableStringByteDictionary);
+            var dictB = new BindableDictionary<string, byte>();
+            dictB.BindTo(bindableStringByteDictionary);
 
             NotifyCollectionChangedEventArgs triggeredArgsB1 = null;
             NotifyCollectionChangedEventArgs triggeredArgsB2 = null;
-            listB.CollectionChanged += (_, args) => triggeredArgsB1 = args;
-            listB.CollectionChanged += (_, args) => triggeredArgsB2 = args;
+            dictB.CollectionChanged += (_, args) => triggeredArgsB1 = args;
+            dictB.CollectionChanged += (_, args) => triggeredArgsB2 = args;
 
             bindableStringByteDictionary.Remove(item);
 
@@ -601,7 +601,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestClearWithDisabledListThrowsInvalidOperationException()
+        public void TestClearWithDisabledDictionaryThrowsInvalidOperationException()
         {
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"test{i}", i);
@@ -611,7 +611,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestClearWithEmptyDisabledListThrowsInvalidOperationException()
+        public void TestClearWithEmptyDisabledDictionaryThrowsInvalidOperationException()
         {
             bindableStringByteDictionary.Disabled = true;
 
@@ -690,69 +690,69 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestClearNotifiesBoundBindable()
         {
-            var bindableList = new BindableDictionary<string, byte>();
-            bindableList.BindTo(bindableStringByteDictionary);
+            var bindableDict = new BindableDictionary<string, byte>();
+            bindableDict.BindTo(bindableStringByteDictionary);
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"testA{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableList.Add($"testB{i}", i);
+                bindableDict.Add($"testB{i}", i);
 
             bindableStringByteDictionary.Clear();
 
-            Assert.IsEmpty(bindableList);
+            Assert.IsEmpty(bindableDict);
         }
 
         [Test]
         public void TestClearNotifiesBoundBindables()
         {
-            var bindableListA = new BindableDictionary<string, byte>();
-            bindableListA.BindTo(bindableStringByteDictionary);
-            var bindableListB = new BindableDictionary<string, byte>();
-            bindableListB.BindTo(bindableStringByteDictionary);
-            var bindableListC = new BindableDictionary<string, byte>();
-            bindableListC.BindTo(bindableStringByteDictionary);
+            var bindableDictA = new BindableDictionary<string, byte>();
+            bindableDictA.BindTo(bindableStringByteDictionary);
+            var bindableDictB = new BindableDictionary<string, byte>();
+            bindableDictB.BindTo(bindableStringByteDictionary);
+            var bindableDictC = new BindableDictionary<string, byte>();
+            bindableDictC.BindTo(bindableStringByteDictionary);
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"testA{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListA.Add($"testB{i}", i);
+                bindableDictA.Add($"testB{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListB.Add($"testC{i}", i);
+                bindableDictB.Add($"testC{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListC.Add($"testD{i}", i);
+                bindableDictC.Add($"testD{i}", i);
 
             bindableStringByteDictionary.Clear();
 
             Assert.Multiple(() =>
             {
-                Assert.IsEmpty(bindableListA);
-                Assert.IsEmpty(bindableListB);
-                Assert.IsEmpty(bindableListC);
+                Assert.IsEmpty(bindableDictA);
+                Assert.IsEmpty(bindableDictB);
+                Assert.IsEmpty(bindableDictC);
             });
         }
 
         [Test]
         public void TestClearDoesNotNotifyBoundBindablesBeforeClear()
         {
-            var bindableListA = new BindableDictionary<string, byte>();
-            bindableListA.BindTo(bindableStringByteDictionary);
-            var bindableListB = new BindableDictionary<string, byte>();
-            bindableListB.BindTo(bindableStringByteDictionary);
-            var bindableListC = new BindableDictionary<string, byte>();
-            bindableListC.BindTo(bindableStringByteDictionary);
+            var bindableDictA = new BindableDictionary<string, byte>();
+            bindableDictA.BindTo(bindableStringByteDictionary);
+            var bindableDictB = new BindableDictionary<string, byte>();
+            bindableDictB.BindTo(bindableStringByteDictionary);
+            var bindableDictC = new BindableDictionary<string, byte>();
+            bindableDictC.BindTo(bindableStringByteDictionary);
             for (byte i = 0; i < 5; i++)
                 bindableStringByteDictionary.Add($"testA{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListA.Add($"testB{i}", i);
+                bindableDictA.Add($"testB{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListB.Add($"testC{i}", i);
+                bindableDictB.Add($"testC{i}", i);
             for (byte i = 0; i < 5; i++)
-                bindableListC.Add($"testD{i}", i);
+                bindableDictC.Add($"testD{i}", i);
 
             Assert.Multiple(() =>
             {
-                Assert.IsNotEmpty(bindableListA);
-                Assert.IsNotEmpty(bindableListB);
-                Assert.IsNotEmpty(bindableListC);
+                Assert.IsNotEmpty(bindableDictA);
+                Assert.IsNotEmpty(bindableDictB);
+                Assert.IsNotEmpty(bindableDictC);
             });
 
             bindableStringByteDictionary.Clear();
@@ -819,14 +819,14 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestDisabledNotifiesBoundLists()
+        public void TestDisabledNotifiesBoundDictionaries()
         {
-            var list = new BindableDictionary<string, byte>();
-            list.BindTo(bindableStringByteDictionary);
+            var dict = new BindableDictionary<string, byte>();
+            dict.BindTo(bindableStringByteDictionary);
 
             bindableStringByteDictionary.Disabled = true;
 
-            Assert.IsTrue(list.Disabled);
+            Assert.IsTrue(dict.Disabled);
         }
 
         #endregion
@@ -844,9 +844,9 @@ namespace osu.Framework.Tests.Bindables
         {
             var array = new[] { new KeyValuePair<string, byte>("", 0) };
 
-            var list = new BindableDictionary<string, byte>(array);
+            var dict = new BindableDictionary<string, byte>(array);
 
-            var enumerator = list.GetEnumerator();
+            var enumerator = dict.GetEnumerator();
 
             Assert.AreNotEqual(array.GetEnumerator(), enumerator);
         }
@@ -858,7 +858,7 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestDescriptionWhenSetReturnsSetValue()
         {
-            const string description = "The list used for testing.";
+            const string description = "The dictionary used for testing.";
 
             bindableStringByteDictionary.Description = description;
 
@@ -870,7 +870,7 @@ namespace osu.Framework.Tests.Bindables
         #region .Parse(obj)
 
         [Test]
-        public void TestParseWithNullClearsList()
+        public void TestParseWithNullClearsDictionary()
         {
             bindableStringByteDictionary.Add("a item", 0);
 
@@ -894,7 +894,7 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
-        public void TestParseWithDisabledListThrowsInvalidOperationException()
+        public void TestParseWithDisabledDictionaryThrowsInvalidOperationException()
         {
             bindableStringByteDictionary.Disabled = true;
 
