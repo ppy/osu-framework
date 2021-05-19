@@ -155,7 +155,11 @@ namespace osu.Framework.Bindables
             return true;
         }
 
+#if NETSTANDARD
+        public bool TryGetValue(TKey key, out TValue value) => collection.TryGetValue(key, out value);
+#else
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
+#endif
 
         /// <summary>
         /// Gets or sets an item with a specified key in this <see cref="BindableDictionary{TKey,TValue}"/>.
