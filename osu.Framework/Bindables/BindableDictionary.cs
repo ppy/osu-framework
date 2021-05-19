@@ -37,21 +37,40 @@ namespace osu.Framework.Bindables
 
         private LockedWeakList<BindableDictionary<TKey, TValue>>? bindings;
 
+        /// <summary>
+        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
+        /// </summary>
+        /// <param name="comparer">An optional key-comparer.</param>
         public BindableDictionary(IEqualityComparer<TKey>? comparer = null)
             : this(0, comparer)
         {
         }
 
+        /// <summary>
+        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
+        /// </summary>
+        /// <param name="dictionary">A source dictionary to populate this dictionary from.</param>
+        /// <param name="comparer">An optional key-comparer.</param>
         public BindableDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer = null)
             : this((IEnumerable<KeyValuePair<TKey, TValue>>)dictionary, comparer)
         {
         }
 
+        /// <summary>
+        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
+        /// </summary>
+        /// <param name="capacity">The initial capacity.</param>
+        /// <param name="comparer">An optional key-comparer.</param>
         public BindableDictionary(int capacity, IEqualityComparer<TKey>? comparer = null)
         {
             collection = new Dictionary<TKey, TValue>(capacity, comparer);
         }
 
+        /// <summary>
+        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
+        /// </summary>
+        /// <param name="collection">A source enumerable to populate this dictionary from.</param>
+        /// <param name="comparer">An optional key-comparer.</param>
         public BindableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer = null)
         {
             this.collection = new Dictionary<TKey, TValue>(collection, comparer);
@@ -97,7 +116,7 @@ namespace osu.Framework.Bindables
         /// </summary>
         /// <param name="key">The item key.</param>
         /// <returns><code>true</code> if the removal was successful.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(TKey key)
             => remove(key, out _, null);
 
@@ -107,7 +126,7 @@ namespace osu.Framework.Bindables
         /// <param name="key">The item key.</param>
         /// <param name="value">The removed item value.</param>
         /// <returns><code>true</code> if the removal was successful.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableList{T}"/> is <see cref="Disabled"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(TKey key, [MaybeNullWhen(false)] out TValue value)
             => remove(key, out value, null);
 

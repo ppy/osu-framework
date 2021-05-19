@@ -18,7 +18,7 @@ namespace osu.Framework.Bindables
         /// Bind an action to <see cref="INotifyCollectionChanged.CollectionChanged"/> with the option of running the bound action once immediately
         /// with an <see cref="NotifyCollectionChangedAction.Add"/> event for the entire contents of this <see cref="BindableDictionary{TKey, TValue}"/>.
         /// </summary>
-        /// <param name="onChange">The action to perform when this <see cref="BindableList{T}"/> changes.</param>
+        /// <param name="onChange">The action to perform when this <see cref="BindableDictionary{TKey, TValue}"/> changes.</param>
         /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false);
 
