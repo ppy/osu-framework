@@ -176,6 +176,7 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
+#nullable disable // Todo: Remove after upgrading Resharper version on CI.
             bool hasPreviousValue = TryGetValue(key, out TValue lastValue);
 
             collection[key] = value;
@@ -184,14 +185,13 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
                         b.setKey(key, value, this);
                 }
             }
+#nullable enable
 
             notifyDictionaryChanged(hasPreviousValue
                 ? new NotifyDictionaryChangedEventArgs<TKey, TValue>(new KeyValuePair<TKey, TValue>(key, value), new KeyValuePair<TKey, TValue>(key, lastValue!))
@@ -278,11 +278,13 @@ namespace osu.Framework.Bindables
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
+#nullable disable // Todo: Remove after upgrading Resharper version on CI.
             if (TryGetValue(item.Key, out TValue value) && EqualityComparer<TValue>.Default.Equals(value, item.Value))
             {
                 Remove(item.Key);
                 return true;
             }
+#nullable enable
 
             return false;
         }
