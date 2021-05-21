@@ -34,40 +34,25 @@ namespace osu.Framework.Bindables
 
         private LockedWeakList<BindableDictionary<TKey, TValue>>? bindings;
 
-        /// <summary>
-        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="comparer">An optional key-comparer.</param>
+        /// <inheritdoc cref="Dictionary{TKey,TValue}(IEqualityComparer{TKey})" />
         public BindableDictionary(IEqualityComparer<TKey>? comparer = null)
             : this(0, comparer)
         {
         }
 
-        /// <summary>
-        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="dictionary">A source dictionary to populate this dictionary from.</param>
-        /// <param name="comparer">An optional key-comparer.</param>
+        /// <inheritdoc cref="Dictionary{TKey,TValue}(IDictionary{TKey,TValue},IEqualityComparer{TKey})" />
         public BindableDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer = null)
             : this((IEnumerable<KeyValuePair<TKey, TValue>>)dictionary, comparer)
         {
         }
 
-        /// <summary>
-        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="capacity">The initial capacity.</param>
-        /// <param name="comparer">An optional key-comparer.</param>
+        /// <inheritdoc cref="Dictionary{TKey,TValue}(int,IEqualityComparer{TKey})" />
         public BindableDictionary(int capacity, IEqualityComparer<TKey>? comparer = null)
         {
             collection = new Dictionary<TKey, TValue>(capacity, comparer);
         }
 
-        /// <summary>
-        /// Creates a new <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="collection">A source enumerable to populate this dictionary from.</param>
-        /// <param name="comparer">An optional key-comparer.</param>
+        /// <inheritdoc cref="Dictionary{TKey,TValue}(IEnumerable{KeyValuePair{TKey,TValue}},IEqualityComparer{TKey})" />
         public BindableDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer = null)
         {
             this.collection = new Dictionary<TKey, TValue>(collection, comparer);
@@ -104,21 +89,12 @@ namespace osu.Framework.Bindables
 
         public bool ContainsKey(TKey key) => collection.ContainsKey(key);
 
-        /// <summary>
-        /// Removes an item from this <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="key">The item key.</param>
-        /// <returns><code>true</code> if the removal was successful.</returns>
+        /// <inheritdoc />
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(TKey key)
             => remove(key, out _, null);
 
-        /// <summary>
-        /// Removes an item from this <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="key">The item key.</param>
-        /// <param name="value">The removed item value.</param>
-        /// <returns><code>true</code> if the removal was successful.</returns>
+        /// <inheritdoc cref="IDictionary.Remove" />
         /// <exception cref="InvalidOperationException">Thrown if this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public bool Remove(TKey key, [MaybeNullWhen(false)] out TValue value)
             => remove(key, out value, null);
@@ -154,10 +130,7 @@ namespace osu.Framework.Bindables
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) => collection.TryGetValue(key, out value);
 #endif
 
-        /// <summary>
-        /// Gets or sets an item with a specified key in this <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="key">The item key.</param>
+        /// <inheritdoc cref="IDictionary{TKey,TValue}.this" />
         /// <exception cref="InvalidOperationException">Thrown when setting an item while this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public TValue this[TKey key]
         {
@@ -201,9 +174,7 @@ namespace osu.Framework.Bindables
 
         void IDictionary.Add(object key, object? value) => Add((TKey)key, (TValue)(value ?? throw new ArgumentNullException(nameof(value))));
 
-        /// <summary>
-        /// Clears the contents of this <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
+        /// <inheritdoc cref="IDictionary.Clear" />
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public void Clear()
             => clear(null);
@@ -376,7 +347,8 @@ namespace osu.Framework.Bindables
         private bool disabled;
 
         /// <summary>
-        /// Whether this <see cref="BindableDictionary{TKey, TValue}"/> has been disabled. When disabled, attempting to change the contents of this <see cref="BindableDictionary{TKey, TValue}"/> will result in an <see cref="InvalidOperationException"/>.
+        /// Whether this <see cref="BindableDictionary{TKey, TValue}"/> has been disabled.
+        /// When disabled, attempting to change the contents of this <see cref="BindableDictionary{TKey, TValue}"/> will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
         public bool Disabled
         {
