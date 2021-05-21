@@ -48,15 +48,21 @@ namespace osu.Framework.Bindables
         /// <param name="items">The items affected.</param>
         public NotifyDictionaryChangedEventArgs(NotifyDictionaryChangedAction action, ICollection<KeyValuePair<TKey, TValue>> items)
         {
-            if (action != NotifyDictionaryChangedAction.Add && action != NotifyDictionaryChangedAction.Remove)
-                throw new ArgumentException($"Action must be {nameof(NotifyDictionaryChangedAction.Add)} or {nameof(NotifyDictionaryChangedAction.Remove)}.", nameof(action));
-
             Action = action;
 
-            if (action == NotifyDictionaryChangedAction.Add)
-                NewItems = items;
-            else
-                OldItems = items;
+            switch (action)
+            {
+                case NotifyDictionaryChangedAction.Add:
+                    NewItems = items;
+                    break;
+
+                case NotifyDictionaryChangedAction.Remove:
+                    OldItems = items;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Action must be {nameof(NotifyDictionaryChangedAction.Add)} or {nameof(NotifyDictionaryChangedAction.Remove)}.", nameof(action));
+            }
         }
 
         /// <summary>

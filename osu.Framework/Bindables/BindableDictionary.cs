@@ -18,9 +18,6 @@ namespace osu.Framework.Bindables
     public class BindableDictionary<TKey, TValue> : IBindableDictionary<TKey, TValue>, IBindable, IParseable, IDictionary<TKey, TValue>, IDictionary
         where TKey : notnull
     {
-        /// <summary>
-        /// An event which is raised when this <see cref="BindableDictionary{TKey, TValue}"/> changes.
-        /// </summary>
         public event NotifyDictionaryChangedEventHandler<TKey, TValue>? CollectionChanged;
 
         /// <summary>
@@ -78,11 +75,7 @@ namespace osu.Framework.Bindables
 
         #region IDictionary<TKey, Value>
 
-        /// <summary>
-        /// Adds a single item to this <see cref="BindableDictionary{TKey,TValue}"/>.
-        /// </summary>
-        /// <param name="key">The item key.</param>
-        /// <param name="value">The item value.</param>
+        /// <inheritdoc />
         /// <exception cref="InvalidOperationException">Thrown when this <see cref="BindableDictionary{TKey, TValue}"/> is <see cref="Disabled"/>.</exception>
         public void Add(TKey key, TValue value)
             => add(key, value, null);
@@ -143,7 +136,7 @@ namespace osu.Framework.Bindables
                 {
                     Debug.Assert(b != null);
 
-                    // prevent re-adding the item back to the callee.
+                    // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
                         b.remove(key, out _, this);
@@ -219,7 +212,7 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            if (collection.Count <= 0)
+            if (collection.Count == 0)
                 return;
 
             // Preserve items for subscribers
@@ -257,7 +250,7 @@ namespace osu.Framework.Bindables
         object? IDictionary.this[object key]
         {
             get => this[(TKey)key];
-            set => this[(TKey)key] = (TValue)(value ?? throw new ArgumentNullException(nameof(value)));
+            set => this[(TKey)key] = (TValue)value!;
         }
 
         ICollection IDictionary.Values => (ICollection)Values;
@@ -512,7 +505,7 @@ namespace osu.Framework.Bindables
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) ?? false)
+            if (bindings?.Contains(weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
