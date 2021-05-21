@@ -209,7 +209,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    // prevent re-adding the item back to the callee.
+                    // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
                         b.remove(listItem, this);
@@ -591,7 +591,7 @@ namespace osu.Framework.Bindables
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) ?? false)
+            if (bindings?.Contains(weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
