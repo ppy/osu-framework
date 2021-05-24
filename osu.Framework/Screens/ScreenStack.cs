@@ -253,10 +253,10 @@ namespace osu.Framework.Screens
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
 
         internal IScreen GetParentScreen(IScreen source)
-            => stack.GetPrevious(source);
+            => stack.GetNext(source);
 
         internal IScreen GetChildScreen(IScreen source)
-            => stack.GetNext(source);
+            => stack.GetPrevious(source);
 
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
