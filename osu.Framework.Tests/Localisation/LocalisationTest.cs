@@ -28,6 +28,16 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestNoLanguagesAdded()
+        {
+            // reinitialise without the default language
+            manager = new LocalisationManager(config);
+
+            var localisedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
+        }
+
+        [Test]
         public void TestNotLocalised()
         {
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
