@@ -385,6 +385,8 @@ namespace osu.Framework.Platform
                 updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
                 updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
             };
+
+            populateJoysticks();
         }
 
         /// <summary>
@@ -744,6 +746,24 @@ namespace osu.Framework.Platform
 
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
+
+        /// <summary>
+        /// Populates <see cref="controllers"/> with joysticks that are already connected.
+        /// </summary>
+        private void populateJoysticks()
+        {
+            for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
+            {
+                var joystick = SDL.SDL_JoystickOpen(i);
+                var instanceId = SDL.SDL_JoystickGetDeviceInstanceID(i);
+
+                var controller = IntPtr.Zero;
+                if (SDL.SDL_IsGameController(i) == SDL.SDL_bool.SDL_TRUE)
+                    controller = SDL.SDL_GameControllerOpen(i);
+
+                controllers[instanceId] = new SDL2ControllerBindings(joystick, controller);
+            }
+        }
 
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
