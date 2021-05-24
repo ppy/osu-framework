@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Linq;
 using osu.Framework.Logging;
 
+#nullable enable
+
 namespace osu.Framework.Localisation
 {
     /// <summary>
@@ -48,8 +50,10 @@ namespace osu.Framework.Localisation
             Args = interpolation.GetArguments();
         }
 
-        public string Format(ILocalisationStore store)
+        public string Format(ILocalisationStore? store)
         {
+            if (store == null) return ToString();
+
             var localisedFormat = store.Get(Key);
 
             if (localisedFormat == null) return ToString();

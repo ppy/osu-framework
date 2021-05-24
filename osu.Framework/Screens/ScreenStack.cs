@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -252,10 +253,10 @@ namespace osu.Framework.Screens
         internal bool IsCurrentScreen(IScreen source) => source == CurrentScreen;
 
         internal IScreen GetParentScreen(IScreen source)
-            => stack.Reverse().TakeWhile(s => s != source).LastOrDefault();
+            => stack.GetNext(source);
 
         internal IScreen GetChildScreen(IScreen source)
-            => stack.TakeWhile(s => s != source).LastOrDefault();
+            => stack.GetPrevious(source);
 
         /// <summary>
         /// Exits the current <see cref="IScreen"/>.
