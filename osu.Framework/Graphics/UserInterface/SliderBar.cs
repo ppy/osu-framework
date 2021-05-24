@@ -107,12 +107,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            currentNumberInstantaneous.ValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MinValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.ValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MinValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MaxValueChanged += _ => Scheduler.AddOnce(updateValue);
 
-            UpdateValue(NormalizedValue);
+            Scheduler.AddOnce(updateValue);
         }
+
+        private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
 
