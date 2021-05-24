@@ -28,5 +28,25 @@ namespace osu.Framework.Tests.Lists
         {
             Assert.AreEqual(string.Empty, Enumerable.Empty<string>().GetCommonPrefix());
         }
+
+        [TestCase("a", null)]
+        [TestCase("b", "a")]
+        [TestCase("c", "b")]
+        [TestCase("d", null)]
+        public void TestGetPrevious(string item, string expected)
+        {
+            string[] arr = { "a", "b", "c" };
+            Assert.That(arr.GetPrevious(item), Is.EqualTo(expected));
+        }
+
+        [TestCase("a", "b")]
+        [TestCase("b", "c")]
+        [TestCase("c", null)]
+        [TestCase("d", null)]
+        public void TestGetNext(string item, string expected)
+        {
+            string[] arr = { "a", "b", "c" };
+            Assert.That(arr.GetNext(item), Is.EqualTo(expected));
+        }
     }
 }
