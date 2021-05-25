@@ -709,10 +709,7 @@ namespace osu.Framework.Platform
             switch (evtCdevice.type)
             {
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
-                    var joystick = SDL.SDL_GameControllerGetJoystick(controller);
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+                    addJoystick(evtCdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -747,6 +744,23 @@ namespace osu.Framework.Platform
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
+        private void addJoystick(int which)
+        {
+            var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
+
+            // if the joystick is already opened, ignore it
+            if (controllers.ContainsKey(instanceID))
+                return;
+
+            var joystick = SDL.SDL_JoystickOpen(which);
+
+            var controller = IntPtr.Zero;
+            if (SDL.SDL_IsGameController(which) == SDL.SDL_bool.SDL_TRUE)
+                controller = SDL.SDL_GameControllerOpen(which);
+
+            controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+        }
+
         /// <summary>
         /// Populates <see cref="controllers"/> with joysticks that are already connected.
         /// </summary>
@@ -754,14 +768,7 @@ namespace osu.Framework.Platform
         {
             for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
             {
-                var joystick = SDL.SDL_JoystickOpen(i);
-                var instanceId = SDL.SDL_JoystickGetDeviceInstanceID(i);
-
-                var controller = IntPtr.Zero;
-                if (SDL.SDL_IsGameController(i) == SDL.SDL_bool.SDL_TRUE)
-                    controller = SDL.SDL_GameControllerOpen(i);
-
-                controllers[instanceId] = new SDL2ControllerBindings(joystick, controller);
+                addJoystick(i);
             }
         }
 
@@ -770,14 +777,7 @@ namespace osu.Framework.Platform
             switch (evtJdevice.type)
             {
                 case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
-
-                    // if the joystick is already opened, ignore it
-                    if (controllers.ContainsKey(instanceID))
-                        break;
-
-                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, IntPtr.Zero);
+                    addJoystick(evtJdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
