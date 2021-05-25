@@ -834,6 +834,9 @@ namespace osu.Framework.Graphics.OpenGL
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
                 GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
+
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
+                    GL.Flush();
             }
 
             GlobalPropertyManager.Set(GlobalProperty.GammaCorrection, UsingBackbuffer);

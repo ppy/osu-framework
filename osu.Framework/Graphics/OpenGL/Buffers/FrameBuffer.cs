@@ -62,9 +62,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             GLWrapper.BindFrameBuffer(frameBuffer);
 
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
-                GL.Flush();
-
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
             GLWrapper.BindTexture(null);
 
