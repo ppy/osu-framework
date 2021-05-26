@@ -451,12 +451,15 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("allow load", () => child.AllowLoad.Set());
             AddUntilStep("drawable disposed", () => child.IsDisposed);
 
-            // Check that reuse of the child is not attempted.
             Drawable lastChild = null;
             AddStep("store child", () => lastChild = child);
+
+            // Check that reuse of the child is not attempted.
             AddStep("scroll to start", () => scrollContainer.ScrollToStart(false));
-            AddWaitStep("wait some frames", 2);
-            AddAssert("child not loaded", () => lastChild.LoadState != LoadState.Loaded);
+            AddStep("allow load of new child", () => child.AllowLoad.Set());
+            AddUntilStep("new child loaded", () => child.IsLoaded);
+            AddAssert("last child not loaded", () => !lastChild.IsLoaded);
+        }
 
         [Test]
         public void TestWrapperStopReceivingUpdatesAfterDelayedLoadCompleted()
