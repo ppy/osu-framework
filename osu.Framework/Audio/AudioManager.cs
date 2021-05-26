@@ -268,7 +268,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Lock globally across all usages ensure no funny-business occurs during device free/init.
         /// </summary>
-        private static object bass_init_lock = new object();
+        private static readonly object bass_init_lock = new object();
 
         /// <summary>
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
@@ -298,7 +298,7 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
-            bool didInit = false;
+            bool didInit;
 
             lock (bass_init_lock)
             {
@@ -316,8 +316,6 @@ namespace osu.Framework.Audio
                     didInit = Bass.Init(device);
                 }
             }
-
-            var error2 = Bass.LastError;
 
             if (didInit)
                 thread.RegisterInitialisedDevice(device);
