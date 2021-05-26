@@ -84,8 +84,9 @@ jobs:
              fi
           done
 
-      - name: .NET Format (Dry Run)
-        run: dotnet format --dry-run --check
+      # Temporarily disabled due to test failures, but it won't work anyway until the tool is upgraded.
+      # - name: .NET Format (Dry Run)
+      #   run: dotnet format --dry-run --check
 
       - name: InspectCode
         run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=WARN
