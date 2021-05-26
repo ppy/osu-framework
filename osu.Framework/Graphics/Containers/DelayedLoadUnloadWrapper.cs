@@ -111,16 +111,20 @@ namespace osu.Framework.Graphics.Containers
                 if (!ShouldUnloadContent)
                     return;
 
-                Debug.Assert(Content.LoadState >= LoadState.Ready);
-
                 // We need to dispose the content, taking into account what we know at this point in time:
                 // 1: The wrapper has not been disposed. Consequently, neither has the content.
                 // 2: The content has finished loading.
                 // 3: The content may not have been added to the hierarchy (e.g. if this wrapper is hidden). This is dependent upon the value of DelayedLoadCompleted.
                 if (DelayedLoadCompleted)
+                {
+                    Debug.Assert(Content.LoadState >= LoadState.Ready);
                     ClearInternal(); // Content added, remove AND dispose.
+                }
                 else
+                {
+                    Debug.Assert(Content.LoadState == LoadState.Ready);
                     DisposeChildAsync(Content); // Content not added, only need to dispose.
+                }
 
                 Content = null;
                 timeHidden = 0;
