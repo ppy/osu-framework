@@ -266,6 +266,11 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// Lock globally across all usages ensure no funny-business occurs during device free/init.
+        /// </summary>
+        private static object bass_init_lock = new object();
+
+        /// <summary>
         /// This method calls <see cref="Bass.Init(int, int, DeviceInitFlags, IntPtr, IntPtr)"/>.
         /// It can be overridden for unit testing.
         /// </summary>
@@ -293,14 +298,26 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
-            bool didInit = Bass.Init(device);
+            bool didInit = false;
 
-            // If the device was already initialised, the device can be used without much fuss.
-            if (Bass.LastError == Errors.Already)
+            lock (bass_init_lock)
             {
-                Bass.CurrentDevice = device;
-                didInit = true;
+                didInit = Bass.Init(device);
+
+                // If the device was already initialised, the device can be used without much fuss.
+                if (Bass.LastError == Errors.Already)
+                {
+                    Bass.CurrentDevice = device;
+
+                    // Without this call, on windows, a device which is disconnected then reconnected will look initialised
+                    // but not work correctly in practice.
+                    Bass.Free();
+
+                    didInit = Bass.Init(device);
+                }
             }
+
+            var error2 = Bass.LastError;
 
             if (didInit)
                 thread.RegisterInitialisedDevice(device);
