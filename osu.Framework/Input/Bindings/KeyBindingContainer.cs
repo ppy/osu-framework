@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -297,8 +296,6 @@ namespace osu.Framework.Input.Bindings
 
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
             var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
-
-            Trace.Assert(newlyReleased.All(b => KeyCombination.ContainsKey(b.KeyCombination.Keys, releasedKey)));
 
             foreach (var binding in newlyReleased)
             {
