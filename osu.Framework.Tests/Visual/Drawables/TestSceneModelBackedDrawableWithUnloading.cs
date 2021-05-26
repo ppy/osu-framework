@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 
             AddStep("reset transform counters", () => backedDrawable.ResetTransformCounters());
             AddStep("return back", () => backedDrawable.Position = Vector2.Zero);
-            AddUntilStep("wait for new drawable", () => backedDrawable.DisplayedDrawable != null);
+            AddUntilStep("wait for new drawable", () => backedDrawable.DisplayedDrawable?.IsLoaded == true);
 
             // on loading, ModelBackedDrawable applies immediate hide transform on new drawable then applies show transform.
             AddAssert("initial hide transform applied", () => backedDrawable.HideTransforms == 1);
