@@ -226,7 +226,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("pool size returned to correct maximum", () => pool.CountAvailable == maxPoolSize);
             AddUntilStep("count in pool is correct", () => consumed.Count(d => d.IsInPool) == maxPoolSize);
             AddAssert("excess drawables were used", () => consumed.Any(d => !d.IsInPool));
-            AddAssert("non-returned drawables disposed", () => consumed.Where(d => !d.IsInPool).All(d => d.IsDisposed));
+            AddUntilStep("non-returned drawables disposed", () => consumed.Where(d => !d.IsInPool).All(d => d.IsDisposed));
         }
 
         [Test]

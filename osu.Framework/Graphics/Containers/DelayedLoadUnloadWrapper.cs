@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
                 // 3: The content may not have been added to the hierarchy (e.g. if this wrapper is hidden). This is dependent upon the value of DelayedLoadCompleted.
                 if (DelayedLoadCompleted)
                 {
-                    Debug.Assert(Content.LoadState == LoadState.Loaded);
+                    Debug.Assert(Content.LoadState >= LoadState.Ready);
                     ClearInternal(); // Content added, remove AND dispose.
                 }
                 else

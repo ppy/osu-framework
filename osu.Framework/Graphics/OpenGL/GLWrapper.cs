@@ -833,6 +833,11 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+
+                // Speculative fix for macOS crashes (see: http://crbug.com/1181068, http://crbug.com/783979, https://github.com/google/angle/commit/ce89d99fdeda61d9bc88fc7abd2aa3b4666d770e).
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
+                    GL.Flush();
+
                 GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             }
 

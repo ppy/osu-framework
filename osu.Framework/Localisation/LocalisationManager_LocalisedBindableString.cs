@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#pragma warning disable 8632 // TODO: can be #nullable enable when Bindables are updated to also be.
+
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
@@ -9,12 +11,12 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<ILocalisationStore> storage = new Bindable<ILocalisationStore>();
+            private readonly IBindable<ILocalisationStore?> storage = new Bindable<ILocalisationStore?>();
             private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
 
             private LocalisableString text;
 
-            public LocalisedBindableString(LocalisableString text, IBindable<ILocalisationStore> storage, IBindable<bool> preferUnicode)
+            public LocalisedBindableString(LocalisableString text, Bindable<ILocalisationStore?> storage, IBindable<bool> preferUnicode)
             {
                 this.text = text;
 
