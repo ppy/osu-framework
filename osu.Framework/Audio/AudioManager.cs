@@ -293,13 +293,18 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
-            bool didInit = Bass.Init(device);
+            var didInit = Bass.Init(device);
 
             // If the device was already initialised, the device can be used without much fuss.
             if (Bass.LastError == Errors.Already)
             {
                 Bass.CurrentDevice = device;
-                didInit = true;
+
+                // Without this call, on windows, a device which is disconnected then reconnected will look initialised
+                // but not work correctly in practice.
+                AudioThread.FreeDevice(device);
+
+                didInit = Bass.Init(device);
             }
 
             if (didInit)
