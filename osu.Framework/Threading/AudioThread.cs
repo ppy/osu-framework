@@ -4,7 +4,6 @@
 using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -45,7 +44,8 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
-        private readonly HashSet<int> initialisedDevices = new HashSet<int>();
+
+        private static readonly HashSet<int> initialised_devices = new HashSet<int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -82,8 +82,8 @@ namespace osu.Framework.Threading
 
         internal void RegisterInitialisedDevice(int deviceId)
         {
-            Debug.Assert(ThreadSafety.IsAudioThread);
-            initialisedDevices.Add(deviceId);
+            lock (bass_init_lock)
+                initialised_devices.Add(deviceId);
         }
 
         protected override void PerformExit()
@@ -107,27 +107,40 @@ namespace osu.Framework.Threading
                 managers.Clear();
             }
 
-            // Safety net to ensure we have freed all devices before exiting.
-            // This is mainly required for device-lost scenarios.
-            // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialisedDevices)
-                freeDevice(d);
+            lock (bass_init_lock)
+            {
+                // Safety net to ensure we have freed all devices before exiting.
+                // This is mainly required for device-lost scenarios.
+                // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
+                foreach (var d in initialised_devices)
+                    FreeDevice(d);
+            }
         }
 
-        private void freeDevice(int deviceId)
+        /// <summary>
+        /// Lock globally across all usages ensure no funny-business occurs during device free/init.
+        /// </summary>
+        private static readonly object bass_init_lock = new object();
+
+        internal static void FreeDevice(int deviceId)
         {
-            int lastDevice = Bass.CurrentDevice;
-
-            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
-            // Todo: Reproduce in native code and report to BASS at some point.
-            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            lock (bass_init_lock)
             {
-                Bass.CurrentDevice = deviceId;
-                Bass.Free();
-            }
+                int lastDevice = Bass.CurrentDevice;
 
-            if (lastDevice != deviceId)
-                Bass.CurrentDevice = lastDevice;
+                // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
+                // Todo: Reproduce in native code and report to BASS at some point.
+                if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                {
+                    Bass.CurrentDevice = deviceId;
+                    Bass.Free();
+                }
+
+                if (lastDevice != deviceId)
+                    Bass.CurrentDevice = lastDevice;
+
+                initialised_devices.Remove(deviceId);
+            }
         }
     }
 }
