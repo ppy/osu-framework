@@ -5,6 +5,7 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -45,7 +46,8 @@ namespace osu.Framework.Threading
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
-        private readonly HashSet<int> initialisedDevices = new HashSet<int>();
+
+        private static readonly HashSet<int> initialised_devices = new HashSet<int>();
 
         private static readonly GlobalStatistic<double> cpu_usage = GlobalStatistics.Get<double>("Audio", "Bass CPU%");
 
@@ -83,7 +85,8 @@ namespace osu.Framework.Threading
         internal void RegisterInitialisedDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
-            initialisedDevices.Add(deviceId);
+
+            initialised_devices.Add(deviceId);
         }
 
         protected override void PerformExit()
@@ -110,12 +113,14 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialisedDevices)
-                freeDevice(d);
+            foreach (var d in initialised_devices.ToArray())
+                FreeDevice(d);
         }
 
-        private void freeDevice(int deviceId)
+        internal static void FreeDevice(int deviceId)
         {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+
             int lastDevice = Bass.CurrentDevice;
 
             // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
@@ -128,6 +133,8 @@ namespace osu.Framework.Threading
 
             if (lastDevice != deviceId)
                 Bass.CurrentDevice = lastDevice;
+
+            initialised_devices.Remove(deviceId);
         }
     }
 }
