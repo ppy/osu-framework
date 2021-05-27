@@ -5,6 +5,7 @@ using osu.Framework.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ManagedBass;
 using osu.Framework.Audio;
 using osu.Framework.Development;
@@ -112,7 +113,7 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialised_devices)
+            foreach (var d in initialised_devices.ToArray())
                 FreeDevice(d);
         }
 
