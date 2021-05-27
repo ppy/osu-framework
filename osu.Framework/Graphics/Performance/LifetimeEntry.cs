@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Performance
 
         /// <summary>
         /// Invoked before <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
-        /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensuring comparator stability.
+        /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensure comparator stability.
         /// </summary>
         internal event Action<LifetimeEntry> RequestLifetimeUpdate;
 
