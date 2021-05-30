@@ -640,7 +640,7 @@ namespace osu.Framework.Testing
 
             var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (sourceMembers.Length == 0)
-                throw new InvalidOperationException($"No such source member exists with the name {tcs.SourceName} in {sourceDeclaringType} or its base types.");
+                throw new InvalidOperationException($"No static member with the name of {tcs.SourceName} exists in {sourceDeclaringType} or its base types.");
 
             if (sourceMembers.Length > 1)
                 throw new NotSupportedException($"There are multiple members with the same source name ({tcs.SourceName}) (e.g. method overloads).");
@@ -661,7 +661,7 @@ namespace osu.Framework.Testing
                 case MethodInfo sm:
                     var methodParamsLength = sm.GetParameters().Length;
                     if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
-                        throw new InvalidOperationException($"The given source method parameters count doesn't match the method. ({tcs.MethodParams?.Length ?? 0} != {methodParamsLength})");
+                        throw new InvalidOperationException($"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
 
                     return (IEnumerable)sm.Invoke(null, tcs.MethodParams);
 
