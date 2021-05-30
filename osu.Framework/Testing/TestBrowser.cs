@@ -666,7 +666,7 @@ namespace osu.Framework.Testing
                     return (IEnumerable)sm.Invoke(null, tcs.MethodParams);
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(sourceMember));
+                    throw new NotSupportedException($"{sourceMember.MemberType} is not a supported member type for {nameof(TestCaseSourceAttribute)} (must be static field, property or method)");
             }
         }
 
