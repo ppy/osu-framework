@@ -650,24 +650,15 @@ namespace osu.Framework.Testing
             switch (sourceMember)
             {
                 case FieldInfo sf:
-                    if (!sf.IsStatic)
-                        throw new InvalidOperationException($"The source field {sf.Name} in {sf.DeclaringType.ReadableName()} must be static.");
-
                     return (IEnumerable)sf.GetValue(null);
 
                 case PropertyInfo sp:
                     if (!sp.CanRead)
                         throw new InvalidOperationException($"The source property {sp.Name} in {sp.DeclaringType.ReadableName()} must have a getter.");
 
-                    if (sp.GetGetMethod(true)?.IsStatic == false)
-                        throw new InvalidOperationException($"The source property {sp.Name} in {sp.DeclaringType.ReadableName()} must be static.");
-
                     return (IEnumerable)sp.GetValue(null);
 
                 case MethodInfo sm:
-                    if (!sm.IsStatic)
-                        throw new InvalidOperationException($"The source method {sm.Name} in {sm.DeclaringType.ReadableName()} must be static.");
-
                     var methodParamsLength = sm.GetParameters().Length;
                     if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
                         throw new InvalidOperationException($"The given source method parameters count doesn't match the method. ({tcs.MethodParams?.Length ?? 0} != {methodParamsLength})");
