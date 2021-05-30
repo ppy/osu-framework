@@ -17,21 +17,9 @@ namespace osu.Framework.Tests.Visual.Testing
             new object[] { 7, 8 },
         };
 
-        protected static object[][] SourceProperty => new[]
-        {
-            new object[] { 1, 2 },
-            new object[] { 3, 4 },
-            new object[] { 5, 6 },
-            new object[] { 7, 8 },
-        };
+        protected static object[][] SourceProperty => SourceField;
 
-        protected static object[][] SourceMethod() => new[]
-        {
-            new object[] { 1, 2 },
-            new object[] { 3, 4 },
-            new object[] { 5, 6 },
-            new object[] { 7, 8 },
-        };
+        protected static object[][] SourceMethod() => SourceField;
 
         protected static object[][] SourceMethodWithParameters(int x, int y) => new[]
         {
