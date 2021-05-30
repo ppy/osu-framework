@@ -42,7 +42,7 @@ namespace osu.Framework.Tests.Visual.Testing
 
         public static object[][] ExposedSourceProperty => SourceProperty;
 
-        public static object[][] ExposedSourceMethod => SourceMethod();
+        public static object[][] ExposedSourceMethod() => SourceMethod();
 
         [TestCaseSource(nameof(SourceField))]
         public void TestSourceField(int a, int b)
