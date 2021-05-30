@@ -635,8 +635,8 @@ namespace osu.Framework.Testing
             var sourceDeclaringType = tcs.SourceType ?? testMethod.DeclaringType;
             Debug.Assert(sourceDeclaringType != null);
 
-            if (tcs.SourceName == null)
-                return (IEnumerable)Activator.CreateInstance(sourceDeclaringType);
+            if (tcs.SourceType != null && tcs.SourceName == null)
+                return (IEnumerable)Activator.CreateInstance(tcs.SourceType);
 
             var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (sourceMembers.Length == 0)
