@@ -71,7 +71,7 @@ namespace osu.Framework.Audio.Sample
 
         private void loadSample()
         {
-            Debug.Assert(ThreadSafety.IsAudioThread);
+            Debug.Assert(CanPerformInline);
             Debug.Assert(!IsLoaded);
 
             if (data == null)
