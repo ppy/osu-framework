@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                     if (documentUri != null)
                     {
-                        if (rootUri != null && link.Url.StartsWith('/'))
+                        if (rootUri != null && link.Url?.StartsWith('/') == true)
                         {
                             // Ensure the URI is document-relative by removing all trailing slashes
                             link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
