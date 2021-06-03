@@ -178,14 +178,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         continue;
 
                     // Can't use Uri.TryCreate with RelativeOrAbsolute, see https://www.mono-project.com/docs/faq/known-issues/urikind-relativeorabsolute/.
-                    bool isRelative = url.StartsWith('/');
+                    bool isAbsolute = url.Contains("://");
 
-                    if (!isRelative)
+                    if (isAbsolute)
                         continue;
 
                     if (documentUri != null)
                     {
-                        link.Url = rootUri != null
+                        link.Url = rootUri != null && url.StartsWith('/')
                             // Ensure the URI is document-relative by removing all trailing slashes
                             ? new Uri(rootUri, new Uri(url.TrimStart('/'), UriKind.Relative)).AbsoluteUri
                             : new Uri(documentUri, new Uri(url, UriKind.Relative)).AbsoluteUri;
