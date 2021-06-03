@@ -258,6 +258,49 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestBackspaceWhileShifted()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("type character", () =>
+            {
+                // tests don't actually send consumable text, but this important part is that we fire the key event to begin consuming.
+                InputManager.Key(Key.A);
+                textBox.Text += "a";
+            });
+
+            AddStep("backspace character", () => InputManager.Key(Key.BackSpace));
+            AddAssert("character removed", () => textBox.Text == string.Empty);
+
+            AddStep("shift down", () => InputManager.PressKey(Key.ShiftLeft));
+
+            AddStep("type character", () =>
+            {
+                InputManager.Key(Key.A);
+                textBox.Text += "A";
+            });
+
+            AddStep("backspace character", () => InputManager.Key(Key.BackSpace));
+            AddAssert("character removed", () => textBox.Text == string.Empty);
+
+            AddStep("shift up", () => InputManager.ReleaseKey(Key.ShiftLeft));
+        }
+
+        [Test]
         public void TestPreviousWordDeletion()
         {
             InsertableTextBox textBox = null;
