@@ -721,6 +721,11 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Enter:
                     Commit();
                     return true;
+
+                // avoid blocking certain keys which may be used during typing but don't produce characters.
+                case Key.BackSpace:
+                case Key.Delete:
+                    return false;
             }
 
             return base.OnKeyDown(e) || consumingText;
