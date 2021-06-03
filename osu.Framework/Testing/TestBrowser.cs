@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -15,6 +16,8 @@ using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -561,6 +564,35 @@ namespace osu.Framework.Testing
 
                         handleTestMethod(m, tc.Arguments);
                     }
+
+                    foreach (var tcs in m.GetCustomAttributes(typeof(TestCaseSourceAttribute), false).OfType<TestCaseSourceAttribute>())
+                    {
+                        IEnumerable sourceValue = getTestCaseSourceValue(m, tcs);
+
+                        if (sourceValue == null)
+                        {
+                            Debug.Assert(tcs.SourceName != null);
+                            throw new InvalidOperationException($"The value of the source member {tcs.SourceName} must be non-null.");
+                        }
+
+                        foreach (var argument in sourceValue)
+                        {
+                            hadTestAttributeTest = true;
+
+                            if (argument is IEnumerable argumentsEnumerable)
+                            {
+                                var arguments = argumentsEnumerable.Cast<object>().ToArray();
+
+                                CurrentTest.AddLabel($"{name}({string.Join(", ", arguments)}){repeatSuffix}");
+                                handleTestMethod(m, arguments);
+                            }
+                            else
+                            {
+                                CurrentTest.AddLabel($"{name}({argument}){repeatSuffix}");
+                                handleTestMethod(m, argument);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -590,11 +622,51 @@ namespace osu.Framework.Testing
                 CurrentTest.RunSetUpSteps();
             }
 
-            void handleTestMethod(MethodInfo methodInfo, object[] arguments = null)
+            void handleTestMethod(MethodInfo methodInfo, params object[] arguments)
             {
                 addSetUpSteps();
                 methodInfo.Invoke(CurrentTest, arguments);
                 CurrentTest.RunTearDownSteps();
+            }
+        }
+
+        private static IEnumerable getTestCaseSourceValue(MethodInfo testMethod, TestCaseSourceAttribute tcs)
+        {
+            var sourceDeclaringType = tcs.SourceType ?? testMethod.DeclaringType;
+            Debug.Assert(sourceDeclaringType != null);
+
+            if (tcs.SourceType != null && tcs.SourceName == null)
+                return (IEnumerable)Activator.CreateInstance(tcs.SourceType);
+
+            var sourceMembers = sourceDeclaringType.AsNonNull().GetMember(tcs.SourceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+            if (sourceMembers.Length == 0)
+                throw new InvalidOperationException($"No static member with the name of {tcs.SourceName} exists in {sourceDeclaringType} or its base types.");
+
+            if (sourceMembers.Length > 1)
+                throw new NotSupportedException($"There are multiple members with the same source name ({tcs.SourceName}) (e.g. method overloads).");
+
+            var sourceMember = sourceMembers.Single();
+
+            switch (sourceMember)
+            {
+                case FieldInfo sf:
+                    return (IEnumerable)sf.GetValue(null);
+
+                case PropertyInfo sp:
+                    if (!sp.CanRead)
+                        throw new InvalidOperationException($"The source property {sp.Name} in {sp.DeclaringType.ReadableName()} must have a getter.");
+
+                    return (IEnumerable)sp.GetValue(null);
+
+                case MethodInfo sm:
+                    var methodParamsLength = sm.GetParameters().Length;
+                    if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
+                        throw new InvalidOperationException($"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
+
+                    return (IEnumerable)sm.Invoke(null, tcs.MethodParams);
+
+                default:
+                    throw new NotSupportedException($"{sourceMember.MemberType} is not a supported member type for {nameof(TestCaseSourceAttribute)} (must be static field, property or method)");
             }
         }
 
