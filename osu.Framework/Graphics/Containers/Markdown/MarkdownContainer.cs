@@ -172,21 +172,23 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 // Turn all relative URIs in the document into absolute URIs
                 foreach (var link in parsed.Descendants().OfType<LinkInline>())
                 {
-                    if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                    string url = link.Url;
+
+                    if (string.IsNullOrEmpty(url))
                         continue;
 
-                    if (linkUri.IsAbsoluteUri)
+                    // Can't use Uri.TryCreate with RelativeOrAbsolute, see https://www.mono-project.com/docs/faq/known-issues/urikind-relativeorabsolute/.
+                    bool isAbsolute = url.Contains("://");
+
+                    if (isAbsolute)
                         continue;
 
                     if (documentUri != null)
                     {
-                        if (rootUri != null && link.Url?.StartsWith('/') == true)
-                        {
+                        link.Url = rootUri != null && url.StartsWith('/')
                             // Ensure the URI is document-relative by removing all trailing slashes
-                            link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
-                        }
-                        else
-                            link.Url = new Uri(documentUri, linkUri).AbsoluteUri;
+                            ? new Uri(rootUri, new Uri(url.TrimStart('/'), UriKind.Relative)).AbsoluteUri
+                            : new Uri(documentUri, new Uri(url, UriKind.Relative)).AbsoluteUri;
                     }
                 }
 
