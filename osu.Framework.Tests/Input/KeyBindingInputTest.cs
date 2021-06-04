@@ -15,7 +15,7 @@ using osuTK.Input;
 namespace osu.Framework.Tests.Input
 {
     [HeadlessTest]
-    public class KeybindingInputTest : ManualInputManagerTestScene
+    public class KeyBindingInputTest : ManualInputManagerTestScene
     {
         /// <summary>
         /// Tests that if the current input queue is changed, drawables that originally handled <see cref="IKeyBindingHandler{T}.OnPressed"/>
