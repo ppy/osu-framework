@@ -549,21 +549,21 @@ namespace osu.Framework.Input.Bindings
         {
             switch (key)
             {
-                case Key.LShift: return new[] { InputKey.Shift, InputKey.LShift };
+                case Key.LShift: return new[] { InputKey.LShift, InputKey.Shift };
 
-                case Key.RShift: return new[] { InputKey.Shift, InputKey.RShift };
+                case Key.RShift: return new[] { InputKey.RShift, InputKey.Shift };
 
-                case Key.LControl: return new[] { InputKey.Control, InputKey.LControl };
+                case Key.LControl: return new[] { InputKey.LControl, InputKey.Control };
 
-                case Key.RControl: return new[] { InputKey.Control, InputKey.RControl };
+                case Key.RControl: return new[] { InputKey.RControl, InputKey.Control };
 
-                case Key.LAlt: return new[] { InputKey.Alt, InputKey.LAlt };
+                case Key.LAlt: return new[] { InputKey.LAlt, InputKey.Alt };
 
-                case Key.RAlt: return new[] { InputKey.Alt, InputKey.RAlt };
+                case Key.RAlt: return new[] { InputKey.RAlt, InputKey.Alt };
 
-                case Key.LWin: return new[] { InputKey.Super, InputKey.LSuper };
+                case Key.LWin: return new[] { InputKey.LSuper, InputKey.Super };
 
-                case Key.RWin: return new[] { InputKey.Super, InputKey.RSuper };
+                case Key.RWin: return new[] { InputKey.RSuper, InputKey.Super };
             }
 
             return new[] { (InputKey)key };
