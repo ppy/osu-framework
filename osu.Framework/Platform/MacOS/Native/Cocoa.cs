@@ -65,6 +65,15 @@ namespace osu.Framework.Platform.MacOS.Native
 
         public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
 
+        // todo: Check if this works
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        public static extern NSPoint SendNSPoint_i386(IntPtr receiver, IntPtr selector);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern NSPoint_64 SendNSPoint_x64(IntPtr receiver, IntPtr selector);
+
+        public static NSPoint SendNSPoint(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendNSPoint_i386(receiver, selector) : SendNSPoint_x64(receiver, selector).ToNSPoint();
+
         public static IntPtr AppKitLibrary;
 
         [DllImport(LIB_CORE_GRAPHICS, EntryPoint = "CGCursorIsVisible")]

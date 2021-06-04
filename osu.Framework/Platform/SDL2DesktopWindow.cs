@@ -14,6 +14,7 @@ using osu.Framework.Extensions.ImageExtensions;
 using osu.Framework.Input;
 using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
+using osu.Framework.Platform.MacOS.Native;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -1421,6 +1422,13 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
+
+        protected void TriggerTrackpadPositionChanged(NSPoint point) => TrackpadPositionChanged?.Invoke(point);
+
+        /// <summary>
+        /// Invoked when a joystick axis changes.
+        /// </summary>
+        public event Action<NSPoint> TrackpadPositionChanged;
 
         #endregion
 

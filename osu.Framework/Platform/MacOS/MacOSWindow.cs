@@ -4,6 +4,8 @@
 using System;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
+using osu.Framework.Logging;
+using SDL2;
 
 namespace osu.Framework.Platform.MacOS
 {
@@ -22,6 +24,14 @@ namespace osu.Framework.Platform.MacOS
         private IntPtr originalScrollWheel;
         private ScrollWheelDelegate scrollWheelHandler;
 
+        private static readonly IntPtr sel_alltouches_ = Selector.Get("allTouches");
+        private static readonly IntPtr sel_allobjects = Selector.Get("allObjects");
+        private static readonly IntPtr sel_normalizedposition = Selector.Get("normalizedPosition");
+
+        private delegate void TouchesBeganDelegate(IntPtr handle, IntPtr selector, IntPtr theEvent); // v@:@
+
+        private TouchesBeganDelegate touchesBeganHandler;
+
         public override void Create()
         {
             base.Create();
@@ -30,6 +40,14 @@ namespace osu.Framework.Platform.MacOS
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+
+            // todo may need to modify instance variable allowedTouchTypes in (WindowHandle (SDLView))
+            // replace [SDLView touchesBeganWithEvent:(NSEvent *)] and other related events with our own version
+            touchesBeganHandler = touchesBegan;
+            Class.SwizzleMethod(viewClass, "touchesBeganWithEvent:", "v@:@", touchesBeganHandler);
+            Class.SwizzleMethod(viewClass, "touchesEndWithEvent:", "v@:@", touchesBeganHandler);
+            Class.SwizzleMethod(viewClass, "touchesMovedWithEvent:", "v@:@", touchesBeganHandler);
+            Class.SwizzleMethod(viewClass, "touchesEndWithEvent:", "v@:@", touchesBeganHandler);
         }
 
         /// <summary>
@@ -57,6 +75,23 @@ namespace osu.Framework.Platform.MacOS
             float scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
 
             ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
+        }
+
+        /// <summary>
+        /// Swizzled replacement of [SDLView touchesBegan:(NSEvent *)] that checks for touches on the MacOS trackpad.
+        /// </summary>
+        private void touchesBegan(IntPtr reciever, IntPtr selector, IntPtr theEvent)
+        {
+            // todo make a NSSet and use this for it
+            IntPtr allTouches = Cocoa.SendIntPtr(theEvent, sel_alltouches_);
+
+            foreach (IntPtr touch in new NSArray(Cocoa.SendIntPtr(allTouches, sel_allobjects)).ToArray())
+            {
+                NSPoint point = Cocoa.SendNSPoint(touch, sel_normalizedposition);
+
+                // todo actually write an impl for this
+                ScheduleEvent(() => TriggerTrackpadPositionChanged(point));
+            }
         }
     }
 }
