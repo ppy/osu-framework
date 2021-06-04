@@ -20,7 +20,7 @@ namespace osu.Framework.Testing
     /// </summary>
     public abstract class ManualInputManagerTestScene : TestScene
     {
-        protected override Container<Drawable> Content => InputManager;
+        protected override Container<Drawable> Content { get; } = new Container { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
         /// The position which is used to initialize the mouse position before at setup.
@@ -45,6 +45,7 @@ namespace osu.Framework.Testing
                 InputManager = new ManualInputManager
                 {
                     UseParentInput = true,
+                    Child = new PlatformActionContainer().WithChild(Content)
                 },
                 new Container
                 {
