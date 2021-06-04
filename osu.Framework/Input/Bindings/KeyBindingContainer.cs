@@ -2,14 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
-using osu.Framework.Input.States;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osuTK;
@@ -100,65 +98,61 @@ namespace osu.Framework.Input.Bindings
             return true;
         }
 
+        /// <summary>
+        /// All input keys which are currently pressed and have reached this <see cref="KeyBindingContainer"/>.
+        /// </summary>
+        private readonly HashSet<InputKey> pressedInputKeys = new HashSet<InputKey>();
+
         protected override bool Handle(UIEvent e)
         {
-            var state = e.CurrentState;
-
             switch (e)
             {
                 case MouseDownEvent mouseDown:
-                    return handleNewPressed(state, KeyCombination.FromMouseButton(mouseDown.Button), false);
+                    return handleNewPressed(KeyCombination.FromMouseButton(mouseDown.Button), false);
 
                 case MouseUpEvent mouseUp:
-                    handleNewReleased(state, KeyCombination.FromMouseButton(mouseUp.Button));
+                    handleNewReleased(KeyCombination.FromMouseButton(mouseUp.Button));
                     return false;
 
                 case KeyDownEvent keyDown:
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
 
-                    foreach (var key in KeyCombination.FromKey(keyDown.Key))
-                    {
-                        if (handleNewPressed(state, key, keyDown.Repeat))
-                            return true;
-                    }
+                    if (handleNewPressed(KeyCombination.FromKey(keyDown.Key), keyDown.Repeat))
+                        return true;
 
                     return false;
 
                 case KeyUpEvent keyUp:
-                    // this is releasing the common shift when a remaining shift is still held.
-                    // ie. press LShift, press RShift, release RShift will result in InputKey.Shift being incorrectly released.
-                    foreach (var key in KeyCombination.FromKey(keyUp.Key))
-                        handleNewReleased(state, key);
-
+                    handleNewReleased(KeyCombination.FromKey(keyUp.Key));
                     return false;
 
                 case JoystickPressEvent joystickPress:
-                    return handleNewPressed(state, KeyCombination.FromJoystickButton(joystickPress.Button), false);
+                    return handleNewPressed(KeyCombination.FromJoystickButton(joystickPress.Button), false);
 
                 case JoystickReleaseEvent joystickRelease:
-                    handleNewReleased(state, KeyCombination.FromJoystickButton(joystickRelease.Button));
+                    handleNewReleased(KeyCombination.FromJoystickButton(joystickRelease.Button));
                     return false;
 
                 case MidiDownEvent midiDown:
-                    return handleNewPressed(state, KeyCombination.FromMidiKey(midiDown.Key), false);
+                    return handleNewPressed(KeyCombination.FromMidiKey(midiDown.Key), false);
 
                 case MidiUpEvent midiUp:
-                    handleNewReleased(state, KeyCombination.FromMidiKey(midiUp.Key));
+                    handleNewReleased(KeyCombination.FromMidiKey(midiUp.Key));
                     return false;
 
                 case TabletPenButtonPressEvent tabletPenButtonPress:
-                    return handleNewPressed(state, KeyCombination.FromTabletPenButton(tabletPenButtonPress.Button), false);
+                    return handleNewPressed(KeyCombination.FromTabletPenButton(tabletPenButtonPress.Button), false);
 
                 case TabletPenButtonReleaseEvent tabletPenButtonRelease:
-                    handleNewReleased(state, KeyCombination.FromTabletPenButton(tabletPenButtonRelease.Button));
+                    handleNewReleased(KeyCombination.FromTabletPenButton(tabletPenButtonRelease.Button));
                     return false;
 
                 case TabletAuxiliaryButtonPressEvent tabletAuxiliaryButtonPress:
-                    return handleNewPressed(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonPress.Button), false);
+                    return handleNewPressed(KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonPress.Button), false);
 
                 case TabletAuxiliaryButtonReleaseEvent tabletAuxiliaryButtonRelease:
-                    handleNewReleased(state, KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonRelease.Button));
+                    handleNewReleased(KeyCombination.FromTabletAuxiliaryButton(tabletAuxiliaryButtonRelease.Button));
                     return false;
 
                 case ScrollEvent scroll:
@@ -168,8 +162,8 @@ namespace osu.Framework.Input.Bindings
 
                     foreach (var key in keys)
                     {
-                        handled |= handleNewPressed(state, key, false, scroll.ScrollDelta, scroll.IsPrecise);
-                        handleNewReleased(state, key);
+                        handled |= handleNewPressed(key, false, scroll.ScrollDelta, scroll.IsPrecise);
+                        handleNewReleased(key);
                     }
 
                     return handled;
@@ -179,10 +173,12 @@ namespace osu.Framework.Input.Bindings
             return false;
         }
 
-        private bool handleNewPressed(InputState state, InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
+        private bool handleNewPressed(InputKey newKey, bool repeat, Vector2? scrollDelta = null, bool isPrecise = false)
         {
+            pressedInputKeys.Add(newKey);
+
             var scrollAmount = getScrollAmount(newKey, scrollDelta);
-            var pressedCombination = KeyCombination.FromInputState(state, scrollDelta);
+            var pressedCombination = new KeyCombination(pressedInputKeys);
 
             bool handled = false;
             var bindings = (repeat ? KeyBindings : KeyBindings?.Except(pressedBindings)) ?? Enumerable.Empty<IKeyBinding>();
@@ -291,14 +287,19 @@ namespace osu.Framework.Input.Bindings
             pressedActions.Clear();
         }
 
-        private void handleNewReleased(InputState state, InputKey releasedKey)
+        private void handleNewReleased(InputKey releasedKey)
         {
-            var pressedCombination = KeyCombination.FromInputState(state);
+            pressedInputKeys.Remove(releasedKey);
+
+            if (pressedBindings.Count == 0)
+                return;
 
             // we don't want to consider exact matching here as we are dealing with bindings, not actions.
-            var newlyReleased = pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
+            var pressedCombination = new KeyCombination(pressedInputKeys);
 
-            Trace.Assert(newlyReleased.All(b => KeyCombination.ContainsKey(b.KeyCombination.Keys, releasedKey)));
+            var newlyReleased = pressedInputKeys.Count == 0
+                ? pressedBindings.ToList()
+                : pressedBindings.Where(b => !b.KeyCombination.IsPressed(pressedCombination, KeyCombinationMatchingMode.Any)).ToList();
 
             foreach (var binding in newlyReleased)
             {
