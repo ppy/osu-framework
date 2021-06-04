@@ -545,28 +545,28 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
-        public static InputKey[] FromKey(Key key)
+        public static InputKey FromKey(Key key)
         {
             switch (key)
             {
-                case Key.LShift: return new[] { InputKey.LShift, InputKey.Shift };
+                case Key.LShift: return InputKey.LShift;
 
-                case Key.RShift: return new[] { InputKey.RShift, InputKey.Shift };
+                case Key.RShift: return InputKey.RShift;
 
-                case Key.LControl: return new[] { InputKey.LControl, InputKey.Control };
+                case Key.LControl: return InputKey.LControl;
 
-                case Key.RControl: return new[] { InputKey.RControl, InputKey.Control };
+                case Key.RControl: return InputKey.RControl;
 
-                case Key.LAlt: return new[] { InputKey.LAlt, InputKey.Alt };
+                case Key.LAlt: return InputKey.LAlt;
 
-                case Key.RAlt: return new[] { InputKey.RAlt, InputKey.Alt };
+                case Key.RAlt: return InputKey.RAlt;
 
-                case Key.LWin: return new[] { InputKey.LSuper, InputKey.Super };
+                case Key.LWin: return InputKey.LSuper;
 
-                case Key.RWin: return new[] { InputKey.RSuper, InputKey.Super };
+                case Key.RWin: return InputKey.RSuper;
             }
 
-            return new[] { (InputKey)key };
+            return (InputKey)key;
         }
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
@@ -634,11 +634,10 @@ namespace osu.Framework.Input.Bindings
             {
                 foreach (var key in state.Keyboard.Keys)
                 {
-                    foreach (var iKey in FromKey(key))
-                    {
-                        if (!keys.Contains(iKey))
-                            keys.Add(iKey);
-                    }
+                    var iKey = FromKey(key);
+
+                    if (!keys.Contains(iKey))
+                        keys.Add(iKey);
                 }
             }
 

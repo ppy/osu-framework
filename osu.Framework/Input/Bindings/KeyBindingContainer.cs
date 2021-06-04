@@ -118,19 +118,15 @@ namespace osu.Framework.Input.Bindings
                     if (keyDown.Repeat && !SendRepeats)
                         return pressedBindings.Count > 0;
 
-                    foreach (var key in KeyCombination.FromKey(keyDown.Key))
-                    {
-                        if (handleNewPressed(key, keyDown.Repeat))
-                            return true;
-                    }
+                    if (handleNewPressed(KeyCombination.FromKey(keyDown.Key), keyDown.Repeat))
+                        return true;
 
                     return false;
 
                 case KeyUpEvent keyUp:
                     // this is releasing the common shift when a remaining shift is still held.
                     // ie. press LShift, press RShift, release RShift will result in InputKey.Shift being incorrectly released.
-                    foreach (var key in KeyCombination.FromKey(keyUp.Key))
-                        handleNewReleased(key);
+                    handleNewReleased(KeyCombination.FromKey(keyUp.Key));
 
                     return false;
 
