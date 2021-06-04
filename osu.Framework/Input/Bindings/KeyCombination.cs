@@ -91,9 +91,9 @@ namespace osu.Framework.Input.Bindings
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
         {
-            // can be local function once attribute on local functions are implemented
-            // optimized to avoid allocation
-            // Usually Keys.Count <= 3. Does not worth special logic for Contains().
+            // first, check that all the candidate keys are contained in the provided pressed keys.
+            // regardless of the matching mode, every key needs to at least be present (matching modes only change
+            // the behaviour of excess keys).
             foreach (var key in candidateKey)
             {
                 if (!ContainsKey(pressedKey, key))
@@ -105,6 +105,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Exact:
                     foreach (var key in pressedKey)
                     {
+                        // in exact matching mode, every pressed key needs to be in the candidate.
                         if (!ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
@@ -114,10 +115,15 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Modifiers:
                     foreach (var key in pressedKey)
                     {
+                        // in modifiers match mode, the same check applies as exact but only for modifier keys.
                         if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
 
+                    break;
+
+                case KeyCombinationMatchingMode.Any:
+                    // any match mode needs no further checks.
                     break;
             }
 
