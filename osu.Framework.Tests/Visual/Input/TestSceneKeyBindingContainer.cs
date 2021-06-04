@@ -150,12 +150,7 @@ namespace osu.Framework.Tests.Visual.Input
                 };
             });
 
-            AddStep("press lctrl+a", () =>
-            {
-                InputManager.PressKey(Key.LControl);
-                InputManager.PressKey(Key.A);
-            });
-
+            AddStep("press lctrl", () => InputManager.PressKey(Key.LControl));
             AddAssert("press received", () => pressedReceived);
 
             AddStep("reset variables", () =>
