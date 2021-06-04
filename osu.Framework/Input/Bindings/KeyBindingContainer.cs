@@ -124,10 +124,7 @@ namespace osu.Framework.Input.Bindings
                     return false;
 
                 case KeyUpEvent keyUp:
-                    // this is releasing the common shift when a remaining shift is still held.
-                    // ie. press LShift, press RShift, release RShift will result in InputKey.Shift being incorrectly released.
                     handleNewReleased(KeyCombination.FromKey(keyUp.Key));
-
                     return false;
 
                 case JoystickPressEvent joystickPress:

@@ -129,6 +129,52 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("no released actions", () => releasedActions.Count == 0);
         }
 
+        [Test]
+        public void TestReleasingSpecificModifierDoesNotReleaseCommonBindingIfOtherKeyIsActive()
+        {
+            bool pressedReceived = false;
+            bool releasedReceived = false;
+
+            AddStep("add container", () =>
+            {
+                pressedReceived = false;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = _ => pressedReceived = true,
+                        Released = _ => releasedReceived = true
+                    }
+                };
+            });
+
+            AddStep("press lctrl+a", () =>
+            {
+                InputManager.PressKey(Key.LControl);
+                InputManager.PressKey(Key.A);
+            });
+
+            AddAssert("press received", () => pressedReceived);
+
+            AddStep("reset variables", () =>
+            {
+                pressedReceived = false;
+                releasedReceived = false;
+            });
+
+            AddStep("press rctrl", () => InputManager.PressKey(Key.RControl));
+            AddAssert("press not received", () => !pressedReceived);
+            AddAssert("release not received", () => !releasedReceived);
+
+            AddStep("release rctrl", () => InputManager.ReleaseKey(Key.RControl));
+            AddAssert("release not received", () => !releasedReceived);
+
+            AddStep("release lctrl", () => InputManager.ReleaseKey(Key.LControl));
+            AddAssert("release received", () => releasedReceived);
+        }
+
         private class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction> Pressed;
@@ -158,6 +204,7 @@ namespace osu.Framework.Tests.Visual.Input
                 new KeyBinding(InputKey.A, TestAction.ActionA),
                 new KeyBinding(new KeyCombination(InputKey.A, InputKey.B), TestAction.ActionAB),
                 new KeyBinding(InputKey.Enter, TestAction.ActionEnter),
+                new KeyBinding(InputKey.Control, TestAction.ActionControl)
             };
         }
 
@@ -165,7 +212,8 @@ namespace osu.Framework.Tests.Visual.Input
         {
             ActionA,
             ActionAB,
-            ActionEnter
+            ActionEnter,
+            ActionControl
         }
     }
 }
