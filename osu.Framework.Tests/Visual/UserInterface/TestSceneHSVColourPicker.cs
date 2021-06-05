@@ -3,6 +3,7 @@
 
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
@@ -91,6 +92,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
             assertHue(0.5f);
+        }
+
+        [Test]
+        public void TestExternalChange()
+        {
+            const float hue = 0.34f;
+            const float saturation = 0.46f;
+            const float value = 0.84f;
+            Colour4 colour = Colour4.FromHSV(hue, saturation, value);
+
+            AddStep("set colour", () => colourPicker.Current.Value = colour);
+
+            assertHue(hue);
+            assertSaturationAndValue(saturation, value);
         }
 
         private void assertHue(float hue, float tolerance = 0.005f)
