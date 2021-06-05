@@ -17,34 +17,71 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        private readonly Box background;
+        public new MarginPadding Padding
+        {
+            get => content.Padding;
+            set => content.Padding = value;
+        }
+
+        /// <summary>
+        /// Sets the spacing between the hex input text box and the colour preview.
+        /// </summary>
+        public float Spacing
+        {
+            get => spacer.Width;
+            set => spacer.Width = value;
+        }
+
+        /// <summary>
+        /// The background of the control.
+        /// </summary>
+        protected readonly Box Background;
+
+        private readonly Container content;
+
         private readonly TextBox hexCodeTextBox;
         private readonly Drawable spacer;
         private readonly ColourPreview colourPreview;
 
         protected HexColourPicker()
         {
+            Current.Value = Colour4.White;
+
+            Width = 300;
+            AutoSizeAxes = Axes.Y;
+
             InternalChildren = new Drawable[]
             {
-                background = new Box
+                Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both
                 },
-                new GridContainer
+                content = new Container
                 {
-                    ColumnDimensions = new[]
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Child = new GridContainer
                     {
-                        new Dimension(),
-                        new Dimension(GridSizeMode.AutoSize),
-                        new Dimension()
-                    },
-                    Content = new[]
-                    {
-                        new[]
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        ColumnDimensions = new[]
                         {
-                            hexCodeTextBox = CreateHexCodeTextBox(),
-                            spacer = Empty(),
-                            colourPreview = CreateColourPreview()
+                            new Dimension(),
+                            new Dimension(GridSizeMode.AutoSize),
+                            new Dimension()
+                        },
+                        RowDimensions = new[]
+                        {
+                            new Dimension(GridSizeMode.AutoSize)
+                        },
+                        Content = new[]
+                        {
+                            new[]
+                            {
+                                hexCodeTextBox = CreateHexCodeTextBox().With(d => d.RelativeSizeAxes = Axes.X),
+                                spacer = Empty(),
+                                colourPreview = CreateColourPreview().With(d => d.RelativeSizeAxes = Axes.Both)
+                            }
                         }
                     }
                 }
