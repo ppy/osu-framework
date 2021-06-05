@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             saturationValueSelector.Current.BindTo(current);
-            hueSelector.Hue.BindValueChanged(hue => saturationValueSelector.Hue.Value = hue.NewValue);
+            hueSelector.Hue.BindTo(saturationValueSelector.Hue);
         }
 
         public abstract class SaturationValueSelector : CompositeDrawable
@@ -170,30 +170,44 @@ namespace osu.Framework.Graphics.UserInterface
                 Value.BindValueChanged(_ => updateValue(), true);
             }
 
+            // Because value change callbacks fire immediately after setting {Hue,Saturation,Value}.Value,
+            // a way to set those three atomically is needed when .Current is changed externally, as it may affect all three.
+            // Otherwise setting hue first will lead to a .Current.Value set again, therefore performing a partial update.
+            // This flag is set when all three components are to be modified at once and reset when the update is complete to achieve desired behaviour.
+            private bool currentChanging;
+
             private void updateHSV()
             {
                 var asHSV = Current.Value.ToHSV();
+
+                currentChanging = true;
+
                 Hue.Value = asHSV.X;
                 Saturation.Value = asHSV.Y;
                 Value.Value = asHSV.Z;
+
+                currentChanging = false;
             }
 
             private void updateHue()
             {
                 hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
-                updateCurrent();
+                if (!currentChanging)
+                    updateCurrent();
             }
 
             private void updateSaturation()
             {
                 marker.X = Saturation.Value;
-                updateCurrent();
+                if (!currentChanging)
+                    updateCurrent();
             }
 
             private void updateValue()
             {
                 marker.Y = 1 - Value.Value;
-                updateCurrent();
+                if (!currentChanging)
+                    updateCurrent();
             }
 
             private void updateCurrent() => Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
