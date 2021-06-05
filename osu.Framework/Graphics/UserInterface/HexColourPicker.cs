@@ -78,7 +78,11 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             new[]
                             {
-                                hexCodeTextBox = CreateHexCodeTextBox().With(d => d.RelativeSizeAxes = Axes.X),
+                                hexCodeTextBox = CreateHexCodeTextBox().With(d =>
+                                {
+                                    d.RelativeSizeAxes = Axes.X;
+                                    d.CommitOnFocusLost = true;
+                                }),
                                 spacer = Empty(),
                                 colourPreview = CreateColourPreview().With(d => d.RelativeSizeAxes = Axes.Both)
                             }
@@ -102,7 +106,35 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            colourPreview.Current.BindTo(Current);
+            Current.BindValueChanged(_ => updateState(), true);
+
+            hexCodeTextBox.Current.BindValueChanged(_ => tryPreviewColour());
+            hexCodeTextBox.OnCommit += commitColour;
+        }
+
+        private void updateState()
+        {
+            hexCodeTextBox.Text = Current.Value.ToHex();
+            colourPreview.Current.Value = Current.Value;
+        }
+
+        private void tryPreviewColour()
+        {
+            if (!Colour4.TryParseHex(hexCodeTextBox.Text, out var colour) || colour.A < 1)
+                return;
+
+            colourPreview.Current.Value = colour;
+        }
+
+        private void commitColour(TextBox sender, bool newText)
+        {
+            if (!Colour4.TryParseHex(sender.Text, out var colour) || colour.A < 1)
+            {
+                Current.TriggerChange(); // restore previous value.
+                return;
+            }
+
+            Current.Value = colour;
         }
 
         public abstract class ColourPreview : CompositeDrawable
