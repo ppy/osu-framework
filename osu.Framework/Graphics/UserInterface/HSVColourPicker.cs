@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Width = 300;
             AutoSizeAxes = Axes.Y;
+            Current.Value = Colour4.White;
 
             InternalChildren = new Drawable[]
             {
@@ -80,7 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.LoadComplete();
 
             saturationValueSelector.Current.BindTo(current);
-            hueSelector.Hue.BindTo(saturationValueSelector.Hue);
+            hueSelector.Hue.BindValueChanged(hue => saturationValueSelector.Hue.Value = hue.NewValue);
         }
 
         public abstract class SaturationValueSelector : CompositeDrawable
@@ -148,6 +149,7 @@ namespace osu.Framework.Graphics.UserInterface
                         d.Current.BindTo(Current);
 
                         d.Origin = Anchor.Centre;
+                        d.RelativePositionAxes = Axes.Both;
                     })
                 };
             }
@@ -161,22 +163,40 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Hue.BindValueChanged(_ => updateHue(), true);
+                Current.BindValueChanged(_ => updateHSV(), true);
 
-                Hue.BindValueChanged(_ => updateCurrent());
-                Saturation.BindValueChanged(_ => updateCurrent());
-                Value.BindValueChanged(_ => updateCurrent(), true);
+                Hue.BindValueChanged(_ => updateHue(), true);
+                Saturation.BindValueChanged(_ => updateSaturation(), true);
+                Value.BindValueChanged(_ => updateValue(), true);
+            }
+
+            private void updateHSV()
+            {
+                var asHSV = Current.Value.ToHSV();
+                Hue.Value = asHSV.X;
+                Saturation.Value = asHSV.Y;
+                Value.Value = asHSV.Z;
             }
 
             private void updateHue()
             {
                 hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
+                updateCurrent();
             }
 
-            private void updateCurrent()
+            private void updateSaturation()
             {
-                Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
+                marker.X = Saturation.Value;
+                updateCurrent();
             }
+
+            private void updateValue()
+            {
+                marker.Y = 1 - Value.Value;
+                updateCurrent();
+            }
+
+            private void updateCurrent() => Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
 
             protected override void Update()
             {
@@ -186,6 +206,30 @@ namespace osu.Framework.Graphics.UserInterface
                 // Fill{Mode,AspectRatio} do not work here, because they require RelativeSizeAxes = Both,
                 // which in turn causes BypassAutoSizeAxes to be set to Both, and so the parent ignores the child height and assumes 0.
                 Height = DrawWidth;
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+                return true;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+                return true;
+            }
+
+            protected override void OnDrag(DragEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+            }
+
+            private void handleMouseInput(Vector2 mousePosition)
+            {
+                var localSpacePosition = ToLocalSpace(mousePosition);
+                Saturation.Value = localSpacePosition.X / DrawWidth;
+                Value.Value = 1 - localSpacePosition.Y / DrawHeight;
             }
 
             protected abstract class Marker : CompositeDrawable

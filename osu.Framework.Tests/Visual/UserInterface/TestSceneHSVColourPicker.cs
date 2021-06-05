@@ -7,49 +7,108 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneHSVColourPicker : ManualInputManagerTestScene
     {
-        private BasicHSVColourPicker colourPicker;
+        private TestHSVColourPicker colourPicker;
 
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("create picker", () => Child = colourPicker = new BasicHSVColourPicker());
+            AddStep("create picker", () => Child = colourPicker = new TestHSVColourPicker());
         }
 
         [Test]
         public void HueSelectorInput()
         {
-            HSVColourPicker.HueSelector selector = null;
-
-            AddStep("retrieve selector", () => selector = colourPicker.ChildrenOfType<HSVColourPicker.HueSelector>().Single());
-            AddAssert("initial hue is 0", () => selector.Hue.Value == 0);
+            assertHue(0);
 
             AddStep("click selector centre", () =>
             {
-                InputManager.MoveMouseTo(selector.ScreenSpaceDrawQuad.Centre);
+                InputManager.MoveMouseTo(colourPicker.HueControl.ScreenSpaceDrawQuad.Centre);
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("hue is 0.5", () => Precision.AlmostEquals(0.5f, selector.Hue.Value));
+            assertHue(0.5f);
 
             AddStep("click right edge of selector", () =>
             {
-                InputManager.MoveMouseTo(new Vector2(selector.ScreenSpaceDrawQuad.TopRight.X - 1, selector.ScreenSpaceDrawQuad.Centre.Y));
+                InputManager.MoveMouseTo(new Vector2(colourPicker.HueControl.ScreenSpaceDrawQuad.TopRight.X - 1, colourPicker.HueControl.ScreenSpaceDrawQuad.Centre.Y));
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("hue is 1", () => Precision.AlmostEquals(1f, selector.Hue.Value, 0.005));
+            assertHue(1);
 
             AddStep("drag back to start", () =>
             {
                 InputManager.PressButton(MouseButton.Left);
-                InputManager.MoveMouseTo(new Vector2(selector.ScreenSpaceDrawQuad.TopLeft.X + 1, selector.ScreenSpaceDrawQuad.Centre.Y));
+                InputManager.MoveMouseTo(new Vector2(colourPicker.HueControl.ScreenSpaceDrawQuad.TopLeft.X + 1, colourPicker.HueControl.ScreenSpaceDrawQuad.Centre.Y));
                 InputManager.ReleaseButton(MouseButton.Left);
             });
-            AddAssert("hue is 0", () => Precision.AlmostEquals(0f, selector.Hue.Value, 0.005));
+            assertHue(0);
+        }
+
+        [Test]
+        public void SaturationValueSelectorInput()
+        {
+            AddStep("set initial colour", () => colourPicker.Current.Value = Color4.Red);
+            assertSaturationAndValue(1, 1, 0);
+
+            AddStep("click top left corner", () =>
+            {
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.TopLeft + new Vector2(1));
+                InputManager.Click(MouseButton.Left);
+            });
+            assertSaturationAndValue(0, 1);
+
+            AddStep("drag to center", () =>
+            {
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.Centre);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            assertSaturationAndValue(0.5f, 0.5f);
+
+            AddStep("click bottom left corner", () =>
+            {
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomLeft + new Vector2(1, -1));
+                InputManager.Click(MouseButton.Left);
+            });
+            assertSaturationAndValue(0, 0);
+
+            AddStep("click bottom right corner", () =>
+            {
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.BottomRight - new Vector2(1));
+                InputManager.Click(MouseButton.Left);
+            });
+            assertSaturationAndValue(1, 0);
+
+            AddStep("change hue", () =>
+            {
+                InputManager.MoveMouseTo(colourPicker.HueControl.ScreenSpaceDrawQuad.Centre);
+                InputManager.Click(MouseButton.Left);
+            });
+            assertHue(0.5f);
+        }
+
+        private void assertHue(float hue, float tolerance = 0.005f)
+        {
+            AddAssert($"hue selector has {hue}", () => Precision.AlmostEquals(colourPicker.HueControl.Hue.Value, hue, tolerance));
+            AddAssert($"saturation/value selector has {hue}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Hue.Value, hue, tolerance));
+        }
+
+        private void assertSaturationAndValue(float saturation, float value, float tolerance = 0.005f)
+        {
+            AddAssert($"saturation is {saturation}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Saturation.Value, saturation, tolerance));
+            AddAssert($"value is {value}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Value.Value, value, tolerance));
+        }
+
+        private class TestHSVColourPicker : BasicHSVColourPicker
+        {
+            public HueSelector HueControl => this.ChildrenOfType<HueSelector>().Single();
+            public SaturationValueSelector SaturationValueControl => this.ChildrenOfType<SaturationValueSelector>().Single();
         }
     }
 }
