@@ -108,6 +108,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertSaturationAndValue(saturation, value);
         }
 
+        [Test]
+        public void TestHueUnchangedIfSaturationAlmostZero()
+        {
+            AddStep("change colour", () => colourPicker.Current.Value = Colour4.FromHSV(0.5f, 0.5f, 0.5f));
+            AddStep("set saturation to 0", () => colourPicker.SaturationValueControl.Saturation.Value = 0);
+            AddAssert("hue is unchanged", () => colourPicker.HueControl.Hue.Value == 0.5f);
+        }
+
         private void assertHue(float hue, float tolerance = 0.005f)
         {
             AddAssert($"hue selector has {hue}", () => Precision.AlmostEquals(colourPicker.HueControl.Hue.Value, hue, tolerance));
