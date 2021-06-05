@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -13,6 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
             BackgroundColour = FrameworkColour.GreenDark;
 
             Content.Padding = new MarginPadding(20);
+            Content.Spacing = new Vector2(0, 10);
         }
 
         protected override HueSelector CreateHueSelector() => new BasicHueSelector();
@@ -49,6 +51,38 @@ namespace osu.Framework.Graphics.UserInterface
 
         public class BasicSaturationValueSelector : SaturationValueSelector
         {
+            protected override Marker CreateMarker() => new BasicMarker();
+
+            private class BasicMarker : Marker
+            {
+                private readonly Box colourPreview;
+
+                public BasicMarker()
+                {
+                    InternalChild = new Container
+                    {
+                        Size = new Vector2(15),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        BorderColour = FrameworkColour.YellowGreen,
+                        BorderThickness = 4,
+                        Child = colourPreview = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both
+                        }
+                    };
+                }
+
+                protected override void LoadComplete()
+                {
+                    base.LoadComplete();
+
+                    Current.BindValueChanged(_ => updatePreview(), true);
+                }
+
+                private void updatePreview() => colourPreview.Colour = Current.Value;
+            }
         }
     }
 }

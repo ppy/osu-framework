@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
@@ -78,20 +79,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            saturationValueSelector.Hue.BindTo(hueSelector.Hue);
-
-            saturationValueSelector.Hue.BindValueChanged(_ => updateCurrent());
-            saturationValueSelector.Saturation.BindValueChanged(_ => updateCurrent());
-            saturationValueSelector.Value.BindValueChanged(_ => updateCurrent(), true);
-        }
-
-        private void updateCurrent()
-        {
-            Current.Value = Colour4.FromHSV(saturationValueSelector.Hue.Value, saturationValueSelector.Saturation.Value, saturationValueSelector.Value.Value);
+            saturationValueSelector.Current.BindTo(current);
+            hueSelector.Hue.BindTo(saturationValueSelector.Hue);
         }
 
         public abstract class SaturationValueSelector : CompositeDrawable
         {
+            public readonly Bindable<Colour4> Current = new Bindable<Colour4>();
+
             public Bindable<float> Hue { get; } = new BindableFloat
             {
                 MinValue = 0,
@@ -109,6 +104,94 @@ namespace osu.Framework.Graphics.UserInterface
                 MinValue = 0,
                 MaxValue = 1
             };
+
+            /// <summary>
+            /// The gradiented box serving as the selection area.
+            /// </summary>
+            protected Container SelectionArea { get; }
+
+            private readonly Box hueBox;
+            private readonly Drawable marker;
+
+            protected SaturationValueSelector()
+            {
+                RelativeSizeAxes = Axes.X;
+
+                InternalChildren = new[]
+                {
+                    SelectionArea = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new[]
+                        {
+                            hueBox = new Box
+                            {
+                                Name = "Hue",
+                                RelativeSizeAxes = Axes.Both
+                            },
+                            new Box
+                            {
+                                Name = "Saturation",
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0))
+                            },
+                            new Box
+                            {
+                                Name = "Value",
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = ColourInfo.GradientVertical(Colour4.Black.Opacity(0), Colour4.Black)
+                            },
+                        }
+                    },
+                    marker = CreateMarker().With(d =>
+                    {
+                        d.Current.BindTo(Current);
+
+                        d.Origin = Anchor.Centre;
+                    })
+                };
+            }
+
+            /// <summary>
+            /// Creates the marker which will be used for selecting the final colour from the gamut.
+            /// </summary>
+            protected abstract Marker CreateMarker();
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                Hue.BindValueChanged(_ => updateHue(), true);
+
+                Hue.BindValueChanged(_ => updateCurrent());
+                Saturation.BindValueChanged(_ => updateCurrent());
+                Value.BindValueChanged(_ => updateCurrent(), true);
+            }
+
+            private void updateHue()
+            {
+                hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
+            }
+
+            private void updateCurrent()
+            {
+                Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                // manually preserve aspect ratio.
+                // Fill{Mode,AspectRatio} do not work here, because they require RelativeSizeAxes = Both,
+                // which in turn causes BypassAutoSizeAxes to be set to Both, and so the parent ignores the child height and assumes 0.
+                Height = DrawWidth;
+            }
+
+            protected abstract class Marker : CompositeDrawable
+            {
+                public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
+            }
         }
 
         public abstract class HueSelector : CompositeDrawable
