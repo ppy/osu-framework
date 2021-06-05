@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -182,9 +183,14 @@ namespace osu.Framework.Graphics.UserInterface
 
                 currentChanging = true;
 
-                Hue.Value = asHSV.X;
                 Saturation.Value = asHSV.Y;
                 Value.Value = asHSV.Z;
+
+                // if saturation is near-zero, it may not be really possible to accurately measure the hue of the colour, as hsv(x, 0, y) == hsv(z, 0, y) for any x,y,z.
+                // in those cases, just keep the hue as it was, as the colour will still be roughly the same to the point of being imperceptible,
+                // and doing this will prevent UX idiosyncrasies (such as the hue slider jumping to 0 for no apparent reason).
+                if (Precision.DefinitelyBigger(Saturation.Value, 0))
+                    Hue.Value = asHSV.X;
 
                 currentChanging = false;
             }
