@@ -6,6 +6,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
+using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -143,6 +145,7 @@ namespace osu.Framework.Graphics.UserInterface
                     nub = CreateSliderNub().With(d =>
                     {
                         d.RelativeSizeAxes = Axes.Y;
+                        d.RelativePositionAxes = Axes.X;
                     })
                 };
             }
@@ -151,6 +154,42 @@ namespace osu.Framework.Graphics.UserInterface
             /// Creates the nub which will be used for the hue slider.
             /// </summary>
             protected abstract Drawable CreateSliderNub();
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                Hue.BindValueChanged(_ => updateNubPosition(), true);
+            }
+
+            private void updateNubPosition()
+            {
+                nub.Position = new Vector2(Hue.Value, 0);
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+                return true;
+            }
+
+            protected override bool OnDragStart(DragStartEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+                return true;
+            }
+
+            protected override void OnDrag(DragEvent e)
+            {
+                handleMouseInput(e.ScreenSpaceMousePosition);
+            }
+
+            private void handleMouseInput(Vector2 mousePosition)
+            {
+                var localSpacePosition = ToLocalSpace(mousePosition);
+                float value = localSpacePosition.X / DrawWidth;
+                Hue.Value = value;
+            }
 
             private class HueSelectorBackground : Box, ITexturedShaderDrawable
             {
