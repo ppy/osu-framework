@@ -164,59 +164,78 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Current.BindValueChanged(_ => updateHSV(), true);
+                Current.BindValueChanged(_ => currentChanged(), true);
 
-                Hue.BindValueChanged(_ => updateHue(), true);
-                Saturation.BindValueChanged(_ => updateSaturation(), true);
-                Value.BindValueChanged(_ => updateValue(), true);
+                Hue.BindValueChanged(_ => hueChanged(), true);
+                Saturation.BindValueChanged(_ => saturationChanged(), true);
+                Value.BindValueChanged(_ => valueChanged(), true);
             }
 
-            // Because value change callbacks fire immediately after setting {Hue,Saturation,Value}.Value,
-            // a way to set those three atomically is needed when .Current is changed externally, as it may affect all three.
-            // Otherwise setting hue first will lead to a .Current.Value set again, therefore performing a partial update.
-            // This flag is set when all three components are to be modified at once and reset when the update is complete to achieve desired behaviour.
-            private bool currentChanging;
+            // As Current and {Hue,Saturation,Value} are mutually bound together,
+            // using unprotected value change callbacks can end up causing partial colour updates (e.g. only the hue changing when Current is set),
+            // or circular updates (e.g. Hue.Changed -> Current.Changed -> Hue.Changed).
+            // To prevent this, this flag is set on every original change on each of the four bindables,
+            // and any subsequent value change callbacks are supposed to not mutate any of those bindables further if the flag is set.
+            private bool changeInProgress;
 
-            private void updateHSV()
+            private void currentChanged()
             {
+                if (changeInProgress)
+                    return;
+
                 var asHSV = Current.Value.ToHSV();
 
-                currentChanging = true;
+                changeInProgress = true;
 
                 Saturation.Value = asHSV.Y;
                 Value.Value = asHSV.Z;
 
-                // if saturation is near-zero, it may not be really possible to accurately measure the hue of the colour, as hsv(x, 0, y) == hsv(z, 0, y) for any x,y,z.
-                // in those cases, just keep the hue as it was, as the colour will still be roughly the same to the point of being imperceptible,
-                // and doing this will prevent UX idiosyncrasies (such as the hue slider jumping to 0 for no apparent reason).
-                if (Precision.DefinitelyBigger(Saturation.Value, 0))
+                if (shouldUpdateHue(asHSV.X))
                     Hue.Value = asHSV.X;
 
-                currentChanging = false;
+                changeInProgress = false;
             }
 
-            private void updateHue()
+            private bool shouldUpdateHue(float newHue)
+            {
+                // there are two situations in which a hue value change is possibly unwanted.
+                // * if saturation is near-zero, it may not be really possible to accurately measure the hue of the colour,
+                //   as hsv(x, 0, y) == hsv(z, 0, y) for any x,y,z.
+                // * similarly, the hues of 0 and 1 are functionally equivalent,
+                //   as hsv(0, x, y) == hsv(1, x, y) for any x,y.
+                // in those cases, just keep the hue as it was, as the colour will still be roughly the same to the point of being imperceptible,
+                // and doing this will prevent UX idiosyncrasies (such as the hue slider jumping to 0 for no apparent reason).
+                return Precision.DefinitelyBigger(Saturation.Value, 0)
+                       && !Precision.AlmostEquals(Hue.Value - newHue, 1);
+            }
+
+            private void hueChanged()
             {
                 hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
-                if (!currentChanging)
-                    updateCurrent();
+                updateCurrent();
             }
 
-            private void updateSaturation()
+            private void saturationChanged()
             {
                 marker.X = Saturation.Value;
-                if (!currentChanging)
-                    updateCurrent();
+                updateCurrent();
             }
 
-            private void updateValue()
+            private void valueChanged()
             {
                 marker.Y = 1 - Value.Value;
-                if (!currentChanging)
-                    updateCurrent();
+                updateCurrent();
             }
 
-            private void updateCurrent() => Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
+            private void updateCurrent()
+            {
+                if (changeInProgress)
+                    return;
+
+                changeInProgress = true;
+                Current.Value = Colour4.FromHSV(Hue.Value, Saturation.Value, Value.Value);
+                changeInProgress = false;
+            }
 
             protected override void Update()
             {
