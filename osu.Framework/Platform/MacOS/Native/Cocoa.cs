@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osuTK;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.MacOS.Native
@@ -57,6 +58,9 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern void SendVoid(IntPtr receiver, IntPtr selector, bool arg);
+
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
         public static extern float SendFloat_i386(IntPtr receiver, IntPtr selector);
 
@@ -65,14 +69,45 @@ namespace osu.Framework.Platform.MacOS.Native
 
         public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
 
-        // todo: Check if this works
+        // todo: Check if this works, also find a better name
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
-        public static extern NSPoint SendNSPoint_i386(IntPtr receiver, IntPtr selector);
+        public static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern NSPoint_64 SendNSPoint_x64(IntPtr receiver, IntPtr selector);
+        public static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector);
 
-        public static NSPoint SendNSPoint(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendNSPoint_i386(receiver, selector) : SendNSPoint_x64(receiver, selector).ToNSPoint();
+        public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector)
+        {
+            if (IntPtr.Size == 4)
+            {
+                return SendNSPoint_i386(receiver, selector);
+            } else
+            {
+                // todo better conversion
+                Vector2d point = SendNSPoint_x64(receiver, selector);
+                return new Vector2((float)point.X, (float)point.Y);
+            }
+        }
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        public static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+
+        public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector, IntPtr ptr1)
+        {
+            if (IntPtr.Size == 4)
+            {
+                return SendNSPoint_i386(receiver, selector, ptr1);
+            }
+            else
+            {
+                // todo better conversion
+                Vector2d point = SendNSPoint_x64(receiver, selector, ptr1);
+                return new Vector2((float)point.X, (float)point.Y);
+            }
+        }
 
         public static IntPtr AppKitLibrary;
 
