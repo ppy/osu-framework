@@ -116,6 +116,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("hue is unchanged", () => colourPicker.HueControl.Hue.Value == 0.5f);
         }
 
+        [Test]
+        public void TestHueDoesNotWrapAround()
+        {
+            // the hue of 1 is special, because it's equivalent to hue of 0.
+            // we want to make sure there is never a jump from 1 to 0, since it doesn't actually do anything.
+            AddStep("set hue to 1", () => colourPicker.HueControl.Hue.Value = 1);
+            AddStep("click saturation value control", () =>
+            {
+                InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.Centre);
+                InputManager.Click(MouseButton.Left);
+            });
+            assertHue(1, 0);
+
+            AddStep("set hue to 1", () => colourPicker.HueControl.Hue.Value = 1);
+            AddStep("set colour externally", () => colourPicker.Current.Value = Colour4.Red);
+            assertHue(1, 0);
+        }
+
         private void assertHue(float hue, float tolerance = 0.005f)
         {
             AddAssert($"hue selector has {hue}", () => Precision.AlmostEquals(colourPicker.HueControl.Hue.Value, hue, tolerance));
