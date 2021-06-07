@@ -19,10 +19,19 @@ namespace osu.Framework.Input.Handlers.Trackpad
 
         public override bool IsActive => true;
 
+        public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>();
+
+        public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>();
+
         private SDL2DesktopWindow window;
 
         public override bool Initialize(GameHost host)
         {
+            // By default this should be disabled.
+            Enabled.Value = false;
+            AreaOffset.Default = new Vector2(0.5f, 0.5f);
+            AreaSize.Default = new Vector2(0.9f, 0.9f);
+
             if (!base.Initialize(host))
                 return false;
 
@@ -46,22 +55,18 @@ namespace osu.Framework.Input.Handlers.Trackpad
             return true;
         }
 
-        public void HandleTrackpadMove(Vector2 vector)
+        public void HandleTrackpadMove(Vector2[] vectors)
         {
-            // todo: Proper transformations... like tablet
-            float sizeFactor = 0.55f;
-
-
-            float trackpadX = (window.Size.Width / (2 * sizeFactor)) * ((2 * vector.X) - 1);
-            float trackpadY = (window.Size.Height / (2 * sizeFactor)) * ((2 * (1 - vector.Y)) - 1);
-
-            enqueueInput(new MousePositionAbsoluteInput() { Position = new Vector2(trackpadX + (window.Size.Width / 2), trackpadY + (window.Size.Height / 2)) });
+            // todo: doesn't accoutn for window transofrmations in lazer
+            Vector2 vector = vectors[0];
+            vector.Y = 1 - vector.Y;
+            enqueueInput(new MousePositionAbsoluteInput() { Position = Vector2.Divide(vector + (AreaSize.Value / 2) - AreaOffset.Value, AreaSize.Value) * new Vector2(window.Size.Width, window.Size.Height) });
         }
 
         public override void Reset()
         {
-            // Sensitivity.SetDefault();
-            // todo resets areaoffset and areasize
+            AreaOffset.SetDefault();
+            AreaSize.SetDefault();
             base.Reset();
         }
 

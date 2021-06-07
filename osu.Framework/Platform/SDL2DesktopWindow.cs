@@ -1423,12 +1423,12 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action<string> DragDrop;
 
-        protected void TriggerTrackpadPositionChanged(Vector2 point) => TrackpadPositionChanged?.Invoke(point);
+        protected void TriggerTrackpadPositionChanged(Vector2[] point) => TrackpadPositionChanged?.Invoke(point);
 
         /// <summary>
         /// Invoked when a joystick axis changes.
         /// </summary>
-        public event Action<Vector2> TrackpadPositionChanged;
+        public event Action<Vector2[]> TrackpadPositionChanged;
 
         #endregion
 

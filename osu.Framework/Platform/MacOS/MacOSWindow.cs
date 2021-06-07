@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Platform.MacOS.Native;
+using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Platform.MacOS
@@ -79,6 +81,8 @@ namespace osu.Framework.Platform.MacOS
             ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
 
+        List<IntPtr> pointers = new List<IntPtr>();
+
         /// <summary>
         /// Swizzled replacement of [SDLView touchesBegan:(NSEvent *)] that checks for touches on the MacOS trackpad.
         /// </summary>
@@ -86,8 +90,13 @@ namespace osu.Framework.Platform.MacOS
         {
             IntPtr allTouches = Cocoa.SendIntPtr(theEvent, sel_alltouches_);
 
-            foreach (IntPtr touchptr in new NSArray(Cocoa.SendIntPtr(allTouches, sel_allobjects)).ToArray())
+            IntPtr[] touchptrs = new NSArray(Cocoa.SendIntPtr(allTouches, sel_allobjects)).ToArray();
+
+            Vector2[] touches = new Vector2[touchptrs.Length];
+
+            foreach (IntPtr touchptr in touchptrs)
             {
+
                 NSTouch touch = new NSTouch(touchptr);
 
                 //Logger.Log($"{touch.NormalizedPosition()} {touch.Phase()}");
@@ -95,9 +104,18 @@ namespace osu.Framework.Platform.MacOS
                 // todo actually write an impl for this
                 if (touch.Phase() != NSTouchPhase.NSTouchPhaseStationary)
                 {
-                    ScheduleEvent(() => TriggerTrackpadPositionChanged(touch.NormalizedPosition()));
+                    //ScheduleEvent(() => TriggerTrackpadPositionChanged(touch.NormalizedPosition()));
                 }
             }
+
+            // https://eternalstorms.wordpress.com/2015/11/16/how-to-detect-force-touch-capable-devices-on-the-mac/
+
+            for (var i = 0; i < touchptrs.Length; i++)
+            {
+                NSTouch touch = new NSTouch(touchptrs[i]);
+                touches[i] = touch.NormalizedPosition();
+            }
+            ScheduleEvent(() => TriggerTrackpadPositionChanged(touches));
         }
     }
 }
