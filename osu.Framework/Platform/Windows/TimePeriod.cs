@@ -39,34 +39,6 @@ namespace osu.Framework.Platform.Windows
             this.period = period;
         }
 
-        private bool active;
-
-        internal bool Active
-        {
-            get => active;
-            set
-            {
-                if (value == active || !canAdjust) return;
-
-                active = value;
-
-                try
-                {
-                    if (active)
-                    {
-                        canAdjust &= 0 == timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod));
-                    }
-                    else
-                    {
-                        timeEndPeriod(period);
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
-
         #region IDisposable Support
 
         private bool disposedValue; // To detect redundant calls
@@ -75,7 +47,6 @@ namespace osu.Framework.Platform.Windows
         {
             if (!disposedValue)
             {
-                Active = false;
                 disposedValue = true;
             }
         }
