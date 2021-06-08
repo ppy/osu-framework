@@ -251,11 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                handleMouseInput(e.ScreenSpaceMousePosition);
-                return true;
-            }
+            protected override bool OnDragStart(DragStartEvent e) => true;
 
             protected override void OnDrag(DragEvent e)
             {
