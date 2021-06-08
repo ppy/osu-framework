@@ -59,7 +59,7 @@ namespace osu.Framework.Platform.Windows
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
-            timePeriod = new TimePeriod(1) { Active = true };
+            timePeriod = new TimePeriod(1);
         }
 
         protected override IWindow CreateWindow() => new WindowsWindow();
@@ -77,16 +77,12 @@ namespace osu.Framework.Platform.Windows
 
         protected override void OnActivated()
         {
-            timePeriod.Active = true;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
-            timePeriod.Active = false;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated();
         }
