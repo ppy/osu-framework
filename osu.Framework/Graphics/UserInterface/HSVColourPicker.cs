@@ -347,8 +347,7 @@ namespace osu.Framework.Graphics.UserInterface
             private void handleMouseInput(Vector2 mousePosition)
             {
                 var localSpacePosition = ToLocalSpace(mousePosition);
-                float value = localSpacePosition.X / DrawWidth;
-                Hue.Value = value;
+                Hue.Value = localSpacePosition.X / DrawWidth;
             }
 
             private class HueSelectorBackground : Box, ITexturedShaderDrawable
