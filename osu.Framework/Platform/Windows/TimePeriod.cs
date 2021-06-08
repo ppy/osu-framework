@@ -43,7 +43,7 @@ namespace osu.Framework.Platform.Windows
 
             try
             {
-                didAdjust = 0 == timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod));
+                didAdjust = timeBeginPeriod(Math.Clamp(period, MinimumPeriod, MaximumPeriod)) == 0;
             }
             catch { }
         }
