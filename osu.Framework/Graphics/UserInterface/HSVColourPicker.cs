@@ -26,18 +26,16 @@ namespace osu.Framework.Graphics.UserInterface
             set => current.Current = value;
         }
 
-        public Colour4 BackgroundColour
-        {
-            get => background.Colour;
-            set => background.Colour = value;
-        }
+        /// <summary>
+        /// The background of the control.
+        /// </summary>
+        protected Box Background { get; }
 
         /// <summary>
         /// Contains the elements of the colour picker.
         /// </summary>
-        protected readonly FillFlowContainer Content;
+        protected FillFlowContainer Content { get; }
 
-        private readonly Box background;
         private readonly SaturationValueSelector saturationValueSelector;
         private readonly HueSelector hueSelector;
 
@@ -49,7 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             InternalChildren = new Drawable[]
             {
-                background = new Box
+                Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both
                 },

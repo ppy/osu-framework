@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public BasicHSVColourPicker()
         {
-            BackgroundColour = FrameworkColour.GreenDark;
+            Background.Colour = FrameworkColour.GreenDark;
 
             Content.Padding = new MarginPadding(20);
             Content.Spacing = new Vector2(0, 10);
