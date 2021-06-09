@@ -23,10 +23,12 @@ highp float distanceFromRoundedRect(highp vec2 offset, highp float radius)
 	highp vec2 maskingPosition = v_MaskingPosition + offset;
 
 	// Compute offset distance from masking rect in masking space.
-	highp vec2 topLeftOffset = min(g_MaskingRect.xy, g_MaskingRect.zw) - maskingPosition;
-	highp vec2 bottomRightOffset = maskingPosition - max(g_MaskingRect.xy, g_MaskingRect.zw);
+	highp vec2 topLeftOffset = g_MaskingRect.xy - maskingPosition;
+	highp vec2 bottomRightOffset = maskingPosition - g_MaskingRect.zw;
 
-	highp vec2 distanceFromShrunkRect = max(bottomRightOffset, topLeftOffset) + vec2(radius);
+	highp vec2 distanceFromShrunkRect = max(
+		bottomRightOffset + vec2(radius),
+		topLeftOffset + vec2(radius));
 
 	highp float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
 
