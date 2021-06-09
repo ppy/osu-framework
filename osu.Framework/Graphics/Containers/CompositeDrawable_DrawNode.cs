@@ -118,7 +118,10 @@ namespace osu.Framework.Graphics.Containers
                 if (maskingInfo == null || edgeEffect.Type == EdgeEffectType.None || edgeEffect.Radius <= 0.0f || edgeEffect.Colour.Linear.A <= 0)
                     return;
 
-                RectangleF effectRect = maskingInfo.Value.MaskingRect.Inflate(edgeEffect.Radius).Offset(edgeEffect.Offset);
+                var maskingRect = maskingInfo.Value.MaskingRect;
+                RectangleF effectRect = maskingRect
+                                        .Inflate(edgeEffect.Radius * new Vector2(maskingRect.Width >= 0 ? 1 : -1, maskingRect.Height >= 0 ? 1 : -1))
+                                        .Offset(edgeEffect.Offset);
 
                 screenSpaceMaskingQuad ??= Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
