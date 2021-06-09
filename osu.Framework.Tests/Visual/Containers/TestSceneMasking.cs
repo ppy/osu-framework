@@ -507,6 +507,13 @@ namespace osu.Framework.Tests.Visual.Containers
                                 CornerExponent = TestCornerExponent,
                                 BorderColour = Color4.Red,
                                 BorderThickness = 10,
+                                EdgeEffect = new EdgeEffectParameters
+                                {
+                                    Type = EdgeEffectType.Glow,
+                                    Radius = 100,
+                                    Roundness = 50,
+                                    Colour = Color4.Blue,
+                                },
                             }
                         }
                     }.With(c => c.OnLoadComplete += _ =>
