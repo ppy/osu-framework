@@ -44,7 +44,7 @@ namespace osu.Framework.Utils
         public static bool TryParseUri(string uriString, [NotNullWhen(true)] out Uri? result)
         {
 #pragma warning disable RS0030 // Bypassing banned API check, as it'll actually be used properly here
-            UriKind kind = uriString.StartsWith("/", StringComparison.Ordinal) ? UriKind.Relative : UriKind.RelativeOrAbsolute;
+            UriKind kind = uriString.StartsWith('/') ? UriKind.Relative : UriKind.RelativeOrAbsolute;
 #pragma warning restore RS0030
             return Uri.TryCreate(uriString, kind, out result);
         }
