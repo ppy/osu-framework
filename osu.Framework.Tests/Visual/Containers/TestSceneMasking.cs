@@ -36,6 +36,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 @"Nested masking",
                 @"Rounded corner input",
                 @"Offset shadow",
+                @"Negative size"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -484,6 +485,37 @@ namespace osu.Framework.Tests.Visual.Containers
                     box.OnUpdate += delegate { box.Rotation += 0.05f; };
                     break;
                 }
+
+                case 8:
+                    TestContainer.Add(new Container
+                    {
+                        Size = new Vector2(200, 200),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Gray,
+                            },
+                            new InfofulBox
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Masking = true,
+                                CornerRadius = 50,
+                                CornerExponent = TestCornerExponent,
+                                BorderColour = Color4.Red,
+                                BorderThickness = 10,
+                            }
+                        }
+                    }.With(c => c.OnLoadComplete += _ =>
+                    {
+                        c.ResizeWidthTo(-200, 1000, Easing.InOutSine).Then()
+                         .ResizeHeightTo(-200, 1000, Easing.InOutSine).Then()
+                         .ResizeTo(new Vector2(200, 200), 1000).Loop();
+                    }));
+                    break;
             }
 
 #if DEBUG
