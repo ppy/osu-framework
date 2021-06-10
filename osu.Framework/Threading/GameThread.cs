@@ -66,7 +66,7 @@ namespace osu.Framework.Threading
 
         public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
 
-        public bool Running => Thread?.IsAlive == true;
+        public bool Running { get; private set; }
 
         public virtual bool IsCurrent => true;
 
@@ -109,6 +109,9 @@ namespace osu.Framework.Threading
         private void createThread()
         {
             Debug.Assert(Thread == null);
+            Debug.Assert(!Running);
+
+            Running = true;
 
             Thread = new Thread(runWork)
             {
@@ -234,6 +237,7 @@ namespace osu.Framework.Threading
 
         protected virtual void Cleanup()
         {
+            Running = false;
             Thread = null;
         }
 
