@@ -4,6 +4,7 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Bindables;
+using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Tests.Bindables
 {
@@ -48,6 +49,19 @@ namespace osu.Framework.Tests.Bindables
             var deserialized = JsonConvert.DeserializeObject<Bindable<string>>(JsonConvert.SerializeObject(toSerialize));
 
             Assert.AreEqual(toSerialize.Value, deserialized?.Value);
+        }
+
+        [Test]
+        public void TestClassWithInitialisationFromCtorArgs()
+        {
+            var toSerialize = new CustomObjWithCtorInit
+            {
+                Bindable1 = { Value = 5 }
+            };
+
+            var deserialized = JsonConvert.DeserializeObject<CustomObjWithCtorInit>(JsonConvert.SerializeObject(toSerialize));
+
+            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized?.Bindable1.Value);
         }
 
         [Test]
@@ -121,6 +135,16 @@ namespace osu.Framework.Tests.Bindables
             JsonConvert.PopulateObject(serialized, obj);
 
             Assert.IsTrue(valueChanged);
+        }
+
+        private class CustomObjWithCtorInit
+        {
+            public readonly Bindable<int> Bindable1 = new Bindable<int>();
+
+            public CustomObjWithCtorInit(int bindable1 = 0)
+            {
+                Bindable1.Value = bindable1;
+            }
         }
 
         private class CustomObj
