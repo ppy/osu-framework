@@ -4,7 +4,6 @@
 using Newtonsoft.Json;
 using NUnit.Framework;
 using osu.Framework.Bindables;
-using osu.Framework.IO.Serialization;
 
 namespace osu.Framework.Tests.Bindables
 {
