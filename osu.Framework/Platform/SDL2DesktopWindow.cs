@@ -434,10 +434,7 @@ namespace osu.Framework.Platform
 
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-                    // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
                     updateWindowSize();
-                    return 0;
                 }
 
                 return 1;
@@ -478,11 +475,14 @@ namespace osu.Framework.Platform
         private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
-
             SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
-            Scale = (float)w / actualW;
 
+            Scale = (float)w / actualW;
             Size = new Size(w, h);
+
+            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
+            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
+            ScheduleEvent(storeWindowSizeToConfig);
         }
 
         /// <summary>
@@ -914,9 +914,6 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     updateWindowSize();
-                    if (WindowState == WindowState.Normal)
-                        storeWindowSizeToConfig();
-
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -1085,6 +1082,9 @@ namespace osu.Framework.Platform
 
         private void storeWindowSizeToConfig()
         {
+            if (WindowState != WindowState.Normal)
+                return;
+
             storingSizeToConfig = true;
             sizeWindowed.Value = (Size / Scale).ToSize();
             storingSizeToConfig = false;
