@@ -111,8 +111,6 @@ namespace osu.Framework.Threading
             Debug.Assert(Thread == null);
             Debug.Assert(!Running);
 
-            Running = true;
-
             Thread = new Thread(runWork)
             {
                 Name = PrefixedThreadNameFor(Name),
@@ -131,6 +129,8 @@ namespace osu.Framework.Threading
 
         private void runWork()
         {
+            Running = true;
+
             try
             {
                 Initialize(true);
@@ -254,6 +254,9 @@ namespace osu.Framework.Threading
             }
 
             Thread.Start();
+
+            while (!Running)
+                Thread.Sleep(1);
         }
 
         protected virtual void PerformExit()
