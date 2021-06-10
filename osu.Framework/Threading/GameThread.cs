@@ -242,8 +242,11 @@ namespace osu.Framework.Threading
 
         protected virtual void Cleanup()
         {
-            Thread = null;
-            Running = false;
+            lock (startStopLock)
+            {
+                Thread = null;
+                Running = false;
+            }
         }
 
         public void Exit() => exitRequested = true;
