@@ -72,6 +72,8 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
+        private readonly object startStopLock = new object();
+
         internal void Initialize(bool withThrottling)
         {
             MakeCurrent();
@@ -223,15 +225,18 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            if (Thread != null)
+            lock (startStopLock)
             {
-                paused = true;
-                while (Running)
-                    Thread.Sleep(1);
-            }
-            else
-            {
-                Cleanup();
+                if (Thread != null)
+                {
+                    paused = true;
+                    while (Running)
+                        Thread.Sleep(1);
+                }
+                else
+                {
+                    Cleanup();
+                }
             }
         }
 
@@ -245,18 +250,22 @@ namespace osu.Framework.Threading
 
         public virtual void Start()
         {
-            paused = false;
-
-            if (Thread == null)
+            lock (startStopLock)
             {
-                createThread();
-                Debug.Assert(Thread != null);
+                paused = false;
+                Debug.Assert(Thread == null);
+
+                if (Thread == null)
+                {
+                    createThread();
+                    Debug.Assert(Thread != null);
+                }
+
+                Thread.Start();
+
+                while (!Running)
+                    Thread.Sleep(1);
             }
-
-            Thread.Start();
-
-            while (!Running)
-                Thread.Sleep(1);
         }
 
         protected virtual void PerformExit()
