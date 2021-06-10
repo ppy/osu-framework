@@ -13,7 +13,7 @@ using osu.Framework.Audio.Callbacks;
 namespace osu.Framework.Audio.Track
 {
     /// <summary>
-    /// Procsses audio sample data such that it can then be consumed to generate waveform plots of the audio.
+    /// Processes audio sample data such that it can then be consumed to generate waveform plots of the audio.
     /// </summary>
     public class Waveform : IDisposable
     {

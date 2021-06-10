@@ -12,6 +12,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -177,10 +178,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     if (string.IsNullOrEmpty(url))
                         continue;
 
-                    // Can't use Uri.TryCreate with RelativeOrAbsolute, see https://www.mono-project.com/docs/faq/known-issues/urikind-relativeorabsolute/.
-                    bool isAbsolute = url.Contains("://");
+                    if (!Validation.TryParseUri(url, out Uri linkUri))
+                        continue;
 
-                    if (isAbsolute)
+                    if (linkUri.IsAbsoluteUri)
                         continue;
 
                     if (documentUri != null)

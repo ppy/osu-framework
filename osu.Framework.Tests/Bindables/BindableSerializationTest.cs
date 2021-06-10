@@ -51,6 +51,19 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestClassWithInitialisationFromCtorArgs()
+        {
+            var toSerialize = new CustomObjWithCtorInit
+            {
+                Bindable1 = { Value = 5 }
+            };
+
+            var deserialized = JsonConvert.DeserializeObject<CustomObjWithCtorInit>(JsonConvert.SerializeObject(toSerialize));
+
+            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized?.Bindable1.Value);
+        }
+
+        [Test]
         public void TestIntWithBounds()
         {
             var toSerialize = new CustomObj2
@@ -121,6 +134,16 @@ namespace osu.Framework.Tests.Bindables
             JsonConvert.PopulateObject(serialized, obj);
 
             Assert.IsTrue(valueChanged);
+        }
+
+        private class CustomObjWithCtorInit
+        {
+            public readonly Bindable<int> Bindable1 = new Bindable<int>();
+
+            public CustomObjWithCtorInit(int bindable1 = 0)
+            {
+                Bindable1.Value = bindable1;
+            }
         }
 
         private class CustomObj
