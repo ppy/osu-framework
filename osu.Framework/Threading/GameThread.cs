@@ -237,8 +237,8 @@ namespace osu.Framework.Threading
 
         protected virtual void Cleanup()
         {
-            Running = false;
             Thread = null;
+            Running = false;
         }
 
         public void Exit() => exitRequested = true;
