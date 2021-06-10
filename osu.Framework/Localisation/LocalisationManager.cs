@@ -40,16 +40,16 @@ namespace osu.Framework.Localisation
         [NotNull]
         public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
-        private void updateLocale(ValueChangedEvent<string> args)
+        private void updateLocale(ValueChangedEvent<string> locale)
         {
             if (locales.Count == 0)
                 return;
 
-            var validLocale = locales.Find(l => l.Name == args.NewValue);
+            var validLocale = locales.Find(l => l.Name == locale.NewValue);
 
             if (validLocale == null)
             {
-                var culture = string.IsNullOrEmpty(args.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(args.NewValue);
+                var culture = string.IsNullOrEmpty(locale.NewValue) ? CultureInfo.CurrentCulture : new CultureInfo(locale.NewValue);
 
                 for (var c = culture; !EqualityComparer<CultureInfo>.Default.Equals(c, CultureInfo.InvariantCulture); c = c.Parent)
                 {
@@ -61,10 +61,7 @@ namespace osu.Framework.Localisation
                 validLocale ??= locales[0];
             }
 
-            if (validLocale.Name != args.NewValue)
-                configLocale.Value = validLocale.Name;
-            else
-                currentStorage.Value = validLocale.Storage;
+            currentStorage.Value = validLocale.Storage;
         }
 
         private class LocaleMapping
