@@ -225,18 +225,15 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            lock (startStopLock)
+            if (Thread != null)
             {
-                if (Thread != null)
-                {
-                    paused = true;
-                    while (Running)
-                        Thread.Sleep(1);
-                }
-                else
-                {
-                    Cleanup();
-                }
+                paused = true;
+                while (Running)
+                    Thread.Sleep(1);
+            }
+            else
+            {
+                Cleanup();
             }
         }
 
