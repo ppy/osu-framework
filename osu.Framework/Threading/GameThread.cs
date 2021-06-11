@@ -225,16 +225,12 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            if (Thread != null)
-            {
-                paused = true;
-                while (Running)
-                    Thread.Sleep(1);
-            }
-            else
-            {
-                Cleanup();
-            }
+            if (Thread == null)
+                return;
+
+            paused = true;
+            while (Running)
+                Thread.Sleep(1);
         }
 
         protected virtual void Cleanup()
@@ -253,13 +249,10 @@ namespace osu.Framework.Threading
             lock (startStopLock)
             {
                 paused = false;
-                Debug.Assert(Thread == null);
 
-                if (Thread == null)
-                {
-                    createThread();
-                    Debug.Assert(Thread != null);
-                }
+                Debug.Assert(Thread == null);
+                createThread();
+                Debug.Assert(Thread != null);
 
                 Thread.Start();
 
