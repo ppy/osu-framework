@@ -283,41 +283,80 @@ namespace osu.Framework.Graphics
         /// <exception cref="ArgumentException">If <paramref name="hex"/> is not a supported colour code.</exception>
         public static Colour4 FromHex(string hex)
         {
+            if (!TryParseHex(hex, out var colour))
+                throw new ArgumentException($"{hex} is not a valid colour hex string.", nameof(hex));
+
+            return colour;
+        }
+
+        /// <summary>
+        /// Attempts to convert an RGB or RGBA-formatted hex colour code into a <see cref="Colour4"/>.
+        /// Supported colour code formats:
+        /// <list type="bullet">
+        /// <item><description>RGB</description></item>
+        /// <item><description>#RGB</description></item>
+        /// <item><description>RGBA</description></item>
+        /// <item><description>#RGBA</description></item>
+        /// <item><description>RRGGBB</description></item>
+        /// <item><description>#RRGGBB</description></item>
+        /// <item><description>RRGGBBAA</description></item>
+        /// <item><description>#RRGGBBAA</description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="hex">The hex code.</param>
+        /// <param name="colour">The <see cref="Colour4"/> representing the colour, if parsing succeeded.</param>
+        /// <returns>Whether the input could be parsed as a hex code.</returns>
+        public static bool TryParseHex(string hex, out Colour4 colour)
+        {
             var hexSpan = hex.StartsWith('#') ? hex.AsSpan(1) : hex.AsSpan();
+
+            bool parsed = true;
+            byte r = 255, g = 255, b = 255, a = 255;
 
             switch (hexSpan.Length)
             {
                 default:
-                    throw new ArgumentException($"Invalid hex string length {hex.Length}, expected 3, 4, 6, or 8.", nameof(hex));
+                    parsed = false;
+                    break;
 
                 case 3:
-                    return new Colour4(
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
-                        255);
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(1, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+
+                    r *= 17;
+                    g *= 17;
+                    b *= 17;
+                    break;
 
                 case 6:
-                    return new Colour4(
-                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
-                        255);
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    break;
 
                 case 4:
-                    return new Colour4(
-                        (byte)(byte.Parse(hexSpan.Slice(0, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(1, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(2, 1), NumberStyles.HexNumber) * 17),
-                        (byte)(byte.Parse(hexSpan.Slice(3, 1), NumberStyles.HexNumber) * 17));
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(1, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    parsed &= byte.TryParse(hexSpan.Slice(3, 1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out a);
+
+                    r *= 17;
+                    g *= 17;
+                    b *= 17;
+                    a *= 17;
+                    break;
 
                 case 8:
-                    return new Colour4(
-                        byte.Parse(hexSpan.Slice(0, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(2, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(4, 2), NumberStyles.HexNumber),
-                        byte.Parse(hexSpan.Slice(6, 2), NumberStyles.HexNumber));
+                    parsed &= byte.TryParse(hexSpan.Slice(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out r);
+                    parsed &= byte.TryParse(hexSpan.Slice(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out g);
+                    parsed &= byte.TryParse(hexSpan.Slice(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b);
+                    parsed &= byte.TryParse(hexSpan.Slice(6, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out a);
+                    break;
             }
+
+            colour = new Colour4(r, g, b, a);
+            return parsed;
         }
 
         /// <summary>
