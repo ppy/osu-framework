@@ -74,6 +74,11 @@ namespace osu.Framework.Threading
 
         private readonly object startStopLock = new object();
 
+        /// <summary>
+        /// Whether a pause has been requested.
+        /// </summary>
+        private bool pauseRequested;
+
         internal void Initialize(bool withThrottling)
         {
             MakeCurrent();
@@ -137,7 +142,7 @@ namespace osu.Framework.Threading
             {
                 Initialize(true);
 
-                while (!exitCompleted && !paused)
+                while (!exitCompleted && !pauseRequested)
                 {
                     ProcessFrame();
                 }
@@ -221,14 +226,16 @@ namespace osu.Framework.Threading
             Thread.CurrentUICulture = culture;
         }
 
-        private bool paused;
-
         public void Pause()
         {
-            if (Thread == null)
-                return;
+            lock (startStopLock)
+            {
+                if (Thread == null)
+                    return;
 
-            paused = true;
+                pauseRequested = true;
+            }
+
             while (Running)
                 Thread.Sleep(1);
         }
@@ -248,7 +255,7 @@ namespace osu.Framework.Threading
         {
             lock (startStopLock)
             {
-                paused = false;
+                pauseRequested = false;
 
                 Debug.Assert(Thread == null);
                 createThread();
