@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Current.BindValueChanged(_ => updatePreview());
+                Current.BindValueChanged(_ => updatePreview(), true);
             }
 
             private void updatePreview()
