@@ -45,7 +45,7 @@ namespace osu.Framework.Testing
                 InputManager = new ManualInputManager
                 {
                     UseParentInput = true,
-                    Child = new PlatformActionContainer().WithChild(Content)
+                    Child = Content,
                 },
                 new Container
                 {

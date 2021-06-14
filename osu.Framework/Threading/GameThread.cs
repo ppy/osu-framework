@@ -72,6 +72,13 @@ namespace osu.Framework.Threading
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
+        private readonly object startStopLock = new object();
+
+        /// <summary>
+        /// Whether a pause has been requested.
+        /// </summary>
+        private bool pauseRequested;
+
         internal void Initialize(bool withThrottling)
         {
             MakeCurrent();
@@ -135,7 +142,7 @@ namespace osu.Framework.Threading
             {
                 Initialize(true);
 
-                while (!exitCompleted && !paused)
+                while (!exitCompleted && !pauseRequested)
                 {
                     ProcessFrame();
                 }
@@ -219,44 +226,46 @@ namespace osu.Framework.Threading
             Thread.CurrentUICulture = culture;
         }
 
-        private bool paused;
-
         public void Pause()
         {
-            if (Thread != null)
+            lock (startStopLock)
             {
-                paused = true;
-                while (Running)
-                    Thread.Sleep(1);
+                if (Thread == null)
+                    return;
+
+                pauseRequested = true;
             }
-            else
-            {
-                Cleanup();
-            }
+
+            while (Running)
+                Thread.Sleep(1);
         }
 
         protected virtual void Cleanup()
         {
-            Running = false;
-            Thread = null;
+            lock (startStopLock)
+            {
+                Thread = null;
+                Running = false;
+            }
         }
 
         public void Exit() => exitRequested = true;
 
         public virtual void Start()
         {
-            paused = false;
-
-            if (Thread == null)
+            lock (startStopLock)
             {
+                pauseRequested = false;
+
+                Debug.Assert(Thread == null);
                 createThread();
                 Debug.Assert(Thread != null);
+
+                Thread.Start();
+
+                while (!Running)
+                    Thread.Sleep(1);
             }
-
-            Thread.Start();
-
-            while (!Running)
-                Thread.Sleep(1);
         }
 
         protected virtual void PerformExit()
