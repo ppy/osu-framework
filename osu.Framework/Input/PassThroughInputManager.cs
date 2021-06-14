@@ -28,7 +28,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
-        public bool UseParentInput
+        public virtual bool UseParentInput
         {
             get => useParentInput;
             set
