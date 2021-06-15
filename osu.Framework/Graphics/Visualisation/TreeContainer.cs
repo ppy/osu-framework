@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 
@@ -38,6 +39,7 @@ namespace osu.Framework.Graphics.Visualisation
             AddInternal(waitingText = new SpriteText
             {
                 Text = @"Waiting for target selection...",
+                Font = FrameworkFont.Regular,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
             });

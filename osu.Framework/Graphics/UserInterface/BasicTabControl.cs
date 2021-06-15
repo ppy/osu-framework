@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osuTK.Graphics;
 
@@ -27,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     Margin = new MarginPadding(2),
                     Text = value.ToString(),
-                    Font = new FontUsage(size: 18),
+                    Font = FrameworkFont.Regular.With(size: 18),
                 });
             }
 
@@ -61,7 +62,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.RelativeSizeAxes = Axes.None;
                     Foreground.AutoSizeAxes = Axes.Both;
 
-                    Foreground.Child = new SpriteText { Text = "…" };
+                    Foreground.Child = new SpriteText
+                    {
+                        Text = "…",
+                        Font = FrameworkFont.Regular
+                    };
                 }
             }
         }

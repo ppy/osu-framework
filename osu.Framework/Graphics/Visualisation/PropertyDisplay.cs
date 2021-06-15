@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
@@ -140,15 +141,18 @@ namespace osu.Framework.Graphics.Visualisation
                                 {
                                     Text = info.Name,
                                     Colour = FrameworkColour.Yellow,
+                                    Font = FrameworkFont.Regular
                                 },
                                 new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
                                     Colour = FrameworkColour.YellowGreen,
+                                    Font = FrameworkFont.Regular
                                 },
                                 valueText = new SpriteText
                                 {
                                     Colour = Color4.White,
+                                    Font = FrameworkFont.Regular
                                 },
                             }
                         }

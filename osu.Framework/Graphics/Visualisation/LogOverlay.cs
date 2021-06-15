@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
@@ -181,7 +182,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Shadow = true,
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            Font = new FontUsage(size: font_size),
+                            Font = FrameworkFont.Regular.With(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
@@ -196,7 +197,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Child = new SpriteText
                     {
                         RelativeSizeAxes = Axes.X,
-                        Font = new FontUsage(size: font_size),
+                        Font = FrameworkFont.Regular.With(size: font_size),
                         Text = entry.Message
                     }
                 }

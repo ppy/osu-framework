@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -145,8 +146,8 @@ namespace osu.Framework.Graphics.Visualisation
                             Position = new Vector2(24, 0),
                             Children = new Drawable[]
                             {
-                                text = new SpriteText(),
-                                text2 = new SpriteText()
+                                text = new SpriteText { Font = FrameworkFont.Regular },
+                                text2 = new SpriteText { Font = FrameworkFont.Regular },
                             }
                         },
                     }

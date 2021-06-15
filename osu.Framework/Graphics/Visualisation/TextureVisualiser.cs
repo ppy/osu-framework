@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16)
+                            Font = FrameworkFont.Regular.With(size: 16)
                         },
                         new Container
                         {
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16),
+                            Font = FrameworkFont.Regular.With(size: 16),
                         },
                     }
                 };

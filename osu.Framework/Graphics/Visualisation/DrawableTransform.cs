@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 applied = new Box { Size = new Vector2(height) },
                 appliedToEnd = new Box { X = height + 2, Size = new Vector2(height) },
-                text = new SpriteText { X = (height + 2) * 2, Font = new FontUsage(size: height) },
+                text = new SpriteText { X = (height + 2) * 2, Font = FrameworkFont.Regular.With(size: height) },
             };
         }
 
