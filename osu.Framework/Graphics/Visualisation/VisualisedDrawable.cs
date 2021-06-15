@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.IEnumerableExtensions;
