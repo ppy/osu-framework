@@ -45,13 +45,22 @@ namespace osu.Framework.Testing
 
         public void Start()
         {
-            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-
             if (Debugger.IsAttached)
             {
                 referenceBuilder = new EmptyTypeReferenceBuilder();
 
                 Logger.Log("Dynamic compilation disabled (debugger attached).");
+                return;
+            }
+
+            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            var basePath = getSolutionPath(di);
+
+            if (!Directory.Exists(basePath))
+            {
+                referenceBuilder = new EmptyTypeReferenceBuilder();
+
+                Logger.Log("Dynamic compilation disabled (no solution file found).");
                 return;
             }
 
@@ -65,12 +74,7 @@ namespace osu.Framework.Testing
             {
                 Logger.Log("Initialising dynamic compilation...");
 
-                var basePath = getSolutionPath(di);
-
-                if (!Directory.Exists(basePath))
-                    return;
-
-                await referenceBuilder.Initialise(Directory.GetFiles(getSolutionPath(di), "*.sln").First()).ConfigureAwait(false);
+                await referenceBuilder.Initialise(Directory.GetFiles(basePath, "*.sln").First()).ConfigureAwait(false);
 
                 foreach (var dir in Directory.GetDirectories(basePath))
                 {
