@@ -9,7 +9,7 @@ namespace osu.Framework.Localisation
 {
     /// <summary>
     /// Indicates that the values of an enum have <see cref="LocalisableString"/> descriptions.
-    /// The descriptions can be returned through <see cref="ExtensionMethods.GetLocalisableDescription{T}"/>.
+    /// The descriptions can be retrieved through <see cref="ExtensionMethods.GetLocalisableDescription{T}"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Enum)]
     public sealed class LocalisableEnumAttribute : Attribute
