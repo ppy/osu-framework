@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Localisation
 {
@@ -25,7 +26,7 @@ namespace osu.Framework.Localisation
             MapperType = mapperType;
 
             if (!typeof(IEnumLocalisationMapper).IsAssignableFrom(mapperType))
-                throw new ArgumentException($"Mapper type must inherit from {nameof(EnumLocalisationMapper<Enum>)}.");
+                throw new ArgumentException($"Type \"{mapperType.ReadableName()}\" must inherit from {nameof(EnumLocalisationMapper<Enum>)}.", nameof(mapperType));
         }
     }
 }
