@@ -4,12 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
@@ -175,25 +177,39 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
-        /// Returns the description of a given object, via (in order):
+        /// Returns the description of a given enum value, via (in order):
         /// <list type="number">
         ///   <item>
-        ///     <description>Any attached <see cref="LocalisableDescriptionAttribute"/>.</description>
+        ///     <description>Any <see cref="LocalisableEnumAttribute"/> attached to the enum type.</description>
         ///   </item>
         ///   <item>
-        ///     <description>Any attached <see cref="DescriptionAttribute"/>.</description>
+        ///     <description>Any <see cref="DescriptionAttribute"/> attached to the enum value.</description>
         ///   </item>
         ///   <item>
-        ///     <description>The object's <see cref="object.ToString()"/>.</description>
+        ///     <description>The enum value's <see cref="Enum.ToString()"/>.</description>
         ///   </item>
         /// </list>
         /// </summary>
-        public static LocalisableString GetLocalisableDescription(this object value)
+        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
+        /// and the <see cref="EnumLocalisationMapper{T}"/> could not be instantiated.</exception>
+        public static LocalisableString GetLocalisableDescription<T>(this T value)
+            where T : Enum
         {
-            return value.GetType()
-                        .GetField(value.ToString())?
-                        .GetCustomAttribute<LocalisableDescriptionAttribute>()?.Description
-                   ?? GetDescription(value);
+            var mapperType = value.GetType().GetCustomAttribute<LocalisableEnumAttribute>()?.MapperType;
+            if (mapperType == null)
+                return GetDescription(value);
+
+            var mapperInstance = Activator.CreateInstance(mapperType);
+            if (mapperInstance == null)
+                throw new InvalidOperationException($"Could not create the {nameof(EnumLocalisationMapper<T>)} for enum type {value.GetType().ReadableName()}");
+
+            var mapMethod = mapperType.GetMethod(nameof(EnumLocalisationMapper<T>.Map), BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(mapMethod != null);
+
+            var mappedValue = mapMethod.Invoke(mapperInstance, new object[] { value });
+            Debug.Assert(mappedValue != null);
+
+            return (LocalisableString)mappedValue;
         }
 
         /// <summary>
