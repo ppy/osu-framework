@@ -2,12 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// Indicates that the members of an enum can be localised.
+    /// Indicates that the values of an enum have <see cref="LocalisableString"/> descriptions.
+    /// The descriptions can be returned through <see cref="ExtensionMethods.GetLocalisableDescription{T}"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Enum)]
     public sealed class LocalisableEnumAttribute : Attribute
