@@ -134,6 +134,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertHue(1, 0);
         }
 
+        [Test]
+        public void TestTransferValueOnCommit()
+        {
+            AddStep("set transfer value on commit", () => colourPicker.TransferValueOnCommit = true);
+            AddStep("set initial colour", () => colourPicker.Current.Value = Colour4.Red);
+
+            AddStep("move mouse to center of hue", () => InputManager.MoveMouseTo(colourPicker.HueControl.ScreenSpaceDrawQuad.Centre));
+            AddStep("press mouse down", () => InputManager.PressButton(MouseButton.Left));
+            assertCurrent(Colour4.Red);
+            AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
+            assertCurrent(Colour4.Cyan);
+
+            AddStep("move mouse to saturation/value marker", () => InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.TopRight + new Vector2(-1, 1)));
+            AddStep("press mouse down", () => InputManager.PressButton(MouseButton.Left));
+            AddStep("drag mouse to middle", () => InputManager.MoveMouseTo(colourPicker.SaturationValueControl.ScreenSpaceDrawQuad.Centre));
+            assertCurrent(Colour4.Cyan);
+            AddStep("release mouse", () => InputManager.ReleaseButton(MouseButton.Left));
+            assertCurrent(new Colour4(64, 128, 128, 255));
+
+            AddStep("change colour externally", () => colourPicker.Current.Value = Colour4.Yellow);
+            assertCurrent(Colour4.Yellow);
+        }
+
         private void assertHue(float hue, float tolerance = 0.005f)
         {
             AddAssert($"hue selector has {hue}", () => Precision.AlmostEquals(colourPicker.HueControl.Hue.Value, hue, tolerance));
@@ -144,6 +167,15 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddAssert($"saturation is {saturation}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Saturation.Value, saturation, tolerance));
             AddAssert($"value is {value}", () => Precision.AlmostEquals(colourPicker.SaturationValueControl.Value.Value, value, tolerance));
+        }
+
+        private void assertCurrent(Colour4 expected, float tolerance = 0.005f)
+        {
+            AddAssert($"colour is {expected.ToHex()}", () =>
+                Precision.AlmostEquals(colourPicker.Current.Value.R, expected.R, tolerance)
+                && Precision.AlmostEquals(colourPicker.Current.Value.G, expected.G, tolerance)
+                && Precision.AlmostEquals(colourPicker.Current.Value.B, expected.B, tolerance)
+                && Precision.AlmostEquals(colourPicker.Current.Value.A, expected.A, tolerance));
         }
 
         private class TestHSVColourPicker : BasicHSVColourPicker
