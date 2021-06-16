@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -173,6 +174,39 @@ namespace osu.Framework.Extensions
             }
         }
 
+        /// <summary>
+        /// Returns the description of a given object, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any attached <see cref="LocalisableDescriptionAttribute"/>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>Any attached <see cref="DescriptionAttribute"/>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>The object's <see cref="object.ToString()"/>.</description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        public static LocalisableString GetLocalisableDescription(this object value)
+        {
+            return value.GetType()
+                        .GetField(value.ToString())?
+                        .GetCustomAttribute<LocalisableDescriptionAttribute>()?.Description
+                   ?? GetDescription(value);
+        }
+
+        /// <summary>
+        /// Returns the description of a given object, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any attached <see cref="DescriptionAttribute"/>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>The object's <see cref="object.ToString()"/>.</description>
+        ///   </item>
+        /// </list>
+        /// </summary>
         public static string GetDescription(this object value)
             => value.GetType()
                     .GetField(value.ToString())?
