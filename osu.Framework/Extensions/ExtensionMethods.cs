@@ -183,10 +183,7 @@ namespace osu.Framework.Extensions
         ///     <description>Any <see cref="LocalisableEnumAttribute"/> attached to the enum type.</description>
         ///   </item>
         ///   <item>
-        ///     <description>Any <see cref="DescriptionAttribute"/> attached to the enum value.</description>
-        ///   </item>
-        ///   <item>
-        ///     <description>The enum value's <see cref="Enum.ToString()"/>.</description>
+        ///     <description><see cref="GetDescription"/></description>
         ///   </item>
         /// </list>
         /// </summary>
