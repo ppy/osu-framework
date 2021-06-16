@@ -821,7 +821,9 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The child to dispose.</param>
         internal void DisposeChildAsync(Drawable drawable)
         {
-            drawable.UnbindAllBindablesSubTree();
+            lock (LoadLock)
+                drawable.UnbindAllBindablesSubTree();
+
             AsyncDisposalQueue.Enqueue(drawable);
         }
 
