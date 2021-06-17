@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -21,11 +20,6 @@ namespace osu.Framework.Graphics.UserInterface
                 MinValue = 0,
                 MaxValue = 1
             };
-
-            /// <summary>
-            /// Fired when a hue change is committed by the user by releasing the <see cref="nub"/>.
-            /// </summary>
-            public event Action OnCommit;
 
             /// <summary>
             /// The body of the hue slider.
@@ -81,13 +75,6 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override void OnMouseUp(MouseUpEvent e)
-            {
-                base.OnMouseUp(e);
-
-                OnCommit?.Invoke();
-            }
-
             protected override bool OnDragStart(DragStartEvent e)
             {
                 handleMouseInput(e.ScreenSpaceMousePosition);
@@ -97,13 +84,6 @@ namespace osu.Framework.Graphics.UserInterface
             protected override void OnDrag(DragEvent e)
             {
                 handleMouseInput(e.ScreenSpaceMousePosition);
-            }
-
-            protected override void OnDragEnd(DragEndEvent e)
-            {
-                base.OnDragEnd(e);
-
-                OnCommit?.Invoke();
             }
 
             private void handleMouseInput(Vector2 mousePosition)

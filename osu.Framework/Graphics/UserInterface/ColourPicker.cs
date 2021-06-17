@@ -40,7 +40,6 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         hsvColourPicker = CreateHSVColourPicker().With(d =>
                         {
-                            d.TransferValueOnCommit = true;
                             d.RelativeSizeAxes = Axes.X;
                             d.Width = 1;
                         }),

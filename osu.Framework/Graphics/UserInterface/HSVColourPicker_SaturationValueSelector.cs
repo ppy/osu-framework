@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -17,11 +16,6 @@ namespace osu.Framework.Graphics.UserInterface
         public abstract class SaturationValueSelector : CompositeDrawable
         {
             public readonly Bindable<Colour4> Current = new Bindable<Colour4>();
-
-            /// <summary>
-            /// Fired when a saturation/value change is committed by the user by releasing the <see cref="Marker"/>.
-            /// </summary>
-            public event Action OnCommit;
 
             public Bindable<float> Hue { get; } = new BindableFloat
             {
@@ -187,25 +181,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return true;
             }
 
-            protected override void OnMouseUp(MouseUpEvent e)
-            {
-                base.OnMouseUp(e);
-
-                OnCommit?.Invoke();
-            }
-
             protected override bool OnDragStart(DragStartEvent e) => true;
 
             protected override void OnDrag(DragEvent e)
             {
                 handleMouseInput(e.ScreenSpaceMousePosition);
-            }
-
-            protected override void OnDragEnd(DragEndEvent e)
-            {
-                base.OnDragEnd(e);
-
-                OnCommit?.Invoke();
             }
 
             private void handleMouseInput(Vector2 mousePosition)

@@ -21,13 +21,6 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// When set, colour changes based on user input are only transferred to any bound <see cref="Current"/> on commit.
-        /// This is useful if the UI interaction could be adversely affected by the value changing rapidly, such as in the case of
-        /// the <see cref="SaturationValueSelector"/>'s or <see cref="HueSelector"/>'s interactive elements being moved by the user.
-        /// </summary>
-        public bool TransferValueOnCommit { get; set; }
-
-        /// <summary>
         /// The background of the control.
         /// </summary>
         protected Box Background { get; }
@@ -36,8 +29,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Contains the elements of the colour picker.
         /// </summary>
         protected FillFlowContainer Content { get; }
-
-        private readonly Bindable<Colour4> currentInstantaneous = new Bindable<Colour4>();
 
         private readonly SaturationValueSelector saturationValueSelector;
         private readonly HueSelector hueSelector;
@@ -82,20 +73,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            saturationValueSelector.Current.BindTo(currentInstantaneous);
+            saturationValueSelector.Current.BindTo(current);
             hueSelector.Hue.BindTo(saturationValueSelector.Hue);
-
-            current.BindValueChanged(colour => currentInstantaneous.Value = colour.NewValue, true);
-            currentInstantaneous.BindValueChanged(colour =>
-            {
-                if (!TransferValueOnCommit)
-                    Current.Value = colour.NewValue;
-            });
-
-            saturationValueSelector.OnCommit += instantaneousValueCommitted;
-            hueSelector.OnCommit += instantaneousValueCommitted;
         }
-
-        private void instantaneousValueCommitted() => current.Value = currentInstantaneous.Value;
     }
 }
