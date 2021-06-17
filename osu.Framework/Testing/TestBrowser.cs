@@ -129,7 +129,7 @@ namespace osu.Framework.Testing
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, Game game, AudioManager audio)
+        private void load(Storage storage, GameHost host, FrameworkConfigManager frameworkConfig, FontStore fonts, AudioManager audio)
         {
             interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
@@ -137,16 +137,6 @@ namespace osu.Framework.Testing
             exit = host.Exit;
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
-
-            var resources = game.Resources;
-
-            //Roboto
-            game.AddFont(resources, @"Fonts/Roboto/Roboto-Regular");
-            game.AddFont(resources, @"Fonts/Roboto/Roboto-Bold");
-
-            //RobotoCondensed
-            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
-            game.AddFont(resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
