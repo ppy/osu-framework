@@ -642,17 +642,16 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!IsLoaded)
                     Current.Value = text = value;
 
-                textUpdateScheduler.Add(delegate
-                {
-                    int startBefore = selectionStart;
-                    selectionStart = selectionEnd = 0;
-                    TextFlow?.Clear();
+                int startBefore = selectionStart;
+                selectionStart = selectionEnd = 0;
 
-                    text = string.Empty;
-                    InsertString(value);
+                TextFlow?.Clear();
+                text = string.Empty;
 
-                    selectionStart = Math.Clamp(startBefore, 0, text.Length);
-                });
+                // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
+                insertString(value, d => d.FinishTransforms());
+
+                selectionStart = Math.Clamp(startBefore, 0, text.Length);
 
                 cursorAndLayout.Invalidate();
             }
