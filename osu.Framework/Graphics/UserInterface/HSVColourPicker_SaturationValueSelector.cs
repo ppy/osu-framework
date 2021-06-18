@@ -94,9 +94,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 Current.BindValueChanged(_ => currentChanged(), true);
 
-                Hue.BindValueChanged(_ => hueChanged(), true);
-                Saturation.BindValueChanged(_ => saturationChanged(), true);
-                Value.BindValueChanged(_ => valueChanged(), true);
+                Hue.BindValueChanged(_ => Scheduler.AddOnce(hueChanged), true);
+                Saturation.BindValueChanged(_ => Scheduler.AddOnce(saturationChanged), true);
+                Value.BindValueChanged(_ => Scheduler.AddOnce(valueChanged), true);
             }
 
             // As Current and {Hue,Saturation,Value} are mutually bound together,
