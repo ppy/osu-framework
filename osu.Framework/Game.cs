@@ -159,7 +159,9 @@ namespace osu.Framework
 
             // Roboto (FrameworkFont.Regular)
             addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
             addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
 
             // RobotoCondensed (FrameworkFont.Condensed)
             addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
