@@ -125,9 +125,14 @@ namespace osu.Framework.Tests.Audio
         public void TestAdjustBoundComponentBeforeBind()
         {
             var adjustments = new AudioAdjustments();
-            var adjustments2 = new AudioAdjustments();
 
-            adjustments2.Volume.Value = 0.5f;
+            var adjustments2 = new AudioAdjustments
+            {
+                Volume =
+                {
+                    Value = 0.5f
+                }
+            };
 
             adjustments.BindAdjustments(adjustments2);
 

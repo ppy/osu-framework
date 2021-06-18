@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 
@@ -37,7 +36,6 @@ namespace osu.Framework.Localisation
         /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
-        [NotNull]
         public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
 
         private void updateLocale(ValueChangedEvent<string> locale)
