@@ -228,6 +228,8 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
+            OnPause();
+
             lock (startStopLock)
             {
                 if (Thread == null)
@@ -240,7 +242,16 @@ namespace osu.Framework.Threading
                 Thread.Sleep(1);
         }
 
-        protected virtual void Cleanup()
+        /// <summary>
+        /// Called when a <see cref="Pause"/> is requested on this <see cref="GameThread"/>.
+        /// Use this method to release exclusive resources that the thread could have been holding in its current execution mode,
+        /// like GL contexts or similar.
+        /// </summary>
+        protected virtual void OnPause()
+        {
+        }
+
+        protected void Cleanup()
         {
             lock (startStopLock)
             {
