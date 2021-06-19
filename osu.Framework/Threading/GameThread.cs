@@ -11,6 +11,7 @@ using System.Globalization;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Threading
 {
@@ -22,6 +23,12 @@ namespace osu.Framework.Threading
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
 
+        /// <summary>
+        /// The dedicated OS thread for this <see cref="GameThread"/>.
+        /// A value of <see langword="null"/> does not necessarily mean that this thread is not running;
+        /// in <see cref="ExecutionMode.SingleThread"/> execution mode <see cref="ThreadRunner"/> drives its <see cref="GameThread"/>s
+        /// manually and sequentially on the main OS thread of the game process.
+        /// </summary>
         [CanBeNull]
         public Thread Thread { get; private set; }
 
