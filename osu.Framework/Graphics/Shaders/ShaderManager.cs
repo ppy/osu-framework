@@ -9,7 +9,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShaderManager
+    public class ShaderManager : IDisposable
     {
         private const string shader_prefix = @"sh_";
 
@@ -81,6 +81,27 @@ namespace osu.Framework.Graphics.Shaders
 
             return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
         }
+
+        #region IDisposable Support
+
+        private bool isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+                store?.Dispose();
+            }
+        }
+
+        #endregion
     }
 
     public static class VertexShaderDescriptor
