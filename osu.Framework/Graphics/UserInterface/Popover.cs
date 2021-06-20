@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The body of this <see cref="Popover"/>, containing the actual contents.
         /// </summary>
-        protected FocusedOverlayContainer Body { get; }
+        protected internal FocusedOverlayContainer Body { get; }
 
         private Container content;
         protected override Container<Drawable> Content => content;
