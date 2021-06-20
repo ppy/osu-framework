@@ -25,32 +25,34 @@ namespace osu.Framework.Graphics.Shaders
             this.store = store;
         }
 
-        private string getFileEnding(ShaderType type)
-        {
-            switch (type)
-            {
-                case ShaderType.FragmentShader:
-                    return @".fs";
-
-                case ShaderType.VertexShader:
-                    return @".vs";
-            }
-
-            return string.Empty;
-        }
-
-        private string ensureValidName(string name, ShaderType type)
-        {
-            string ending = getFileEnding(type);
-            if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
-                name = shader_prefix + name;
-            if (name.EndsWith(ending, StringComparison.Ordinal))
-                return name;
-
-            return name + ending;
-        }
-
+        /// <summary>
+        /// Retrieves raw shader data from the store.
+        /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
+        /// </summary>
+        /// <param name="name">The shader name.</param>
         public virtual byte[] LoadRaw(string name) => store?.Get(name);
+
+        /// <summary>
+        /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
+        /// </summary>
+        /// <param name="vertex">The vertex shader name.</param>
+        /// <param name="fragment">The fragment shader name.</param>
+        /// <param name="continuousCompilation"></param>
+        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
+        {
+            var tuple = (vertex, fragment);
+
+            if (shaderCache.TryGetValue(tuple, out Shader shader))
+                return shader;
+
+            List<ShaderPart> parts = new List<ShaderPart>
+            {
+                createShaderPart(vertex, ShaderType.VertexShader),
+                createShaderPart(fragment, ShaderType.FragmentShader)
+            };
+
+            return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
+        }
 
         private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
@@ -68,20 +70,30 @@ namespace osu.Framework.Graphics.Shaders
             return part;
         }
 
-        public IShader Load(string vertex, string fragment, bool continuousCompilation = false)
+        private string ensureValidName(string name, ShaderType type)
         {
-            var tuple = (vertex, fragment);
+            string ending = getFileEnding(type);
 
-            if (shaderCache.TryGetValue(tuple, out Shader shader))
-                return shader;
+            if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
+                name = shader_prefix + name;
+            if (name.EndsWith(ending, StringComparison.Ordinal))
+                return name;
 
-            List<ShaderPart> parts = new List<ShaderPart>
+            return name + ending;
+        }
+
+        private string getFileEnding(ShaderType type)
+        {
+            switch (type)
             {
-                createShaderPart(vertex, ShaderType.VertexShader),
-                createShaderPart(fragment, ShaderType.FragmentShader)
-            };
+                case ShaderType.FragmentShader:
+                    return @".fs";
 
-            return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
+                case ShaderType.VertexShader:
+                    return @".vs";
+            }
+
+            return string.Empty;
         }
 
         #region IDisposable Support
