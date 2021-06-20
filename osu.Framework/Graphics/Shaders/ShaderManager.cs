@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Shaders
             return name + ending;
         }
 
-        internal byte[] LoadRaw(string name) => store.Get(name);
+        public virtual byte[] LoadRaw(string name) => store.Get(name);
 
         private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
