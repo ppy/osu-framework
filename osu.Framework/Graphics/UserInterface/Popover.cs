@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 Origin = value;
-                Anchor = oppositeOf(value);
+                Anchor = value.Opposite();
 
                 Body.Anchor = Body.Origin = value;
                 Arrow.Anchor = value;
@@ -96,15 +96,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnchorUpdated(Anchor anchor)
         {
-        }
-
-        private Anchor oppositeOf(Anchor anchor)
-        {
-            if (anchor.HasFlagFast(Anchor.x0) || anchor.HasFlagFast(Anchor.x2))
-                anchor ^= Anchor.x0 | Anchor.x2;
-            if (anchor.HasFlagFast(Anchor.y0) || anchor.HasFlagFast(Anchor.y2))
-                anchor ^= Anchor.y0 | Anchor.y2;
-            return anchor;
         }
 
         private float getRotationFor(Anchor anchor)
