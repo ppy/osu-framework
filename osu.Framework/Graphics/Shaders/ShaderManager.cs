@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -16,9 +17,10 @@ namespace osu.Framework.Graphics.Shaders
         private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
         private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
 
-        private readonly ResourceStore<byte[]> store;
+        [CanBeNull]
+        private readonly IResourceStore<byte[]> store;
 
-        public ShaderManager(ResourceStore<byte[]> store)
+        public ShaderManager(IResourceStore<byte[]> store = null)
         {
             this.store = store;
         }
@@ -48,7 +50,7 @@ namespace osu.Framework.Graphics.Shaders
             return name + ending;
         }
 
-        public virtual byte[] LoadRaw(string name) => store.Get(name);
+        public virtual byte[] LoadRaw(string name) => store?.Get(name);
 
         private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
