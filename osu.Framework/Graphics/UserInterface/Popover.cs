@@ -24,8 +24,8 @@ namespace osu.Framework.Graphics.UserInterface
             get => Anchor;
             set
             {
-                Origin = value;
-                Anchor = value.Opposite();
+                BoundingBoxContainer.Origin = value;
+                BoundingBoxContainer.Anchor = value.Opposite();
 
                 Body.Anchor = Body.Origin = value;
                 Arrow.Anchor = value;
@@ -34,6 +34,11 @@ namespace osu.Framework.Graphics.UserInterface
                 AnchorUpdated(value);
             }
         }
+
+        /// <summary>
+        /// The container holding all of this popover's elements (the <see cref="Body"/> and the <see cref="Arrow"/>).
+        /// </summary>
+        internal Container BoundingBoxContainer { get; }
 
         /// <summary>
         /// The background box of the popover.
@@ -55,25 +60,29 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Popover()
         {
-            InternalChildren = new[]
+            InternalChild = BoundingBoxContainer = new Container
             {
-                Arrow = CreateArrow(),
-                Body = CreateBody().With(body =>
+                AutoSizeAxes = Axes.Both,
+                Children = new[]
                 {
-                    body.AutoSizeAxes = Axes.Both;
-                    body.State.BindTarget = State;
-                    body.Children = new Drawable[]
+                    Arrow = CreateArrow(),
+                    Body = CreateBody().With(body =>
                     {
-                        Background = new Box
+                        body.AutoSizeAxes = Axes.Both;
+                        body.State.BindTarget = State;
+                        body.Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                        },
-                        content = new Container
-                        {
-                            AutoSizeAxes = Axes.Both,
-                        }
-                    };
-                })
+                            Background = new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                            },
+                            content = new Container
+                            {
+                                AutoSizeAxes = Axes.Both,
+                            }
+                        };
+                    })
+                }
             };
         }
 
