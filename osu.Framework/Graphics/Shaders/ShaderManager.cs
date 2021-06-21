@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Shaders
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
         /// <param name="name">The shader name.</param>
-        public virtual byte[] LoadRaw(string name) => store.Get(name);
+        public virtual byte[]? LoadRaw(string name) => store.Get(name);
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!bypassCache && partCache.TryGetValue(name, out ShaderPart? part))
                 return part;
 
-            byte[] rawData = LoadRaw(name);
+            byte[]? rawData = LoadRaw(name);
 
             part = new ShaderPart(name, rawData, type, this);
 
