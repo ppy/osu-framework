@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 applied = new Box { Size = new Vector2(height) },
                 appliedToEnd = new Box { X = height + 2, Size = new Vector2(height) },
-                text = new SpriteText { X = (height + 2) * 2, Font = new FontUsage(size: height) },
+                text = new SpriteText { X = (height + 2) * 2, Font = FrameworkFont.Regular.With(size: height) },
             };
         }
 

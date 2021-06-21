@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     Margin = new MarginPadding(2),
                     Text = value.ToString(),
-                    Font = new FontUsage(size: 18),
+                    Font = FrameworkFont.Regular.With(size: 18),
                 });
             }
 
@@ -61,7 +61,11 @@ namespace osu.Framework.Graphics.UserInterface
                     Foreground.RelativeSizeAxes = Axes.None;
                     Foreground.AutoSizeAxes = Axes.Both;
 
-                    Foreground.Child = new SpriteText { Text = "…" };
+                    Foreground.Child = new SpriteText
+                    {
+                        Text = "…",
+                        Font = FrameworkFont.Regular
+                    };
                 }
             }
         }

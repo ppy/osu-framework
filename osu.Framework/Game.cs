@@ -157,10 +157,15 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Regular");
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-Bold");
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-RegularItalic");
-            addFont(localFonts, Resources, @"Fonts/OpenSans/OpenSans-BoldItalic");
+            // Roboto (FrameworkFont.Regular)
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
+
+            // RobotoCondensed (FrameworkFont.Condensed)
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
