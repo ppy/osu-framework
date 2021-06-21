@@ -1,10 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -17,12 +18,22 @@ namespace osu.Framework.Graphics.Shaders
         private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
         private readonly ConcurrentDictionary<(string, string), Shader> shaderCache = new ConcurrentDictionary<(string, string), Shader>();
 
-        [CanBeNull]
         private readonly IResourceStore<byte[]> store;
 
-        public ShaderManager(IResourceStore<byte[]> store = null)
+        /// <summary>
+        /// Constructs a new <see cref="ShaderManager"/>.
+        /// </summary>
+        public ShaderManager(IResourceStore<byte[]> store)
         {
             this.store = store;
+        }
+
+        /// <summary>
+        /// Constructs a new <see cref="ShaderManager"/> with no backing store.
+        /// </summary>
+        protected ShaderManager()
+        {
+            store = new ResourceStore<byte[]>();
         }
 
         /// <summary>
@@ -30,7 +41,7 @@ namespace osu.Framework.Graphics.Shaders
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
         /// <param name="name">The shader name.</param>
-        public virtual byte[] LoadRaw(string name) => store?.Get(name);
+        public virtual byte[] LoadRaw(string name) => store.Get(name);
 
         /// <summary>
         /// Retrieves a usable <see cref="IShader"/> given the vertex and fragment shaders.
@@ -42,7 +53,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             var tuple = (vertex, fragment);
 
-            if (shaderCache.TryGetValue(tuple, out Shader shader))
+            if (shaderCache.TryGetValue(tuple, out Shader? shader))
                 return shader;
 
             List<ShaderPart> parts = new List<ShaderPart>
@@ -58,7 +69,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             name = ensureValidName(name, type);
 
-            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart part))
+            if (!bypassCache && partCache.TryGetValue(name, out ShaderPart? part))
                 return part;
 
             byte[] rawData = LoadRaw(name);
@@ -111,7 +122,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!isDisposed)
             {
                 isDisposed = true;
-                store?.Dispose();
+                store.Dispose();
             }
         }
 
