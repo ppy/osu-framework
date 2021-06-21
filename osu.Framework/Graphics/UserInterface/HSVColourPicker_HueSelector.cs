@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Hue.BindValueChanged(_ => updateNubPosition(), true);
+                Hue.BindValueChanged(_ => Scheduler.AddOnce(updateNubPosition), true);
             }
 
             private void updateNubPosition()
