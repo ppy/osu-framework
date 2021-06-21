@@ -9,7 +9,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    [Ignore("This test does not cover correct GL context acquire/release when ran headless.")]
+    [Ignore("This test does not cover correct GL context acquire/release when run headless.")]
     public class TestSceneExecutionModes : FrameworkTestScene
     {
         private Bindable<ExecutionMode> executionMode;
