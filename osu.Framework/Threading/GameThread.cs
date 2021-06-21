@@ -156,6 +156,7 @@ namespace osu.Framework.Threading
             }
             finally
             {
+                OnPause();
                 Cleanup();
             }
         }
@@ -235,12 +236,14 @@ namespace osu.Framework.Threading
 
         public void Pause()
         {
-            OnPause();
-
             lock (startStopLock)
             {
                 if (Thread == null)
+                {
+                    // run the OnPause() logic as the GameThread may have been run manually by ThreadRunner via ProcessFrame() calls.
+                    OnPause();
                     return;
+                }
 
                 pauseRequested = true;
             }
@@ -250,7 +253,7 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// Called when a <see cref="Pause"/> is requested on this <see cref="GameThread"/>.
+        /// Called when a <see cref="Pause"/> or <see cref="Exit"/> is requested on this <see cref="GameThread"/>.
         /// Use this method to release exclusive resources that the thread could have been holding in its current execution mode,
         /// like GL contexts or similar.
         /// </summary>
