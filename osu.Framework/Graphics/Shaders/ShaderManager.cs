@@ -29,14 +29,6 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         /// <summary>
-        /// Constructs a new <see cref="ShaderManager"/> with no backing store.
-        /// </summary>
-        protected ShaderManager()
-        {
-            store = new ResourceStore<byte[]>();
-        }
-
-        /// <summary>
         /// Retrieves raw shader data from the store.
         /// Use <see cref="Load"/> to retrieve a usable <see cref="IShader"/> instead.
         /// </summary>
