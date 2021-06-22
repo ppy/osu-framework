@@ -94,9 +94,9 @@ namespace osu.Framework.Platform
 
         /// <summary>
         /// Called from the current update thread before it is potentially moved to a different native thread.
-        /// This could occur from a change in <see cref="ExecutionMode"/>.
+        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
         /// </summary>
-        public event Action UpdateThreadChanging;
+        public event Action UpdateThreadPausing;
 
         /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
@@ -567,6 +567,8 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
+                UpdateThread.ThreadPausing += () => UpdateThreadPausing?.Invoke();
+
                 RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
 
                 Trace.Listeners.Clear();
@@ -808,16 +810,7 @@ namespace osu.Framework.Platform
             }, true);
 
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
-            executionMode.BindValueChanged(e =>
-            {
-                if (ExecutionState >= ExecutionState.Running)
-                {
-                    ThreadSafety.EnsureUpdateThread();
-                    UpdateThreadChanging?.Invoke();
-                }
-
-                threadRunner.ExecutionMode = e.NewValue;
-            }, true);
+            executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += e =>
