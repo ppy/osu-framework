@@ -62,5 +62,13 @@ namespace osu.Framework.Graphics.Containers.Markdown
                     return 20;
             }
         }
+
+        private class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
+        {
+            public float FontSize;
+
+            protected override SpriteText CreateSpriteText()
+                => base.CreateSpriteText().With(t => t.Font = t.Font.With(size: FontSize));
+        }
     }
 }
