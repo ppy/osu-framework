@@ -47,19 +47,19 @@ namespace osu.Framework.Graphics.Containers.Markdown
             switch (level)
             {
                 case 1:
-                    return 2.7f;
+                    return 54;
 
                 case 2:
-                    return 2;
+                    return 40;
 
                 case 3:
-                    return 1.5f;
+                    return 30;
 
                 case 4:
-                    return 1.3f;
+                    return 26;
 
                 default:
-                    return 1;
+                    return 20;
             }
         }
     }
