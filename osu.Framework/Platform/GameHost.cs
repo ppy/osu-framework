@@ -587,11 +587,11 @@ namespace osu.Framework.Platform
 
                 Window = CreateWindow();
 
-                ExecutionState = ExecutionState.Running;
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
+
+                ExecutionState = ExecutionState.Running;
 
                 initialiseInputHandlers();
 
@@ -810,8 +810,11 @@ namespace osu.Framework.Platform
             executionMode = Config.GetBindable<ExecutionMode>(FrameworkSetting.ExecutionMode);
             executionMode.BindValueChanged(e =>
             {
-                ThreadSafety.EnsureUpdateThread();
-                UpdateThreadChanging?.Invoke();
+                if (ExecutionState >= ExecutionState.Running)
+                {
+                    ThreadSafety.EnsureUpdateThread();
+                    UpdateThreadChanging?.Invoke();
+                }
 
                 threadRunner.ExecutionMode = e.NewValue;
             }, true);
