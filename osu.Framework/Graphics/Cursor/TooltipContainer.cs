@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -178,8 +179,8 @@ namespace osu.Framework.Graphics.Cursor
         {
             var targetContent = getTargetContent(target);
 
-            if (targetContent is string strContent)
-                return !string.IsNullOrEmpty(strContent);
+            if (targetContent is LocalisableString localisableString)
+                return !string.IsNullOrEmpty(localisableString.Data?.ToString());
 
             return targetContent != null;
         }
@@ -318,7 +319,7 @@ namespace osu.Framework.Graphics.Cursor
 
             public virtual bool SetContent(object content)
             {
-                if (!(content is string contentString))
+                if (!(content is LocalisableString contentString))
                     return false;
 
                 text.Text = contentString;
