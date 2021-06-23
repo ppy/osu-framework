@@ -40,6 +40,14 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
+        /// <summary>
+        /// Fired from this thread before it is paused for permanent termination, or potentially moved to a different native thread.
+        /// </summary>
+        /// <remarks>
+        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
+        /// </remarks>
+        public event Action ThreadPausing;
+
         protected Action OnNewFrame;
 
         /// <summary>
@@ -259,6 +267,7 @@ namespace osu.Framework.Threading
         /// </summary>
         protected virtual void OnPause()
         {
+            ThreadPausing?.Invoke();
         }
 
         protected void Cleanup()

@@ -46,7 +46,11 @@ namespace osu.Framework.Threading
             host.Window?.MakeCurrent();
         }
 
-        protected sealed override void OnPause() => host.Window?.ClearCurrent();
+        protected sealed override void OnPause()
+        {
+            base.OnPause();
+            host.Window?.ClearCurrent();
+        }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
         {
