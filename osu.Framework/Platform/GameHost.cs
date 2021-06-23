@@ -561,8 +561,6 @@ namespace osu.Framework.Platform
                     Monitor = { HandleGC = true },
                 });
 
-                UpdateThread.ThreadPausing += () => UpdateThreadPausing?.Invoke();
-
                 RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
 
                 Trace.Listeners.Clear();
