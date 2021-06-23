@@ -167,7 +167,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             private class CustomContent
             {
-                public readonly string Text;
+                public readonly LocalisableString Text;
 
                 public CustomContent(string text)
                 {
