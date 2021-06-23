@@ -55,8 +55,10 @@ namespace osu.Framework.Graphics.Shaders
                 createShaderPart(fragment, ShaderType.FragmentShader)
             };
 
-            return shaderCache[tuple] = new Shader($"{vertex}/{fragment}", parts);
+            return shaderCache[tuple] = CreateShader($"{vertex}/{fragment}", parts);
         }
+
+        internal virtual Shader CreateShader(string name, List<ShaderPart> parts) => new Shader(name, parts);
 
         private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
