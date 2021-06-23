@@ -40,6 +40,11 @@ namespace osu.Framework.Threading
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
 
+        /// <summary>
+        /// Event fired when this thread is pausing.
+        /// </summary>
+        public event Action ThreadPausing;
+
         protected Action OnNewFrame;
 
         /// <summary>
@@ -259,6 +264,7 @@ namespace osu.Framework.Threading
         /// </summary>
         protected virtual void OnPause()
         {
+            ThreadPausing?.Invoke();
         }
 
         protected void Cleanup()
