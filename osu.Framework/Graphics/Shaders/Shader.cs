@@ -182,11 +182,7 @@ namespace osu.Framework.Graphics.Shaders
 
         private protected virtual int CreateProgram() => GL.CreateProgram();
 
-        private protected virtual void DeleteProgram(int id)
-        {
-            if (id != -1)
-                GL.DeleteProgram(id);
-        }
+        private protected virtual void DeleteProgram(int id) => GL.DeleteProgram(id);
 
         public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
 
@@ -215,7 +211,8 @@ namespace osu.Framework.Graphics.Shaders
 
                 GlobalPropertyManager.Unregister(this);
 
-                DeleteProgram(this);
+                if (programID != -1)
+                    DeleteProgram(this);
             }
         }
 
