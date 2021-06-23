@@ -31,6 +31,9 @@ namespace osu.Framework.Graphics.Shaders
 
         internal void Compile()
         {
+            if (IsDisposed)
+                return;
+
             parts.RemoveAll(p => p == null);
             Uniforms.Clear();
 
@@ -57,6 +60,9 @@ namespace osu.Framework.Graphics.Shaders
 
         public void Bind()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not bind a disposed shader.");
+
             if (IsBound)
                 return;
 
