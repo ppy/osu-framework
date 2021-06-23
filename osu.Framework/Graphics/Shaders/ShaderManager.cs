@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using osu.Framework.Graphics.OpenGL;
 using osu.Framework.IO.Stores;
 using osuTK.Graphics.ES30;
 
@@ -114,7 +115,17 @@ namespace osu.Framework.Graphics.Shaders
             if (!isDisposed)
             {
                 isDisposed = true;
+
                 store.Dispose();
+
+                GLWrapper.ScheduleDisposal(() =>
+                {
+                    foreach (var shader in shaderCache.Values)
+                        shader.Dispose();
+
+                    foreach (var part in partCache.Values)
+                        part.Dispose();
+                });
             }
         }
 

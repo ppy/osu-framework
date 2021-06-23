@@ -9,7 +9,7 @@ using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Shader : IShader
+    public class Shader : IShader, IDisposable
     {
         public bool IsLoaded { get; private set; }
 
@@ -177,6 +177,32 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         public static implicit operator int(Shader shader) => shader.programID;
+
+        protected internal bool IsDisposed { get; private set; }
+
+        ~Shader()
+        {
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                GlobalPropertyManager.Unregister(this);
+
+                if (programID != -1)
+                    GL.DeleteProgram(this);
+            }
+        }
 
         public class PartCompilationFailedException : Exception
         {
