@@ -93,12 +93,6 @@ namespace osu.Framework.Platform
         public event Action<IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Called from the current update thread before it is potentially moved to a different native thread.
-        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
-        /// </summary>
-        public event Action UpdateThreadPausing;
-
-        /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
