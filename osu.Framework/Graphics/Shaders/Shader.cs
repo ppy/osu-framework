@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Shaders
             return (Uniform<T>)Uniforms[name];
         }
 
-        protected virtual bool CompileInternal()
+        private protected virtual bool CompileInternal()
         {
             foreach (ShaderPart p in parts)
             {
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Shaders
             return linkResult == 1;
         }
 
-        protected virtual void SetupUniforms()
+        private protected virtual void SetupUniforms()
         {
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
@@ -178,11 +178,11 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        protected virtual string GetProgramLog() => GL.GetProgramInfoLog(this);
+        private protected virtual string GetProgramLog() => GL.GetProgramInfoLog(this);
 
-        protected virtual int CreateProgram() => GL.CreateProgram();
+        private protected virtual int CreateProgram() => GL.CreateProgram();
 
-        protected virtual void DeleteProgram(int id)
+        private protected virtual void DeleteProgram(int id)
         {
             if (id != -1)
                 GL.DeleteProgram(id);
