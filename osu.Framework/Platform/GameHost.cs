@@ -93,12 +93,6 @@ namespace osu.Framework.Platform
         public event Action<IpcMessage> MessageReceived;
 
         /// <summary>
-        /// Called from the current update thread before it is potentially moved to a different native thread.
-        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
-        /// </summary>
-        public event Action UpdateThreadPausing;
-
-        /// <summary>
         /// Whether the on screen keyboard covers a portion of the game window when presented to the user.
         /// </summary>
         public virtual bool OnScreenKeyboardOverlapsGameWindow => false;
@@ -186,10 +180,10 @@ namespace osu.Framework.Platform
             thread.UnhandledException = null;
         }
 
-        public DrawThread DrawThread;
-        public GameThread UpdateThread;
-        public InputThread InputThread;
-        public AudioThread AudioThread;
+        public DrawThread DrawThread { get; private set; }
+        public GameThread UpdateThread { get; private set; }
+        public InputThread InputThread { get; private set; }
+        public AudioThread AudioThread { get; private set; }
 
         private double maximumUpdateHz;
 
@@ -566,8 +560,6 @@ namespace osu.Framework.Platform
                 {
                     Monitor = { HandleGC = true },
                 });
-
-                UpdateThread.ThreadPausing += () => UpdateThreadPausing?.Invoke();
 
                 RegisterThread(DrawThread = new DrawThread(DrawFrame, this));
 
