@@ -4,7 +4,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Bindables;
+using osu.Framework.Development;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -21,6 +24,8 @@ namespace osu.Framework.Tests.Platform
         {
             var gameCreated = new ManualResetEventSlim();
 
+            IBindable<GameThreadState> updateThreadState = null;
+
             var task = Task.Run(() =>
             {
                 using (host = new HeadlessGameHost(@"host", false))
@@ -36,8 +41,18 @@ namespace osu.Framework.Tests.Platform
 
             // check scheduling is working before suspend
             var completed = new ManualResetEventSlim();
-            game.Schedule(() => completed.Set());
+            game.Schedule(() =>
+            {
+                updateThreadState = host.UpdateThread.State.GetBoundCopy();
+                updateThreadState.BindValueChanged(state =>
+                {
+                    Assert.IsTrue(ThreadSafety.IsUpdateThread);
+                });
+                completed.Set();
+            });
+
             Assert.IsTrue(completed.Wait(timeout / 10));
+            Assert.AreEqual(GameThreadState.Running, updateThreadState.Value);
 
             host.Suspend();
 
@@ -45,6 +60,7 @@ namespace osu.Framework.Tests.Platform
             int gameUpdates = 0;
             game.Scheduler.AddDelayed(() => ++gameUpdates, 0, true);
             Assert.That(() => gameUpdates, Is.LessThan(2).After(timeout / 10));
+            Assert.AreEqual(GameThreadState.Paused, updateThreadState.Value);
 
             // check that scheduler doesn't process while suspended..
             completed.Reset();
@@ -54,9 +70,11 @@ namespace osu.Framework.Tests.Platform
             // ..and does after resume.
             host.Resume();
             Assert.IsTrue(completed.Wait(timeout / 10));
+            Assert.AreEqual(GameThreadState.Running, updateThreadState.Value);
 
             game.Exit();
             Assert.IsTrue(task.Wait(timeout));
+            Assert.AreEqual(GameThreadState.Exited, updateThreadState.Value);
         }
 
         private class TestTestGame : TestGame
