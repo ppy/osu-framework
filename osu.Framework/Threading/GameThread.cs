@@ -110,7 +110,6 @@ namespace osu.Framework.Threading
                 MakeCurrent();
 
                 state.Value = GameThreadState.Running;
-                pauseRequested = false;
             }
 
             OnInitialize();
@@ -203,15 +202,20 @@ namespace osu.Framework.Threading
                 {
                     lock (startStopLock)
                     {
-                        Debug.Assert(state.Value == GameThreadState.Running);
+                        if (state.Value != GameThreadState.Running)
+                            throw new InvalidOperationException($"Attempted to process frame when state is {state.Value}");
 
                         if (exitRequested)
                         {
                             state.Value = GameThreadState.Exited;
+                            exitRequested = false;
                             PerformExit();
                         }
                         else
+                        {
                             state.Value = GameThreadState.Paused;
+                            pauseRequested = false;
+                        }
                     }
 
                     OnSuspended();
