@@ -57,6 +57,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        private readonly object startStopLock = new object();
+
         /// <summary>
         /// Construct a new ThreadRunner instance.
         /// </summary>
@@ -124,10 +126,13 @@ namespace osu.Framework.Platform
 
         public void Suspend()
         {
-            pauseAllThreads();
+            lock (startStopLock)
+            {
+                pauseAllThreads();
 
-            // set the active execution mode back to null to set the state checking back to when it can be resumed.
-            activeExecutionMode = null;
+                // set the active execution mode back to null to set the state checking back to when it can be resumed.
+                activeExecutionMode = null;
+            }
         }
 
         public void Stop()
@@ -158,12 +163,16 @@ namespace osu.Framework.Platform
 
         private void ensureCorrectExecutionMode()
         {
-            if (ExecutionMode == activeExecutionMode)
-                return;
+            // locking is required as this method may be called from two different threads.
+            lock (startStopLock)
+            {
+                if (ExecutionMode == activeExecutionMode)
+                    return;
 
-            // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
-            activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
-            Logger.Log($"Execution mode changed to {activeExecutionMode}");
+                // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
+                activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
+                Logger.Log($"Execution mode changed to {activeExecutionMode}");
+            }
 
             pauseAllThreads();
 
