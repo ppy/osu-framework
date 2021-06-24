@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
 
@@ -11,12 +12,10 @@ namespace osu.Framework.Graphics.Shaders
 {
     public class Shader : IShader, IDisposable
     {
-        public bool IsLoaded { get; private set; }
-
-        internal bool IsBound;
-
         private readonly string name;
-        private int programID = -1;
+        private readonly List<ShaderPart> parts;
+
+        private readonly ScheduledDelegate shaderCompileDelegate;
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
 
@@ -25,20 +24,24 @@ namespace osu.Framework.Graphics.Shaders
         /// </summary>
         private IUniform[] uniformsValues;
 
-        private readonly List<ShaderPart> parts;
+        public bool IsLoaded { get; private set; }
+
+        internal bool IsBound { get; private set; }
+
+        private int programID = -1;
 
         internal Shader(string name, List<ShaderPart> parts)
         {
             this.name = name;
             this.parts = parts;
 
-            GLWrapper.EnqueueShaderCompile(this);
+            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(Compile));
         }
 
         internal void Compile()
         {
             if (IsDisposed)
-                return;
+                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
             parts.RemoveAll(p => p == null);
             Uniforms.Clear();
@@ -58,13 +61,13 @@ namespace osu.Framework.Graphics.Shaders
             GlobalPropertyManager.Register(this);
         }
 
-        internal void EnsureLoaded()
+        private void ensureShaderLoaded()
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not load disposed shader.");
+                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
-            if (!IsLoaded)
-                Compile();
+            if (!shaderCompileDelegate.Completed)
+                shaderCompileDelegate.RunTask();
         }
 
         public void Bind()
@@ -75,7 +78,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsBound)
                 return;
 
-            EnsureLoaded();
+            ensureShaderLoaded();
 
             GLWrapper.UseProgram(this);
 
@@ -103,7 +106,10 @@ namespace osu.Framework.Graphics.Shaders
         public Uniform<T> GetUniform<T>(string name)
             where T : struct, IEquatable<T>
         {
-            EnsureLoaded();
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+
+            ensureShaderLoaded();
 
             return (Uniform<T>)Uniforms[name];
         }
@@ -227,6 +233,8 @@ namespace osu.Framework.Graphics.Shaders
             if (!IsDisposed)
             {
                 IsDisposed = true;
+
+                shaderCompileDelegate?.Cancel();
 
                 GlobalPropertyManager.Unregister(this);
 
