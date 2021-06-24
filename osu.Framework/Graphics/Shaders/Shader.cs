@@ -19,6 +19,12 @@ namespace osu.Framework.Graphics.Shaders
         private int programID = -1;
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
+
+        /// <summary>
+        /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
+        /// </summary>
+        private IUniform[] uniformsValues;
+
         private readonly List<ShaderPart> parts;
 
         internal Shader(string name, List<ShaderPart> parts)
@@ -54,6 +60,9 @@ namespace osu.Framework.Graphics.Shaders
 
         internal void EnsureLoaded()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not load disposed shader.");
+
             if (!IsLoaded)
                 Compile();
         }
@@ -70,7 +79,7 @@ namespace osu.Framework.Graphics.Shaders
 
             GLWrapper.UseProgram(this);
 
-            foreach (var uniform in Uniforms.Values)
+            foreach (var uniform in uniformsValues)
                 uniform?.Update();
 
             IsBound = true;
@@ -123,48 +132,58 @@ namespace osu.Framework.Graphics.Shaders
         {
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
+            uniformsValues = new IUniform[uniformCount];
+
             for (int i = 0; i < uniformCount; i++)
             {
                 GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
 
+                IUniform uniform;
+
                 switch (type)
                 {
                     case ActiveUniformType.Bool:
-                        Uniforms.Add(uniformName, createUniform<bool>(uniformName));
+                        uniform = createUniform<bool>(uniformName);
                         break;
 
                     case ActiveUniformType.Float:
-                        Uniforms.Add(uniformName, createUniform<float>(uniformName));
+                        uniform = createUniform<float>(uniformName);
                         break;
 
                     case ActiveUniformType.Int:
-                        Uniforms.Add(uniformName, createUniform<int>(uniformName));
+                        uniform = createUniform<int>(uniformName);
                         break;
 
                     case ActiveUniformType.FloatMat3:
-                        Uniforms.Add(uniformName, createUniform<Matrix3>(uniformName));
+                        uniform = createUniform<Matrix3>(uniformName);
                         break;
 
                     case ActiveUniformType.FloatMat4:
-                        Uniforms.Add(uniformName, createUniform<Matrix4>(uniformName));
+                        uniform = createUniform<Matrix4>(uniformName);
                         break;
 
                     case ActiveUniformType.FloatVec2:
-                        Uniforms.Add(uniformName, createUniform<Vector2>(uniformName));
+                        uniform = createUniform<Vector2>(uniformName);
                         break;
 
                     case ActiveUniformType.FloatVec3:
-                        Uniforms.Add(uniformName, createUniform<Vector3>(uniformName));
+                        uniform = createUniform<Vector3>(uniformName);
                         break;
 
                     case ActiveUniformType.FloatVec4:
-                        Uniforms.Add(uniformName, createUniform<Vector4>(uniformName));
+                        uniform = createUniform<Vector4>(uniformName);
                         break;
 
                     case ActiveUniformType.Sampler2D:
-                        Uniforms.Add(uniformName, createUniform<int>(uniformName));
+                        uniform = createUniform<int>(uniformName);
                         break;
+
+                    default:
+                        continue;
                 }
+
+                Uniforms.Add(uniformName, uniform);
+                uniformsValues[i] = uniform;
             }
 
             IUniform createUniform<T>(string name)
