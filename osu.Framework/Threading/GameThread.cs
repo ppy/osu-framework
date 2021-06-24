@@ -20,8 +20,17 @@ namespace osu.Framework.Threading
         internal const double DEFAULT_ACTIVE_HZ = 1000;
         internal const double DEFAULT_INACTIVE_HZ = 60;
 
+        /// <summary>
+        /// The current state of this thread.
+        /// </summary>
+        public IBindable<GameThreadState> State => state;
+
+        private readonly Bindable<GameThreadState> state = new Bindable<GameThreadState>();
+
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
+
+        protected virtual bool UsesNativeThread => true;
 
         /// <summary>
         /// The dedicated OS thread for this <see cref="GameThread"/>.
@@ -39,14 +48,6 @@ namespace osu.Framework.Threading
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
-
-        /// <summary>
-        /// Fired from this thread before it is paused for permanent termination, or potentially moved to a different native thread.
-        /// </summary>
-        /// <remarks>
-        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
-        /// </remarks>
-        public event Action ThreadPausing;
 
         protected Action OnNewFrame;
 
@@ -81,7 +82,7 @@ namespace osu.Framework.Threading
 
         public static string PrefixedThreadNameFor(string name) => $"{nameof(GameThread)}.{name}";
 
-        public bool Running { get; private set; }
+        public bool Running => state.Value == GameThreadState.Running;
 
         public virtual bool IsCurrent => true;
 
@@ -92,11 +93,25 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Whether a pause has been requested.
         /// </summary>
-        private bool pauseRequested;
+        private volatile bool pauseRequested;
+
+        /// <summary>
+        /// Whether an exit has been requested.
+        /// </summary>
+        private volatile bool exitRequested;
 
         internal void Initialize(bool withThrottling)
         {
-            MakeCurrent();
+            lock (startStopLock)
+            {
+                Debug.Assert(state.Value != GameThreadState.Running);
+                Debug.Assert(state.Value != GameThreadState.Exited);
+
+                MakeCurrent();
+
+                state.Value = GameThreadState.Running;
+                pauseRequested = false;
+            }
 
             OnInitialize();
 
@@ -142,30 +157,23 @@ namespace osu.Framework.Threading
             updateCulture();
         }
 
-        public void WaitUntilInitialized()
-        {
-            initializedEvent.WaitOne();
-        }
+        public void WaitUntilInitialized() => initializedEvent.WaitOne();
 
         private void updateMaximumHz() => Scheduler.Add(() => Clock.MaximumUpdateHz = IsActive.Value ? activeHz : inactiveHz);
 
         private void runWork()
         {
-            Running = true;
+            Initialize(true);
 
-            try
+            while (true)
             {
-                Initialize(true);
+                bool shouldContinue = ProcessFrame();
 
-                while (!exitCompleted && !pauseRequested)
+                if (!shouldContinue)
                 {
-                    ProcessFrame();
+                    Thread = null;
+                    break;
                 }
-            }
-            finally
-            {
-                OnPause();
-                Cleanup();
             }
         }
 
@@ -177,20 +185,36 @@ namespace osu.Framework.Threading
             ThreadSafety.ResetAllForCurrentThread();
         }
 
-        internal void ProcessFrame()
+        /// <summary>
+        /// Process a single frame of this thread's work.
+        /// </summary>
+        /// <returns>Whether execution is still valid.</returns>
+        internal bool ProcessFrame()
         {
+            if (state.Value != GameThreadState.Running)
+                throw new InvalidOperationException("Cannot process frames when thread is not running");
+
             try
             {
-                if (exitCompleted)
-                    return;
-
                 MakeCurrent();
 
-                if (exitRequested)
+                if (exitRequested || pauseRequested)
                 {
-                    PerformExit();
-                    exitCompleted = true;
-                    return;
+                    lock (startStopLock)
+                    {
+                        Debug.Assert(state.Value == GameThreadState.Running);
+
+                        if (exitRequested)
+                        {
+                            state.Value = GameThreadState.Exited;
+                            PerformExit();
+                        }
+                        else
+                            state.Value = GameThreadState.Paused;
+                    }
+
+                    OnSuspended();
+                    return false;
                 }
 
                 Monitor?.NewFrame();
@@ -214,12 +238,11 @@ namespace osu.Framework.Threading
                 else
                     throw;
             }
+
+            return true;
         }
 
-        private volatile bool exitRequested;
-        private volatile bool exitCompleted;
-
-        public bool Exited => exitCompleted;
+        public bool Exited => state.Value == GameThreadState.Exited;
 
         private CultureInfo culture;
 
@@ -246,18 +269,25 @@ namespace osu.Framework.Threading
         {
             lock (startStopLock)
             {
-                if (Thread == null)
-                {
-                    // run the OnPause() logic as the GameThread may have been run manually by ThreadRunner via ProcessFrame() calls.
-                    OnPause();
+                if (state.Value != GameThreadState.Running)
                     return;
-                }
 
+                // actual pause will be done in ProcessFrame.
                 pauseRequested = true;
             }
 
-            while (Running)
-                Thread.Sleep(1);
+            if (Thread == null)
+            {
+                // if the thread is null at this point, presume the Pause call was made by the ThreadRunner in SingleThread execution.
+                // run frames until the pause has completed.
+                while (Running)
+                    ProcessFrame();
+            }
+            else
+            {
+                while (Running)
+                    Thread.Sleep(1);
+            }
         }
 
         /// <summary>
@@ -265,37 +295,46 @@ namespace osu.Framework.Threading
         /// Use this method to release exclusive resources that the thread could have been holding in its current execution mode,
         /// like GL contexts or similar.
         /// </summary>
-        protected virtual void OnPause()
+        protected virtual void OnSuspended()
         {
-            ThreadPausing?.Invoke();
         }
 
-        protected void Cleanup()
+        public void Exit()
         {
             lock (startStopLock)
             {
-                Thread = null;
-                Running = false;
+                if (state.Value == GameThreadState.Paused)
+                    // technically we could support this, but we don't use this yet and it will add more complexity.
+                    throw new InvalidOperationException("Cannot exit when thread is paused");
+
+                // actual exit will be done in ProcessFrame.
+                exitRequested = true;
             }
         }
 
-        public void Exit() => exitRequested = true;
-
-        public virtual void Start()
+        public void Start()
         {
             lock (startStopLock)
             {
-                pauseRequested = false;
+                Debug.Assert(state.Value != GameThreadState.Exited);
+                Debug.Assert(state.Value != GameThreadState.Running);
+
+                if (!UsesNativeThread)
+                {
+                    // usually run in runWork, but won't be in this case.
+                    Initialize(true);
+                    return;
+                }
 
                 Debug.Assert(Thread == null);
                 createThread();
                 Debug.Assert(Thread != null);
 
                 Thread.Start();
-
-                while (!Running)
-                    Thread.Sleep(1);
             }
+
+            while (!Running)
+                Thread.Sleep(1);
         }
 
         protected virtual void PerformExit()

@@ -175,7 +175,6 @@ namespace osu.Framework.Platform
                     foreach (var t in Threads)
                     {
                         t.Start();
-                        t.Clock.Throttling = true;
                     }
 
                     break;

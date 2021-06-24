@@ -23,6 +23,8 @@ namespace osu.Framework.Threading
             StatisticsCounterType.TabletEvents,
         };
 
+        protected override bool UsesNativeThread => false;
+
         public override bool IsCurrent => ThreadSafety.IsInputThread;
 
         internal sealed override void MakeCurrent()
@@ -30,11 +32,6 @@ namespace osu.Framework.Threading
             base.MakeCurrent();
 
             ThreadSafety.IsInputThread = true;
-        }
-
-        public override void Start()
-        {
-            // InputThread does not get started. it is run manually by GameHost.
         }
     }
 }
