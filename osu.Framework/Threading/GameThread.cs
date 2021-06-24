@@ -192,7 +192,8 @@ namespace osu.Framework.Threading
         internal bool ProcessFrame()
         {
             if (state.Value != GameThreadState.Running)
-                throw new InvalidOperationException("Cannot process frames when thread is not running");
+                // host could be in a suspended state. the input thread will still make calls to ProcessFrame so we can't throw.
+                return false;
 
             try
             {
