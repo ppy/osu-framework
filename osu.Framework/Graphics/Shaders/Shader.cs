@@ -35,10 +35,10 @@ namespace osu.Framework.Graphics.Shaders
             this.name = name;
             this.parts = parts;
 
-            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(Compile));
+            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
-        internal void Compile()
+        private void compile()
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
