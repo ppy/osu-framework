@@ -18,7 +18,7 @@ namespace osu.Framework.Threading
         public AudioThread()
             : base(name: "Audio")
         {
-            OnNewFrame = onNewFrame;
+            OnNewFrame += onNewFrame;
 
             if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
             {
@@ -89,9 +89,9 @@ namespace osu.Framework.Threading
             initialised_devices.Add(deviceId);
         }
 
-        protected override void PerformExit()
+        protected override void OnExit()
         {
-            base.PerformExit();
+            base.OnExit();
 
             lock (managers)
             {
