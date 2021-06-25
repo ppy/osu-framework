@@ -32,7 +32,7 @@ namespace osu.Framework.Threading
         public ThrottledFrameClock Clock { get; }
 
         /// <summary>
-        /// The dedicated OS thread for this <see cref="GameThread"/>.
+        /// The current dedicated OS thread for this <see cref="GameThread"/>.
         /// A value of <see langword="null"/> does not necessarily mean that this thread is not running;
         /// in <see cref="ExecutionMode.SingleThread"/> execution mode <see cref="ThreadRunner"/> drives its <see cref="GameThread"/>s
         /// manually and sequentially on the main OS thread of the game process.
@@ -104,6 +104,11 @@ namespace osu.Framework.Threading
         /// </summary>
         private volatile bool exitRequested;
 
+        /// <summary>
+        /// Prepare this thread for performing work.
+        /// Must be called when entering a running state.
+        /// </summary>
+        /// <param name="withThrottling">Whether this thread's clock should be throttling via thread sleeps.</param>
         internal void Initialize(bool withThrottling)
         {
             lock (startStopLock)
