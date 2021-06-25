@@ -317,9 +317,9 @@ namespace osu.Framework.Threading
             {
                 Debug.Assert(state.Value != GameThreadState.Exited);
                 Debug.Assert(state.Value != GameThreadState.Running);
-
-                PrepareForWork();
             }
+
+            PrepareForWork();
         }
 
         /// <summary>
