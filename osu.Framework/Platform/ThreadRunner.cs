@@ -168,8 +168,7 @@ namespace osu.Framework.Platform
                 if (ExecutionMode == activeExecutionMode)
                     return;
 
-                // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
-                activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
+                activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
                 Logger.Log($"Execution mode changed to {activeExecutionMode}");
             }
 
@@ -201,8 +200,6 @@ namespace osu.Framework.Platform
                     break;
                 }
             }
-
-            activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
             updateMainThreadRates();
         }
