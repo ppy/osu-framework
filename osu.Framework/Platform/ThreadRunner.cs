@@ -182,9 +182,7 @@ namespace osu.Framework.Platform
                 {
                     // switch to multi-threaded
                     foreach (var t in Threads)
-                    {
                         t.Start();
-                    }
 
                     break;
                 }

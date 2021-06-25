@@ -23,7 +23,12 @@ namespace osu.Framework.Threading
             StatisticsCounterType.TabletEvents,
         };
 
-        protected override bool UsesNativeThread => false;
+        protected override void PrepareForWork()
+        {
+            // Intentionally inhibiting the base implementation which spawns a native thread.
+            // Therefore, we need to run Initialize inline.
+            Initialize(true);
+        }
 
         public override bool IsCurrent => ThreadSafety.IsInputThread;
 

@@ -28,9 +28,8 @@ namespace osu.Framework.Threading
         private readonly Bindable<GameThreadState> state = new Bindable<GameThreadState>();
 
         internal PerformanceMonitor Monitor { get; }
-        public ThrottledFrameClock Clock { get; }
 
-        protected virtual bool UsesNativeThread => true;
+        public ThrottledFrameClock Clock { get; }
 
         /// <summary>
         /// The dedicated OS thread for this <see cref="GameThread"/>.
@@ -84,6 +83,11 @@ namespace osu.Framework.Threading
 
         public bool Running => state.Value == GameThreadState.Running;
 
+        public bool Exited => state.Value == GameThreadState.Exited;
+
+        /// <summary>
+        /// Whether currently executing on this thread (from the point of invocation).
+        /// </summary>
         public virtual bool IsCurrent => true;
 
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
@@ -247,8 +251,6 @@ namespace osu.Framework.Threading
             return true;
         }
 
-        public bool Exited => state.Value == GameThreadState.Exited;
-
         private CultureInfo culture;
 
         public CultureInfo CurrentCulture
@@ -317,6 +319,9 @@ namespace osu.Framework.Threading
             }
         }
 
+        /// <summary>
+        /// Start this thread.
+        /// </summary>
         public void Start()
         {
             lock (startStopLock)
@@ -324,19 +329,20 @@ namespace osu.Framework.Threading
                 Debug.Assert(state.Value != GameThreadState.Exited);
                 Debug.Assert(state.Value != GameThreadState.Running);
 
-                if (!UsesNativeThread)
-                {
-                    // usually run in runWork, but won't be in this case.
-                    Initialize(true);
-                    return;
-                }
-
-                Debug.Assert(Thread == null);
-                createThread();
-                Debug.Assert(Thread != null);
-
-                Thread.Start();
+                PrepareForWork();
             }
+        }
+
+        /// <summary>
+        /// Prepares this game thread for work. Should block until <see cref="Initialize"/> has been run.
+        /// </summary>
+        protected virtual void PrepareForWork()
+        {
+            Debug.Assert(Thread == null);
+            createThread();
+            Debug.Assert(Thread != null);
+
+            Thread.Start();
 
             while (!Running)
                 Thread.Sleep(1);
