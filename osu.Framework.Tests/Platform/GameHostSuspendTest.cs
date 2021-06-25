@@ -49,7 +49,8 @@ namespace osu.Framework.Tests.Platform
                 updateThreadState = host.UpdateThread.State.GetBoundCopy();
                 updateThreadState.BindValueChanged(state =>
                 {
-                    Assert.IsTrue(ThreadSafety.IsUpdateThread);
+                    if (state.NewValue != GameThreadState.Starting)
+                        Assert.IsTrue(ThreadSafety.IsUpdateThread);
                 });
                 completed.Set();
             });

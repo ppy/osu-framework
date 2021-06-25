@@ -187,11 +187,22 @@ namespace osu.Framework.Threading
         {
             lock (startStopLock)
             {
-                Debug.Assert(state.Value != GameThreadState.Exited);
-                Debug.Assert(state.Value != GameThreadState.Running);
+                switch (state.Value)
+                {
+                    case GameThreadState.Paused:
+                    case GameThreadState.NotStarted:
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Cannot start when thread is {state.Value}.");
+                }
+
+                state.Value = GameThreadState.Starting;
             }
 
             PrepareForWork();
+
+            Debug.Assert(state.Value == GameThreadState.Running);
         }
 
         /// <summary>
@@ -210,6 +221,7 @@ namespace osu.Framework.Threading
                     // technically we could support this, but we don't use this yet and it will add more complexity.
                     case GameThreadState.Paused:
                     case GameThreadState.NotStarted:
+                    case GameThreadState.Starting:
                         throw new InvalidOperationException($"Cannot exit when thread is {state.Value}.");
 
                     case GameThreadState.Exited:
@@ -362,6 +374,9 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Create the native backing thread to run work.
         /// </summary>
+        /// <remarks>
+        /// This does not start the thread, but guarantees <see cref="Thread"/> is non-null.
+        /// </remarks>
         private void createThread()
         {
             Debug.Assert(Thread == null);

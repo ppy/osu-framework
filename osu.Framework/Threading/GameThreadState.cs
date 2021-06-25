@@ -13,6 +13,11 @@ namespace osu.Framework.Threading
         NotStarted,
 
         /// <summary>
+        /// This thread is preparing to run.
+        /// </summary>
+        Starting,
+
+        /// <summary>
         /// This thread is running.
         /// </summary>
         Running,
