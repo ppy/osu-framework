@@ -43,9 +43,10 @@ namespace osu.Framework.Graphics.Shaders
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
-            parts.RemoveAll(p => p == null);
-            Uniforms.Clear();
+            if (IsLoaded)
+                throw new InvalidOperationException("Attempting to compile already compiled shader.");
 
+            parts.RemoveAll(p => p == null);
             if (parts.Count == 0)
                 return;
 
@@ -61,7 +62,7 @@ namespace osu.Framework.Graphics.Shaders
             GlobalPropertyManager.Register(this);
         }
 
-        private void ensureShaderLoaded()
+        internal void EnsureShaderCompiled()
         {
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
@@ -78,7 +79,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsBound)
                 return;
 
-            ensureShaderLoaded();
+            EnsureShaderCompiled();
 
             GLWrapper.UseProgram(this);
 
@@ -109,7 +110,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
 
-            ensureShaderLoaded();
+            EnsureShaderCompiled();
 
             return (Uniform<T>)Uniforms[name];
         }

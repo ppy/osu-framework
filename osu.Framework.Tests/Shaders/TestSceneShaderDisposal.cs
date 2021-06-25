@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Shaders
                 shader = (Shader)manager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
                 shaderRef = new WeakReference<IShader>(shader);
 
-                shader.Compile();
+                shader.EnsureShaderCompiled();
             });
 
             AddUntilStep("wait for load", () => shader.IsLoaded);
