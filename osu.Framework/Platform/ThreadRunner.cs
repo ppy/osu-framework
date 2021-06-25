@@ -109,7 +109,7 @@ namespace osu.Framework.Platform
                     lock (threads)
                     {
                         foreach (var t in threads)
-                            t.ProcessFrame();
+                            t.RunSingleFrame();
                     }
 
                     break;
@@ -117,7 +117,7 @@ namespace osu.Framework.Platform
 
                 case ExecutionMode.MultiThreaded:
                     // still need to run the main/input thread on the window loop
-                    mainThread.ProcessFrame();
+                    mainThread.RunSingleFrame();
                     break;
             }
         }

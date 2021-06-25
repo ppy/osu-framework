@@ -173,16 +173,8 @@ namespace osu.Framework.Threading
         {
             Initialize(true);
 
-            while (true)
-            {
-                bool shouldContinue = ProcessFrame();
-
-                if (!shouldContinue)
-                {
-                    Thread = null;
-                    break;
-                }
-            }
+            while (Running)
+                RunSingleFrame();
         }
 
         /// <summary>
@@ -194,43 +186,43 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
+        /// Runs a single frame updating the execution status if required.
+        /// </summary>
+        internal void RunSingleFrame()
+        {
+            var newState = processFrame();
+
+            if (newState.HasValue)
+                setExitState(newState.Value);
+        }
+
+        /// <summary>
         /// Process a single frame of this thread's work.
         /// </summary>
-        /// <returns>Whether execution is still valid.</returns>
-        internal bool ProcessFrame()
+        /// <returns>A potential execution state change.</returns>
+        private GameThreadState? processFrame()
         {
             if (state.Value != GameThreadState.Running)
                 // host could be in a suspended state. the input thread will still make calls to ProcessFrame so we can't throw.
-                return false;
+                return null;
+
+            MakeCurrent();
+
+            if (exitRequested)
+            {
+                exitRequested = false;
+                PerformExit();
+                return GameThreadState.Exited;
+            }
+
+            if (pauseRequested)
+            {
+                pauseRequested = false;
+                return GameThreadState.Paused;
+            }
 
             try
             {
-                MakeCurrent();
-
-                if (exitRequested || pauseRequested)
-                {
-                    lock (startStopLock)
-                    {
-                        if (state.Value != GameThreadState.Running)
-                            throw new InvalidOperationException($"Attempted to process frame when state is {state.Value}");
-
-                        if (exitRequested)
-                        {
-                            state.Value = GameThreadState.Exited;
-                            exitRequested = false;
-                            PerformExit();
-                        }
-                        else
-                        {
-                            state.Value = GameThreadState.Paused;
-                            pauseRequested = false;
-                        }
-
-                        OnSuspended();
-                        return false;
-                    }
-                }
-
                 Monitor?.NewFrame();
 
                 using (Monitor?.BeginCollecting(PerformanceCollectionType.Scheduler))
@@ -253,7 +245,7 @@ namespace osu.Framework.Threading
                     throw;
             }
 
-            return true;
+            return null;
         }
 
         private CultureInfo culture;
@@ -352,22 +344,43 @@ namespace osu.Framework.Threading
 
         /// <summary>
         /// Spin indefinitely until this thread enters a required state.
-        /// For cases where no native thread is present, this will run <see cref="ProcessFrame"/> until the required state is reached.
+        /// For cases where no native thread is present, this will run <see cref="processFrame"/> until the required state is reached.
         /// </summary>
         /// <param name="targetState">The state to wait for.</param>
         internal void WaitForState(GameThreadState targetState)
         {
+            if (state.Value == targetState)
+                return;
+
             if (Thread == null)
             {
                 // if the thread is null at this point, presume the call was made from the thread context.
                 // run frames until the required state is reached.
-                while (state.Value != targetState)
-                    ProcessFrame();
+                GameThreadState? newState = null;
+
+                while (newState != targetState)
+                    newState = processFrame();
+
+                // note that the only state transition here can be an exiting one. entering a running state can only occur in Initialize().
+                setExitState(newState.Value);
             }
             else
             {
                 while (state.Value != targetState)
                     Thread.Sleep(1);
+            }
+        }
+
+        private void setExitState(GameThreadState exitState)
+        {
+            lock (startStopLock)
+            {
+                Debug.Assert(state.Value == GameThreadState.Running);
+                Debug.Assert(exitState == GameThreadState.Exited || exitState == GameThreadState.Paused);
+
+                Thread = null;
+                OnSuspended();
+                state.Value = exitState;
             }
         }
 
