@@ -291,7 +291,7 @@ namespace osu.Framework.Threading
                 pauseRequested = true;
             }
 
-            waitForState(GameThreadState.Paused);
+            WaitForState(GameThreadState.Paused);
         }
 
         /// <summary>
@@ -341,7 +341,7 @@ namespace osu.Framework.Threading
 
             Thread.Start();
 
-            waitForState(GameThreadState.Running);
+            WaitForState(GameThreadState.Running);
         }
 
         protected virtual void PerformExit()
@@ -355,7 +355,7 @@ namespace osu.Framework.Threading
         /// For cases where no native thread is present, this will run <see cref="ProcessFrame"/> until the required state is reached.
         /// </summary>
         /// <param name="targetState">The state to wait for.</param>
-        private void waitForState(GameThreadState targetState)
+        internal void WaitForState(GameThreadState targetState)
         {
             if (Thread == null)
             {
