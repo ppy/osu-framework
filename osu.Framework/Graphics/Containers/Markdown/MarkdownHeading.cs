@@ -3,7 +3,7 @@
 
 using Markdig.Syntax;
 using osu.Framework.Allocation;
-using osuTK;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers.Markdown
 {
@@ -36,31 +36,41 @@ namespace osu.Framework.Graphics.Containers.Markdown
             MarkdownTextFlowContainer textFlow;
             InternalChild = textFlow = CreateTextFlow();
 
-            textFlow.Scale = new Vector2(GetFontSizeByLevel(headingBlock.Level));
             textFlow.AddInlineText(headingBlock.Inline);
         }
 
-        public virtual MarkdownTextFlowContainer CreateTextFlow() => parentFlowComponent.CreateTextFlow();
+        public virtual MarkdownTextFlowContainer CreateTextFlow() => new MarkdownHeadingTextFlowContainer
+        {
+            FontSize = GetFontSizeByLevel(headingBlock.Level),
+        };
 
         protected virtual float GetFontSizeByLevel(int level)
         {
             switch (level)
             {
                 case 1:
-                    return 2.7f;
+                    return 54;
 
                 case 2:
-                    return 2;
+                    return 40;
 
                 case 3:
-                    return 1.5f;
+                    return 30;
 
                 case 4:
-                    return 1.3f;
+                    return 26;
 
                 default:
-                    return 1;
+                    return 20;
             }
+        }
+
+        private class MarkdownHeadingTextFlowContainer : MarkdownTextFlowContainer
+        {
+            public float FontSize;
+
+            protected override SpriteText CreateSpriteText()
+                => base.CreateSpriteText().With(t => t.Font = t.Font.With(size: FontSize));
         }
     }
 }

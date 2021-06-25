@@ -10,6 +10,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
@@ -118,7 +119,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16)
+                            Font = FrameworkFont.Regular.With(size: 16)
                         },
                         new Container
                         {
@@ -138,7 +139,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Font = FontUsage.Default.With(size: 16),
+                            Font = FrameworkFont.Regular.With(size: 16),
                         },
                     }
                 };
@@ -264,7 +265,7 @@ namespace osu.Framework.Graphics.Visualisation
                 protected internal override bool CanDrawOpaqueInterior => false;
             }
 
-            public string TooltipText
+            public LocalisableString TooltipText
             {
                 get
                 {

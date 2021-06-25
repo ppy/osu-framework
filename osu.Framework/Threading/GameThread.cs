@@ -11,6 +11,7 @@ using System.Globalization;
 using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Threading
 {
@@ -22,6 +23,12 @@ namespace osu.Framework.Threading
         internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
 
+        /// <summary>
+        /// The dedicated OS thread for this <see cref="GameThread"/>.
+        /// A value of <see langword="null"/> does not necessarily mean that this thread is not running;
+        /// in <see cref="ExecutionMode.SingleThread"/> execution mode <see cref="ThreadRunner"/> drives its <see cref="GameThread"/>s
+        /// manually and sequentially on the main OS thread of the game process.
+        /// </summary>
         [CanBeNull]
         public Thread Thread { get; private set; }
 
@@ -32,6 +39,14 @@ namespace osu.Framework.Threading
         /// While attached, all exceptions will be caught and forwarded. Thread execution will continue indefinitely.
         /// </summary>
         public EventHandler<UnhandledExceptionEventArgs> UnhandledException;
+
+        /// <summary>
+        /// Fired from this thread before it is paused for permanent termination, or potentially moved to a different native thread.
+        /// </summary>
+        /// <remarks>
+        /// This could occur from a change in <see cref="ExecutionMode"/> or end of host execution.
+        /// </remarks>
+        public event Action ThreadPausing;
 
         protected Action OnNewFrame;
 
@@ -149,6 +164,7 @@ namespace osu.Framework.Threading
             }
             finally
             {
+                OnPause();
                 Cleanup();
             }
         }
@@ -231,7 +247,11 @@ namespace osu.Framework.Threading
             lock (startStopLock)
             {
                 if (Thread == null)
+                {
+                    // run the OnPause() logic as the GameThread may have been run manually by ThreadRunner via ProcessFrame() calls.
+                    OnPause();
                     return;
+                }
 
                 pauseRequested = true;
             }
@@ -240,7 +260,17 @@ namespace osu.Framework.Threading
                 Thread.Sleep(1);
         }
 
-        protected virtual void Cleanup()
+        /// <summary>
+        /// Called when a <see cref="Pause"/> or <see cref="Exit"/> is requested on this <see cref="GameThread"/>.
+        /// Use this method to release exclusive resources that the thread could have been holding in its current execution mode,
+        /// like GL contexts or similar.
+        /// </summary>
+        protected virtual void OnPause()
+        {
+            ThreadPausing?.Invoke();
+        }
+
+        protected void Cleanup()
         {
             lock (startStopLock)
             {

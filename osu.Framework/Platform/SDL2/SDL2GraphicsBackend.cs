@@ -30,7 +30,12 @@ namespace osu.Framework.Platform.SDL2
             return context;
         }
 
-        protected override void MakeCurrent(IntPtr context) => SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);
+        protected override void MakeCurrent(IntPtr context)
+        {
+            int result = SDL.SDL_GL_MakeCurrent(sdlWindowHandle, context);
+            if (result < 0)
+                throw new InvalidOperationException($"Failed to acquire GL context ({SDL.SDL_GetError()})");
+        }
 
         public override void SwapBuffers() => SDL.SDL_GL_SwapWindow(sdlWindowHandle);
 

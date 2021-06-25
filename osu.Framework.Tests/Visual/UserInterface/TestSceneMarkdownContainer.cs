@@ -311,7 +311,7 @@ soft break with '\'";
                 UrlAdded = url => Links.Add(url)
             };
 
-            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans", weight: "Regular"));
+            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
 
             private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {

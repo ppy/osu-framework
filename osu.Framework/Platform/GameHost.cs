@@ -180,10 +180,10 @@ namespace osu.Framework.Platform
             thread.UnhandledException = null;
         }
 
-        public DrawThread DrawThread;
-        public GameThread UpdateThread;
-        public InputThread InputThread;
-        public AudioThread AudioThread;
+        public DrawThread DrawThread { get; private set; }
+        public GameThread UpdateThread { get; private set; }
+        public InputThread InputThread { get; private set; }
+        public AudioThread AudioThread { get; private set; }
 
         private double maximumUpdateHz;
 
@@ -581,11 +581,11 @@ namespace osu.Framework.Platform
 
                 Window = CreateWindow();
 
-                ExecutionState = ExecutionState.Running;
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
+
+                ExecutionState = ExecutionState.Running;
 
                 initialiseInputHandlers();
 

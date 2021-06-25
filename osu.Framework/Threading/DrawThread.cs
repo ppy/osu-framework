@@ -46,10 +46,9 @@ namespace osu.Framework.Threading
             host.Window?.MakeCurrent();
         }
 
-        protected sealed override void Cleanup()
+        protected sealed override void OnPause()
         {
-            base.Cleanup();
-
+            base.OnPause();
             host.Window?.ClearCurrent();
         }
 
