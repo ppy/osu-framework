@@ -119,17 +119,17 @@ namespace osu.Framework.Threading
                 MakeCurrent();
 
                 state.Value = GameThreadState.Running;
+
+                OnInitialize();
+
+                Clock.Throttling = withThrottling;
+
+                Monitor.MakeCurrent();
+
+                updateCulture();
+
+                initializedEvent.Set();
             }
-
-            OnInitialize();
-
-            Clock.Throttling = withThrottling;
-
-            Monitor.MakeCurrent();
-
-            updateCulture();
-
-            initializedEvent.Set();
         }
 
         protected virtual void OnInitialize() { }
@@ -225,10 +225,10 @@ namespace osu.Framework.Threading
                             state.Value = GameThreadState.Paused;
                             pauseRequested = false;
                         }
-                    }
 
-                    OnSuspended();
-                    return false;
+                        OnSuspended();
+                        return false;
+                    }
                 }
 
                 Monitor?.NewFrame();
@@ -277,7 +277,10 @@ namespace osu.Framework.Threading
             Thread.CurrentUICulture = culture;
         }
 
-        public void Pause()
+        /// <summary>
+        /// Pause this thread. Must be run from <see cref="ThreadRunner"/> in a safe manner.
+        /// </summary>
+        internal void Pause()
         {
             lock (startStopLock)
             {
@@ -288,18 +291,7 @@ namespace osu.Framework.Threading
                 pauseRequested = true;
             }
 
-            if (Thread == null)
-            {
-                // if the thread is null at this point, presume the Pause call was made by the ThreadRunner in SingleThread execution.
-                // run frames until the pause has completed.
-                while (Running)
-                    ProcessFrame();
-            }
-            else
-            {
-                while (Running)
-                    Thread.Sleep(1);
-            }
+            waitForState(GameThreadState.Paused);
         }
 
         /// <summary>
@@ -349,14 +341,34 @@ namespace osu.Framework.Threading
 
             Thread.Start();
 
-            while (!Running)
-                Thread.Sleep(1);
+            waitForState(GameThreadState.Running);
         }
 
         protected virtual void PerformExit()
         {
             Monitor?.Dispose();
             initializedEvent?.Dispose();
+        }
+
+        /// <summary>
+        /// Spin indefinitely until this thread enters a required state.
+        /// For cases where no native thread is present, this will run <see cref="ProcessFrame"/> until the required state is reached.
+        /// </summary>
+        /// <param name="targetState">The state to wait for.</param>
+        private void waitForState(GameThreadState targetState)
+        {
+            if (Thread == null)
+            {
+                // if the thread is null at this point, presume the call was made from the thread context.
+                // run frames until the required state is reached.
+                while (state.Value != targetState)
+                    ProcessFrame();
+            }
+            else
+            {
+                while (state.Value != targetState)
+                    Thread.Sleep(1);
+            }
         }
 
         public class GameThreadScheduler : Scheduler
