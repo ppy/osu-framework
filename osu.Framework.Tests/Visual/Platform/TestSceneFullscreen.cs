@@ -145,7 +145,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.ClientSize}";
             currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
-            currentWindowState.Text = $"Window state: {window?.WindowState}";
+            currentWindowState.Text = $"Window State: {window?.WindowState}";
         }
 
         private void testResolution(int w, int h)
