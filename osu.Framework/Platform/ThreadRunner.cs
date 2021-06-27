@@ -129,8 +129,6 @@ namespace osu.Framework.Platform
             lock (startStopLock)
             {
                 pauseAllThreads();
-
-                // set the active execution mode back to null to set the state checking back to when it can be resumed.
                 activeExecutionMode = null;
             }
         }
