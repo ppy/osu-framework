@@ -24,6 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
+        private readonly SpriteText currentWindowState = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
         private readonly Dropdown<Display> displaysDropdown;
 
@@ -45,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     currentActualSize,
                     currentDisplayMode,
                     currentWindowMode,
+                    currentWindowState,
                     supportedWindowModes,
                     displaysDropdown = new BasicDropdown<Display> { Width = 600 }
                 },
@@ -143,6 +145,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.ClientSize}";
             currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
+            currentWindowState.Text = $"Window State: {window?.WindowState}";
         }
 
         private void testResolution(int w, int h)

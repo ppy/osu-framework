@@ -1021,6 +1021,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
