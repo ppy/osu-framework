@@ -312,10 +312,10 @@ namespace osu.Framework.Threading
 
             if (Thread == null)
             {
-                // if the thread is null at this point, presume the call was made from the thread context.
-                // run frames until the required state is reached.
                 GameThreadState? newState = null;
 
+                // if the thread is null at this point, we need to assume that this WaitForState call is running on the same native thread as this GameThread has/will be running.
+                // run frames until the required state is reached.
                 while (newState != targetState)
                     newState = processFrame();
 
