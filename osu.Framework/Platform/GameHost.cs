@@ -667,8 +667,8 @@ namespace osu.Framework.Platform
         /// </summary>
         public void Suspend()
         {
-            threadRunner.Suspend();
             suspended = true;
+            threadRunner.Suspend();
         }
 
         /// <summary>

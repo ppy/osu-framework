@@ -46,9 +46,9 @@ namespace osu.Framework.Threading
             host.Window?.MakeCurrent();
         }
 
-        protected sealed override void OnPause()
+        protected sealed override void OnSuspended()
         {
-            base.OnPause();
+            base.OnSuspended();
             host.Window?.ClearCurrent();
         }
 
