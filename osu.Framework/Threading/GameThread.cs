@@ -386,8 +386,6 @@ namespace osu.Framework.Threading
                 IsBackground = true,
             };
 
-            updateCulture();
-
             void runWork()
             {
                 Initialize(true);
