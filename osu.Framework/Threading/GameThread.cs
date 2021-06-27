@@ -198,10 +198,10 @@ namespace osu.Framework.Threading
                 }
 
                 state.Value = GameThreadState.Starting;
+                PrepareForWork();
             }
 
-            PrepareForWork();
-
+            WaitForState(GameThreadState.Running);
             Debug.Assert(state.Value == GameThreadState.Running);
         }
 
@@ -339,8 +339,6 @@ namespace osu.Framework.Threading
             Debug.Assert(Thread != null);
 
             Thread.Start();
-
-            WaitForState(GameThreadState.Running);
         }
 
         /// <summary>
