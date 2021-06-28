@@ -24,31 +24,37 @@ namespace osu.Framework.Tests.Visual.Containers
             AddToggleStep("disable front to back", val => debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val));
         }
 
+        [SetUp]
+        public void Setup() => Schedule(() =>
+        {
+            Clear();
+        });
+
         [Test]
         public void TestOpaqueBoxWithMixedBlending()
         {
-            createBox();
+            createBlendedBox();
             AddAssert("renders interior", () => blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestTransparentBoxWithMixedBlending()
         {
-            createBox(b => b.Alpha = 0.5f);
+            createBlendedBox(b => b.Alpha = 0.5f);
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestOpaqueBoxWithAdditiveBlending()
         {
-            createBox(b => b.Blending = BlendingParameters.Additive);
+            createBlendedBox(b => b.Blending = BlendingParameters.Additive);
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
         [Test]
         public void TestTransparentBoxWithAdditiveBlending()
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 b.Blending = BlendingParameters.Additive;
                 b.Alpha = 0.5f;
@@ -63,7 +69,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(BlendingEquation.ReverseSubtract)]
         public void TestOpaqueBoxWithNonAddRGBEquation(BlendingEquation equationMode)
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 var blending = BlendingParameters.Inherit;
                 blending.RGBEquation = equationMode;
@@ -79,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Containers
         [TestCase(BlendingEquation.ReverseSubtract)]
         public void TestOpaqueBoxWithNonAddAlphaEquation(BlendingEquation equationMode)
         {
-            createBox(b =>
+            createBlendedBox(b =>
             {
                 var blending = BlendingParameters.Inherit;
                 blending.AlphaEquation = equationMode;
@@ -89,11 +95,14 @@ namespace osu.Framework.Tests.Visual.Containers
             AddAssert("doesn't render interior", () => !blendedBox.CanDrawOpaqueInterior);
         }
 
-        private void createBox(Action<Box> setupAction = null) => AddStep("create box", () =>
+        [Test]
+        public void TestNegativeSize()
         {
-            Clear();
+        }
 
-            Add(new Container
+        private void createBlendedBox(Action<Box> setupAction = null) => AddStep("create box", () =>
+        {
+            Child = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -114,7 +123,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Size = new Vector2(0.5f),
                     }
                 }
-            });
+            };
 
             setupAction?.Invoke(blendedBox);
         });
