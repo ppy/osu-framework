@@ -54,17 +54,21 @@ namespace osu.Framework.Graphics.Containers.Markdown
             [BackgroundDependencyLoader]
             private void load(TextureStore textures)
             {
+                image.Texture = GetImageTexture(textures, url);
+            }
+
+            protected virtual Sprite CreateSpriteImage() => new Sprite();
+
+            protected virtual Texture GetImageTexture(TextureStore textures, string url)
+            {
                 Texture texture = null;
                 if (!string.IsNullOrEmpty(url))
                     texture = textures.Get(url);
 
                 // Use a default texture
                 texture ??= GetNotFoundTexture(textures);
-
-                image.Texture = texture;
+                return texture;
             }
-
-            protected virtual Sprite CreateSpriteImage() => new Sprite();
 
             protected virtual Texture GetNotFoundTexture(TextureStore textures) => null;
         }
