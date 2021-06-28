@@ -27,8 +27,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = new DelayedLoadWrapper(CreateImageContainer(url));
+            InternalChild = CreateContent(url);
         }
+
+        protected virtual Drawable CreateContent(string url) => new DelayedLoadWrapper(CreateImageContainer(url));
 
         protected virtual ImageContainer CreateImageContainer(string url)
         {
