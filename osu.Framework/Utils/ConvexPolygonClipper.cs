@@ -94,6 +94,9 @@ namespace osu.Framework.Utils
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int processClipEdge(in Line clipEdge, in Span<Vector2> buffer, in int inputCount)
         {
+            if (clipEdge.EndPoint == clipEdge.StartPoint)
+                return 0;
+
             // Temporary storage for the vertices from the buffer as the buffer gets altered
             Span<Vector2> inputVertices = stackalloc Vector2[buffer.Length];
 
