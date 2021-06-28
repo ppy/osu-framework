@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -16,19 +17,22 @@ namespace osu.Framework.Tests.Visual.Containers
 {
     public class TestSceneFrontToBackBox : FrameworkTestScene
     {
-        private TestBox blendedBox;
+        [Resolved]
+        private FrameworkDebugConfigManager debugConfig { get; set; }
 
-        [BackgroundDependencyLoader]
-        private void load(FrameworkDebugConfigManager debugConfig)
-        {
-            AddToggleStep("disable front to back", val => debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val));
-        }
+        private TestBox blendedBox;
 
         [SetUp]
         public void Setup() => Schedule(() =>
         {
             Clear();
         });
+
+        [TearDownSteps]
+        public void TearDownSteps()
+        {
+            AddToggleStep("disable front to back", val => debugConfig.SetValue(DebugSetting.BypassFrontToBackPass, val));
+        }
 
         [Test]
         public void TestOpaqueBoxWithMixedBlending()
@@ -98,6 +102,49 @@ namespace osu.Framework.Tests.Visual.Containers
         [Test]
         public void TestNegativeSize()
         {
+            AddStep("create test", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Y = -120,
+                        Text = "No rounded corners should be visible below",
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(200),
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Green
+                            },
+                            new Container
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Both,
+                                Size = new Vector2(-1f),
+                                Masking = true,
+                                CornerRadius = 20,
+                                Child = new Box
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Green
+                                }
+                            }
+                        }
+                    }
+                };
+            });
         }
 
         private void createBlendedBox(Action<Box> setupAction = null) => AddStep("create box", () =>
