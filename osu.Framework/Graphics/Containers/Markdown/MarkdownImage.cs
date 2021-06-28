@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                 AutoSizeAxes = Axes.Both;
 
-                InternalChild = image = new Sprite();
+                InternalChild = image = CreateSpriteImage();
             }
 
             [BackgroundDependencyLoader]
@@ -63,6 +63,8 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                 image.Texture = texture;
             }
+
+            protected virtual Sprite CreateSpriteImage() => new Sprite();
 
             protected virtual Texture GetNotFoundTexture(TextureStore textures) => null;
         }
