@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
                 float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
-                RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
+                RectangleF shrunkDrawRectangle = Source.DrawRectangle.DirectionalShrink(shrinkage);
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null
