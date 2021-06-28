@@ -277,6 +277,19 @@ soft break with '\'";
             AddAssert("has correct link", () => markdownContainer.Links[0].Url == "https://some.test.url/file");
         }
 
+        [Test]
+        public void TestAbsoluteLinkWithDifferentScheme()
+        {
+            AddStep("set content", () =>
+            {
+                markdownContainer.DocumentUrl = "https://some.test.url/some/path/2";
+                markdownContainer.RootUrl = "https://some.test.url/some/";
+                markdownContainer.Text = "[link](mailto:contact@ppy.sh)";
+            });
+
+            AddAssert("has correct link", () => markdownContainer.Links[0].Url == "mailto:contact@ppy.sh");
+        }
+
         private class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
@@ -298,7 +311,7 @@ soft break with '\'";
                 UrlAdded = url => Links.Add(url)
             };
 
-            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("OpenSans", weight: "Regular"));
+            public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
 
             private class TestMarkdownTextFlowContainer : MarkdownTextFlowContainer
             {
