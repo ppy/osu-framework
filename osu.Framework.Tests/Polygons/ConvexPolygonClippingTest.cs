@@ -192,6 +192,14 @@ namespace osu.Framework.Tests.Polygons
         }
 
         [Test]
+        public void TestTriangleClipping()
+        {
+            assertPolygonEquals(new SimpleConvexPolygon(new[] { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0) }),
+                new SimpleConvexPolygon(clip(new Quad(Vector2.Zero, Vector2.Zero, new Vector2(1, 0), new Vector2(0, 1)), new Quad(0, 0, 10, 10)).ToArray()),
+                false);
+        }
+
+        [Test]
         public void TestLineClipping()
         {
             assertPolygonEquals(new SimpleConvexPolygon(Array.Empty<Vector2>()),
