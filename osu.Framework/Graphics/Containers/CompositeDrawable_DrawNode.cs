@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Containers
                     : new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
-                        MaskingRect = Source.DrawRectangle,
+                        MaskingRect = Source.DrawRectangle.Normalize(),
                         ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
                         CornerRadius = Source.effectiveCornerRadius,
