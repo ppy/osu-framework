@@ -228,73 +228,37 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated in the positive direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is deflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
         /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated in the positive direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is deflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated in the positive direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
+        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> increased.
+        /// The center of that <see cref="RectangleF"/> will stay at that location.
         /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is deflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be increased in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>This method returns a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/>.</returns>
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
             X - amount.Left,
             Y - amount.Top,
             Width + amount.TotalHorizontal,
             Height + amount.TotalVertical);
 
-        /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk in the negative direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
-        /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
         public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
 
-        /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk in the negative direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
-        /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
         public RectangleF Shrink(Vector2 amount) => Shrink(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
-        /// <summary>
-        /// Gets a <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk in the negative direction.
-        /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
-        /// </summary>
-        /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
         public RectangleF Shrink(MarginPadding amount) => Inflate(-amount);
 
         /// <summary>
@@ -302,11 +266,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is inflated in the positive direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is inflated in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is inflated in the positive direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be inflated in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalInflate(float amount) => DirectionalInflate(new Vector2(amount));
 
         /// <summary>
@@ -314,11 +278,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is inflated in the positive direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is inflated in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is inflated in the positive direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be inflated in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalInflate(Vector2 amount) => DirectionalInflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         /// <summary>
@@ -326,11 +290,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is inflated in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is inflated in the positive direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is inflated in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is inflated in the positive direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be inflated by.</param>
-        /// <returns>A <see cref="RectangleF"/> inflated by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be inflated in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> inflated by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalInflate(MarginPadding amount) => new RectangleF(
             Width >= 0 ? X - amount.Left : X + amount.Left,
             Height >= 0 ? Y - amount.Top : Y + amount.Top,
@@ -343,11 +307,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is shrunk in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is shrunk in the negative direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is shrunk in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is shrunk in the negative direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be shrunk in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalShrink(float amount) => DirectionalShrink(new Vector2(amount));
 
         /// <summary>
@@ -355,11 +319,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is shrunk in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is shrunk in the negative direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is shrunk in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is shrunk in the negative direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be shrunk in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalShrink(Vector2 amount) => DirectionalShrink(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         /// <summary>
@@ -367,11 +331,11 @@ namespace osu.Framework.Graphics.Primitives
         /// The centre of the resultant <see cref="RectangleF"/> remains unchanged.
         /// </summary>
         /// <remarks>
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the resultant <see cref="RectangleF"/> is shrunk in the corresponding direction.
-        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the resultant <see cref="RectangleF"/> is shrunk in the negative direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is negative, the <see cref="RectangleF"/> is shrunk in the corresponding direction.
+        /// If either <see cref="Width"/> or <see cref="Height"/> of this <see cref="RectangleF"/> is zero, the <see cref="RectangleF"/> is shrunk in the negative direction.
         /// </remarks>
-        /// <param name="amount">The amount the resultant <see cref="RectangleF"/> should be shrunk by.</param>
-        /// <returns>A <see cref="RectangleF"/> shrunk by the given <paramref name="amount"/>.</returns>
+        /// <param name="amount">The amount both <see cref="Width"/> and <see cref="Height"/> will be shrunk in their corresponding directions in the returned <see cref="RectangleF"/>.</param>
+        /// <returns>A <see cref="RectangleF"/> with both <see cref="Width"/> and <see cref="Height"/> shrunk by the given <paramref name="amount"/> in their corresponding directions.</returns>
         public RectangleF DirectionalShrink(MarginPadding amount) => DirectionalInflate(-amount);
 
         /// <summary>Replaces this <see cref="RectangleF"/> structure with the intersection of itself and the specified <see cref="RectangleF"/> structure.</summary>
