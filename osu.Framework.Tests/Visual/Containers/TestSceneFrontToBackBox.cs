@@ -100,7 +100,54 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void TestNegativeSize()
+        public void TestSmallSizeMasking()
+        {
+            AddStep("create test", () =>
+            {
+                Children = new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Y = -120,
+                        Text = "No rounded corners should be visible below",
+                    },
+                    new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(20),
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Green
+                            },
+                            new Container
+                            {
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                RelativeSizeAxes = Axes.Both,
+                                Masking = true,
+                                CornerRadius = 40,
+                                Child = new Box
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Green
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+        }
+
+        [Test]
+        public void TestNegativeSizeMasking()
         {
             AddStep("create test", () =>
             {
