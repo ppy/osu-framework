@@ -299,10 +299,6 @@ namespace osu.Framework.Platform
             // To avoid this, pause the exceptioning thread until the rethrow takes place.
             waitForThrow();
 
-            // schedule an exit to the input thread.
-            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-            PerformExit(false);
-
             void waitForThrow()
             {
                 // This is bypassed for sources in a few situations where deadlocks can occur:
@@ -398,8 +394,14 @@ namespace osu.Framework.Platform
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
+                        // if a buffer is not available in single threaded mode there's no point in looping.
+                        // in the general case this should never happen, but may occur during exception handling.
+                        if (executionMode.Value == ExecutionMode.SingleThread)
+                            break;
+
                         using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                             Thread.Sleep(1);
+
                         continue;
                     }
 
