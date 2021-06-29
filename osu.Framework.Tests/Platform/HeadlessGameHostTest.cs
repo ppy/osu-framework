@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (var host = new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
             {
                 // never call host.Run()
             }
