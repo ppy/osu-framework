@@ -585,8 +585,6 @@ namespace osu.Framework.Platform
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
 
-                ExecutionState = ExecutionState.Running;
-
                 initialiseInputHandlers();
 
                 if (Window != null)
@@ -599,6 +597,7 @@ namespace osu.Framework.Platform
                     IsActive.BindTo(Window.IsActive);
                 }
 
+                ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
 
                 DrawThread.WaitUntilInitialized();
