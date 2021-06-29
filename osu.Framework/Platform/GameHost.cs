@@ -392,7 +392,7 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (ExecutionState > ExecutionState.Stopping)
+            while (ExecutionState == ExecutionState.Running)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
