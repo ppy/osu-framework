@@ -40,15 +40,6 @@ namespace osu.Framework.Localisation
             return false;
         }
 
-        public int GetHashCode(LocalisableString obj)
-        {
-            if (ReferenceEquals(null, obj.Data))
-                return 0;
-
-            var hashCode = new HashCode();
-            hashCode.Add(obj.Data.GetType());
-            hashCode.Add(obj.Data);
-            return hashCode.ToHashCode();
-        }
+        public int GetHashCode(LocalisableString obj) => HashCode.Combine(obj.Data?.GetType(), obj.Data);
     }
 }
