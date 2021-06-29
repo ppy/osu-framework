@@ -35,16 +35,8 @@ namespace osu.Framework.Localisation
                         Value = plain;
                         break;
 
-                    case RomanisableString romanisable:
-                        Value = romanisable.GetPreferred(preferUnicode.Value);
-                        break;
-
-                    case TranslatableString translatable:
-                        Value = translatable.Format(storage.Value);
-                        break;
-
-                    case LocalisableFormattable formattable:
-                        Value = formattable.ToString(storage.Value?.EffectiveCulture);
+                    case ILocalisableStringData data:
+                        Value = data.GetLocalised(storage.Value, preferUnicode.Value);
                         break;
 
                     default:

@@ -33,14 +33,8 @@ namespace osu.Framework.Localisation
                 case string strX:
                     return strX.Equals((string)yData, StringComparison.Ordinal);
 
-                case TranslatableString translatableX:
-                    return translatableX.Equals((TranslatableString)yData);
-
-                case RomanisableString romanisableX:
-                    return romanisableX.Equals((RomanisableString)yData);
-
-                case LocalisableFormattable formattableX:
-                    return formattableX.Equals((LocalisableFormattable)yData);
+                case ILocalisableStringData dataX:
+                    return dataX.Equals((ILocalisableStringData)yData);
             }
 
             return false;
@@ -52,27 +46,8 @@ namespace osu.Framework.Localisation
                 return 0;
 
             var hashCode = new HashCode();
-            hashCode.Add(obj.Data.GetType().GetHashCode());
-
-            switch (obj.Data)
-            {
-                case string str:
-                    hashCode.Add(str.GetHashCode());
-                    break;
-
-                case TranslatableString translatable:
-                    hashCode.Add(translatable.GetHashCode());
-                    break;
-
-                case RomanisableString romanisable:
-                    hashCode.Add(romanisable.GetHashCode());
-                    break;
-
-                case LocalisableFormattable formattable:
-                    hashCode.Add(formattable.GetHashCode());
-                    break;
-            }
-
+            hashCode.Add(obj.Data.GetType());
+            hashCode.Add(obj.Data);
             return hashCode.ToHashCode();
         }
     }
