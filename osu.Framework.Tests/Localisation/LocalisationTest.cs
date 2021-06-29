@@ -232,7 +232,7 @@ namespace osu.Framework.Tests.Localisation
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
 
             var dateTime = new DateTime(1);
-            var format = "MMM yyyy";
+            const string format = "MMM yyyy";
 
             var text = manager.GetLocalisedString(new LocalisableFormattable(dateTime, format));
 
