@@ -508,13 +508,21 @@ namespace osu.Framework.Platform
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected void PerformExit(bool immediately)
         {
+            switch (ExecutionState)
+            {
+                case ExecutionState.Stopping:
+                case ExecutionState.Stopped:
+                    return;
+            }
+
+            ExecutionState = ExecutionState.Stopping;
+
             if (immediately)
                 exit();
             else
             {
-                ExecutionState = ExecutionState.Stopping;
                 InputThread.Scheduler.Add(exit, false);
             }
         }
@@ -524,10 +532,11 @@ namespace osu.Framework.Platform
         /// </summary>
         private void exit()
         {
-            // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
-            ExecutionState = ExecutionState.Stopping;
+            Debug.Assert(ExecutionState == ExecutionState.Stopping);
+
             Window?.Close();
             threadRunner.Stop();
+
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
         }
