@@ -933,11 +933,17 @@ namespace osu.Framework.Platform
 
             isDisposed = true;
 
-            if (ExecutionState > ExecutionState.Stopping)
-                throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
+            switch (ExecutionState)
+            {
+                case ExecutionState.Running:
+                    throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
 
-            // Delay disposal until the game has exited
-            stoppedEvent.Wait();
+                case ExecutionState.Stopping:
+                case ExecutionState.Stopped:
+                    // Delay disposal until the game has exited
+                    stoppedEvent.Wait();
+                    break;
+            }
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
