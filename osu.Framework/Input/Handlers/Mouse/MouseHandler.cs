@@ -122,8 +122,6 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
 
-            bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
-
             if (window.RelativeMouseMode)
             {
                 updateRelativeMode();
@@ -133,7 +131,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
                 // handle the case where relative / raw input is active, but the cursor may have exited the window
                 // bounds and is not intended to be confined.
-                if (!window.CursorState.HasFlagFast(CursorState.Confined) && positionOutsideWindow && !previousPositionOutsideWindow)
+                if (!window.CursorState.HasFlagFast(CursorState.Confined) && !mayStayConfined(position))
                 {
                     // setting relative mode to false will allow the window manager to take control until the next
                     // updateRelativeMode() call succeeds (likely from the cursor returning inside the window).
@@ -141,14 +139,35 @@ namespace osu.Framework.Input.Handlers.Mouse
                     transferLastPositionToHostCursor();
                 }
             }
-
-            previousPositionOutsideWindow = positionOutsideWindow;
         }
 
         public override void Reset()
         {
             Sensitivity.SetDefault();
             base.Reset();
+        }
+
+        // attempt to keep the cursor confined even when not explicitly requested to improve input latency,
+        // particulairly during non-gameplay interactions.
+        private bool mayStayConfined(Vector2 position)
+        {
+            bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
+
+            // did the cursor just now move outside of the window?
+            bool movedOutsideWindow = positionOutsideWindow && !previousPositionOutsideWindow;
+
+            bool mayStayConfined =
+                // Never stay confined on Linux unless explicitly requested,
+                // because X11 window managers cannot tell us if the user wants to stay confined
+                (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                // Otherwise, stay confined until the user moves out of the window.
+                // We aren't really "confining" the cursor like this, but we trick the window manager into thinking we are.
+                // This may improve input latency for us.
+                && !movedOutsideWindow;
+
+            previousPositionOutsideWindow = positionOutsideWindow;
+
+            return mayStayConfined;
         }
 
         private void updateRelativeMode()
