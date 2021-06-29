@@ -57,22 +57,8 @@ namespace osu.Framework.Localisation
                    && Romanised == other.Romanised;
         }
 
-        public bool Equals(ILocalisableStringData? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (other.GetType() != GetType()) return false;
-
-            return Equals((RomanisableString)other);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((RomanisableString)obj);
-        }
+        public bool Equals(ILocalisableStringData? other) => other is RomanisableString romanisable && Equals(romanisable);
+        public override bool Equals(object? obj) => obj is RomanisableString romanisable && Equals(romanisable);
 
         public override int GetHashCode()
         {

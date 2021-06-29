@@ -47,22 +47,8 @@ namespace osu.Framework.Localisation
                    Format == other.Format;
         }
 
-        public bool Equals(ILocalisableStringData? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (other.GetType() != GetType()) return false;
-
-            return Equals((LocalisableFormattable)other);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((LocalisableFormattable)obj);
-        }
+        public bool Equals(ILocalisableStringData? other) => other is LocalisableFormattable formattable && Equals(formattable);
+        public override bool Equals(object? obj) => obj is LocalisableFormattable formattable && Equals(formattable);
 
         public override int GetHashCode() => HashCode.Combine(Value, Format);
     }

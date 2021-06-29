@@ -83,22 +83,8 @@ namespace osu.Framework.Localisation
                    && Args.SequenceEqual(other.Args);
         }
 
-        public bool Equals(ILocalisableStringData? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (other.GetType() != GetType()) return false;
-
-            return Equals((TranslatableString)other);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((TranslatableString)obj);
-        }
+        public bool Equals(ILocalisableStringData? other) => other is TranslatableString translatable && Equals(translatable);
+        public override bool Equals(object? obj) => obj is TranslatableString translatable && Equals(translatable);
 
         public override int GetHashCode()
         {
