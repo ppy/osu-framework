@@ -38,6 +38,9 @@ namespace osu.Framework.Localisation
 
                 case RomanisableString romanisableX:
                     return romanisableX.Equals((RomanisableString)yData);
+
+                case LocalisableFormattable formattableX:
+                    return formattableX.Equals((LocalisableFormattable)yData);
             }
 
             return false;
@@ -63,6 +66,10 @@ namespace osu.Framework.Localisation
 
                 case RomanisableString romanisable:
                     hashCode.Add(romanisable.GetHashCode());
+                    break;
+
+                case LocalisableFormattable formattable:
+                    hashCode.Add(formattable.GetHashCode());
                     break;
             }
 
