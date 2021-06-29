@@ -73,8 +73,6 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => string.Format(CultureInfo.InvariantCulture, Fallback, Args);
 
-        public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
-
         public bool Equals(TranslatableString? other)
         {
             if (ReferenceEquals(null, other)) return false;

@@ -38,8 +38,6 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => Value.ToString(Format, CultureInfo.InvariantCulture);
 
-        public static implicit operator LocalisableString(LocalisableFormattable formattable) => new LocalisableString(formattable);
-
         public bool Equals(LocalisableFormattable? other)
         {
             if (ReferenceEquals(null, other)) return false;

@@ -48,8 +48,6 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => GetLocalised(null, false);
 
-        public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
-
         public bool Equals(RomanisableString? other)
         {
             if (ReferenceEquals(null, other)) return false;

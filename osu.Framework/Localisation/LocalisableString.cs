@@ -41,6 +41,9 @@ namespace osu.Framework.Localisation
         public override int GetHashCode() => LocalisableStringEqualityComparer.Default.GetHashCode(this);
 
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
+        public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
+        public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
+        public static implicit operator LocalisableString(LocalisableFormattable formattable) => new LocalisableString(formattable);
 
         public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
