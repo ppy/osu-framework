@@ -8,14 +8,12 @@ using System.Globalization;
 using System.Linq;
 using osu.Framework.Logging;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>
     /// A string that can be translated with optional formattable arguments.
     /// </summary>
-    public class TranslatableString : IEquatable<TranslatableString>
+    public class TranslatableString : IEquatable<TranslatableString>, ILocalisableStringData
     {
         public readonly string Key;
         public readonly string Fallback;
@@ -50,13 +48,14 @@ namespace osu.Framework.Localisation
             Args = interpolation.GetArguments();
         }
 
-        public string Format(ILocalisationStore? store)
+        public string GetLocalised(ILocalisationStore? store, bool preferUnicode)
         {
-            if (store == null) return ToString();
+            if (store == null)
+                return ToString();
 
             var localisedFormat = store.Get(Key);
-
-            if (localisedFormat == null) return ToString();
+            if (localisedFormat == null)
+                return ToString();
 
             try
             {
@@ -74,6 +73,8 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => string.Format(CultureInfo.InvariantCulture, Fallback, Args);
 
+        public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
+
         public bool Equals(TranslatableString? other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -82,6 +83,14 @@ namespace osu.Framework.Localisation
             return Key == other.Key
                    && Fallback == other.Fallback
                    && Args.SequenceEqual(other.Args);
+        }
+
+        public bool Equals(ILocalisableStringData? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (other.GetType() != GetType()) return false;
+
+            return Equals((TranslatableString)other);
         }
 
         public override bool Equals(object? obj)

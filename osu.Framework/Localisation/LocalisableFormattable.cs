@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +12,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A string allowing for formatting <see cref="IFormattable"/>s using the current locale.
     /// </summary>
-    public class LocalisableFormattable : IEquatable<LocalisableFormattable>
+    public class LocalisableFormattable : IEquatable<LocalisableFormattable>, ILocalisableStringData
     {
         public readonly IFormattable Value;
         public readonly string Format;
@@ -26,17 +28,19 @@ namespace osu.Framework.Localisation
             Format = format;
         }
 
-        public string ToString(IFormatProvider formatProvider)
+        public string GetLocalised(ILocalisationStore? store, bool preferUnicode)
         {
-            if (formatProvider == null)
+            if (store == null)
                 return ToString();
 
-            return Value.ToString(Format, formatProvider);
+            return Value.ToString(Format, store.EffectiveCulture);
         }
 
         public override string ToString() => Value.ToString(Format, CultureInfo.InvariantCulture);
 
-        public bool Equals(LocalisableFormattable other)
+        public static implicit operator LocalisableString(LocalisableFormattable formattable) => new LocalisableString(formattable);
+
+        public bool Equals(LocalisableFormattable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -45,7 +49,15 @@ namespace osu.Framework.Localisation
                    Format == other.Format;
         }
 
-        public override bool Equals(object obj)
+        public bool Equals(ILocalisableStringData? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (other.GetType() != GetType()) return false;
+
+            return Equals((LocalisableFormattable)other);
+        }
+
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
