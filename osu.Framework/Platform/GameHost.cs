@@ -497,7 +497,15 @@ namespace osu.Framework.Platform
             }
         }
 
-        public ExecutionState ExecutionState { get; private set; }
+        public ExecutionState ExecutionState
+        {
+            get => executionState;
+            private set
+            {
+                executionState = value;
+                Logger.Log($"Host execution state changed to {value}");
+            }
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
@@ -935,6 +943,7 @@ namespace osu.Framework.Platform
         private bool isDisposed;
 
         private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
+        private ExecutionState executionState;
 
         protected virtual void Dispose(bool disposing)
         {
