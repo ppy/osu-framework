@@ -9,20 +9,40 @@ namespace osu.Framework.Benchmarks
     [MemoryDiagnoser]
     public class BenchmarkLocalisableString
     {
-        private LocalisableString str1;
-        private LocalisableString str2;
+        private LocalisableString romanisableString1;
+        private LocalisableString romanisableString2;
+        private LocalisableString translatableString1;
+        private LocalisableString translatableString2;
+        private LocalisableString formattableString1;
+        private LocalisableString formattableString2;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            str1 = new RomanisableString("a", "b");
-            str2 = new RomanisableString("c", "d");
+            romanisableString1 = new RomanisableString("a", "b");
+            romanisableString2 = new RomanisableString("c", "d");
+            translatableString1 = new TranslatableString("e", "f");
+            translatableString2 = new TranslatableString("g", "h");
+            formattableString1 = new LocalisableFormattable(1.23, "N0");
+            formattableString2 = new LocalisableFormattable(4.56, "N1");
         }
 
         [Benchmark]
-        public bool BenchmarkEquals() => str1.Equals(str2);
+        public bool BenchmarkRomanisableEquals() => romanisableString1.Equals(romanisableString2);
 
         [Benchmark]
-        public int BenchmarkGetHashCode() => str1.GetHashCode();
+        public bool BenchmarkTranslatableEquals() => translatableString1.Equals(translatableString2);
+
+        [Benchmark]
+        public bool BenchmarkFormattableEquals() => formattableString1.Equals(formattableString2);
+
+        [Benchmark]
+        public int BenchmarkRomanisableGetHashCode() => romanisableString1.GetHashCode();
+
+        [Benchmark]
+        public int BenchmarkTranslatableGetHashCode() => translatableString1.GetHashCode();
+
+        [Benchmark]
+        public int BenchmarkFormattableGetHashCode() => formattableString1.GetHashCode();
     }
 }
