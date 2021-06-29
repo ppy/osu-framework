@@ -43,6 +43,10 @@ namespace osu.Framework.Localisation
                         Value = translatable.Format(storage.Value);
                         break;
 
+                    case LocalisableFormattable formattable:
+                        Value = formattable.ToString(storage.Value?.EffectiveCulture);
+                        break;
+
                     default:
                         Value = string.Empty;
                         break;
