@@ -518,7 +518,7 @@ namespace osu.Framework.Platform
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately)
         {
             switch (ExecutionState)
             {
