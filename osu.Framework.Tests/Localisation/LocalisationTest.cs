@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableFormattableString()
         {
-            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            manager.AddLanguage("fr", new FakeStorage("fr"));
 
             var dateTime = new DateTime(1);
             const string format = "MMM yyyy";
@@ -238,8 +238,8 @@ namespace osu.Framework.Tests.Localisation
 
             Assert.AreEqual("Jan 0001", text.Value);
 
-            config.SetValue(FrameworkSetting.Locale, "ja-JP");
-            Assert.AreEqual("1月 0001", text.Value);
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("janv. 0001", text.Value);
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
