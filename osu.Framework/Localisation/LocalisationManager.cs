@@ -15,16 +15,19 @@ namespace osu.Framework.Localisation
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
         private readonly Bindable<string> configLocale;
-        private readonly Bindable<ILocalisationStore?> currentStorage = new Bindable<ILocalisationStore?>();
 
-        private readonly FrameworkConfigManager config;
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable Bidnable reference needs to be held.
+        private readonly Bindable<bool> configPreferUnicode;
+
+        private readonly Bindable<LocalisationParameters> currentSettings = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
         public LocalisationManager(FrameworkConfigManager config)
         {
-            this.config = config;
-
             configLocale = config.GetBindable<string>(FrameworkSetting.Locale);
             configLocale.BindValueChanged(updateLocale);
+
+            configPreferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
+            configPreferUnicode.BindValueChanged(updateUnicodePreference, true);
         }
 
         public void AddLanguage(string language, ILocalisationStore storage)
@@ -37,7 +40,7 @@ namespace osu.Framework.Localisation
         /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
-        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentStorage, config);
+        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentSettings);
 
         private void updateLocale(ValueChangedEvent<string> locale)
         {
@@ -60,8 +63,29 @@ namespace osu.Framework.Localisation
                 validLocale ??= locales[0];
             }
 
-            currentStorage.Value = validLocale.Storage;
+            ChangeSettings(CreateNewLocalisationParameters(validLocale.Storage, currentSettings.Value.PreferOriginalScript));
         }
+
+        private void updateUnicodePreference(ValueChangedEvent<bool> preferUnicode)
+            => ChangeSettings(CreateNewLocalisationParameters(currentSettings.Value.Store, preferUnicode.NewValue));
+
+        /// <summary>
+        /// Changes the localisation parameters.
+        /// </summary>
+        /// <param name="parameters">The new localisation parameters.</param>
+        protected void ChangeSettings(LocalisationParameters parameters) => currentSettings.Value = parameters;
+
+        /// <summary>
+        /// Creates new <see cref="LocalisationParameters"/>.
+        /// </summary>
+        /// <remarks>
+        /// Can be overridden to provide custom parameters for <see cref="ILocalisableStringData"/> implementations.
+        /// </remarks>
+        /// <param name="store">The <see cref="ILocalisationStore"/> to be used for string lookups and culture-specific formatting.</param>
+        /// <param name="preferOriginalScript">Whether to prefer the "original" script of <see cref="RomanisableString"/>s.</param>
+        /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
+        protected virtual LocalisationParameters CreateNewLocalisationParameters(ILocalisationStore? store, bool preferOriginalScript)
+            => new LocalisationParameters(store, preferOriginalScript);
 
         private class LocaleMapping
         {

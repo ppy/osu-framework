@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
@@ -29,12 +28,12 @@ namespace osu.Framework.Localisation
             Format = format;
         }
 
-        public string GetLocalised(ILocalisationStore? store, FrameworkConfigManager config)
+        public string GetLocalised(LocalisationParameters parameters)
         {
-            if (store == null)
+            if (parameters.Store == null)
                 return ToString();
 
-            return Value.ToString(Format, store.EffectiveCulture);
+            return Value.ToString(Format, parameters.Store.EffectiveCulture);
         }
 
         public override string ToString() => Value.ToString(Format, CultureInfo.InvariantCulture);

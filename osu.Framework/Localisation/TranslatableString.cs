@@ -6,7 +6,6 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using osu.Framework.Configuration;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Localisation
@@ -49,23 +48,23 @@ namespace osu.Framework.Localisation
             Args = interpolation.GetArguments();
         }
 
-        public string GetLocalised(ILocalisationStore? store, FrameworkConfigManager config)
+        public string GetLocalised(LocalisationParameters parameters)
         {
-            if (store == null)
+            if (parameters.Store == null)
                 return ToString();
 
-            var localisedFormat = store.Get(Key);
+            var localisedFormat = parameters.Store.Get(Key);
             if (localisedFormat == null)
                 return ToString();
 
             try
             {
-                return string.Format(store.EffectiveCulture, localisedFormat, Args);
+                return string.Format(parameters.Store.EffectiveCulture, localisedFormat, Args);
             }
             catch (FormatException e)
             {
                 // The formatting has failed
-                Logger.Log($"Localised format failed. Key: {Key}, culture: {store.EffectiveCulture.Name}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
+                Logger.Log($"Localised format failed. Key: {Key}, culture: {parameters.Store.EffectiveCulture}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
                     LoggingTarget.Runtime, LogLevel.Verbose);
             }
 
