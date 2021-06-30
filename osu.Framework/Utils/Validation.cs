@@ -57,7 +57,7 @@ namespace osu.Framework.Utils
         /// <typeparam name="T">The type to check for.</typeparam>
         /// <returns><see langword="true"/> if the type is supported; <see langword="false"/> otherwise.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsSupportedBindableNumberType<T>() =>
+        public static bool IsSupportedBindableNumberType<T>() =>
             typeof(T) == typeof(sbyte)
             || typeof(T) == typeof(byte)
             || typeof(T) == typeof(short)
