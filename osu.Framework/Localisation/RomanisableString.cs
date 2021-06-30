@@ -38,12 +38,19 @@ namespace osu.Framework.Localisation
             Romanised = romanised;
         }
 
-        public string GetLocalised(LocalisationParameters parameters)
+        public string GetLocalised(LocalisationParameters parameters) => GetPreferred(parameters.PreferOriginalScript);
+
+        /// <summary>
+        /// Get the best match for this string based on a user preference for which should be displayed.
+        /// </summary>
+        /// <param name="preferUnicode">Whether to prefer the unicode (aka original) version where available.</param>
+        /// <returns>The best match for the provided criteria.</returns>
+        public string GetPreferred(bool preferUnicode)
         {
             if (string.IsNullOrEmpty(Romanised)) return Original ?? string.Empty;
             if (string.IsNullOrEmpty(Original)) return Romanised ?? string.Empty;
 
-            return parameters.PreferOriginalScript ? Original : Romanised;
+            return preferUnicode ? Original : Romanised;
         }
 
         public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
