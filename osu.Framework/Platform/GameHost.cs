@@ -504,10 +504,15 @@ namespace osu.Framework.Platform
             get => executionState;
             private set
             {
+                if (executionState == value)
+                    return;
+
                 executionState = value;
                 Logger.Log($"Host execution state changed to {value}");
             }
         }
+
+        private ExecutionState executionState;
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
@@ -520,21 +525,15 @@ namespace osu.Framework.Platform
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
         protected virtual void PerformExit(bool immediately)
         {
-            switch (ExecutionState)
-            {
-                case ExecutionState.Stopping:
-                case ExecutionState.Stopped:
-                    return;
-            }
+            if (executionState == ExecutionState.Stopped)
+                return;
 
             ExecutionState = ExecutionState.Stopping;
 
             if (immediately)
                 exit();
             else
-            {
                 InputThread.Scheduler.Add(exit, false);
-            }
         }
 
         /// <summary>
@@ -944,7 +943,6 @@ namespace osu.Framework.Platform
         private bool isDisposed;
 
         private readonly ManualResetEventSlim stoppedEvent = new ManualResetEventSlim(false);
-        private ExecutionState executionState;
 
         protected virtual void Dispose(bool disposing)
         {
