@@ -17,7 +17,7 @@ namespace osu.Framework.Localisation
         private readonly Bindable<string> configLocale = new Bindable<string>();
         private readonly Bindable<bool> configPreferUnicode = new BindableBool();
 
-        private readonly Bindable<LocalisationParameters> currentSettings = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
+        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
         public LocalisationManager(FrameworkConfigManager config)
         {
@@ -38,7 +38,7 @@ namespace osu.Framework.Localisation
         /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
-        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentSettings);
+        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentParameters);
 
         private void updateLocale(ValueChangedEvent<string> locale)
         {
@@ -61,17 +61,17 @@ namespace osu.Framework.Localisation
                 validLocale ??= locales[0];
             }
 
-            ChangeSettings(CreateNewLocalisationParameters(validLocale.Storage, currentSettings.Value.PreferOriginalScript));
+            ChangeSettings(CreateNewLocalisationParameters(validLocale.Storage, currentParameters.Value.PreferOriginalScript));
         }
 
         private void updateUnicodePreference(ValueChangedEvent<bool> preferUnicode)
-            => ChangeSettings(CreateNewLocalisationParameters(currentSettings.Value.Store, preferUnicode.NewValue));
+            => ChangeSettings(CreateNewLocalisationParameters(currentParameters.Value.Store, preferUnicode.NewValue));
 
         /// <summary>
         /// Changes the localisation parameters.
         /// </summary>
         /// <param name="parameters">The new localisation parameters.</param>
-        protected void ChangeSettings(LocalisationParameters parameters) => currentSettings.Value = parameters;
+        protected void ChangeSettings(LocalisationParameters parameters) => currentParameters.Value = parameters;
 
         /// <summary>
         /// Creates new <see cref="LocalisationParameters"/>.
