@@ -19,9 +19,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool Seek(double seek)
         {
-            double current = CurrentTime;
-
-            seekOffset = seek;
+            seekOffset = Math.Clamp(seek, 0, Length);
 
             lock (clock)
             {
@@ -31,9 +29,7 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            seekOffset = Math.Clamp(seekOffset, 0, Length);
-
-            return current != seekOffset;
+            return seekOffset == seek;
         }
 
         public override void Start()
