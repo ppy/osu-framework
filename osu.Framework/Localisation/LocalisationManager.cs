@@ -14,19 +14,17 @@ namespace osu.Framework.Localisation
     {
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
-        private readonly Bindable<string> configLocale;
-
-        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable Bidnable reference needs to be held.
-        private readonly Bindable<bool> configPreferUnicode;
+        private readonly Bindable<string> configLocale = new Bindable<string>();
+        private readonly Bindable<bool> configPreferUnicode = new BindableBool();
 
         private readonly Bindable<LocalisationParameters> currentSettings = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
         public LocalisationManager(FrameworkConfigManager config)
         {
-            configLocale = config.GetBindable<string>(FrameworkSetting.Locale);
+            config.BindWith(FrameworkSetting.Locale, configLocale);
             configLocale.BindValueChanged(updateLocale);
 
-            configPreferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
+            config.BindWith(FrameworkSetting.ShowUnicode, configPreferUnicode);
             configPreferUnicode.BindValueChanged(updateUnicodePreference, true);
         }
 
