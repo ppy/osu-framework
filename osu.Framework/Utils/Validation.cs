@@ -54,6 +54,11 @@ namespace osu.Framework.Utils
         /// <summary>
         /// Whether the specified type <typeparamref name="T"/> is a number type supported by <see cref="BindableNumber{T}"/>.
         /// </summary>
+        /// <remarks>
+        /// Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
+        /// Just a pointer comparison for reference types, or constant for value types.
+        /// The check will become NOP in usages after optimization.
+        /// </remarks>
         /// <typeparam name="T">The type to check for.</typeparam>
         /// <returns><see langword="true"/> if the type is supported; <see langword="false"/> otherwise.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

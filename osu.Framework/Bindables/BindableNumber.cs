@@ -16,9 +16,6 @@ namespace osu.Framework.Bindables
         public BindableNumber(T defaultValue = default)
             : base(defaultValue)
         {
-            // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
-            // Just a pointer comparison for reference types, or constant for value types.
-            // The check will become NOP after optimization.
             if (!Validation.IsSupportedBindableNumberType<T>())
             {
                 throw new NotSupportedException(
