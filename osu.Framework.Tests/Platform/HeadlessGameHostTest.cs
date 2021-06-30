@@ -13,6 +13,15 @@ namespace osu.Framework.Tests.Platform
     public class HeadlessGameHostTest
     {
         [Test]
+        public void TestGameHostDisposalWhenNeverRun()
+        {
+            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            {
+                // never call host.Run()
+            }
+        }
+
+        [Test]
         public void TestIpc()
         {
             using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
