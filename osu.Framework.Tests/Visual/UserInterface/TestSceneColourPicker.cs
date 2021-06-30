@@ -15,7 +15,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
             ColourPicker colourPicker = null;
 
             AddStep("create picker", () => Child = colourPicker = new BasicColourPicker());
-            AddStep("set colour externally", () => colourPicker.Current.Value = Colour4.CornflowerBlue);
+            AddStep("set colour externally", () => colourPicker.Current.Value = Colour4.Goldenrod);
+            AddAssert("colour is correct", () => colourPicker.Current.Value == Colour4.Goldenrod);
         }
     }
 }
