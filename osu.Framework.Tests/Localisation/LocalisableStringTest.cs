@@ -42,11 +42,11 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableFormattableEqualsLocalisableFormattable()
         {
-            var str1 = new LocalisableFormattable(makeFormattableA, makeStringB);
-            var str2 = new LocalisableFormattable(makeFormattableB, makeStringA);
+            var str1 = new LocalisableFormattableString(makeFormattableA, makeStringB);
+            var str2 = new LocalisableFormattableString(makeFormattableB, makeStringA);
 
             testEquals(true, str1, str1);
-            testEquals(true, str1, new LocalisableFormattable(makeFormattableA, makeStringB));
+            testEquals(true, str1, new LocalisableFormattableString(makeFormattableA, makeStringB));
             testEquals(false, str1, str2);
         }
 
@@ -84,10 +84,10 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestLocalisableStringEqualsLocalisableFormattable()
         {
-            LocalisableString localisable = new LocalisableFormattable(makeFormattableA, makeStringB);
+            LocalisableString localisable = new LocalisableFormattableString(makeFormattableA, makeStringB);
 
-            testEquals(true, localisable, new LocalisableFormattable(makeFormattableA, makeStringB));
-            testEquals(false, localisable, new LocalisableFormattable(makeFormattableB, makeStringA));
+            testEquals(true, localisable, new LocalisableFormattableString(makeFormattableA, makeStringB));
+            testEquals(false, localisable, new LocalisableFormattableString(makeFormattableB, makeStringA));
         }
 
         [Test]

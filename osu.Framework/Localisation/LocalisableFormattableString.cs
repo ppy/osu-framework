@@ -12,17 +12,17 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A string allowing for formatting <see cref="IFormattable"/>s using the current locale.
     /// </summary>
-    public class LocalisableFormattable : IEquatable<LocalisableFormattable>, ILocalisableStringData
+    public class LocalisableFormattableString : IEquatable<LocalisableFormattableString>, ILocalisableStringData
     {
         public readonly IFormattable Value;
         public readonly string Format;
 
         /// <summary>
-        /// Creates a <see cref="LocalisableFormattable"/> with an <see cref="IFormattable"/> value and a format string.
+        /// Creates a <see cref="LocalisableFormattableString"/> with an <see cref="IFormattable"/> value and a format string.
         /// </summary>
         /// <param name="value">The <see cref="IFormattable"/> value.</param>
         /// <param name="format">The format string.</param>
-        public LocalisableFormattable(IFormattable value, string format)
+        public LocalisableFormattableString(IFormattable value, string format)
         {
             Value = value;
             Format = format;
@@ -38,7 +38,7 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => Value.ToString(Format, CultureInfo.InvariantCulture);
 
-        public bool Equals(LocalisableFormattable? other)
+        public bool Equals(LocalisableFormattableString? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -47,8 +47,8 @@ namespace osu.Framework.Localisation
                    Format == other.Format;
         }
 
-        public bool Equals(ILocalisableStringData? other) => other is LocalisableFormattable formattable && Equals(formattable);
-        public override bool Equals(object? obj) => obj is LocalisableFormattable formattable && Equals(formattable);
+        public bool Equals(ILocalisableStringData? other) => other is LocalisableFormattableString formattable && Equals(formattable);
+        public override bool Equals(object? obj) => obj is LocalisableFormattableString formattable && Equals(formattable);
 
         public override int GetHashCode() => HashCode.Combine(Value, Format);
     }

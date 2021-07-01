@@ -223,7 +223,7 @@ namespace osu.Framework.Tests.Localisation
         }
 
         /// <summary>
-        /// This tests the <see cref="LocalisableFormattable"/> string, which allows for formatting <see cref="IFormattable"/>s,
+        /// This tests the <see cref="LocalisableFormattableString"/> string, which allows for formatting <see cref="IFormattable"/>s,
         /// without necessarily being in a <see cref="TranslatableString"/> which requires keys mapping to strings from localistaion stores.
         /// </summary>
         [Test]
@@ -234,7 +234,7 @@ namespace osu.Framework.Tests.Localisation
             var dateTime = new DateTime(1);
             const string format = "MMM yyyy";
 
-            var text = manager.GetLocalisedString(new LocalisableFormattable(dateTime, format));
+            var text = manager.GetLocalisedString(new LocalisableFormattableString(dateTime, format));
 
             Assert.AreEqual("Jan 0001", text.Value);
 
