@@ -65,7 +65,7 @@
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.173" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
