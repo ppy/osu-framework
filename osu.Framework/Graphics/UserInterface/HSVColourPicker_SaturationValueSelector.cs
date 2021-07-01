@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -94,9 +95,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 Current.BindValueChanged(_ => currentChanged(), true);
 
-                Hue.BindValueChanged(_ => Scheduler.AddOnce(hueChanged), true);
-                Saturation.BindValueChanged(_ => Scheduler.AddOnce(saturationChanged), true);
-                Value.BindValueChanged(_ => Scheduler.AddOnce(valueChanged), true);
+                Hue.BindValueChanged(_ => debounce(hueChanged), true);
+                Saturation.BindValueChanged(_ => debounce(saturationChanged), true);
+                Value.BindValueChanged(_ => debounce(valueChanged), true);
             }
 
             // As Current and {Hue,Saturation,Value} are mutually bound together,
@@ -105,6 +106,23 @@ namespace osu.Framework.Graphics.UserInterface
             // To prevent this, this flag is set on every original change on each of the four bindables,
             // and any subsequent value change callbacks are supposed to not mutate any of those bindables further if the flag is set.
             private bool changeInProgress;
+
+            private void debounce(Action updateFunc)
+            {
+                if (changeInProgress)
+                {
+                    // if changeInProgress is set, it means that this call is triggered by Current changing.
+                    // the update cannot be scheduled, because due to floating-point / HSV-to-RGB conversion foibles it could potentially slightly change Current again in the next frame.
+                    // running immediately is fine, however, as updateCurrent() guards against that by checking changeInProgress itself.
+                    updateFunc.Invoke();
+                }
+                else
+                {
+                    // if changeInProgress is not set, it means that this call is triggered by actual user input on the hue/saturation/value controls.
+                    // as such it can be debounced to reduce the amount of performed work.
+                    Scheduler.AddOnce(updateFunc);
+                }
+            }
 
             private void currentChanged()
             {
