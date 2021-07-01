@@ -24,7 +24,7 @@
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="Markdig" Version="0.24.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.6" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.7" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     <PackageReference Include="NuGet.ProjectModel" Version="5.9.1" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
