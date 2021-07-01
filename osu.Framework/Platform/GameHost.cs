@@ -299,10 +299,6 @@ namespace osu.Framework.Platform
             // To avoid this, pause the exceptioning thread until the rethrow takes place.
             waitForThrow();
 
-            // schedule an exit to the input thread.
-            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-            PerformExit(false);
-
             void waitForThrow()
             {
                 // This is bypassed for sources in a few situations where deadlocks can occur:
@@ -398,8 +394,14 @@ namespace osu.Framework.Platform
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
+                        // if a buffer is not available in single threaded mode there's no point in looping.
+                        // in the general case this should never happen, but may occur during exception handling.
+                        if (executionMode.Value == ExecutionMode.SingleThread)
+                            break;
+
                         using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                             Thread.Sleep(1);
+
                         continue;
                     }
 
@@ -497,7 +499,20 @@ namespace osu.Framework.Platform
             }
         }
 
-        public ExecutionState ExecutionState { get; private set; }
+        public ExecutionState ExecutionState
+        {
+            get => executionState;
+            private set
+            {
+                if (executionState == value)
+                    return;
+
+                executionState = value;
+                Logger.Log($"Host execution state changed to {value}");
+            }
+        }
+
+        private ExecutionState executionState;
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
@@ -510,13 +525,15 @@ namespace osu.Framework.Platform
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
         protected virtual void PerformExit(bool immediately)
         {
+            if (executionState == ExecutionState.Stopped)
+                return;
+
+            ExecutionState = ExecutionState.Stopping;
+
             if (immediately)
                 exit();
             else
-            {
-                ExecutionState = ExecutionState.Stopping;
                 InputThread.Scheduler.Add(exit, false);
-            }
         }
 
         /// <summary>
@@ -524,10 +541,11 @@ namespace osu.Framework.Platform
         /// </summary>
         private void exit()
         {
-            // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
-            ExecutionState = ExecutionState.Stopping;
+            Debug.Assert(ExecutionState == ExecutionState.Stopping);
+
             Window?.Close();
             threadRunner.Stop();
+
             ExecutionState = ExecutionState.Stopped;
             stoppedEvent.Set();
         }
