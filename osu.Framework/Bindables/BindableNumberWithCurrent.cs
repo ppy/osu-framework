@@ -26,5 +26,10 @@ namespace osu.Framework.Bindables
                 BindTo(currentBound = (BindableNumber<T>)value);
             }
         }
+
+        public BindableNumberWithCurrent(T defaultValue = default)
+            : base(defaultValue)
+        {
+        }
     }
 }
