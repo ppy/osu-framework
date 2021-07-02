@@ -17,7 +17,7 @@ namespace osu.Framework.Bindables
         public static IBindableWithCurrent<T> Create()
         {
             if (Validation.IsSupportedBindableNumberType<T>())
-                return (IBindableWithCurrent<T>)Activator.CreateInstance(typeof(BindableNumberWithCurrent<>).MakeGenericType(typeof(T)));
+                return (IBindableWithCurrent<T>)Activator.CreateInstance(typeof(BindableNumberWithCurrent<>).MakeGenericType(typeof(T)), default(T));
 
             return new BindableWithCurrent<T>();
         }
