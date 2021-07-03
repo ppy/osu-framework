@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Shaders
                 throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
             if (IsLoaded)
-                throw new InvalidOperationException("Attempting to compile already compiled shader.");
+                throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
 
             parts.RemoveAll(p => p == null);
             if (parts.Count == 0)
