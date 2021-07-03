@@ -81,7 +81,7 @@ namespace osu.Framework.Platform.MacOS
             ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
 
-        List<IntPtr> pointers = new List<IntPtr>();
+        // https://developer.apple.com/documentation/appkit/nstouch/1535399-identity?language=objc
 
         /// <summary>
         /// Swizzled replacement of [SDLView touchesBegan:(NSEvent *)] that checks for touches on the MacOS trackpad.
