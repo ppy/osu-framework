@@ -8,6 +8,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
@@ -19,6 +20,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
     public class TestScenePopoverContainer : ManualInputManagerTestScene
     {
         private Container[,] cells;
+        private Container popoverWrapper;
         private PopoverContainer popoverContainer;
         private GridContainer gridContainer;
 
@@ -27,12 +29,31 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             AddStep("create popover container", () =>
             {
-                Child = popoverContainer = new PopoverContainer
+                Child = popoverWrapper = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Child = gridContainer = new GridContainer
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Masking = true,
+                    BorderThickness = 5,
+                    BorderColour = Colour4.White,
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.Both
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            AlwaysPresent = true,
+                            Colour = Colour4.Transparent
+                        },
+                        popoverContainer = new PopoverContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Padding = new MarginPadding(5),
+                            Child = gridContainer = new GridContainer
+                            {
+                                RelativeSizeAxes = Axes.Both
+                            }
+                        }
                     }
                 };
 
@@ -146,6 +167,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             {
                 if (button != null)
                     button.Y = y;
+            });
+
+            AddSliderStep("container width", 0f, 1, 1, width =>
+            {
+                if (popoverWrapper != null)
+                    popoverWrapper.Width = width;
+            });
+
+            AddSliderStep("container height", 0f, 1, 1, height =>
+            {
+                if (popoverWrapper != null)
+                    popoverWrapper.Height = height;
             });
         }
 
