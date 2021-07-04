@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Input;
 
@@ -117,11 +118,13 @@ namespace osu.Framework.Graphics.Cursor
             // Reset the body position before proceeding, as it potentially affects the popover's BoundingBoxContainer size.
             currentPopover.Body.Position = new Vector2(0);
 
+            float totalSize = Math.Max(DrawSize.X * DrawSize.Y, 1);
+
             foreach (var anchor in candidate_anchors)
             {
                 // Compute how much free space is available on this side of the target.
                 var availableSize = availableSizeAroundTargetForAnchor(targetLocalQuad, anchor);
-                float area = availableSize.X * availableSize.Y;
+                float area = availableSize.X * availableSize.Y / totalSize;
 
                 // If the free space is insufficient for the popover to fit in, do not consider this anchor further.
                 if (availableSize.X < currentPopover.BoundingBoxContainer.DrawWidth || availableSize.Y < currentPopover.BoundingBoxContainer.DrawHeight)
@@ -129,7 +132,7 @@ namespace osu.Framework.Graphics.Cursor
 
                 // The heuristic used to find the "best" anchor is the biggest area of free space available in the popover container
                 // on the side of the anchor.
-                if (area > biggestArea)
+                if (Precision.DefinitelyBigger(area, biggestArea, 0.01f))
                 {
                     biggestArea = area;
                     bestAnchor = anchor;
