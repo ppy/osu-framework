@@ -567,6 +567,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal void AddRangeInternal(IEnumerable<Drawable> range)
         {
+            if (range is IContainerEnumerable<Drawable> container)
+            {
+                throw new InvalidOperationException($"Attempting to add a {container} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(container.Children)} property instead.");
+            }
+
             foreach (Drawable d in range)
                 AddInternal(d);
         }

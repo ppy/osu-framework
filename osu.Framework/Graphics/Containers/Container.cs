@@ -209,6 +209,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void AddRange(IEnumerable<T> range)
         {
+            if (range is IContainerEnumerable<Drawable> container)
+            {
+                throw new InvalidOperationException($"Attempting to add a {container} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(container.Children)} property instead.");
+            }
+
             foreach (T d in range)
                 Add(d);
         }
