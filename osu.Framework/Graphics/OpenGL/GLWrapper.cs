@@ -147,8 +147,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
 
-            if (expensive_operation_queue.TryDequeue(out ScheduledDelegate operation) && operation.State == RunState.Waiting)
-                operation.RunTask();
+            while (expensive_operation_queue.TryDequeue(out ScheduledDelegate operation))
+            {
+                if (operation.State == RunState.Waiting)
+                {
+                    operation.RunTask();
+                    break;
+                }
+            }
 
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
