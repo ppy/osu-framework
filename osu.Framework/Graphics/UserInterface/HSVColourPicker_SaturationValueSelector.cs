@@ -93,11 +93,14 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Current.BindValueChanged(_ => currentChanged(), true);
+                // the following handlers aren't fired immediately to avoid mutating Current by accident when ran prematurely.
+                // if necessary, they will run when the Current value change callback fires at the end of this method.
+                Hue.BindValueChanged(_ => debounce(hueChanged));
+                Saturation.BindValueChanged(_ => debounce(saturationChanged));
+                Value.BindValueChanged(_ => debounce(valueChanged));
 
-                Hue.BindValueChanged(_ => debounce(hueChanged), true);
-                Saturation.BindValueChanged(_ => debounce(saturationChanged), true);
-                Value.BindValueChanged(_ => debounce(valueChanged), true);
+                // Current takes precedence over HSV controls, and as such it must run last after HSV handlers have been set up for correct operation.
+                Current.BindValueChanged(_ => currentChanged(), true);
             }
 
             // As Current and {Hue,Saturation,Value} are mutually bound together,
