@@ -137,7 +137,9 @@ namespace osu.Framework.Graphics.Cursor
             }
 
             currentPopover.PopoverAnchor = bestAnchor.Opposite();
-            popoverContainer.Position = bestAnchor.PositionOnQuad(targetLocalQuad);
+
+            var positionOnQuad = bestAnchor.PositionOnQuad(targetLocalQuad);
+            popoverContainer.Position = new Vector2(positionOnQuad.X - Padding.Left, positionOnQuad.Y - Padding.Top);
 
             // While the side has been chosen to maximise the area of free space available, that doesn't mean that the popover's body
             // will still fit in its entirety in the default configuration.
