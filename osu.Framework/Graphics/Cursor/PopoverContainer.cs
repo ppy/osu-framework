@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Cursor
             float biggestArea = 0;
 
             // Reset the body position before proceeding, as it potentially affects the popover's BoundingBoxContainer size.
-            currentPopover.Body.Position = new Vector2(0);
+            currentPopover.Position = new Vector2(0);
 
             float totalSize = Math.Max(DrawSize.X * DrawSize.Y, 1);
 
@@ -149,13 +149,20 @@ namespace osu.Framework.Graphics.Cursor
             // To avoid this, keep the arrow where it was, but offset the body so that it fits in the bounds of this container.
             var popoverContentLocalQuad = ToLocalSpace(currentPopover.Body.ScreenSpaceDrawQuad);
             if (popoverContentLocalQuad.TopLeft.X < 0)
-                currentPopover.Body.X = -popoverContentLocalQuad.TopLeft.X;
+                currentPopover.X = -popoverContentLocalQuad.TopLeft.X;
             else if (popoverContentLocalQuad.BottomRight.X > DrawWidth)
-                currentPopover.Body.X = DrawWidth - popoverContentLocalQuad.BottomRight.X;
+                currentPopover.X = DrawWidth - popoverContentLocalQuad.BottomRight.X;
             if (popoverContentLocalQuad.TopLeft.Y < 0)
-                currentPopover.Body.Y = -popoverContentLocalQuad.TopLeft.Y;
+                currentPopover.Y = -popoverContentLocalQuad.TopLeft.Y;
             else if (popoverContentLocalQuad.BottomRight.Y > DrawHeight)
-                currentPopover.Body.Y = DrawHeight - popoverContentLocalQuad.BottomRight.Y;
+                currentPopover.Y = DrawHeight - popoverContentLocalQuad.BottomRight.Y;
+
+            // Even if the popover was moved, the arrow should stay fixed in place and point at the target's centre.
+            // In such a case, apply a counter-adjustment to the arrow position.
+            // The reason why just the body isn't moved is that the popover's autosize does not play well with that
+            // (setting X/Y on the body can lead BoundingBox to be larger than it actually needs to be, causing 1-frame-errors)
+            currentPopover.Arrow.X = -currentPopover.X;
+            currentPopover.Arrow.Y = -currentPopover.Y;
         }
 
         /// <summary>

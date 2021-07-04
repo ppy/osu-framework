@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The arrow of this <see cref="Popover"/>, pointing at the component which triggered it.
         /// </summary>
-        protected Drawable Arrow { get; }
+        protected internal Drawable Arrow { get; }
 
         /// <summary>
         /// The body of this <see cref="Popover"/>, containing the actual contents.
