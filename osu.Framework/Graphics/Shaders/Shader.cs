@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
+using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -67,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
-            if (!shaderCompileDelegate.Completed)
+            if (shaderCompileDelegate.State == RunState.Waiting)
                 shaderCompileDelegate.RunTask();
         }
 
