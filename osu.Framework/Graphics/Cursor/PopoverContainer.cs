@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
@@ -23,7 +22,7 @@ namespace osu.Framework.Graphics.Cursor
         private readonly Container<Popover> popoverContainer;
 
         private IHasPopover? target;
-        private Popover? currentPopover => popoverContainer.LastOrDefault();
+        private Popover? currentPopover;
 
         protected override Container<Drawable> Content => content;
 
@@ -67,16 +66,19 @@ namespace osu.Framework.Graphics.Cursor
             if (newPopover == null)
                 return;
 
-            popoverContainer.Add(newPopover);
-            Debug.Assert(currentPopover != null);
+            popoverContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
             currentPopover.State.BindValueChanged(_ => cleanUpPopover(currentPopover));
         }
 
         private void cleanUpPopover(Popover popover)
         {
-            if (popover.State.Value == Visibility.Hidden)
-                popover.Expire();
+            if (popover.State.Value != Visibility.Hidden)
+                return;
+
+            popover.Expire();
+            if (currentPopover == popover)
+                currentPopover = null;
         }
 
         protected override void UpdateAfterChildren()
