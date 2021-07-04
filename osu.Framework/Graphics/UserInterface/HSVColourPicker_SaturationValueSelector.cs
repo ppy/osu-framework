@@ -58,7 +58,8 @@ namespace osu.Framework.Graphics.UserInterface
                             hueBox = new Box
                             {
                                 Name = "Hue",
-                                RelativeSizeAxes = Axes.Both
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = new Colour4(255, 0, 0, 255)
                             },
                             new Box
                             {
