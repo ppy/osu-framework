@@ -13,7 +13,7 @@ using osu.Framework.Input.Handlers.Joystick;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.Input.Handlers.Mouse;
-using osu.Framework.Input.Handlers.Trackpad;
+using osu.Framework.Input.Handlers.Touchpad;
 
 namespace osu.Framework.Platform
 {
@@ -93,9 +93,9 @@ namespace osu.Framework.Platform
                 // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
                 new Input.Handlers.Tablet.OpenTabletDriverHandler(),
 #endif
+                new TouchpadHandler(),
                 // todo: while this does enable trackpad, it also breaks scrolling functionaliy.
                 // todo: the best way would probably only gave trackpad during in game.
-                new TrackpadHandler(),
                 new MouseHandler(),
                 new JoystickHandler(),
                 new MidiHandler(),

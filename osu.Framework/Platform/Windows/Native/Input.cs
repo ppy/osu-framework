@@ -3,7 +3,9 @@
 
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -14,13 +16,78 @@ namespace osu.Framework.Platform.Windows.Native
                                                           RawInputDevice[] pRawInputDevices, int uiNumDevices, int cbSize);
 
         [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref int pcbSize, int cbSizeHeader);
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref uint pcbSize, uint cbSizeHeader);
+
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, IntPtr pData, ref uint pcbSize, uint cbSizeHeader);
+
+        // There are 2, i believe one is for unicode?
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputDeviceInfoW(IntPtr handle, uint uiCommand, byte[] pData, ref uint pcbSize);
+
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputDeviceInfoW(IntPtr handle, uint uiCommand, IntPtr pData, ref uint pcbSize);
+
+        [DllImport("user32.dll")]
+        public static extern int GetRawInputDeviceInfoW(IntPtr handle, uint uiCommand, ref byte[] pData, ref uint pcbSize);
+
+        [DllImport("Hid.dll")]
+        public static extern uint HidP_MaxUsageListLength(HidpReportType reportType, HIDUsagePage usagePage, byte[] preparsedData);
+
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetUsages(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, ushort[] usages, ref uint usageLength, byte[] preparsedData, byte[] report, int reportLength);
+
+        // One thing that may be detrimental is that gc would just move shit around if this is not in a fixed statement.
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out uint usageValue, byte[] preparsedData, byte[] report, int reportLength);
+
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetScaledUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, ushort usage, out int usageValue, byte[] preparsedData, byte[] report, int reportLength);
+
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetCaps(byte[] preparsedData, out HidpCaps capabilities);
+
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetValueCaps(HidpReportType reportType, byte[] valueCaps, ref ushort valueCapsLength, byte[] preparsedData);
+
+        [DllImport("Hid.dll")]
+        public static extern NSStatus HidP_GetButtonCaps(HidpReportType reportType, byte[] valueCaps, ref ushort valueCapsLength, byte[] preparsedData);
+
+        public static bool GetHidUsageButton(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, byte[] preparsedData, byte[] report, int reportLength)
+        {
+            uint numUsages = HidP_MaxUsageListLength(reportType, usagePage, preparsedData);
+
+            ushort[] usages = new ushort[numUsages];
+
+            HidP_GetUsages(reportType, usagePage, linkCollection, usages, ref numUsages, preparsedData, report, reportLength);
+
+            return usages.Any(u => u == (uint)usage);
+        }
+
+        public static unsafe RawInputData GetRawInputData(long lParam)
+        {
+            uint payloadSize = 0;
+            int statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)null, ref payloadSize, (uint)sizeof(RawInputHeader));
+            if (statusCode == -1)
+                Logger.Log("Something is pretty wrong");
+            var bytes = new byte[payloadSize];
+
+            fixed (byte* bytesPtr = bytes)
+            {
+                statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)bytesPtr, ref payloadSize, (uint)sizeof(RawInputHeader));
+                if (statusCode == -1)
+                    Logger.Log("Something is pretty wrong");
+                return RawInputData.FromPointer(bytesPtr);
+            }
+        }
 
         internal static Rectangle VirtualScreenRect => new Rectangle(
             GetSystemMetrics(SM_XVIRTUALSCREEN),
             GetSystemMetrics(SM_YVIRTUALSCREEN),
             GetSystemMetrics(SM_CXVIRTUALSCREEN),
             GetSystemMetrics(SM_CYVIRTUALSCREEN));
+
+        internal const int WM_CREATE = 0x0001;
 
         internal const int WM_INPUT = 0x00FF;
 
@@ -50,6 +117,35 @@ namespace osu.Framework.Platform.Windows.Native
 
         /// <summary>Mouse raw input data.</summary>
         public RawMouse Mouse;
+
+        public RawKeyboard Keyboard;
+
+        public RawHID Hid;
+
+        internal static unsafe RawInputData FromPointer(byte* ptr)
+        {
+            var result = new RawInputData
+            {
+                Header = *((RawInputHeader*)ptr)
+            };
+
+            switch (result.Header.Type)
+            {
+                case RawInputType.Mouse:
+                    result.Mouse = *((RawMouse*)(ptr + sizeof(RawInputHeader)));
+                    break;
+
+                case RawInputType.Keyboard:
+                    result.Keyboard = *((RawKeyboard*)(ptr + sizeof(RawInputHeader)));
+                    break;
+
+                case RawInputType.HID:
+                    result.Hid = RawHID.FromPointer(ptr + sizeof(RawInputHeader));
+                    break;
+            }
+
+            return result;
+        }
 
         // This struct is a lot larger but the remaining elements have been omitted until required (Keyboard / HID / Touch).
     }
@@ -161,6 +257,59 @@ namespace osu.Framework.Platform.Windows.Native
         MouseWheel = 0x0400
     }
 
+    public struct RawKeyboard
+    {
+        public ushort MakeCode;
+
+        public RawKeyboardFlags Flags;
+
+        public ushort Reserved;
+
+        // I'm sure there is a vkey table in this project.
+        public ushort VKey;
+
+        public uint Message;
+
+        public ulong ExtraInformation;
+    }
+
+    [Flags]
+    public enum RawKeyboardFlags : ushort
+    {
+        KeyMake = 0x0,
+        KeyBreak = 0x1,
+        KeyE0 = 0x2,
+        KeyE1 = 0x4
+    }
+
+    public unsafe struct RawHID
+    {
+        public int dwSizeHid;
+
+        public int dwCount;
+
+        // While this should be an array, it can't be as it depends on the 2 above
+        // variables, this is also why you shouldn't call sizeof on the RawInputData struct
+        // as it would produce unreliable results.
+        public byte[] rawData;
+
+        internal static RawHID FromPointer(byte* ptr)
+        {
+            var result = new RawHID();
+            var intPtr = (int*)ptr;
+
+            result.dwSizeHid = intPtr[0];
+            result.dwCount = intPtr[1];
+            result.rawData = new byte[result.dwSizeHid * result.dwCount];
+            Marshal.Copy(new IntPtr(&intPtr[2]), result.rawData, 0, result.rawData.Length);
+
+            return result;
+        }
+
+        public override string ToString() =>
+            $"{{Count: {dwCount}, Size: {dwSizeHid}, Content: {BitConverter.ToString(rawData).Replace("-", " ")}}}";
+    }
+
     /// <summary>
     /// Enumeration contanining the command types to issue.
     /// </summary>
@@ -231,6 +380,14 @@ namespace osu.Framework.Platform.Windows.Native
 
         /// <summary>Handle to the target device. If NULL, it follows the keyboard focus.</summary>
         public IntPtr WindowHandle;
+
+        public RawInputDevice(HIDUsagePage usagePage, HIDUsage usage, RawInputDeviceFlags flags, IntPtr windowsHandle)
+        {
+            UsagePage = usagePage;
+            Usage = usage;
+            Flags = flags;
+            WindowHandle = windowsHandle;
+        }
     }
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
@@ -264,17 +421,6 @@ namespace osu.Framework.Platform.Windows.Native
         AppKeys = 0x00000400
     }
 
-    public enum HIDUsage : ushort
-    {
-        Pointer = 0x01,
-        Mouse = 0x02,
-        Joystick = 0x04,
-        Gamepad = 0x05,
-        Keyboard = 0x06,
-        Keypad = 0x07,
-        SystemControl = 0x80,
-    }
-
     public enum HIDUsagePage : ushort
     {
         Undefined = 0x00,
@@ -305,5 +451,44 @@ namespace osu.Framework.Platform.Windows.Native
         BarCode = 0x8C,
         Scale = 0x8D,
         MSR = 0x8E
+    }
+
+    internal enum HidpReportType
+    {
+        HidP_Input,
+        HidP_Output,
+        HidP_Feature
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct HidpCaps
+    {
+        public HIDUsage Usage;
+        public HIDUsagePage UsagePage;
+        public ushort InputReportByteLength;
+        public ushort OutputReportByteLength;
+        public ushort FeatureReportByteLength;
+        public fixed ushort Reserved[17];
+        public ushort NumberLinkCollectionNodes;
+        public ushort NumberInputButtonCaps;
+        public ushort NumberInputValueCaps;
+        public ushort NumberInputDataIndices;
+        public ushort NumberOutputButtonCaps;
+        public ushort NumberOutputValueCaps;
+        public ushort NumberOutputDataIndices;
+        public ushort NumberFeatureButtonCaps;
+        public ushort NumberFeatureValueCaps;
+        public ushort NumberFeatureDataIndices;
+
+        public override string ToString() =>
+            $"{{Usage: {Usage}, UsagePage: {UsagePage}, InputReportByteLength: {InputReportByteLength}, \n" +
+            $"InputReportByteLength: {InputReportByteLength}, InputReportByteLength: {InputReportByteLength}, \n" +
+            $"OutputReportByteLength: {OutputReportByteLength}, FeatureReportByteLength: {FeatureReportByteLength}, \n" +
+            $"InputReportByteLength: {InputReportByteLength}, NumberLinkCollectionNodes: {NumberLinkCollectionNodes}, \n" +
+            $"NumberInputButtonCaps: {NumberInputButtonCaps}, NumberInputValueCaps: {NumberInputValueCaps}, \n" +
+            $"NumberInputDataIndices: {NumberInputDataIndices}, NumberOutputButtonCaps: {NumberOutputButtonCaps}, \n" +
+            $"NumberOutputValueCaps: {NumberOutputValueCaps}, NumberOutputDataIndices: {NumberOutputDataIndices}, \n" +
+            $"NumberFeatureButtonCaps: {NumberFeatureButtonCaps}, NumberFeatureValueCaps: {NumberFeatureValueCaps}, \n" +
+            $"NumberFeatureDataIndices: {NumberFeatureDataIndices}";
     }
 }

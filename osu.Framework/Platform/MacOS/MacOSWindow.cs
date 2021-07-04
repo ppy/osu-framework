@@ -2,9 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using osu.Framework.Platform.MacOS.Native;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Platform.MacOS
@@ -29,7 +27,7 @@ namespace osu.Framework.Platform.MacOS
 
         private delegate void TouchesDelegate(IntPtr handle, IntPtr selector, IntPtr theEvent); // v@:@
 
-        private TouchesDelegate touchesEventsHandler;
+        // private TouchesDelegate touchesEventsHandler;
 
         public override void Create()
         {
@@ -43,15 +41,15 @@ namespace osu.Framework.Platform.MacOS
             // todo may need to modify instance variable allowedTouchTypes in (WindowHandle (SDLView)) and null safety
 
             // This ensures that we get resting touches
-            IntPtr nsView = Cocoa.SendIntPtr(WindowHandle, Selector.Get("contentView"));
-            if (nsView != IntPtr.Zero) Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
+            // IntPtr nsView = Cocoa.SendIntPtr(WindowHandle, Selector.Get("contentView"));
+            // if (nsView != IntPtr.Zero) Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
 
             // replace [SDLView touchesBeganWithEvent:(NSEvent *)] and other related events with our own version
-            touchesEventsHandler = touchesEvents;
-            Class.SwizzleMethod(viewClass, "touchesBeganWithEvent:", "v@:@", touchesEventsHandler);
-            Class.SwizzleMethod(viewClass, "touchesMovedWithEvent:", "v@:@", touchesEventsHandler);
-            Class.SwizzleMethod(viewClass, "touchesEndWithEvent:", "v@:@", touchesEventsHandler);
-            Class.SwizzleMethod(viewClass, "touchesCancelledWithEvent:", "v@:@", touchesEventsHandler);
+            // touchesEventsHandler = touchesEvents;
+            // Class.SwizzleMethod(viewClass, "touchesBeganWithEvent:", "v@:@", touchesEventsHandler);
+            // Class.SwizzleMethod(viewClass, "touchesMovedWithEvent:", "v@:@", touchesEventsHandler);
+            // Class.SwizzleMethod(viewClass, "touchesEndWithEvent:", "v@:@", touchesEventsHandler);
+            // Class.SwizzleMethod(viewClass, "touchesCancelledWithEvent:", "v@:@", touchesEventsHandler);
         }
 
         /// <summary>
@@ -96,7 +94,6 @@ namespace osu.Framework.Platform.MacOS
 
             foreach (IntPtr touchptr in touchptrs)
             {
-
                 NSTouch touch = new NSTouch(touchptr);
 
                 //Logger.Log($"{touch.NormalizedPosition()} {touch.Phase()}");
@@ -115,7 +112,8 @@ namespace osu.Framework.Platform.MacOS
                 NSTouch touch = new NSTouch(touchptrs[i]);
                 touches[i] = touch.NormalizedPosition();
             }
-            ScheduleEvent(() => TriggerTrackpadPositionChanged(touches));
+
+            // todo I'm not too sure what to do, could possibly expose the TouchpadHandler via gamehost?
         }
     }
 }

@@ -9,9 +9,12 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Joystick;
+using osu.Framework.Input.Handlers.Midi;
+using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using SDL2;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -28,9 +31,17 @@ namespace osu.Framework.Platform.Windows
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
+        private readonly SDL.SDL_WindowsMessageHook hook;
+
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
         {
+            hook = (userdata, hwnd, message, wparam, lparam) =>
+            {
+                IntPtr returnCode = IntPtr.Zero;
+                OnWndProc?.Invoke(userdata, hwnd, message, wparam, lparam, ref returnCode);
+                return returnCode;
+            };
         }
 
         public override void OpenFileExternally(string filename)
@@ -44,13 +55,21 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
-        {
-            // for windows platforms we want to override the relative mouse event handling behaviour.
-            return base.CreateAvailableInputHandlers()
-                       .Where(t => !(t is MouseHandler))
-                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
-        }
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
+            new InputHandler[]
+            {
+                new KeyboardHandler(),
+#if NET5_0
+                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
+                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
+#endif
+                // todo: while this does enable trackpad, it also breaks scrolling functionaliy.
+                // todo: the best way would probably only gave trackpad during in game.
+                new WindowsTrackpadHandler(),
+                new WindowsMouseHandler(),
+                new JoystickHandler(),
+                new MidiHandler(),
+            };
 
         protected override void SetupForRun()
         {
@@ -80,6 +99,7 @@ namespace osu.Framework.Platform.Windows
             timePeriod.Active = true;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
+            InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(hook, IntPtr.Zero));
             base.OnActivated();
         }
 
@@ -88,7 +108,12 @@ namespace osu.Framework.Platform.Windows
             timePeriod.Active = false;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
+            InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(null, IntPtr.Zero));
             base.OnDeactivated();
         }
+
+        public delegate void WindowsMessageHook(IntPtr userdata, IntPtr hwnd, uint message, ulong wparm, long lparam, ref IntPtr returnCode);
+
+        public event WindowsMessageHook OnWndProc;
     }
 }

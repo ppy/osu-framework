@@ -5,11 +5,12 @@ namespace osu.Framework.Platform.MacOS.Native
 {
     internal readonly struct NSTouch
     {
-
         internal IntPtr Handle { get; }
 
         private static readonly IntPtr sel_normalizedposition = Selector.Get("normalizedPosition");
         private static readonly IntPtr sel_phase = Selector.Get("phase");
+        private static readonly IntPtr sel_identity = Selector.Get("identity");
+
         //view:
         private static readonly IntPtr sel_previouslocationinview = Selector.Get("locationInView:");
 

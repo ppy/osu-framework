@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touchpad;
 using osuTK;
 using osuTK.Graphics.OpenGL;
 
@@ -61,6 +62,9 @@ namespace osu.Framework.Platform.MacOS
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
             var handlers = base.CreateAvailableInputHandlers();
+
+            // todo This places the TouchpadHandler above the tablet, which isn't particularly good.
+            handlers = new InputHandler[] { new MacOSTouchpadHandler() }.Concat(handlers);
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {

@@ -8,7 +8,6 @@ using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
-using SDL2;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -16,11 +15,11 @@ namespace osu.Framework.Platform.Windows
     /// A windows specific mouse input handler which overrides the SDL2 implementation of raw input.
     /// This is done to better handle quirks of some devices.
     /// </summary>
-    internal unsafe class WindowsMouseHandler : MouseHandler
+    internal class WindowsMouseHandler : MouseHandler
     {
         private const int raw_input_coordinate_space = 65535;
 
-        private SDL.SDL_WindowsMessageHook callback;
+        // private SDL.SDL_WindowsMessageHook callback;
         private SDL2DesktopWindow window;
 
         public override bool IsActive => Enabled.Value;
@@ -31,11 +30,15 @@ namespace osu.Framework.Platform.Windows
                 return false;
 
             window = desktopWindow;
-            callback = (ptr, wnd, u, param, l) => onWndProc(ptr, wnd, u, param, l);
 
             Enabled.BindValueChanged(enabled =>
             {
-                host.InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(enabled.NewValue ? callback : null, IntPtr.Zero));
+                if (!(host is WindowsGameHost windowsGameHost)) return;
+
+                if (enabled.NewValue)
+                    windowsGameHost.OnWndProc += onWndProc;
+                else
+                    windowsGameHost.OnWndProc -= onWndProc;
             }, true);
 
             return base.Initialize(host);
@@ -46,20 +49,16 @@ namespace osu.Framework.Platform.Windows
             // handled via custom logic below.
         }
 
-        private IntPtr onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam)
+        private void onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam, ref IntPtr returnCode)
         {
-            if (!Enabled.Value)
-                return IntPtr.Zero;
+            if (!Enabled.Value) return;
 
-            if (message != Native.Input.WM_INPUT)
-                return IntPtr.Zero;
+            if (message != Native.Input.WM_INPUT) return;
 
-            int payloadSize = sizeof(RawInputData);
-
-            Native.Input.GetRawInputData((IntPtr)lParam, RawInputCommand.Input, out var data, ref payloadSize, sizeof(RawInputHeader));
+            RawInputData data = Native.Input.GetRawInputData(lParam);
 
             if (data.Header.Type != RawInputType.Mouse)
-                return IntPtr.Zero;
+                return;
 
             var mouse = data.Mouse;
 
@@ -83,7 +82,7 @@ namespace osu.Framework.Platform.Windows
                 if (mouse.LastX == 0 && mouse.LastY == 0)
                 {
                     // not sure if this is the case for all tablets, but on osu!tablet these can appear and are noise.
-                    return IntPtr.Zero;
+                    return;
                 }
 
                 // i am not sure what this 64 flag is, but it's set on the osu!tablet at very least.
@@ -115,8 +114,6 @@ namespace osu.Framework.Platform.Windows
             {
                 PendingInputs.Enqueue(new MousePositionRelativeInput { Delta = new Vector2(mouse.LastX, mouse.LastY) * sensitivity });
             }
-
-            return IntPtr.Zero;
         }
     }
 }
