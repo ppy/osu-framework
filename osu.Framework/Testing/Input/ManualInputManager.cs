@@ -4,6 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -41,16 +42,29 @@ namespace osu.Framework.Testing.Input
 
         private readonly TestCursorContainer testCursor;
 
+        private readonly LocalPlatformActionContainer platformActionContainer;
+
+        public override bool UseParentInput
+        {
+            get => base.UseParentInput;
+            set
+            {
+                base.UseParentInput = value;
+                platformActionContainer.ShouldHandle = !value;
+            }
+        }
+
         public ManualInputManager()
         {
-            UseParentInput = true;
             AddHandler(handler = new ManualInputHandler());
 
             InternalChildren = new Drawable[]
             {
-                content = new Container { RelativeSizeAxes = Axes.Both },
+                platformActionContainer = new LocalPlatformActionContainer().WithChild(content = new Container { RelativeSizeAxes = Axes.Both }),
                 testCursor = new TestCursorContainer(),
             };
+
+            UseParentInput = true;
         }
 
         public void Input(IInput input)
@@ -132,6 +146,19 @@ namespace osu.Framework.Testing.Input
 
         public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
         public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
+
+        private class LocalPlatformActionContainer : PlatformActionContainer
+        {
+            public bool ShouldHandle;
+
+            protected override bool Handle(UIEvent e)
+            {
+                if (!ShouldHandle)
+                    return false;
+
+                return base.Handle(e);
+            }
+        }
 
         private class ManualInputHandler : InputHandler
         {

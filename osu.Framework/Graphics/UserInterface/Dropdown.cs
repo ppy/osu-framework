@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return t.Text;
 
                 case Enum e:
-                    return e.GetDescription();
+                    return e.GetLocalisableDescription();
 
                 default:
                     return item?.ToString() ?? "null";

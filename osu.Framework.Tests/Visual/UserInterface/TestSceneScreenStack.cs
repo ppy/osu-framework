@@ -240,6 +240,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             AddStep("push once", () => stack.Push(screen1 = new TestScreen()));
+            AddUntilStep("wait for screen to be loaded", () => screen1.IsLoaded);
             AddStep("exit", () => screen1.Exit());
             AddStep("push again fails", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
             AddAssert("stack in valid state", () => stack.CurrentScreen == baseScreen);

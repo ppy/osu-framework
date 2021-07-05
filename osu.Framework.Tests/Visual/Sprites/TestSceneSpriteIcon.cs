@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -75,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class Icon : Container, IHasTooltip
         {
-            public string TooltipText { get; }
+            public LocalisableString TooltipText { get; }
 
             public SpriteIcon SpriteIcon { get; }
 

@@ -375,6 +375,11 @@ namespace osu.Framework.Graphics.Primitives
             return new RectangleF((X - other.X) / other.Width, (Y - other.Y) / other.Height, scaleX, scaleY);
         }
 
+        /// <summary>
+        /// Create a new <see cref="RectangleF"/> congruent to this rectangle but with non-negative <see cref="Width"/> and <see cref="Height"/>.
+        /// </summary>
+        public RectangleF Normalize() => new RectangleF(Math.Min(Left, Right), Math.Min(Top, Bottom), Math.Abs(Width), Math.Abs(Height));
+
         /// <summary>Converts the specified <see cref="RectangleI"/> structure to a <see cref="RectangleF"/> structure.</summary>
         /// <returns>The <see cref="RectangleF"/> structure that is converted from the specified <see cref="RectangleI"/> structure.</returns>
         /// <param name="r">The <see cref="RectangleI"/> structure to convert.</param>

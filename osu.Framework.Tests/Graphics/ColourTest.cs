@@ -147,22 +147,28 @@ namespace osu.Framework.Tests.Graphics
 
         private static readonly object[][] valid_hex_colours =
         {
-            new object[] { Colour4.White, Colour4.FromHex("#fff") },
-            new object[] { Colour4.Red, Colour4.FromHex("#ff0000") },
-            new object[] { Colour4.Yellow.Opacity(half_alpha), Colour4.FromHex("ffff0080") },
-            new object[] { Colour4.Lime.Opacity(half_alpha), Colour4.FromHex("00ff0080") },
-            new object[] { new Colour4(17, 34, 51, 255), Colour4.FromHex("123") },
-            new object[] { new Colour4(17, 34, 51, 255), Colour4.FromHex("#123") },
-            new object[] { new Colour4(17, 34, 51, 68), Colour4.FromHex("1234") },
-            new object[] { new Colour4(17, 34, 51, 68), Colour4.FromHex("#1234") },
-            new object[] { new Colour4(18, 52, 86, 255), Colour4.FromHex("123456") },
-            new object[] { new Colour4(18, 52, 86, 255), Colour4.FromHex("#123456") },
-            new object[] { new Colour4(18, 52, 86, 120), Colour4.FromHex("12345678") },
-            new object[] { new Colour4(18, 52, 86, 120), Colour4.FromHex("#12345678") }
+            new object[] { Colour4.White, "#fff" },
+            new object[] { Colour4.Red, "#ff0000" },
+            new object[] { Colour4.Yellow.Opacity(half_alpha), "ffff0080" },
+            new object[] { Colour4.Lime.Opacity(half_alpha), "00ff0080" },
+            new object[] { new Colour4(17, 34, 51, 255), "123" },
+            new object[] { new Colour4(17, 34, 51, 255), "#123" },
+            new object[] { new Colour4(17, 34, 51, 68), "1234" },
+            new object[] { new Colour4(17, 34, 51, 68), "#1234" },
+            new object[] { new Colour4(18, 52, 86, 255), "123456" },
+            new object[] { new Colour4(18, 52, 86, 255), "#123456" },
+            new object[] { new Colour4(18, 52, 86, 120), "12345678" },
+            new object[] { new Colour4(18, 52, 86, 120), "#12345678" }
         };
 
         [TestCaseSource(nameof(valid_hex_colours))]
-        public void TestFromHex(Colour4 expected, Colour4 actual) => Assert.AreEqual(expected, actual);
+        public void TestFromHex(Colour4 expectedColour, string hexCode)
+        {
+            Assert.AreEqual(expectedColour, Colour4.FromHex(hexCode));
+
+            Assert.True(Colour4.TryParseHex(hexCode, out var actualColour));
+            Assert.AreEqual(expectedColour, actualColour);
+        }
 
         [TestCase("1")]
         [TestCase("#1")]
@@ -179,6 +185,8 @@ namespace osu.Framework.Tests.Graphics
         {
             // Assert.Catch allows any exception type, contrary to .Throws<T>() (which expects exactly T)
             Assert.Catch(() => Colour4.FromHex(invalidColour));
+
+            Assert.False(Colour4.TryParseHex(invalidColour, out _));
         }
 
         [Test]

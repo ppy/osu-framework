@@ -2,14 +2,15 @@
 # See:
 #   * https://github.com/dorny/test-reporter#recommended-setup-for-public-repositories
 #   * https://docs.github.com/en/actions/reference/authentication-in-a-workflow#permissions-for-the-github_token
-name: "Test Report"
+name: Annotate CI run with test results
 on:
   workflow_run:
     workflows: ["Continuous Integration"]
     types:
       - completed
 jobs:
-  report:
+  annotate:
+    name: Annotate CI run with test results
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
     strategy:
@@ -20,8 +21,9 @@ jobs:
             - { prettyname: macOS }
             - { prettyname: Linux }
           threadingMode: ['SingleThread', 'MultiThreaded']
+    timeout-minutes: 5
     steps:
-      - name: Continuous Integration Test Report
+      - name: Annotate CI run with test results
         uses: dorny/test-reporter@v1.4.2
         with:
           artifact: osu-framework-test-results-${{matrix.os.prettyname}}-${{matrix.threadingMode}}

@@ -91,9 +91,9 @@ namespace osu.Framework.Input.Bindings
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool ContainsAll(ImmutableArray<InputKey> candidateKey, ImmutableArray<InputKey> pressedKey, KeyCombinationMatchingMode matchingMode)
         {
-            // can be local function once attribute on local functions are implemented
-            // optimized to avoid allocation
-            // Usually Keys.Count <= 3. Does not worth special logic for Contains().
+            // first, check that all the candidate keys are contained in the provided pressed keys.
+            // regardless of the matching mode, every key needs to at least be present (matching modes only change
+            // the behaviour of excess keys).
             foreach (var key in candidateKey)
             {
                 if (!ContainsKey(pressedKey, key))
@@ -105,6 +105,7 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Exact:
                     foreach (var key in pressedKey)
                     {
+                        // in exact matching mode, every pressed key needs to be in the candidate.
                         if (!ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
@@ -114,10 +115,15 @@ namespace osu.Framework.Input.Bindings
                 case KeyCombinationMatchingMode.Modifiers:
                     foreach (var key in pressedKey)
                     {
+                        // in modifiers match mode, the same check applies as exact but only for modifier keys.
                         if (IsModifierKey(key) && !ContainsKeyPermissive(candidateKey, key))
                             return false;
                     }
 
+                    break;
+
+                case KeyCombinationMatchingMode.Any:
+                    // any match mode needs no further checks.
                     break;
             }
 
@@ -545,28 +551,28 @@ namespace osu.Framework.Input.Bindings
             }
         }
 
-        public static InputKey[] FromKey(Key key)
+        public static InputKey FromKey(Key key)
         {
             switch (key)
             {
-                case Key.LShift: return new[] { InputKey.Shift, InputKey.LShift };
+                case Key.LShift: return InputKey.LShift;
 
-                case Key.RShift: return new[] { InputKey.Shift, InputKey.RShift };
+                case Key.RShift: return InputKey.RShift;
 
-                case Key.LControl: return new[] { InputKey.Control, InputKey.LControl };
+                case Key.LControl: return InputKey.LControl;
 
-                case Key.RControl: return new[] { InputKey.Control, InputKey.RControl };
+                case Key.RControl: return InputKey.RControl;
 
-                case Key.LAlt: return new[] { InputKey.Alt, InputKey.LAlt };
+                case Key.LAlt: return InputKey.LAlt;
 
-                case Key.RAlt: return new[] { InputKey.Alt, InputKey.RAlt };
+                case Key.RAlt: return InputKey.RAlt;
 
-                case Key.LWin: return new[] { InputKey.Super, InputKey.LSuper };
+                case Key.LWin: return InputKey.LSuper;
 
-                case Key.RWin: return new[] { InputKey.Super, InputKey.RSuper };
+                case Key.RWin: return InputKey.RSuper;
             }
 
-            return new[] { (InputKey)key };
+            return (InputKey)key;
         }
 
         public static InputKey FromMouseButton(MouseButton button) => (InputKey)((int)InputKey.FirstMouseButton + button);
@@ -634,11 +640,10 @@ namespace osu.Framework.Input.Bindings
             {
                 foreach (var key in state.Keyboard.Keys)
                 {
-                    foreach (var iKey in FromKey(key))
-                    {
-                        if (!keys.Contains(iKey))
-                            keys.Add(iKey);
-                    }
+                    var iKey = FromKey(key);
+
+                    if (!keys.Contains(iKey))
+                        keys.Add(iKey);
                 }
             }
 

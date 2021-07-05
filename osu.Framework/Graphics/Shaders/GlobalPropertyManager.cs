@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal static class GlobalPropertyManager
     {
-        private static readonly List<Shader> all_shaders = new List<Shader>();
+        private static readonly HashSet<Shader> all_shaders = new HashSet<Shader>();
         private static readonly IUniformMapping[] global_properties;
 
         static GlobalPropertyManager()
@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.Shaders
 
         public static void Register(Shader shader)
         {
+            if (!all_shaders.Add(shader)) return;
+
             // transfer all existing global properties across.
             foreach (var global in global_properties)
             {
@@ -61,8 +63,6 @@ namespace osu.Framework.Graphics.Shaders
 
                 global.LinkShaderUniform(uniform);
             }
-
-            all_shaders.Add(shader);
         }
 
         public static void Unregister(Shader shader)

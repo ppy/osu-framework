@@ -1,10 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Bindables;
+using osu.Framework.Configuration;
+using osu.Framework.Development;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -16,14 +21,17 @@ namespace osu.Framework.Tests.Platform
 
         private const int timeout = 10000;
 
-        [Test]
-        public void TestPauseResume()
+        [TestCase(ExecutionMode.SingleThread)]
+        [TestCase(ExecutionMode.MultiThreaded)]
+        public void TestPauseResume(ExecutionMode threadMode)
         {
             var gameCreated = new ManualResetEventSlim();
 
+            IBindable<GameThreadState> updateThreadState = null;
+
             var task = Task.Run(() =>
             {
-                using (host = new HeadlessGameHost(@"host", false))
+                using (host = new ExecutionModeGameHost(@"host", threadMode))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();
@@ -36,8 +44,19 @@ namespace osu.Framework.Tests.Platform
 
             // check scheduling is working before suspend
             var completed = new ManualResetEventSlim();
-            game.Schedule(() => completed.Set());
+            game.Schedule(() =>
+            {
+                updateThreadState = host.UpdateThread.State.GetBoundCopy();
+                updateThreadState.BindValueChanged(state =>
+                {
+                    if (state.NewValue != GameThreadState.Starting)
+                        Assert.IsTrue(ThreadSafety.IsUpdateThread);
+                });
+                completed.Set();
+            });
+
             Assert.IsTrue(completed.Wait(timeout / 10));
+            Assert.AreEqual(GameThreadState.Running, updateThreadState.Value);
 
             host.Suspend();
 
@@ -45,6 +64,7 @@ namespace osu.Framework.Tests.Platform
             int gameUpdates = 0;
             game.Scheduler.AddDelayed(() => ++gameUpdates, 0, true);
             Assert.That(() => gameUpdates, Is.LessThan(2).After(timeout / 10));
+            Assert.AreEqual(GameThreadState.Paused, updateThreadState.Value);
 
             // check that scheduler doesn't process while suspended..
             completed.Reset();
@@ -54,9 +74,28 @@ namespace osu.Framework.Tests.Platform
             // ..and does after resume.
             host.Resume();
             Assert.IsTrue(completed.Wait(timeout / 10));
+            Assert.AreEqual(GameThreadState.Running, updateThreadState.Value);
 
             game.Exit();
             Assert.IsTrue(task.Wait(timeout));
+            Assert.AreEqual(GameThreadState.Exited, updateThreadState.Value);
+        }
+
+        private class ExecutionModeGameHost : HeadlessGameHost
+        {
+            private readonly ExecutionMode threadMode;
+
+            public ExecutionModeGameHost(string name, ExecutionMode threadMode)
+                : base(name)
+            {
+                this.threadMode = threadMode;
+            }
+
+            protected override void SetupConfig(IDictionary<FrameworkSetting, object> defaultOverrides)
+            {
+                base.SetupConfig(defaultOverrides);
+                Config.SetValue(FrameworkSetting.ExecutionMode, threadMode);
+            }
         }
 
         private class TestTestGame : TestGame

@@ -83,14 +83,17 @@ namespace osu.Framework.Graphics.Containers
 
                 // Calculate a shrunk rectangle which is free from corner radius/smoothing/border effects
                 float shrinkage = Source.CornerRadius - Source.CornerRadius * cos_45 + blendRange + Source.borderThickness;
-                RectangleF shrunkDrawRectangle = Source.DrawRectangle.Shrink(shrinkage);
+
+                // Normalise to handle negative sizes, and clamp the shrinkage to prevent size from going negative.
+                RectangleF shrunkDrawRectangle = Source.DrawRectangle.Normalize();
+                shrunkDrawRectangle = shrunkDrawRectangle.Shrink(new Vector2(Math.Min(shrunkDrawRectangle.Width / 2, shrinkage), Math.Min(shrunkDrawRectangle.Height / 2, shrinkage)));
 
                 maskingInfo = !Source.Masking
                     ? (MaskingInfo?)null
                     : new MaskingInfo
                     {
                         ScreenSpaceAABB = Source.ScreenSpaceDrawQuad.AABB,
-                        MaskingRect = Source.DrawRectangle,
+                        MaskingRect = Source.DrawRectangle.Normalize(),
                         ConservativeScreenSpaceQuad = Quad.FromRectangle(shrunkDrawRectangle) * DrawInfo.Matrix,
                         ToMaskingSpace = DrawInfo.MatrixInverse,
                         CornerRadius = Source.effectiveCornerRadius,

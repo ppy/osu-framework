@@ -75,9 +75,10 @@ namespace osu.Framework.Utils
             // Number of vertices in the buffer that need to be tested against
             // This becomes the number of vertices in the resulting polygon after each clipping iteration
             int inputCount = subjectVertices.Length;
+            int validClipEdges = 0;
 
             // Process the clip edge connecting the last vertex to the first vertex
-            inputCount = processClipEdge(new Line(clipVertices[^1], clipVertices[0]), buffer, inputCount);
+            inputCount = processClipEdge(new Line(clipVertices[^1], clipVertices[0]), buffer, inputCount, ref validClipEdges);
 
             // Process all other edges
             for (int c = 1; c < clipVertices.Length; c++)
@@ -85,15 +86,23 @@ namespace osu.Framework.Utils
                 if (inputCount == 0)
                     break;
 
-                inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount);
+                inputCount = processClipEdge(new Line(clipVertices[c - 1], clipVertices[c]), buffer, inputCount, ref validClipEdges);
             }
+
+            if (validClipEdges < 3)
+                return Span<Vector2>.Empty;
 
             return buffer.Slice(0, inputCount);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int processClipEdge(in Line clipEdge, in Span<Vector2> buffer, in int inputCount)
+        private int processClipEdge(in Line clipEdge, in Span<Vector2> buffer, in int inputCount, ref int validClipEdges)
         {
+            if (clipEdge.EndPoint == clipEdge.StartPoint)
+                return inputCount;
+
+            validClipEdges++;
+
             // Temporary storage for the vertices from the buffer as the buffer gets altered
             Span<Vector2> inputVertices = stackalloc Vector2[buffer.Length];
 
