@@ -10,7 +10,7 @@ using System.Globalization;
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A string allowing for formatting <see cref="IFormattable"/>s using the current locale.
+    /// A string which formats an <see cref="IFormattable"/>s using the current locale.
     /// </summary>
     public class LocalisableFormattableString : IEquatable<LocalisableFormattableString>, ILocalisableStringData
     {

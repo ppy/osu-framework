@@ -18,7 +18,7 @@ namespace osu.Framework.Localisation
         internal readonly object? Data;
 
         /// <summary>
-        /// Creates a new <see cref="LocalisableString"/> with underlying string.
+        /// Creates a new <see cref="LocalisableString"/> with underlying string data.
         /// </summary>
         public LocalisableString(string data)
         {
