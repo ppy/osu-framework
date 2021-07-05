@@ -10,7 +10,8 @@ namespace osu.Framework.Platform.MacOS.Native
         private static readonly IntPtr sel_normalizedposition = Selector.Get("normalizedPosition");
         private static readonly IntPtr sel_phase = Selector.Get("phase");
         private static readonly IntPtr sel_identity = Selector.Get("identity");
-
+        private static readonly IntPtr sel_isequal = Selector.Get("isEqual:");
+        private static readonly IntPtr sel_copy = Selector.Get("copy");
         //view:
         private static readonly IntPtr sel_previouslocationinview = Selector.Get("locationInView:");
 
@@ -24,8 +25,15 @@ namespace osu.Framework.Platform.MacOS.Native
         internal Vector2 PreviousLocationInView(IntPtr intPtr) => Cocoa.SendNSPoint(Handle, sel_previouslocationinview, intPtr);
 
         internal NSTouchPhase Phase() => (NSTouchPhase) Cocoa.SendUint(Handle, sel_phase);
+    
+        internal IntPtr Identity() => Cocoa.SendIntPtr(Handle, sel_identity);
+
+        internal IntPtr CopyOfIdentity() => Cocoa.SendIntPtr(Identity(), sel_copy);
+
+        internal bool IsIdentityEqual(IntPtr intPtr) => Cocoa.SendBool(Identity(), sel_isequal, intPtr);
     }
 
+    [Flags]
     enum NSTouchPhase : uint
     {
         NSTouchPhaseBegan = 1u << 0,
