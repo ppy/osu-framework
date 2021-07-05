@@ -3,7 +3,6 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,11 +16,12 @@ namespace osu.Framework.Tests.Visual.Sprites
     {
         private Container videoContainer;
         private TextFlowContainer timeText;
-        private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         private ManualClock clock;
 
         private TestVideo video;
+
+        private bool didDecode;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -44,7 +44,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("Reset clock", () => clock.CurrentTime = 0);
+            AddStep("Reset clock", () =>
+            {
+                clock.CurrentTime = 0;
+                didDecode = false;
+            });
             loadNewVideo();
             AddUntilStep("Wait for video to load", () => video.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
@@ -54,12 +58,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("load video", () =>
             {
-                decoderState.UnbindAll();
-
                 videoContainer.Child = video = new TestVideo
                 {
                     Loop = false,
-                    State = { BindTarget = decoderState }
                 };
             });
         }
@@ -79,17 +80,13 @@ namespace osu.Framework.Tests.Visual.Sprites
         [Test]
         public void TestDecodingStopsWhenNotPresent()
         {
-            bool didDecode = false;
-
             AddStep("make video hidden", () => video.Hide());
 
-            AddUntilStep("decoding stopped", () => decoderState.Value == VideoDecoder.DecoderState.Ready);
+            AddWaitStep("wait a bit", 10);
 
-            AddStep("setup binding", () =>
-            {
-                didDecode = false;
-                decoderState.BindValueChanged(s => didDecode |= s.NewValue != VideoDecoder.DecoderState.Running);
-            });
+            AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
+
+            AddStep("reset decode state", () => didDecode = false);
 
             AddWaitStep("wait a bit", 10);
             AddAssert("decoding didn't run", () => !didDecode);
@@ -147,6 +144,7 @@ namespace osu.Framework.Tests.Visual.Sprites
         protected override void Update()
         {
             base.Update();
+
             if (clock != null)
                 clock.CurrentTime += Clock.ElapsedFrameTime;
 
@@ -168,8 +166,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                                     + $"duration: {video.Duration:N2}\n"
                                     + $"buffered {video.AvailableFrames}\n"
                                     + $"FPS: {fps}\n"
-                                    + $"State: {decoderState.Value}";
+                                    + $"State: {video.State}";
                 }
+
+                didDecode |= video.State == VideoDecoder.DecoderState.Running;
             }
         }
     }

@@ -13,10 +13,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
 
 namespace osu.Framework.Graphics.Video
@@ -34,12 +32,12 @@ namespace osu.Framework.Graphics.Video
         /// <summary>
         /// True if the decoder currently does not decode any more frames, false otherwise.
         /// </summary>
-        public bool IsRunning => state == DecoderState.Running;
+        public bool IsRunning => State == DecoderState.Running;
 
         /// <summary>
         /// True if the decoder has faulted after starting to decode. You can try to restart a failed decoder by invoking <see cref="StartDecoding"/> again.
         /// </summary>
-        public bool IsFaulted => state == DecoderState.Faulted;
+        public bool IsFaulted => State == DecoderState.Faulted;
 
         /// <summary>
         /// The timestamp of the last frame that was decoded by this video decoder, or 0 if no frames have been decoded.
@@ -57,27 +55,9 @@ namespace osu.Framework.Graphics.Video
         public bool CanSeek => videoStream?.CanSeek == true;
 
         /// <summary>
-        /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
+        /// The current state of the decoding process.
         /// </summary>
-        public IBindable<DecoderState> State => bindableState;
-
-        private readonly Bindable<DecoderState> bindableState = new Bindable<DecoderState>();
-
-        private volatile DecoderState volatileState;
-
-        private DecoderState state
-        {
-            get => volatileState;
-            set
-            {
-                if (volatileState == value) return;
-
-                scheduler?.Add(() => bindableState.Value = value);
-                volatileState = value;
-            }
-        }
-
-        private readonly Scheduler scheduler;
+        public DecoderState State { get; private set; }
 
         // libav-context-related
         private AVFormatContext* formatContext;
@@ -122,9 +102,8 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
         /// <param name="filename">The path to the file that should be decoded.</param>
-        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
-        public VideoDecoder(string filename, Scheduler scheduler)
-            : this(File.OpenRead(filename), scheduler)
+        public VideoDecoder(string filename)
+            : this(File.OpenRead(filename))
         {
         }
 
@@ -132,17 +111,15 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
         /// <param name="videoStream">The stream that should be decoded.</param>
-        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
-        public VideoDecoder(Stream videoStream, Scheduler scheduler)
+        public VideoDecoder(Stream videoStream)
         {
             ffmpeg = CreateFuncs();
 
-            this.scheduler = scheduler;
             this.videoStream = videoStream;
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
-            state = DecoderState.Ready;
+            State = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
@@ -193,7 +170,7 @@ namespace osu.Framework.Graphics.Video
                 catch (Exception e)
                 {
                     Logger.Log($"VideoDecoder faulted: {e}");
-                    state = DecoderState.Faulted;
+                    State = DecoderState.Faulted;
                     return;
                 }
             }
@@ -219,7 +196,7 @@ namespace osu.Framework.Graphics.Video
             decodingTaskCancellationTokenSource.Dispose();
             decodingTaskCancellationTokenSource = null;
 
-            state = DecoderState.Ready;
+            State = DecoderState.Ready;
         }
 
         /// <summary>
@@ -394,7 +371,7 @@ namespace osu.Framework.Graphics.Video
 
                         if (readFrameResult >= 0)
                         {
-                            state = DecoderState.Running;
+                            State = DecoderState.Running;
 
                             if (packet->stream_index == stream->index)
                             {
@@ -460,18 +437,18 @@ namespace osu.Framework.Graphics.Video
                             if (Looping)
                                 Seek(0);
                             else
-                                state = DecoderState.EndOfStream;
+                                State = DecoderState.EndOfStream;
                         }
                         else
                         {
-                            state = DecoderState.Ready;
+                            State = DecoderState.Ready;
                             Thread.Sleep(1);
                         }
                     }
                     else
                     {
                         // wait until existing buffers are consumed.
-                        state = DecoderState.Ready;
+                        State = DecoderState.Ready;
                         Thread.Sleep(1);
                     }
 
@@ -488,14 +465,14 @@ namespace osu.Framework.Graphics.Video
             catch (Exception e)
             {
                 Logger.Log($"VideoDecoder faulted: {e}");
-                state = DecoderState.Faulted;
+                State = DecoderState.Faulted;
             }
             finally
             {
                 ffmpeg.av_packet_free(&packet);
 
-                if (state != DecoderState.Faulted)
-                    state = DecoderState.Stopped;
+                if (State != DecoderState.Faulted)
+                    State = DecoderState.Stopped;
             }
         }
 
