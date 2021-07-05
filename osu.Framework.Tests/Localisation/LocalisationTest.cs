@@ -222,6 +222,26 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual(non_unicode_fallback, text.Value);
         }
 
+        /// <summary>
+        /// This tests the <see cref="LocalisableFormattableString"/>, which allows for formatting <see cref="IFormattable"/>s,
+        /// without necessarily being in a <see cref="TranslatableString"/> which requires keys mapping to strings from localistaion stores.
+        /// </summary>
+        [Test]
+        public void TestLocalisableFormattableString()
+        {
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var dateTime = new DateTime(1);
+            const string format = "MMM yyyy";
+
+            var text = manager.GetLocalisedString(new LocalisableFormattableString(dateTime, format));
+
+            Assert.AreEqual("Jan 0001", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("janv. 0001", text.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
