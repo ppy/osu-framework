@@ -8,14 +8,12 @@ using System.Globalization;
 using System.Linq;
 using osu.Framework.Logging;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>
     /// A string that can be translated with optional formattable arguments.
     /// </summary>
-    public class TranslatableString : IEquatable<TranslatableString>
+    public class TranslatableString : IEquatable<TranslatableString>, ILocalisableStringData
     {
         public readonly string Key;
         public readonly string Fallback;
@@ -50,22 +48,23 @@ namespace osu.Framework.Localisation
             Args = interpolation.GetArguments();
         }
 
-        public string Format(ILocalisationStore? store)
+        public string GetLocalised(LocalisationParameters parameters)
         {
-            if (store == null) return ToString();
+            if (parameters.Store == null)
+                return ToString();
 
-            var localisedFormat = store.Get(Key);
-
-            if (localisedFormat == null) return ToString();
+            var localisedFormat = parameters.Store.Get(Key);
+            if (localisedFormat == null)
+                return ToString();
 
             try
             {
-                return string.Format(store.EffectiveCulture, localisedFormat, Args);
+                return string.Format(parameters.Store.EffectiveCulture, localisedFormat, Args);
             }
             catch (FormatException e)
             {
                 // The formatting has failed
-                Logger.Log($"Localised format failed. Key: {Key}, culture: {store.EffectiveCulture.Name}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
+                Logger.Log($"Localised format failed. Key: {Key}, culture: {parameters.Store.EffectiveCulture}, fallback format string: \"{Fallback}\", localised format string: \"{localisedFormat}\". Exception: {e}",
                     LoggingTarget.Runtime, LogLevel.Verbose);
             }
 
@@ -84,14 +83,8 @@ namespace osu.Framework.Localisation
                    && Args.SequenceEqual(other.Args);
         }
 
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((TranslatableString)obj);
-        }
+        public bool Equals(ILocalisableStringData? other) => other is TranslatableString translatable && Equals(translatable);
+        public override bool Equals(object? obj) => obj is TranslatableString translatable && Equals(translatable);
 
         public override int GetHashCode()
         {

@@ -14,16 +14,18 @@ namespace osu.Framework.Localisation
     {
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
-        private readonly Bindable<bool> preferUnicode;
-        private readonly Bindable<string> configLocale;
-        private readonly Bindable<ILocalisationStore?> currentStorage = new Bindable<ILocalisationStore?>();
+        private readonly Bindable<string> configLocale = new Bindable<string>();
+        private readonly Bindable<bool> configPreferUnicode = new BindableBool();
+
+        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
         public LocalisationManager(FrameworkConfigManager config)
         {
-            preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
-
-            configLocale = config.GetBindable<string>(FrameworkSetting.Locale);
+            config.BindWith(FrameworkSetting.Locale, configLocale);
             configLocale.BindValueChanged(updateLocale);
+
+            config.BindWith(FrameworkSetting.ShowUnicode, configPreferUnicode);
+            configPreferUnicode.BindValueChanged(updateUnicodePreference, true);
         }
 
         public void AddLanguage(string language, ILocalisationStore storage)
@@ -36,7 +38,7 @@ namespace osu.Framework.Localisation
         /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
-        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentStorage, preferUnicode);
+        public ILocalisedBindableString GetLocalisedString(LocalisableString original) => new LocalisedBindableString(original, currentParameters);
 
         private void updateLocale(ValueChangedEvent<string> locale)
         {
@@ -59,8 +61,29 @@ namespace osu.Framework.Localisation
                 validLocale ??= locales[0];
             }
 
-            currentStorage.Value = validLocale.Storage;
+            ChangeSettings(CreateNewLocalisationParameters(validLocale.Storage, currentParameters.Value.PreferOriginalScript));
         }
+
+        private void updateUnicodePreference(ValueChangedEvent<bool> preferUnicode)
+            => ChangeSettings(CreateNewLocalisationParameters(currentParameters.Value.Store, preferUnicode.NewValue));
+
+        /// <summary>
+        /// Changes the localisation parameters.
+        /// </summary>
+        /// <param name="parameters">The new localisation parameters.</param>
+        protected void ChangeSettings(LocalisationParameters parameters) => currentParameters.Value = parameters;
+
+        /// <summary>
+        /// Creates new <see cref="LocalisationParameters"/>.
+        /// </summary>
+        /// <remarks>
+        /// Can be overridden to provide custom parameters for <see cref="ILocalisableStringData"/> implementations.
+        /// </remarks>
+        /// <param name="store">The <see cref="ILocalisationStore"/> to be used for string lookups and culture-specific formatting.</param>
+        /// <param name="preferOriginalScript">Whether to prefer the "original" script of <see cref="RomanisableString"/>s.</param>
+        /// <returns>The resultant <see cref="LocalisationParameters"/>.</returns>
+        protected virtual LocalisationParameters CreateNewLocalisationParameters(ILocalisationStore? store, bool preferOriginalScript)
+            => new LocalisationParameters(store, preferOriginalScript);
 
         private class LocaleMapping
         {
