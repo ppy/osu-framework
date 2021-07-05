@@ -82,7 +82,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click button", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<ButtonWithPopover>().First());
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
                 InputManager.Click(MouseButton.Left);
             });
             AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
@@ -96,7 +96,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click away", () =>
             {
-                InputManager.MoveMouseTo(this.ChildrenOfType<ButtonWithPopover>().Last());
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
             AddAssert("popover removed", () => !this.ChildrenOfType<Popover>().Any());
@@ -138,15 +138,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestAutomaticLayouting()
         {
-            ButtonWithPopover button = null;
+            DrawableWithPopover target = null;
 
-            AddStep("add button", () => popoverContainer.Child = button = new ButtonWithPopover
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
             {
                 Width = 200,
                 Height = 30,
                 RelativePositionAxes = Axes.Both,
                 Text = "open",
-                Action = () => { },
                 CreateContent = _ => new BasicPopover
                 {
                     Child = new SpriteText
@@ -159,14 +158,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddSliderStep("move X", 0f, 1, 0, x =>
             {
-                if (button != null)
-                    button.X = x;
+                if (target != null)
+                    target.X = x;
             });
 
             AddSliderStep("move Y", 0f, 1, 0, y =>
             {
-                if (button != null)
-                    button.Y = y;
+                if (target != null)
+                    target.Y = y;
             });
 
             AddSliderStep("container width", 0f, 1, 1, width =>
@@ -182,7 +181,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
-        private void createContent(Func<ButtonWithPopover, Popover> creationFunc)
+        private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
                 for (int i = 0; i < 3; ++i)
@@ -193,12 +192,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         popoverAnchor |= (Anchor)((int)Anchor.x0 << i);
                         popoverAnchor |= (Anchor)((int)Anchor.y0 << j);
 
-                        cells[j, i].Child = new ButtonWithPopover
+                        cells[j, i].Child = new DrawableWithPopover
                         {
                             Width = 200,
                             Height = 30,
                             Text = $"open {popoverAnchor}",
-                            Action = () => { },
                             Anchor = popoverAnchor,
                             Origin = popoverAnchor,
                             CreateContent = creationFunc
@@ -207,9 +205,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 }
             });
 
-        private class ButtonWithPopover : BasicButton, IHasPopover
+        private class DrawableWithPopover : CircularContainer, IHasPopover
         {
-            public Func<ButtonWithPopover, Popover> CreateContent { get; set; }
+            public Func<DrawableWithPopover, Popover> CreateContent { get; set; }
+
+            public string Text
+            {
+                set => spriteText.Text = value;
+            }
+
+            private readonly SpriteText spriteText;
+
+            public DrawableWithPopover()
+            {
+                Masking = true;
+                BorderThickness = 4;
+                BorderColour = FrameworkColour.YellowGreenDark;
+
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.GreenDark
+                    },
+                    spriteText = new SpriteText
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Font = FontUsage.Default.With(italics: true)
+                    }
+                };
+            }
 
             public Popover GetPopover() => CreateContent.Invoke(this);
         }
