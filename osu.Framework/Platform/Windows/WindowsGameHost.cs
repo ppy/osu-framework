@@ -9,9 +9,8 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Input.Handlers.Joystick;
-using osu.Framework.Input.Handlers.Midi;
-using osu.Framework.Input.Handlers.Keyboard;
+using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
 using SDL2;
@@ -55,21 +54,13 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
-            new InputHandler[]
-            {
-                new KeyboardHandler(),
-#if NET5_0
-                // tablet should get priority over mouse to correctly handle cases where tablet drivers report as mice as well.
-                new Input.Handlers.Tablet.OpenTabletDriverHandler(),
-#endif
-                // todo: while this does enable trackpad, it also breaks scrolling functionaliy.
-                // todo: the best way would probably only gave trackpad during in game.
-                new WindowsTrackpadHandler(),
-                new WindowsMouseHandler(),
-                new JoystickHandler(),
-                new MidiHandler(),
-            };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
+        {
+            return base.CreateAvailableInputHandlers()
+                       .Select(inputHandler => inputHandler is TouchpadHandler ? new WindowsTrackpadHandler() : inputHandler)
+                       .Where(t => !(t is MouseHandler))
+                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
+        }
 
         protected override void SetupForRun()
         {

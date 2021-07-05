@@ -103,12 +103,9 @@ namespace osu.Framework.Platform.Windows
                 Logger.Log("Epico");
             }
 
-            Touch[] touches = HID.GetContacts(touchpadInfo, data.Hid);
+            Touch[] touches = HID.GetTouches(touchpadInfo, data.Hid);
 
             if (touches.Length == 0) return;
-
-            Logger.Log(
-                HID.MapToScreen(touchpadInfo.Contacts[0].Area, HID.GetPrimaryTouch(touches)).Position.ToString());
 
             // Account for (0,0) vectors
 
@@ -118,6 +115,8 @@ namespace osu.Framework.Platform.Windows
             // it's unlikely for a person to get (0,0) anyways.
             if (touch.Position == Vector2.Zero)
                 return;
+
+            // Logger.Log($"[{string.Join(",", touches)}]");
 
             HandleTouchpadMove(new Vector2[]
             {

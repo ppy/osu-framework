@@ -12,7 +12,7 @@ namespace osu.Framework.Platform.Windows.Native
 {
     internal static class HID
     {
-        public static byte[] GetPreparsedData(IntPtr device)
+        private static byte[] getPreparsedData(IntPtr device)
         {
             uint payloadSize = 0;
             if (Input.GetRawInputDeviceInfoW(device, 0x20000005, (IntPtr)null, ref payloadSize) == -1)
@@ -23,7 +23,7 @@ namespace osu.Framework.Platform.Windows.Native
             return preparsedData;
         }
 
-        public static unsafe HidpValueCaps[] GetValueCaps(byte[] preparsedData)
+        private static unsafe IEnumerable<HidpValueCaps> getValueCaps(byte[] preparsedData)
         {
             var status = Input.HidP_GetCaps(preparsedData, out var caps);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
@@ -51,7 +51,7 @@ namespace osu.Framework.Platform.Windows.Native
             return valueCaps;
         }
 
-        public static unsafe HidpButtonCaps[] GetButtonCaps(byte[] preparsedData)
+        private static unsafe IEnumerable<HidpButtonCaps> getButtonCaps(byte[] preparsedData)
         {
             var status = Input.HidP_GetCaps(preparsedData, out var caps);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
@@ -81,14 +81,14 @@ namespace osu.Framework.Platform.Windows.Native
 
         public static TouchpadInfo GetDeviceInfo(IntPtr device)
         {
-            var preparsedData = GetPreparsedData(device);
+            var preparsedData = getPreparsedData(device);
 
             // Button Caps, has tips into something like a dictionary and then read below here.
 
             Dictionary<ushort, ContactInfo> contacts = new Dictionary<ushort, ContactInfo>();
             ushort linkContactCount = ushort.MaxValue;
 
-            foreach (HidpValueCaps cap in GetValueCaps(preparsedData))
+            foreach (HidpValueCaps cap in getValueCaps(preparsedData))
             {
                 if (cap.IsRange || !cap.IsAbsolute)
                 {
@@ -125,22 +125,10 @@ namespace osu.Framework.Platform.Windows.Native
                         contact.HasContactID = true;
                         break;
                     }
-
-                    case HIDUsagePage.Digitizer when cap.NotRange.Usage == HIDUsage.HID_USAGE_DIGITZER_WIDTH:
-                    {
-                        Logger.Log($"WIDTHS: {cap.PhysicalMin} {cap.PhysicalMax}");
-                        break;
-                    }
-
-                    case HIDUsagePage.Digitizer when cap.NotRange.Usage == HIDUsage.HID_USAGE_DIGITZER_HEIGHT:
-                    {
-                        Logger.Log($"HEIGHT: {cap.PhysicalMin} {cap.PhysicalMax}");
-                        break;
-                    }
                 }
             }
 
-            foreach (HidpButtonCaps cap in GetButtonCaps(preparsedData))
+            foreach (HidpButtonCaps cap in getButtonCaps(preparsedData))
             {
                 if (cap.UsagePage == HIDUsagePage.Digitizer)
                 {
@@ -192,7 +180,7 @@ namespace osu.Framework.Platform.Windows.Native
             public int Bottom;
         }
 
-        public static Touch[] GetContacts(TouchpadInfo touchpad, RawHID data)
+        public static Touch[] GetTouches(TouchpadInfo touchpad, RawHID data)
         {
             Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, touchpad.LinkContactCount, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_COUNT, out var numOfContacts, touchpad.PreparsedData, data.rawData, data.dwSizeHid);
 
@@ -227,7 +215,7 @@ namespace osu.Framework.Platform.Windows.Native
             return touches;
         }
 
-        public static Touch GetPrimaryTouch(Touch[] touches)
+        public static Touch GetPrimaryTouch(IEnumerable<Touch> touches)
         {
             return touches.First(touch => touch.Source == TouchSource.Touch1);
         }
