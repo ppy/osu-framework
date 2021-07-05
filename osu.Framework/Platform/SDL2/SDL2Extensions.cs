@@ -446,10 +446,8 @@ namespace osu.Framework.Platform.SDL2
 
         public static WindowState ToWindowState(this SDL.SDL_WindowFlags windowFlags)
         {
-            // NOTE: on macOS, SDL2 does not differentiate between "maximised" and "fullscreen desktop"
             if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP) ||
-                windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS) ||
-                windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) && RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
+                windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS))
                 return WindowState.FullscreenBorderless;
 
             if (windowFlags.HasFlagFast(SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED))
@@ -475,9 +473,7 @@ namespace osu.Framework.Platform.SDL2
                     return SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
                 case WindowState.Maximised:
-                    return RuntimeInfo.OS == RuntimeInfo.Platform.macOS
-                        ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP
-                        : SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+                    return SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
 
                 case WindowState.Minimised:
                     return SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED;

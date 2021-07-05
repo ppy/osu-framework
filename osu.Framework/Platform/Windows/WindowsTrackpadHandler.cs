@@ -21,7 +21,7 @@ namespace osu.Framework.Platform.Windows
 
         private WindowsGameHost host;
 
-        private readonly Dictionary<IntPtr, HID.TouchpadInfo> devices = new();
+        private readonly Dictionary<IntPtr, HID.TouchpadInfo> devices = new Dictionary<IntPtr, HID.TouchpadInfo>();
 
         public override bool IsActive => Enabled.Value;
 

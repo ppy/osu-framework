@@ -5,6 +5,7 @@ using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 
@@ -18,7 +19,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
     {
-        public string TooltipText => Url;
+        public LocalisableString TooltipText => Url;
 
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }

@@ -8,7 +8,7 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.IO
 {
     /// <summary>
-    /// Ad headless host for testing purposes. Contains an arbitrary game that is running after construction.
+    /// A headless host for testing purposes. Contains an arbitrary game that is running after construction.
     /// </summary>
     public class BackgroundGameHeadlessGameHost : HeadlessGameHost
     {
