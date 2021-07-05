@@ -7,7 +7,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
@@ -17,7 +16,7 @@ namespace osu.Framework.Tests.Visual.Sprites
     public class TestSceneVideo : FrameworkTestScene
     {
         private Container videoContainer;
-        private SpriteText timeText;
+        private TextFlowContainer timeText;
         private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
 
         private ManualClock clock;
@@ -34,10 +33,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                     RelativeSizeAxes = Axes.Both,
                     Clock = new FramedClock(clock = new ManualClock()),
                 },
-                timeText = new SpriteText
+                timeText = new TextFlowContainer(f => f.Font = FrameworkFont.Condensed)
                 {
+                    RelativeSizeAxes = Axes.Both,
                     Text = "Video is loading...",
-                    Font = FrameworkFont.Condensed.With()
                 }
             };
         }
@@ -164,11 +163,11 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 if (timeText != null)
                 {
-                    timeText.Text = $"aim time: {video.PlaybackPosition:N2} | "
-                                    + $"video time: {video.CurrentFrameTime:N2} | "
-                                    + $"duration: {video.Duration:N2} | "
-                                    + $"buffered {video.AvailableFrames} | "
-                                    + $"FPS: {fps} | "
+                    timeText.Text = $"aim time: {video.PlaybackPosition:N2}\n"
+                                    + $"video time: {video.CurrentFrameTime:N2}\n"
+                                    + $"duration: {video.Duration:N2}\n"
+                                    + $"buffered {video.AvailableFrames}\n"
+                                    + $"FPS: {fps}\n"
                                     + $"State: {decoderState.Value}";
                 }
             }
