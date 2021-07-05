@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Input;
-using osu.Framework.Input.States;
 using osu.Framework.Input.Handlers.Touchpad;
+using osu.Framework.Input.States;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
 
@@ -13,9 +13,6 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSTouchpadHandler : TouchpadHandler
     {
-        IntPtr[] activeTouches = new IntPtr[TouchState.MAX_TOUCH_COUNT];
-
-        // todo need to make an index of all identities, for touchpad, unfortunately tho, the god damn event doesn't have a cancel event?!?!?
         private static readonly IntPtr sel_alltouches_ = Selector.Get("allTouches");
         private static readonly IntPtr sel_allobjects = Selector.Get("allObjects");
 
@@ -26,7 +23,9 @@ namespace osu.Framework.Platform.MacOS
         private TouchesDelegate touchesEndEventHandler;
 
         public override bool IsActive => Enabled.Value;
-        
+
+        private readonly IntPtr[] activeTouches = new IntPtr[TouchState.MAX_TOUCH_COUNT];
+
         public override bool Initialize(GameHost host)
         {
             if (!base.Initialize(host))
@@ -56,7 +55,7 @@ namespace osu.Framework.Platform.MacOS
         }
 
         private TouchSource? primaryTouchSource;
-        
+
         private void touchesBeginEvent(IntPtr reciever, IntPtr selector, IntPtr theEvent)
         {
             foreach (NSTouch touch in getTouches(theEvent))
@@ -64,12 +63,13 @@ namespace osu.Framework.Platform.MacOS
                 if (touch.Phase() == NSTouchPhase.NSTouchPhaseBegan)
                 {
                     TouchSource? source = assignNextAvailableTouchSource(touch);
+
                     if (primaryTouchSource == null)
                     {
                         primaryTouchSource = source;
                         Vector2 currentTouch = touch.NormalizedPosition();
                         currentTouch.Y = 1 - currentTouch.Y;
-                        HandleTouchpadMove(new Vector2[] { currentTouch });
+                        HandleSingleTouchMove(currentTouch);
                     }
                 }
             }
@@ -87,13 +87,13 @@ namespace osu.Framework.Platform.MacOS
             foreach (NSTouch touch in getTouches(theEvent))
             {
                 TouchSource? source = getTouchSource(touch);
-                
-                if (source == primaryTouchSource) 
+
+                if (source == primaryTouchSource)
                 {
                     primaryTouch = touch.NormalizedPosition();
                 }
 
-                switch(touch.Phase())
+                switch (touch.Phase())
                 {
                     case NSTouchPhase.NSTouchPhaseMoved:
                         break;
@@ -101,7 +101,7 @@ namespace osu.Framework.Platform.MacOS
             }
 
             primaryTouch.Y = 1 - primaryTouch.Y;
-            HandleTouchpadMove(new Vector2[] { primaryTouch });
+            HandleSingleTouchMove(primaryTouch);
         }
 
         private void touchesEndEvent(IntPtr reciever, IntPtr selector, IntPtr theEvent)
@@ -113,30 +113,33 @@ namespace osu.Framework.Platform.MacOS
             foreach (NSTouch touch in getTouches(theEvent))
             {
                 TouchSource? source = getTouchSource(touch);
-               
+
+                if (source == null) return;
+
                 if (primaryTouchSource == source) primaryTouchSource = null;
 
-                switch(touch.Phase())
+                switch (touch.Phase())
                 {
                     case NSTouchPhase.NSTouchPhaseEnded:
-                        activeTouches[(int) source] = IntPtr.Zero;
+                        activeTouches[(int)source] = IntPtr.Zero;
                         break;
+
                     case NSTouchPhase.NSTouchPhaseCancelled:
-                        activeTouches[(int) source] = IntPtr.Zero;
+                        activeTouches[(int)source] = IntPtr.Zero;
                         break;
+
                     default:
-                        if (firstNotEndingTouch == null) firstNotEndingTouch = touch;
+                        firstNotEndingTouch ??= touch;
                         break;
                 }
             }
 
-            if (primaryTouchSource == null && firstNotEndingTouch != null)
-            {
-                primaryTouchSource = getTouchSource( firstNotEndingTouch.Value );
-                Vector2 touchLocation = firstNotEndingTouch.Value.NormalizedPosition();
-                touchLocation.Y = 1 - touchLocation.Y;
-                HandleTouchpadMove(new Vector2[] { touchLocation });
-            }
+            if (primaryTouchSource != null || firstNotEndingTouch == null) return;
+
+            primaryTouchSource = getTouchSource(firstNotEndingTouch.Value);
+            Vector2 touchLocation = firstNotEndingTouch.Value.NormalizedPosition();
+            touchLocation.Y = 1 - touchLocation.Y;
+            HandleSingleTouchMove(touchLocation);
         }
 
         private IEnumerable<NSTouch> getTouches(IntPtr theEvent)
@@ -145,7 +148,7 @@ namespace osu.Framework.Platform.MacOS
 
             IntPtr[] touchptrs = new NSArray(Cocoa.SendIntPtr(allTouches, sel_allobjects)).ToArray();
 
-            NSTouch[] touches = new NSTouch[touchptrs.Length]; 
+            NSTouch[] touches = new NSTouch[touchptrs.Length];
 
             for (var i = 0; i < touchptrs.Length; i++)
             {
@@ -160,15 +163,16 @@ namespace osu.Framework.Platform.MacOS
         {
             int index = Array.IndexOf(activeTouches, IntPtr.Zero);
             if (index == -1) return null;
+
             activeTouches[index] = touch.CopyOfIdentity();
-            return (TouchSource) index;
+            return (TouchSource)index;
         }
 
         private TouchSource? getTouchSource(NSTouch touch)
         {
             for (var i = 0; i < activeTouches.Length; i++)
             {
-                if (touch.IsIdentityEqual(activeTouches[i])) return (TouchSource) i;
+                if (touch.IsIdentityEqual(activeTouches[i])) return (TouchSource)i;
             }
 
             return null;

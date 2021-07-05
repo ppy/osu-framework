@@ -74,7 +74,7 @@ namespace osu.Framework.Platform.Windows
                 hasRegistered = true;
                 RawInputDevice touchpad = new RawInputDevice(HIDUsagePage.Digitizer, HIDUsage.PrecisionTouchpad, RawInputDeviceFlags.InputSink, hWnd);
 
-                if (!Native.Input.RegisterRawInputDevices(new RawInputDevice[1] { touchpad }, 1, sizeof(RawInputDevice)))
+                if (!Native.Input.RegisterRawInputDevices(new RawInputDevice[] { touchpad }, 1, sizeof(RawInputDevice)))
                 {
                     Logger.Log("Dank error!");
                     returnCode = new IntPtr(-1);
@@ -114,10 +114,7 @@ namespace osu.Framework.Platform.Windows
             if (touch.Position == Vector2.Zero)
                 return;
 
-            HandleTouchpadMove(new Vector2[]
-            {
-                touch.Position
-            });
+            HandleSingleTouchMove(touch.Position);
         }
     }
 }

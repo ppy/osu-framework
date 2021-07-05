@@ -14,7 +14,7 @@ namespace osu.Framework.Input.Handlers.Touchpad
     /// </summary>
     public class TouchpadHandler : InputHandler
     {
-        public override bool IsActive { get; }
+        public override bool IsActive => Enabled.Value;
 
         public override string Description => "Touchpad";
 
@@ -28,8 +28,10 @@ namespace osu.Framework.Input.Handlers.Touchpad
 
         public override bool Initialize(GameHost host)
         {
-            // By default this should be disabled.
-            Enabled.Value = true;
+            // Touchpad inputs are really only used for osu!
+            // other projects don't really need them, and may
+            // cause confusion to have enabled by default.
+            Enabled.Value = false;
 
             if (!base.Initialize(host))
                 return false;
@@ -48,11 +50,9 @@ namespace osu.Framework.Input.Handlers.Touchpad
             return true;
         }
 
-        // Takes touchpad raw inputs and turn them into Mouse Position events.
-        public void HandleTouchpadMove(Vector2[] vectors)
+        // Takes raw touchpad inputs and turn them into Mouse Position events.
+        public void HandleSingleTouchMove(Vector2 vector)
         {
-            // todo: doesn't accoutn for window transofrmations in lazer
-            Vector2 vector = vectors[0];
             enqueueInput(new MousePositionAbsoluteInput() { Position = Vector2.Divide(vector + (AreaSize.Value / 2) - AreaOffset.Value, AreaSize.Value) * new Vector2(window.Size.Width, window.Size.Height)  });
         }
 
