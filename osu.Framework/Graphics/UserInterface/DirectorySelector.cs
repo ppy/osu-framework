@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osuTK;
 
@@ -78,42 +79,90 @@ namespace osu.Framework.Graphics.UserInterface
             CurrentPath.BindValueChanged(updateDisplay, true);
         }
 
+        /// <summary>
+        /// Because <see cref="CurrentPath"/> changes may not necessarily lead to directories that exist/are accessible,
+        /// <see cref="updateDisplay"/> may need to change <see cref="CurrentPath"/> again to lead to a directory that is actually accessible.
+        /// This flag intends to prevent recursive <see cref="updateDisplay"/> calls from taking place during the process of finding an accessible directory.
+        /// </summary>
+        private bool directoryChanging;
+
         private void updateDisplay(ValueChangedEvent<DirectoryInfo> directory)
         {
-            directoryFlow.Clear();
+            if (directoryChanging)
+                return;
 
             try
             {
-                if (directory.NewValue == null)
+                directoryChanging = true;
+
+                directoryFlow.Clear();
+
+                var newDirectory = directory.NewValue;
+                bool notifyError = false;
+                ICollection<DirectorySelectorItem> items = Array.Empty<DirectorySelectorItem>();
+
+                while (newDirectory != null)
+                {
+                    newDirectory.Refresh();
+
+                    if (TryGetEntriesForPath(newDirectory, out items))
+                        break;
+
+                    notifyError = true;
+                    newDirectory = newDirectory.Parent;
+                }
+
+                if (notifyError)
+                    NotifySelectionError();
+
+                if (newDirectory == null)
                 {
                     var drives = DriveInfo.GetDrives();
 
                     foreach (var drive in drives)
                         directoryFlow.Add(CreateDirectoryItem(drive.RootDirectory));
-                }
-                else
-                {
-                    directoryFlow.Add(CreateParentDirectoryItem(CurrentPath.Value.Parent));
 
-                    directoryFlow.AddRange(GetEntriesForPath(CurrentPath.Value));
+                    return;
                 }
+
+                CurrentPath.Value = newDirectory;
+
+                directoryFlow.Add(CreateParentDirectoryItem(newDirectory.Parent));
+                directoryFlow.AddRange(items);
             }
-            catch (Exception)
+            finally
             {
-                CurrentPath.Value = directory.OldValue;
-                NotifySelectionError();
+                directoryChanging = false;
             }
         }
 
         /// <summary>
-        /// Creates entries for a given directory.
+        /// Attempts to create entries to display for the given <paramref name="path"/>.
+        /// A return value of <see langword="false"/> is used to indicate a non-specific I/O failure, signaling to the selector that it should attempt
+        /// to find another directory to display (since <paramref name="path"/> is inaccessible).
         /// </summary>
-        protected virtual IEnumerable<DirectorySelectorItem> GetEntriesForPath(DirectoryInfo path)
+        /// <param name="path">The directory to create entries for.</param>
+        /// <param name="items">
+        /// The created <see cref="DirectorySelectorItem"/>s, provided that the <paramref name="path"/> could be entered.
+        /// Not valid for reading if the return value of the method is <see langword="false"/>.
+        /// </param>
+        protected virtual bool TryGetEntriesForPath(DirectoryInfo path, out ICollection<DirectorySelectorItem> items)
         {
-            foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
+            items = new List<DirectorySelectorItem>();
+
+            try
             {
-                if ((dir.Attributes & FileAttributes.Hidden) == 0)
-                    yield return CreateDirectoryItem(dir);
+                foreach (var dir in path.GetDirectories().OrderBy(d => d.Name))
+                {
+                    if (!dir.Attributes.HasFlagFast(FileAttributes.Hidden))
+                        items.Add(CreateDirectoryItem(dir));
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
