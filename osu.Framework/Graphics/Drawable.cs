@@ -2410,6 +2410,7 @@ namespace osu.Framework.Graphics
                 typeof(IHasTooltip),
                 typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
+                typeof(IHasPopover),
             };
 
             private static readonly Type[] non_positional_input_interfaces =
