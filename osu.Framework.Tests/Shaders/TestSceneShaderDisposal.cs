@@ -11,6 +11,7 @@ using osu.Framework.Tests.Visual;
 
 namespace osu.Framework.Tests.Shaders
 {
+    [HeadlessTest]
     public class TestSceneShaderDisposal : FrameworkTestScene
     {
         private ShaderManager manager;
