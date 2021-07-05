@@ -421,38 +421,6 @@ namespace osu.Framework.Platform.Windows.Native
         AppKeys = 0x00000400
     }
 
-    public enum HIDUsagePage : ushort
-    {
-        Undefined = 0x00,
-        Generic = 0x01,
-        Simulation = 0x02,
-        VR = 0x03,
-        Sport = 0x04,
-        Game = 0x05,
-        Keyboard = 0x07,
-        LED = 0x08,
-        Button = 0x09,
-        Ordinal = 0x0A,
-        Telephony = 0x0B,
-        Consumer = 0x0C,
-        Digitizer = 0x0D,
-        PID = 0x0F,
-        Unicode = 0x10,
-        AlphaNumeric = 0x14,
-        Medical = 0x40,
-        MonitorPage0 = 0x80,
-        MonitorPage1 = 0x81,
-        MonitorPage2 = 0x82,
-        MonitorPage3 = 0x83,
-        PowerPage0 = 0x84,
-        PowerPage1 = 0x85,
-        PowerPage2 = 0x86,
-        PowerPage3 = 0x87,
-        BarCode = 0x8C,
-        Scale = 0x8D,
-        MSR = 0x8E
-    }
-
     internal enum HidpReportType
     {
         HidP_Input,

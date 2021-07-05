@@ -235,4 +235,65 @@ namespace osu.Framework.Platform.Windows.Native
             return new Touch(touch.Source, new Vector2((float)scDeltaX / 0xFFFF, (float)scDeltaY / 65535));
         }
     }
+
+    public enum HIDUsagePage : ushort
+    {
+        Undefined = 0x00,
+        Generic = 0x01,
+        Simulation = 0x02,
+        VR = 0x03,
+        Sport = 0x04,
+        Game = 0x05,
+        Keyboard = 0x07,
+        LED = 0x08,
+        Button = 0x09,
+        Ordinal = 0x0A,
+        Telephony = 0x0B,
+        Consumer = 0x0C,
+        Digitizer = 0x0D,
+        PID = 0x0F,
+        Unicode = 0x10,
+        AlphaNumeric = 0x14,
+        Medical = 0x40,
+        MonitorPage0 = 0x80,
+        MonitorPage1 = 0x81,
+        MonitorPage2 = 0x82,
+        MonitorPage3 = 0x83,
+        PowerPage0 = 0x84,
+        PowerPage1 = 0x85,
+        PowerPage2 = 0x86,
+        PowerPage3 = 0x87,
+        BarCode = 0x8C,
+        Scale = 0x8D,
+        MSR = 0x8E
+    }
+
+    public enum HIDUsage : ushort
+    {
+        // HIDUsagePage is General
+        Pointer = 0x01,
+        Mouse = 0x02,
+        Joystick = 0x04,
+        Gamepad = 0x05,
+        Keyboard = 0x06,
+        Keypad = 0x07,
+        SystemControl = 0x80,
+
+        HID_USAGE_GENERIC_X = 0x30,
+        HID_USAGE_GENERIC_Y = 0x31,
+
+        // HIDUsagePage is Digitizer
+        PrecisionTouchpad = 0x05,
+        HID_USAGE_DIGITIZER_TIP_SWITCH = 0x42,
+
+        HID_USAGE_DIGITIZER_CONTACT_ID = 0x51,
+        HID_USAGE_DIGITIZER_CONTACT_COUNT = 0x54,
+    }
+
+    public enum NSStatus : uint
+    {
+        HIDP_STATUS_SUCCESS = 0x00110000,
+        HIDP_STATUS_INVALID_PREPARSED_DATA = 0xc0110001,
+        HIDP_STATUS_USAGE_NOT_FOUND = 0xc0110004
+    }
 }

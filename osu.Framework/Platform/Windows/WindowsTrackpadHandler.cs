@@ -107,8 +107,6 @@ namespace osu.Framework.Platform.Windows
 
             if (touches.Length == 0) return;
 
-            // Account for (0,0) vectors
-
             Touch touch = HID.MapToScreen(touchpadInfo.Contacts[0].Area, HID.GetPrimaryTouch(touches));
 
             // (0,0) vectors are sent for some reason if the finger is lifted,
@@ -116,11 +114,9 @@ namespace osu.Framework.Platform.Windows
             if (touch.Position == Vector2.Zero)
                 return;
 
-            // Logger.Log($"[{string.Join(",", touches)}]");
-
             HandleTouchpadMove(new Vector2[]
             {
-                HID.MapToScreen(touchpadInfo.Contacts[0].Area, HID.GetPrimaryTouch(touches)).Position
+                touch.Position
             });
         }
     }
