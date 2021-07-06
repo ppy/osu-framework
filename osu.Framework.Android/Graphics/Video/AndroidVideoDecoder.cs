@@ -87,13 +87,13 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_swscale)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public AndroidVideoDecoder(string filename, Scheduler scheduler)
-            : base(filename, scheduler)
+        public AndroidVideoDecoder(string filename)
+            : base(filename)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream, Scheduler scheduler)
-            : base(videoStream, scheduler)
+        public AndroidVideoDecoder(Stream videoStream)
+            : base(videoStream)
         {
         }
 

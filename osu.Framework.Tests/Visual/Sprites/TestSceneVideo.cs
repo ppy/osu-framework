@@ -3,11 +3,9 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
@@ -17,12 +15,13 @@ namespace osu.Framework.Tests.Visual.Sprites
     public class TestSceneVideo : FrameworkTestScene
     {
         private Container videoContainer;
-        private SpriteText timeText;
-        private readonly IBindable<VideoDecoder.DecoderState> decoderState = new Bindable<VideoDecoder.DecoderState>();
+        private TextFlowContainer timeText;
 
         private ManualClock clock;
 
         private TestVideo video;
+
+        private bool didDecode;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -34,10 +33,10 @@ namespace osu.Framework.Tests.Visual.Sprites
                     RelativeSizeAxes = Axes.Both,
                     Clock = new FramedClock(clock = new ManualClock()),
                 },
-                timeText = new SpriteText
+                timeText = new TextFlowContainer(f => f.Font = FrameworkFont.Condensed)
                 {
+                    RelativeSizeAxes = Axes.Both,
                     Text = "Video is loading...",
-                    Font = FrameworkFont.Condensed.With()
                 }
             };
         }
@@ -45,7 +44,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         [SetUpSteps]
         public void SetUpSteps()
         {
-            AddStep("Reset clock", () => clock.CurrentTime = 0);
+            AddStep("Reset clock", () =>
+            {
+                clock.CurrentTime = 0;
+                didDecode = false;
+            });
             loadNewVideo();
             AddUntilStep("Wait for video to load", () => video.IsLoaded);
             AddStep("Reset clock", () => clock.CurrentTime = 0);
@@ -55,7 +58,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("load video", () =>
             {
-                videoContainer.Child = video = new TestVideo { Loop = false, };
+                videoContainer.Child = video = new TestVideo
+                {
+                    Loop = false,
+                };
             });
         }
 
@@ -72,6 +78,24 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestDecodingStopsWhenNotPresent()
+        {
+            AddStep("make video hidden", () => video.Hide());
+
+            AddWaitStep("wait a bit", 10);
+
+            AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
+
+            AddStep("reset decode state", () => didDecode = false);
+
+            AddWaitStep("wait a bit", 10);
+            AddAssert("decoding didn't run", () => !didDecode);
+
+            AddStep("make video visible", () => video.Show());
+            AddUntilStep("decoding ran", () => didDecode);
+        }
+
+        [Test]
         public void TestJumpForward()
         {
             AddStep("Jump ahead by 10 seconds", () => clock.CurrentTime += 10000);
@@ -83,7 +107,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("Jump ahead by 30 seconds", () => clock.CurrentTime += 30000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
-
             AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition < 30000);
         }
@@ -93,7 +116,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("Seek to end", () => clock.CurrentTime = video.Duration);
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= video.Duration - 1000);
-
             AddWaitStep("Wait for playback", 10);
             AddAssert("Not looped", () => video.PlaybackPosition >= video.Duration - 1000);
         }
@@ -103,7 +125,6 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("Set looping", () => video.Loop = true);
             AddStep("Seek to end", () => clock.CurrentTime = video.Duration);
-
             AddWaitStep("Wait for playback", 10);
             AddUntilStep("Looped", () => video.PlaybackPosition < video.Duration - 1000);
         }
@@ -140,13 +161,15 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 if (timeText != null)
                 {
-                    timeText.Text = $"aim time: {video.PlaybackPosition:N2} | "
-                                    + $"video time: {video.CurrentFrameTime:N2} | "
-                                    + $"duration: {video.Duration:N2} | "
-                                    + $"buffered {video.AvailableFrames} | "
-                                    + $"FPS: {fps} | "
-                                    + $"State: {decoderState.Value}";
+                    timeText.Text = $"aim time: {video.PlaybackPosition:N2}\n"
+                                    + $"video time: {video.CurrentFrameTime:N2}\n"
+                                    + $"duration: {video.Duration:N2}\n"
+                                    + $"buffered {video.AvailableFrames}\n"
+                                    + $"FPS: {fps}\n"
+                                    + $"State: {video.State}";
                 }
+
+                didDecode |= video.State == VideoDecoder.DecoderState.Running;
             }
         }
     }
