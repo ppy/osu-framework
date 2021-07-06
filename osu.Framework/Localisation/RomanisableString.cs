@@ -12,7 +12,7 @@ namespace osu.Framework.Localisation
     /// A string that has a romanised fallback to allow a better experience for users that potentially can't read the original script.
     /// See <see cref="FrameworkSetting.ShowUnicode"/>, which can toggle the display of romanised variants.
     /// </summary>
-    public class RomanisableString : IEquatable<RomanisableString>
+    public class RomanisableString : IEquatable<RomanisableString>, ILocalisableStringData
     {
         /// <summary>
         /// The string in its original script. May be null.
@@ -28,7 +28,7 @@ namespace osu.Framework.Localisation
         /// Construct a new romanisable string.
         /// </summary>
         /// <remarks>
-        /// For flexibility, both of the provided strings are allowed to be null. If both are null, the returned string value from <see cref="GetPreferred"/> will be <see cref="string.Empty"/>.
+        /// For flexibility, both of the provided strings are allowed to be null. If both are null, the returned string value from <see cref="GetLocalised"/> will be <see cref="string.Empty"/>.
         /// </remarks>
         /// <param name="original">The string in its original script. If null, the <paramref name="romanised"/> version will always be used.</param>
         /// <param name="romanised">The romanised version of the string. If null, the <paramref name="original"/> version will always be used.</param>
@@ -37,6 +37,8 @@ namespace osu.Framework.Localisation
             Original = original;
             Romanised = romanised;
         }
+
+        public string GetLocalised(LocalisationParameters parameters) => GetPreferred(parameters.PreferOriginalScript);
 
         /// <summary>
         /// Get the best match for this string based on a user preference for which should be displayed.
@@ -51,7 +53,7 @@ namespace osu.Framework.Localisation
             return preferUnicode ? Original : Romanised;
         }
 
-        public override string ToString() => GetPreferred(false);
+        public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
 
         public bool Equals(RomanisableString? other)
         {
@@ -62,14 +64,8 @@ namespace osu.Framework.Localisation
                    && Romanised == other.Romanised;
         }
 
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-
-            return Equals((RomanisableString)obj);
-        }
+        public bool Equals(ILocalisableStringData? other) => other is RomanisableString romanisable && Equals(romanisable);
+        public override bool Equals(object? obj) => obj is RomanisableString romanisable && Equals(romanisable);
 
         public override int GetHashCode()
         {
