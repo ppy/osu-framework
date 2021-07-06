@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -46,9 +45,9 @@ namespace osu.Framework.Graphics.Video
         public bool IsFaulted => decoder?.IsFaulted ?? false;
 
         /// <summary>
-        /// The current state of the <see cref="VideoDecoder"/>, as a bindable.
+        /// The current state of the decoding process.
         /// </summary>
-        public readonly IBindable<VideoDecoder.DecoderState> State = new Bindable<VideoDecoder.DecoderState>();
+        public VideoDecoder.DecoderState State => decoder?.State ?? VideoDecoder.DecoderState.Ready;
 
         internal double CurrentFrameTime => lastFrame?.Time ?? 0;
 
@@ -107,9 +106,8 @@ namespace osu.Framework.Graphics.Video
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost, ShaderManager shaders)
         {
-            decoder = gameHost.CreateVideoDecoder(stream, Scheduler);
+            decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;
-            State.BindTo(decoder.State);
             decoder.StartDecoding();
 
             Duration = decoder.Duration;
