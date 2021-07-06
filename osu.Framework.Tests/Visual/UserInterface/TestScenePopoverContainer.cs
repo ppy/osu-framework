@@ -103,6 +103,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestDragAwayDoesntHide()
+        {
+            createContent(button => new BasicPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("mousedown popover", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().Single().Body);
+                InputManager.PressButton(MouseButton.Left);
+            });
+            AddAssert("popover still visible", () => this.ChildrenOfType<Popover>().Single().State.Value == Visibility.Visible);
+
+            AddStep("move away", () => InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last()));
+
+            AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
+
+            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any());
+        }
+
+        [Test]
         public void TestInteractiveContent() => createContent(button =>
         {
             TextBox textBox;
