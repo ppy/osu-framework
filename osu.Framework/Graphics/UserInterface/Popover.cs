@@ -147,12 +147,12 @@ namespace osu.Framework.Graphics.UserInterface
             protected override void OnMouseUp(MouseUpEvent e)
             {
                 base.OnMouseUp(e);
-                handleMouseEvent(e.ScreenSpaceMousePosition);
+                handleMouseEvent(e.ScreenSpaceMouseDownPosition);
             }
 
             protected override bool OnClick(ClickEvent e)
             {
-                return handleMouseEvent(e.ScreenSpaceMousePosition);
+                return handleMouseEvent(e.ScreenSpaceMouseDownPosition);
             }
 
             private bool handleMouseEvent(Vector2 position)
