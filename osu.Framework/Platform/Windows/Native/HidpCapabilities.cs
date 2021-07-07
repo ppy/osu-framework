@@ -6,14 +6,17 @@ using System.Runtime.InteropServices;
 namespace osu.Framework.Platform.Windows.Native
 {
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct HidpCaps
+    public struct HidpCaps
     {
         public HIDUsage Usage;
         public HIDUsagePage UsagePage;
         public ushort InputReportByteLength;
         public ushort OutputReportByteLength;
         public ushort FeatureReportByteLength;
-        public fixed ushort Reserved[17];
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
+        public ushort[] Reserved;
+
         public ushort NumberLinkCollectionNodes;
         public ushort NumberInputButtonCaps;
         public ushort NumberInputValueCaps;

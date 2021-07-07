@@ -69,38 +69,37 @@ namespace osu.Framework.Platform.MacOS.Native
 
         public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
 
-        // todo: Check if this works, also find a better name
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
-        private static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector);
+        private static extern Vector2 SendVector2d_i386(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        private static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector);
+        private static extern Vector2d SendVector2d_x64(IntPtr receiver, IntPtr selector);
 
-        public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector)
+        public static Vector2 SendVector2d(IntPtr receiver, IntPtr selector)
         {
             if (IntPtr.Size == 4)
             {
-                return SendNSPoint_i386(receiver, selector);
+                return SendVector2d_i386(receiver, selector);
             }
 
-            Vector2d point = SendNSPoint_x64(receiver, selector);
+            Vector2d point = SendVector2d_x64(receiver, selector);
             return new Vector2((float)point.X, (float)point.Y);
         }
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
-        private static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+        private static extern Vector2 SendVector2d_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        private static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+        private static extern Vector2d SendVector2d_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
-        public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector, IntPtr ptr1)
+        public static Vector2 SendVector2d(IntPtr receiver, IntPtr selector, IntPtr ptr1)
         {
             if (IntPtr.Size == 4)
             {
-                return SendNSPoint_i386(receiver, selector, ptr1);
+                return SendVector2d_i386(receiver, selector, ptr1);
             }
 
-            Vector2d point = SendNSPoint_x64(receiver, selector, ptr1);
+            Vector2d point = SendVector2d_x64(receiver, selector, ptr1);
             return new Vector2((float)point.X, (float)point.Y);
         }
 

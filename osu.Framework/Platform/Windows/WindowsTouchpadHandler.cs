@@ -14,7 +14,7 @@ namespace osu.Framework.Platform.Windows
     /// <summary>
     /// A Windows specific touchpad implementation which uses Windows Raw Input API.
     /// </summary>
-    internal unsafe class WindowsTrackpadHandler : TouchpadHandler
+    internal unsafe class WindowsTouchpadHandler : TouchpadHandler
     {
         private WindowsGameHost host;
 
@@ -58,6 +58,8 @@ namespace osu.Framework.Platform.Windows
 
             // This is supposed to be called during the WM_CREATE message, though it isn't being set to WM_CREATE
             // Probably because it's already been called before the initialisation of this class.
+
+            // This method needs to be called once in the onWndProc method, creating the isTouchpadRegistered.
             if (!isTouchpadRegistered)
             {
                 RawInputDevice touchpad = new RawInputDevice(HIDUsagePage.Digitizer, HIDUsage.PrecisionTouchpad, RawInputDeviceFlags.InputSink, hWnd);

@@ -11,6 +11,9 @@ using osuTK;
 
 namespace osu.Framework.Platform.MacOS
 {
+    /// <summary>
+    /// A MacOS specific touchpad implementation which uses calls to the SDLView.
+    /// </summary>
     public class MacOSTouchpadHandler : TouchpadHandler
     {
         private static readonly IntPtr sel_alltouches_ = Selector.Get("allTouches");
@@ -178,7 +181,7 @@ namespace osu.Framework.Platform.MacOS
         {
             for (var i = 0; i < activeTouches.Length; i++)
             {
-                if (touch.IsIdentityEqual(activeTouches[i])) return (TouchSource)i;
+                if (touch.IsEqual(activeTouches[i])) return (TouchSource)i;
             }
 
             return null;

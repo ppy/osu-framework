@@ -12,29 +12,25 @@ namespace osu.Framework.Platform.MacOS.Native
         private static readonly IntPtr sel_identity = Selector.Get("identity");
         private static readonly IntPtr sel_isequal = Selector.Get("isEqual:");
         private static readonly IntPtr sel_copy = Selector.Get("copy");
-        //view:
-        private static readonly IntPtr sel_previouslocationinview = Selector.Get("locationInView:");
 
         public NSTouch(IntPtr handle)
         {
             Handle = handle;
         }
 
-        internal Vector2 NormalizedPosition() => Cocoa.SendNSPoint(Handle, sel_normalizedposition);
+        internal Vector2 NormalizedPosition() => Cocoa.SendVector2d(Handle, sel_normalizedposition);
 
-        internal Vector2 PreviousLocationInView(IntPtr intPtr) => Cocoa.SendNSPoint(Handle, sel_previouslocationinview, intPtr);
+        internal NSTouchPhase Phase() => (NSTouchPhase)Cocoa.SendUint(Handle, sel_phase);
 
-        internal NSTouchPhase Phase() => (NSTouchPhase) Cocoa.SendUint(Handle, sel_phase);
-    
         internal IntPtr Identity() => Cocoa.SendIntPtr(Handle, sel_identity);
 
         internal IntPtr CopyOfIdentity() => Cocoa.SendIntPtr(Identity(), sel_copy);
 
-        internal bool IsIdentityEqual(IntPtr intPtr) => Cocoa.SendBool(Identity(), sel_isequal, intPtr);
+        internal bool IsEqual(IntPtr intPtr) => Cocoa.SendBool(Identity(), sel_isequal, intPtr);
     }
 
     [Flags]
-    enum NSTouchPhase : uint
+    internal enum NSTouchPhase : uint
     {
         NSTouchPhaseBegan = 1u << 0,
         NSTouchPhaseMoved = 1u << 1,

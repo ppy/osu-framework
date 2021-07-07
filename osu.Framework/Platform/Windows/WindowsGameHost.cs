@@ -57,7 +57,7 @@ namespace osu.Framework.Platform.Windows
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
             return base.CreateAvailableInputHandlers()
-                       .Select(inputHandler => inputHandler is TouchpadHandler ? new WindowsTrackpadHandler() : inputHandler)
+                       .Select(inputHandler => inputHandler is TouchpadHandler ? new WindowsTouchpadHandler() : inputHandler)
                        .Where(t => !(t is MouseHandler))
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }

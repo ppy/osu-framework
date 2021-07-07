@@ -20,7 +20,7 @@ namespace osu.Framework.Input.Handlers.Touchpad
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>(new Vector2(0.5f, 0.5f));
 
-        // Usually an AreaSize of (1, 1) leads to being unable to reach areas towards the edges.
+        // Usually an AreaSize of (1, 1) leads to being unable to inability to reach the edges.
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>(new Vector2(0.9f, 0.9f));
 
         private SDL2DesktopWindow window;
