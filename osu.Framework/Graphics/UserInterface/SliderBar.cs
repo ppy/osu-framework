@@ -166,7 +166,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
+#pragma warning disable 618
             bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
+#pragma warning restore 618
             if (!shouldHandle)
                 return false;
 
