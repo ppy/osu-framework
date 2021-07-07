@@ -5,13 +5,33 @@ using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Windows.Native
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct HidpCaps
+    {
+        public HIDUsage Usage;
+        public HIDUsagePage UsagePage;
+        public ushort InputReportByteLength;
+        public ushort OutputReportByteLength;
+        public ushort FeatureReportByteLength;
+        public fixed ushort Reserved[17];
+        public ushort NumberLinkCollectionNodes;
+        public ushort NumberInputButtonCaps;
+        public ushort NumberInputValueCaps;
+        public ushort NumberInputDataIndices;
+        public ushort NumberOutputButtonCaps;
+        public ushort NumberOutputValueCaps;
+        public ushort NumberOutputDataIndices;
+        public ushort NumberFeatureButtonCaps;
+        public ushort NumberFeatureValueCaps;
+        public ushort NumberFeatureDataIndices;
+    }
+
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct HidpValueCaps
+    public unsafe struct HidpButtonCaps
     {
         [FieldOffset(0)]
         public HIDUsagePage UsagePage;
 
-        // Supposed to be uchar
         [FieldOffset(2)]
         public byte ReportID;
 
@@ -24,7 +44,58 @@ namespace osu.Framework.Platform.Windows.Native
         [FieldOffset(6)]
         public ushort LinkCollection;
 
-        // Supposed to be a different usage
+        [FieldOffset(8)]
+        public HIDUsage LinkUsage;
+
+        [FieldOffset(10)]
+        public HIDUsage LinkUsagePage;
+
+        [FieldOffset(12), MarshalAs(UnmanagedType.U1)]
+        public bool IsRange;
+
+        [FieldOffset(13), MarshalAs(UnmanagedType.U1)]
+        public bool IsStringRange;
+
+        [FieldOffset(14), MarshalAs(UnmanagedType.U1)]
+        public bool IsDesignatorRange;
+
+        [FieldOffset(15), MarshalAs(UnmanagedType.U1)]
+        public bool IsAbsolute;
+
+        [FieldOffset(16)]
+        public ushort ReportCount;
+
+        [FieldOffset(18)]
+        public ushort Reserved2;
+
+        [FieldOffset(20)]
+        public fixed uint Reserved[10];
+
+        [FieldOffset(56)]
+        public Range Range;
+
+        [FieldOffset(56)]
+        public NonRange NotRange;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct HidpValueCaps
+    {
+        [FieldOffset(0)]
+        public HIDUsagePage UsagePage;
+
+        [FieldOffset(2)]
+        public byte ReportID;
+
+        [FieldOffset(3), MarshalAs(UnmanagedType.U1)]
+        public bool IsAlias;
+
+        [FieldOffset(4)]
+        public ushort BitField;
+
+        [FieldOffset(6)]
+        public ushort LinkCollection;
+
         [FieldOffset(8)]
         public HIDUsage LinkUsage;
 
@@ -46,7 +117,6 @@ namespace osu.Framework.Platform.Windows.Native
         [FieldOffset(16), MarshalAs(UnmanagedType.U1)]
         public bool HasNull;
 
-        // Supposed to be uchar
         [FieldOffset(17)]
         public byte Reserved;
 
@@ -82,34 +152,23 @@ namespace osu.Framework.Platform.Windows.Native
 
         [FieldOffset(56)]
         public NonRange NotRange;
-
-        public override string ToString()
-            => $"{nameof(UsagePage)}: {UsagePage}, {nameof(ReportID)}: {ReportID}, {nameof(IsAlias)}: {IsAlias}, {nameof(BitField)}: {BitField}, {nameof(LinkCollection)}: {LinkCollection}, {nameof(LinkUsage)}: {LinkUsage}, {nameof(LinkUsagePage)}: {LinkUsagePage}, {nameof(IsRange)}: {IsRange}, {nameof(IsStringRange)}: {IsStringRange}, {nameof(IsDesignatorRange)}: {IsDesignatorRange}, {nameof(IsAbsolute)}: {IsAbsolute}, {nameof(HasNull)}: {HasNull}, {nameof(Reserved)}: {Reserved}, {nameof(BitSize)}: {BitSize}, {nameof(ReportCount)}: {ReportCount}, {nameof(UnitsExp)}: {UnitsExp}, {nameof(Units)}: {Units}, {nameof(LogicalMin)}: {LogicalMin}, {nameof(LogicalMax)}: {LogicalMax}, {nameof(PhysicalMin)}: {PhysicalMin}, {nameof(PhysicalMax)}: {PhysicalMax}, {nameof(Range)}: {Range}, {nameof(NotRange)}: {NotRange}";
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct Range
     {
         public HIDUsage UsageMin, UsageMax;
         public ushort StringMin, StringMax;
         public ushort DesignatorMin, DesignatorMax;
         public ushort DataIndexMin, DataIndexMax;
-
-        public override string ToString()
-        {
-            return $"{nameof(UsageMin)}: {UsageMin}, {nameof(UsageMax)}: {UsageMax}, {nameof(StringMin)}: {StringMin}, {nameof(StringMax)}: {StringMax}, {nameof(DesignatorMin)}: {DesignatorMin}, {nameof(DesignatorMax)}: {DesignatorMax}, {nameof(DataIndexMin)}: {DataIndexMin}, {nameof(DataIndexMax)}: {DataIndexMax}";
-        }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct NonRange
     {
         public HIDUsage Usage, Reserved1;
-        public ushort StringIndex,  Reserved2;
+        public ushort StringIndex, Reserved2;
         public ushort DesignatorIndex, Reserved3;
         public ushort DataIndex, Reserved4;
-
-        public override string ToString()
-        {
-            return $"{nameof(Usage)}: {Usage}, {nameof(Reserved1)}: {Reserved1}, {nameof(StringIndex)}: {StringIndex}, {nameof(Reserved2)}: {Reserved2}, {nameof(DesignatorIndex)}: {DesignatorIndex}, {nameof(Reserved3)}: {Reserved3}, {nameof(DataIndex)}: {DataIndex}, {nameof(Reserved4)}: {Reserved4}";
-        }
     }
 }

@@ -10,16 +10,16 @@ using osuTK;
 
 namespace osu.Framework.Platform.Windows.Native
 {
-    internal static class HID
+    internal static class HidpUtils
     {
         private static byte[] getPreparsedData(IntPtr device)
         {
             uint payloadSize = 0;
             if (Input.GetRawInputDeviceInfoW(device, 0x20000005, (IntPtr)null, ref payloadSize) == -1)
-                Logger.Log("Something broken!");
+                Input.ThrowLastError("Unable to get Raw Input Data");
             var preparsedData = new byte[payloadSize];
             if (Input.GetRawInputDeviceInfoW(device, 0x20000005, preparsedData, ref payloadSize) == -1)
-                Logger.Log("Something broken!");
+                Input.ThrowLastError("Unable to get Raw Input Data");
             return preparsedData;
         }
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Platform.Windows.Native
         {
             var status = Input.HidP_GetCaps(preparsedData, out var caps);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
-                Logger.Log("Something ain't right: " + status);
+                throw new NativeException($"Error while getting Value Caps: {status}");
 
             ushort numValueCaps = caps.NumberInputValueCaps;
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Platform.Windows.Native
 
             status = Input.HidP_GetValueCaps(HidpReportType.HidP_Input, valueData, ref numValueCaps, preparsedData);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
-                Logger.Log("Something ain't right: " + status);
+                throw new NativeException($"Error while getting Value Caps: {status}");
 
             fixed (byte* valuePtr = valueData)
             {
@@ -55,7 +55,7 @@ namespace osu.Framework.Platform.Windows.Native
         {
             var status = Input.HidP_GetCaps(preparsedData, out var caps);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
-                Logger.Log("Something ain't right: " + status);
+                throw new NativeException($"Error while getting Button Caps: {status}");
 
             ushort numButtonCaps = caps.NumberInputButtonCaps;
 
@@ -66,7 +66,7 @@ namespace osu.Framework.Platform.Windows.Native
 
             status = Input.HidP_GetButtonCaps(HidpReportType.HidP_Input, buttonData, ref numButtonCaps, preparsedData);
             if (status != NSStatus.HIDP_STATUS_SUCCESS)
-                Logger.Log("Something ain't right: " + status);
+                throw new NativeException($"Error while getting Button Caps: {status}");
 
             fixed (byte* buttonPtr = buttonData)
             {
@@ -82,8 +82,6 @@ namespace osu.Framework.Platform.Windows.Native
         public static TouchpadInfo GetDeviceInfo(IntPtr device)
         {
             var preparsedData = getPreparsedData(device);
-
-            // Button Caps, has tips into something like a dictionary and then read below here.
 
             Dictionary<ushort, ContactInfo> contacts = new Dictionary<ushort, ContactInfo>();
             ushort linkContactCount = ushort.MaxValue;
@@ -103,7 +101,6 @@ namespace osu.Framework.Platform.Windows.Native
 
                 switch (cap.UsagePage)
                 {
-                    // Supposed to be PhysicalMin and Max, but they were too low of a value.
                     case HIDUsagePage.Generic when cap.NotRange.Usage == HIDUsage.HID_USAGE_GENERIC_X:
                         contact.Area.Left = cap.LogicalMin;
                         contact.Area.Right = cap.LogicalMax;
@@ -182,7 +179,7 @@ namespace osu.Framework.Platform.Windows.Native
 
         public static Touch[] GetTouches(TouchpadInfo touchpad, RawHID data)
         {
-            Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, touchpad.LinkContactCount, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_COUNT, out var numOfContacts, touchpad.PreparsedData, data.rawData, data.dwSizeHid);
+            Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, touchpad.LinkContactCount, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_COUNT, out var numOfContacts, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
 
             if (numOfContacts > touchpad.Contacts.Count)
             {
@@ -196,19 +193,19 @@ namespace osu.Framework.Platform.Windows.Native
             {
                 ContactInfo contactInfo = touchpad.Contacts[i];
 
-                bool tip = Input.GetHidUsageButton(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_TIP_SWITCH, touchpad.PreparsedData, data.rawData,
-                    data.dwSizeHid);
+                bool tip = Input.GetHidUsageButton(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_TIP_SWITCH, touchpad.PreparsedData, data.RawData,
+                    data.DwSizeHid);
 
+                // Indicates that the contact is no longer on the touchpad
                 if (!tip)
                 {
-                    Logger.Log("Contact tip is false");
                     continue;
                 }
 
-                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_ID, out var id, touchpad.PreparsedData, data.rawData, data.dwSizeHid);
-                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_X, out var x, touchpad.PreparsedData, data.rawData, data.dwSizeHid);
-                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_Y, out var y, touchpad.PreparsedData, data.rawData,
-                    data.dwSizeHid);
+                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_ID, out var id, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
+                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_X, out var x, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
+                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_Y, out var y, touchpad.PreparsedData, data.RawData,
+                    data.DwSizeHid);
                 touches[i] = new Touch((TouchSource)id, new Vector2(x, y));
             }
 
@@ -232,62 +229,8 @@ namespace osu.Framework.Platform.Windows.Native
             int scDeltaX = (deltaX << 16) / tpWidth;
             int scDeltaY = (deltaY << 16) / tpHeight;
 
-            return new Touch(touch.Source, new Vector2((float)scDeltaX / 0xFFFF, (float)scDeltaY / 65535));
+            return new Touch(touch.Source, new Vector2((float)scDeltaX / 65535, (float)scDeltaY / 65535));
         }
-    }
-
-    public enum HIDUsagePage : ushort
-    {
-        Undefined = 0x00,
-        Generic = 0x01,
-        Simulation = 0x02,
-        VR = 0x03,
-        Sport = 0x04,
-        Game = 0x05,
-        Keyboard = 0x07,
-        LED = 0x08,
-        Button = 0x09,
-        Ordinal = 0x0A,
-        Telephony = 0x0B,
-        Consumer = 0x0C,
-        Digitizer = 0x0D,
-        PID = 0x0F,
-        Unicode = 0x10,
-        AlphaNumeric = 0x14,
-        Medical = 0x40,
-        MonitorPage0 = 0x80,
-        MonitorPage1 = 0x81,
-        MonitorPage2 = 0x82,
-        MonitorPage3 = 0x83,
-        PowerPage0 = 0x84,
-        PowerPage1 = 0x85,
-        PowerPage2 = 0x86,
-        PowerPage3 = 0x87,
-        BarCode = 0x8C,
-        Scale = 0x8D,
-        MSR = 0x8E
-    }
-
-    public enum HIDUsage : ushort
-    {
-        // HIDUsagePage is General
-        Pointer = 0x01,
-        Mouse = 0x02,
-        Joystick = 0x04,
-        Gamepad = 0x05,
-        Keyboard = 0x06,
-        Keypad = 0x07,
-        SystemControl = 0x80,
-
-        HID_USAGE_GENERIC_X = 0x30,
-        HID_USAGE_GENERIC_Y = 0x31,
-
-        // HIDUsagePage is Digitizer
-        PrecisionTouchpad = 0x05,
-        HID_USAGE_DIGITIZER_TIP_SWITCH = 0x42,
-
-        HID_USAGE_DIGITIZER_CONTACT_ID = 0x51,
-        HID_USAGE_DIGITIZER_CONTACT_COUNT = 0x54,
     }
 
     public enum NSStatus : uint

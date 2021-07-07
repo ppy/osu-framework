@@ -5,40 +5,40 @@ using osu.Framework.Bindables;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
-using osuTK;
+using Vector2 = osuTK.Vector2;
 
 namespace osu.Framework.Input.Handlers.Touchpad
 {
     /// <summary>
-    /// Base class for a
+    /// Base class for Touchpad Handlers.
     /// </summary>
     public class TouchpadHandler : InputHandler
     {
-        public override bool IsActive => Enabled.Value;
+        public override bool IsActive => false;
 
         public override string Description => "Touchpad";
 
         public Bindable<Vector2> AreaOffset { get; } = new Bindable<Vector2>(new Vector2(0.5f, 0.5f));
 
+        // Usually an AreaSize of (1, 1) leads to being unable to reach areas towards the edges.
         public Bindable<Vector2> AreaSize { get; } = new Bindable<Vector2>(new Vector2(0.9f, 0.9f));
-
-        public Vector2 Size { get; }
 
         private SDL2DesktopWindow window;
 
         public override bool Initialize(GameHost host)
         {
-            // Touchpad inputs are really only used for osu!
-            // other projects don't really need them, and may
-            // cause confusion to have enabled by default.
-            Enabled.Value = false;
-
             if (!base.Initialize(host))
                 return false;
+
+            // Touchpad inputs aren't really desirable in other projects
+            // this may cause confusion to have enabled by default.
+            Enabled.Value = false;
+            Enabled.Default = false;
 
             if (!(host.Window is SDL2DesktopWindow desktopWindow))
                 return false;
 
+            // Same reasoning as defined in OpenTabletDriver Handler
             if (AreaSize.Value == Vector2.Zero)
                 AreaSize.SetDefault();
 
@@ -50,10 +50,14 @@ namespace osu.Framework.Input.Handlers.Touchpad
             return true;
         }
 
-        // Takes raw touchpad inputs and turn them into Mouse Position events.
-        public void HandleSingleTouchMove(Vector2 vector)
+        public void HandleSingleTouchMove(Vector2 input)
         {
-            enqueueInput(new MousePositionAbsoluteInput() { Position = Vector2.Divide(vector + (AreaSize.Value / 2) - AreaOffset.Value, AreaSize.Value) * new Vector2(window.Size.Width, window.Size.Height)  });
+            // Takes raw touchpad inputs, applies area offset and area size, and turn them into Mouse Position events.
+            Vector2 vector = input + (AreaSize.Value / 2) - AreaOffset.Value;
+            vector = Vector2.Divide(vector, AreaSize.Value);
+            vector *= new Vector2(window.Size.Width, window.Size.Height);
+
+            enqueueInput(new MousePositionAbsoluteInput { Position = vector });
         }
 
         public override void Reset()

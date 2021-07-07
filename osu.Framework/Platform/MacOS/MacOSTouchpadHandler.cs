@@ -56,6 +56,9 @@ namespace osu.Framework.Platform.MacOS
 
         private TouchSource? primaryTouchSource;
 
+        /// <summary>
+        /// Swizzled replacement of [SDLView touchesBegan:(NSEvent *)] that checks for newtouches on the MacOS trackpad.
+        /// </summary>
         private void touchesBeginEvent(IntPtr reciever, IntPtr selector, IntPtr theEvent)
         {
             foreach (NSTouch touch in getTouches(theEvent))
@@ -76,7 +79,7 @@ namespace osu.Framework.Platform.MacOS
         }
 
         /// <summary>
-        /// Swizzled replacement of [SDLView touchesBegan:(NSEvent *)] that checks for touches on the MacOS trackpad.
+        /// Swizzled replacement of [SDLView touchesMoved:(NSEvent *)] that checks for moving touches on the MacOS trackpad.
         /// </summary>
         private void touchesMoveEvent(IntPtr reciever, IntPtr selector, IntPtr theEvent)
         {
@@ -104,6 +107,9 @@ namespace osu.Framework.Platform.MacOS
             HandleSingleTouchMove(primaryTouch);
         }
 
+        /// <summary>
+        /// Swizzled replacement of [SDLView touchesEnded:(NSEvent *)] that checks for touches on the MacOS trackpad.
+        /// </summary>
         private void touchesEndEvent(IntPtr reciever, IntPtr selector, IntPtr theEvent)
         {
             if (!Enabled.Value) return;

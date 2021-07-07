@@ -71,29 +71,27 @@ namespace osu.Framework.Platform.MacOS.Native
 
         // todo: Check if this works, also find a better name
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
-        public static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector);
+        private static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector);
+        private static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector);
 
         public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector)
         {
             if (IntPtr.Size == 4)
             {
                 return SendNSPoint_i386(receiver, selector);
-            } else
-            {
-                // todo better conversion
-                Vector2d point = SendNSPoint_x64(receiver, selector);
-                return new Vector2((float)point.X, (float)point.Y);
             }
+
+            Vector2d point = SendNSPoint_x64(receiver, selector);
+            return new Vector2((float)point.X, (float)point.Y);
         }
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
-        public static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+        private static extern Vector2 SendNSPoint_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
-        public static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+        private static extern Vector2d SendNSPoint_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
 
         public static Vector2 SendNSPoint(IntPtr receiver, IntPtr selector, IntPtr ptr1)
         {
@@ -101,12 +99,9 @@ namespace osu.Framework.Platform.MacOS.Native
             {
                 return SendNSPoint_i386(receiver, selector, ptr1);
             }
-            else
-            {
-                // todo better conversion
-                Vector2d point = SendNSPoint_x64(receiver, selector, ptr1);
-                return new Vector2((float)point.X, (float)point.Y);
-            }
+
+            Vector2d point = SendNSPoint_x64(receiver, selector, ptr1);
+            return new Vector2((float)point.X, (float)point.Y);
         }
 
         public static IntPtr AppKitLibrary;

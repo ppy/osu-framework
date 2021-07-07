@@ -11,17 +11,14 @@ using osuTK;
 
 namespace osu.Framework.Platform.Windows
 {
-    // todo Consider more than 10 touches, refactor code.
     /// <summary>
-    /// A windows specific touchpad input handler which uses Windows Raw Input API.
+    /// A Windows specific touchpad implementation which uses Windows Raw Input API.
     /// </summary>
     internal unsafe class WindowsTrackpadHandler : TouchpadHandler
     {
-        private const int raw_input_coordinate_space = 65535;
-
         private WindowsGameHost host;
 
-        private readonly Dictionary<IntPtr, HID.TouchpadInfo> devices = new Dictionary<IntPtr, HID.TouchpadInfo>();
+        private readonly Dictionary<IntPtr, HidpUtils.TouchpadInfo> devices = new Dictionary<IntPtr, HidpUtils.TouchpadInfo>();
 
         public override bool IsActive => Enabled.Value;
 
@@ -36,81 +33,64 @@ namespace osu.Framework.Platform.Windows
             {
                 if (enabled.NewValue)
                     windowsGameHost.OnWndProc += onWndProc;
-                else
-                    windowsGameHost.OnWndProc -= onWndProc;
             }, true);
-
-            Logger.Log("Enabled: " + Enabled.Value);
 
             return base.Initialize(host);
         }
 
-        private bool hasRegistered;
+        private bool isTouchpadRegistered;
 
         private void onWndProc(IntPtr userData, IntPtr hWnd, uint message, ulong wParam, long lParam, ref IntPtr returnCode)
         {
             if (!Enabled.Value)
             {
-                RawInputDevice touchpad = new RawInputDevice(HIDUsagePage.Digitizer, HIDUsage.PrecisionTouchpad, RawInputDeviceFlags.Remove, hWnd);
+                isTouchpadRegistered = false;
+                if (host != null) host.OnWndProc -= onWndProc;
+                RawInputDevice touchpad = new RawInputDevice(HIDUsagePage.Digitizer, HIDUsage.PrecisionTouchpad, RawInputDeviceFlags.Remove, IntPtr.Zero);
 
-                if (!Native.Input.RegisterRawInputDevices(new RawInputDevice[1] { touchpad }, 1, sizeof(RawInputDevice)))
+                if (!Native.Input.RegisterRawInputDevices(new[] { touchpad }, 1, sizeof(RawInputDevice)))
                 {
-                    Logger.Log("Dank error!");
+                    Native.Input.ThrowLastError("Unable to remove Touchpad as a Raw Input Device!");
                     returnCode = new IntPtr(-1);
                     return;
                 }
-
-                hasRegistered = false;
-                if (host == null)
-                    return;
-
-                host.OnWndProc -= onWndProc;
             }
 
-            // This is supposed to be called during WM_CREATE, but it isn't being called for some reason.
-            // Possibly because it's already been called.
-            if (!hasRegistered)
+            // This is supposed to be called during the WM_CREATE message, though it isn't being set to WM_CREATE
+            // Probably because it's already been called before the initialisation of this class.
+            if (!isTouchpadRegistered)
             {
-                hasRegistered = true;
                 RawInputDevice touchpad = new RawInputDevice(HIDUsagePage.Digitizer, HIDUsage.PrecisionTouchpad, RawInputDeviceFlags.InputSink, hWnd);
 
-                if (!Native.Input.RegisterRawInputDevices(new RawInputDevice[] { touchpad }, 1, sizeof(RawInputDevice)))
+                if (!Native.Input.RegisterRawInputDevices(new[] { touchpad }, 1, sizeof(RawInputDevice)))
                 {
-                    Logger.Log("Dank error!");
+                    Logger.Log("Unable to register Touchpad as a Raw Input Device!");
                     returnCode = new IntPtr(-1);
                     return;
                 }
+
+                isTouchpadRegistered = true;
             }
 
-            if (message != Native.Input.WM_INPUT)
-            {
-                if (message == Native.Input.WM_CREATE)
-                {
-                    Logger.Log("Run!!!");
-                }
-
-                return;
-            }
+            if (message != Native.Input.WM_INPUT) return;
 
             RawInputData data = Native.Input.GetRawInputData(lParam);
 
             if (data.Header.Type != RawInputType.HID) return;
 
-            if (!devices.TryGetValue(data.Header.Device, out HID.TouchpadInfo touchpadInfo))
+            if (!devices.TryGetValue(data.Header.Device, out HidpUtils.TouchpadInfo touchpadInfo))
             {
-                touchpadInfo = HID.GetDeviceInfo(data.Header.Device);
+                touchpadInfo = HidpUtils.GetDeviceInfo(data.Header.Device);
                 devices.Add(data.Header.Device, touchpadInfo);
-                Logger.Log("Epico");
             }
 
-            Touch[] touches = HID.GetTouches(touchpadInfo, data.Hid);
+            Touch[] touches = HidpUtils.GetTouches(touchpadInfo, data.Hid);
 
             if (touches.Length == 0) return;
 
-            Touch touch = HID.MapToScreen(touchpadInfo.Contacts[0].Area, HID.GetPrimaryTouch(touches));
+            Touch touch = HidpUtils.MapToScreen(touchpadInfo.Contacts[0].Area, HidpUtils.GetPrimaryTouch(touches));
 
             // (0,0) vectors are sent for some reason if the finger is lifted,
-            // it's unlikely for a person to get (0,0) anyways.
             if (touch.Position == Vector2.Zero)
                 return;
 

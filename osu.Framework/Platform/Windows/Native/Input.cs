@@ -5,7 +5,6 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Platform.Windows.Native
 {
@@ -53,6 +52,23 @@ namespace osu.Framework.Platform.Windows.Native
         [DllImport("Hid.dll")]
         public static extern NSStatus HidP_GetButtonCaps(HidpReportType reportType, byte[] valueCaps, ref ushort valueCapsLength, byte[] preparsedData);
 
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern uint GetLastError();
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern uint FormatMessage(FormatFlags dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, out string lpBuffer, uint nSize);
+
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
+        private static extern ushort GetUserDefaultUILanguage();
+
+        public static void ThrowLastError(string message)
+        {
+            uint errorCode = GetLastError();
+            uint size = FormatMessage(FormatFlags.FORMAT_MESSAGE_ALLOCATE_BUFFER | FormatFlags.FORMAT_MESSAGE_FROM_SYSTEM | FormatFlags.FORMAT_MESSAGE_IGNORE_INSERTS, (IntPtr)null, errorCode,
+                GetUserDefaultUILanguage(), out var data, 0);
+            throw new NativeException($"{message}\nError Code: {errorCode} - {data}".Replace("\n", ""));
+        }
+
         public static bool GetHidUsageButton(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, byte[] preparsedData, byte[] report, int reportLength)
         {
             uint numUsages = HidP_MaxUsageListLength(reportType, usagePage, preparsedData);
@@ -69,14 +85,14 @@ namespace osu.Framework.Platform.Windows.Native
             uint payloadSize = 0;
             int statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)null, ref payloadSize, (uint)sizeof(RawInputHeader));
             if (statusCode == -1)
-                Logger.Log("Something is pretty wrong");
+                ThrowLastError("Unable to get Raw Input Data");
             var bytes = new byte[payloadSize];
 
             fixed (byte* bytesPtr = bytes)
             {
                 statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)bytesPtr, ref payloadSize, (uint)sizeof(RawInputHeader));
                 if (statusCode == -1)
-                    Logger.Log("Something is pretty wrong");
+                    ThrowLastError("Unable to get Raw Input Data");
                 return RawInputData.FromPointer(bytesPtr);
             }
         }
@@ -124,6 +140,10 @@ namespace osu.Framework.Platform.Windows.Native
 
         internal static unsafe RawInputData FromPointer(byte* ptr)
         {
+            // Since RawHid cannot simply be casted (because of the RawData property),
+            // it renders the RawInputData unable to be casted
+            // We are able to cast the RawMouse and RawKeyboard by adding the size of the RawInputHeader to the pointer.
+            // and also call the FromPointer method in Hid case.
             var result = new RawInputData
             {
                 Header = *((RawInputHeader*)ptr)
@@ -284,30 +304,26 @@ namespace osu.Framework.Platform.Windows.Native
 
     public unsafe struct RawHID
     {
-        public int dwSizeHid;
+        public int DwSizeHid;
 
-        public int dwCount;
+        public int DwCount;
 
-        // While this should be an array, it can't be as it depends on the 2 above
-        // variables, this is also why you shouldn't call sizeof on the RawInputData struct
-        // as it would produce unreliable results.
-        public byte[] rawData;
+        public byte[] RawData;
 
         internal static RawHID FromPointer(byte* ptr)
         {
+            // Since RawData is not a fixed array and the size depends on DwCount and DwSizeHid,
+            // we have to create the array in a function and copy the data from a pointer.
             var result = new RawHID();
             var intPtr = (int*)ptr;
 
-            result.dwSizeHid = intPtr[0];
-            result.dwCount = intPtr[1];
-            result.rawData = new byte[result.dwSizeHid * result.dwCount];
-            Marshal.Copy(new IntPtr(&intPtr[2]), result.rawData, 0, result.rawData.Length);
+            result.DwSizeHid = intPtr[0];
+            result.DwCount = intPtr[1];
+            result.RawData = new byte[result.DwSizeHid * result.DwCount];
+            Marshal.Copy(new IntPtr(&intPtr[2]), result.RawData, 0, result.RawData.Length);
 
             return result;
         }
-
-        public override string ToString() =>
-            $"{{Count: {dwCount}, Size: {dwSizeHid}, Content: {BitConverter.ToString(rawData).Replace("-", " ")}}}";
     }
 
     /// <summary>
@@ -391,6 +407,7 @@ namespace osu.Framework.Platform.Windows.Native
     }
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
+    [Flags]
     public enum RawInputDeviceFlags
     {
         /// <summary>No flags.</summary>
@@ -428,35 +445,68 @@ namespace osu.Framework.Platform.Windows.Native
         HidP_Feature
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct HidpCaps
+    public enum HIDUsagePage : ushort
     {
-        public HIDUsage Usage;
-        public HIDUsagePage UsagePage;
-        public ushort InputReportByteLength;
-        public ushort OutputReportByteLength;
-        public ushort FeatureReportByteLength;
-        public fixed ushort Reserved[17];
-        public ushort NumberLinkCollectionNodes;
-        public ushort NumberInputButtonCaps;
-        public ushort NumberInputValueCaps;
-        public ushort NumberInputDataIndices;
-        public ushort NumberOutputButtonCaps;
-        public ushort NumberOutputValueCaps;
-        public ushort NumberOutputDataIndices;
-        public ushort NumberFeatureButtonCaps;
-        public ushort NumberFeatureValueCaps;
-        public ushort NumberFeatureDataIndices;
+        Undefined = 0x00,
+        Generic = 0x01,
+        Simulation = 0x02,
+        VR = 0x03,
+        Sport = 0x04,
+        Game = 0x05,
+        Keyboard = 0x07,
+        LED = 0x08,
+        Button = 0x09,
+        Ordinal = 0x0A,
+        Telephony = 0x0B,
+        Consumer = 0x0C,
+        Digitizer = 0x0D,
+        PID = 0x0F,
+        Unicode = 0x10,
+        AlphaNumeric = 0x14,
+        Medical = 0x40,
+        MonitorPage0 = 0x80,
+        MonitorPage1 = 0x81,
+        MonitorPage2 = 0x82,
+        MonitorPage3 = 0x83,
+        PowerPage0 = 0x84,
+        PowerPage1 = 0x85,
+        PowerPage2 = 0x86,
+        PowerPage3 = 0x87,
+        BarCode = 0x8C,
+        Scale = 0x8D,
+        MSR = 0x8E
+    }
 
-        public override string ToString() =>
-            $"{{Usage: {Usage}, UsagePage: {UsagePage}, InputReportByteLength: {InputReportByteLength}, \n" +
-            $"InputReportByteLength: {InputReportByteLength}, InputReportByteLength: {InputReportByteLength}, \n" +
-            $"OutputReportByteLength: {OutputReportByteLength}, FeatureReportByteLength: {FeatureReportByteLength}, \n" +
-            $"InputReportByteLength: {InputReportByteLength}, NumberLinkCollectionNodes: {NumberLinkCollectionNodes}, \n" +
-            $"NumberInputButtonCaps: {NumberInputButtonCaps}, NumberInputValueCaps: {NumberInputValueCaps}, \n" +
-            $"NumberInputDataIndices: {NumberInputDataIndices}, NumberOutputButtonCaps: {NumberOutputButtonCaps}, \n" +
-            $"NumberOutputValueCaps: {NumberOutputValueCaps}, NumberOutputDataIndices: {NumberOutputDataIndices}, \n" +
-            $"NumberFeatureButtonCaps: {NumberFeatureButtonCaps}, NumberFeatureValueCaps: {NumberFeatureValueCaps}, \n" +
-            $"NumberFeatureDataIndices: {NumberFeatureDataIndices}";
+    public enum HIDUsage : ushort
+    {
+        // HIDUsagePage is set to General
+        Pointer = 0x01,
+        Mouse = 0x02,
+        Joystick = 0x04,
+        Gamepad = 0x05,
+        Keyboard = 0x06,
+        Keypad = 0x07,
+        SystemControl = 0x80,
+
+        HID_USAGE_GENERIC_X = 0x30,
+        HID_USAGE_GENERIC_Y = 0x31,
+
+        // HIDUsagePage is set to Digitizer
+        PrecisionTouchpad = 0x05,
+        HID_USAGE_DIGITIZER_TIP_SWITCH = 0x42,
+
+        HID_USAGE_DIGITIZER_CONTACT_ID = 0x51,
+        HID_USAGE_DIGITIZER_CONTACT_COUNT = 0x54,
+    }
+
+    [Flags]
+    public enum FormatFlags : uint
+    {
+        FORMAT_MESSAGE_ALLOCATE_BUFFER = 0x00000100,
+        FORMAT_MESSAGE_ARGUMENT_ARRAY = 0x00002000,
+        FORMAT_MESSAGE_FROM_HMODULE = 0x00000800,
+        FORMAT_MESSAGE_FROM_STRING = 0x00000400,
+        FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000,
+        FORMAT_MESSAGE_IGNORE_INSERTS = 0x00000200,
     }
 }
