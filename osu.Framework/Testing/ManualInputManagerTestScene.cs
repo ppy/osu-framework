@@ -76,7 +76,8 @@ namespace osu.Framework.Testing
                                 {
                                     Anchor = Anchor.TopCentre,
                                     Origin = Anchor.TopCentre,
-                                    Text = "Input Priority"
+                                    Text = "Input Priority",
+                                    Font = FrameworkFont.Regular,
                                 },
                                 new FillFlowContainer
                                 {

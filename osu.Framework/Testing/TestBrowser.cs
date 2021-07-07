@@ -178,7 +178,7 @@ namespace osu.Framework.Testing
                                         },
                                         new SpriteText
                                         {
-                                            Font = new FontUsage(size: 30),
+                                            Font = FrameworkFont.Regular.With(size: 30),
                                             Text = @"Compiling new version..."
                                         }
                                     },
