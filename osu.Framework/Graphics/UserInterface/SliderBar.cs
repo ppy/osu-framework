@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether keyboard control should be allowed even when the bar is not hovered.
         /// </summary>
+        [Obsolete("Implement this kind of behaviour separately instead.")] // Can be removed 20220107
         protected virtual bool AllowKeyboardInputWhenNotHovered => false;
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
