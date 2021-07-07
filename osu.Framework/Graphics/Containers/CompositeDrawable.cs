@@ -811,8 +811,14 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UnbindAllBindablesSubTree();
 
-            foreach (Drawable child in internalChildren)
+            // TODO: this code can potentially be run from an update thread while a drawable is still loading (see ScreenStack as an example).
+            // while this is quite a bad issue, it is rare and generally happens in tests which have frame perfect behaviours.
+            // as such, for loop is used here intentionally to avoid collection modified exceptions for this (usually) non-critical failure.
+            for (var i = 0; i < internalChildren.Count; i++)
+            {
+                Drawable child = internalChildren[i];
                 child.UnbindAllBindablesSubTree();
+            }
         }
 
         /// <summary>
