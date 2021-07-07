@@ -34,6 +34,11 @@ namespace osu.Framework.Graphics.UserInterface
             this.displayName = displayName;
         }
 
+        /// <summary>
+        /// Creates the sprite text to be used for the item text.
+        /// </summary>
+        protected virtual SpriteText CreateSpriteText() => new SpriteText();
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -58,13 +63,12 @@ namespace osu.Framework.Graphics.UserInterface
                 });
             }
 
-            Flow.Add(new SpriteText
+            Flow.Add(CreateSpriteText().With(text =>
             {
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                Text = displayName ?? FallbackName,
-                Font = FrameworkFont.Regular.With(size: FONT_SIZE)
-            });
+                text.Anchor = Anchor.CentreLeft;
+                text.Origin = Anchor.CentreLeft;
+                text.Text = displayName ?? FallbackName;
+            }));
         }
     }
 }
