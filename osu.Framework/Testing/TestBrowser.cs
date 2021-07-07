@@ -333,10 +333,7 @@ namespace osu.Framework.Testing
             {
                 var lastTest = config.Get<string>(TestBrowserSetting.LastTest);
 
-                var foundTest = TestTypes.Find(t => t.FullName == lastTest)
-                                // full name was not always stored in this value, so fallback to matching on just test name.
-                                // can be removed 20210622
-                                ?? TestTypes.Find(t => t.Name == lastTest);
+                var foundTest = TestTypes.Find(t => t.FullName == lastTest);
 
                 LoadTest(foundTest);
             }
