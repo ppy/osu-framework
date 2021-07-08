@@ -19,7 +19,6 @@ namespace osu.Framework.Platform.Windows
     {
         private const int raw_input_coordinate_space = 65535;
 
-        // private SDL.SDL_WindowsMessageHook callback;
         private SDL2DesktopWindow window;
 
         public override bool IsActive => Enabled.Value;
