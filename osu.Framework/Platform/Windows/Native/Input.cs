@@ -14,10 +14,7 @@ namespace osu.Framework.Platform.Windows.Native
                                                           RawInputDevice[] pRawInputDevices, int uiNumDevices, int cbSize);
 
         [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref uint pcbSize, uint cbSizeHeader);
-
-        [DllImport("user32.dll")]
-        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, IntPtr pData, ref uint pcbSize, uint cbSizeHeader);
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, IntPtr pData, ref uint pcbSize, int cbSizeHeader);
 
         // There are 2, i believe one is for unicode?
         [DllImport("user32.dll")]
@@ -26,9 +23,6 @@ namespace osu.Framework.Platform.Windows.Native
         [DllImport("user32.dll")]
         public static extern int GetRawInputDeviceInfoW(IntPtr handle, uint uiCommand, IntPtr pData, ref uint pcbSize);
 
-        [DllImport("user32.dll")]
-        public static extern int GetRawInputDeviceInfoW(IntPtr handle, uint uiCommand, ref byte[] pData, ref uint pcbSize);
-
         [DllImport("Hid.dll")]
         public static extern uint HidP_MaxUsageListLength(HidpReportType reportType, HIDUsagePage usagePage, byte[] preparsedData);
 
@@ -36,7 +30,7 @@ namespace osu.Framework.Platform.Windows.Native
         public static extern NSStatus HidP_GetUsages(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, ushort[] usages, ref uint usageLength, byte[] preparsedData, byte[] report, int reportLength);
 
         [DllImport("Hid.dll")]
-        public static extern NSStatus HidP_GetUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out uint usageValue, byte[] preparsedData, byte[] report, int reportLength);
+        public static extern NSStatus HidP_GetUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out int usageValue, byte[] preparsedData, byte[] report, int reportLength);
 
         [DllImport("Hid.dll")]
         public static extern NSStatus HidP_GetScaledUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out int usageValue, byte[] preparsedData, byte[] report, int reportLength);
@@ -70,14 +64,14 @@ namespace osu.Framework.Platform.Windows.Native
         public static unsafe RawInputData GetRawInputData(long lParam)
         {
             uint payloadSize = 0;
-            int statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)null, ref payloadSize, (uint)sizeof(RawInputHeader));
+            int statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)null, ref payloadSize, sizeof(RawInputHeader));
             if (statusCode == -1)
                 ThrowLastError("Unable to get Raw Input Data");
             var bytes = new byte[payloadSize];
 
             fixed (byte* bytesPtr = bytes)
             {
-                statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)bytesPtr, ref payloadSize, (uint)sizeof(RawInputHeader));
+                statusCode = GetRawInputData((IntPtr)lParam, RawInputCommand.Input, (IntPtr)bytesPtr, ref payloadSize, sizeof(RawInputHeader));
                 if (statusCode == -1)
                     ThrowLastError("Unable to get Raw Input Data");
                 return RawInputData.FromPointer(bytesPtr);

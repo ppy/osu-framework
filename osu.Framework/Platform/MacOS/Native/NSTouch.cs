@@ -30,14 +30,14 @@ namespace osu.Framework.Platform.MacOS.Native
     }
 
     [Flags]
-    internal enum NSTouchPhase : uint
+    internal enum NSTouchPhase
     {
-        NSTouchPhaseBegan = 1u << 0,
-        NSTouchPhaseMoved = 1u << 1,
-        NSTouchPhaseStationary = 1u << 2,
-        NSTouchPhaseEnded = 1u << 3,
-        NSTouchPhaseCancelled = 1u << 4,
+        NSTouchPhaseBegan = 1 << 0,
+        NSTouchPhaseMoved = 1 << 1,
+        NSTouchPhaseStationary = 1 << 2,
+        NSTouchPhaseEnded = 1 << 3,
+        NSTouchPhaseCancelled = 1 << 4,
         NSTouchPhaseTouching = NSTouchPhaseBegan | NSTouchPhaseMoved | NSTouchPhaseStationary,
-        NSTouchPhaseAny = uint.MaxValue
+        NSTouchPhaseAny = -1
     }
 }

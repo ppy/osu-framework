@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Input.States;
+using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
 
@@ -43,7 +44,13 @@ namespace osu.Framework.Platform.MacOS
 
             // This ensures that we get resting touches
             IntPtr nsView = Cocoa.SendIntPtr(desktopWindow.WindowHandle, Selector.Get("contentView"));
-            if (nsView != IntPtr.Zero) Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
+
+            if (nsView != IntPtr.Zero)
+            {
+                Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
+
+                Logger.Log(Cocoa.SendInt(nsView, Selector.Get("allowedTouchTypes")).ToString());
+            }
 
             // replace [SDLView touchesBeganWithEvent:(NSEvent *)] and other related events with our own version
             touchesBeginEventHandler = touchesBeginEvent;

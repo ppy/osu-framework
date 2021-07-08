@@ -130,10 +130,6 @@ namespace osu.Framework.Platform.Windows.Native
 
                     case HIDUsagePage.Digitizer when cap.NotRange.Usage == HIDUsage.HID_USAGE_DIGITIZER_CONTACT_ID:
                     {
-                        Logger.Log(cap.PhysicalMin.ToString());
-                        Logger.Log(cap.PhysicalMax.ToString());
-                        Logger.Log(cap.LogicalMin.ToString());
-                        Logger.Log(cap.LogicalMax.ToString());
                         contact.HasContactID = true;
                         break;
                     }
@@ -169,7 +165,7 @@ namespace osu.Framework.Platform.Windows.Native
             if (numOfContacts > touchpad.Contacts.Count)
             {
                 Logger.Log($"More Contacts {numOfContacts} than links {touchpad.Contacts.Count}");
-                numOfContacts = (uint)touchpad.Contacts.Count;
+                numOfContacts = touchpad.Contacts.Count;
             }
 
             Touch[] touches = new Touch[numOfContacts];
