@@ -138,6 +138,9 @@ namespace osu.Framework.Utils
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
 
+        public static Colour4 ValueAt(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, Easing easing = Easing.None)
+            => ValueAt(time, startColour, endColour, startTime, endTime, new DefaultEasingFunction(easing));
+
         public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, Easing easing = Easing.None)
             => ValueAt(time, val1, val2, startTime, endTime, new DefaultEasingFunction(easing));
 
@@ -236,6 +239,26 @@ namespace osu.Framework.Utils
                 float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
 
                 return new Color4(
+                    startColour.R + t * (endColour.R - startColour.R),
+                    startColour.G + t * (endColour.G - startColour.G),
+                    startColour.B + t * (endColour.B - startColour.B),
+                    startColour.A + t * (endColour.A - startColour.A));
+            }
+
+            public static Colour4 ValueAt(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, in TEasing easing)
+            {
+                if (startColour == endColour)
+                    return startColour;
+
+                double current = time - startTime;
+                double duration = endTime - startTime;
+
+                if (duration == 0 || current == 0)
+                    return startColour;
+
+                float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
+
+                return new Colour4(
                     startColour.R + t * (endColour.R - startColour.R),
                     startColour.G + t * (endColour.G - startColour.G),
                     startColour.B + t * (endColour.B - startColour.B),
