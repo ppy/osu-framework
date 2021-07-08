@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Platform.Windows.Native;
-using osu.Framework.Logging;
 using osuTK;
 
 namespace osu.Framework.Platform.Windows
@@ -66,7 +65,17 @@ namespace osu.Framework.Platform.Windows
 
                 if (!Native.Input.RegisterRawInputDevices(new[] { touchpad }, 1, sizeof(RawInputDevice)))
                 {
-                    Logger.Log("Unable to register Touchpad as a Raw Input Device!");
+                    // The try here is for Windows 7 users, as RegisterRawInputDevices would probably result in an error for Windows 7
+                    // and we wouldn't want it to crash.
+                    try
+                    {
+                        Native.Input.ThrowLastError("Unable to remove Touchpad as a Raw Input Device!");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+
                     returnCode = new IntPtr(-1);
                     return;
                 }

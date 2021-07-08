@@ -79,6 +79,17 @@ namespace osu.Framework.Platform.Windows.Native
             return buttonCaps;
         }
 
+        public static bool GetHidUsageButton(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, byte[] preparsedData, byte[] report, int reportLength)
+        {
+            uint numUsages = Input.HidP_MaxUsageListLength(reportType, usagePage, preparsedData);
+
+            ushort[] usages = new ushort[numUsages];
+
+            Input.HidP_GetUsages(reportType, usagePage, linkCollection, usages, ref numUsages, preparsedData, report, reportLength);
+
+            return usages.Any(u => u == (uint)usage);
+        }
+
         public static TouchpadInfo GetDeviceInfo(IntPtr device)
         {
             var preparsedData = getPreparsedData(device);
@@ -102,14 +113,14 @@ namespace osu.Framework.Platform.Windows.Native
                 switch (cap.UsagePage)
                 {
                     case HIDUsagePage.Generic when cap.NotRange.Usage == HIDUsage.HID_USAGE_GENERIC_X:
-                        contact.Area.Left = cap.LogicalMin;
-                        contact.Area.Right = cap.LogicalMax;
+                        contact.Area.Left = cap.PhysicalMin;
+                        contact.Area.Right = cap.PhysicalMax;
                         contact.HasX = true;
                         break;
 
                     case HIDUsagePage.Generic when cap.NotRange.Usage == HIDUsage.HID_USAGE_GENERIC_Y:
-                        contact.Area.Top = cap.LogicalMin;
-                        contact.Area.Bottom = cap.LogicalMax;
+                        contact.Area.Top = cap.PhysicalMin;
+                        contact.Area.Bottom = cap.PhysicalMax;
                         contact.HasY = true;
                         break;
 
@@ -119,6 +130,10 @@ namespace osu.Framework.Platform.Windows.Native
 
                     case HIDUsagePage.Digitizer when cap.NotRange.Usage == HIDUsage.HID_USAGE_DIGITIZER_CONTACT_ID:
                     {
+                        Logger.Log(cap.PhysicalMin.ToString());
+                        Logger.Log(cap.PhysicalMax.ToString());
+                        Logger.Log(cap.LogicalMin.ToString());
+                        Logger.Log(cap.LogicalMax.ToString());
                         contact.HasContactID = true;
                         break;
                     }
@@ -147,36 +162,6 @@ namespace osu.Framework.Platform.Windows.Native
             };
         }
 
-        public struct TouchpadInfo
-        {
-            public byte[] PreparsedData;
-
-            public ushort LinkContactCount;
-
-            // The short is the link
-            public List<ContactInfo> Contacts;
-        }
-
-        public class ContactInfo
-        {
-            // https://docs.microsoft.com/en-us/windows-hardware/design/component-guidelines/supporting-usages-in-multitouch-digitizer-drivers
-            public ushort Link;
-            public TouchArea Area;
-
-            public bool HasX;
-            public bool HasY;
-            public bool HasContactID;
-            public bool HasTip;
-        }
-
-        public struct TouchArea
-        {
-            public int Left;
-            public int Right;
-            public int Top;
-            public int Bottom;
-        }
-
         public static Touch[] GetTouches(TouchpadInfo touchpad, RawHID data)
         {
             Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, touchpad.LinkContactCount, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_COUNT, out var numOfContacts, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
@@ -193,7 +178,7 @@ namespace osu.Framework.Platform.Windows.Native
             {
                 ContactInfo contactInfo = touchpad.Contacts[i];
 
-                bool tip = Input.GetHidUsageButton(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_TIP_SWITCH, touchpad.PreparsedData, data.RawData,
+                bool tip = GetHidUsageButton(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_TIP_SWITCH, touchpad.PreparsedData, data.RawData,
                     data.DwSizeHid);
 
                 // Indicates that the contact is no longer on the touchpad
@@ -203,8 +188,8 @@ namespace osu.Framework.Platform.Windows.Native
                 }
 
                 Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Digitizer, contactInfo.Link, HIDUsage.HID_USAGE_DIGITIZER_CONTACT_ID, out var id, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
-                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_X, out var x, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
-                Input.HidP_GetUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_Y, out var y, touchpad.PreparsedData, data.RawData,
+                Input.HidP_GetScaledUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_X, out var x, touchpad.PreparsedData, data.RawData, data.DwSizeHid);
+                Input.HidP_GetScaledUsageValue(HidpReportType.HidP_Input, HIDUsagePage.Generic, contactInfo.Link, HIDUsage.HID_USAGE_GENERIC_Y, out var y, touchpad.PreparsedData, data.RawData,
                     data.DwSizeHid);
                 touches[i] = new Touch((TouchSource)id, new Vector2(x, y));
             }
@@ -226,10 +211,39 @@ namespace osu.Framework.Platform.Windows.Native
             int tpWidth = area.Right + 1 - area.Left;
             int tpHeight = area.Bottom + 1 - area.Top;
 
-            int scDeltaX = (deltaX << 16) / tpWidth;
-            int scDeltaY = (deltaY << 16) / tpHeight;
+            float scDeltaX = (float)deltaX / tpWidth;
+            float scDeltaY = (float)deltaY / tpHeight;
 
-            return new Touch(touch.Source, new Vector2((float)scDeltaX / 65535, (float)scDeltaY / 65535));
+            return new Touch(touch.Source, new Vector2(scDeltaX, scDeltaY));
+        }
+
+        public struct TouchpadInfo
+        {
+            public byte[] PreparsedData;
+
+            public ushort LinkContactCount;
+
+            // The short is the link
+            public List<ContactInfo> Contacts;
+        }
+
+        public class ContactInfo
+        {
+            public ushort Link;
+            public TouchArea Area;
+
+            public bool HasX;
+            public bool HasY;
+            public bool HasContactID;
+            public bool HasTip;
+        }
+
+        public struct TouchArea
+        {
+            public int Left;
+            public int Right;
+            public int Top;
+            public int Bottom;
         }
     }
 

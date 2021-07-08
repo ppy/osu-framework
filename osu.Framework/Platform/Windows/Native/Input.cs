@@ -3,7 +3,6 @@
 
 using System;
 using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.Windows.Native
@@ -36,12 +35,11 @@ namespace osu.Framework.Platform.Windows.Native
         [DllImport("Hid.dll")]
         public static extern NSStatus HidP_GetUsages(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, ushort[] usages, ref uint usageLength, byte[] preparsedData, byte[] report, int reportLength);
 
-        // One thing that may be detrimental is that gc would just move shit around if this is not in a fixed statement.
         [DllImport("Hid.dll")]
         public static extern NSStatus HidP_GetUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out uint usageValue, byte[] preparsedData, byte[] report, int reportLength);
 
         [DllImport("Hid.dll")]
-        public static extern NSStatus HidP_GetScaledUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, ushort usage, out int usageValue, byte[] preparsedData, byte[] report, int reportLength);
+        public static extern NSStatus HidP_GetScaledUsageValue(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, out int usageValue, byte[] preparsedData, byte[] report, int reportLength);
 
         [DllImport("Hid.dll")]
         public static extern NSStatus HidP_GetCaps(byte[] preparsedData, out HidpCaps capabilities);
@@ -64,20 +62,9 @@ namespace osu.Framework.Platform.Windows.Native
         public static void ThrowLastError(string message)
         {
             uint errorCode = GetLastError();
-            uint size = FormatMessage(FormatFlags.FORMAT_MESSAGE_ALLOCATE_BUFFER | FormatFlags.FORMAT_MESSAGE_FROM_SYSTEM | FormatFlags.FORMAT_MESSAGE_IGNORE_INSERTS, (IntPtr)null, errorCode,
+            FormatMessage(FormatFlags.FORMAT_MESSAGE_ALLOCATE_BUFFER | FormatFlags.FORMAT_MESSAGE_FROM_SYSTEM | FormatFlags.FORMAT_MESSAGE_IGNORE_INSERTS, (IntPtr)null, errorCode,
                 GetUserDefaultUILanguage(), out var data, 0);
             throw new NativeException($"{message}\nError Code: {errorCode} - {data}".Replace("\n", ""));
-        }
-
-        public static bool GetHidUsageButton(HidpReportType reportType, HIDUsagePage usagePage, ushort linkCollection, HIDUsage usage, byte[] preparsedData, byte[] report, int reportLength)
-        {
-            uint numUsages = HidP_MaxUsageListLength(reportType, usagePage, preparsedData);
-
-            ushort[] usages = new ushort[numUsages];
-
-            HidP_GetUsages(reportType, usagePage, linkCollection, usages, ref numUsages, preparsedData, report, reportLength);
-
-            return usages.Any(u => u == (uint)usage);
         }
 
         public static unsafe RawInputData GetRawInputData(long lParam)
