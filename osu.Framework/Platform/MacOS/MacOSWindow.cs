@@ -30,6 +30,16 @@ namespace osu.Framework.Platform.MacOS
             var viewClass = Class.Get("SDLView");
             scrollWheelHandler = scrollWheel;
             originalScrollWheel = Class.SwizzleMethod(viewClass, "scrollWheel:", "v@:@", scrollWheelHandler);
+
+            // This ensures that we get resting touches and sets the allowedTouchTypes to only accept indirect touches (as in digitisers such as touchpads)
+            IntPtr nsView = Cocoa.SendIntPtr(WindowHandle, Selector.Get("contentView"));
+
+            if (nsView != IntPtr.Zero)
+            {
+                Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
+
+                Cocoa.SendVoid(nsView, Selector.Get("setAllowedTouchTypes:"), 2);
+            }
         }
 
         /// <summary>

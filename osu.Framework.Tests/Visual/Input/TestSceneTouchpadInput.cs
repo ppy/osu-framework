@@ -84,6 +84,11 @@ namespace osu.Framework.Tests.Visual.Input
                 });
             }
 
+            width.SetDefault();
+            height.SetDefault();
+            xOffset.SetDefault();
+            yOffset.SetDefault();
+
             Child = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,

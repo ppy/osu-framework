@@ -42,16 +42,6 @@ namespace osu.Framework.Platform.MacOS
 
             var viewClass = Class.Get("SDLView");
 
-            // This ensures that we get resting touches
-            IntPtr nsView = Cocoa.SendIntPtr(desktopWindow.WindowHandle, Selector.Get("contentView"));
-
-            if (nsView != IntPtr.Zero)
-            {
-                Cocoa.SendVoid(nsView, Selector.Get("setWantsRestingTouches:"), true);
-
-                Logger.Log(Cocoa.SendInt(nsView, Selector.Get("allowedTouchTypes")).ToString());
-            }
-
             // replace [SDLView touchesBeganWithEvent:(NSEvent *)] and other related events with our own version
             touchesBeginEventHandler = touchesBeginEvent;
             touchesMoveEventHandler = touchesMoveEvent;
