@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Visual.Input
             if (!isDisposing) return;
 
             // Trying to ensure that this InputHandler isn't still enabled when browsing other tests.
-            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().First();
+            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().FirstOrDefault();
 
             if (touchpadHandler != null)
             {
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Input
         {
             base.LoadComplete();
 
-            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().First();
+            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().FirstOrDefault();
 
             if (touchpadHandler != null)
             {
@@ -161,7 +161,7 @@ namespace osu.Framework.Tests.Visual.Input
                     switch (keyDown.Key)
                     {
                         case Key.Q:
-                            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().First();
+                            var touchpadHandler = host.AvailableInputHandlers.OfType<TouchpadHandler>().FirstOrDefault();
                             if (touchpadHandler != null)
                                 touchpadHandler.Enabled.Value = !touchpadHandler.Enabled.Value;
                             break;
