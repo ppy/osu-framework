@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Input.States;
-using osu.Framework.Logging;
 using osu.Framework.Platform.MacOS.Native;
 using osuTK;
 
@@ -26,7 +25,7 @@ namespace osu.Framework.Platform.MacOS
         private TouchesDelegate touchesBeginEventHandler;
         private TouchesDelegate touchesEndEventHandler;
 
-        public override bool IsActive => Enabled.Value;
+        public override bool IsActive => true;
 
         private readonly IntPtr[] activeTouches = new IntPtr[TouchState.MAX_TOUCH_COUNT];
 
@@ -35,10 +34,8 @@ namespace osu.Framework.Platform.MacOS
             if (!base.Initialize(host))
                 return false;
 
-            if (!(host.Window is SDL2DesktopWindow desktopWindow))
+            if (!(host.Window is SDL2DesktopWindow))
                 return false;
-
-            // todo may need to modify instance variable allowedTouchTypes in (WindowHandle (SDLView)) and null safety
 
             var viewClass = Class.Get("SDLView");
 
