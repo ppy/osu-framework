@@ -82,7 +82,7 @@ namespace osu.Framework.Platform.MacOS
         {
             if (!Enabled.Value) return;
 
-            Vector2 primaryTouch = default(Vector2);
+            Vector2? primaryTouch = null;
 
             foreach (NSTouch touch in getTouches(theEvent))
             {
@@ -93,6 +93,7 @@ namespace osu.Framework.Platform.MacOS
                     primaryTouch = touch.NormalizedPosition();
                 }
 
+                // If Multitouch is going to be used.
                 switch (touch.Phase())
                 {
                     case NSTouchPhase.NSTouchPhaseMoved:
@@ -100,8 +101,12 @@ namespace osu.Framework.Platform.MacOS
                 }
             }
 
-            primaryTouch.Y = 1 - primaryTouch.Y;
-            HandleSingleTouchMove(primaryTouch);
+            if (primaryTouch == null) return;
+
+            Vector2 pos = primaryTouch.Value;
+            // Flips the Y axis as MacOS reports the touch data as Top-Left being (0, 0) and Bottom-Right as (1, 1)
+            pos.Y = 1 - pos.Y;
+            HandleSingleTouchMove(pos);
         }
 
         /// <summary>
