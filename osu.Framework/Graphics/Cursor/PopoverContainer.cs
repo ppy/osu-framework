@@ -80,6 +80,19 @@ namespace osu.Framework.Graphics.Cursor
             updatePopoverPositioning();
         }
 
+        protected override void OnSizingChanged()
+        {
+            base.OnSizingChanged();
+
+            // reset to none to prevent exceptions
+            content.RelativeSizeAxes = Axes.None;
+            content.AutoSizeAxes = Axes.None;
+
+            // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+            content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
+            content.AutoSizeAxes = AutoSizeAxes;
+        }
+
         /// <summary>
         /// The <see cref="Anchor"/>s to consider when auto-layouting the popover.
         /// <see cref="Anchor.Centre"/> is not included, as it is used as a fallback if any other anchor fails.
