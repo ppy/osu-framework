@@ -29,6 +29,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
         });
 
         [Test]
+        public void TestSizingDirectly() => createContent((anchor, popover) =>
+        {
+            popover.Size = new Vector2(200, 100);
+
+            popover.Child = new SpriteText
+            {
+                Text = "I have a custom size!"
+            };
+        });
+
+        [Test]
         public void TestInteractiveContent() => createContent((anchor, popover) =>
         {
             TextBox textBox;
