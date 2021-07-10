@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -249,6 +250,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
+        [Test]
+        public void TestExternalPopoverControl()
+        {
+            TextBoxWithPopover target = null;
+
+            AddStep("create content", () =>
+            {
+                popoverContainer.Child = target = new TextBoxWithPopover
+                {
+                    Width = 200,
+                    Height = 30,
+                    PlaceholderText = "focus to show popover"
+                };
+            });
+
+            AddStep("click text box", () =>
+            {
+                InputManager.MoveMouseTo(target);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("take away text box focus", () => InputManager.ChangeFocus(null));
+            AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
@@ -307,6 +334,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             public Popover GetPopover() => CreateContent.Invoke(this);
+        }
+
+        private class TextBoxWithPopover : BasicTextBox, IHasPopover
+        {
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+                this.ShowPopover();
+            }
+
+            protected override void OnFocusLost(FocusLostEvent e)
+            {
+                base.OnFocusLost(e);
+                this.HidePopover();
+            }
+
+            public Popover GetPopover() => new NonFocusGrabbingPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = "the text box has focus now!"
+                }
+            };
+        }
+
+        private class NonFocusGrabbingPopover : BasicPopover
+        {
+            protected override VisibilityContainer CreateBody() => new TestNonFocusGrabbingPopoverBody();
+
+            private class TestNonFocusGrabbingPopoverBody : VisibilityContainer
+            {
+                protected override void PopIn() => Show();
+                protected override void PopOut() => Hide();
+            }
         }
     }
 }
