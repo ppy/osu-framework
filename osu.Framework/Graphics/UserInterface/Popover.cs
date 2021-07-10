@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The body of this <see cref="Popover"/>, containing the actual contents.
         /// </summary>
-        protected internal FocusedOverlayContainer Body { get; }
+        protected internal VisibilityContainer Body { get; }
 
         private Container content;
         protected override Container<Drawable> Content => content;
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the body of this <see cref="Popover"/>.
         /// </summary>
-        protected virtual FocusedOverlayContainer CreateBody() => new PopoverFocusedOverlayContainer();
+        protected virtual VisibilityContainer CreateBody() => new PopoverFocusedOverlayContainer();
 
         protected override void PopIn() => this.FadeIn();
         protected override void PopOut() => this.FadeOut();
