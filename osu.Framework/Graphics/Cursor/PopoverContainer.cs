@@ -42,34 +42,25 @@ namespace osu.Framework.Graphics.Cursor
             };
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    target = FindTargets().FirstOrDefault();
-                    break;
-            }
+            if (e.Button != MouseButton.Left)
+                return false;
 
-            return false;
-        }
-
-        protected override void OnMouseUp(MouseUpEvent e)
-        {
-            base.OnMouseUp(e);
-
+            target = FindTargets().FirstOrDefault();
             if (target == null)
-                return;
+                return false;
 
             currentPopover?.Hide();
 
             var newPopover = target.GetPopover();
             if (newPopover == null)
-                return;
+                return false;
 
             popoverContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
             currentPopover.State.BindValueChanged(_ => cleanUpPopover(currentPopover));
+            return true;
         }
 
         private void cleanUpPopover(Popover popover)
