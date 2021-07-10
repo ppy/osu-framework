@@ -290,6 +290,15 @@ soft break with '\'";
             AddAssert("has correct link", () => markdownContainer.Links[0].Url == "mailto:contact@ppy.sh");
         }
 
+        [Test]
+        public void TestAutolinkInline()
+        {
+            AddStep("set content", () =>
+            {
+                markdownContainer.Text = "<https://discord.gg/ppy>";
+            });
+        }
+
         private class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
