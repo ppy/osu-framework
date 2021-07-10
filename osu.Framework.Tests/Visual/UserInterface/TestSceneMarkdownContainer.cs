@@ -297,6 +297,8 @@ soft break with '\'";
             {
                 markdownContainer.Text = "<https://discord.gg/ppy>";
             });
+
+            AddAssert("has correct autolink", () => markdownContainer.Autolinks[0].Url == "https://discord.gg/ppy");
         }
 
         private class TestMarkdownContainer : MarkdownContainer
@@ -315,9 +317,12 @@ soft break with '\'";
 
             public readonly List<LinkInline> Links = new List<LinkInline>();
 
+            public readonly List<AutolinkInline> Autolinks = new List<AutolinkInline>();
+
             public override MarkdownTextFlowContainer CreateTextFlow() => new TestMarkdownTextFlowContainer
             {
-                UrlAdded = url => Links.Add(url)
+                UrlAdded = url => Links.Add(url),
+                AutolinkAdded = autolink => Autolinks.Add(autolink),
             };
 
             public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
@@ -326,11 +331,20 @@ soft break with '\'";
             {
                 public Action<LinkInline> UrlAdded;
 
+                public Action<AutolinkInline> AutolinkAdded;
+
                 protected override void AddLinkText(string text, LinkInline linkInline)
                 {
                     base.AddLinkText(text, linkInline);
 
                     UrlAdded?.Invoke(linkInline);
+                }
+
+                protected override void AddAutoLink(AutolinkInline autolinkInline)
+                {
+                    base.AddAutoLink(autolinkInline);
+
+                    AutolinkAdded?.Invoke(autolinkInline);
                 }
             }
         }
