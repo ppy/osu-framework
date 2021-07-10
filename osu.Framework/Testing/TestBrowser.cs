@@ -124,8 +124,6 @@ namespace osu.Framework.Testing
 
         private Action exit;
 
-        private Bindable<bool> showLogOverlay;
-
         private readonly BindableDouble audioRateAdjust = new BindableDouble(1);
 
         [BackgroundDependencyLoader]
@@ -137,8 +135,6 @@ namespace osu.Framework.Testing
             exit = host.Exit;
 
             audio.AddAdjustment(AdjustableProperty.Frequency, audioRateAdjust);
-
-            showLogOverlay = frameworkConfig.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
 
             var rateAdjustClock = new StopwatchClock(true);
             var framedClock = new FramedClock(rateAdjustClock);
@@ -293,7 +289,6 @@ namespace osu.Framework.Testing
 
         private void compileFailed(Exception ex) => Schedule(() =>
         {
-            showLogOverlay.Value = true;
             Logger.Error(ex, "Error with dynamic compilation!");
 
             compilingNotice.FadeIn(100, Easing.OutQuint).Then().FadeOut(800, Easing.InQuint);
