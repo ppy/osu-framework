@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
@@ -140,6 +141,48 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+
+        #region Sizing delegation
+
+        // Popovers rely on being 0x0 sized and placed exactly at the attachment point to their drawable for layouting logic.
+        // This can cause undesirable results if somebody tries to directly set the Width/Height of a popover, expecting the body to be resized.
+        // This is done via shadowing rather than overrides, because we still want framework to read the base 0x0 size.
+
+        public new float Width
+        {
+            get => Body.DrawWidth;
+            set
+            {
+                if (Body.AutoSizeAxes.HasFlagFast(Axes.X))
+                    Body.AutoSizeAxes &= ~Axes.X;
+
+                Body.Width = value;
+            }
+        }
+
+        public new float Height
+        {
+            get => Body.DrawHeight;
+            set
+            {
+                if (Body.AutoSizeAxes.HasFlagFast(Axes.Y))
+                    Body.AutoSizeAxes &= ~Axes.Y;
+
+                Body.Height = value;
+            }
+        }
+
+        public new Vector2 Size
+        {
+            get => Body.DrawSize;
+            set
+            {
+                Width = value.X;
+                Height = value.Y;
+            }
+        }
+
+        #endregion
 
         protected class PopoverFocusedOverlayContainer : FocusedOverlayContainer
         {
