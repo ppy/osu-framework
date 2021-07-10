@@ -330,11 +330,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>.
+        /// Unbinds any actions bound to the value changed events.
         /// </summary>
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
             ValueChanged = null;
+            DefaultChanged = null;
             DisabledChanged = null;
         }
 
