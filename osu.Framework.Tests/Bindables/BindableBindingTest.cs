@@ -445,7 +445,15 @@ namespace osu.Framework.Tests.Bindables
         [Test]
         public void TestUnbindEvents()
         {
-            var bindable = new BindableInt();
+            var bindable = new BindableInt
+            {
+                Value = 0,
+                Default = 0,
+                MinValue = -5,
+                MaxValue = 5,
+                Precision = 1,
+                Disabled = false
+            };
 
             bool valueChanged = false;
             bool defaultChanged = false;
