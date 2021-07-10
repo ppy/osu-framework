@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -60,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Popover()
         {
-            InternalChild = BoundingBoxContainer = new Container
+            base.AddInternal(BoundingBoxContainer = new Container
             {
                 AutoSizeAxes = Axes.Both,
                 Children = new[]
@@ -83,7 +84,7 @@ namespace osu.Framework.Graphics.UserInterface
                         };
                     })
                 }
-            };
+            });
         }
 
         /// <summary>
@@ -137,6 +138,8 @@ namespace osu.Framework.Graphics.UserInterface
                     return 135;
             }
         }
+
+        protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
 
         protected class PopoverFocusedOverlayContainer : FocusedOverlayContainer
         {
