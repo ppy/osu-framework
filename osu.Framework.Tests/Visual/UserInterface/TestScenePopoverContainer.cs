@@ -214,6 +214,41 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
+        [Test]
+        public void TestAutoSize()
+        {
+            AddStep("create content", () =>
+            {
+                popoverWrapper.RelativeSizeAxes = popoverContainer.RelativeSizeAxes = Axes.X;
+                popoverWrapper.AutoSizeAxes = popoverContainer.AutoSizeAxes = Axes.Y;
+
+                popoverContainer.Child = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = 200,
+                    Child = new DrawableWithPopover
+                    {
+                        Width = 200,
+                        Height = 30,
+                        Text = "open",
+                        CreateContent = _ => new BasicPopover
+                        {
+                            Child = new SpriteText
+                            {
+                                Text = "I'm in an auto-sized container!"
+                            }
+                        }
+                    }
+                };
+            });
+
+            AddSliderStep("change content height", 100, 500, 200, height =>
+            {
+                if (popoverContainer?.Children.Count == 1)
+                    popoverContainer.Child.Height = height;
+            });
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
