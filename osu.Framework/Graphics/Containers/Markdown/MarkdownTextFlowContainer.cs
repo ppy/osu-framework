@@ -108,6 +108,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
                         AddInlineText(innerContainer);
                         break;
 
+                    case AutolinkInline autoLink:
+                        AddAutoLink(autoLink);
+                        break;
+
                     default:
                         AddNotImplementedInlineText(single);
                         break;
@@ -123,6 +127,9 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected virtual void AddLinkText(string text, LinkInline linkInline)
             => AddDrawable(new MarkdownLinkText(text, linkInline));
+
+        protected virtual void AddAutoLink(AutolinkInline autolinkInline)
+            => AddDrawable(new MarkdownLinkText(autolinkInline));
 
         protected virtual void AddCodeInLine(CodeInline codeInline)
             => AddText(codeInline.Content, t => { t.Colour = Color4.Orange; });
