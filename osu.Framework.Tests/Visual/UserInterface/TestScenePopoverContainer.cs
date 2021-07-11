@@ -140,7 +140,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TextBox textBox;
 
-            return new BasicPopover
+            return new AnimatedPopover
             {
                 Child = new FillFlowContainer
                 {
@@ -272,6 +272,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
+
+        private class AnimatedPopover : BasicPopover
+        {
+            protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
+            protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);
+        }
 
         private class DrawableWithPopover : CircularContainer, IHasPopover
         {
