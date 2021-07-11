@@ -9,7 +9,6 @@ using osu.Framework.Graphics.UserInterface;
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Events;
 using osuTK.Input;
 
@@ -68,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (e.Button.HasFlagFast(MouseButton.Right))
+            if (e.Button == MouseButton.Right)
             {
                 Current.SetDefault();
                 Flash();
