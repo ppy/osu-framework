@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("click popover", () =>
             {
@@ -99,7 +99,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover removed", () => !this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("mousedown popover", () =>
             {
@@ -132,7 +132,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
         }
 
         [Test]
