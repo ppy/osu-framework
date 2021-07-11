@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Input;
 
 #nullable enable
 
@@ -44,9 +43,6 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (e.Button != MouseButton.Left)
-                return false;
-
             target = FindTargets().FirstOrDefault();
             if (target == null)
                 return false;
