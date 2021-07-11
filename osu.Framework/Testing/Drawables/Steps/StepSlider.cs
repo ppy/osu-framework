@@ -67,7 +67,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (e.Button == MouseButton.Right)
+            if (!IsDragged && e.Button == MouseButton.Right)
             {
                 Current.SetDefault();
                 Flash();
