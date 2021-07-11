@@ -21,19 +21,6 @@ namespace osu.Framework.Extensions
         public static void HidePopover(this Drawable drawable) => setTargetOnNearestPopover(drawable, null);
 
         private static void setTargetOnNearestPopover(Drawable origin, IHasPopover? target)
-        {
-            var node = origin.Parent;
-
-            while (node != null)
-            {
-                if (node is PopoverContainer popoverContainer)
-                {
-                    popoverContainer.SetTarget(target);
-                    return;
-                }
-
-                node = node.Parent;
-            }
-        }
+            => origin.FindClosestParent<PopoverContainer>()?.SetTarget(target);
     }
 }
