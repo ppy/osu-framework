@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public new float Width
         {
-            get => Body.DrawWidth;
+            get => Body.Width;
             set
             {
                 if (Body.AutoSizeAxes.HasFlagFast(Axes.X))
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public new float Height
         {
-            get => Body.DrawHeight;
+            get => Body.Height;
             set
             {
                 if (Body.AutoSizeAxes.HasFlagFast(Axes.Y))
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public new Vector2 Size
         {
-            get => Body.DrawSize;
+            get => Body.Size;
             set
             {
                 Width = value.X;
