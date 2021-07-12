@@ -63,6 +63,7 @@ namespace osu.Framework.Graphics.Cursor
             target = newTarget;
 
             currentPopover?.Hide();
+            currentPopover?.Expire();
 
             var newPopover = target?.GetPopover();
             if (newPopover == null)
@@ -70,18 +71,7 @@ namespace osu.Framework.Graphics.Cursor
 
             popoverContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
-            currentPopover.State.BindValueChanged(_ => cleanUpPopover(currentPopover));
             return true;
-        }
-
-        private void cleanUpPopover(Popover popover)
-        {
-            if (popover.State.Value != Visibility.Hidden)
-                return;
-
-            popover.Expire();
-            if (currentPopover == popover)
-                currentPopover = null;
         }
 
         protected override void UpdateAfterChildren()

@@ -57,8 +57,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected internal VisibilityContainer Body { get; }
 
-        private Container content;
-        protected override Container<Drawable> Content => content;
+        protected override Container<Drawable> Content { get; } = new Container { AutoSizeAxes = Axes.Both };
 
         protected Popover()
         {
@@ -78,10 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
                             {
                                 RelativeSizeAxes = Axes.Both,
                             },
-                            content = new Container
-                            {
-                                AutoSizeAxes = Axes.Both,
-                            }
+                            Content
                         };
                     })
                 }

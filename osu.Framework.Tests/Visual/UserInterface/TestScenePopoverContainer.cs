@@ -86,7 +86,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("click popover", () =>
             {
@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover removed", () => !this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("mousedown popover", () =>
             {
@@ -133,7 +133,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TextBox textBox;
 
-            return new BasicPopover
+            return new AnimatedPopover
             {
                 Child = new FillFlowContainer
                 {
@@ -299,6 +299,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
+
+        private class AnimatedPopover : BasicPopover
+        {
+            protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
+            protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);
+        }
 
         private class DrawableWithPopover : CircularContainer, IHasPopover
         {
