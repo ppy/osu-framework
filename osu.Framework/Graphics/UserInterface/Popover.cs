@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The body of this <see cref="Popover"/>, containing the actual contents.
         /// </summary>
-        protected internal VisibilityContainer Body { get; }
+        protected internal Container Body { get; }
 
         protected override Container<Drawable> Content { get; } = new Container { AutoSizeAxes = Axes.Both };
 
@@ -67,19 +67,18 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = new[]
                 {
                     Arrow = CreateArrow(),
-                    Body = CreateBody().With(body =>
+                    Body = new BodyContainer
                     {
-                        body.AutoSizeAxes = Axes.Both;
-                        body.State.BindTarget = State;
-                        body.Children = new Drawable[]
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
                             Background = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
                             },
                             Content
-                        };
-                    })
+                        },
+                    }
                 }
             });
         }
@@ -88,11 +87,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Creates an arrow drawable that points away from the given <see cref="Anchor"/>.
         /// </summary>
         protected abstract Drawable CreateArrow();
-
-        /// <summary>
-        /// Creates the body of this <see cref="Popover"/>.
-        /// </summary>
-        protected virtual BodyContainer CreateBody() => new BodyContainer();
 
         protected override void PopIn() => this.FadeIn();
         protected override void PopOut() => this.FadeOut();
@@ -180,14 +174,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected class BodyContainer : VisibilityContainer
+        protected class BodyContainer : Container
         {
             protected override bool OnMouseDown(MouseDownEvent e) => true;
-
             protected override bool OnClick(ClickEvent e) => true;
-
-            protected override void PopIn() => Show();
-            protected override void PopOut() => Hide();
         }
     }
 }
