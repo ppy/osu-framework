@@ -158,7 +158,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        //todo: support culture localisation when applying transforms.
         private string transformedText
         {
             get
