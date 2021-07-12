@@ -356,24 +356,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.HidePopover();
             }
 
-            public Popover GetPopover() => new NonFocusGrabbingPopover
+            public Popover GetPopover() => new BasicPopover
             {
                 Child = new SpriteText
                 {
                     Text = "the text box has focus now!"
                 }
             };
-        }
-
-        private class NonFocusGrabbingPopover : BasicPopover
-        {
-            protected override VisibilityContainer CreateBody() => new TestNonFocusGrabbingPopoverBody();
-
-            private class TestNonFocusGrabbingPopoverBody : VisibilityContainer
-            {
-                protected override void PopIn() => Show();
-                protected override void PopOut() => Hide();
-            }
         }
     }
 }

@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates the body of this <see cref="Popover"/>.
         /// </summary>
-        protected virtual VisibilityContainer CreateBody() => new PopoverFocusedOverlayContainer();
+        protected virtual BodyContainer CreateBody() => new BodyContainer();
 
         protected override void PopIn() => this.FadeIn();
         protected override void PopOut() => this.FadeOut();
@@ -180,33 +180,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected class PopoverFocusedOverlayContainer : FocusedOverlayContainer
+        protected class BodyContainer : VisibilityContainer
         {
-            protected override bool BlockPositionalInput => true;
+            protected override bool OnMouseDown(MouseDownEvent e) => true;
 
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
+            protected override bool OnClick(ClickEvent e) => true;
 
-            protected override void OnMouseUp(MouseUpEvent e)
-            {
-                base.OnMouseUp(e);
-                handleMouseEvent(e.ScreenSpaceMouseDownPosition);
-            }
-
-            protected override bool OnClick(ClickEvent e)
-            {
-                return handleMouseEvent(e.ScreenSpaceMouseDownPosition);
-            }
-
-            private bool handleMouseEvent(Vector2 position)
-            {
-                // if the mouse event can be handled by this container, prevent it from propagating further.
-                if (base.ReceivePositionalInputAt(position))
-                    return true;
-
-                // anything else means that the user is clicking away from the popover, and so that should hide the popover and trigger focus loss.
-                Hide();
-                return false;
-            }
+            protected override void PopIn() => Show();
+            protected override void PopOut() => Hide();
         }
     }
 }

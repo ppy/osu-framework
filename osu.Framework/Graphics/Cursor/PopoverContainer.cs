@@ -43,11 +43,7 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnClick(ClickEvent e)
         {
-            var newTarget = FindTargets().FirstOrDefault();
-            if (newTarget == null)
-                return false;
-
-            return SetTarget(newTarget);
+            return SetTarget(FindTargets().FirstOrDefault());
         }
 
         /// <summary>
