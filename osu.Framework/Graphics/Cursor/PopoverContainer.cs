@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Input;
 
 #nullable enable
 
@@ -42,44 +41,22 @@ namespace osu.Framework.Graphics.Cursor
             };
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    target = FindTargets().FirstOrDefault();
-                    break;
-            }
-
-            return false;
-        }
-
-        protected override void OnMouseUp(MouseUpEvent e)
-        {
-            base.OnMouseUp(e);
-
+            target = FindTargets().FirstOrDefault();
             if (target == null)
-                return;
+                return false;
 
             currentPopover?.Hide();
+            currentPopover?.Expire();
 
             var newPopover = target.GetPopover();
             if (newPopover == null)
-                return;
+                return false;
 
             popoverContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
-            currentPopover.State.BindValueChanged(_ => cleanUpPopover(currentPopover));
-        }
-
-        private void cleanUpPopover(Popover popover)
-        {
-            if (popover.State.Value != Visibility.Hidden)
-                return;
-
-            popover.Expire();
-            if (currentPopover == popover)
-                currentPopover = null;
+            return true;
         }
 
         protected override void UpdateAfterChildren()
@@ -87,6 +64,19 @@ namespace osu.Framework.Graphics.Cursor
             base.UpdateAfterChildren();
 
             updatePopoverPositioning();
+        }
+
+        protected override void OnSizingChanged()
+        {
+            base.OnSizingChanged();
+
+            // reset to none to prevent exceptions
+            content.RelativeSizeAxes = Axes.None;
+            content.AutoSizeAxes = Axes.None;
+
+            // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+            content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
+            content.AutoSizeAxes = AutoSizeAxes;
         }
 
         /// <summary>
