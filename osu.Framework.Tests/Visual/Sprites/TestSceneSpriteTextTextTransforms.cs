@@ -58,7 +58,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             },
                             sprite = new SpriteText
                             {
-                                Text = "you can change text transform on the fly"
+                                Text = "The quick brown fox jumps over the lazy dog"
                             }
                         }
                     }
