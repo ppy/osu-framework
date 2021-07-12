@@ -56,6 +56,9 @@ namespace osu.Framework.Graphics.Cursor
         /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
         internal bool SetTarget(IHasPopover? newTarget)
         {
+            if (newTarget == target)
+                return true;
+
             target = newTarget;
 
             currentPopover?.Hide();
