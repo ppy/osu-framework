@@ -101,7 +101,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        public override void UnbindAll()
+        internal override void UnbindAllInternal()
         {
             if (source != null && !hasBeenReturned)
             {
@@ -114,7 +114,7 @@ namespace osu.Framework.Bindables
                 hasBeenReturned = true;
             }
 
-            base.UnbindAll();
+            base.UnbindAllInternal();
         }
 
         private void checkValid()
