@@ -104,7 +104,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class TestBasicPopover : BasicPopover
         {
-            protected override FocusedOverlayContainer CreateBody() => new TestPopoverFocusedOverlayContainer();
+            protected override VisibilityContainer CreateBody() => new TestPopoverFocusedOverlayContainer();
 
             private class TestPopoverFocusedOverlayContainer : PopoverFocusedOverlayContainer
             {

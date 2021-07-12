@@ -43,14 +43,29 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnClick(ClickEvent e)
         {
-            target = FindTargets().FirstOrDefault();
-            if (target == null)
+            var newTarget = FindTargets().FirstOrDefault();
+            if (newTarget == null)
                 return false;
+
+            return SetTarget(newTarget);
+        }
+
+        /// <summary>
+        /// Sets the target drawable for this <see cref="PopoverContainer"/> to <paramref name="newTarget"/>.
+        /// </summary>
+        /// <remarks>
+        /// After calling this method, the previous popover shown in this <see cref="PopoverContainer"/> will be hidden.
+        /// This method can be called with a <see langword="null"/> argument to hide the currently-visible popover.
+        /// </remarks>
+        /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
+        internal bool SetTarget(IHasPopover? newTarget)
+        {
+            target = newTarget;
 
             currentPopover?.Hide();
             currentPopover?.Expire();
 
-            var newPopover = target.GetPopover();
+            var newPopover = target?.GetPopover();
             if (newPopover == null)
                 return false;
 
