@@ -67,6 +67,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            // Reset value via right click. This shouldn't happen if a drag (via left button) is in progress.
             if (!IsDragged && e.Button == MouseButton.Right)
             {
                 Current.SetDefault();
