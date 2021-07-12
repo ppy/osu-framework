@@ -104,6 +104,34 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestUseExistingWhenSameProviderClicked()
+        {
+            Popover first = null;
+
+            createContent(button => new BasicPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover shown", () => (first = this.ChildrenOfType<Popover>().FirstOrDefault(popover => popover.State.Value == Visibility.Visible)) != null);
+
+            AddStep("click button again", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("same popover shown", () => first == this.ChildrenOfType<Popover>().FirstOrDefault(popover => popover.State.Value == Visibility.Visible));
+        }
+
+        [Test]
         public void TestClickBetweenMultiple()
         {
             createContent(button => new BasicPopover
