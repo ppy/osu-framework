@@ -350,9 +350,7 @@ namespace osu.Framework.Bindables
             // ToArray required as this may be called from an async disposal thread.
             // This can lead to deadlocks since each child is also enumerating its Bindings.
             foreach (var b in Bindings.ToArray())
-                b.Bindings.Remove(weakReference);
-
-            Bindings.Clear();
+                UnbindFrom(b);
         }
 
         /// <summary>
@@ -370,7 +368,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");

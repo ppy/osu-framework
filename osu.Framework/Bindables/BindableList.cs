@@ -454,7 +454,7 @@ namespace osu.Framework.Bindables
 
         #region IUnbindable
 
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
             CollectionChanged = null;
             DisabledChanged = null;
@@ -466,9 +466,7 @@ namespace osu.Framework.Bindables
                 return;
 
             foreach (var b in bindings)
-                b.unbind(this);
-
-            bindings?.Clear();
+                UnbindFrom(b);
         }
 
         public void UnbindAll()
@@ -477,7 +475,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is BindableList<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -485,9 +483,6 @@ namespace osu.Framework.Bindables
             removeWeakReference(tThem.weakReference);
             tThem.removeWeakReference(weakReference);
         }
-
-        private void unbind(BindableList<T> binding)
-            => bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
