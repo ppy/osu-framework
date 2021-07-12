@@ -22,7 +22,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
     {
         private Container[,] cells;
         private Container popoverWrapper;
-        private PopoverContainer popoverContainer;
+        private TestPopoverContainer popoverContainer;
         private GridContainer gridContainer;
 
         [SetUpSteps]
@@ -46,7 +46,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             AlwaysPresent = true,
                             Colour = Colour4.Transparent
                         },
-                        popoverContainer = new PopoverContainer
+                        popoverContainer = new TestPopoverContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Padding = new MarginPadding(5),
@@ -101,6 +101,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
             AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+
+            AddStep("click background", () =>
+            {
+                popoverContainer.ClickHandled = false;
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover didn't handle click", () => !popoverContainer.ClickHandled);
         }
 
         [Test]
@@ -356,6 +363,16 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
+
+        private class TestPopoverContainer : PopoverContainer
+        {
+            public bool ClickHandled { get; set; }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                return ClickHandled = base.OnClick(e);
+            }
+        }
 
         private class AnimatedPopover : BasicPopover
         {
