@@ -59,7 +59,7 @@ namespace osu.Framework.Testing
             /// <summary>
             /// Retrieves the <see cref="Menu.DrawableMenuItem"/>s of the <see cref="Menu"/> represented by this <see cref="MenuStructure"/>.
             /// </summary>
-            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First();
+            public IReadOnlyList<Drawable> GetMenuItems() => menu.ChildrenOfType<FillFlowContainer<Menu.DrawableMenuItem>>().First().Children;
 
             /// <summary>
             /// Finds the <see cref="Menu.DrawableMenuItem"/> index in the <see cref="Menu"/> represented by this <see cref="MenuStructure"/> that
