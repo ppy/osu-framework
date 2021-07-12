@@ -19,6 +19,8 @@ namespace osu.Framework.Localisation
 
         private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
+        public LocalisationParameters LocalisationParameters => currentParameters.Value;
+
         public LocalisationManager(FrameworkConfigManager config)
         {
             config.BindWith(FrameworkSetting.Locale, configLocale);

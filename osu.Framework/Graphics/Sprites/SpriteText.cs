@@ -163,17 +163,19 @@ namespace osu.Framework.Graphics.Sprites
         {
             get
             {
+                var culture = localisation.LocalisationParameters.Store?.EffectiveCulture ?? CultureInfo.InvariantCulture;
+
                 switch (textTransform)
                 {
 
                     case TextTransform.Uppercase:
-                        return displayedText.ToUpperInvariant();
+                        return displayedText.ToUpper(culture);
 
                     case TextTransform.Capitalize:
-                        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayedText);
+                        return culture.TextInfo.ToTitleCase(displayedText);
 
                     case TextTransform.Lowercase:
-                        return displayedText.ToLowerInvariant();
+                        return displayedText.ToLower(culture);
 
                     case TextTransform.None:
                     default:
