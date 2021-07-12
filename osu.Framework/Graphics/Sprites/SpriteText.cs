@@ -18,6 +18,7 @@ using osu.Framework.Utils;
 using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
+using System.Globalization;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -139,6 +140,46 @@ namespace osu.Framework.Graphics.Sprites
 
                 invalidate(true, true);
                 shadowOffsetCache.Invalidate();
+            }
+        }
+
+        private TextTransform textTransform = TextTransform.None;
+
+        /// <summary>
+        /// The <see cref="Sprites.TextTransform"/> to apply to the displayed text.
+        /// </summary>
+        public TextTransform TextTransform
+        {
+            get => textTransform;
+            set
+            {
+                textTransform = value;
+                invalidate(true);
+            }
+        }
+
+        //todo: support culture localisation when applying transforms.
+        private string transformedText
+        {
+            get
+            {
+                switch (textTransform)
+                {
+
+                    case TextTransform.Uppercase:
+                        return displayedText.ToUpperInvariant();
+
+                    case TextTransform.Capitalize:
+                        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(displayedText);
+
+                    case TextTransform.Lowercase:
+                        return displayedText.ToLowerInvariant();
+
+                    case TextTransform.None:
+                    default:
+                        return displayedText;
+                        
+                }
             }
         }
 
@@ -473,7 +514,7 @@ namespace osu.Framework.Graphics.Sprites
                 TextBuilder textBuilder = getTextBuilder();
 
                 textBuilder.Reset();
-                textBuilder.AddText(displayedText);
+                textBuilder.AddText(transformedText);
                 textBounds = textBuilder.Bounds;
             }
             finally
@@ -641,7 +682,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (string.IsNullOrEmpty(displayedText))
                     return 0;
 
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
+                return store.GetBaseHeight(transformedText[0]).GetValueOrDefault() * Font.Size;
             }
         }
 
