@@ -359,7 +359,9 @@ namespace osu.Framework.Bindables
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
         /// Also returns any active lease.
         /// </summary>
-        public virtual void UnbindAll()
+        public void UnbindAll() => UnbindAllInternal();
+
+        internal virtual void UnbindAllInternal()
         {
             if (isLeased)
                 leasedBindable.Return();
