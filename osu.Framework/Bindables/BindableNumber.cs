@@ -205,6 +205,13 @@ namespace osu.Framework.Bindables
             base.BindTo(them);
         }
 
+        public override void UnbindEvents()
+        {
+            base.UnbindEvents();
+
+            PrecisionChanged = null;
+        }
+
         public bool IsInteger =>
             typeof(T) != typeof(float) &&
             typeof(T) != typeof(double); // Will be **constant** after JIT.

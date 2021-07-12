@@ -31,12 +31,22 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
         protected readonly string Url;
 
-        public MarkdownLinkText(string text, LinkInline linkInline)
+        public MarkdownLinkText(string text, string url)
         {
             this.text = text;
-            Url = linkInline.Url ?? string.Empty;
+            Url = url;
 
             AutoSizeAxes = Axes.Both;
+        }
+
+        public MarkdownLinkText(string text, LinkInline linkInline)
+            : this(text, linkInline.Url ?? string.Empty)
+        {
+        }
+
+        public MarkdownLinkText(AutolinkInline autolinkInline)
+            : this(autolinkInline.Url, autolinkInline.Url)
+        {
         }
 
         [BackgroundDependencyLoader]

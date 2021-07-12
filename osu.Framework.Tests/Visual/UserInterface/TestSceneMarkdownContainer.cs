@@ -290,6 +290,17 @@ soft break with '\'";
             AddAssert("has correct link", () => markdownContainer.Links[0].Url == "mailto:contact@ppy.sh");
         }
 
+        [Test]
+        public void TestAutoLinkInline()
+        {
+            AddStep("set content", () =>
+            {
+                markdownContainer.Text = "<https://discord.gg/ppy>";
+            });
+
+            AddAssert("has correct autolink", () => markdownContainer.AutoLinks[0].Url == "https://discord.gg/ppy");
+        }
+
         private class TestMarkdownContainer : MarkdownContainer
         {
             public new string DocumentUrl
@@ -306,9 +317,12 @@ soft break with '\'";
 
             public readonly List<LinkInline> Links = new List<LinkInline>();
 
+            public readonly List<AutolinkInline> AutoLinks = new List<AutolinkInline>();
+
             public override MarkdownTextFlowContainer CreateTextFlow() => new TestMarkdownTextFlowContainer
             {
-                UrlAdded = url => Links.Add(url)
+                UrlAdded = url => Links.Add(url),
+                AutoLinkAdded = autolink => AutoLinks.Add(autolink),
             };
 
             public override SpriteText CreateSpriteText() => base.CreateSpriteText().With(t => t.Font = t.Font.With("Roboto", weight: "Regular"));
@@ -317,11 +331,20 @@ soft break with '\'";
             {
                 public Action<LinkInline> UrlAdded;
 
+                public Action<AutolinkInline> AutoLinkAdded;
+
                 protected override void AddLinkText(string text, LinkInline linkInline)
                 {
                     base.AddLinkText(text, linkInline);
 
                     UrlAdded?.Invoke(linkInline);
+                }
+
+                protected override void AddAutoLink(AutolinkInline autolinkInline)
+                {
+                    base.AddAutoLink(autolinkInline);
+
+                    AutoLinkAdded?.Invoke(autolinkInline);
                 }
             }
         }
