@@ -53,11 +53,11 @@ namespace osu.Framework.Graphics.Cursor
         /// After calling this method, the previous popover shown in this <see cref="PopoverContainer"/> will be hidden.
         /// This method can be called with a <see langword="null"/> argument to hide the currently-visible popover.
         /// </remarks>
-        /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
+        /// <returns><see langword="true"/> if a popover is being shown after the call to this method, <see langword="false"/> otherwise.</returns>
         internal bool SetTarget(IHasPopover? newTarget)
         {
             if (newTarget == target)
-                return true;
+                return target != null;
 
             target = newTarget;
 
