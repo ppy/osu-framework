@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestSimpleText()
+        public void TestShowHide()
         {
             createContent(button => new BasicPopover
             {
@@ -97,10 +97,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click away", () =>
             {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First().ScreenSpaceDrawQuad.BottomRight + new Vector2(10));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+        }
+
+        [Test]
+        public void TestClickBetweenMultiple()
+        {
+            createContent(button => new BasicPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("first shown", () => this.ChildrenOfType<Popover>().First().State.Value == Visibility.Visible);
+
+            AddStep("click last button", () =>
+            {
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+
+            AddAssert("first hidden", () => this.ChildrenOfType<Popover>().First().State.Value == Visibility.Visible);
+            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Last().State.Value == Visibility.Visible);
         }
 
         [Test]
