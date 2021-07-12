@@ -108,6 +108,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             createContent(button => new BasicPopover
             {
+                Name = button.Anchor.ToString(),
                 Child = new SpriteText
                 {
                     Text = $"{button.Anchor} popover"
@@ -120,7 +121,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("first shown", () => this.ChildrenOfType<Popover>().First().State.Value == Visibility.Visible);
+            AddAssert("first shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.TopLeft.ToString());
 
             AddStep("click last button", () =>
             {
@@ -128,8 +129,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("first hidden", () => this.ChildrenOfType<Popover>().First().State.Value == Visibility.Visible);
-            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Last().State.Value == Visibility.Visible);
+            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.BottomRight.ToString());
         }
 
         [Test]
