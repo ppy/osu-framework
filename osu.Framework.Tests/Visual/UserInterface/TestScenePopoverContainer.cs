@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -85,7 +86,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("click popover", () =>
             {
@@ -99,7 +100,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover removed", () => !this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
         }
 
         [Test]
@@ -119,7 +120,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
 
             AddStep("mousedown popover", () =>
             {
@@ -132,7 +133,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("release button", () => InputManager.ReleaseButton(MouseButton.Left));
 
-            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any());
+            AddAssert("popover remains", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
         }
 
         [Test]
@@ -140,7 +141,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             TextBox textBox;
 
-            return new BasicPopover
+            return new AnimatedPopover
             {
                 Child = new FillFlowContainer
                 {
@@ -214,6 +215,67 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
         }
 
+        [Test]
+        public void TestAutoSize()
+        {
+            AddStep("create content", () =>
+            {
+                popoverWrapper.RelativeSizeAxes = popoverContainer.RelativeSizeAxes = Axes.X;
+                popoverWrapper.AutoSizeAxes = popoverContainer.AutoSizeAxes = Axes.Y;
+
+                popoverContainer.Child = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = 200,
+                    Child = new DrawableWithPopover
+                    {
+                        Width = 200,
+                        Height = 30,
+                        Text = "open",
+                        CreateContent = _ => new BasicPopover
+                        {
+                            Child = new SpriteText
+                            {
+                                Text = "I'm in an auto-sized container!"
+                            }
+                        }
+                    }
+                };
+            });
+
+            AddSliderStep("change content height", 100, 500, 200, height =>
+            {
+                if (popoverContainer?.Children.Count == 1)
+                    popoverContainer.Child.Height = height;
+            });
+        }
+
+        [Test]
+        public void TestExternalPopoverControl()
+        {
+            TextBoxWithPopover target = null;
+
+            AddStep("create content", () =>
+            {
+                popoverContainer.Child = target = new TextBoxWithPopover
+                {
+                    Width = 200,
+                    Height = 30,
+                    PlaceholderText = "focus to show popover"
+                };
+            });
+
+            AddStep("click text box", () =>
+            {
+                InputManager.MoveMouseTo(target);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("take away text box focus", () => InputManager.ChangeFocus(null));
+            AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
@@ -237,6 +299,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
+
+        private class AnimatedPopover : BasicPopover
+        {
+            protected override void PopIn() => this.FadeIn(300, Easing.OutQuint);
+            protected override void PopOut() => this.FadeOut(300, Easing.OutQuint);
+        }
 
         private class DrawableWithPopover : CircularContainer, IHasPopover
         {
@@ -272,6 +340,40 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             public Popover GetPopover() => CreateContent.Invoke(this);
+        }
+
+        private class TextBoxWithPopover : BasicTextBox, IHasPopover
+        {
+            protected override void OnFocus(FocusEvent e)
+            {
+                base.OnFocus(e);
+                this.ShowPopover();
+            }
+
+            protected override void OnFocusLost(FocusLostEvent e)
+            {
+                base.OnFocusLost(e);
+                this.HidePopover();
+            }
+
+            public Popover GetPopover() => new NonFocusGrabbingPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = "the text box has focus now!"
+                }
+            };
+        }
+
+        private class NonFocusGrabbingPopover : BasicPopover
+        {
+            protected override VisibilityContainer CreateBody() => new TestNonFocusGrabbingPopoverBody();
+
+            private class TestNonFocusGrabbingPopoverBody : VisibilityContainer
+            {
+                protected override void PopIn() => Show();
+                protected override void PopOut() => Hide();
+            }
         }
     }
 }

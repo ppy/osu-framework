@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
-using osuTK.Input;
 
 #nullable enable
 
@@ -42,44 +41,37 @@ namespace osu.Framework.Graphics.Cursor
             };
         }
 
-        protected override bool OnMouseDown(MouseDownEvent e)
+        protected override bool OnClick(ClickEvent e)
         {
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    target = FindTargets().FirstOrDefault();
-                    break;
-            }
+            var newTarget = FindTargets().FirstOrDefault();
+            if (newTarget == null)
+                return false;
 
-            return false;
+            return SetTarget(newTarget);
         }
 
-        protected override void OnMouseUp(MouseUpEvent e)
+        /// <summary>
+        /// Sets the target drawable for this <see cref="PopoverContainer"/> to <paramref name="newTarget"/>.
+        /// </summary>
+        /// <remarks>
+        /// After calling this method, the previous popover shown in this <see cref="PopoverContainer"/> will be hidden.
+        /// This method can be called with a <see langword="null"/> argument to hide the currently-visible popover.
+        /// </remarks>
+        /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
+        internal bool SetTarget(IHasPopover? newTarget)
         {
-            base.OnMouseUp(e);
-
-            if (target == null)
-                return;
+            target = newTarget;
 
             currentPopover?.Hide();
+            currentPopover?.Expire();
 
-            var newPopover = target.GetPopover();
+            var newPopover = target?.GetPopover();
             if (newPopover == null)
-                return;
+                return false;
 
             popoverContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
-            currentPopover.State.BindValueChanged(_ => cleanUpPopover(currentPopover));
-        }
-
-        private void cleanUpPopover(Popover popover)
-        {
-            if (popover.State.Value != Visibility.Hidden)
-                return;
-
-            popover.Expire();
-            if (currentPopover == popover)
-                currentPopover = null;
+            return true;
         }
 
         protected override void UpdateAfterChildren()
@@ -87,6 +79,19 @@ namespace osu.Framework.Graphics.Cursor
             base.UpdateAfterChildren();
 
             updatePopoverPositioning();
+        }
+
+        protected override void OnSizingChanged()
+        {
+            base.OnSizingChanged();
+
+            // reset to none to prevent exceptions
+            content.RelativeSizeAxes = Axes.None;
+            content.AutoSizeAxes = Axes.None;
+
+            // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+            content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
+            content.AutoSizeAxes = AutoSizeAxes;
         }
 
         /// <summary>
