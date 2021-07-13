@@ -3,6 +3,7 @@
 
 #pragma warning disable 8632 // TODO: can be #nullable enable when Bindables are updated to also be.
 
+using System.Globalization;
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
@@ -34,12 +35,32 @@ namespace osu.Framework.Localisation
                         break;
 
                     case ILocalisableStringData data:
-                        Value = data.GetLocalised(parameters.Value);
+                        Value = applyCase(data.GetLocalised(parameters.Value));
                         break;
 
                     default:
                         Value = string.Empty;
                         break;
+                }
+            }
+
+            private string applyCase(string data)
+            {
+                var cultureText = parameters.Value.Store?.EffectiveCulture?.TextInfo ?? CultureInfo.CurrentCulture.TextInfo;
+                switch (text.Casing)
+                {
+                    case Casing.Uppercase:
+                        return cultureText.ToUpper(data);
+
+                    case Casing.TitleCase:
+                        return cultureText.ToTitleCase(data);
+
+                    case Casing.Lowercase:
+                        return cultureText.ToLower(data);
+
+                    case Casing.Default:
+                    default:
+                        return data;
                 }
             }
 

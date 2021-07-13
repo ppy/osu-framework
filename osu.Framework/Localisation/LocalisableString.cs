@@ -18,19 +18,26 @@ namespace osu.Framework.Localisation
         internal readonly object? Data;
 
         /// <summary>
+        /// The case override to apply to the underlying string data.
+        /// </summary>
+        public readonly Casing Casing;
+
+        /// <summary>
         /// Creates a new <see cref="LocalisableString"/> with underlying string data.
         /// </summary>
         public LocalisableString(string data)
         {
             Data = data;
+            Casing = Casing.Default;
         }
 
         /// <summary>
         /// Creates a new <see cref="LocalisableString"/> with underlying localisable string data.
         /// </summary>
-        public LocalisableString(ILocalisableStringData data)
+        public LocalisableString(ILocalisableStringData data, Casing casing = Casing.Default)
         {
             Data = data;
+            Casing = casing;
         }
 
         // it's somehow common to call default(LocalisableString), and we should return empty string then.
@@ -47,5 +54,31 @@ namespace osu.Framework.Localisation
 
         public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Case overrides applicable to the underlying string data of a <see cref="LocalisableString"/>.
+    /// </summary>
+    public enum Casing
+    {
+        /// <summary>
+        /// Use the string data case.
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Transform the string data to uppercase.
+        /// </summary>
+        Uppercase,
+
+        /// <summary>
+        /// Transform the string data to title case aka capitalized case
+        /// </summary>
+        TitleCase,
+
+        /// <summary>
+        /// Transform the string data to lowercase.
+        /// </summary>
+        Lowercase
     }
 }
