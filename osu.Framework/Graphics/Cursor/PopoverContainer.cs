@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -16,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class PopoverContainer : CursorEffectContainer<PopoverContainer, IHasPopover>
+    public class PopoverContainer : Container
     {
         private readonly Container content;
         private readonly Container<Popover> popoverContainer;
@@ -39,11 +37,6 @@ namespace osu.Framework.Graphics.Cursor
                     AutoSizeAxes = Axes.Both
                 },
             };
-        }
-
-        protected override bool OnClick(ClickEvent e)
-        {
-            return SetTarget(FindTargets().FirstOrDefault());
         }
 
         /// <summary>

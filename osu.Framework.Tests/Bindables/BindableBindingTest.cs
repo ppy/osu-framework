@@ -511,6 +511,19 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(2, event2.NewValue);
         }
 
+        [Test]
+        public void TestCustomUnbindFromCalledFromUnbindAll()
+        {
+            var bindable1 = new Bindable<int>();
+            var bindable2 = new TestCustomBindable();
+
+            bindable2.BindTo(bindable1);
+            Assert.That(bindable2.IsBound, Is.True);
+
+            bindable2.UnbindAll();
+            Assert.That(bindable2.IsBound, Is.False);
+        }
+
         private class TestDrawable : Drawable
         {
             public bool ValueChanged;
@@ -568,6 +581,23 @@ namespace osu.Framework.Tests.Bindables
             {
                 // because we are run outside of a game instance but need the cached disposal methods.
                 Load(new FramedClock(), new DependencyContainer());
+            }
+        }
+
+        private class TestCustomBindable : Bindable<int>
+        {
+            public bool IsBound { get; private set; }
+
+            public override void BindTo(Bindable<int> them)
+            {
+                base.BindTo(them);
+                IsBound = true;
+            }
+
+            public override void UnbindFrom(IUnbindable them)
+            {
+                base.UnbindFrom(them);
+                IsBound = false;
             }
         }
     }
