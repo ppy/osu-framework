@@ -18,13 +18,14 @@ using osu.Framework.Utils;
 using osu.Framework.Text;
 using osuTK;
 using osuTK.Graphics;
+using osu.Framework.Graphics.Cursor;
 
 namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
     /// </summary>
-    public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
+    public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>, IHasTooltip
     {
         private const float default_text_size = 20;
         private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ' };
@@ -419,6 +420,26 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private string tooltipText;
+
+        /// <summary>
+        /// Tooltip text that shows when hovering this <see cref="SpriteText"/>.
+        /// </summary>
+        /// <remarks>
+        /// Cannot be set if <see cref="Truncate"/> is enabled because the tooltip will display the full <see cref="Text"/> when <see cref="TruncatingTextBuilder.EllipsisAdded"/> is true.
+        /// </remarks>
+        public string TooltipText
+        {
+            get => tooltipText;
+            set
+            {
+                if (Truncate)
+                    throw new InvalidOperationException($"Cannot set {nameof(TooltipText)} when {nameof(Truncate)} is enabled.");
+
+                tooltipText = value;
+            }
+        }
+
         public override bool IsPresent => base.IsPresent && (AlwaysPresent || !string.IsNullOrEmpty(displayedText));
 
         #region Characters
@@ -475,6 +496,9 @@ namespace osu.Framework.Graphics.Sprites
                 textBuilder.Reset();
                 textBuilder.AddText(displayedText);
                 textBounds = textBuilder.Bounds;
+
+                if (textBuilder is TruncatingTextBuilder)
+                    tooltipText = ((TruncatingTextBuilder)textBuilder).EllipsisAdded ? Text.ToString() : null;
             }
             finally
             {
