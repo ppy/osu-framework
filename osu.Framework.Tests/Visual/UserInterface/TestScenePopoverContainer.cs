@@ -191,37 +191,65 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestInteractiveContent() => createContent(button =>
+        public void TestInteractiveContent()
         {
-            TextBox textBox;
-
-            return new AnimatedPopover
+            createContent(button =>
             {
-                Child = new FillFlowContainer
+                TextBox textBox;
+
+                return new AnimatedPopover
                 {
-                    Direction = FillDirection.Vertical,
-                    Width = 200,
-                    AutoSizeAxes = Axes.Y,
-                    Spacing = new Vector2(5),
-                    Children = new Drawable[]
+                    Child = new FillFlowContainer
                     {
-                        textBox = new BasicTextBox
+                        Direction = FillDirection.Vertical,
+                        Width = 200,
+                        AutoSizeAxes = Axes.Y,
+                        Spacing = new Vector2(5),
+                        Children = new Drawable[]
                         {
-                            PlaceholderText = $"{button.Anchor} text box",
-                            Height = 30,
-                            RelativeSizeAxes = Axes.X
-                        },
-                        new BasicButton
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 30,
-                            Text = "Clear",
-                            Action = () => textBox.Text = string.Empty
+                            textBox = new BasicTextBox
+                            {
+                                PlaceholderText = $"{button.Anchor} text box",
+                                Height = 30,
+                                RelativeSizeAxes = Axes.X
+                            },
+                            new BasicButton
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 30,
+                                Text = "Clear",
+                                Action = () => textBox.Text = string.Empty
+                            }
                         }
                     }
-                }
-            };
-        });
+                };
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+
+            AddStep("click textbox", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<TextBox>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("textbox is focused", () => InputManager.FocusedDrawable is TextBox);
+            AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+            AddStep("click in popover", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().First().Body.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("textbox is not focused", () => InputManager.FocusedDrawable == null);
+            AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+        }
 
         [Test]
         public void TestAutomaticLayouting()
