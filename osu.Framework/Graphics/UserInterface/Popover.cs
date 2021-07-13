@@ -16,19 +16,22 @@ namespace osu.Framework.Graphics.UserInterface
     /// It typically is activated by another control and includes an arrow pointing to the location from which it emerged.
     /// (loosely paraphrasing: https://developer.apple.com/design/human-interface-guidelines/ios/views/popovers/)
     /// </summary>
-    public abstract class Popover : VisibilityContainer
+    public abstract class Popover : FocusedOverlayContainer
     {
+        protected override bool BlockPositionalInput => false; // not required as we only care about intercepting mouse down in certain cases.
+
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (!Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
-            {
-                this.HidePopover();
-            }
+            if (Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
+                return true;
 
+            this.HidePopover();
             return base.OnMouseDown(e);
         }
+
+        protected override bool OnClick(ClickEvent e) => Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
 
         /// <summary>
         /// The <see cref="Anchor"/> that this <see cref="Popover"/> is to be attached to the triggering UI control by.
@@ -57,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The background box of the popover.
         /// </summary>
-        protected Box Background { get; private set; }
+        protected Box Background { get; }
 
         /// <summary>
         /// The arrow of this <see cref="Popover"/>, pointing at the component which triggered it.
@@ -79,7 +82,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = new[]
                 {
                     Arrow = CreateArrow(),
-                    Body = new BodyContainer
+                    Body = new Container
                     {
                         AutoSizeAxes = Axes.Both,
                         Children = new Drawable[]
@@ -185,10 +188,5 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
-
-        protected class BodyContainer : Container
-        {
-            protected override bool Handle(UIEvent e) => true;
-        }
     }
 }

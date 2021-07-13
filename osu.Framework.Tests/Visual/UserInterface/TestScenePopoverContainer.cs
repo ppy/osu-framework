@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddAssert("textbox is not focused", () => InputManager.FocusedDrawable == null);
+            AddAssert("popover is focused", () => InputManager.FocusedDrawable is Popover);
             AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
         }
 
