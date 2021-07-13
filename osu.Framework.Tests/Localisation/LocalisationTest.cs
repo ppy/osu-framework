@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Tests.Localisation
@@ -240,6 +241,22 @@ namespace osu.Framework.Tests.Localisation
 
             config.SetValue(FrameworkSetting.Locale, "fr");
             Assert.AreEqual("janv. 0001", text.Value);
+        }
+
+        [Test]
+        public void TestLocalisableStringCasing()
+        {
+            const string localisable_string_en_uppercase = "LOCALISED EN";
+            const string localisable_string_en_title_case = "Localised EN";
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
+            var titleText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
+
+
+            Assert.AreEqual(uppercasedText.Value, localisable_string_en_uppercase);
+            Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
