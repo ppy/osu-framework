@@ -369,6 +369,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             public Popover GetPopover() => CreateContent.Invoke(this);
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                this.ShowPopover();
+                return true;
+            }
         }
 
         private class TextBoxWithPopover : BasicTextBox, IHasPopover

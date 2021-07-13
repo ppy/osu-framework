@@ -18,6 +18,18 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public abstract class Popover : VisibilityContainer
     {
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            if (!Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
+            {
+                this.HidePopover();
+            }
+
+            return base.OnMouseDown(e);
+        }
+
         /// <summary>
         /// The <see cref="Anchor"/> that this <see cref="Popover"/> is to be attached to the triggering UI control by.
         /// </summary>
@@ -176,8 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected class BodyContainer : Container
         {
-            protected override bool OnMouseDown(MouseDownEvent e) => true;
-            protected override bool OnClick(ClickEvent e) => true;
+            protected override bool Handle(UIEvent e) => true;
         }
     }
 }
