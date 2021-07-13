@@ -14,7 +14,7 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class PopoverContainer : CursorEffectContainer<PopoverContainer, IHasPopover>
+    public class PopoverContainer : Container
     {
         private readonly Container content;
         private readonly Container<Popover> popoverContainer;
