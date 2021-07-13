@@ -25,8 +25,8 @@ namespace osu.Framework.Localisation
             if (ReferenceEquals(null, xData))
                 return true;
 
-            if (x.Casing == y.Casing)
-                return true;
+            if (x.Casing != y.Casing)
+                return false;
 
             if (xData.GetType() != yData.GetType())
                 return EqualityComparer<object>.Default.Equals(xData, yData);
