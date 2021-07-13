@@ -14,6 +14,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -50,9 +51,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             RelativeSizeAxes = Axes.Both,
                             Padding = new MarginPadding(5),
-                            Child = gridContainer = new GridContainer
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both
+                                new ClickableContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            Colour = Color4.Blue,
+                                            RelativeSizeAxes = Axes.Both,
+                                        },
+                                        new TextFlowContainer
+                                        {
+                                            AutoSizeAxes = Axes.X,
+                                            TextAnchor = Anchor.TopCentre,
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Text = "click blocking container between\nPopover creator and PopoverContainer"
+                                        }
+                                    }
+                                },
+                                gridContainer = new GridContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both
+                                }
                             }
                         }
                     }
