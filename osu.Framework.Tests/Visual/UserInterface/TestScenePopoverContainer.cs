@@ -14,6 +14,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
+using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Framework.Tests.Visual.UserInterface
@@ -50,9 +51,33 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         {
                             RelativeSizeAxes = Axes.Both,
                             Padding = new MarginPadding(5),
-                            Child = gridContainer = new GridContainer
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both
+                                new ClickableContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            Colour = Color4.Blue,
+                                            RelativeSizeAxes = Axes.Both,
+                                        },
+                                        new TextFlowContainer
+                                        {
+                                            AutoSizeAxes = Axes.X,
+                                            TextAnchor = Anchor.TopCentre,
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Text = "click blocking container between\nPopover creator and PopoverContainer"
+                                        }
+                                    }
+                                },
+                                gridContainer = new GridContainer
+                                {
+                                    RelativeSizeAxes = Axes.Both
+                                }
                             }
                         }
                     }
@@ -71,7 +96,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestSimpleText()
+        public void TestShowHide()
         {
             createContent(button => new BasicPopover
             {
@@ -97,10 +122,39 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddStep("click away", () =>
             {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First().ScreenSpaceDrawQuad.BottomRight + new Vector2(10));
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+        }
+
+        [Test]
+        public void TestClickBetweenMultiple()
+        {
+            createContent(button => new BasicPopover
+            {
+                Name = button.Anchor.ToString(),
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("first shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.TopLeft.ToString());
+
+            AddStep("click last button", () =>
+            {
                 InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().Last());
                 InputManager.Click(MouseButton.Left);
             });
-            AddAssert("popover hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+
+            AddAssert("last shown", () => this.ChildrenOfType<Popover>().Single().Name == Anchor.BottomRight.ToString());
         }
 
         [Test]
@@ -137,37 +191,65 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
-        public void TestInteractiveContent() => createContent(button =>
+        public void TestInteractiveContent()
         {
-            TextBox textBox;
-
-            return new AnimatedPopover
+            createContent(button =>
             {
-                Child = new FillFlowContainer
+                TextBox textBox;
+
+                return new AnimatedPopover
                 {
-                    Direction = FillDirection.Vertical,
-                    Width = 200,
-                    AutoSizeAxes = Axes.Y,
-                    Spacing = new Vector2(5),
-                    Children = new Drawable[]
+                    Child = new FillFlowContainer
                     {
-                        textBox = new BasicTextBox
+                        Direction = FillDirection.Vertical,
+                        Width = 200,
+                        AutoSizeAxes = Axes.Y,
+                        Spacing = new Vector2(5),
+                        Children = new Drawable[]
                         {
-                            PlaceholderText = $"{button.Anchor} text box",
-                            Height = 30,
-                            RelativeSizeAxes = Axes.X
-                        },
-                        new BasicButton
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            Height = 30,
-                            Text = "Clear",
-                            Action = () => textBox.Text = string.Empty
+                            textBox = new BasicTextBox
+                            {
+                                PlaceholderText = $"{button.Anchor} text box",
+                                Height = 30,
+                                RelativeSizeAxes = Axes.X
+                            },
+                            new BasicButton
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 30,
+                                Text = "Clear",
+                                Action = () => textBox.Text = string.Empty
+                            }
                         }
                     }
-                }
-            };
-        });
+                };
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+
+            AddStep("click textbox", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<TextBox>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("textbox is focused", () => InputManager.FocusedDrawable is TextBox);
+            AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+            AddStep("click in popover", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().First().Body.ScreenSpaceDrawQuad.TopLeft + Vector2.One);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("popover is focused", () => InputManager.FocusedDrawable is Popover);
+            AddAssert("popover still shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+        }
 
         [Test]
         public void TestAutomaticLayouting()
@@ -340,6 +422,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
 
             public Popover GetPopover() => CreateContent.Invoke(this);
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                this.ShowPopover();
+                return true;
+            }
         }
 
         private class TextBoxWithPopover : BasicTextBox, IHasPopover
@@ -356,24 +444,13 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 this.HidePopover();
             }
 
-            public Popover GetPopover() => new NonFocusGrabbingPopover
+            public Popover GetPopover() => new BasicPopover
             {
                 Child = new SpriteText
                 {
                     Text = "the text box has focus now!"
                 }
             };
-        }
-
-        private class NonFocusGrabbingPopover : BasicPopover
-        {
-            protected override VisibilityContainer CreateBody() => new TestNonFocusGrabbingPopoverBody();
-
-            private class TestNonFocusGrabbingPopoverBody : VisibilityContainer
-            {
-                protected override void PopIn() => Show();
-                protected override void PopOut() => Hide();
-            }
         }
     }
 }

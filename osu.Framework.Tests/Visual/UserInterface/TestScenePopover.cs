@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         popoverAnchor |= (Anchor)((int)Anchor.x0 << i);
                         popoverAnchor |= (Anchor)((int)Anchor.y0 << j);
 
-                        var popover = new TestBasicPopover
+                        var popover = new BasicPopover
                         {
                             PopoverAnchor = popoverAnchor,
                             State = { Value = Visibility.Visible }
@@ -101,15 +101,5 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
-
-        private class TestBasicPopover : BasicPopover
-        {
-            protected override VisibilityContainer CreateBody() => new TestPopoverFocusedOverlayContainer();
-
-            private class TestPopoverFocusedOverlayContainer : PopoverFocusedOverlayContainer
-            {
-                public override bool HandlePositionalInput => false;
-            }
-        }
     }
 }
