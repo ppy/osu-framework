@@ -18,7 +18,7 @@ namespace osu.Framework.Localisation
         internal readonly object? Data;
 
         /// <summary>
-        /// The case override to apply to the underlying string data.
+        /// The case to apply to the underlying string data.
         /// </summary>
         public readonly Casing Casing;
 
@@ -32,7 +32,7 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
-        /// Creates a new <see cref="LocalisableString"/> with underlying localisable string data.
+        /// Creates a new <see cref="LocalisableString"/> with underlying localisable string data and specified case.
         /// </summary>
         public LocalisableString(ILocalisableStringData data, Casing casing = Casing.Default)
         {
@@ -57,7 +57,7 @@ namespace osu.Framework.Localisation
     }
 
     /// <summary>
-    /// Case overrides applicable to the underlying string data of a <see cref="LocalisableString"/>.
+    /// Case applicable to the underlying string data of a <see cref="LocalisableString"/>.
     /// </summary>
     public enum Casing
     {
