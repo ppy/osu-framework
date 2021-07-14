@@ -12,20 +12,20 @@ namespace osu.Framework.Extensions.LocalisationExtensions
         /// </summary>
         /// <param name="data">The string data.</param>
         /// <returns>A transformable string with its string data uppercased.</returns>
-        public static TransformableString ToUpper(this ILocalisableStringData data) => new TransformableString(data, Casing.UpperCase);
+        public static TransformableString ToUpper(this ILocalisableStringData data) => new TransformableString(new LocalisableString(data), Casing.UpperCase);
 
         /// <summary>
         /// Returns a <see cref="LocalisableString"/> with the specified underlying string data transformed to title case.
         /// </summary>
         /// <param name="data">The string data.</param>
         /// <returns>A transformable string with its string data transformed to title case.</returns>
-        public static TransformableString ToTitle(this ILocalisableStringData data) => new TransformableString(data, Casing.TitleCase);
+        public static TransformableString ToTitle(this ILocalisableStringData data) => new TransformableString(new LocalisableString(data), Casing.TitleCase);
 
         /// <summary>
         /// Returns a <see cref="LocalisableString"/> with the specified underlying string data lowercased.
         /// </summary>
         /// <param name="data">The string data.</param>
         /// <returns>A transformable string with its string data lowercased.</returns>
-        public static TransformableString ToLower(this ILocalisableStringData data) => new TransformableString(data, Casing.LowerCase);
+        public static TransformableString ToLower(this ILocalisableStringData data) => new TransformableString(new LocalisableString(data), Casing.LowerCase);
     }
 }

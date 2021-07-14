@@ -4,12 +4,10 @@
 using System;
 using System.Globalization;
 
-#nullable enable
-
 namespace osu.Framework.Localisation
 {
     /// <summary>
-    /// A string which can apply case transformations to underlying localisable string data.
+    /// A string which can apply case transformations to underlying localisable string.
     /// </summary>
     public class TransformableString : IEquatable<TransformableString>, ILocalisableStringData
     {
@@ -19,25 +17,25 @@ namespace osu.Framework.Localisation
         public readonly Casing Casing;
 
         /// <summary>
-        /// The underlying localisable string data of this transformable string.
+        /// The underlying localisable string of this transformable string.
         /// </summary>
-        public readonly ILocalisableStringData? Data;
+        public readonly LocalisableString String;
 
         /// <summary>
-        /// Constructs a new transformable string with specified underlying string data and casing.
+        /// Constructs a new transformable string with specified underlying localisable string and casing.
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="casing"></param>
-        public TransformableString(ILocalisableStringData data, Casing casing)
+        /// <param name="str">The localisable string to apply case transformations on.</param>
+        /// <param name="casing">The casing to use on the localisable string.</param>
+        public TransformableString(LocalisableString str, Casing casing)
         {
-            Data = data;
+            String = str;
             Casing = casing;
         }
 
         public string GetLocalised(LocalisationParameters parameters)
         {
-            var cultureText = parameters.Store?.EffectiveCulture?.TextInfo ?? CultureInfo.CurrentCulture.TextInfo;
-            var stringData = Data?.GetLocalised(parameters) ?? string.Empty;
+            var stringData = getStringData(parameters);
+            var cultureText = parameters.Store?.EffectiveCulture?.TextInfo ?? CultureInfo.InvariantCulture.TextInfo;
 
             switch (Casing)
             {
@@ -56,19 +54,36 @@ namespace osu.Framework.Localisation
             }
         }
 
-        public bool Equals(ILocalisableStringData? other) => other is TransformableString transformable && Equals(transformable);
+        public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
 
-        public bool Equals(TransformableString? other)
+        public bool Equals(ILocalisableStringData other) => other is TransformableString transformable && Equals(transformable);
+
+        public bool Equals(TransformableString other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Casing == other.Casing && Data == other.Data;
+            return Casing == other.Casing && String == other.String;
+        }
+
+        private string getStringData(LocalisationParameters localisationParameters)
+        {
+            switch (String.Data)
+            {
+                case string plain:
+                    return plain;
+
+                case ILocalisableStringData data:
+                    return data.GetLocalised(localisationParameters);
+
+                default:
+                    return string.Empty;
+            }
         }
     }
 
     /// <summary>
-    /// Case applicable to the underlying localisable string data of a <see cref="TransformableString"/>.
+    /// Case applicable to the underlying localisable string of a <see cref="TransformableString"/>.
     /// </summary>
     public enum Casing
     {
