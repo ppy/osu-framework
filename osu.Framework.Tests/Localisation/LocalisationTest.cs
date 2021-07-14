@@ -244,7 +244,7 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestLocalisableStringCasing()
+        public void TestTransformableString()
         {
             const string localisable_string_en_uppercase = "LOCALISED EN";
             const string localisable_string_en_title_case = "Localised EN";
