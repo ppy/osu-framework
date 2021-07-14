@@ -41,13 +41,13 @@ namespace osu.Framework.Localisation
 
             switch (Casing)
             {
-                case Casing.Uppercase:
+                case Casing.UpperCase:
                     return cultureText.ToUpper(stringData);
 
                 case Casing.TitleCase:
                     return cultureText.ToTitleCase(stringData);
 
-                case Casing.Lowercase:
+                case Casing.LowerCase:
                     return cultureText.ToLower(stringData);
 
                 case Casing.Default:
@@ -80,7 +80,7 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Transform the string data to uppercase.
         /// </summary>
-        Uppercase,
+        UpperCase,
 
         /// <summary>
         /// Transform the string data to title case aka capitalized case
@@ -90,6 +90,6 @@ namespace osu.Framework.Localisation
         /// <summary>
         /// Transform the string data to lowercase.
         /// </summary>
-        Lowercase
+        LowerCase
     }
 }
