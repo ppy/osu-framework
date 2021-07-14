@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -32,6 +33,19 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected override bool OnClick(ClickEvent e) => Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
+
+        public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                this.HidePopover();
+                return true;
+            }
+
+            return base.OnKeyDown(e);
+        }
 
         /// <summary>
         /// The <see cref="Anchor"/> that this <see cref="Popover"/> is to be attached to the triggering UI control by.

@@ -129,6 +129,28 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestHideViaKeyboard()
+        {
+            createContent(button => new BasicPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(this.ChildrenOfType<DrawableWithPopover>().First());
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+
+            AddStep("press Escape", () => InputManager.Key(Key.Escape));
+            AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+        }
+
+        [Test]
         public void TestClickBetweenMultiple()
         {
             createContent(button => new BasicPopover
