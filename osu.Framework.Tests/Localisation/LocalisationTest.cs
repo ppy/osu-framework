@@ -254,7 +254,6 @@ namespace osu.Framework.Tests.Localisation
             var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var titleText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
 
-
             Assert.AreEqual(uppercasedText.Value, localisable_string_en_uppercase);
             Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
         }
