@@ -185,7 +185,7 @@ namespace osu.Framework.Tests.Visual.Audio
 
     public class ChannelStrip : CompositeDrawable
     {
-        public int Handle { get; set; }
+        public new int Handle { get; set; }
         public int BuffSize = 30;
         public bool IsMixChannel { get; set; } = true;
 
