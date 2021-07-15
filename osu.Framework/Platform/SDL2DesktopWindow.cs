@@ -283,7 +283,7 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        private Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
+        private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
         /// <summary>
         /// The <see cref="DisplayMode"/> for the display that this window is currently on.
