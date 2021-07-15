@@ -612,6 +612,9 @@ namespace osu.Framework.Platform
 
                     Window.Create();
 
+                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
                     IsActive.BindTo(Window.IsActive);
                 }
 
@@ -788,6 +791,8 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
+        private IBindable<DisplayMode> currentDisplayMode;
+
         private Bindable<string> ignoredInputHandlers;
 
         private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
@@ -822,52 +827,7 @@ namespace osu.Framework.Platform
             executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-            frameSyncMode.ValueChanged += e =>
-            {
-                if (Window == null)
-                    return;
-
-                float refreshRate = Window.CurrentDisplayMode.RefreshRate;
-
-                // For invalid refresh rates let's assume 60 Hz as it is most common.
-                if (refreshRate <= 0)
-                    refreshRate = 60;
-
-                float drawLimiter = refreshRate;
-                float updateLimiter = drawLimiter * 2;
-
-                setVSyncMode();
-
-                switch (e.NewValue)
-                {
-                    case FrameSync.VSync:
-                        drawLimiter = int.MaxValue;
-                        updateLimiter *= 2;
-                        break;
-
-                    case FrameSync.Limit2x:
-                        drawLimiter *= 2;
-                        updateLimiter *= 2;
-                        break;
-
-                    case FrameSync.Limit4x:
-                        drawLimiter *= 4;
-                        updateLimiter *= 4;
-                        break;
-
-                    case FrameSync.Limit8x:
-                        drawLimiter *= 8;
-                        updateLimiter *= 8;
-                        break;
-
-                    case FrameSync.Unlimited:
-                        drawLimiter = updateLimiter = int.MaxValue;
-                        break;
-                }
-
-                MaximumDrawHz = drawLimiter;
-                MaximumUpdateHz = updateLimiter;
-            };
+            frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
 
 #pragma warning disable 618
             // pragma region can be removed 20210911
@@ -920,6 +880,53 @@ namespace osu.Framework.Platform
 
             // intentionally done after everything above to ensure the new configuration location has priority over obsoleted values.
             Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
+        }
+
+        private void updateFrameSyncMode()
+        {
+            if (Window == null)
+                return;
+
+            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+
+            // For invalid refresh rates let's assume 60 Hz as it is most common.
+            if (refreshRate <= 0)
+                refreshRate = 60;
+
+            float drawLimiter = refreshRate;
+            float updateLimiter = drawLimiter * 2;
+
+            setVSyncMode();
+
+            switch (frameSyncMode.Value)
+            {
+                case FrameSync.VSync:
+                    drawLimiter = int.MaxValue;
+                    updateLimiter *= 2;
+                    break;
+
+                case FrameSync.Limit2x:
+                    drawLimiter *= 2;
+                    updateLimiter *= 2;
+                    break;
+
+                case FrameSync.Limit4x:
+                    drawLimiter *= 4;
+                    updateLimiter *= 4;
+                    break;
+
+                case FrameSync.Limit8x:
+                    drawLimiter *= 8;
+                    updateLimiter *= 8;
+                    break;
+
+                case FrameSync.Unlimited:
+                    drawLimiter = updateLimiter = int.MaxValue;
+                    break;
+            }
+
+            MaximumDrawHz = drawLimiter;
+            MaximumUpdateHz = updateLimiter;
         }
 
         private void setVSyncMode()
