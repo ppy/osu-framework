@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Runtime.CompilerServices;
+using ObjCRuntime;
 
 // We publish our internal attributes to other sub-projects of the framework.
 // Note, that we omit visual tests as they are meant to test the framework
@@ -9,3 +10,13 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("osu.Framework.Tests")]
 [assembly: InternalsVisibleTo("osu.Framework.Tests.Dynamic")]
+
+[assembly: LinkWith("libavcodec.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libavdevice.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libavfilter.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libavformat.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libavutil.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libbass.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libbass_fx.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libswresample.a", SmartLink = false, ForceLoad = true)]
+[assembly: LinkWith("libswscale.a", SmartLink = false, ForceLoad = true)]
