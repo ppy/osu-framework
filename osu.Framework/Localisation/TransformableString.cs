@@ -63,7 +63,7 @@ namespace osu.Framework.Localisation
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            return Casing == other.Casing && String == other.String;
+            return Casing == other.Casing && String.Equals(other.String);
         }
 
         private string getStringData(LocalisationParameters localisationParameters)
