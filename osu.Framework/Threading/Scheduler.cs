@@ -16,6 +16,11 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler
     {
+        /// <summary>
+        /// A synchronisation context which posts all continuatiuons to this scheduler instance.
+        /// </summary>
+        public readonly SynchronizationContext SynchronizationContext;
+
         private readonly Queue<ScheduledDelegate> runQueue = new Queue<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
@@ -41,11 +46,10 @@ namespace osu.Framework.Threading
         /// The base thread is assumed to be the thread on which the constructor is run.
         /// </summary>
         public Scheduler()
+            : this(null, new StopwatchClock(true))
         {
-            var currentThread = Thread.CurrentThread;
-            isCurrentThread = () => Thread.CurrentThread == currentThread;
-
-            clock = new StopwatchClock(true);
+            var constructedThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == constructedThread;
         }
 
         /// <summary>
@@ -55,6 +59,7 @@ namespace osu.Framework.Threading
         {
             this.isCurrentThread = isCurrentThread;
             this.clock = clock;
+            SynchronizationContext = new SchedulerSynchronizationContext(this);
         }
 
         public void UpdateClock(IClock newClock)

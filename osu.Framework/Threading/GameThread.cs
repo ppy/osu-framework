@@ -267,6 +267,8 @@ namespace osu.Framework.Threading
         internal virtual void MakeCurrent()
         {
             ThreadSafety.ResetAllForCurrentThread();
+
+            SynchronizationContext.SetSynchronizationContext(Scheduler.SynchronizationContext);
         }
 
         /// <summary>
