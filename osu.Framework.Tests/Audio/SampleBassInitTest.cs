@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
@@ -18,6 +19,7 @@ namespace osu.Framework.Tests.Audio
         private DllResourceStore resources;
         private SampleBassFactory sampleFactory;
         private Sample sample;
+        private AudioMixer mixer;
 
         [SetUp]
         public void Setup()
@@ -35,8 +37,11 @@ namespace osu.Framework.Tests.Audio
             {
             }
 
+            mixer = new AudioMixer();
+            mixer.Init();
+
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
+            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
             sample = sampleFactory.CreateSample();
 
             updateSample();
