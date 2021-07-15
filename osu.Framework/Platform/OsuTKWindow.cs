@@ -90,12 +90,12 @@ namespace osu.Framework.Platform
         /// as it defers to the current resolution. Note that we round the refresh rate, as osuTK can sometimes
         /// report refresh rates such as 59.992863 where SDL2 will report 60.
         /// </summary>
-        public virtual DisplayMode CurrentDisplayMode
+        public virtual IBindable<DisplayMode> CurrentDisplayMode
         {
             get
             {
                 var display = CurrentDisplayDevice;
-                return new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0, 0);
+                return new Bindable<DisplayMode>(new DisplayMode(null, new Size(display.Width, display.Height), display.BitsPerPixel, (int)Math.Round(display.RefreshRate), 0, 0));
             }
         }
 
