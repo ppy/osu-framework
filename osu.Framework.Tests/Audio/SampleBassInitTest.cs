@@ -24,6 +24,8 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
+            AudioThread.PreloadBass();
+
             try
             {
                 // Make sure that the audio device is not initialised.
@@ -38,7 +40,6 @@ namespace osu.Framework.Tests.Audio
             }
 
             mixer = new AudioMixer();
-            mixer.Init();
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
             sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
@@ -46,7 +47,10 @@ namespace osu.Framework.Tests.Audio
 
             updateSample();
 
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
+
+            mixer.Init();
         }
 
         [TearDown]
@@ -68,7 +72,11 @@ namespace osu.Framework.Tests.Audio
             Assert.That(sample.IsLoaded, Is.True);
         }
 
-        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
+        private void updateSample() => runOnAudioThread(() =>
+        {
+            mixer.Update();
+            sampleFactory.Update();
+        });
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

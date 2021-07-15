@@ -19,12 +19,7 @@ namespace osu.Framework.Threading
             : base(name: "Audio")
         {
             OnNewFrame += onNewFrame;
-
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            {
-                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
-                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-            }
+            PreloadBass();
         }
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
@@ -136,6 +131,18 @@ namespace osu.Framework.Threading
                 Bass.CurrentDevice = lastDevice;
 
             initialised_devices.Remove(deviceId);
+        }
+
+        /// <summary>
+        /// Makes BASS available to be consumed.
+        /// </summary>
+        internal static void PreloadBass()
+        {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
         }
     }
 }
