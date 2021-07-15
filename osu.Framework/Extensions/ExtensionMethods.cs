@@ -59,7 +59,8 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
+        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
