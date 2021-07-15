@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Events;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -28,20 +29,33 @@ namespace osu.Framework.Graphics.UserInterface
             this.validFileExtensions = validFileExtensions ?? Array.Empty<string>();
         }
 
-        protected override IEnumerable<DirectorySelectorItem> GetEntriesForPath(DirectoryInfo path)
+        protected override bool TryGetEntriesForPath(DirectoryInfo path, out ICollection<DirectorySelectorItem> items)
         {
-            foreach (var dir in base.GetEntriesForPath(path))
-                yield return dir;
+            items = new List<DirectorySelectorItem>();
 
-            IEnumerable<FileInfo> files = path.GetFiles();
+            if (!base.TryGetEntriesForPath(path, out var directories))
+                return false;
 
-            if (validFileExtensions.Length > 0)
-                files = files.Where(f => validFileExtensions.Contains(f.Extension));
+            items = directories;
 
-            foreach (var file in files.OrderBy(d => d.Name))
+            try
             {
-                if ((file.Attributes & FileAttributes.Hidden) == 0)
-                    yield return CreateFileItem(file);
+                IEnumerable<FileInfo> files = path.GetFiles();
+
+                if (validFileExtensions.Length > 0)
+                    files = files.Where(f => validFileExtensions.Contains(f.Extension));
+
+                foreach (var file in files.OrderBy(d => d.Name))
+                {
+                    if (!file.Attributes.HasFlagFast(FileAttributes.Hidden))
+                        items.Add(CreateFileItem(file));
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 

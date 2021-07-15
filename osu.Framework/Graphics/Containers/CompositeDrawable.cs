@@ -567,6 +567,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal void AddRangeInternal(IEnumerable<Drawable> range)
         {
+            if (range is IContainerEnumerable<Drawable>)
+            {
+                throw new InvalidOperationException($"Attempting to add a {nameof(IContainer)} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<Drawable>.Children)} property instead.");
+            }
+
             foreach (Drawable d in range)
                 AddInternal(d);
         }
@@ -811,8 +817,15 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UnbindAllBindablesSubTree();
 
-            foreach (Drawable child in internalChildren)
+            // TODO: this code can potentially be run from an update thread while a drawable is still loading (see ScreenStack as an example).
+            // while this is quite a bad issue, it is rare and generally happens in tests which have frame perfect behaviours.
+            // as such, for loop is used here intentionally to avoid collection modified exceptions for this (usually) non-critical failure.
+            // see https://github.com/ppy/osu-framework/issues/4054.
+            for (var i = 0; i < internalChildren.Count; i++)
+            {
+                Drawable child = internalChildren[i];
                 child.UnbindAllBindablesSubTree();
+            }
         }
 
         /// <summary>

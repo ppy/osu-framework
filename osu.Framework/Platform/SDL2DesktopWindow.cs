@@ -385,6 +385,8 @@ namespace osu.Framework.Platform
                 updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
                 updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
             };
+
+            populateJoysticks();
         }
 
         /// <summary>
@@ -432,10 +434,7 @@ namespace osu.Framework.Platform
 
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-                    // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
                     updateWindowSize();
-                    return 0;
                 }
 
                 return 1;
@@ -476,11 +475,14 @@ namespace osu.Framework.Platform
         private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
-
             SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
-            Scale = (float)w / actualW;
 
+            Scale = (float)w / actualW;
             Size = new Size(w, h);
+
+            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
+            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
+            eventScheduler.Add(storeWindowSizeToConfig, true);
         }
 
         /// <summary>
@@ -707,10 +709,7 @@ namespace osu.Framework.Platform
             switch (evtCdevice.type)
             {
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
-                    var joystick = SDL.SDL_GameControllerGetJoystick(controller);
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+                    addJoystick(evtCdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -745,19 +744,40 @@ namespace osu.Framework.Platform
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
+        private void addJoystick(int which)
+        {
+            var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
+
+            // if the joystick is already opened, ignore it
+            if (controllers.ContainsKey(instanceID))
+                return;
+
+            var joystick = SDL.SDL_JoystickOpen(which);
+
+            var controller = IntPtr.Zero;
+            if (SDL.SDL_IsGameController(which) == SDL.SDL_bool.SDL_TRUE)
+                controller = SDL.SDL_GameControllerOpen(which);
+
+            controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+        }
+
+        /// <summary>
+        /// Populates <see cref="controllers"/> with joysticks that are already connected.
+        /// </summary>
+        private void populateJoysticks()
+        {
+            for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
+            {
+                addJoystick(i);
+            }
+        }
+
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
             switch (evtJdevice.type)
             {
                 case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
-
-                    // if the joystick is already opened, ignore it
-                    if (controllers.ContainsKey(instanceID))
-                        break;
-
-                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, IntPtr.Zero);
+                    addJoystick(evtJdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
@@ -894,9 +914,6 @@ namespace osu.Framework.Platform
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     updateWindowSize();
-                    if (WindowState == WindowState.Normal)
-                        storeWindowSizeToConfig();
-
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
@@ -1004,6 +1021,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -1065,6 +1083,9 @@ namespace osu.Framework.Platform
 
         private void storeWindowSizeToConfig()
         {
+            if (WindowState != WindowState.Normal)
+                return;
+
             storingSizeToConfig = true;
             sizeWindowed.Value = (Size / Scale).ToSize();
             storingSizeToConfig = false;

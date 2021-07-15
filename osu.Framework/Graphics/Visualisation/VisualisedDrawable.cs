@@ -145,8 +145,8 @@ namespace osu.Framework.Graphics.Visualisation
                             Position = new Vector2(24, 0),
                             Children = new Drawable[]
                             {
-                                text = new SpriteText(),
-                                text2 = new SpriteText()
+                                text = new SpriteText { Font = FrameworkFont.Regular },
+                                text2 = new SpriteText { Font = FrameworkFont.Regular },
                             }
                         },
                     }

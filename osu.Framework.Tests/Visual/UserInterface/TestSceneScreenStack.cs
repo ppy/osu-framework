@@ -240,6 +240,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             AddStep("push once", () => stack.Push(screen1 = new TestScreen()));
+            AddUntilStep("wait for screen to be loaded", () => screen1.IsLoaded);
             AddStep("exit", () => screen1.Exit());
             AddStep("push again fails", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
             AddAssert("stack in valid state", () => stack.CurrentScreen == baseScreen);
@@ -869,6 +870,22 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("screen3 exited to screen2", () => screen3.ExitedTo == screen2);
             AddAssert("screen2 resumed from screen3", () => screen2.ResumedFrom == screen3);
+        }
+
+        [Test]
+        public void TestGetChildScreenAndGetParentScreenReturnNullWhenNotInStack()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("exit from screen 3", () => screen3.Exit());
+            AddAssert("screen 3 parent is null", () => screen3.GetParentScreen() == null);
+            AddAssert("screen 3 child is null", () => screen3.GetChildScreen() == null);
         }
 
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)

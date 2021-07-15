@@ -112,12 +112,12 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 // We need to dispose the content, taking into account what we know at this point in time:
-                // 1: The DLUW has not been disposed. Consequently, neither has the content.
+                // 1: The wrapper has not been disposed. Consequently, neither has the content.
                 // 2: The content has finished loading.
-                // 3: The content may not have been added to the hierarchy (e.g. if this DLUW is hidden). This is dependent upon the value of DelayedLoadCompleted.
+                // 3: The content may not have been added to the hierarchy (e.g. if this wrapper is hidden). This is dependent upon the value of DelayedLoadCompleted.
                 if (DelayedLoadCompleted)
                 {
-                    Debug.Assert(Content.LoadState == LoadState.Loaded);
+                    Debug.Assert(Content.LoadState >= LoadState.Ready);
                     ClearInternal(); // Content added, remove AND dispose.
                 }
                 else
@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // This has two important roles:
                 // 1. Stopping this delegate from executing multiple times.
-                // 2. If DelayedLoadCompleted = false (content not yet added to hierarchy), prevents the now disposed content from being added (e.g. if this DLUW becomes visible again).
+                // 2. If DelayedLoadCompleted = false (content not yet added to hierarchy), prevents the now disposed content from being added (e.g. if this wrapper becomes visible again).
                 CancelTasks();
 
                 // And finally, allow another load to take place.

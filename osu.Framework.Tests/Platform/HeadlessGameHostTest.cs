@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -12,6 +13,24 @@ namespace osu.Framework.Tests.Platform
     [TestFixture]
     public class HeadlessGameHostTest
     {
+        [Test]
+        public void TestGameHostExceptionDuringSetupHost()
+        {
+            using (var host = new ExceptionDuringSetupGameHost(nameof(TestGameHostExceptionDuringSetupHost)))
+            {
+                Assert.Throws<InvalidOperationException>(() => host.Run(new TestGame()));
+            }
+        }
+
+        [Test]
+        public void TestGameHostDisposalWhenNeverRun()
+        {
+            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            {
+                // never call host.Run()
+            }
+        }
+
         [Test]
         public void TestIpc()
         {
@@ -48,6 +67,20 @@ namespace osu.Framework.Tests.Platform
         private class Foobar
         {
             public string Bar;
+        }
+
+        public class ExceptionDuringSetupGameHost : HeadlessGameHost
+        {
+            public ExceptionDuringSetupGameHost(string gameName)
+                : base(gameName)
+            {
+            }
+
+            protected override void SetupForRun()
+            {
+                base.SetupForRun();
+                throw new InvalidOperationException();
+            }
         }
     }
 }

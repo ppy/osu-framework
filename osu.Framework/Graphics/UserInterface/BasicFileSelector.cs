@@ -58,6 +58,11 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
             }
+
+            protected override SpriteText CreateSpriteText() => new SpriteText
+            {
+                Font = FrameworkFont.Regular.With(size: FONT_SIZE)
+            };
         }
     }
 }

@@ -1080,10 +1080,9 @@ namespace osu.Framework.Graphics
         private Anchor origin = Anchor.TopLeft;
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable.
-        /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
-        /// or a fixed absolute position via <see cref="OriginPosition"/>.
+        /// The origin of this <see cref="Drawable"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">If the provided value does not exist in the <see cref="osu.Framework.Graphics.Anchor"/> enumeration.</exception>
         public virtual Anchor Origin
         {
             get => origin;
@@ -1102,10 +1101,9 @@ namespace osu.Framework.Graphics
         private Vector2 customOrigin;
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable
-        /// in relative coordinates expressed in the coordinate system with origin at the
-        /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
+        /// The origin of this <see cref="Drawable"/> expressed in relative coordinates from the top-left corner of <see cref="DrawRectangle"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">If <see cref="Origin"/> is <see cref="osu.Framework.Graphics.Anchor.Custom"/>.</exception>
         public Vector2 RelativeOriginPosition
         {
             get
@@ -1129,10 +1127,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// The origin of the local coordinate system of this Drawable
-        /// in absolute coordinates expressed in the coordinate system with origin at the
-        /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
+        /// The origin of this <see cref="Drawable"/> expressed in absolute coordinates from the top-left corner of <see cref="DrawRectangle"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">If the provided value is not finite.</exception>
         public virtual Vector2 OriginPosition
         {
             get
@@ -2413,6 +2410,7 @@ namespace osu.Framework.Graphics
                 typeof(IHasTooltip),
                 typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
+                typeof(IHasPopover),
             };
 
             private static readonly Type[] non_positional_input_interfaces =

@@ -37,9 +37,15 @@ namespace osu.Framework.Graphics.Performance
         }
 
         /// <summary>
-        /// Invoked when <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> is going to be changed.
+        /// Invoked before <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
+        /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensure comparator stability.
         /// </summary>
         internal event Action<LifetimeEntry> RequestLifetimeUpdate;
+
+        /// <summary>
+        /// Invoked after <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
+        /// </summary>
+        public event Action<LifetimeEntry> LifetimeChanged;
 
         /// <summary>
         /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry"/>.
@@ -70,6 +76,8 @@ namespace osu.Framework.Graphics.Performance
 
             lifetimeStart = start;
             lifetimeEnd = Math.Max(start, end); // Negative intervals are undesired.
+
+            LifetimeChanged?.Invoke(this);
         }
 
         /// <summary>

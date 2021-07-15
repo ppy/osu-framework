@@ -28,6 +28,33 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestNoLanguagesAdded()
+        {
+            // reinitialise without the default language
+            manager = new LocalisationManager(config);
+
+            var localisedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
+        }
+
+        [Test]
+        public void TestConfigSettingRetainedWhenAddingNewLanguage()
+        {
+            config.SetValue(FrameworkSetting.Locale, "ja-JP");
+
+            // ensure that adding a new language which doesn't match the user's choice doesn't cause the configuration value to get reset.
+            manager.AddLanguage("po", new FakeStorage("po-OP"));
+            Assert.AreEqual("ja-JP", config.Get<string>(FrameworkSetting.Locale));
+
+            var localisedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_EN, localisedText.Value);
+
+            // ensure that if the user's selection is added in a further AddLanguage call, the manager correctly translates strings.
+            manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
+            Assert.AreEqual(FakeStorage.LOCALISABLE_STRING_JA_JP, localisedText.Value);
+        }
+
+        [Test]
         public void TestNotLocalised()
         {
             manager.AddLanguage("ja-JP", new FakeStorage("ja-JP"));
@@ -193,6 +220,26 @@ namespace osu.Framework.Tests.Localisation
 
             config.SetValue(FrameworkSetting.ShowUnicode, true);
             Assert.AreEqual(non_unicode_fallback, text.Value);
+        }
+
+        /// <summary>
+        /// This tests the <see cref="LocalisableFormattableString"/>, which allows for formatting <see cref="IFormattable"/>s,
+        /// without necessarily being in a <see cref="TranslatableString"/> which requires keys mapping to strings from localistaion stores.
+        /// </summary>
+        [Test]
+        public void TestLocalisableFormattableString()
+        {
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var dateTime = new DateTime(1);
+            const string format = "MMM yyyy";
+
+            var text = manager.GetLocalisedString(new LocalisableFormattableString(dateTime, format));
+
+            Assert.AreEqual("Jan 0001", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+            Assert.AreEqual("janv. 0001", text.Value);
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager

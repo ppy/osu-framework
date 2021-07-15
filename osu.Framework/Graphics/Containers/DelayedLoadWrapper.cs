@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
+            // The callback is run on the game's scheduler since DelayedLoadUnloadWrapper needs to unload when no updates are being received.
             LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler, cancellation: cancellationTokenSource.Token);
         }
 
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
         {
             timeVisible = 0;
 
-            // This code is running on the game's scheduler, while this DLW may have been async disposed, so the addition is scheduled locally to prevent adding to disposed DLWs.
+            // This code is running on the game's scheduler, while this wrapper may have been async disposed, so the addition is scheduled locally to prevent adding to disposed wrappers.
             scheduledAddition = Schedule(() =>
             {
                 AddInternal(content);

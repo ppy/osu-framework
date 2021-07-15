@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Performance
             // Entries in the past/future sets need to be re-sorted to prevent the comparer from becoming unstable.
             // To prevent, e.g. CompositeDrawable alive children changing during enumeration, the entry's state must not be updated immediately.
             //
-            // In order to achieve the above, the entry is first removed from the past/future set (resolving the comparer stability issues)
+            // In order to achieve the above, the entry is first removed from the past/future set (resolving the comparator stability issues)
             // and then re-queued back onto the new entries list to be re-processed in the next Update().
             //
             // Note that this does not apply to entries that are in the current set, as they don't utilise a lifetime comparer.

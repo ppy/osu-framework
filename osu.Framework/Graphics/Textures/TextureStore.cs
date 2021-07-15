@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Textures
             if (useAtlas)
             {
                 int size = Math.Min(max_atlas_size, GLWrapper.MaxTextureSize);
-                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode);
+                Atlas = new TextureAtlas(size, size, filteringMode: filteringMode, manualMipmaps: manualMipmaps);
             }
         }
 

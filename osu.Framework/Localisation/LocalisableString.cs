@@ -13,11 +13,25 @@ namespace osu.Framework.Localisation
     public readonly struct LocalisableString : IEquatable<LocalisableString>
     {
         /// <summary>
-        /// The underlying data, can be <see cref="string"/>, <see cref="TranslatableString"/>, or <see cref="RomanisableString"/>.
+        /// The underlying data.
         /// </summary>
         internal readonly object? Data;
 
-        private LocalisableString(object data) => Data = data;
+        /// <summary>
+        /// Creates a new <see cref="LocalisableString"/> with underlying string data.
+        /// </summary>
+        public LocalisableString(string data)
+        {
+            Data = data;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="LocalisableString"/> with underlying localisable string data.
+        /// </summary>
+        public LocalisableString(ILocalisableStringData data)
+        {
+            Data = data;
+        }
 
         // it's somehow common to call default(LocalisableString), and we should return empty string then.
         public override string ToString() => Data?.ToString() ?? string.Empty;
@@ -29,6 +43,7 @@ namespace osu.Framework.Localisation
         public static implicit operator LocalisableString(string text) => new LocalisableString(text);
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
         public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
+        public static implicit operator LocalisableString(LocalisableFormattableString formattable) => new LocalisableString(formattable);
 
         public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);

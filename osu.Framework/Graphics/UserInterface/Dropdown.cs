@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
             foreach (var entry in items)
                 addDropdownItem(GenerateItemText(entry), entry);
 
-            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
+            if (Current.Value == null || !itemMap.Keys.Contains(Current.Value, EqualityComparer<T>.Default))
                 Current.Value = itemMap.Keys.FirstOrDefault();
             else
                 Current.TriggerChange();
@@ -162,7 +162,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return t.Text;
 
                 case Enum e:
-                    return e.GetDescription();
+                    return e.GetLocalisableDescription();
 
                 default:
                     return item?.ToString() ?? "null";

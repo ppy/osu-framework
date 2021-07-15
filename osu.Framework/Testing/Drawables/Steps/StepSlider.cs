@@ -10,6 +10,7 @@ using System;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Input.Events;
+using osuTK.Input;
 
 namespace osu.Framework.Testing.Drawables.Steps
 {
@@ -64,19 +65,22 @@ namespace osu.Framework.Testing.Drawables.Steps
             currentNumber.SetDefault();
         }
 
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            // Reset value via right click. This shouldn't happen if a drag (via left button) is in progress.
+            if (!IsDragged && e.Button == MouseButton.Right)
+            {
+                Current.SetDefault();
+                Flash();
+                Reset();
+            }
+
+            return base.OnMouseDown(e);
+        }
+
         protected override void OnDragEnd(DragEndEvent e)
         {
-            var flash = new Box
-            {
-                RelativeSizeAxes = Axes.Both,
-                Colour = Color4.RoyalBlue,
-                Blending = BlendingParameters.Additive,
-                Alpha = 0.6f,
-            };
-
-            Add(flash);
-            flash.FadeOut(200).Expire();
-
+            Flash();
             Success();
             base.OnDragEnd(e);
         }
@@ -88,6 +92,27 @@ namespace osu.Framework.Testing.Drawables.Steps
             ValueChanged?.Invoke(value);
             spriteText.Text = $"{text}: {Convert.ToDouble(value):G3}";
             selection.ResizeWidthTo(normalizedValue);
+        }
+
+        protected void Flash()
+        {
+            var flash = new Box
+            {
+                RelativeSizeAxes = Axes.Both,
+                Colour = Color4.RoyalBlue,
+                Blending = BlendingParameters.Additive,
+                Alpha = 0.6f,
+            };
+
+            Add(flash);
+            flash.FadeOut(200).Expire();
+        }
+
+        protected void Reset()
+        {
+            background.Alpha = 1f;
+            selection.Alpha = 1f;
+            spriteText.Alpha = 1f;
         }
 
         protected void Success()

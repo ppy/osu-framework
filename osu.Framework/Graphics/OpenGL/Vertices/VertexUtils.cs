@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     /// <summary>
     /// Helper method that provides functionality to enable and bind vertex attributes.
     /// </summary>
-    internal static class VertexUtils<T>
+    public static class VertexUtils<T>
         where T : struct, IVertex
     {
         /// <summary>

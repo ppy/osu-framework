@@ -31,7 +31,7 @@ Build configurations for the recommended IDEs (listed above) are included. You s
 
 ### Code analysis
 
-Code analysis can be run with `powershell ./build.ps1` or `build.sh`. This is currently only supported under windows due to [resharper cli shortcomings](https://youtrack.jetbrains.com/issue/RSRP-410004). Alternatively, you can install resharper or use rider to get inline support in your IDE of choice.
+Code analysis can be run with `powershell ./InspectCode.ps1` or `InspectCode.sh`.
 
 ## Contributing
 

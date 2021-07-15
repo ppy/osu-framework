@@ -19,6 +19,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
+using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -84,7 +85,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// A queue from which a maximum of one operation is invoked per draw frame.
         /// </summary>
-        private static readonly ConcurrentQueue<Action> expensive_operation_queue = new ConcurrentQueue<Action>();
+        private static readonly ConcurrentQueue<ScheduledDelegate> expensive_operation_queue = new ConcurrentQueue<ScheduledDelegate>();
 
         private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
 
@@ -145,8 +146,15 @@ namespace osu.Framework.Graphics.OpenGL
             reset_scheduler.Update();
 
             stat_expensive_operations_queued.Value = expensive_operation_queue.Count;
-            if (expensive_operation_queue.TryDequeue(out Action action))
-                action.Invoke();
+
+            while (expensive_operation_queue.TryDequeue(out ScheduledDelegate operation))
+            {
+                if (operation.State == RunState.Waiting)
+                {
+                    operation.RunTask();
+                    break;
+                }
+            }
 
             lastActiveBatch = null;
             lastBlendingParameters = new BlendingParameters();
@@ -309,13 +317,13 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         /// <summary>
-        /// Enqueues the compile of a shader.
+        /// Schedules an expensive operation to a queue from which a maximum of one operation is performed per frame.
         /// </summary>
-        /// <param name="shader">The shader to compile.</param>
-        public static void EnqueueShaderCompile(Shader shader)
+        /// <param name="operation">The operation to schedule.</param>
+        public static void ScheduleExpensiveOperation(ScheduledDelegate operation)
         {
             if (host != null)
-                expensive_operation_queue.Enqueue(shader.EnsureLoaded);
+                expensive_operation_queue.Enqueue(operation);
         }
 
         private static readonly int[] last_bound_buffers = new int[2];
@@ -833,6 +841,11 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 FlushCurrentBatch();
                 GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+
+                // Speculative fix for macOS crashes (see: http://crbug.com/1181068, http://crbug.com/783979, https://github.com/google/angle/commit/ce89d99fdeda61d9bc88fc7abd2aa3b4666d770e).
+                if (RuntimeInfo.OS == RuntimeInfo.Platform.macOS)
+                    GL.Flush();
+
                 GlobalPropertyManager.Set(GlobalProperty.BackbufferDraw, UsingBackbuffer);
             }
 
