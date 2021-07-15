@@ -185,7 +185,10 @@ namespace osu.Framework.Tests.Visual.Audio
 
     public class ChannelStrip : CompositeDrawable
     {
+#pragma warning disable 109 // Broken in Resharper 2021.1.3 (fixed in 2021.2)
         public new int Handle { get; set; }
+#pragma warning restore 109
+
         public int BuffSize = 30;
         public bool IsMixChannel { get; set; } = true;
 
