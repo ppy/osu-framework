@@ -246,7 +246,6 @@ namespace osu.Framework.Tests.Localisation
         [Test]
         public void TestTransformableString()
         {
-            const string localisable_string_en_uppercase = "LOCALISED EN";
             const string localisable_string_en_title_case = "Localised EN";
 
             config.SetValue(FrameworkSetting.Locale, "en");
@@ -254,8 +253,32 @@ namespace osu.Framework.Tests.Localisation
             var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
             var titleText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
 
-            Assert.AreEqual(uppercasedText.Value, localisable_string_en_uppercase);
+            Assert.AreEqual(uppercasedText.Value, FakeStorage.LOCALISABLE_STRING_EN_UPPERCASED);
             Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
+        }
+
+        [Test]
+        public void TestTransformableStringNonEnglishCultureCasing()
+        {
+            const string localisable_string_en_lowercase = "localised en";
+            string localisedUppercasedTrCultureString = FakeStorage.LOCALISABLE_STRING_EN.ToUpper(new CultureInfo("tr"));
+            string localisedLowercasedTrCultureString = FakeStorage.LOCALISABLE_STRING_EN.ToLower(new CultureInfo("tr"));
+
+            manager.AddLanguage("tr", new FakeStorage("tr"));
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
+            Assert.AreEqual(uppercasedText.Value, FakeStorage.LOCALISABLE_STRING_EN_UPPERCASED);
+
+            config.SetValue(FrameworkSetting.Locale, "tr");
+            Assert.AreEqual(uppercasedText.Value, localisedUppercasedTrCultureString);
+
+            var lowercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToLower());
+            Assert.AreEqual(lowercasedText.Value, localisedLowercasedTrCultureString);
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+            Assert.AreEqual(lowercasedText.Value, localisable_string_en_lowercase);
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
@@ -283,6 +306,7 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_FORMAT_STRING_JA = "{0} localised JA";
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_EN = "number {0} EN";
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_FR = "number {0} FR";
+            public const string LOCALISABLE_STRING_EN_UPPERCASED = "LOCALISED EN";
 
             public CultureInfo EffectiveCulture { get; }
 
