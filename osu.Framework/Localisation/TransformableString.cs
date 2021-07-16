@@ -4,6 +4,8 @@
 using System;
 using System.Globalization;
 
+#nullable enable
+
 namespace osu.Framework.Localisation
 {
     /// <summary>
@@ -56,9 +58,9 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
 
-        public bool Equals(ILocalisableStringData other) => other is TransformableString transformable && Equals(transformable);
+        public bool Equals(ILocalisableStringData? other) => other is TransformableString transformable && Equals(transformable);
 
-        public bool Equals(TransformableString other)
+        public bool Equals(TransformableString? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
