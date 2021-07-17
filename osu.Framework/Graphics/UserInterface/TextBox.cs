@@ -883,7 +883,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.ImeActive == true || ReadOnly) return true;
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
