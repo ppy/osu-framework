@@ -897,7 +897,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (!ReadOnly)
+            if (!ReadOnly && HasFocus)
                 textInput?.ShowSoftKeyboard();
 
             return !ReadOnly;
