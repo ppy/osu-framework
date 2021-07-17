@@ -779,6 +779,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             //if (textInput?.ImeActive == true) return true;
 
+            if (ReadOnly)
+                return;
+
             if (doubleClickWord != null)
             {
                 //select words at a time
