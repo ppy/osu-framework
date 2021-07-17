@@ -456,6 +456,59 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
 
+        [Test]
+        public void TestReadOnly()
+        {
+            BasicTextBox readOnlyTextBox = null;
+            BasicTextBox nonReadOnlyTextBox = null;
+
+            AddStep("add textboxes", () => textBoxes.AddRange(new[]
+            {
+                readOnlyTextBox = new BasicTextBox
+                {
+                    Text = "Readonly textbox",
+                    Size = new Vector2(500, 30),
+                    ReadOnly = true,
+                    TabbableContentContainer = textBoxes
+                },
+                nonReadOnlyTextBox = new BasicTextBox
+                {
+                    Text = "Standard textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                }
+            }));
+
+            AddStep("click readonly textbox", () =>
+            {
+                InputManager.MoveMouseTo(readOnlyTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("readonly textbox has no focus", () => !readOnlyTextBox.HasFocus);
+
+            AddStep("click non-readonly textbox", () =>
+            {
+                InputManager.MoveMouseTo(nonReadOnlyTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("try to tab backwards", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("readonly textbox has no focus", () => !readOnlyTextBox.HasFocus);
+
+            AddStep("drag on readonly textbox", () =>
+            {
+                InputManager.MoveMouseTo(readOnlyTextBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(readOnlyTextBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("readonly textbox has no focus", () => !readOnlyTextBox.HasFocus);
+        }
+
         public class InsertableTextBox : BasicTextBox
         {
             /// <summary>
