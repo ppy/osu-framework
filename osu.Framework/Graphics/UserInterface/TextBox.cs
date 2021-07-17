@@ -63,7 +63,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether the character is allowed to be added.</returns>
         protected virtual bool CanAddCharacter(char character) => true;
 
-        public bool ReadOnly;
+        private bool readOnly;
+
+        public bool ReadOnly
+        {
+            get => readOnly;
+            set
+            {
+                readOnly = value;
+
+                if (readOnly)
+                    KillFocus();
+            }
+        }
 
         /// <summary>
         /// Whether the textbox should rescind focus on commit.
@@ -743,7 +755,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void killFocus()
         {
             var manager = GetContainingInputManager();
-            if (manager.FocusedDrawable == this)
+            if (manager?.FocusedDrawable == this)
                 manager.ChangeFocus(null);
         }
 
