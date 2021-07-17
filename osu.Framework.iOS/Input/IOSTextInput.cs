@@ -50,7 +50,7 @@ namespace osu.Framework.iOS.Input
             view.KeyboardTextField.UpdateFirstResponder(true);
         }
 
-        public void ShowSoftKeyboard()
+        public void EnsureActivated()
         {
             /// If the user has manually closed the keyboard, it will not be shown until another <see cref="Framework.Graphics.UserInterface.TextBox"/>
             /// is focused. Calling <see cref="IOSGameView.HiddenTextField.UpdateFirstResponder"/> over and over again won't work, due to how

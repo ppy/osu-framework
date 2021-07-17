@@ -74,7 +74,7 @@ namespace osu.Framework.Android.Input
             });
         }
 
-        public void ShowSoftKeyboard()
+        public void EnsureActivated()
         {
             activity.RunOnUiThread(() =>
             {

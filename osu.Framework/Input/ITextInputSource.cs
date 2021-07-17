@@ -20,13 +20,10 @@ namespace osu.Framework.Input
         void Activate(object sender);
 
         /// <summary>
-        /// Requests the OS to show the on-screen/software keyboard.
+        /// Ensures that the native implementation that retrieves user text input is activated
+        /// and that the user can start entering text.
         /// </summary>
-        /// <remarks>
-        /// The OS is hopefully smart enough not to show the software keyboard if a hardware one is present.
-        /// Should be reguraly called when doing text editing operations, as the user might have manually closed the software keyboard.
-        /// </remarks>
-        void ShowSoftKeyboard();
+        void EnsureActivated();
 
         event Action<string> OnNewImeComposition;
         event Action<string> OnNewImeResult;

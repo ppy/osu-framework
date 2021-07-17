@@ -63,7 +63,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public void ShowSoftKeyboard()
+        public void EnsureActivated()
         {
         }
 
