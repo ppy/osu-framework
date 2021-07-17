@@ -244,7 +244,7 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestTransformableString()
+        public void TestCaseTransformableString()
         {
             const string localisable_string_en_title_case = "Localised EN";
 
@@ -258,7 +258,7 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
-        public void TestTransformableStringNonEnglishCultureCasing()
+        public void TestCaseTransformableStringNonEnglishCultureCasing()
         {
             const string localisable_string_en_lowercase = "localised en";
             string localisedUppercasedTrCultureString = FakeStorage.LOCALISABLE_STRING_EN.ToUpper(new CultureInfo("tr"));

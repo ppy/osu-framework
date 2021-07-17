@@ -11,7 +11,7 @@ namespace osu.Framework.Localisation
     /// <summary>
     /// A string which can apply case transformations to underlying localisable string.
     /// </summary>
-    public class TransformableString : IEquatable<TransformableString>, ILocalisableStringData
+    public class CaseTransformableString : IEquatable<CaseTransformableString>, ILocalisableStringData
     {
         /// <summary>
         /// The case to apply to the underlying data.
@@ -28,7 +28,7 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="str">The localisable string to apply case transformations on.</param>
         /// <param name="casing">The casing to use on the localisable string.</param>
-        public TransformableString(LocalisableString str, Casing casing)
+        public CaseTransformableString(LocalisableString str, Casing casing)
         {
             String = str;
             Casing = casing;
@@ -58,9 +58,9 @@ namespace osu.Framework.Localisation
 
         public override string ToString() => GetLocalised(new LocalisationParameters(null, false));
 
-        public bool Equals(ILocalisableStringData? other) => other is TransformableString transformable && Equals(transformable);
+        public bool Equals(ILocalisableStringData? other) => other is CaseTransformableString transformable && Equals(transformable);
 
-        public bool Equals(TransformableString? other)
+        public bool Equals(CaseTransformableString? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -85,7 +85,7 @@ namespace osu.Framework.Localisation
     }
 
     /// <summary>
-    /// Case applicable to the underlying localisable string of a <see cref="TransformableString"/>.
+    /// Case applicable to the underlying localisable string of a <see cref="CaseTransformableString"/>.
     /// </summary>
     public enum Casing
     {
