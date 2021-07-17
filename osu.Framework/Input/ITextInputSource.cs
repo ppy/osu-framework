@@ -19,6 +19,8 @@ namespace osu.Framework.Input
 
         void Activate(object sender);
 
+        void ShowSoftKeyboard();
+
         event Action<string> OnNewImeComposition;
         event Action<string> OnNewImeResult;
     }

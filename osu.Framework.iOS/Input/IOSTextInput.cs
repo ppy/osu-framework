@@ -50,6 +50,10 @@ namespace osu.Framework.iOS.Input
             view.KeyboardTextField.UpdateFirstResponder(true);
         }
 
+        public void ShowSoftKeyboard()
+        {
+        }
+
         public event Action<string> OnNewImeComposition
         {
             add { }

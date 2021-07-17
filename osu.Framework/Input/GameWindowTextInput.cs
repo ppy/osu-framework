@@ -63,6 +63,10 @@ namespace osu.Framework.Input
             }
         }
 
+        public void ShowSoftKeyboard()
+        {
+        }
+
         private void imeCompose()
         {
             //todo: implement
