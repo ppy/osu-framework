@@ -911,12 +911,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void unbindInput()
         {
-            textInput?.Deactivate(this);
+            textInput?.Deactivate();
         }
 
         private void bindInput()
         {
-            textInput?.Activate(this);
+            textInput?.Activate();
         }
 
         private void onImeResult()

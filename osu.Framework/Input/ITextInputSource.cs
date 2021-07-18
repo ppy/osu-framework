@@ -15,9 +15,9 @@ namespace osu.Framework.Input
 
         string GetPendingText();
 
-        void Deactivate(object sender);
+        void Deactivate();
 
-        void Activate(object sender);
+        void Activate();
 
         event Action<string> OnNewImeComposition;
         event Action<string> OnNewImeResult;
