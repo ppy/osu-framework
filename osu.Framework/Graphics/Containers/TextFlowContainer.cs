@@ -415,22 +415,5 @@ namespace osu.Framework.Graphics.Containers
                 IndicatesNewParagraph = newParagraph;
             }
         }
-
-        internal class TextChunk
-        {
-            public readonly string Text;
-            internal readonly Action<SpriteText> CreationParameters;
-
-            public TextChunk(string text, Action<SpriteText> creationParameters = null)
-            {
-                Text = text;
-                CreationParameters = creationParameters;
-            }
-
-            public void ApplyParameters(SpriteText spriteText)
-            {
-                CreationParameters?.Invoke(spriteText);
-            }
-        }
     }
 }
