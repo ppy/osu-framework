@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(text, creationParameters), true);
+        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(text, true, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(paragraph, creationParameters), false);
+        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(paragraph, false, creationParameters));
 
         /// <summary>
         /// End current line and start a new one.
@@ -254,25 +254,25 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<Drawable> AddLine(TextChunk chunk, bool newLineIsParagraph)
+        internal virtual IEnumerable<Drawable> AddLine(TextChunk chunk)
         {
             var sprites = new List<Drawable>();
 
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if (!newLineIsParagraph)
+            if (!chunk.NewLineIsParagraph)
             {
                 var newLine = new NewLineContainer(true);
                 sprites.Add(newLine);
                 base.Add(newLine);
             }
 
-            sprites.AddRange(AddString(chunk, newLineIsParagraph));
+            sprites.AddRange(AddString(chunk));
 
             return sprites;
         }
 
-        internal IEnumerable<Drawable> AddString(TextChunk chunk, bool newLineIsParagraph)
+        internal IEnumerable<Drawable> AddString(TextChunk chunk)
         {
             bool first = true;
             var sprites = new List<Drawable>();
@@ -285,7 +285,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (lastChild != null)
                     {
-                        var newLine = new NewLineContainer(newLineIsParagraph);
+                        var newLine = new NewLineContainer(chunk.NewLineIsParagraph);
                         sprites.Add(newLine);
                         base.Add(newLine);
                     }

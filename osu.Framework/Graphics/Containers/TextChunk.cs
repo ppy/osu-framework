@@ -9,11 +9,13 @@ namespace osu.Framework.Graphics.Containers
     internal class TextChunk
     {
         public readonly string Text;
+        public readonly bool NewLineIsParagraph;
         internal readonly Action<SpriteText> CreationParameters;
 
-        public TextChunk(string text, Action<SpriteText> creationParameters = null)
+        public TextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
         {
             Text = text;
+            NewLineIsParagraph = newLineIsParagraph;
             CreationParameters = creationParameters;
         }
 
