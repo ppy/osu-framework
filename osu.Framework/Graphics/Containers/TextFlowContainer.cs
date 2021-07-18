@@ -205,7 +205,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(text, creationParameters), true);
+        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(text, creationParameters), true);
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextLine(paragraph, creationParameters), false);
+        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(paragraph, creationParameters), false);
 
         /// <summary>
         /// End current line and start a new one.
@@ -241,11 +241,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal SpriteText CreateSpriteTextWithLine(TextLine line)
+        internal SpriteText CreateSpriteTextWithChunk(TextChunk chunk)
         {
             var spriteText = CreateSpriteText();
             defaultCreationParameters?.Invoke(spriteText);
-            line.ApplyParameters(spriteText);
+            chunk.ApplyParameters(spriteText);
             return spriteText;
         }
 
@@ -254,7 +254,7 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<Drawable> AddLine(TextLine line, bool newLineIsParagraph)
+        internal virtual IEnumerable<Drawable> AddLine(TextChunk chunk, bool newLineIsParagraph)
         {
             var sprites = new List<Drawable>();
 
@@ -267,17 +267,17 @@ namespace osu.Framework.Graphics.Containers
                 base.Add(newLine);
             }
 
-            sprites.AddRange(AddString(line, newLineIsParagraph));
+            sprites.AddRange(AddString(chunk, newLineIsParagraph));
 
             return sprites;
         }
 
-        internal IEnumerable<Drawable> AddString(TextLine line, bool newLineIsParagraph)
+        internal IEnumerable<Drawable> AddString(TextChunk chunk, bool newLineIsParagraph)
         {
             bool first = true;
             var sprites = new List<Drawable>();
 
-            foreach (string l in line.Text.Split('\n'))
+            foreach (string l in chunk.Text.Split('\n'))
             {
                 if (!first)
                 {
@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (string.IsNullOrEmpty(word)) continue;
 
-                    var textSprite = CreateSpriteTextWithLine(line);
+                    var textSprite = CreateSpriteTextWithChunk(chunk);
                     textSprite.Text = word;
                     sprites.Add(textSprite);
                     base.Add(textSprite);
@@ -416,12 +416,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal class TextLine
+        internal class TextChunk
         {
             public readonly string Text;
             internal readonly Action<SpriteText> CreationParameters;
 
-            public TextLine(string text, Action<SpriteText> creationParameters = null)
+            public TextChunk(string text, Action<SpriteText> creationParameters = null)
             {
                 Text = text;
                 CreationParameters = creationParameters;
