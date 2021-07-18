@@ -207,7 +207,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(CreateChunkFor(text, true, creationParameters));
+        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null) => AddPart(CreateChunkFor(text, true, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -229,7 +229,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(CreateChunkFor(paragraph, false, creationParameters));
+        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddPart(CreateChunkFor(paragraph, false, creationParameters));
 
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk"/> for this text flow container type.
@@ -266,20 +266,6 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Clear(disposeChildren);
             parts.Clear();
-        }
-
-        internal ITextPart AddLine(TextChunk chunk)
-        {
-            // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
-            // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if (!chunk.NewLineIsParagraph)
-            {
-                var newLine = new TextNewLine(true);
-                AddPart(newLine);
-            }
-
-            AddPart(chunk);
-            return chunk;
         }
 
         /// <summary>
