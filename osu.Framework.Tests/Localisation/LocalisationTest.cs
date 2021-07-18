@@ -234,7 +234,7 @@ namespace osu.Framework.Tests.Localisation
             var dateTime = new DateTime(1);
             const string format = "MMM yyyy";
 
-            var text = manager.GetLocalisedString(new LocalisableFormattableString(dateTime, format));
+            var text = manager.GetLocalisedString(dateTime.ToLocalisableString(format));
 
             Assert.AreEqual("Jan 0001", text.Value);
 
