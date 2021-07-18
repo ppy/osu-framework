@@ -8,7 +8,7 @@ namespace osu.Framework.Localisation
     public static class LocalisableStringExtensions
     {
         /// <summary>
-        /// Returns a <see cref="LocalisableFormattableString"/> formatting the given <paramref name="value"/> with the specified <see cref="format"/>.
+        /// Returns a <see cref="LocalisableFormattableString"/> formatting the given <paramref name="value"/> with the specified <paramref name="format"/>.
         /// </summary>
         /// <param name="value">The value to format.</param>
         /// <param name="format">The format string.</param>
