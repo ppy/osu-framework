@@ -19,19 +19,13 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
+        protected override IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
         {
             var customizableContainer = (CustomizableTextContainer)textFlowContainer;
 
-            if (!NewLineIsParagraph)
-            {
-                var newLine = new TextNewLine(true);
-                customizableContainer.AddPart(newLine);
-            }
-
             var sprites = new List<Drawable>();
             int index = 0;
-            string str = Text;
+            string str = text;
 
             while (index < str.Length)
             {

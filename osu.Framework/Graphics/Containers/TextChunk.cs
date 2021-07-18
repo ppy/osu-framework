@@ -14,16 +14,14 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     internal class TextChunk : TextPart
     {
-        protected readonly string Text;
-        protected readonly bool NewLineIsParagraph;
-
+        private readonly string text;
+        private readonly bool newLineIsParagraph;
         private readonly Action<SpriteText> creationParameters;
 
         public TextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
         {
-            Text = text;
-            NewLineIsParagraph = newLineIsParagraph;
-
+            this.text = text;
+            this.newLineIsParagraph = newLineIsParagraph;
             this.creationParameters = creationParameters;
         }
 
@@ -36,16 +34,16 @@ namespace osu.Framework.Graphics.Containers
         {
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if (!NewLineIsParagraph)
+            if (!newLineIsParagraph)
             {
                 var newLine = new TextNewLine(true);
                 textFlowContainer.AddPart(newLine);
             }
 
-            return CreateDrawablesFor(Text, textFlowContainer);
+            return CreateDrawablesFor(text, textFlowContainer);
         }
 
-        protected IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
+        protected virtual IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
         {
             bool first = true;
             var sprites = new List<Drawable>();
@@ -58,7 +56,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (lastChild != null)
                     {
-                        var newLine = new TextFlowContainer.NewLineContainer(NewLineIsParagraph);
+                        var newLine = new TextFlowContainer.NewLineContainer(newLineIsParagraph);
                         sprites.Add(newLine);
                     }
                 }
