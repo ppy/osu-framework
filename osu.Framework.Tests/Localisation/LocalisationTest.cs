@@ -242,6 +242,81 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("janv. 0001", text.Value);
         }
 
+        [Test]
+        public void TestTranslatableEvaluatingLocalisableFormattableString()
+        {
+            const string key = FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var text = manager.GetLocalisedString(new TranslatableString(key, key, new LocalisableFormattableString(0.1234, "0.00%")));
+
+            Assert.AreEqual("number 12.34% EN", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+
+            Assert.AreEqual("number 12,34% FR", text.Value);
+        }
+
+        [Test]
+        public void TestTranslatableEvaluatingRomanisableString()
+        {
+            const string key = FakeStorage.LOCALISABLE_FORMAT_STRING_EN;
+
+            var text = manager.GetLocalisedString(new TranslatableString(key, key, new RomanisableString("unicode", "romanised")));
+
+            Assert.AreEqual("unicode localised EN", text.Value);
+
+            config.SetValue(FrameworkSetting.ShowUnicode, false);
+
+            Assert.AreEqual("romanised localised EN", text.Value);
+        }
+
+        [Test]
+        public void TestTranslatableEvaluatingTranslatableString()
+        {
+            const string key = FakeStorage.LOCALISABLE_FORMAT_STRING_EN;
+            const string nested_key = FakeStorage.LOCALISABLE_STRING_EN;
+
+            manager.AddLanguage("ja", new FakeStorage("ja"));
+
+            var text = manager.GetLocalisedString(new TranslatableString(key, key, new TranslatableString(nested_key, nested_key)));
+
+            Assert.AreEqual("localised EN localised EN", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "ja");
+
+            Assert.AreEqual("localised JA localised JA", text.Value);
+        }
+
+        [Test]
+        public void TestTranslatableEvaluatingComplexString()
+        {
+            const string key = FakeStorage.LOCALISABLE_COMPLEX_FORMAT_STRING_EN;
+            const string nested_key = FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var text = manager.GetLocalisedString(new TranslatableString(key, key,
+                new LocalisableFormattableString(12.34, "0.00"),
+                new TranslatableString(nested_key, nested_key, new LocalisableFormattableString(0.9876, "0.00%")),
+                new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
+
+            Assert.AreEqual("number 12.34 with number 98.76% EN and number unicode EN EN", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+
+            Assert.AreEqual("number 12,34 with number 98,76% FR and number unicode FR FR", text.Value);
+
+            config.SetValue(FrameworkSetting.ShowUnicode, false);
+
+            Assert.AreEqual("number 12,34 with number 98,76% FR and number romanised FR FR", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            Assert.AreEqual("number 12.34 with number 98.76% EN and number romanised EN EN", text.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;
@@ -267,6 +342,8 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_FORMAT_STRING_JA = "{0} localised JA";
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_EN = "number {0} EN";
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_FR = "number {0} FR";
+            public const string LOCALISABLE_COMPLEX_FORMAT_STRING_EN = "number {0} with {1} and {2} EN";
+            public const string LOCALISABLE_COMPLEX_FORMAT_STRING_FR = "number {0} with {1} and {2} FR";
 
             public CultureInfo EffectiveCulture { get; }
 
@@ -315,6 +392,16 @@ namespace osu.Framework.Tests.Localisation
 
                             case "fr":
                                 return LOCALISABLE_NUMBER_FORMAT_STRING_FR;
+                        }
+
+                    case LOCALISABLE_COMPLEX_FORMAT_STRING_EN:
+                        switch (locale)
+                        {
+                            default:
+                                return LOCALISABLE_COMPLEX_FORMAT_STRING_EN;
+
+                            case "fr":
+                                return LOCALISABLE_COMPLEX_FORMAT_STRING_FR;
                         }
 
                     default:
