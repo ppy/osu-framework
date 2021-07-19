@@ -148,6 +148,60 @@ namespace osu.Framework.Platform
             }
         }
 
+        private Size minSize;
+
+        /// <summary>
+        /// Returns or sets the window's minimum size, after scaling.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative size, or size greater than <see cref="MaxSize"/>.</exception>
+        public Size MinSize
+        {
+            get => minSize;
+            set
+            {
+                if (minSize.Equals(value))
+                    return;
+
+                if (value.Width < 0 || value.Height < 0)
+                    throw new InvalidOperationException($"Expected positive size, got {value}.");
+
+                if (value.Width > maxSize.Width || value.Height > maxSize.Height)
+                    throw new InvalidOperationException($"Expected a size less than {nameof(MaxSize)} ({MaxSize}), got {value}");
+
+                minSize = value;
+
+                value = (value / Scale).ToSize();
+                ScheduleCommand(() => SDL.SDL_SetWindowMinimumSize(SDLWindowHandle, value.Width, value.Height));
+            }
+        }
+
+        private Size maxSize;
+
+        /// <summary>
+        /// Returns or sets the window's maximum size, after scaling.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when setting a negative or zero size, or size less than or equal to <see cref="MinSize"/>.</exception>
+        public Size MaxSize
+        {
+            get => maxSize;
+            set
+            {
+                if (maxSize.Equals(value))
+                    return;
+
+                if (value.Width <= 0 || value.Height <= 0)
+                    throw new InvalidOperationException($"Expected non-zero positive size, got {value}.");
+
+                if (value.Width < MinSize.Width || value.Height < MinSize.Height)
+                    throw new InvalidOperationException($"Expected a size greater than {nameof(MinSize)} ({MinSize}), got {value}");
+
+                maxSize = value;
+
+                value = (value / Scale).ToSize();
+                ScheduleCommand(() => SDL.SDL_SetWindowMaximumSize(SDLWindowHandle, value.Width, value.Height));
+            }
+        }
+
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
         /// </summary>
@@ -404,6 +458,10 @@ namespace osu.Framework.Platform
 
             updateWindowSpecifics();
             updateWindowSize();
+
+            MaxSize = new Size(int.MaxValue, int.MaxValue);
+            MinSize = new Size(640, 480);
+
             WindowMode.TriggerChange();
         }
 
