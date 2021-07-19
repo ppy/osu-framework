@@ -69,6 +69,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected abstract SaturationValueSelector CreateSaturationValueSelector();
 
+        public override bool IsPresent => base.IsPresent
+                                          || saturationValueSelector.Scheduler.HasPendingTasks
+                                          || hueSelector.Scheduler.HasPendingTasks;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
