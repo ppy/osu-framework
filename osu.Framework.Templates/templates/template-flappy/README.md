@@ -12,6 +12,6 @@ Open `FlappyDon.sln` in Visual Studio or Rider.
 
 * Flappy Bird artwork by [Matthias Gall](https://github.com/digitalbreed/how-to-build-a-game-like-flappy-bird-with-xcode-and-sprite-kit).
 * Number sprites by ahmadmanga, available on [opengameart.org](http://opengameart.org).
-* Arcade font by [Jakob Fischer](www.pizzadude.dk).
+* Arcade font by [Jakob Fischer](https://www.pizzadude.dk).
 * Remaining artwork + sounds are from [osu! resources](https://github.com/ppy/osu-resources).
 
