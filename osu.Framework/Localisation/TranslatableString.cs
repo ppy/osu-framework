@@ -59,7 +59,16 @@ namespace osu.Framework.Localisation
 
             try
             {
-                return string.Format(parameters.Store.EffectiveCulture, localisedFormat, Args);
+                return string.Format(parameters.Store.EffectiveCulture, localisedFormat, Args.Select(argument =>
+                {
+                    if (argument is LocalisableString localisableString)
+                        argument = localisableString.Data;
+
+                    if (argument is ILocalisableStringData localisableData)
+                        return localisableData.GetLocalised(parameters);
+
+                    return argument;
+                }).ToArray());
             }
             catch (FormatException e)
             {
