@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Tests.Localisation
@@ -243,6 +244,39 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestCaseTransformableString()
+        {
+            const string localisable_string_en_title_case = "Localised EN";
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
+            var titleText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToTitle());
+
+            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
+            Assert.AreEqual(titleText.Value, localisable_string_en_title_case);
+        }
+
+        [Test]
+        public void TestCaseTransformableStringNonEnglishCultureCasing()
+        {
+            manager.AddLanguage("tr", new FakeStorage("tr"));
+
+            var uppercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToUpper());
+            var lowercasedText = manager.GetLocalisedString(new TranslatableString(FakeStorage.LOCALISABLE_STRING_EN, FakeStorage.LOCALISABLE_STRING_EN).ToLower());
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            Assert.AreEqual(uppercasedText.Value, "LOCALISED EN");
+            Assert.AreEqual(lowercasedText.Value, "localised en");
+
+            config.SetValue(FrameworkSetting.Locale, "tr");
+
+            Assert.AreEqual(uppercasedText.Value, "LOCALİSED TR (İ/I)");
+            Assert.AreEqual(lowercasedText.Value, "localised tr (i/ı)");
+        }
+
+        [Test]
         public void TestTranslatableEvaluatingLocalisableFormattableString()
         {
             const string key = FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN;
@@ -338,6 +372,7 @@ namespace osu.Framework.Tests.Localisation
             public const string LOCALISABLE_STRING_EN = "localised EN";
             public const string LOCALISABLE_STRING_JA = "localised JA";
             public const string LOCALISABLE_STRING_JA_JP = "localised JA-JP";
+            public const string LOCALISABLE_STRING_TR = "localised TR (i/I)";
             public const string LOCALISABLE_FORMAT_STRING_EN = "{0} localised EN";
             public const string LOCALISABLE_FORMAT_STRING_JA = "{0} localised JA";
             public const string LOCALISABLE_NUMBER_FORMAT_STRING_EN = "number {0} EN";
@@ -372,6 +407,9 @@ namespace osu.Framework.Tests.Localisation
 
                             case "ja-JP":
                                 return LOCALISABLE_STRING_JA_JP;
+
+                            case "tr":
+                                return LOCALISABLE_STRING_TR;
                         }
 
                     case LOCALISABLE_FORMAT_STRING_EN:
