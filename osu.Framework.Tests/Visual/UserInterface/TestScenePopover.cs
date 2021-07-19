@@ -29,6 +29,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
         });
 
         [Test]
+        public void TestSizingDirectly() => createContent((anchor, popover) =>
+        {
+            popover.Size = new Vector2(200, 100);
+
+            popover.Child = new SpriteText
+            {
+                Text = "I have a custom size!"
+            };
+        });
+
+        [Test]
         public void TestInteractiveContent() => createContent((anchor, popover) =>
         {
             TextBox textBox;
@@ -70,7 +81,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         popoverAnchor |= (Anchor)((int)Anchor.x0 << i);
                         popoverAnchor |= (Anchor)((int)Anchor.y0 << j);
 
-                        var popover = new TestBasicPopover
+                        var popover = new BasicPopover
                         {
                             PopoverAnchor = popoverAnchor,
                             State = { Value = Visibility.Visible }
@@ -90,15 +101,5 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     }
                 }
             });
-
-        private class TestBasicPopover : BasicPopover
-        {
-            protected override FocusedOverlayContainer CreateBody() => new TestPopoverFocusedOverlayContainer();
-
-            private class TestPopoverFocusedOverlayContainer : PopoverFocusedOverlayContainer
-            {
-                public override bool HandlePositionalInput => false;
-            }
-        }
     }
 }

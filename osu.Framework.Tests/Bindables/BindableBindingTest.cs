@@ -443,6 +443,46 @@ namespace osu.Framework.Tests.Bindables
         }
 
         [Test]
+        public void TestUnbindEvents()
+        {
+            var bindable = new BindableInt
+            {
+                Value = 0,
+                Default = 0,
+                MinValue = -5,
+                MaxValue = 5,
+                Precision = 1,
+                Disabled = false
+            };
+
+            bool valueChanged = false;
+            bool defaultChanged = false;
+            bool disabledChanged = false;
+            bool minValueChanged = false;
+            bool maxValueChanged = false;
+            bool precisionChanged = false;
+
+            bindable.ValueChanged += _ => valueChanged = true;
+            bindable.DefaultChanged += _ => defaultChanged = true;
+            bindable.DisabledChanged += _ => disabledChanged = true;
+            bindable.MinValueChanged += _ => minValueChanged = true;
+            bindable.MaxValueChanged += _ => maxValueChanged = true;
+            bindable.PrecisionChanged += _ => precisionChanged = true;
+
+            bindable.UnbindEvents();
+
+            bindable.Value = 5;
+            bindable.Default = 5;
+            bindable.MinValue = 0;
+            bindable.MaxValue = 10;
+            bindable.Precision = 5;
+            bindable.Disabled = true;
+
+            Assert.That(!valueChanged && !defaultChanged && !disabledChanged &&
+                        !minValueChanged && !maxValueChanged && !precisionChanged);
+        }
+
+        [Test]
         public void TestEventArgs()
         {
             var bindable1 = new Bindable<int>();
@@ -469,6 +509,19 @@ namespace osu.Framework.Tests.Bindables
             Assert.AreEqual(2, event1.NewValue);
             Assert.AreEqual(1, event2.OldValue);
             Assert.AreEqual(2, event2.NewValue);
+        }
+
+        [Test]
+        public void TestCustomUnbindFromCalledFromUnbindAll()
+        {
+            var bindable1 = new Bindable<int>();
+            var bindable2 = new TestCustomBindable();
+
+            bindable2.BindTo(bindable1);
+            Assert.That(bindable2.IsBound, Is.True);
+
+            bindable2.UnbindAll();
+            Assert.That(bindable2.IsBound, Is.False);
         }
 
         private class TestDrawable : Drawable
@@ -528,6 +581,23 @@ namespace osu.Framework.Tests.Bindables
             {
                 // because we are run outside of a game instance but need the cached disposal methods.
                 Load(new FramedClock(), new DependencyContainer());
+            }
+        }
+
+        private class TestCustomBindable : Bindable<int>
+        {
+            public bool IsBound { get; private set; }
+
+            public override void BindTo(Bindable<int> them)
+            {
+                base.BindTo(them);
+                IsBound = true;
+            }
+
+            public override void UnbindFrom(IUnbindable them)
+            {
+                base.UnbindFrom(them);
+                IsBound = false;
             }
         }
     }

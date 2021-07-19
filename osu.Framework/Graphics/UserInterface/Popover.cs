@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -14,8 +17,36 @@ namespace osu.Framework.Graphics.UserInterface
     /// It typically is activated by another control and includes an arrow pointing to the location from which it emerged.
     /// (loosely paraphrasing: https://developer.apple.com/design/human-interface-guidelines/ios/views/popovers/)
     /// </summary>
-    public abstract class Popover : VisibilityContainer
+    public abstract class Popover : FocusedOverlayContainer
     {
+        protected override bool BlockPositionalInput => false; // not required as we only care about intercepting mouse down in certain cases.
+
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            if (Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
+                return true;
+
+            this.HidePopover();
+            return base.OnMouseDown(e);
+        }
+
+        protected override bool OnClick(ClickEvent e) => Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
+
+        public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
+
+        protected override bool OnKeyDown(KeyDownEvent e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                this.HidePopover();
+                return true;
+            }
+
+            return base.OnKeyDown(e);
+        }
+
         /// <summary>
         /// The <see cref="Anchor"/> that this <see cref="Popover"/> is to be attached to the triggering UI control by.
         /// </summary>
@@ -43,7 +74,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The background box of the popover.
         /// </summary>
-        protected Box Background { get; private set; }
+        protected Box Background { get; }
 
         /// <summary>
         /// The arrow of this <see cref="Popover"/>, pointing at the component which triggered it.
@@ -53,48 +84,38 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The body of this <see cref="Popover"/>, containing the actual contents.
         /// </summary>
-        protected internal FocusedOverlayContainer Body { get; }
+        protected internal Container Body { get; }
 
-        private Container content;
-        protected override Container<Drawable> Content => content;
+        protected override Container<Drawable> Content { get; } = new Container { AutoSizeAxes = Axes.Both };
 
         protected Popover()
         {
-            InternalChild = BoundingBoxContainer = new Container
+            base.AddInternal(BoundingBoxContainer = new Container
             {
                 AutoSizeAxes = Axes.Both,
                 Children = new[]
                 {
                     Arrow = CreateArrow(),
-                    Body = CreateBody().With(body =>
+                    Body = new Container
                     {
-                        body.AutoSizeAxes = Axes.Both;
-                        body.State.BindTarget = State;
-                        body.Children = new Drawable[]
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
                             Background = new Box
                             {
                                 RelativeSizeAxes = Axes.Both,
                             },
-                            content = new Container
-                            {
-                                AutoSizeAxes = Axes.Both,
-                            }
-                        };
-                    })
+                            Content
+                        },
+                    }
                 }
-            };
+            });
         }
 
         /// <summary>
         /// Creates an arrow drawable that points away from the given <see cref="Anchor"/>.
         /// </summary>
         protected abstract Drawable CreateArrow();
-
-        /// <summary>
-        /// Creates the body of this <see cref="Popover"/>.
-        /// </summary>
-        protected virtual FocusedOverlayContainer CreateBody() => new PopoverFocusedOverlayContainer();
 
         protected override void PopIn() => this.FadeIn();
         protected override void PopOut() => this.FadeOut();
@@ -138,33 +159,48 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected class PopoverFocusedOverlayContainer : FocusedOverlayContainer
+        protected internal sealed override void AddInternal(Drawable drawable) => throw new InvalidOperationException($"Use {nameof(Content)} instead.");
+
+        #region Sizing delegation
+
+        // Popovers rely on being 0x0 sized and placed exactly at the attachment point to their drawable for layouting logic.
+        // This can cause undesirable results if somebody tries to directly set the Width/Height of a popover, expecting the body to be resized.
+        // This is done via shadowing rather than overrides, because we still want framework to read the base 0x0 size.
+
+        public new float Width
         {
-            protected override bool BlockPositionalInput => true;
-
-            public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
-
-            protected override void OnMouseUp(MouseUpEvent e)
+            get => Body.Width;
+            set
             {
-                base.OnMouseUp(e);
-                handleMouseEvent(e.ScreenSpaceMouseDownPosition);
-            }
+                if (Body.AutoSizeAxes.HasFlagFast(Axes.X))
+                    Body.AutoSizeAxes &= ~Axes.X;
 
-            protected override bool OnClick(ClickEvent e)
-            {
-                return handleMouseEvent(e.ScreenSpaceMouseDownPosition);
-            }
-
-            private bool handleMouseEvent(Vector2 position)
-            {
-                // if the mouse event can be handled by this container, prevent it from propagating further.
-                if (base.ReceivePositionalInputAt(position))
-                    return true;
-
-                // anything else means that the user is clicking away from the popover, and so that should hide the popover and trigger focus loss.
-                Hide();
-                return false;
+                Body.Width = value;
             }
         }
+
+        public new float Height
+        {
+            get => Body.Height;
+            set
+            {
+                if (Body.AutoSizeAxes.HasFlagFast(Axes.Y))
+                    Body.AutoSizeAxes &= ~Axes.Y;
+
+                Body.Height = value;
+            }
+        }
+
+        public new Vector2 Size
+        {
+            get => Body.Size;
+            set
+            {
+                Width = value.X;
+                Height = value.Y;
+            }
+        }
+
+        #endregion
     }
 }

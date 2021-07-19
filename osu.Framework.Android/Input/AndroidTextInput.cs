@@ -25,7 +25,7 @@ namespace osu.Framework.Android.Input
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
         }
 
-        public void Deactivate(object sender)
+        public void Deactivate()
         {
             activity.RunOnUiThread(() =>
             {
@@ -63,7 +63,7 @@ namespace osu.Framework.Android.Input
         public event Action<string> OnNewImeComposition;
         public event Action<string> OnNewImeResult;
 
-        public void Activate(object sender)
+        public void Activate()
         {
             activity.RunOnUiThread(() =>
             {

@@ -330,11 +330,12 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
-        /// Unbind any events bound to <see cref="ValueChanged"/> and <see cref="DisabledChanged"/>.
+        /// Unbinds any actions bound to the value changed events.
         /// </summary>
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
             ValueChanged = null;
+            DefaultChanged = null;
             DisabledChanged = null;
         }
 
@@ -349,18 +350,16 @@ namespace osu.Framework.Bindables
             // ToArray required as this may be called from an async disposal thread.
             // This can lead to deadlocks since each child is also enumerating its Bindings.
             foreach (var b in Bindings.ToArray())
-                b.Unbind(this);
-
-            Bindings.Clear();
+                UnbindFrom(b);
         }
-
-        protected void Unbind(Bindable<T> binding) => Bindings.Remove(binding.weakReference);
 
         /// <summary>
         /// Calls <see cref="UnbindEvents"/> and <see cref="UnbindBindings"/>.
         /// Also returns any active lease.
         /// </summary>
-        public virtual void UnbindAll()
+        public void UnbindAll() => UnbindAllInternal();
+
+        internal virtual void UnbindAllInternal()
         {
             if (isLeased)
                 leasedBindable.Return();
@@ -369,7 +368,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is Bindable<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
