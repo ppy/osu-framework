@@ -42,10 +42,6 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             });
 
-            AddButton(@"Toggle LMT", mixer.ToggleLimiter);
-            AddButton(@"Toggle CMP", mixer.ToggleCompressor);
-            AddButton(@"Toggle LP", mixer.ToggleFilter);
-
             // Add strip for the mixer/master out
             stripContainer.Add(new ChannelStrip(mixer.MixerHandle, mixer));
 
@@ -190,11 +186,6 @@ namespace osu.Framework.Graphics.Visualisation
                     volBarL.Colour = volBarR.Colour = Colour4.GreenYellow;
 
                     string chanInfoTxt = chanInfo.ChannelType.ToString();
-
-                    if (mixer.FilterEnabled) chanInfoTxt += " (LP)";
-                    if (mixer.CompressorEnabled) chanInfoTxt += " (CMP)";
-                    if (mixer.LimiterEnabled) chanInfoTxt += " (LMT)";
-
                     channelInfoText.Text = chanInfoTxt;
                 }
                 else
