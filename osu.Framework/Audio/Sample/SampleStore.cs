@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 
@@ -42,7 +43,7 @@ namespace osu.Framework.Audio.Sample
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, (IBassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
 
                     if (factory != null)
                         AddItem(factory);

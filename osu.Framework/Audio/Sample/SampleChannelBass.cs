@@ -1,12 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using ManagedBass;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal sealed class SampleChannelBass : SampleChannel, IBassAudio
+    internal sealed class SampleChannelBass : SampleChannel, IBassAudio, IBassAudioChannel
     {
         private readonly SampleBass sample;
         private volatile int channel;
@@ -33,13 +36,13 @@ namespace osu.Framework.Audio.Sample
         private volatile bool enqueuedPlaybackStart;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
-        private BassAmplitudeProcessor bassAmplitudeProcessor;
-        private readonly AudioMixer mixer;
+        private BassAmplitudeProcessor? bassAmplitudeProcessor;
+        private readonly IBassAudioMixer mixer;
 
-        public SampleChannelBass(SampleBass sample, AudioMixer mixer)
+        public SampleChannelBass(SampleBass sample, IBassAudioMixer? mixer)
         {
             this.sample = sample;
-            this.mixer = mixer;
+            this.mixer = mixer ?? new PassThroughBassAudioMixer();
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -164,7 +167,7 @@ namespace osu.Framework.Audio.Sample
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    mixer.PlayChannel(channel);
+                    mixer.PlayChannel(this);
             }
             finally
             {
@@ -194,7 +197,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            mixer.AddChannel(channel);
+            mixer.Add(this);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -210,8 +213,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                mixer.StopChannel(channel);
-                mixer.RemoveChannel(channel);
+                mixer.Remove(this);
                 channel = 0;
             }
 
@@ -219,5 +221,7 @@ namespace osu.Framework.Audio.Sample
 
             base.Dispose(disposing);
         }
+
+        int IBassAudioChannel.Handle => channel;
     }
 }

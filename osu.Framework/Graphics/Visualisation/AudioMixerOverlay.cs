@@ -9,6 +9,7 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -43,12 +44,12 @@ namespace osu.Framework.Graphics.Visualisation
             });
 
             // Add strip for the mixer/master out
-            stripContainer.Add(new ChannelStrip(mixer.MixerHandle, mixer));
-
-            // Add strips for existing mix channels
-            addChannels(mixer.MixChannels);
-
-            mixer.MixChannels.CollectionChanged += updateChannels;
+            // stripContainer.Add(new ChannelStrip(mixer.MixerHandle, mixer));
+            //
+            // // Add strips for existing mix channels
+            // addChannels(mixer.MixChannels);
+            //
+            // mixer.MixChannels.CollectionChanged += updateChannels;
         }
 
         private void addChannels(IList items)

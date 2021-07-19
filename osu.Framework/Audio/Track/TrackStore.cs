@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
@@ -42,7 +43,7 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            TrackBass trackBass = new TrackBass(dataStream, mixer, false);
+            TrackBass trackBass = new TrackBass(dataStream, (IBassAudioMixer)mixer);
 
             AddItem(trackBass);
 

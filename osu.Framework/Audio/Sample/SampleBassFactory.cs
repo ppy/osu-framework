@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
 
@@ -28,15 +29,15 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
-        private readonly AudioMixer mixer;
+        private readonly IBassAudioMixer? mixer;
 
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private byte[]? data;
 
-        public SampleBassFactory(byte[] data, AudioMixer mixer)
+        public SampleBassFactory(byte[] data, IBassAudioMixer? mixer)
         {
-            this.mixer = mixer;
             this.data = data;
+            this.mixer = mixer;
 
             EnqueueAction(loadSample);
 

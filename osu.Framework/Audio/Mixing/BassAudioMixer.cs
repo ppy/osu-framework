@@ -1,0 +1,105 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using ManagedBass;
+using ManagedBass.Mix;
+using osu.Framework.Statistics;
+
+namespace osu.Framework.Audio.Mixing
+{
+    /// <summary>
+    /// A BASSmix audio mixer.
+    /// </summary>
+    public class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
+    {
+        private readonly List<IBassAudioChannel> mixedChannels = new List<IBassAudioChannel>();
+        private int mixerHandle;
+
+        private const int frequency = 44100;
+
+        public void UpdateDevice(int deviceIndex)
+        {
+            if (mixerHandle == 0)
+            {
+                mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+                foreach (var channel in mixedChannels)
+                    addChannelToMixer(channel);
+            }
+            else
+                Bass.ChannelSetDevice(mixerHandle, deviceIndex);
+
+            Bass.ChannelPlay(mixerHandle);
+        }
+
+        public override void Add(IAudioChannel channel)
+        {
+            if (!(channel is IBassAudioChannel bassChannel))
+                throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
+
+            EnqueueAction(() =>
+            {
+                if (mixedChannels.Contains(bassChannel))
+                    return;
+
+                mixedChannels.Add(bassChannel);
+                addChannelToMixer(bassChannel);
+            });
+        }
+
+        public override void Remove(IAudioChannel channel)
+        {
+            if (!(channel is IBassAudioChannel bassChannel))
+                throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
+
+            EnqueueAction(() =>
+            {
+                if (!mixedChannels.Remove(bassChannel))
+                    return;
+
+                BassMix.MixerRemoveChannel(bassChannel.Handle);
+                BassUtils.CheckFaulted(true);
+            });
+        }
+
+        bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
+        {
+            BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.MixerChanPause);
+            return Bass.LastError == Errors.OK;
+        }
+
+        bool IBassAudioMixer.PauseChannel(IBassAudioChannel channel)
+        {
+            BassMix.ChannelFlags(channel.Handle, BassFlags.MixerChanPause, BassFlags.MixerChanPause);
+            return Bass.LastError == Errors.OK;
+        }
+
+        void IBassAudioMixer.StopChannel(IBassAudioChannel channel)
+        {
+            BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.MixerChanPause);
+            Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
+        }
+
+        long IBassAudioMixer.GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
+
+        bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
+
+        private void addChannelToMixer(IBassAudioChannel channel)
+        {
+            if (mixerHandle == 0)
+                return;
+
+            BassMix.MixerAddChannel(mixerHandle, channel.Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
+            BassUtils.CheckFaulted(true);
+        }
+
+        protected override void UpdateState()
+        {
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count);
+            base.UpdateState();
+        }
+    }
+}

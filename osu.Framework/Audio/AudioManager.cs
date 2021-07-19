@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
@@ -36,9 +37,9 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         /// <summary>
-        /// The audio mixer that audio is routed into.
+        /// The default mixer that audio is routed into.
         /// </summary>
-        public readonly AudioMixer Mixer = new AudioMixer();
+        public readonly AudioMixer Mixer = new BassAudioMixer();
 
         /// <summary>
         /// The names of all available audio devices.
@@ -268,8 +269,6 @@ namespace osu.Framework.Audio
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
-
-            Mixer.Init();
 
             if (BassUtils.CheckFaulted(false))
             {
