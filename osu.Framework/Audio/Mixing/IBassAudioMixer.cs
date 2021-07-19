@@ -13,9 +13,15 @@ namespace osu.Framework.Audio.Mixing
     public interface IBassAudioMixer : IAudioMixer
     {
         /// <summary>
+        /// Registers a channel to the mix.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to register.</param>
+        internal void RegisterChannel(IBassAudioChannel channel);
+
+        /// <summary>
         /// Plays a mixed channel.
         /// </summary>
-        /// <param name="channel">The channel to play.</param>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to play.</param>
         /// <returns>Whether the channel was played successfully.</returns>
         bool PlayChannel(IBassAudioChannel channel);
 

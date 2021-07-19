@@ -37,12 +37,10 @@ namespace osu.Framework.Audio.Sample
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor? bassAmplitudeProcessor;
-        private readonly IBassAudioMixer mixer;
 
-        public SampleChannelBass(SampleBass sample, IBassAudioMixer? mixer)
+        public SampleChannelBass(SampleBass sample)
         {
             this.sample = sample;
-            this.mixer = mixer ?? new PassThroughBassAudioMixer();
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -178,7 +176,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                Dispose();
+                mixer.PauseChannel(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -197,7 +195,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            mixer.Add(this);
+            mixer.RegisterChannel(this);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -205,6 +203,15 @@ namespace osu.Framework.Audio.Sample
             relativeFrequencyHandler.SetChannel(channel);
             bassAmplitudeProcessor?.SetChannel(channel);
         });
+
+        private IBassAudioMixer? mixer = new PassThroughBassAudioMixer();
+
+        public override void ChangeMixer(IAudioMixer? mixer)
+        {
+            this.mixer?.Remove(this);
+
+            base.ChangeMixer(mixer);
+        }
 
         protected override void Dispose(bool disposing)
         {

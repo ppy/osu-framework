@@ -12,13 +12,17 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public class PassThroughBassAudioMixer : AudioMixer, IBassAudioMixer
     {
-        public override void Add(IAudioChannel channel)
+        protected override void AddInternal(IAudioChannel channel)
         {
         }
 
-        public override void Remove(IAudioChannel channel)
+        protected override void RemoveInternal(IAudioChannel channel)
         {
             StopChannel((IBassAudioChannel)channel);
+        }
+
+        void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
+        {
         }
 
         public bool PlayChannel(IBassAudioChannel channel) => Bass.ChannelPlay(channel.Handle);

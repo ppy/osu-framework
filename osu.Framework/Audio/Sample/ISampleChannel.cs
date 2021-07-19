@@ -6,7 +6,7 @@ namespace osu.Framework.Audio.Sample
     /// <summary>
     /// A unique playback of an <see cref="ISample"/>.
     /// </summary>
-    public interface ISampleChannel : IHasAmplitudes, IAudioChannel
+    public interface ISampleChannel : IHasAmplitudes
     {
         /// <summary>
         /// Starts or resumes playback. Has no effect if this <see cref="ISampleChannel"/> is already playing.

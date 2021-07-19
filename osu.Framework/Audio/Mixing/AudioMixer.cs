@@ -8,8 +8,22 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
-        public abstract void Add(IAudioChannel channel);
+        public void Add(IAudioChannel channel)
+        {
+            channel.Mixer?.Remove(channel);
 
-        public abstract void Remove(IAudioChannel channel);
+            AddInternal(channel);
+            channel.Mixer = this;
+        }
+
+        public void Remove(IAudioChannel channel)
+        {
+            RemoveInternal(channel);
+            channel.Mixer = null;
+        }
+
+        protected abstract void AddInternal(IAudioChannel channel);
+
+        protected abstract void RemoveInternal(IAudioChannel channel);
     }
 }

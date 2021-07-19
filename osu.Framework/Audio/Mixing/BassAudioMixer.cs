@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Statistics;
@@ -21,21 +22,7 @@ namespace osu.Framework.Audio.Mixing
 
         private const int frequency = 44100;
 
-        public void UpdateDevice(int deviceIndex)
-        {
-            if (mixerHandle == 0)
-            {
-                mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
-                foreach (var channel in mixedChannels)
-                    addChannelToMixer(channel);
-            }
-            else
-                Bass.ChannelSetDevice(mixerHandle, deviceIndex);
-
-            Bass.ChannelPlay(mixerHandle);
-        }
-
-        public override void Add(IAudioChannel channel)
+        protected override void AddInternal(IAudioChannel channel)
         {
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
@@ -46,11 +33,15 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 mixedChannels.Add(bassChannel);
-                addChannelToMixer(bassChannel);
+
+                if (mixerHandle == 0 || bassChannel.Handle == 0)
+                    return;
+
+                ((IBassAudioMixer)this).RegisterChannel(bassChannel);
             });
         }
 
-        public override void Remove(IAudioChannel channel)
+        protected override void RemoveInternal(IAudioChannel channel)
         {
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
@@ -60,9 +51,24 @@ namespace osu.Framework.Audio.Mixing
                 if (!mixedChannels.Remove(bassChannel))
                     return;
 
+                if (mixerHandle == 0 || bassChannel.Handle == 0)
+                    return;
+
                 BassMix.MixerRemoveChannel(bassChannel.Handle);
                 BassUtils.CheckFaulted(true);
             });
+        }
+
+        void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
+        {
+            Trace.Assert(CanPerformInline);
+            Trace.Assert(channel.Handle > 0);
+
+            if (mixerHandle == 0)
+                return;
+
+            BassMix.MixerAddChannel(mixerHandle, channel.Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
+            BassUtils.CheckFaulted(true);
         }
 
         bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
@@ -87,13 +93,23 @@ namespace osu.Framework.Audio.Mixing
 
         bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
 
-        private void addChannelToMixer(IBassAudioChannel channel)
+        public void UpdateDevice(int deviceIndex)
         {
             if (mixerHandle == 0)
-                return;
+            {
+                mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
 
-            BassMix.MixerAddChannel(mixerHandle, channel.Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
-            BassUtils.CheckFaulted(true);
+                // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
+                foreach (var channel in mixedChannels)
+                {
+                    if (channel.Handle != 0)
+                        ((IBassAudioMixer)this).RegisterChannel(channel);
+                }
+            }
+            else
+                Bass.ChannelSetDevice(mixerHandle, deviceIndex);
+
+            Bass.ChannelPlay(mixerHandle);
         }
 
         protected override void UpdateState()
