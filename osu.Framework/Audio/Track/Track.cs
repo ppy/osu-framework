@@ -1,15 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Statistics;
 using System;
+using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, ITrack
+    public abstract class Track : AdjustableAudioComponent, ITrack, IAudioChannel
     {
-        public event Action Completed;
-        public event Action Failed;
+        public event Action? Completed;
+        public event Action? Failed;
 
         protected virtual void RaiseCompleted() => Completed?.Invoke();
         protected virtual void RaiseFailed() => Failed?.Invoke();
@@ -19,6 +22,18 @@ namespace osu.Framework.Audio.Track
         public double RestartPoint { get; set; }
 
         public virtual bool Looping { get; set; }
+
+        /// <summary>
+        /// Creates a new <see cref="Track"/>.
+        /// </summary>
+        /// <param name="defaultMixer">The default <see cref="AudioMixer"/> to house this <see cref="Track"/>.
+        /// The <see cref="Track"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
+        protected Track(IAudioMixer defaultMixer)
+        {
+            this.defaultMixer = defaultMixer;
+
+            defaultMixer.Add(this);
+        }
 
         /// <summary>
         /// Reset this track to a logical default state.
@@ -116,5 +131,15 @@ namespace osu.Framework.Audio.Track
             if (Looping && HasCompleted)
                 Restart();
         }
+
+        #region Mixing
+
+        public IAudioMixer Mixer { get; private set; } = new NullAudioMixer();
+
+        private readonly IAudioMixer defaultMixer;
+
+        void IAudioChannel.SetMixer(IAudioMixer? mixer) => Mixer = mixer ?? defaultMixer;
+
+        #endregion
     }
 }

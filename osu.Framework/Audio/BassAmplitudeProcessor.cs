@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using ManagedBass;
+using ManagedBass.Mix;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio
@@ -40,13 +41,15 @@ namespace osu.Framework.Audio
 
             bool active = Bass.ChannelIsActive(ch) == PlaybackState.Playing;
 
-            var leftChannel = active ? Bass.ChannelGetLevelLeft(ch) / 32768f : -1;
-            var rightChannel = active ? Bass.ChannelGetLevelRight(ch) / 32768f : -1;
+            float[] channelLevels = new float[2];
+            BassMix.ChannelGetLevel(ch, channelLevels, 1 / 60f, LevelRetrievalFlags.Stereo);
+            var leftChannel = active ? channelLevels[0] : -1;
+            var rightChannel = active ? channelLevels[1] : -1;
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
                 frequencyData ??= new float[ChannelAmplitudes.AMPLITUDES_SIZE];
-                Bass.ChannelGetData(ch, frequencyData, (int)DataFlags.FFT512);
+                BassMix.ChannelGetData(ch, frequencyData, (int)DataFlags.FFT512);
                 CurrentAmplitudes = new ChannelAmplitudes(leftChannel, rightChannel, frequencyData);
             }
             else

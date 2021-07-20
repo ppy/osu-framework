@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,15 +11,17 @@ using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Audio.Callbacks;
+using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackBass : Track, IBassAudio
+    public sealed class TrackBass : Track, IBassAudio, IBassAudioChannel
     {
         public const int BYTES_PER_SAMPLE = 4;
 
-        private AsyncBufferStream dataStream;
+        private AsyncBufferStream? dataStream;
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
@@ -44,14 +48,16 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private double lastSeekablePosition;
 
-        private FileCallbacks fileCallbacks;
-        private SyncCallback endMixtimeCallback;
-        private SyncCallback stopCallback;
-        private SyncCallback endCallback;
+        private FileCallbacks? fileCallbacks;
+        private SyncCallback? endMixtimeCallback;
+        private SyncCallback? stopCallback;
+        private SyncCallback? endCallback;
 
         private volatile bool isLoaded;
 
         public override bool IsLoaded => isLoaded;
+
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
 
@@ -59,8 +65,10 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
+        /// <param name="defaultMixer"><inheritdoc/></param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, bool quick = false)
+        public TrackBass([NotNull] Stream data, IBassAudioMixer defaultMixer, bool quick = false)
+            : base(defaultMixer)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -165,12 +173,14 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetDevice(stream, bass_nodevice);
                 tempoAdjustStream = BassFx.TempoCreate(stream, BassFlags.Decode | BassFlags.FxFreeSource);
                 Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
-                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
+                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource | BassFlags.Decode);
 
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
             }
+
+            bassMixer.RegisterChannel(this);
 
             return stream;
         }
@@ -197,18 +207,16 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        private BassAmplitudeProcessor bassAmplitudeProcessor;
+        private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
         protected override void UpdateState()
         {
             base.UpdateState();
 
-            var running = isRunningState(Bass.ChannelIsActive(activeStream));
-
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
-            isRunning = running || (isPlayed && !hasCompleted);
+            isRunning = isPlayed && !hasCompleted;
 
             updateCurrentTime();
 
@@ -228,7 +236,7 @@ namespace osu.Framework.Audio.Track
             if (activeStream != 0)
             {
                 isRunning = false;
-                Bass.ChannelStop(activeStream);
+                bassMixer.Remove(this);
                 Bass.StreamFree(activeStream);
             }
 
@@ -257,6 +265,7 @@ namespace osu.Framework.Audio.Track
         public override void Stop()
         {
             base.Stop();
+
             StopAsync().Wait();
         }
 
@@ -266,7 +275,7 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && Bass.ChannelPause(activeStream);
+        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && bassMixer.PauseChannel(this);
 
         private int direction;
 
@@ -303,7 +312,7 @@ namespace osu.Framework.Audio.Track
 
             setLoopFlag(Looping);
 
-            return Bass.ChannelPlay(activeStream);
+            return bassMixer.PlayChannel(this);
         }
 
         public override bool Looping
@@ -339,8 +348,8 @@ namespace osu.Framework.Audio.Track
 
             long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
-            if (pos != Bass.ChannelGetPosition(activeStream))
-                Bass.ChannelSetPosition(activeStream, pos);
+            if (pos != bassMixer.GetChannelPosition(this))
+                bassMixer.SetChannelPosition(this, pos);
 
             // current time updates are safe to perform from enqueued actions,
             // but not always safe to perform from BASS callbacks, since those can sometimes use a separate thread.
@@ -353,7 +362,7 @@ namespace osu.Framework.Audio.Track
         {
             Debug.Assert(CanPerformInline);
 
-            var bytePosition = Bass.ChannelGetPosition(activeStream);
+            var bytePosition = bassMixer.GetChannelPosition(this);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
@@ -390,5 +399,7 @@ namespace osu.Framework.Audio.Track
         public override int? Bitrate => bitrate;
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
+
+        int IBassAudioChannel.Handle => activeStream;
     }
 }

@@ -5,6 +5,7 @@ using System;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
@@ -48,8 +49,14 @@ namespace osu.Framework.Graphics.Audio
         private readonly AudioAdjustments adjustments = new AudioAdjustments();
 
         private IAggregateAudioAdjustment parentAdjustment;
+        private IAudioMixer parentMixer;
 
-        private readonly LayoutValue parentAdjustmentLayout = new LayoutValue(Invalidation.Parent);
+        private readonly LayoutValue fromParentLayout = new LayoutValue(Invalidation.Parent);
+
+        private DrawableAudioWrapper()
+        {
+            AddLayout(fromParentLayout);
+        }
 
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
@@ -57,9 +64,9 @@ namespace osu.Framework.Graphics.Audio
         /// </summary>
         /// <param name="content">The <see cref="Drawable"/> to be wrapped.</param>
         protected DrawableAudioWrapper(Drawable content)
+            : this()
         {
             AddInternal(content);
-            AddLayout(parentAdjustmentLayout);
         }
 
         /// <summary>
@@ -68,6 +75,7 @@ namespace osu.Framework.Graphics.Audio
         /// <param name="component">The audio component to wrap.</param>
         /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
         protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+            : this()
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;
@@ -79,14 +87,14 @@ namespace osu.Framework.Graphics.Audio
         {
             base.Update();
 
-            if (!parentAdjustmentLayout.IsValid)
+            if (!fromParentLayout.IsValid)
             {
-                refreshAdjustments();
-                parentAdjustmentLayout.Validate();
+                refreshLayoutFromParent();
+                fromParentLayout.Validate();
             }
         }
 
-        private void refreshAdjustments()
+        private void refreshLayoutFromParent()
         {
             // because these components may be pooled, relying on DI is not feasible.
             // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
@@ -96,21 +104,43 @@ namespace osu.Framework.Graphics.Audio
                 parentAdjustment = null;
             }
 
+            var channelComponent = component as IAudioChannel;
+
+            if (channelComponent != null)
+            {
+                parentMixer?.Remove(channelComponent);
+                parentMixer = null;
+            }
+
             Drawable cursor = this;
+            bool foundMixer = channelComponent == null;
+            bool foundAdjustments = false;
 
             while ((cursor = cursor.Parent) != null)
             {
-                if (!(cursor is IAggregateAudioAdjustment candidate))
-                    continue;
-
-                // components may be delegating the aggregates of a contained child.
-                // to avoid binding to one's self, check reference equality on an arbitrary bindable.
-                if (candidate.AggregateVolume != adjustments.AggregateVolume)
+                if (!foundAdjustments && cursor is IAggregateAudioAdjustment candidateAdjustment)
                 {
-                    parentAdjustment = candidate;
-                    adjustments.BindAdjustments(parentAdjustment);
-                    break;
+                    // components may be delegating the aggregates of a contained child.
+                    // to avoid binding to one's self, check reference equality on an arbitrary bindable.
+                    if (candidateAdjustment.AggregateVolume != adjustments.AggregateVolume)
+                    {
+                        parentAdjustment = candidateAdjustment;
+                        adjustments.BindAdjustments(parentAdjustment);
+
+                        foundAdjustments = true;
+                    }
                 }
+
+                if (!foundMixer && cursor is IAudioMixer candidateMixer)
+                {
+                    parentMixer = candidateMixer;
+                    candidateMixer.Add(channelComponent);
+
+                    foundMixer = true;
+                }
+
+                if (foundAdjustments && foundMixer)
+                    break;
             }
         }
 

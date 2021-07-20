@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
@@ -19,15 +20,23 @@ namespace osu.Framework.Tests.Audio
         private SampleBassFactory sampleFactory;
         private Sample sample;
         private SampleChannel channel;
+        private BassAudioMixer mixer;
 
         [SetUp]
         public void Setup()
         {
+            AudioThread.PreloadBass();
+
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
+
+            mixer = new BassAudioMixer();
+            mixer.UpdateDevice(0);
+
+            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
             sample = sampleFactory.CreateSample();
 
             updateSample();
@@ -100,7 +109,11 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(channel.Playing);
         }
 
-        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
+        private void updateSample() => runOnAudioThread(() =>
+        {
+            mixer.Update();
+            sampleFactory.Update();
+        });
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

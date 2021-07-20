@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
@@ -18,10 +19,13 @@ namespace osu.Framework.Tests.Audio
         private DllResourceStore resources;
         private SampleBassFactory sampleFactory;
         private Sample sample;
+        private BassAudioMixer mixer;
 
         [SetUp]
         public void Setup()
         {
+            AudioThread.PreloadBass();
+
             try
             {
                 // Make sure that the audio device is not initialised.
@@ -35,13 +39,18 @@ namespace osu.Framework.Tests.Audio
             {
             }
 
+            mixer = new BassAudioMixer();
+
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"));
+            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
             sample = sampleFactory.CreateSample();
 
             updateSample();
 
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
+
+            mixer.UpdateDevice(0);
         }
 
         [TearDown]
@@ -63,7 +72,11 @@ namespace osu.Framework.Tests.Audio
             Assert.That(sample.IsLoaded, Is.True);
         }
 
-        private void updateSample() => runOnAudioThread(() => sampleFactory.Update());
+        private void updateSample() => runOnAudioThread(() =>
+        {
+            mixer.Update();
+            sampleFactory.Update();
+        });
 
         /// <summary>
         /// Certain actions are invoked on the audio thread.

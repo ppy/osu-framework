@@ -6,11 +6,11 @@ using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform.Linux.Native;
 using osu.Framework.Threading;
 
 #pragma warning disable 4014
@@ -24,21 +24,25 @@ namespace osu.Framework.Tests.Audio
 
         private TrackBass track;
 
+        private BassAudioMixer mixer;
+        private TrackStore trackStore;
+
         [SetUp]
         public void Setup()
         {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            {
-                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
-                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-            }
+            AudioThread.PreloadBass();
 
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
+            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 
-            track = new TrackBass(resources.GetStream("Resources.Tracks.sample-track.mp3"));
+            mixer = new BassAudioMixer();
+            mixer.UpdateDevice(0);
+
+            trackStore = new TrackStore(resources, mixer);
+            track = (TrackBass)trackStore.Get("Resources.Tracks.sample-track.mp3");
             updateTrack();
         }
 
@@ -69,6 +73,11 @@ namespace osu.Framework.Tests.Audio
         {
             track.StartAsync();
             updateTrack();
+
+            Thread.Sleep(50);
+
+            updateTrack();
+            Assert.Greater(track.CurrentTime, 0);
 
             track.StopAsync();
             updateTrack();
@@ -115,8 +124,7 @@ namespace osu.Framework.Tests.Audio
             track.SeekAsync(1000);
             updateTrack();
 
-            Thread.Sleep(50);
-            updateTrack();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -175,8 +183,8 @@ namespace osu.Framework.Tests.Audio
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
-
             updateTrack();
+
             track.StartAsync();
             updateTrack();
 
@@ -188,10 +196,13 @@ namespace osu.Framework.Tests.Audio
         {
             startPlaybackAt(1000);
 
-            Thread.Sleep(50);
+            takeEffectsAndUpdateAfter(50);
 
-            updateTrack();
+            Assert.Greater(track.CurrentTime, 1000);
+
             restartTrack();
+
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.Less(track.CurrentTime, 1000);
@@ -202,10 +213,11 @@ namespace osu.Framework.Tests.Audio
         {
             startPlaybackAt(track.Length - 1);
 
-            Thread.Sleep(50);
+            takeEffectsAndUpdateAfter(50);
 
-            updateTrack();
             restartTrack();
+
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.LessOrEqual(track.CurrentTime, 1000);
@@ -217,7 +229,10 @@ namespace osu.Framework.Tests.Audio
             track.RestartPoint = 1000;
 
             startPlaybackAt(3000);
+            takeEffectsAndUpdateAfter(50);
+
             restartTrack();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -233,13 +248,7 @@ namespace osu.Framework.Tests.Audio
 
             startPlaybackAt(track.Length - 1);
 
-            Thread.Sleep(50);
-
-            // The first update brings the track to its end time and restarts it
-            updateTrack();
-
-            // The second update updates the IsRunning state
-            updateTrack();
+            takeEffectsAndUpdateAfter(50);
 
             // In a perfect world the track will be running after the update above, but during testing it's possible that the track is in
             // a stalled state due to updates running on Bass' own thread, so we'll loop until the track starts running again
@@ -324,7 +333,8 @@ namespace osu.Framework.Tests.Audio
         public void TestZeroFrequencyHandling()
         {
             // start track.
-            track.StartAsync();
+            startPlaybackAt(0);
+
             takeEffectsAndUpdateAfter(50);
 
             // ensure running and has progressed.
@@ -333,25 +343,16 @@ namespace osu.Framework.Tests.Audio
 
             // now set to zero frequency and update track to take effects.
             track.Frequency.Value = 0;
-            updateTrack();
+
+            takeEffectsAndUpdateAfter(50);
 
             var currentTime = track.CurrentTime;
 
             // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
-            Thread.Sleep(50);
-            updateTrack();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.AreEqual(currentTime, track.CurrentTime);
-
-            // set back to one and update track.
-            track.Frequency.Value = 1;
-            takeEffectsAndUpdateAfter(50);
-
-            // ensure time didn't jump away, and is progressing normally.
-            Assert.IsTrue(track.IsRunning);
-            Assert.Greater(track.CurrentTime, currentTime);
-            Assert.Less(track.CurrentTime, currentTime + 1000.0);
         }
 
         /// <summary>
@@ -397,6 +398,9 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
 
             runOnAudioThread(() => track.Seek(20000));
+
+            takeEffectsAndUpdateAfter(50);
+
             Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
@@ -414,14 +418,19 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
         }
 
-        private void updateTrack() => runOnAudioThread(() => track.Update());
+        private void updateTrack() => runOnAudioThread(() =>
+        {
+            mixer.Update();
+            trackStore.Update();
+        });
 
         private void restartTrack()
         {
             runOnAudioThread(() =>
             {
                 track.Restart();
-                track.Update();
+                mixer.Update();
+                trackStore.Update();
             });
         }
 

@@ -1,12 +1,15 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using ManagedBass;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal sealed class SampleChannelBass : SampleChannel, IBassAudio
+    internal sealed class SampleChannelBass : SampleChannel, IBassAudio, IBassAudioChannel
     {
         private readonly SampleBass sample;
         private volatile int channel;
@@ -33,9 +36,19 @@ namespace osu.Framework.Audio.Sample
         private volatile bool enqueuedPlaybackStart;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
-        private BassAmplitudeProcessor bassAmplitudeProcessor;
+        private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
-        public SampleChannelBass(SampleBass sample)
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
+
+        int IBassAudioChannel.Handle => channel;
+
+        /// <summary>
+        /// Creates a new <see cref="SampleChannelBass"/>.
+        /// </summary>
+        /// <param name="sample">The <see cref="SampleBass"/> to create the channel from.</param>
+        /// <param name="defaultMixer"><inheritdoc/></param>
+        public SampleChannelBass(SampleBass sample, IBassAudioMixer defaultMixer)
+            : base(defaultMixer)
         {
             this.sample = sample;
 
@@ -101,7 +114,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                switch (Bass.ChannelIsActive(channel))
+                switch (bassMixer.ChannelIsActive(this))
                 {
                     case PlaybackState.Playing:
                     // Stalled counts as playing, as playback will continue once more data has streamed in.
@@ -156,13 +169,13 @@ namespace osu.Framework.Audio.Sample
                 // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
                 // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
                 // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
                     return;
 
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    Bass.ChannelPlay(channel);
+                    bassMixer.PlayChannel(this);
             }
             finally
             {
@@ -173,7 +186,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                Bass.ChannelPause(channel);
+                bassMixer.PauseChannel(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -187,10 +200,12 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
                 return;
 
-            channel = Bass.SampleGetChannel(sample.SampleId);
+            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.SampleChannelStream | BassFlags.Decode);
 
             if (!hasChannel)
                 return;
+
+            bassMixer.RegisterChannel(this);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -206,7 +221,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                Bass.ChannelStop(channel);
+                bassMixer.Remove(this);
                 channel = 0;
             }
 
