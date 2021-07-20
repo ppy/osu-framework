@@ -67,6 +67,9 @@ namespace osu.Framework.Audio.Mixing
             if (mixerHandle == 0)
                 return;
 
+            if (!mixedChannels.Contains(channel))
+                throw new InvalidOperationException("Channel needs to be added to the mixer first.");
+
             BassMix.MixerAddChannel(mixerHandle, channel.Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
             BassUtils.CheckFaulted(true);
         }
