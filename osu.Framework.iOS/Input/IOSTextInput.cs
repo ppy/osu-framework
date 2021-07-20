@@ -38,13 +38,13 @@ namespace osu.Framework.iOS.Input
                 pending += text;
         }
 
-        public void Deactivate(object sender)
+        public void Deactivate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
-        public void Activate(object sender)
+        public void Activate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);

@@ -456,6 +456,70 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
 
+        [Test]
+        public void TestReadOnly()
+        {
+            BasicTextBox firstTextBox = null;
+            BasicTextBox secondTextBox = null;
+
+            AddStep("add textboxes", () => textBoxes.AddRange(new[]
+            {
+                firstTextBox = new BasicTextBox
+                {
+                    Text = "Readonly textbox",
+                    Size = new Vector2(500, 30),
+                    ReadOnly = true,
+                    TabbableContentContainer = textBoxes
+                },
+                secondTextBox = new BasicTextBox
+                {
+                    Text = "Standard textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                }
+            }));
+
+            AddStep("click first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("click second (editable) textbox", () =>
+            {
+                InputManager.MoveMouseTo(secondTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("try to tab backwards", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("first (readonly) has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("drag on first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("make first textbox non-readonly", () => firstTextBox.ReadOnly = false);
+            AddStep("click first textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("make first textbox readonly again", () => firstTextBox.ReadOnly = true);
+            AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
+            AddStep("delete last character", () => firstTextBox.OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)));
+            AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
+        }
+
         public class InsertableTextBox : BasicTextBox
         {
             /// <summary>

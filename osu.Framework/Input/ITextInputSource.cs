@@ -15,9 +15,9 @@ namespace osu.Framework.Input
 
         string GetPendingText();
 
-        void Deactivate(object sender);
+        void Deactivate();
 
-        void Activate(object sender);
+        void Activate();
 
         /// <summary>
         /// Ensures that the native implementation that retrieves user text input is activated

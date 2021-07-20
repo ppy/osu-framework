@@ -44,6 +44,7 @@ namespace osu.Framework.Localisation
         public static implicit operator LocalisableString(TranslatableString translatable) => new LocalisableString(translatable);
         public static implicit operator LocalisableString(RomanisableString romanisable) => new LocalisableString(romanisable);
         public static implicit operator LocalisableString(LocalisableFormattableString formattable) => new LocalisableString(formattable);
+        public static implicit operator LocalisableString(CaseTransformableString transformable) => new LocalisableString(transformable);
 
         public static bool operator ==(LocalisableString left, LocalisableString right) => left.Equals(right);
         public static bool operator !=(LocalisableString left, LocalisableString right) => !left.Equals(right);
