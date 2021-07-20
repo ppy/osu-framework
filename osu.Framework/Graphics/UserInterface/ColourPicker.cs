@@ -63,6 +63,8 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected abstract HexColourPicker CreateHexColourPicker();
 
+        public override bool IsPresent => base.IsPresent || hsvColourPicker.IsPresent;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
