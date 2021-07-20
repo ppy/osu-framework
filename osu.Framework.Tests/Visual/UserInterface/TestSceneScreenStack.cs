@@ -1036,6 +1036,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnEntering(IScreen last)
             {
+                attemptTransformMutation();
+
                 EnteredFrom = last;
                 Entered?.Invoke();
 
@@ -1060,6 +1062,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override bool OnExiting(IScreen next)
             {
+                attemptTransformMutation();
+
                 ExitedTo = next;
                 Exited?.Invoke();
 
@@ -1072,6 +1076,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnSuspending(IScreen next)
             {
+                attemptTransformMutation();
+
                 SuspendedTo = next;
                 Suspended?.Invoke();
 
@@ -1081,11 +1087,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnResuming(IScreen last)
             {
+                attemptTransformMutation();
+
                 ResumedFrom = last;
                 Resumed?.Invoke();
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+            }
+
+            private void attemptTransformMutation()
+            {
+                // all callbacks should be in a state where transforms are able to be run.
+                this.FadeIn();
             }
 
             protected override bool OnClick(ClickEvent e)
