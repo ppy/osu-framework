@@ -888,6 +888,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen 3 child is null", () => screen3.GetChildScreen() == null);
         }
 
+        /// <summary>
+        /// Ensure that an intermediary screen doesn't block and doesn't attempt to fire events when not loaded.
+        /// </summary>
+        [Test]
+        public void TestMakeCurrentWhileScreensStillLoading()
+        {
+            TestScreen root = null;
+
+            pushAndEnsureCurrent(() => root = new TestScreen(id: 1));
+            AddStep("push slow", () => stack.Push(new TestScreenSlow { Exiting = () => true }));
+            AddStep("push second slow", () => stack.Push(new TestScreenSlow()));
+
+            AddStep("make screen1 current", () => root.MakeCurrent());
+        }
+
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)
         {
             inputManager.MoveMouseTo(screen);
