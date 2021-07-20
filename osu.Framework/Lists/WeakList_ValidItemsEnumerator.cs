@@ -13,7 +13,7 @@ namespace osu.Framework.Lists
         /// <summary>
         /// An enumerator over only the valid items of a <see cref="WeakList{T}"/>.
         /// </summary>
-        public struct ValidItemsEnumerator : IEnumerator<T?>
+        public struct ValidItemsEnumerator : IEnumerator<T>
         {
             private readonly WeakList<T> weakList;
             private int currentItemIndex;
@@ -27,7 +27,7 @@ namespace osu.Framework.Lists
                 this.weakList = weakList;
 
                 currentItemIndex = weakList.listStart - 1; // The first MoveNext() should bring the iterator to the start
-                Current = null;
+                Current = default!;
             }
 
             public bool MoveNext()
@@ -57,16 +57,16 @@ namespace osu.Framework.Lists
             public void Reset()
             {
                 currentItemIndex = weakList.listStart - 1;
-                Current = null;
+                Current = default!;
             }
 
-            public T? Current { get; private set; }
+            public T Current { get; private set; }
 
-            readonly object? IEnumerator.Current => Current;
+            readonly object IEnumerator.Current => Current;
 
             public void Dispose()
             {
-                Current = null;
+                Current = default!;
             }
         }
     }

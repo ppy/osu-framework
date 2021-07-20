@@ -75,8 +75,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -110,8 +108,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -195,8 +191,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -328,8 +322,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -379,10 +371,7 @@ namespace osu.Framework.Bindables
             if (propagateToBindings && bindings != null)
             {
                 foreach (var b in bindings)
-                {
-                    Debug.Assert(b != null);
                     b.Disabled = disabled;
-                }
             }
 
             if (beforePropagation == disabled)
@@ -405,10 +394,7 @@ namespace osu.Framework.Bindables
                 return;
 
             foreach (var b in bindings)
-            {
-                Debug.Assert(b != null);
                 b.unbind(this);
-            }
 
             bindings?.Clear();
         }
