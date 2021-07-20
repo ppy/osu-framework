@@ -45,6 +45,7 @@ namespace osu.Framework.Audio.Sample
             this.sample = sample;
 
             ChangeMixer(mixer);
+            Mixer.Add(this);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {

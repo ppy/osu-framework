@@ -73,6 +73,7 @@ namespace osu.Framework.Audio.Track
                 throw new ArgumentNullException(nameof(data));
 
             ChangeMixer(mixer);
+            Mixer.Add(this);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
