@@ -451,7 +451,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
+            AddStep("select all", () => textBox.OnPressed(PlatformAction.SelectAll));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
@@ -516,7 +516,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddStep("make first textbox readonly again", () => firstTextBox.ReadOnly = true);
             AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
-            AddStep("delete last character", () => firstTextBox.OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)));
+            AddStep("delete last character", () => firstTextBox.OnPressed(PlatformAction.DeleteBackwardChar));
             AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
         }
 
@@ -557,14 +557,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     DeletePreviousCharacter();
             }
 
-            public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
-            public void MoveToEnd() => OnPressed(new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move));
+            public void MoveToStart() => OnPressed(PlatformAction.MoveBackwardLine);
+            public void MoveToEnd() => OnPressed(PlatformAction.MoveForwardLine);
 
-            public void DeletePreviousCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete));
+            public void DeletePreviousCharacter() => OnPressed(PlatformAction.DeleteBackwardChar);
+            public void DeleteNextCharacter() => OnPressed(PlatformAction.DeleteForwardChar);
 
-            public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
+            public void DeletePreviousWord() => OnPressed(PlatformAction.DeleteBackwardWord);
+            public void DeleteNextWord() => OnPressed(PlatformAction.DeleteForwardWord);
         }
 
         private class NumberTextBox : BasicTextBox

@@ -408,13 +408,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsSwitchable)
             {
-                switch (action.ActionType)
+                switch (action)
                 {
-                    case PlatformActionType.DocumentNext:
+                    case PlatformAction.DocumentNext:
                         SwitchTab(1);
                         return true;
 
-                    case PlatformActionType.DocumentPrevious:
+                    case PlatformAction.DocumentPrevious:
                         SwitchTab(-1);
                         return true;
                 }

@@ -581,13 +581,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             public bool OnPressed(PlatformAction action)
             {
-                switch (action.ActionType)
+                switch (action)
                 {
-                    case PlatformActionType.ListStart:
+                    case PlatformAction.MoveToListStart:
                         PreselectItem(Items.FirstOrDefault());
                         return true;
 
-                    case PlatformActionType.ListEnd:
+                    case PlatformAction.MoveToListEnd:
                         PreselectItem(Items.LastOrDefault());
                         return true;
 

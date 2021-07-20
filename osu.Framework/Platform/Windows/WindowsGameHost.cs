@@ -66,7 +66,7 @@ namespace osu.Framework.Platform.Windows
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), new PlatformAction(PlatformActionType.Exit))
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), PlatformAction.Exit)
         }).ToList();
 
         protected override void Dispose(bool isDisposing)
