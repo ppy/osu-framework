@@ -62,7 +62,7 @@ namespace osu.Framework.Audio.Mixing
         void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
         {
             Trace.Assert(CanPerformInline);
-            Trace.Assert(channel.Handle > 0);
+            Trace.Assert(channel.Handle != 0);
 
             if (mixerHandle == 0)
                 return;
