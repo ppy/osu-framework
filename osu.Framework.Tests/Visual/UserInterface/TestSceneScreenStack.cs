@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
+using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osu.Framework.Utils;
 using osuTK;
@@ -27,15 +28,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TestScreen baseScreen;
         private ScreenStack stack;
 
+        private readonly List<TestScreenSlow> slowLoaders = new List<TestScreenSlow>();
+
         [SetUp]
         public void SetupTest() => Schedule(() =>
         {
             Clear();
+
             Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
+
+            stack.ScreenPushed += (last, current) =>
+            {
+                if (current is TestScreenSlow slow)
+                    slowLoaders.Add(slow);
+            };
         });
+
+        [TearDownSteps]
+        public void Teardown()
+        {
+            AddStep("unblock any slow loaders", () =>
+            {
+                foreach (var slow in slowLoaders)
+                    slow.AllowLoad.Set();
+
+                slowLoaders.Clear();
+            });
+        }
 
         [Test]
         public void TestPushFocusLost()
