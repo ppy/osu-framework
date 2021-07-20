@@ -4,10 +4,11 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
+using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing
@@ -17,7 +18,7 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
     {
-        private readonly List<IBassAudioChannel> mixedChannels = new List<IBassAudioChannel>();
+        private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private int mixerHandle;
 
         private const int frequency = 44100;
@@ -116,6 +117,8 @@ namespace osu.Framework.Audio.Mixing
                 // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
                 foreach (var channel in mixedChannels)
                 {
+                    Debug.Assert(channel != null); // https://github.com/ppy/osu-framework/issues/4625
+
                     if (channel.Handle != 0)
                         ((IBassAudioMixer)this).RegisterChannel(channel);
                 }
@@ -128,7 +131,7 @@ namespace osu.Framework.Audio.Mixing
 
         protected override void UpdateState()
         {
-            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count);
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count());
             base.UpdateState();
         }
     }
