@@ -92,6 +92,17 @@ namespace osu.Framework.Audio.Mixing
             Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
+        public PlaybackState ChannelIsActive(IBassAudioChannel channel)
+        {
+            var state = Bass.ChannelIsActive(channel.Handle);
+
+            // The channel may be playing meanwhile the mixer "channel" is paused.
+            if (state == PlaybackState.Playing)
+                state = BassMix.ChannelHasFlag(channel.Handle, BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
+
+            return state;
+        }
+
         long IBassAudioMixer.GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
 
         bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);

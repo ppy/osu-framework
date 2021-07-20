@@ -39,6 +39,13 @@ namespace osu.Framework.Audio.Mixing
         void StopChannel(IBassAudioChannel channel);
 
         /// <summary>
+        /// Returns the current playback state of a channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to get the playback state of.</param>
+        /// <returns>The <see cref="PlaybackState"/>.</returns>
+        PlaybackState ChannelIsActive(IBassAudioChannel channel);
+
+        /// <summary>
         /// Retrieves the position of a mixed channel.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to retrieve the position of.</param>

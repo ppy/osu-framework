@@ -31,6 +31,8 @@ namespace osu.Framework.Audio.Mixing
 
         public void StopChannel(IBassAudioChannel channel) => Bass.ChannelStop(channel.Handle);
 
+        public PlaybackState ChannelIsActive(IBassAudioChannel channel) => Bass.ChannelIsActive(channel.Handle);
+
         public long GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => Bass.ChannelGetPosition(channel.Handle);
 
         public bool SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => Bass.ChannelSetPosition(channel.Handle, pos, mode);

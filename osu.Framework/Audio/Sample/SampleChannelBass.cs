@@ -109,7 +109,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                switch (Bass.ChannelIsActive(channel))
+                switch (bassMixer.ChannelIsActive(this))
                 {
                     case PlaybackState.Playing:
                     // Stalled counts as playing, as playback will continue once more data has streamed in.
@@ -164,7 +164,7 @@ namespace osu.Framework.Audio.Sample
                 // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
                 // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
                 // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
                     return;
 
                 playing = true;
