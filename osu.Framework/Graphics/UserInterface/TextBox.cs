@@ -363,8 +363,8 @@ namespace osu.Framework.Graphics.UserInterface
             //have to run this after children flow
             if (!cursorAndLayout.IsValid)
             {
-                updateCursorAndLayout();
                 cursorAndLayout.Validate();
+                updateCursorAndLayout();
             }
         }
 
