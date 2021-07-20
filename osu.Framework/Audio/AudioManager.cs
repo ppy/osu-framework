@@ -39,7 +39,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The default mixer that audio is routed into.
         /// </summary>
-        public readonly AudioMixer Mixer = new BassAudioMixer();
+        public readonly AudioMixer Mixer;
 
         /// <summary>
         /// The names of all available audio devices.
@@ -136,7 +136,7 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(Mixer);
+            AddItem(Mixer = CreateAudioMixer());
 
             CancellationToken token = cancelSource.Token;
 
@@ -187,6 +187,13 @@ namespace osu.Framework.Audio
                 if (!IsCurrentDeviceValid())
                     setAudioDevice();
             });
+        }
+
+        public AudioMixer CreateAudioMixer()
+        {
+            var mixer = new BassAudioMixer();
+            AddItem(mixer);
+            return mixer;
         }
 
         /// <summary>
