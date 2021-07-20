@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Diagnostics;
+using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
@@ -38,6 +39,28 @@ namespace osu.Framework.Graphics.Audio
             {
                 Debug.Assert(mixer != null);
                 mixer.Remove(channel);
+            }
+        }
+
+        public void AddEffect(IEffectParameter effect, int priority)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.AddEffect(effect, priority));
+            else
+            {
+                Debug.Assert(mixer != null);
+                mixer.AddEffect(effect, priority);
+            }
+        }
+
+        public void RemoveEffect(IEffectParameter effect)
+        {
+            if (LoadState < LoadState.Ready)
+                Schedule(() => mixer.RemoveEffect(effect));
+            else
+            {
+                Debug.Assert(mixer != null);
+                mixer.RemoveEffect(effect);
             }
         }
     }

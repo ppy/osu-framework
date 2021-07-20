@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using ManagedBass;
+
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
@@ -26,6 +28,10 @@ namespace osu.Framework.Audio.Mixing
 
             channel.SetMixer(null);
         }
+
+        public abstract void AddEffect(IEffectParameter effect, int priority);
+
+        public abstract void RemoveEffect(IEffectParameter effect);
 
         protected abstract void AddInternal(IAudioChannel channel);
 

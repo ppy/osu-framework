@@ -4,6 +4,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
@@ -19,9 +20,39 @@ namespace osu.Framework.Audio.Mixing
     public class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
     {
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
+        private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
+
         private int mixerHandle;
 
         private const int frequency = 44100;
+
+        public override void AddEffect(IEffectParameter effect, int priority)
+        {
+            EnqueueAction(() =>
+            {
+                var effectWithPriority = new EffectWithPriority(effect, priority);
+                effects.Add(effectWithPriority);
+                applyEffect(effectWithPriority);
+            });
+        }
+
+        public override void RemoveEffect(IEffectParameter effect)
+        {
+            EnqueueAction(() =>
+            {
+                var foundIndex = effects.FindIndex(e => e.Effect == effect);
+                if (foundIndex == -1)
+                    return;
+
+                var effectWithPriority = effects[foundIndex];
+                effects.RemoveAt(foundIndex);
+
+                if (effectWithPriority.Handle == 0)
+                    return;
+
+                Bass.ChannelRemoveFX(mixerHandle, effectWithPriority.Handle);
+            });
+        }
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -122,6 +153,9 @@ namespace osu.Framework.Audio.Mixing
                     if (channel.Handle != 0)
                         ((IBassAudioMixer)this).RegisterChannel(channel);
                 }
+
+                foreach (var effect in effects)
+                    applyEffect(effect);
             }
             else
                 Bass.ChannelSetDevice(mixerHandle, deviceIndex);
@@ -129,10 +163,44 @@ namespace osu.Framework.Audio.Mixing
             Bass.ChannelPlay(mixerHandle);
         }
 
+        private void applyEffect(EffectWithPriority effectWithPriority)
+        {
+            Debug.Assert(CanPerformInline);
+            Debug.Assert(effectWithPriority.Handle == 0);
+
+            if (mixerHandle == 0)
+                return;
+
+            effectWithPriority.Handle = Bass.ChannelSetFX(mixerHandle, effectWithPriority.Effect.FXType, effectWithPriority.Priority);
+            Bass.FXSetParameters(effectWithPriority.Handle, effectWithPriority.Effect);
+        }
+
         protected override void UpdateState()
         {
             FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count());
             base.UpdateState();
+        }
+
+        private class EffectWithPriority : IComparable<EffectWithPriority>
+        {
+            public int Handle { get; set; }
+
+            public readonly IEffectParameter Effect;
+            public readonly int Priority;
+
+            public EffectWithPriority(IEffectParameter effect, int priority)
+            {
+                Effect = effect;
+                Priority = priority;
+            }
+
+            public int CompareTo(EffectWithPriority? other)
+            {
+                if (ReferenceEquals(this, other)) return 0;
+                if (ReferenceEquals(null, other)) return 1;
+
+                return Priority.CompareTo(other.Priority);
+            }
         }
     }
 }
