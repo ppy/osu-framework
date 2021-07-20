@@ -25,48 +25,4 @@ namespace osu.Framework.Input
 
         protected override bool SendRepeats => true;
     }
-
-    public struct PlatformAction
-    {
-        public PlatformActionType ActionType;
-        public PlatformActionMethod? ActionMethod;
-
-        public PlatformAction(PlatformActionType actionType, PlatformActionMethod? actionMethod = null)
-        {
-            ActionType = actionType;
-            ActionMethod = actionMethod;
-        }
-    }
-
-    public enum PlatformActionType
-    {
-        Cut,
-        Copy,
-        Paste,
-        SelectAll,
-        CharPrevious,
-        CharNext,
-        WordPrevious,
-        WordNext,
-        LineStart,
-        LineEnd,
-        DocumentPrevious,
-        DocumentNext,
-        DocumentClose,
-        TabNew,
-        TabRestore,
-        ListStart,
-        ListEnd,
-        Save,
-        Undo,
-        Redo,
-        Exit
-    }
-
-    public enum PlatformActionMethod
-    {
-        Move,
-        Select,
-        Delete
-    }
 }
