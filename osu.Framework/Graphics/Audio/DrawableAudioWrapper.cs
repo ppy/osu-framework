@@ -53,15 +53,20 @@ namespace osu.Framework.Graphics.Audio
 
         private readonly LayoutValue fromParentLayout = new LayoutValue(Invalidation.Parent);
 
+        private DrawableAudioWrapper()
+        {
+            AddLayout(fromParentLayout);
+        }
+
         /// <summary>
         /// Creates a <see cref="DrawableAudioWrapper"/> that will contain a drawable child.
         /// Generally used to add adjustments to a hierarchy without adding an audio component.
         /// </summary>
         /// <param name="content">The <see cref="Drawable"/> to be wrapped.</param>
         protected DrawableAudioWrapper(Drawable content)
+            : this()
         {
             AddInternal(content);
-            AddLayout(fromParentLayout);
         }
 
         /// <summary>
@@ -70,6 +75,7 @@ namespace osu.Framework.Graphics.Audio
         /// <param name="component">The audio component to wrap.</param>
         /// <param name="disposeUnderlyingComponentOnDispose">Whether the component should be automatically disposed on drawable disposal/expiry.</param>
         protected DrawableAudioWrapper([NotNull] IAdjustableAudioComponent component, bool disposeUnderlyingComponentOnDispose = true)
+            : this()
         {
             this.component = component ?? throw new ArgumentNullException(nameof(component));
             this.disposeUnderlyingComponentOnDispose = disposeUnderlyingComponentOnDispose;

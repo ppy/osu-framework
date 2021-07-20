@@ -910,7 +910,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(ClickEvent e) => !ReadOnly;
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (!ReadOnly && HasFocus)
+                textInput?.EnsureActivated();
+
+            return !ReadOnly;
+        }
 
         protected override void OnFocus(FocusEvent e)
         {

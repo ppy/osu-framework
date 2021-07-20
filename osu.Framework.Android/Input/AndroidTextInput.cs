@@ -68,9 +68,17 @@ namespace osu.Framework.Android.Input
             activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
-                inputMethodManager.ToggleSoftInputFromWindow(view.WindowToken, ShowSoftInputFlags.Forced, HideSoftInputFlags.None);
+                inputMethodManager.ShowSoftInput(view, 0);
                 view.KeyDown += keyDown;
                 view.CommitText += commitText;
+            });
+        }
+
+        public void EnsureActivated()
+        {
+            activity.RunOnUiThread(() =>
+            {
+                inputMethodManager.ShowSoftInput(view, 0);
             });
         }
     }

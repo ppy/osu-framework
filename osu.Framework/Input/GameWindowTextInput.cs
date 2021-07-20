@@ -63,6 +63,10 @@ namespace osu.Framework.Input
             }
         }
 
+        public void EnsureActivated()
+        {
+        }
+
         private void imeCompose()
         {
             //todo: implement

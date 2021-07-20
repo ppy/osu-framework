@@ -109,6 +109,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestExternalChangeWhileNotPresent()
+        {
+            const float hue = 0.34f;
+            const float saturation = 0.46f;
+            const float value = 0.84f;
+
+            AddStep("hide picker", () => colourPicker.Hide());
+            AddStep("set HSV manually", () =>
+            {
+                colourPicker.SaturationValueControl.Hue.Value = hue;
+                colourPicker.SaturationValueControl.Saturation.Value = saturation;
+                colourPicker.SaturationValueControl.Value.Value = value;
+            });
+
+            AddUntilStep("colour is correct", () => colourPicker.Current.Value == Colour4.FromHSV(hue, saturation, value));
+        }
+
+        [Test]
         public void TestHueUnchangedIfSaturationAlmostZero()
         {
             AddStep("change colour", () => colourPicker.Current.Value = Colour4.FromHSV(0.5f, 0.5f, 0.5f));
