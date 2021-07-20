@@ -68,10 +68,11 @@ namespace osu.Framework.Audio.Track
         /// <param name="mixer">The default mixer to house the track.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
         public TrackBass([NotNull] Stream data, IBassAudioMixer? mixer = null, bool quick = false)
-            : base(mixer ?? new PassThroughBassAudioMixer())
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
+
+            ChangeMixer(mixer);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -399,6 +400,8 @@ namespace osu.Framework.Audio.Track
         public override int? Bitrate => bitrate;
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
+
+        protected override void ChangeMixer(IAudioMixer? mixer) => base.ChangeMixer(mixer ?? new PassThroughBassAudioMixer());
 
         int IBassAudioChannel.Handle => activeStream;
     }

@@ -51,8 +51,13 @@ namespace osu.Framework.Audio.Sample
 
         public virtual ChannelAmplitudes CurrentAmplitudes { get; } = ChannelAmplitudes.Empty;
 
-        public virtual void ChangeMixer(IAudioMixer? mixer)
+        public IAudioMixer Mixer { get; private set; } = new NullAudioMixer();
+
+        protected virtual void ChangeMixer(IAudioMixer? mixer)
         {
+            Mixer = mixer ?? new NullAudioMixer();
         }
+
+        void IAudioChannel.ChangeMixer(IAudioMixer? mixer) => ChangeMixer(mixer);
     }
 }

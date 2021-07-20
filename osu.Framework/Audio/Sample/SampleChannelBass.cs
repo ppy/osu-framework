@@ -38,9 +38,13 @@ namespace osu.Framework.Audio.Sample
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
-        public SampleChannelBass(SampleBass sample)
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
+
+        public SampleChannelBass(SampleBass sample, IBassAudioMixer? mixer = null)
         {
             this.sample = sample;
+
+            ChangeMixer(mixer);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -165,7 +169,7 @@ namespace osu.Framework.Audio.Sample
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    mixer.PlayChannel(this);
+                    bassMixer.PlayChannel(this);
             }
             finally
             {
@@ -176,7 +180,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                mixer.PauseChannel(this);
+                bassMixer.PauseChannel(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -195,7 +199,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            mixer.RegisterChannel(this);
+            bassMixer.RegisterChannel(this);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -204,15 +208,6 @@ namespace osu.Framework.Audio.Sample
             bassAmplitudeProcessor?.SetChannel(channel);
         });
 
-        private IBassAudioMixer? mixer = new PassThroughBassAudioMixer();
-
-        public override void ChangeMixer(IAudioMixer? mixer)
-        {
-            this.mixer?.Remove(this);
-
-            base.ChangeMixer(mixer);
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (IsDisposed)
@@ -220,7 +215,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                mixer.Remove(this);
+                bassMixer.Remove(this);
                 channel = 0;
             }
 
@@ -228,6 +223,8 @@ namespace osu.Framework.Audio.Sample
 
             base.Dispose(disposing);
         }
+
+        protected override void ChangeMixer(IAudioMixer? mixer) => base.ChangeMixer(mixer ?? new PassThroughBassAudioMixer());
 
         int IBassAudioChannel.Handle => channel;
     }

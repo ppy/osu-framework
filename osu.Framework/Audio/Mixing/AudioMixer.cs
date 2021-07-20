@@ -13,13 +13,16 @@ namespace osu.Framework.Audio.Mixing
             channel.Mixer?.Remove(channel);
 
             AddInternal(channel);
-            channel.Mixer = this;
+            channel.ChangeMixer(this);
         }
 
         public void Remove(IAudioChannel channel)
         {
+            if (channel.Mixer != this)
+                return;
+
             RemoveInternal(channel);
-            channel.Mixer = null;
+            channel.ChangeMixer(null);
         }
 
         protected abstract void AddInternal(IAudioChannel channel);

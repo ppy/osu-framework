@@ -23,11 +23,6 @@ namespace osu.Framework.Audio.Track
 
         public virtual bool Looping { get; set; }
 
-        protected Track(IAudioMixer mixer)
-        {
-            Mixer = mixer;
-        }
-
         /// <summary>
         /// Reset this track to a logical default state.
         /// </summary>
@@ -125,12 +120,13 @@ namespace osu.Framework.Audio.Track
                 Restart();
         }
 
-        protected IAudioMixer Mixer { get; private set; }
+        public IAudioMixer Mixer { get; private set; } = new NullAudioMixer();
 
-        IAudioMixer IAudioChannel.Mixer
+        protected virtual void ChangeMixer(IAudioMixer? mixer)
         {
-            get => Mixer;
-            set => Mixer = value;
+            Mixer = mixer ?? new NullAudioMixer();
         }
+
+        void IAudioChannel.ChangeMixer(IAudioMixer? mixer) => ChangeMixer(mixer);
     }
 }
