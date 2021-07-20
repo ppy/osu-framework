@@ -65,10 +65,10 @@ namespace osu.Framework.Audio.Track
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
-        /// <param name="mixer">The default mixer to house the track.</param>
+        /// <param name="defaultMixer"><inheritdoc/></param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass([NotNull] Stream data, IBassAudioMixer mixer, bool quick = false)
-            : base(mixer)
+        public TrackBass([NotNull] Stream data, IBassAudioMixer defaultMixer, bool quick = false)
+            : base(defaultMixer)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));

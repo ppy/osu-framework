@@ -14,11 +14,16 @@ namespace osu.Framework.Audio.Sample
     {
         internal Action<SampleChannel>? OnPlay;
 
-        protected SampleChannel(IAudioMixer mixer)
+        /// <summary>
+        /// Creates a new <see cref="SampleChannel"/>.
+        /// </summary>
+        /// <param name="defaultMixer">The default <see cref="AudioMixer"/> to house this <see cref="SampleChannel"/>.
+        /// The <see cref="SampleChannel"/> can never be removed from this <see cref="AudioMixer"/>, but can be added to other mixers via <see cref="AudioMixer.Add"/>.</param>
+        protected SampleChannel(IAudioMixer defaultMixer)
         {
-            defaultMixer = mixer;
+            this.defaultMixer = defaultMixer;
 
-            mixer.Add(this);
+            defaultMixer.Add(this);
         }
 
         public virtual void Play()

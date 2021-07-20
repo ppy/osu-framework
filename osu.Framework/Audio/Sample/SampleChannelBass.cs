@@ -42,8 +42,13 @@ namespace osu.Framework.Audio.Sample
 
         int IBassAudioChannel.Handle => channel;
 
-        public SampleChannelBass(SampleBass sample, IBassAudioMixer mixer)
-            : base(mixer)
+        /// <summary>
+        /// Creates a new <see cref="SampleChannelBass"/>.
+        /// </summary>
+        /// <param name="sample">The <see cref="SampleBass"/> to create the channel from.</param>
+        /// <param name="defaultMixer"><inheritdoc/></param>
+        public SampleChannelBass(SampleBass sample, IBassAudioMixer defaultMixer)
+            : base(defaultMixer)
         {
             this.sample = sample;
 
