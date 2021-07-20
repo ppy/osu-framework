@@ -40,12 +40,12 @@ namespace osu.Framework.Audio.Sample
 
         private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
 
-        public SampleChannelBass(SampleBass sample, IBassAudioMixer? mixer = null)
+        int IBassAudioChannel.Handle => channel;
+
+        public SampleChannelBass(SampleBass sample, IBassAudioMixer mixer)
+            : base(mixer)
         {
             this.sample = sample;
-
-            ChangeMixer(mixer);
-            Mixer.Add(this);
 
             relativeFrequencyHandler = new BassRelativeFrequencyHandler
             {
@@ -224,9 +224,5 @@ namespace osu.Framework.Audio.Sample
 
             base.Dispose(disposing);
         }
-
-        protected override void ChangeMixer(IAudioMixer? mixer) => base.ChangeMixer(mixer ?? new PassThroughBassAudioMixer());
-
-        int IBassAudioChannel.Handle => channel;
     }
 }

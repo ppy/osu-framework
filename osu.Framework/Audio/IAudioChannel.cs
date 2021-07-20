@@ -9,8 +9,8 @@ namespace osu.Framework.Audio
 {
     public interface IAudioChannel
     {
-        IAudioMixer? Mixer { get; }
+        IAudioMixer Mixer { get; }
 
-        internal void ChangeMixer(IAudioMixer? mixer);
+        void SetMixer(IAudioMixer? mixer);
     }
 }

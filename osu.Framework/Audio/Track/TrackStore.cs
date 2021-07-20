@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.IO.Stores;
 
@@ -15,7 +16,7 @@ namespace osu.Framework.Audio.Track
         private readonly IResourceStore<byte[]> store;
         private readonly AudioMixer mixer;
 
-        internal TrackStore(IResourceStore<byte[]> store, AudioMixer mixer)
+        internal TrackStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
             this.store = store;
             this.mixer = mixer;

@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
@@ -21,7 +22,7 @@ namespace osu.Framework.Audio.Sample
 
         public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
 
-        internal SampleStore(IResourceStore<byte[]> store, AudioMixer mixer)
+        internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
             this.store = store;
             this.mixer = mixer;

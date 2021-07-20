@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -13,6 +14,7 @@ namespace osu.Framework.Audio.Track
         private double seekOffset;
 
         public TrackVirtual(double length)
+            : base(new NullAudioMixer())
         {
             Length = length;
         }
