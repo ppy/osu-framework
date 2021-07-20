@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Mixing
 
         void IBassAudioMixer.StopChannel(IBassAudioChannel channel)
         {
-            BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.MixerChanPause);
+            BassMix.ChannelFlags(channel.Handle, BassFlags.MixerChanPause, BassFlags.MixerChanPause);
             Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
