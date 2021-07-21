@@ -345,9 +345,9 @@ namespace osu.Framework
 
         public virtual bool OnPressed(PlatformAction action)
         {
-            switch (action.ActionType)
+            switch (action)
             {
-                case PlatformActionType.Exit:
+                case PlatformAction.Exit:
                     Host.Window?.Close();
                     return true;
             }
