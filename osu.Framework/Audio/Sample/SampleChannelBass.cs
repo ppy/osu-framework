@@ -42,6 +42,8 @@ namespace osu.Framework.Audio.Sample
 
         int IBassAudioChannel.Handle => channel;
 
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
         /// <summary>
         /// Creates a new <see cref="SampleChannelBass"/>.
         /// </summary>

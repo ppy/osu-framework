@@ -86,6 +86,8 @@ namespace osu.Framework.Audio.Mixing
                 if (mixerHandle == 0 || bassChannel.Handle == 0)
                     return;
 
+                bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
+
                 BassMix.MixerRemoveChannel(bassChannel.Handle);
                 BassUtils.CheckFaulted(true);
             });
@@ -102,7 +104,11 @@ namespace osu.Framework.Audio.Mixing
             if (!mixedChannels.Contains(channel))
                 throw new InvalidOperationException("Channel needs to be added to the mixer first.");
 
-            BassMix.MixerAddChannel(mixerHandle, channel.Handle, BassFlags.MixerChanPause | BassFlags.MixerChanBuffer);
+            BassFlags flags = BassFlags.MixerChanBuffer;
+            if (channel.MixerChannelPaused)
+                flags |= BassFlags.MixerChanPause;
+
+            BassMix.MixerAddChannel(mixerHandle, channel.Handle, flags);
             BassUtils.CheckFaulted(true);
         }
 

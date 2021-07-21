@@ -401,5 +401,7 @@ namespace osu.Framework.Audio.Track
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
 
         int IBassAudioChannel.Handle => activeStream;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
     }
 }

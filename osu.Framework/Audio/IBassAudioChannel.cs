@@ -6,5 +6,7 @@ namespace osu.Framework.Audio
     public interface IBassAudioChannel : IAudioChannel
     {
         int Handle { get; }
+
+        internal bool MixerChannelPaused { get; set; }
     }
 }
