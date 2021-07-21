@@ -177,10 +177,7 @@ namespace osu.Framework.Graphics.UserInterface
                     clipboard?.SetText(SelectedText);
 
                     if (action == PlatformAction.Cut)
-                    {
-                        string removedText = removeSelection();
-                        OnUserTextRemoved(removedText);
-                    }
+                        DeleteBy(0);
 
                     return true;
 
