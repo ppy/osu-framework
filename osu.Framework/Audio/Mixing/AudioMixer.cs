@@ -10,24 +10,33 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
-        public void Add(IAudioChannel channel)
+        private readonly AudioManager audioManager;
+
+        protected AudioMixer(AudioManager audioManager)
         {
-            channel.Mixer.Remove(channel);
-
-            AddInternal(channel);
-
-            channel.SetMixer(this);
+            this.audioManager = audioManager;
         }
 
-        public void Remove(IAudioChannel channel)
+        // To always maintain a stable order of events, enqueue actions to the global mixer.
+        public void Add(IAudioChannel channel) => audioManager?.Mixer.EnqueueAction(() =>
+        {
+            if (channel.Mixer == this)
+                return;
+
+            channel.Mixer.Remove(channel);
+            AddInternal(channel);
+            channel.SetMixer(this);
+        });
+
+        // To always maintain a stable order of events, enqueue actions to the global mixer.
+        public void Remove(IAudioChannel channel) => audioManager?.Mixer.EnqueueAction(() =>
         {
             if (channel.Mixer != this)
                 return;
 
             RemoveInternal(channel);
-
             channel.SetMixer(null);
-        }
+        });
 
         public abstract void AddEffect(IEffectParameter effect, int priority);
 

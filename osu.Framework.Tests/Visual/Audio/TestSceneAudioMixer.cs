@@ -21,54 +21,44 @@ namespace osu.Framework.Tests.Visual.Audio
 {
     public class TestSceneAudioMixer : FrameworkTestScene
     {
-        private ContainerWithEffect compressorContainer;
-        private ContainerWithEffect limiterContainer;
-        private ContainerWithEffect filterContainer;
-
         [SetUp]
         public void Setup() => Schedule(() =>
         {
+            ContainerWithEffect noEffectContainer;
             FillFlowContainer<ContainerWithEffect> effectContainers;
-            Child = effectContainers = new FillFlowContainer<ContainerWithEffect>
+
+            Child = noEffectContainer = new ContainerWithEffect("no effect", Color4.Black)
             {
                 RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                Size = new Vector2(1),
+                Child = new Container
                 {
-                    compressorContainer = new ContainerWithEffect("compressor", Color4.Red)
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding(20),
+                    Child = effectContainers = new FillFlowContainer<ContainerWithEffect>
                     {
-                        Effect = new CompressorParameters
-                        {
-                            fAttack = 5f,
-                            fRelease = 100f,
-                            fThreshold = -10f,
-                            fGain = 0f,
-                            fRatio = 8f,
-                        }
-                    },
-                    limiterContainer = new ContainerWithEffect("limiter", Color4.Green)
-                    {
-                        Effect = new CompressorParameters
-                        {
-                            fAttack = 0.01f,
-                            fRelease = 100f,
-                            fThreshold = -10f,
-                            fGain = 0f,
-                            fRatio = 20f,
-                        }
-                    },
-                    filterContainer = new ContainerWithEffect("filter", Color4.Blue)
-                    {
-                        Effect = new BQFParameters
-                        {
-                            lFilter = BQFType.LowPass,
-                            fCenter = 150
-                        }
+                        RelativeSizeAxes = Axes.Both,
                     }
                 }
             };
 
+            for (int i = 0; i < 50; i++)
+            {
+                float centre = 150 + 50 * i;
+
+                effectContainers.Add(new ContainerWithEffect($"<{centre}Hz", Color4.Blue)
+                {
+                    Size = new Vector2(100),
+                    Effect = new BQFParameters
+                    {
+                        lFilter = BQFType.LowPass,
+                        fCenter = centre
+                    }
+                });
+            }
+
             AudioBox audioBox;
-            Add(audioBox = new AudioBox(this, effectContainers));
+            noEffectContainer.Add(audioBox = new AudioBox(noEffectContainer, effectContainers));
 
             Add(audioBox.CreateProxy());
         });
@@ -149,7 +139,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 currentContainer.Remove(this);
                 targetContainer.Add(this);
 
-                Position = targetContainer.ToLocalSpace(centre);
+                Position = Parent.ToLocalSpace(centre);
 
                 currentContainer = targetContainer;
             }
@@ -168,8 +158,6 @@ namespace osu.Framework.Tests.Visual.Audio
             {
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
-                RelativeSizeAxes = Axes.Both;
-                Size = new Vector2(0.5f);
 
                 InternalChild = mixer = new DrawableAudioMixer
                 {

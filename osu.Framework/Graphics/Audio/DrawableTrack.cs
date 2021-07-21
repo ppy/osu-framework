@@ -5,7 +5,9 @@
 
 using System;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -105,5 +107,13 @@ namespace osu.Framework.Graphics.Audio
         /// Whether the underlying track is loaded.
         /// </summary>
         public bool TrackLoaded => track.IsLoaded;
+
+        protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        {
+            base.OnMixerChanged(mixer);
+
+            mixer.OldValue?.Remove(track);
+            mixer.NewValue?.Add(track);
+        }
     }
 }

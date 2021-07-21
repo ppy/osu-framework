@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Audio
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 
-            mixer = new BassAudioMixer();
+            mixer = new BassAudioMixer(null);
             mixer.UpdateDevice(0);
 
             trackStore = new TrackStore(resources, mixer);

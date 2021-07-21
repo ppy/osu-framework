@@ -31,7 +31,7 @@ namespace osu.Framework.Audio.Sample
             var channel = CreateChannel();
 
             if (channel != null)
-                channel.OnPlay = onPlay;
+                channel.OnPlay += onPlay;
 
             return channel;
         }

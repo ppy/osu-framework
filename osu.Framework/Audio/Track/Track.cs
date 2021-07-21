@@ -30,7 +30,7 @@ namespace osu.Framework.Audio.Track
         /// The <see cref="Track"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
         protected Track(IAudioMixer defaultMixer)
         {
-            this.defaultMixer = defaultMixer;
+            Mixer = this.defaultMixer = defaultMixer;
 
             defaultMixer.Add(this);
         }
@@ -134,7 +134,7 @@ namespace osu.Framework.Audio.Track
 
         #region Mixing
 
-        public IAudioMixer Mixer { get; private set; } = new NullAudioMixer();
+        public IAudioMixer Mixer { get; private set; }
 
         private readonly IAudioMixer defaultMixer;
 

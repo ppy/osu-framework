@@ -104,17 +104,10 @@ namespace osu.Framework.Graphics.Audio
                 parentAdjustment = null;
             }
 
-            var channelComponent = component as IAudioChannel;
-
-            if (channelComponent != null)
-            {
-                parentMixer?.Remove(channelComponent);
-                parentMixer = null;
-            }
-
             Drawable cursor = this;
-            bool foundMixer = channelComponent == null;
+            bool foundMixer = false;
             bool foundAdjustments = false;
+            IAudioMixer newMixer = null;
 
             while ((cursor = cursor.Parent) != null)
             {
@@ -133,15 +126,22 @@ namespace osu.Framework.Graphics.Audio
 
                 if (!foundMixer && cursor is IAudioMixer candidateMixer)
                 {
-                    parentMixer = candidateMixer;
-                    candidateMixer.Add(channelComponent);
-
+                    newMixer = candidateMixer;
                     foundMixer = true;
                 }
 
                 if (foundAdjustments && foundMixer)
                     break;
             }
+
+            if (parentMixer != newMixer)
+                OnMixerChanged(new ValueChangedEvent<IAudioMixer>(parentMixer, newMixer));
+
+            parentMixer = newMixer;
+        }
+
+        protected virtual void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
+        {
         }
 
         protected override void Dispose(bool isDisposing)

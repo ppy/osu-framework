@@ -12,7 +12,7 @@ namespace osu.Framework.Audio.Sample
 {
     public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel, IAudioChannel
     {
-        internal Action<SampleChannel>? OnPlay;
+        internal event Action<SampleChannel>? OnPlay;
 
         /// <summary>
         /// Creates a new <see cref="SampleChannel"/>.
@@ -21,7 +21,7 @@ namespace osu.Framework.Audio.Sample
         /// The <see cref="SampleChannel"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
         protected SampleChannel(IAudioMixer defaultMixer)
         {
-            this.defaultMixer = defaultMixer;
+            Mixer = this.defaultMixer = defaultMixer;
 
             defaultMixer.Add(this);
         }
@@ -65,7 +65,7 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        public IAudioMixer Mixer { get; private set; } = new NullAudioMixer();
+        public IAudioMixer Mixer { get; private set; }
 
         private readonly IAudioMixer defaultMixer;
 

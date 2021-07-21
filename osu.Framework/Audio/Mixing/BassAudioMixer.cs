@@ -26,6 +26,12 @@ namespace osu.Framework.Audio.Mixing
 
         private const int frequency = 44100;
 
+        public BassAudioMixer(AudioManager audioManager)
+            : base(audioManager)
+        {
+            EnqueueAction(createMixer);
+        }
+
         public override void AddEffect(IEffectParameter effect, int priority)
         {
             EnqueueAction(() =>
@@ -148,23 +154,32 @@ namespace osu.Framework.Audio.Mixing
         public void UpdateDevice(int deviceIndex)
         {
             if (mixerHandle == 0)
-            {
-                mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
-
-                // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
-                foreach (var channel in mixedChannels)
-                {
-                    Debug.Assert(channel != null); // https://github.com/ppy/osu-framework/issues/4625
-
-                    if (channel.Handle != 0)
-                        ((IBassAudioMixer)this).RegisterChannel(channel);
-                }
-
-                foreach (var effect in effects)
-                    applyEffect(effect);
-            }
+                createMixer();
             else
                 Bass.ChannelSetDevice(mixerHandle, deviceIndex);
+        }
+
+        private void createMixer()
+        {
+            if (mixerHandle != 0)
+                return;
+
+            mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+
+            if (mixerHandle == 0)
+                return;
+
+            // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
+            foreach (var channel in mixedChannels)
+            {
+                Debug.Assert(channel != null); // https://github.com/ppy/osu-framework/issues/4625
+
+                if (channel.Handle != 0)
+                    ((IBassAudioMixer)this).RegisterChannel(channel);
+            }
+
+            foreach (var effect in effects)
+                applyEffect(effect);
 
             Bass.ChannelPlay(mixerHandle);
         }

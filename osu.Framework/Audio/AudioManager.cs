@@ -191,7 +191,7 @@ namespace osu.Framework.Audio
 
         public AudioMixer CreateAudioMixer()
         {
-            var mixer = new BassAudioMixer();
+            var mixer = new BassAudioMixer(this);
             AddItem(mixer);
             return mixer;
         }
