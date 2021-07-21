@@ -6,7 +6,9 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Framework.Tests.Visual;
 using osu.Framework.Utils;
@@ -49,6 +51,25 @@ namespace osu.Framework.Tests.Audio
 
             AddStep("reset", () => track.Reset());
             AddAssert("track volume is 1", () => Precision.AlmostEquals(1, track.Volume.Value));
+        }
+
+        [Test]
+        public void TestTrackingParentAdjustmentChangedWhenMovedParents()
+        {
+            AddStep("set volume 1", () => track.Volume.Value = 1);
+
+            AddStep("move track a container with 0 volume", () =>
+            {
+                Remove(track);
+                Child = new AudioContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Volume = { Value = 0 },
+                    Child = track
+                };
+            });
+
+            AddAssert("track has 0 volume", () => track.AggregateVolume.Value == 0);
         }
     }
 }
