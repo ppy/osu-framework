@@ -275,7 +275,7 @@ namespace osu.Framework.IO.Network
 
                         StringBuilder requestParameters = new StringBuilder();
                         foreach (var p in parameters)
-                            requestParameters.Append($@"{p.Key}={p.Value}&");
+                            requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
                         string requestString = requestParameters.ToString().TrimEnd('&');
 
                         request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
