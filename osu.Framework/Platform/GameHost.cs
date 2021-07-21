@@ -1011,7 +1011,7 @@ namespace osu.Framework.Platform
             new KeyBinding(InputKey.Delete, PlatformAction.DeleteForwardChar),
             new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardChar),
             new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardChar),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), PlatformAction.DeleteForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), PlatformAction.SelectBackwardChar),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Left), PlatformAction.MoveBackwardWord),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Right), PlatformAction.MoveForwardWord),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.BackSpace), PlatformAction.DeleteBackwardWord),
