@@ -280,6 +280,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
         }
 
+        /// <summary>
+        /// Find the word boundary in the backward direction, then return the negative amount of characters.
+        /// </summary>
         protected int GetBackwardWordAmount()
         {
             if (!AllowWordNavigation)
@@ -292,6 +295,9 @@ namespace osu.Framework.Graphics.UserInterface
             return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
         }
 
+        /// <summary>
+        /// Find the word boundary in the forward direction, then return the positive amount of characters.
+        /// </summary>
         protected int GetForwardWordAmount()
         {
             if (!AllowWordNavigation)
@@ -309,6 +315,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected int GetForwardLineAmount() => text.Length;
 
+        /// <summary>
+        /// Move the current cursor by the signed <paramref name="amount"/>.
+        /// </summary>
         protected void MoveCursorBy(int amount)
         {
             selectionStart = selectionEnd;
@@ -316,11 +325,19 @@ namespace osu.Framework.Graphics.UserInterface
             moveSelection(amount, false);
         }
 
+        /// <summary>
+        /// Expand the current selection by the signed <paramref name="amount"/>.
+        /// </summary>
         protected void ExpandSelectionBy(int amount)
         {
             moveSelection(amount, true);
         }
 
+        /// <summary>
+        /// If there is a selection, delete the selected text.
+        /// Otherwise, delete characters from the cursor position by the signed <paramref name="amount"/>.
+        /// A negative amount represents a backward deletion, and a positive amount represents a forward deletion.
+        /// </summary>
         protected void DeleteBy(int amount)
         {
             if (selectionLength == 0)
