@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Audio
             }
 
             // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Bass.Init(0);
+            Bass.Init();
 
             resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
 
@@ -181,6 +181,39 @@ namespace osu.Framework.Tests.Audio
             updateTrack();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
+        }
+
+        [Test]
+        public void TestResetStart()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                track.StartAsync();
+
+                const double seek = 100;
+
+                while (track.CurrentTime <= seek)
+                {
+                    track.Update();
+                    Thread.Sleep(10);
+                }
+
+                Assert.Greater(track.CurrentTime, seek);
+
+                runOnAudioThread(() => { track.Reset(); });
+                track.Update();
+                Assert.AreEqual(0, track.CurrentTime);
+
+                track.StartAsync();
+
+                // haven't update the track yet
+                Assert.IsTrue(!track.IsRunning);
+                Assert.AreEqual(0, track.CurrentTime);
+
+                track.Update();
+                Assert.IsTrue(track.IsRunning);
+                Assert.Less(track.CurrentTime, seek);
+            }
         }
 
         [Test]
