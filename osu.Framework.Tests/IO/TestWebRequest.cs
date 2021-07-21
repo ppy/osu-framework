@@ -643,6 +643,60 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        public void TestPutWithQueryAndFormParams()
+        {
+            const string test_key_1 = "param1";
+            const string test_val_1 = "in query! ";
+
+            const string test_key_2 = "param2";
+            const string test_val_2 = "in form!";
+
+            const string test_key_3 = "param3";
+            const string test_val_3 = "in form by default!";
+
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/put")
+            {
+                Method = HttpMethod.Put,
+                AllowInsecureRequests = true,
+            };
+
+            request.AddParameter(test_key_1, test_val_1, RequestParameterType.Query);
+            request.AddParameter(test_key_2, test_val_2, RequestParameterType.Form);
+            request.AddParameter(test_key_3, test_val_3);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            var response = request.ResponseObject;
+
+            Assert.NotNull(response.Arguments);
+            Assert.True(response.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, response.Arguments[test_key_1]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, response.Form[test_key_2]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_3));
+            Assert.AreEqual(test_val_3, response.Form[test_key_3]);
+        }
+
+        [Test]
+        public void TestFormParamsNotSupportedForGet()
+        {
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            Assert.Throws<ArgumentException>(() => request.AddParameter("cannot", "work", RequestParameterType.Form));
+        }
+
+        [Test, Retry(5)]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
@@ -696,6 +750,16 @@ namespace osu.Framework.Tests.IO
 
             [JsonProperty("json")]
             public TestObject Json { get; set; }
+        }
+
+        [Serializable]
+        private class HttpBinPutResponse
+        {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
+            [JsonProperty("form")]
+            public Dictionary<string, string> Form { get; set; }
         }
 
         [Serializable]
