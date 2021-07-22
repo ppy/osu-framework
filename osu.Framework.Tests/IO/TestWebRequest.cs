@@ -523,6 +523,40 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        public void TestGetWithQueryStringParameters()
+        {
+            const string test_key_1 = "testkey1";
+            const string test_val_1 = "testval1 that ends with a #";
+
+            const string test_key_2 = "testkey2";
+            const string test_val_2 = "testval2 that ends with a space ";
+
+            var request = new JsonWebRequest<HttpBinGetResponse>($@"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            request.AddParameter(test_key_1, test_val_1);
+            request.AddParameter(test_key_2, test_val_2);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.NotNull(responseObject.Arguments);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, responseObject.Arguments[test_key_1]);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, responseObject.Arguments[test_key_2]);
+        }
+
+        [Test, Retry(5)]
         public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post")
@@ -638,6 +672,9 @@ namespace osu.Framework.Tests.IO
         [Serializable]
         private class HttpBinGetResponse
         {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
             [JsonProperty("headers")]
             public HttpBinHeaders Headers { get; set; }
 

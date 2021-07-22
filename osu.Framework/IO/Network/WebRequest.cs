@@ -275,7 +275,7 @@ namespace osu.Framework.IO.Network
 
                         StringBuilder requestParameters = new StringBuilder();
                         foreach (var p in parameters)
-                            requestParameters.Append($@"{p.Key}={p.Value}&");
+                            requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
                         string requestString = requestParameters.ToString().TrimEnd('&');
 
                         request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
@@ -647,9 +647,12 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
+        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
         /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
+        /// <remarks>
+        /// Values added to the request URL query string are automatically percent-encoded before sending the request.
+        /// </remarks>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
