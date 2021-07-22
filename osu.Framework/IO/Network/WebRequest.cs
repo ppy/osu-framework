@@ -626,7 +626,8 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter(string,string,RequestParameterType)"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/>
+        /// and <see cref="AddParameter(string,string,RequestParameterType)"/> with the request type of <see cref="RequestParameterType.Form"/>.
         /// </summary>
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
