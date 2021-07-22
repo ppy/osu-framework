@@ -295,7 +295,7 @@ namespace osu.Framework.IO.Network
                         if (rawContent != null)
                         {
                             if (formParameters.Count > 0)
-                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with form parameters");
                             if (files.Count > 0)
                                 throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
@@ -657,12 +657,12 @@ namespace osu.Framework.IO.Network
         /// Add a new parameter to this request. Replaces any existing parameter with the same name.
         /// </para>
         /// <para>
-        /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a form parameter will be added;
-        /// otherwise, a query parameter will be added.
+        /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
+        /// otherwise, a <see cref="RequestParameterType.Query"/> parameter will be added.
         /// For more fine-grained control over the parameter type, use the <see cref="AddParameter(string,string,RequestParameterType)"/> overload.
         /// </para>
         /// <para>
-        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -675,7 +675,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Add a new parameter to this request. Replaces any existing parameter with the same name.
-        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
         /// </summary>
         /// <remarks>
         /// Values added to the request URL query string are automatically percent-encoded before sending the request.
