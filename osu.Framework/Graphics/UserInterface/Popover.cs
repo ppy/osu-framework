@@ -25,13 +25,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
-                return true;
-
             this.HidePopover();
             return base.OnMouseDown(e);
         }
 
+        // click is handled here instead of in MouseBlockingContainer so that the popover can be focused.
         protected override bool OnClick(ClickEvent e) => Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
 
         public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
@@ -96,7 +94,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = new[]
                 {
                     Arrow = CreateArrow(),
-                    Body = new Container
+                    Body = new MouseBlockingContainer
                     {
                         AutoSizeAxes = Axes.Both,
                         Children = new Drawable[]
@@ -202,5 +200,24 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #endregion
+
+        private class MouseBlockingContainer : Container
+        {
+            protected override bool Handle(UIEvent e)
+            {
+                switch (e)
+                {
+                    case ClickEvent _:
+                        // let clicks be handled by the popover itself, since it can receive focus.
+                        return false;
+
+                    case MouseEvent _:
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+        }
     }
 }
