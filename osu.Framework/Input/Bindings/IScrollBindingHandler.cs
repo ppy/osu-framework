@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Input.Events;
+
 namespace osu.Framework.Input.Bindings
 {
     /// <summary>
@@ -16,11 +18,9 @@ namespace osu.Framework.Input.Bindings
         /// <remarks>
         /// When the action is not handled by any <see cref="IScrollBindingHandler{T}"/>, <see cref="IKeyBindingHandler{T}.OnPressed"/> is called.
         /// In either cases, <see cref="IKeyBindingHandler{T}.OnReleased"/> will be called once.</remarks>
-        /// <param name="action">The action.</param>
-        /// <param name="amount">The amount of mouse scroll.</param>
-        /// <param name="isPrecise">Whether the action is from a precise scrolling.</param>
+        /// <param name="e">The event containing information about the scroll.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        bool OnScroll(T action, float amount, bool isPrecise);
+        bool OnScroll(KeyBindingScrollEvent<T> e);
     }
 }

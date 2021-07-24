@@ -264,11 +264,18 @@ namespace osu.Framework.Input.Bindings
             if (simultaneousMode == SimultaneousBindingMode.All || !pressedActions.Contains(pressed))
             {
                 pressedActions.Add(pressed);
-                if (scrollAmount != 0)
-                    handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(pressed, scrollAmount, isPrecise));
 
-                var pressEvent = new KeyBindingPressEvent<T>(state, pressed, repeat);
-                handled ??= (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressEvent));
+                if (scrollAmount != 0)
+                {
+                    var scrollEvent = new KeyBindingScrollEvent<T>(state, pressed, scrollAmount, isPrecise);
+                    handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(scrollEvent));
+                }
+
+                if (handled == null)
+                {
+                    var pressEvent = new KeyBindingPressEvent<T>(state, pressed, repeat);
+                    handled = (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressEvent));
+                }
             }
 
             if (handled != null)

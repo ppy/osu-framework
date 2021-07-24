@@ -483,12 +483,12 @@ namespace osu.Framework.Tests.Visual.Input
                 Text += $", {OnScrollCount}, {LastScrollAmount}";
             }
 
-            public bool OnScroll(TestAction action, float amount, bool isPrecise)
+            public bool OnScroll(KeyBindingScrollEvent<TestAction> e)
             {
-                if (Action == action)
+                if (Action == e.Action)
                 {
                     ++OnScrollCount;
-                    LastScrollAmount = amount;
+                    LastScrollAmount = e.ScrollAmount;
                 }
 
                 return false;
