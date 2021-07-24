@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (!shouldDrawEffectBuffer)
                     return;
 
-                GLWrapper.SetBlend(new BlendingInfo(sourceEffectBlending));
+                GLWrapper.SetBlend(sourceEffectBlending);
                 ColourInfo finalEffectColour = DrawColourInfo.Colour;
                 finalEffectColour.ApplyChild(sourceEffectColour);
 

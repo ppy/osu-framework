@@ -3,9 +3,9 @@
 
 using System;
 using osu.Framework.Allocation;
-using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using osu.Framework.Layout;
 using osuTK;
 using osuTK.Graphics;
 
@@ -13,17 +13,22 @@ namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// A sprite representing an icon.
-    /// Ues <see cref="FontStore"/> to perform character lookups.
+    /// Uses <see cref="FontStore"/> to perform character lookups.
     /// </summary>
     public class SpriteIcon : CompositeDrawable
     {
         private Sprite spriteShadow;
         private Sprite spriteMain;
 
-        private Cached layout = new Cached();
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.Colour, conditions: (s, _) => ((SpriteIcon)s).Shadow);
         private Container shadowVisibility;
 
         private FontStore store;
+
+        public SpriteIcon()
+        {
+            AddLayout(layout);
+        }
 
         [BackgroundDependencyLoader]
         private void load(FontStore store)
@@ -72,24 +77,20 @@ namespace osu.Framework.Graphics.Sprites
         {
             var loadableIcon = icon;
 
-            if (Equals(loadableIcon, loadedIcon)) return;
+            if (loadableIcon.Equals(loadedIcon)) return;
 
-            var texture = store.GetCharacter(loadableIcon.FontName, Icon.Icon);
+            var glyph = store.Get(loadableIcon.FontName, Icon.Icon);
 
-            spriteMain.Texture = texture;
-            spriteShadow.Texture = texture;
+            if (glyph != null)
+            {
+                spriteMain.Texture = glyph.Texture;
+                spriteShadow.Texture = glyph.Texture;
 
-            if (Size == Vector2.Zero)
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(glyph.Width, glyph.Height);
+            }
 
             loadedIcon = loadableIcon;
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.Colour) > 0 && Shadow)
-                layout.Invalidate();
-            return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         protected override void Update()
@@ -100,7 +101,7 @@ namespace osu.Framework.Graphics.Sprites
                 //squared result for quadratic fall-off seems to give the best result.
                 var avgColour = (Color4)DrawColourInfo.Colour.AverageColour;
 
-                spriteShadow.Alpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+                spriteShadow.Alpha = MathF.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 layout.Validate();
             }
@@ -126,7 +127,7 @@ namespace osu.Framework.Graphics.Sprites
             get => icon;
             set
             {
-                if (Equals(icon, value)) return;
+                if (icon.Equals(value)) return;
 
                 icon = value;
                 if (LoadState == LoadState.Loaded)

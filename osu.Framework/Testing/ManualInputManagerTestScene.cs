@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Testing.Input;
 using osuTK;
 using osuTK.Graphics;
@@ -19,24 +20,23 @@ namespace osu.Framework.Testing
     /// </summary>
     public abstract class ManualInputManagerTestScene : TestScene
     {
-        protected override Container<Drawable> Content => InputManager;
+        protected override Container<Drawable> Content { get; } = new Container { RelativeSizeAxes = Axes.Both };
 
         /// <summary>
         /// The position which is used to initialize the mouse position before at setup.
-        /// If the value is null, the mouse position is not moved.
         /// </summary>
-        protected virtual Vector2? InitialMousePosition => null;
+        protected virtual Vector2 InitialMousePosition => Vector2.Zero;
 
         /// <summary>
         /// The <see cref="ManualInputManager"/>.
         /// </summary>
         protected ManualInputManager InputManager { get; }
 
-        private readonly Button buttonTest;
-        private readonly Button buttonLocal;
+        private readonly BasicButton buttonTest;
+        private readonly BasicButton buttonLocal;
 
         [SetUp]
-        public virtual void SetUp() => ResetInput();
+        public void SetUp() => ResetInput();
 
         protected ManualInputManagerTestScene()
         {
@@ -45,6 +45,7 @@ namespace osu.Framework.Testing
                 InputManager = new ManualInputManager
                 {
                     UseParentInput = true,
+                    Child = Content,
                 },
                 new Container
                 {
@@ -75,7 +76,8 @@ namespace osu.Framework.Testing
                                 {
                                     Anchor = Anchor.TopCentre,
                                     Origin = Anchor.TopCentre,
-                                    Text = "Input Priority"
+                                    Text = "Input Priority",
+                                    Font = FrameworkFont.Regular,
                                 },
                                 new FillFlowContainer
                                 {
@@ -88,13 +90,13 @@ namespace osu.Framework.Testing
 
                                     Children = new Drawable[]
                                     {
-                                        buttonLocal = new Button
+                                        buttonLocal = new BasicButton
                                         {
                                             Text = "local",
                                             Size = new Vector2(50, 30),
                                             Action = returnUserInput
                                         },
-                                        buttonTest = new Button
+                                        buttonTest = new BasicButton
                                         {
                                             Text = "test",
                                             Size = new Vector2(50, 30),
@@ -122,25 +124,27 @@ namespace osu.Framework.Testing
         /// </summary>
         protected void ResetInput()
         {
-            InputManager.UseParentInput = true;
             var currentState = InputManager.CurrentState;
 
             var mouse = currentState.Mouse;
-            var position = InitialMousePosition;
-            if (position != null) InputManager.MoveMouseTo(position.Value);
+            InputManager.MoveMouseTo(InitialMousePosition);
             mouse.Buttons.ForEach(InputManager.ReleaseButton);
 
             var keyboard = currentState.Keyboard;
             keyboard.Keys.ForEach(InputManager.ReleaseKey);
 
+            var touch = currentState.Touch;
+            touch.ActiveSources.ForEach(s => InputManager.EndTouch(new Touch(s, Vector2.Zero)));
+
             var joystick = currentState.Joystick;
             joystick.Buttons.ForEach(InputManager.ReleaseJoystickButton);
+
+            // schedule after children to ensure pending inputs have been applied before using parent input manager.
+            ScheduleAfterChildren(returnUserInput);
         }
 
-        private void returnUserInput() =>
-            InputManager.UseParentInput = true;
+        private void returnUserInput() => InputManager.UseParentInput = true;
 
-        private void returnTestInput() =>
-            InputManager.UseParentInput = false;
+        private void returnTestInput() => InputManager.UseParentInput = false;
     }
 }

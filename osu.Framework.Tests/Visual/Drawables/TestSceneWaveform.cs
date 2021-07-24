@@ -1,12 +1,9 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -23,14 +20,7 @@ namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneWaveform : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[]
-        {
-            typeof(Waveform),
-            typeof(WaveformGraph),
-            typeof(DataStreamFileProcedures)
-        };
-
-        private Button button;
+        private BasicButton button;
         private Track track;
         private Waveform waveform;
         private Container<Drawable> waveformContainer;
@@ -61,7 +51,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         Spacing = new Vector2(10),
                         Children = new Drawable[]
                         {
-                            button = new Button
+                            button = new BasicButton
                             {
                                 Text = "Start",
                                 Size = new Vector2(100, 50),
@@ -113,7 +103,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestWaveform graph = null;
 
             AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, resolution) { Waveform = waveform });
-            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
         [Test]
@@ -122,7 +112,21 @@ namespace osu.Framework.Tests.Visual.Drawables
             TestWaveform graph = null;
 
             AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1) { Waveform = new Waveform(null) });
-            AddUntilStep("wait for load", () => graph.ResampledWaveform != null);
+            AddUntilStep("wait for load", () => graph.Regenerated);
+        }
+
+        [Test]
+        public void TestWaveformAlpha()
+        {
+            TestWaveform graph = null;
+
+            AddStep("create waveform", () => waveformContainer.Child = graph = new TestWaveform(track, 1)
+            {
+                Waveform = waveform,
+                Alpha = 0.5f,
+            });
+
+            AddUntilStep("wait for load", () => graph.Regenerated);
         }
 
         private void startStop()
@@ -164,7 +168,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                     {
                         RelativeSizeAxes = Axes.Both,
                         Resolution = resolution,
-                        Colour = new Color4(232, 78, 6, 255),
+                        BaseColour = new Color4(232, 78, 6, 255),
                         LowColour = new Color4(255, 232, 100, 255),
                         MidColour = new Color4(255, 153, 19, 255),
                         HighColour = new Color4(255, 46, 7, 255),
@@ -201,12 +205,12 @@ namespace osu.Framework.Tests.Visual.Drawables
                 };
             }
 
+            public bool Regenerated => graph.Regenerated;
+
             public Waveform Waveform
             {
                 set => graph.Waveform = value;
             }
-
-            public Waveform ResampledWaveform => graph.ResampledWaveform;
 
             protected override void Update()
             {
@@ -225,10 +229,9 @@ namespace osu.Framework.Tests.Visual.Drawables
                 return true;
             }
 
-            protected override bool OnMouseUp(MouseUpEvent e)
+            protected override void OnMouseUp(MouseUpEvent e)
             {
                 mouseDown = false;
-                return true;
             }
 
             protected override bool OnMouseMove(MouseMoveEvent e)
@@ -250,7 +253,13 @@ namespace osu.Framework.Tests.Visual.Drawables
 
         private class TestWaveformGraph : WaveformGraph
         {
-            public new Waveform ResampledWaveform => base.ResampledWaveform;
+            public bool Regenerated { get; private set; }
+
+            protected override void OnWaveformRegenerated(Waveform waveform)
+            {
+                base.OnWaveformRegenerated(waveform);
+                Regenerated = true;
+            }
         }
     }
 }

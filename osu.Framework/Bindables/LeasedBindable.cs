@@ -12,7 +12,7 @@ namespace osu.Framework.Bindables
     /// Can only be retrieved via <see cref="Bindable{T}.BeginLease"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class LeasedBindable<T> : Bindable<T>
+    public class LeasedBindable<T> : Bindable<T>, ILeasedBindable<T>
     {
         private readonly Bindable<T> source;
 
@@ -73,6 +73,20 @@ namespace osu.Framework.Bindables
             }
         }
 
+        public override T Default
+        {
+            get => base.Default;
+            set
+            {
+                if (source != null)
+                    checkValid();
+
+                if (EqualityComparer<T>.Default.Equals(Default, value)) return;
+
+                SetDefaultValue(base.Default, value, true);
+            }
+        }
+
         public override bool Disabled
         {
             get => base.Disabled;
@@ -87,7 +101,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        public override void UnbindAll()
+        internal override void UnbindAllInternal()
         {
             if (source != null && !hasBeenReturned)
             {
@@ -100,7 +114,7 @@ namespace osu.Framework.Bindables
                 hasBeenReturned = true;
             }
 
-            base.UnbindAll();
+            base.UnbindAllInternal();
         }
 
         private void checkValid()

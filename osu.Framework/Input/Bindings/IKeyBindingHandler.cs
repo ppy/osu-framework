@@ -25,9 +25,7 @@ namespace osu.Framework.Input.Bindings
         /// Triggered when an action is released.
         /// </summary>
         /// <param name="e">The event containing information about the released action.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
-        bool OnReleased(KeyBindingReleaseEvent<T> e);
+        void OnReleased(KeyBindingReleaseEvent<T> e);
     }
 
     public interface IKeyBindingHandler : IDrawable

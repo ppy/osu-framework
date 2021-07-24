@@ -25,7 +25,9 @@ namespace osu.Framework.Audio
             });
         }
 
-        public virtual void UpdateDevice(int deviceIndex)
+        void IBassAudio.UpdateDevice(int deviceIndex) => UpdateDevice(deviceIndex);
+
+        internal virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
                 item.UpdateDevice(deviceIndex);
@@ -49,13 +51,13 @@ namespace osu.Framework.Audio
             }
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            // we need to queue disposal of our Items before enqueueing the main dispose.
+            // make the items queue their disposal, so they get disposed when UpdateChildren updates them.
             foreach (var i in Items)
                 i.Dispose();
 
-            base.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

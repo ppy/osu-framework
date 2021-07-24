@@ -5,19 +5,19 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using osuTK;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Primitives
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct Quad : IConvexPolygon, IEquatable<Quad>
+    public readonly struct Quad : IConvexPolygon, IEquatable<Quad>
     {
         // Note: Do not change the order of vertices. They are ordered in screen-space counter-clockwise fashion.
         // See: IPolygon.GetVertices()
-        public Vector2 TopLeft;
-        public Vector2 BottomLeft;
-        public Vector2 BottomRight;
-        public Vector2 TopRight;
+        public readonly Vector2 TopLeft;
+        public readonly Vector2 BottomLeft;
+        public readonly Vector2 BottomRight;
+        public readonly Vector2 TopRight;
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
@@ -105,39 +105,19 @@ namespace osu.Framework.Graphics.Primitives
 
         public ReadOnlySpan<Vector2> GetAxisVertices() => GetVertices();
 
-        public ReadOnlySpan<Vector2> GetVertices()
-        {
-            unsafe
-            {
-                return new ReadOnlySpan<Vector2>(Unsafe.AsPointer(ref this), 4);
-            }
-        }
+        public ReadOnlySpan<Vector2> GetVertices() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in TopLeft), 4);
 
         public bool Contains(Vector2 pos) =>
             new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
             new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
 
-        public float Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
-
-        public float ConservativeArea
-        {
-            get
-            {
-                if (Precision.AlmostEquals(TopLeft.Y, TopRight.Y))
-                    return Math.Abs((TopLeft.Y - BottomLeft.Y) * (TopLeft.X - TopRight.X));
-
-                // Uncomment this to speed this computation up at the cost of losing accuracy when considering shearing.
-                //return Math.Sqrt(Vector2Extensions.DistanceSquared(TopLeft, TopRight) * Vector2Extensions.DistanceSquared(TopLeft, BottomLeft));
-
-                Vector2 d1 = TopLeft - TopRight;
-                float lsq1 = d1.LengthSquared;
-
-                Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2Extensions.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
-
-                return (float)Math.Sqrt(lsq1 * lsq2);
-            }
-        }
+        /// <summary>
+        /// Computes the area of this <see cref="Quad"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the quad is self-intersecting the area is interpreted as the sum of all positive and negative areas and not the "visible area" enclosed by the <see cref="Quad"/>.
+        /// </remarks>
+        public float Area => 0.5f * Math.Abs(Vector2Extensions.GetOrientation(GetVertices()));
 
         public bool Equals(Quad other) =>
             TopLeft == other.TopLeft &&

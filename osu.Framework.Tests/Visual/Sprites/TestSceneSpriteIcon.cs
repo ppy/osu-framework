@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -10,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -60,7 +62,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                 });
 
                 foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
-                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)p.GetValue(null)));
+                {
+                    var propValue = p.GetValue(null);
+                    Debug.Assert(propValue != null);
+
+                    flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)propValue));
+                }
             }
 
             AddStep("toggle shadows", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
@@ -69,7 +76,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private class Icon : Container, IHasTooltip
         {
-            public string TooltipText { get; }
+            public LocalisableString TooltipText { get; }
 
             public SpriteIcon SpriteIcon { get; }
 

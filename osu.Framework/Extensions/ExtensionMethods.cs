@@ -4,15 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osuTK;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
@@ -24,22 +25,6 @@ namespace osu.Framework.Extensions
     /// </summary>
     public static class ExtensionMethods
     {
-        /// <summary>
-        /// Searches for an element that matches the conditions defined by the specified predicate.
-        /// </summary>
-        /// <param name="list">The list to take values</param>
-        /// <param name="match">The predicate that needs to be matched.</param>
-        /// <param name="startIndex">The index to start conditional search.</param>
-        /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
-        public static T Find<T>(this List<T> list, Predicate<T> match, int startIndex)
-        {
-            if (!list.IsValidIndex(startIndex)) return default;
-
-            int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
-
-            return list.ElementAtOrDefault(val);
-        }
-
         /// <summary>
         /// Adds the given item to the list according to standard sorting rules. Do not use on unsorted lists.
         /// </summary>
@@ -74,20 +59,8 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
-        /// <returns></returns>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
-
-        public static bool IsValidIndex<T>(this List<T> list, int index) => index >= 0 && index < list.Count;
-
-        /// <summary>
-        /// Compares every item in list to given list.
-        /// </summary>
-        public static bool CompareTo<T>(this List<T> list, List<T> list2)
-        {
-            if (list.Count != list2.Count) return false;
-
-            return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
-        }
+        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
@@ -133,15 +106,17 @@ namespace osu.Framework.Extensions
             var rectangular = new T[rows, cols];
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
             {
-                if (jagged[r] == null)
-                    continue;
+                for (int c = 0; c < cols; c++)
+                {
+                    if (jagged[r] == null)
+                        continue;
 
-                if (c >= jagged[r].Length)
-                    continue;
+                    if (c >= jagged[r].Length)
+                        continue;
 
-                rectangular[r, c] = jagged[r][c];
+                    rectangular[r, c] = jagged[r][c];
+                }
             }
 
             return rectangular;
@@ -163,8 +138,10 @@ namespace osu.Framework.Extensions
             var result = new T[cols, rows];
 
             for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                result[c, r] = array[r, c];
+            {
+                for (int c = 0; c < cols; c++)
+                    result[c, r] = array[r, c];
+            }
 
             return result;
         }
@@ -176,29 +153,9 @@ namespace osu.Framework.Extensions
         /// <returns>The inverted array. This is always a square array.</returns>
         public static T[][] Invert<T>(this T[][] array) => array.ToRectangular().Invert().ToJagged();
 
-        public static string ToResolutionString(this Size size) => size.Width.ToString() + 'x' + size.Height;
+        public static string ToResolutionString(this Size size) => $"{size.Width}x{size.Height}";
 
-        public static void WriteLineExplicit(this Stream s, string str = @"")
-        {
-            byte[] data = Encoding.UTF8.GetBytes($"{str}\r\n");
-            s.Write(data, 0, data.Length);
-        }
-
-        public static string UnsecureRepresentation(this SecureString s)
-        {
-            IntPtr bstr = Marshal.SecureStringToBSTR(s);
-
-            try
-            {
-                return Marshal.PtrToStringBSTR(bstr);
-            }
-            finally
-            {
-                Marshal.FreeBSTR(bstr);
-            }
-        }
-
-        public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
+        public static Type[] GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
@@ -208,26 +165,92 @@ namespace osu.Framework.Extensions
             }
             catch (ReflectionTypeLoadException e)
             {
-                return e.Types.Where(t => t != null);
+                // the following warning disables are caused by netstandard2.1 and net5.0 differences
+                // the former declares Types as Type[], while the latter declares as Type?[]:
+                // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.reflectiontypeloadexception.types?view=net-5.0#property-value
+                // which trips some inspectcode errors which are only "valid" for the first of the two.
+                // TODO: remove if netstandard2.1 is removed
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                // ReSharper disable once ConstantConditionalAccessQualifier
+                // ReSharper disable once ConstantNullCoalescingCondition
+                return e.Types?.Where(t => t != null).ToArray() ?? Array.Empty<Type>();
             }
         }
 
-        public static string GetDescription(this object value)
-            => value.GetType().GetField(value.ToString())
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
-
-        public static void ThrowIfFaulted(this Task task)
+        /// <summary>
+        /// Returns the description of a given enum value, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any <see cref="LocalisableEnumAttribute"/> attached to the enum type.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description><see cref="GetDescription"/></description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
+        /// and the <see cref="EnumLocalisationMapper{T}"/> could not be instantiated.</exception>
+        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
+        /// and the type handled by the <see cref="EnumLocalisationMapper{T}"/> is not <typeparamref name="T"/>.</exception>
+        public static LocalisableString GetLocalisableDescription<T>(this T value)
+            where T : Enum
         {
-            if (!task.IsFaulted) return;
+            var enumType = value.GetType();
 
-            throw task.Exception ?? new Exception("Task failed.");
+            var mapperType = enumType.GetCustomAttribute<LocalisableEnumAttribute>()?.MapperType;
+            if (mapperType == null)
+                return GetDescription(value);
+
+            var mapperInstance = Activator.CreateInstance(mapperType);
+            if (mapperInstance == null)
+                throw new InvalidOperationException($"Could not create the {nameof(EnumLocalisationMapper<T>)} for enum type {enumType.ReadableName()}");
+
+            var mapMethod = mapperType.GetMethod(nameof(EnumLocalisationMapper<T>.Map), BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(mapMethod != null);
+
+            var expectedMappingType = mapMethod.GetParameters()[0].ParameterType;
+            if (expectedMappingType != enumType)
+                throw new InvalidOperationException($"Cannot use {mapperType.ReadableName()} (maps {expectedMappingType.ReadableName()} enum values) to map {enumType.ReadableName()} enum values.");
+
+            var mappedValue = mapMethod.Invoke(mapperInstance, new object[] { value });
+            Debug.Assert(mappedValue != null);
+
+            return (LocalisableString)mappedValue;
+        }
+
+        /// <summary>
+        /// Returns the description of a given object, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any attached <see cref="DescriptionAttribute"/>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>The object's <see cref="object.ToString()"/>.</description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        public static string GetDescription(this object value)
+            => value.GetType()
+                    .GetField(value.ToString())?
+                    .GetCustomAttribute<DescriptionAttribute>()?.Description
+               ?? value.ToString();
+
+        private static string toLowercaseHex(this byte[] bytes)
+        {
+            // Convert.ToHexString is upper-case, so we are doing this ourselves
+
+            return string.Create(bytes.Length * 2, bytes, (span, b) =>
+            {
+                for (int i = 0; i < b.Length; i++)
+                    _ = b[i].TryFormat(span[(i * 2)..], out _, "x2");
+            });
         }
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
         /// </summary>
         /// <param name="stream">The stream to create a hash from.</param>
-        /// <returns>A lower-case hex string representation of the has (64 characters).</returns>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
         public static string ComputeSHA2Hash(this Stream stream)
         {
             string hash;
@@ -235,11 +258,22 @@ namespace osu.Framework.Extensions
             stream.Seek(0, SeekOrigin.Begin);
 
             using (var alg = SHA256.Create())
-                hash = BitConverter.ToString(alg.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                hash = alg.ComputeHash(stream).toLowercaseHex();
 
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
+        }
+
+        /// <summary>
+        /// Gets a SHA-2 (256bit) hash for the given string.
+        /// </summary>
+        /// <param name="str">The string to create a hash from.</param>
+        /// <returns>A lower-case hex string representation of the hash (64 characters).</returns>
+        public static string ComputeSHA2Hash(this string str)
+        {
+            using (var alg = SHA256.Create())
+                return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
         }
 
         public static string ComputeMD5Hash(this Stream stream)
@@ -248,22 +282,54 @@ namespace osu.Framework.Extensions
 
             stream.Seek(0, SeekOrigin.Begin);
             using (var md5 = MD5.Create())
-                hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                hash = md5.ComputeHash(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
+        }
+
+        public static string ComputeMD5Hash(this string input)
+        {
+            using (var md5 = MD5.Create())
+                return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
         }
 
         public static DisplayIndex GetIndex(this DisplayDevice display)
         {
             if (display == null) return DisplayIndex.Default;
 
-            for (int i = 0;; i++)
+            for (int i = 0; true; i++)
             {
                 var device = DisplayDevice.GetDisplay((DisplayIndex)i);
                 if (device == null) return DisplayIndex.Default;
                 if (device == display) return (DisplayIndex)i;
             }
         }
+
+        /// <summary>
+        /// Standardise the path string using '/' as directory separator.
+        /// Useful as output.
+        /// </summary>
+        /// <param name="path">The path string to standardise.</param>
+        /// <returns>The standardised path string.</returns>
+        public static string ToStandardisedPath(this string path)
+            => path.Replace('\\', '/');
+
+        /// <summary>
+        /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
+        /// </summary>
+        /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>
+        /// <returns>A <see cref="Display"/> structure populated with the corresponding properties and <see cref="DisplayMode"/>s.</returns>
+        internal static Display ToDisplay(this DisplayDevice device) =>
+            new Display((int)device.GetIndex(), device.GetIndex().ToString(), device.Bounds, device.AvailableResolutions.Select(ToDisplayMode).ToArray());
+
+        /// <summary>
+        /// Converts an osuTK <see cref="DisplayResolution"/> to a <see cref="DisplayMode"/> structure.
+        /// It is not possible to retrieve the pixel format from <see cref="DisplayResolution"/>.
+        /// </summary>
+        /// <param name="resolution">The <see cref="DisplayResolution"/> to convert.</param>
+        /// <returns>A <see cref="DisplayMode"/> structure populated with the corresponding properties.</returns>
+        internal static DisplayMode ToDisplayMode(this DisplayResolution resolution) =>
+            new DisplayMode(null, new Size(resolution.Width, resolution.Height), resolution.BitsPerPixel, (int)Math.Round(resolution.RefreshRate), 0, 0);
     }
 }

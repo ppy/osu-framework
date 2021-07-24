@@ -9,7 +9,8 @@ namespace osu.Framework.Testing.Drawables.Steps
     {
         public new Action Action;
 
-        public SingleStepButton()
+        public SingleStepButton(bool isSetupStep = false)
+            : base(isSetupStep)
         {
             base.Action = () =>
             {

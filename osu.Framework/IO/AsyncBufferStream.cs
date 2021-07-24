@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using osuTK;
 
 namespace osu.Framework.IO
 {
@@ -65,11 +64,6 @@ namespace osu.Framework.IO
             Task.Factory.StartNew(loadRequiredBlocks, cancellationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        ~AsyncBufferStream()
-        {
-            Dispose(false);
-        }
-
         private void loadRequiredBlocks()
         {
             if (isLoaded)
@@ -108,7 +102,7 @@ namespace osu.Framework.IO
                 blockLoadedStatus[curr] = true;
                 last = curr;
 
-                isLoaded |= blockLoadedStatus.All(loaded => loaded);
+                isLoaded = blockLoadedStatus.All(loaded => loaded);
             }
 
             if (!isClosed) underlyingStream?.Close();
@@ -127,8 +121,10 @@ namespace osu.Framework.IO
                     end = Math.Min(end, (position + amountBytesToRead) / block_size + blocksToReadAhead + 1);
 
                 for (int i = start; i < end; i++)
+                {
                     if (!blockLoadedStatus[i])
                         return i;
+                }
 
                 return -1;
             }
@@ -168,7 +164,7 @@ namespace osu.Framework.IO
         public override long Position
         {
             get => position;
-            set => position = MathHelper.Clamp((int)value, 0, data.Length);
+            set => position = Math.Clamp((int)value, 0, data.Length);
         }
 
         public override void Flush()
@@ -201,7 +197,8 @@ namespace osu.Framework.IO
             int bytesRead = amountBytesToRead;
 
             amountBytesToRead = 0;
-            position += bytesRead;
+
+            Interlocked.Add(ref position, bytesRead);
 
             return bytesRead;
         }

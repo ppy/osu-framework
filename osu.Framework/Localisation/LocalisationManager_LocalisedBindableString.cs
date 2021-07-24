@@ -1,9 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+#pragma warning disable 8632 // TODO: can be #nullable enable when Bindables are updated to also be.
+
 using osu.Framework.Bindables;
-using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -11,45 +11,39 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<IResourceStore<string>> storage = new Bindable<IResourceStore<string>>();
-            private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
+            private readonly IBindable<LocalisationParameters> parameters = new Bindable<LocalisationParameters>();
 
-            private LocalisedString text;
+            private LocalisableString text;
 
-            public LocalisedBindableString(LocalisedString text, IBindable<IResourceStore<string>> storage, IBindable<bool> preferUnicode)
+            public LocalisedBindableString(LocalisableString text, IBindable<LocalisationParameters> parameters)
             {
                 this.text = text;
 
-                this.storage.BindTo(storage);
-                this.preferUnicode.BindTo(preferUnicode);
+                this.parameters.BindTo(parameters);
+                this.parameters.BindValueChanged(_ => updateValue());
 
-                this.storage.BindValueChanged(_ => updateValue());
-                this.preferUnicode.BindValueChanged(_ => updateValue(), true);
+                updateValue();
             }
 
             private void updateValue()
             {
-                string newText = preferUnicode.Value ? text.Text.Original : text.Text.Fallback;
-
-                if (text.ShouldLocalise && storage.Value != null)
-                    newText = storage.Value.Get(newText);
-
-                if (text.Args?.Length > 0 && !string.IsNullOrEmpty(newText))
+                switch (text.Data)
                 {
-                    try
-                    {
-                        newText = string.Format(newText, text.Args);
-                    }
-                    catch (FormatException)
-                    {
-                        // Prevent crashes if the formatting fails. The string will be in a non-formatted state.
-                    }
-                }
+                    case string plain:
+                        Value = plain;
+                        break;
 
-                Value = newText;
+                    case ILocalisableStringData data:
+                        Value = data.GetLocalised(parameters.Value);
+                        break;
+
+                    default:
+                        Value = string.Empty;
+                        break;
+                }
             }
 
-            LocalisedString ILocalisedBindableString.Text
+            LocalisableString ILocalisedBindableString.Text
             {
                 set
                 {

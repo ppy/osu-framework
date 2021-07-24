@@ -2,11 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics.OpenGL;
+using System;
 
 namespace osu.Framework.Graphics.Shaders
 {
     internal class GlobalUniform<T> : IUniformWithValue<T>
-        where T : struct
+        where T : struct, IEquatable<T>
     {
         public Shader Owner { get; }
         public int Location { get; }
@@ -40,7 +41,7 @@ namespace osu.Framework.Graphics.Shaders
             PendingChange = null;
         }
 
-        ref T IUniformWithValue<T>.GetValueByRef() => ref PendingChange.Value;
+        ref T IUniformWithValue<T>.GetValueByRef() => ref PendingChange.GetValueByRef();
         T IUniformWithValue<T>.GetValue() => PendingChange.Value;
     }
 }

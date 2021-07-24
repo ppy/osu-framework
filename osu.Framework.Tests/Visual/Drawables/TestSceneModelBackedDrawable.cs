@@ -142,6 +142,31 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("null model shown", () => backedDrawable.DisplayedDrawable is TestNullDrawableModel);
         }
 
+        [Test]
+        public void TestInsideBufferedContainer()
+        {
+            TestDrawableModel drawableModel = null;
+
+            AddStep("setup", () =>
+            {
+                Child = new BufferedContainer
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(200),
+                    Child = backedDrawable = new TestModelBackedDrawable
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        HasIntermediate = false,
+                        ShowNullModel = false,
+                        Model = new TestModel(drawableModel = new TestDrawableModel(1).With(d => d.AllowLoad.Set()))
+                    }
+                };
+            });
+
+            assertDrawableVisibility(1, () => drawableModel);
+        }
+
         private void assertIntermediateVisibility(bool hasIntermediate, Func<Drawable> getLastFunc)
         {
             if (hasIntermediate)

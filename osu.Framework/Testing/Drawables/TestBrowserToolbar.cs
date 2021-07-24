@@ -21,10 +21,15 @@ namespace osu.Framework.Testing.Drawables
 
             InternalChildren = new Drawable[]
             {
-                new Box
+                new SafeAreaContainer
                 {
+                    SafeAreaOverrideEdges = Edges.Top | Edges.Right,
                     RelativeSizeAxes = Axes.Both,
-                    Colour = FrameworkColour.GreenDark,
+                    Child = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.GreenDark,
+                    },
                 },
                 new Container
                 {

@@ -1,13 +1,13 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osuTK;
 using osuTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Development;
 using osu.Framework.Timing;
@@ -22,8 +22,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly FillFlowContainer flow;
 
         protected override bool BlockPositionalInput => false;
-
-        private Bindable<bool> enabled;
 
         private StopwatchClock clock;
 
@@ -76,10 +74,14 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
+        private int logPosition;
+
         private void addEntry(LogEntry entry)
         {
             if (!DebugUtils.IsDebugBuild && entry.Level <= LogLevel.Verbose)
                 return;
+
+            int pos = Interlocked.Increment(ref logPosition);
 
             Schedule(() =>
             {
@@ -87,7 +89,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 LoadComponentAsync(new DrawableLogEntry(entry), drawEntry =>
                 {
-                    flow.Add(drawEntry);
+                    flow.Insert(pos, drawEntry);
 
                     drawEntry.FadeInFromZero(800, Easing.OutQuint).Delay(display_length).FadeOut(800, Easing.InQuint);
                     drawEntry.Expire();
@@ -103,31 +105,27 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnKeyDown(e);
         }
 
-        protected override bool OnKeyUp(KeyUpEvent e)
+        protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.ControlPressed)
                 setHoldState(false);
-            return base.OnKeyUp(e);
+            base.OnKeyUp(e);
         }
 
         private void setHoldState(bool controlPressed)
         {
             box.Alpha = controlPressed ? 1 : background_alpha;
-            clock.Rate = controlPressed ? 0 : 1;
+            if (clock != null) clock.Rate = controlPressed ? 0 : 1;
         }
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
-            enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            enabled.ValueChanged += e => State.Value = e.NewValue ? Visibility.Visible : Visibility.Hidden;
-            enabled.TriggerChange();
         }
 
         protected override void PopIn()
         {
             Logger.NewEntry += addEntry;
-            enabled.Value = true;
             this.FadeIn(100);
         }
 
@@ -135,7 +133,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Logger.NewEntry -= addEntry;
             setHoldState(false);
-            enabled.Value = false;
             this.FadeOut(100);
         }
 
@@ -184,7 +181,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Shadow = true,
                             ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            Font = new FontUsage(size: font_size),
+                            Font = FrameworkFont.Regular.With(size: font_size),
                             Text = entry.Target?.ToString() ?? entry.LoggerName,
                         }
                     }
@@ -199,7 +196,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Child = new SpriteText
                     {
                         RelativeSizeAxes = Axes.X,
-                        Font = new FontUsage(size: font_size),
+                        Font = FrameworkFont.Regular.With(size: font_size),
                         Text = entry.Message
                     }
                 }

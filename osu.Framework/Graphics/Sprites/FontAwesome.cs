@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Sprites
             public static IconUsage Buffer => Get(0xf837);
 
             /// <summary>
-            /// BÃ¼romÃ¶bel-Experte GmbH & Co. KG.
+            /// Büromöbel-Experte GmbH &amp; Co. KG.
             /// </summary>
             public static IconUsage Buromobelexperte => Get(0xf37f);
 
@@ -480,12 +480,12 @@ namespace osu.Framework.Graphics.Sprites
             public static IconUsage Cuttlefish => Get(0xf38c);
 
             /// <summary>
-            /// Dungeons & Dragons
+            /// Dungeons &amp; Dragons
             /// </summary>
             public static IconUsage DAndD => Get(0xf38d);
 
             /// <summary>
-            /// D&D Beyond
+            /// D&amp;D Beyond
             /// </summary>
             public static IconUsage DAndDBeyond => Get(0xf6ca);
 
@@ -6542,7 +6542,7 @@ namespace osu.Framework.Graphics.Sprites
             public static IconUsage Skull => Get(0xf54c);
 
             /// <summary>
-            /// Skull & Crossbones
+            /// Skull &amp; Crossbones
             /// </summary>
             public static IconUsage SkullCrossbones => Get(0xf714);
 

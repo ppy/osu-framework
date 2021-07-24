@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using osu.Framework.IO.File;
+using JetBrains.Annotations;
 
 namespace osu.Framework.Platform
 {
@@ -13,13 +13,11 @@ namespace osu.Framework.Platform
     {
         private readonly GameHost host;
 
-        public NativeStorage(string baseName, GameHost host = null)
-            : base(baseName)
+        public NativeStorage(string path, GameHost host = null)
+            : base(path)
         {
             this.host = host;
         }
-
-        protected override string LocateBasePath() => @"./"; //use current directory by default
 
         public override bool Exists(string path) => File.Exists(GetFullPath(path));
 
@@ -34,20 +32,26 @@ namespace osu.Framework.Platform
                 Directory.Delete(path, true);
         }
 
-        public override void Delete(string path) => FileSafety.FileDelete(GetFullPath(path));
+        public override void Delete(string path)
+        {
+            path = GetFullPath(path);
+
+            if (File.Exists(path))
+                File.Delete(path);
+        }
 
         public override IEnumerable<string> GetDirectories(string path) => getRelativePaths(Directory.GetDirectories(GetFullPath(path)));
 
-        public override IEnumerable<string> GetFiles(string path) => getRelativePaths(Directory.GetFiles(GetFullPath(path)));
+        public override IEnumerable<string> GetFiles(string path, string pattern = "*") => getRelativePaths(Directory.GetFiles(GetFullPath(path), pattern));
 
         private IEnumerable<string> getRelativePaths(IEnumerable<string> paths)
         {
             string basePath = Path.GetFullPath(GetFullPath(string.Empty));
             return paths.Select(Path.GetFullPath).Select(path =>
             {
-                if (!path.StartsWith(basePath)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
+                if (!path.StartsWith(basePath, StringComparison.Ordinal)) throw new ArgumentException($"\"{path}\" does not start with \"{basePath}\" and is probably malformed");
 
-                return path.Substring(basePath.Length).TrimStart(Path.DirectorySeparatorChar);
+                return path.AsSpan(basePath.Length).TrimStart(Path.DirectorySeparatorChar).ToString();
             });
         }
 
@@ -55,16 +59,17 @@ namespace osu.Framework.Platform
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-            var basePath = Path.GetFullPath(Path.Combine(BasePath, BaseName, SubDirectory)).TrimEnd(Path.DirectorySeparatorChar);
+            var basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
             var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
-            if (!resolvedPath.StartsWith(basePath)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
+            if (!resolvedPath.StartsWith(basePath, StringComparison.Ordinal)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
 
             if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
             return resolvedPath;
         }
 
-        public override void OpenInNativeExplorer() => host?.OpenFileExternally(GetFullPath(string.Empty));
+        public override void OpenPathInNativeExplorer(string path) =>
+            host?.OpenFileExternally(GetFullPath(path));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
@@ -88,5 +93,18 @@ namespace osu.Framework.Platform
         public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
 
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
+
+        public override Storage GetStorageForDirectory([NotNull] string path)
+        {
+            if (path == null) throw new ArgumentNullException(nameof(path));
+
+            if (path.Length > 0 && !path.EndsWith(Path.DirectorySeparatorChar))
+                path += Path.DirectorySeparatorChar;
+
+            // create non-existing path.
+            var fullPath = GetFullPath(path, true);
+
+            return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
+        }
     }
 }

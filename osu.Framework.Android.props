@@ -1,54 +1,50 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
     <OutputPath>bin\$(Configuration)</OutputPath>
     <WarningLevel>4</WarningLevel>
     <SchemaVersion>2.0</SchemaVersion>
     <BundleAssemblies>false</BundleAssemblies>
     <AotAssemblies>false</AotAssemblies>
-    <LangVersion>default</LangVersion>
     <OutputType>Library</OutputType>
     <FileAlignment>512</FileAlignment>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidApplication>True</AndroidApplication>
     <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
-    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
+    <!-- This does not take effect, unlike osu game repo.  -->
+    <!--<TargetFrameworkVersion>v10.0</TargetFrameworkVersion>-->
     <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
+    <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
+    <MandroidI18n>cjk,mideast,other,rare,west</MandroidI18n>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugSymbols>True</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>False</Optimize>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <EnableLLVM>false</EnableLLVM>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <AndroidUseSharedRuntime>true</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
-    <MandroidI18n>cjk,mideast,other,rare,west</MandroidI18n>
-    <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
-    <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugSymbols>false</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <ErrorReport>prompt</ErrorReport>
-	<EnableLLVM>true</EnableLLVM>
     <AndroidManagedSymbols>false</AndroidManagedSymbols>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
-    <MandroidI18n>cjk,mideast,other,rare,west</MandroidI18n>
-    <AndroidEnableSGenConcurrent>true</AndroidEnableSGenConcurrent>
-    <AndroidSupportedAbis>armeabi-v7a;x86;arm64-v8a</AndroidSupportedAbis>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\osu-framework.licenseheader">
-      <Link>osu-framework.licenseheader</Link>
-    </None>
+    <AndroidNativeLibrary Include="..\osu.Framework.Android\armeabi-v7a\*.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\osu.Framework.Android\arm64-v8a\*.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -61,6 +57,5 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 </Project>

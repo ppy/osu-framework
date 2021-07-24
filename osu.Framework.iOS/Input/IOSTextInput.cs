@@ -38,19 +38,37 @@ namespace osu.Framework.iOS.Input
                 pending += text;
         }
 
-        public void Deactivate(object sender)
+        public void Deactivate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
-        public void Activate(object sender)
+        public void Activate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
         }
 
-        public event Action<string> OnNewImeComposition;
-        public event Action<string> OnNewImeResult;
+        public void EnsureActivated()
+        {
+            /// If the user has manually closed the keyboard, it will not be shown until another <see cref="Framework.Graphics.UserInterface.TextBox"/>
+            /// is focused. Calling <see cref="IOSGameView.HiddenTextField.UpdateFirstResponder"/> over and over again won't work, due to how
+            /// `responderSemaphore` currently works.
+
+            // TODO: add iOS implementation
+        }
+
+        public event Action<string> OnNewImeComposition
+        {
+            add { }
+            remove { }
+        }
+
+        public event Action<string> OnNewImeResult
+        {
+            add { }
+            remove { }
+        }
     }
 }

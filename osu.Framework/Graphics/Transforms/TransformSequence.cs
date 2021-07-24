@@ -15,18 +15,18 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="T">
     /// The type of the <see cref="ITransformable"/> the <see cref="Transform"/>s in this sequence operate upon.
     /// </typeparam>
-    public class TransformSequence<T> where T : ITransformable
+    public class TransformSequence<T> where T : class, ITransformable
     {
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to generate a <see cref="TransformSequence{T}"/> for.</param>
+        /// <param name="origin">The origin to generate a <see cref="TransformSequence{T}"/> for.</param>
         /// <returns>The generated <see cref="TransformSequence{T}"/>.</returns>
         public delegate TransformSequence<T> Generator(T origin);
 
         private readonly T origin;
 
-        private readonly List<Transform> transforms = new List<Transform>();
+        private readonly List<Transform> transforms = new List<Transform>(1); // the most common usage of transforms sees one transform being added.
 
         private bool hasCompleted = true;
 
@@ -42,11 +42,11 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Creates a new empty <see cref="TransformSequence{T}"/> attached to a given <paramref name="origin"/>.
         /// </summary>
-        /// <param name="origin">The <see cref="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
+        /// <param name="origin">The <typeparamref name="T"/> to attach the new <see cref="TransformSequence{T}"/> to.</param>
         public TransformSequence(T origin)
         {
             if (origin == null)
-                throw new NullReferenceException($"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
+                throw new ArgumentNullException(nameof(origin), $"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
 
             this.origin = origin;
             startTime = currentTime = lastEndTime = origin.TransformStartTime;
@@ -74,8 +74,10 @@ namespace osu.Framework.Graphics.Transforms
         internal void Add(Transform transform)
         {
             if (!ReferenceEquals(transform.TargetTransformable, origin))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must operate upon {nameof(origin)}={origin}, but operates upon {transform.TargetTransformable}.");
+            }
 
             transforms.Add(transform);
 
@@ -144,13 +146,13 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originFunc"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originFunc"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
-        /// <typeparam name="U">The return type of <paramref name="originFunc"/>.</typeparam>
+        /// <typeparam name="TResult">The return type of <paramref name="originFunc"/>.</typeparam>
         /// <param name="originFunc">The function to be invoked.</param>
         /// <param name="result">The resulting value of the invocation of <paramref name="originFunc"/>.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
-        public TransformSequence<T> Append<U>(Func<T, U> originFunc, out U result)
+        public TransformSequence<T> Append<TResult>(Func<T, TResult> originFunc, out TResult result)
         {
             using (origin.BeginAbsoluteSequence(currentTime))
                 result = originFunc(origin);
@@ -161,7 +163,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Invokes <paramref name="originAction"/> inside a <see cref="Transformable.BeginAbsoluteSequence(double, bool)"/>
         /// such that <see cref="ITransformable.TransformStartTime"/> is the current time of this <see cref="TransformSequence{T}"/>.
-        /// It is the respondibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
+        /// It is the responsibility of <paramref name="originAction"/> to make appropriate use of <see cref="ITransformable.TransformStartTime"/>.
         /// </summary>
         /// <param name="originAction">The function to be invoked.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
@@ -204,9 +206,11 @@ namespace osu.Framework.Graphics.Transforms
         private void subscribeComplete(Action func)
         {
             if (onComplete != null)
+            {
                 throw new InvalidOperationException(
                     "May not subscribe completion multiple times." +
                     $"This exception is also caused by calling {nameof(Then)} or {nameof(Finally)} on an infinitely looping {nameof(TransformSequence<T>)}.");
+            }
 
             onComplete = func;
 

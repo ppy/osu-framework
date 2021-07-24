@@ -2,14 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
@@ -19,12 +18,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneSliderBar : ManualInputManagerTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(BasicSliderBar<>), typeof(SliderBar<>) };
-
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
         private readonly SpriteText sliderBarText;
-        private readonly SliderBar<double> sliderBar;
+        private readonly TestSliderBar sliderBar;
         private readonly SliderBar<double> transferOnCommitSliderBar;
 
         public TestSceneSliderBar()
@@ -52,9 +49,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     {
                         Text = "BasicSliderBar:",
                     },
-                    sliderBar = new BasicSliderBar<double>
+                    sliderBar = new TestSliderBar
                     {
-                        Size = new Vector2(200, 10),
+                        Size = new Vector2(200, 50),
                         BackgroundColour = Color4.White,
                         SelectionColour = Color4.Pink,
                         KeyboardStep = 1,
@@ -91,15 +88,69 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [SetUp]
-        public override void SetUp()
+        public new void SetUp() => Schedule(() =>
         {
             sliderBar.Current.Disabled = false;
             sliderBar.Current.Value = 0;
+        });
+
+        [Test]
+        public void TestVerticalDragHasNoEffect()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.0f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
         }
 
-        [TestCase(true)]
+        [Test]
+        public void TestDragOutReleaseInHasNoEffect()
+        {
+            checkValue(0, false);
+            AddStep("Move Cursor",
+                () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 0.0f))); });
+            AddStep("Click", () => { InputManager.PressButton(MouseButton.Left); });
+            AddStep("Drag", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.75f, 1.5f))); });
+            AddStep("Drag Left", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 1.5f))); });
+            AddStep("Drag Up", () => { InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f))); });
+            AddStep("Release Click", () => { InputManager.ReleaseButton(MouseButton.Left); });
+            checkValue(0, false);
+        }
+
         [TestCase(false)]
-        public void SliderBar(bool disabled)
+        [TestCase(true)]
+        public void TestKeyboardInput(bool allowOutside)
+        {
+            AddStep($"allow outside: {allowOutside}", () => sliderBar.KeyboardInput = allowOutside);
+
+            checkValue(0, allowOutside);
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(1, !allowOutside);
+
+            AddStep("move mouse inside", () =>
+            {
+                InputManager.MoveMouseTo(sliderBar.ToScreenSpace(sliderBar.DrawSize * new Vector2(0.25f, 0.5f)));
+            });
+
+            AddStep("Press right arrow key", () =>
+            {
+                InputManager.PressKey(Key.Right);
+                InputManager.ReleaseKey(Key.Right);
+            });
+            checkValue(allowOutside ? 2 : 1, false);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestAdjustmentPrecision(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
@@ -129,17 +180,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(5, disabled);
         }
 
-        private void checkValue(int expected, bool disabled)
-        {
-            if (disabled)
-                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
-            else
-                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
-        }
-
-        [TestCase(true)]
         [TestCase(false)]
-        public void TransferValueOnCommit(bool disabled)
+        [TestCase(true)]
+        public void TestTransferValueOnCommit(bool disabled)
         {
             AddStep($"set disabled to {disabled}", () => sliderBar.Current.Disabled = disabled);
 
@@ -161,9 +204,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
         }
 
+        private void checkValue(int expected, bool disabled)
+        {
+            if (disabled)
+                AddAssert("value unchanged (disabled)", () => Precision.AlmostEquals(sliderBarValue.Value, 0, Precision.FLOAT_EPSILON));
+            else
+                AddAssert($"Value == {expected}", () => Precision.AlmostEquals(sliderBarValue.Value, expected, Precision.FLOAT_EPSILON));
+        }
+
         private void sliderBarValueChanged(ValueChangedEvent<double> args)
         {
             sliderBarText.Text = $"Value of Bindable: {args.NewValue:N}";
+        }
+
+        public class TestSliderBar : BasicSliderBar<double>
+        {
+            public bool KeyboardInput;
+
+            [Obsolete("Implement this kind of behaviour separately instead.")]
+            protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }
 }

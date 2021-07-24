@@ -4,35 +4,30 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using osu.Framework.IO.File;
 
 namespace osu.Framework.Platform
 {
     public abstract class Storage
     {
-        protected string BaseName { get; set; }
+        protected string BasePath { get; }
 
-        protected string BasePath { get; set; }
-
-        /// <summary>
-        /// An optional path to be added after <see cref="BaseName"/>.
-        /// </summary>
-        protected string SubDirectory { get; set; } = string.Empty;
-
-        protected Storage(string baseName)
+        protected Storage(string path, string subfolder = null)
         {
-            BaseName = FileSafety.FilenameStrip(baseName);
-            BasePath = LocateBasePath();
-            if (BasePath == null)
-                throw new NullReferenceException(nameof(BasePath));
-        }
+            static string filenameStrip(string entry)
+            {
+                foreach (char c in Path.GetInvalidFileNameChars())
+                    entry = entry.Replace(c.ToString(), string.Empty);
+                return entry;
+            }
 
-        /// <summary>
-        /// Find the location which will be used as a root for this storage.
-        /// This should usually be a platform-specific implementation.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract string LocateBasePath();
+            BasePath = path;
+
+            if (BasePath == null)
+                throw new InvalidOperationException($"{nameof(BasePath)} not correctly initialized!");
+
+            if (!string.IsNullOrEmpty(subfolder))
+                BasePath = Path.Combine(BasePath, filenameStrip(subfolder));
+        }
 
         /// <summary>
         /// Get a usable filesystem path for the provided incomplete path.
@@ -79,19 +74,28 @@ namespace osu.Framework.Platform
         /// Retrieve a list of files at the specified path.
         /// </summary>
         /// <param name="path">The path to list.</param>
+        /// <param name="pattern">An optional search pattern. Accepts "*" wildcard.</param>
         /// <returns>A list of files in the path, relative to the path of this storage.</returns>
-        public abstract IEnumerable<string> GetFiles(string path);
+        public abstract IEnumerable<string> GetFiles(string path, string pattern = "*");
 
         /// <summary>
         /// Retrieve a <see cref="Storage"/> for a contained directory.
+        /// Creates the path if not existing.
         /// </summary>
         /// <param name="path">The subdirectory to use as a root.</param>
         /// <returns>A more specific storage.</returns>
-        public Storage GetStorageForDirectory(string path)
+        public virtual Storage GetStorageForDirectory(string path)
         {
-            var clone = (Storage)MemberwiseClone();
-            clone.SubDirectory = path;
-            return clone;
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentException("Must be non-null and not empty string", nameof(path));
+
+            if (!path.EndsWith(Path.DirectorySeparatorChar))
+                path += Path.DirectorySeparatorChar;
+
+            // create non-existing path.
+            var fullPath = GetFullPath(path, true);
+
+            return (Storage)Activator.CreateInstance(GetType(), fullPath);
         }
 
         /// <summary>
@@ -119,6 +123,11 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public abstract void OpenInNativeExplorer();
+        public void OpenInNativeExplorer() => OpenPathInNativeExplorer(string.Empty);
+
+        /// <summary>
+        /// Opens a native file browser window to the specified relative path.
+        /// </summary>
+        public abstract void OpenPathInNativeExplorer(string path);
     }
 }

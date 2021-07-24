@@ -10,6 +10,10 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Menu items that appear when the drawable is right-clicked.
         /// </summary>
+        /// <remarks>
+        /// If empty, this <see cref="Drawable"/> will be picked as the menu target but a context menu will not be shown.
+        /// <para>If null, this <see cref="Drawable"/> will not be picked as the menu target and other <see cref="Drawable"/>s underneath may become the menu target.</para>
+        /// </remarks>
         MenuItem[] ContextMenuItems { get; }
     }
 }

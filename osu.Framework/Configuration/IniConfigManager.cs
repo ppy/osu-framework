@@ -5,13 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
-    public class IniConfigManager<T> : ConfigManager<T>
-        where T : struct
+    public class IniConfigManager<TLookup> : ConfigManager<TLookup>
+        where TLookup : struct, Enum
     {
         /// <summary>
         /// The backing file used to store the config. Null means no persistent storage.
@@ -20,7 +22,7 @@ namespace osu.Framework.Configuration
 
         private readonly Storage storage;
 
-        public IniConfigManager(Storage storage, IDictionary<T, object> defaultOverrides = null)
+        public IniConfigManager(Storage storage, IDictionary<TLookup, object> defaultOverrides = null)
             : base(defaultOverrides)
         {
             this.storage = storage;
@@ -48,23 +50,28 @@ namespace osu.Framework.Configuration
 
                         if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
 
-                        string key = line.Substring(0, equalsIndex).Trim();
-                        string val = line.Remove(0, equalsIndex + 1).Trim();
+                        string key = line.AsSpan(0, equalsIndex).Trim().ToString();
+                        string val = line.AsSpan(equalsIndex + 1).Trim().ToString();
 
-                        if (!Enum.TryParse(key, out T lookup))
+                        if (!Enum.TryParse(key, out TLookup lookup))
                             continue;
 
                         if (ConfigStore.TryGetValue(lookup, out IBindable b))
+                        {
                             try
                             {
-                                b.Parse(val);
+                                if (!(b is IParseable parseable))
+                                    throw new InvalidOperationException($"Bindable type {b.GetType().ReadableName()} is not {nameof(IParseable)}.");
+
+                                parseable.Parse(val);
                             }
                             catch (Exception e)
                             {
                                 Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
                             }
+                        }
                         else if (AddMissingEntries)
-                            Set(lookup, val);
+                            SetDefault(lookup, val);
                     }
                 }
             }
@@ -80,7 +87,7 @@ namespace osu.Framework.Configuration
                 using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)
-                        w.WriteLine(@"{0} = {1}", p.Key, p.Value);
+                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().AsNonNull().Replace("\n", "").Replace("\r", ""));
                 }
             }
             catch

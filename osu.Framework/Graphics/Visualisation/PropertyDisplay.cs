@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -17,18 +19,17 @@ using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class PropertyDisplay : VisibilityContainer
+    internal class PropertyDisplay : Container
     {
         private readonly FillFlowContainer flow;
 
-        private const float width = 600;
+        private Bindable<Drawable> inspectedDrawable;
 
         protected override Container<Drawable> Content => flow;
 
         public PropertyDisplay()
         {
-            Width = width;
-            RelativeSizeAxes = Axes.Y;
+            RelativeSizeAxes = Axes.Both;
 
             AddRangeInternal(new Drawable[]
             {
@@ -52,7 +53,20 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        public void UpdateFrom(Drawable source)
+        [BackgroundDependencyLoader]
+        private void load(Bindable<Drawable> inspected)
+        {
+            inspectedDrawable = inspected.GetBoundCopy();
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            inspectedDrawable.BindValueChanged(inspected => updateProperties(inspected.NewValue), true);
+        }
+
+        private void updateProperties(IDrawable source)
         {
             Clear();
 
@@ -62,25 +76,17 @@ namespace osu.Framework.Graphics.Visualisation
             var allMembers = new HashSet<MemberInfo>(new MemberInfoComparer());
 
             foreach (var type in source.GetType().EnumerateBaseTypes())
+            {
                 type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
                     .Where(m => m is FieldInfo || m is PropertyInfo pi && pi.GetMethod != null && !pi.GetIndexParameters().Any())
                     .ForEach(m => allMembers.Add(m));
+            }
 
             // Order by upper then lower-case, and exclude auto-generated backing fields of properties
             AddRange(allMembers.OrderBy(m => m.Name[0]).ThenBy(m => m.Name)
                                .Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
                                .Where(m => m.GetCustomAttribute<DebuggerBrowsableAttribute>()?.State != DebuggerBrowsableState.Never)
                                .Select(m => new PropertyItem(m, source)));
-        }
-
-        protected override void PopIn()
-        {
-            this.ResizeWidthTo(width, 500, Easing.OutQuint);
-        }
-
-        protected override void PopOut()
-        {
-            this.ResizeWidthTo(0, 500, Easing.OutQuint);
         }
 
         private class PropertyItem : Container
@@ -93,22 +99,20 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 Type type;
 
-                switch (info.MemberType)
+                switch (info)
                 {
-                    case MemberTypes.Property:
-                        PropertyInfo propertyInfo = (PropertyInfo)info;
+                    case PropertyInfo propertyInfo:
                         type = propertyInfo.PropertyType;
                         getValue = () => propertyInfo.GetValue(d);
                         break;
 
-                    case MemberTypes.Field:
-                        FieldInfo fieldInfo = (FieldInfo)info;
+                    case FieldInfo fieldInfo:
                         type = fieldInfo.FieldType;
                         getValue = () => fieldInfo.GetValue(d);
                         break;
 
                     default:
-                        throw new NotImplementedException(@"Not a value member.");
+                        throw new ArgumentException(@"Not a value member.", nameof(info));
                 }
 
                 RelativeSizeAxes = Axes.X;
@@ -136,15 +140,18 @@ namespace osu.Framework.Graphics.Visualisation
                                 {
                                     Text = info.Name,
                                     Colour = FrameworkColour.Yellow,
+                                    Font = FrameworkFont.Regular
                                 },
                                 new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
                                     Colour = FrameworkColour.YellowGreen,
+                                    Font = FrameworkFont.Regular
                                 },
                                 valueText = new SpriteText
                                 {
                                     Colour = Color4.White,
+                                    Font = FrameworkFont.Regular
                                 },
                             }
                         }
@@ -183,7 +190,8 @@ namespace osu.Framework.Graphics.Visualisation
                     value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
 
-                if (!value.Equals(lastValue))
+                // An alternative of object.Equals, which is banned.
+                if (!EqualityComparer<object>.Default.Equals(value, lastValue))
                 {
                     changeMarker.ClearTransforms();
                     changeMarker.Alpha = 0.8f;
@@ -197,7 +205,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
-            public bool Equals(MemberInfo x, MemberInfo y) => string.Equals(x?.Name, y?.Name);
+            public bool Equals(MemberInfo x, MemberInfo y) => x?.Name == y?.Name;
 
             public int GetHashCode(MemberInfo obj) => obj.Name.GetHashCode();
         }

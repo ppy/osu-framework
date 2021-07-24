@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using osuTK.Graphics.ES30;
@@ -14,11 +15,11 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     /// <summary>
     /// Helper method that provides functionality to enable and bind vertex attributes.
     /// </summary>
-    internal static class VertexUtils<T>
-        where T : IVertex
+    public static class VertexUtils<T>
+        where T : struct, IVertex
     {
         /// <summary>
-        /// The stride of the vertex of type <see cref="T"/>.
+        /// The stride of the vertex of type <typeparamref name="T"/>.
         /// </summary>
         public static readonly int STRIDE = Marshal.SizeOf(default(T));
 
@@ -45,6 +46,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
                 else if (field.IsDefined(typeof(VertexMemberAttribute), true))
                 {
                     var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
+                    Debug.Assert(attrib != null);
 
                     // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
                     attrib.Offset = new IntPtr(fieldOffset);
@@ -55,7 +57,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         }
 
         /// <summary>
-        /// Enables and binds the vertex attributes/pointers for the vertex of type <see cref="T"/>.
+        /// Enables and binds the vertex attributes/pointers for the vertex of type <typeparamref name="T"/>.
         /// </summary>
         public static void Bind()
         {

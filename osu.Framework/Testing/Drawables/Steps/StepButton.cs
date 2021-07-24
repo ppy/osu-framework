@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.Steps
@@ -22,7 +22,7 @@ namespace osu.Framework.Testing.Drawables.Steps
 
         public Action Action { get; set; }
 
-        public string Text
+        public LocalisableString Text
         {
             get => SpriteText.Text;
             set => SpriteText.Text = value;
@@ -40,12 +40,16 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
         }
 
+        public readonly bool IsSetupStep;
+
         protected virtual Color4 IdleColour => new Color4(0.15f, 0.15f, 0.15f, 1);
 
         protected virtual Color4 RunningColour => new Color4(0.5f, 0.5f, 0.5f, 1);
 
-        protected StepButton()
+        protected StepButton(bool isSetupStep = false)
         {
+            IsSetupStep = isSetupStep;
+
             InternalChildren = new Drawable[]
             {
                 Background = new Box
@@ -64,9 +68,9 @@ namespace osu.Framework.Testing.Drawables.Steps
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
-                    Font = new FontUsage(size: 14),
+                    Font = FrameworkFont.Regular.With(size: 14),
                     X = 5,
-                    Padding = new MarginPadding(5),
+                    Padding = new MarginPadding(5)
                 }
             };
 
@@ -76,7 +80,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             BorderThickness = 1.5f;
             BorderColour = new Color4(0.15f, 0.15f, 0.15f, 1);
 
-            CornerRadius = 2;
             Masking = true;
         }
 
@@ -94,8 +97,6 @@ namespace osu.Framework.Testing.Drawables.Steps
             }
             catch (Exception exc)
             {
-                if (exc.InnerException is DependencyInjectionException die)
-                    exc = die.DispatchInfo.SourceException;
                 Logging.Logger.Error(exc, $"Step {this} triggered an error");
             }
 
@@ -139,9 +140,8 @@ namespace osu.Framework.Testing.Drawables.Steps
             Background.FadeColour(IdleColour, 1000, Easing.OutQuint);
 
             Light.FadeColour(Color4.YellowGreen);
-            SpriteText.Alpha = 0.8f;
         }
 
-        public override string ToString() => Text;
+        public override string ToString() => Text.ToString();
     }
 }

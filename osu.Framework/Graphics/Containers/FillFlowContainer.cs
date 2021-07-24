@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 using osuTK;
 using System.Linq;
-using osu.Framework.MathUtils;
+using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -87,9 +88,9 @@ namespace osu.Framework.Graphics.Containers
         private Vector2 spacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
-            if (c.Anchor.HasFlag(Anchor.x2))
+            if (c.Anchor.HasFlagFast(Anchor.x2))
                 result.X = 1 - result.X;
-            if (c.Anchor.HasFlag(Anchor.y2))
+            if (c.Anchor.HasFlagFast(Anchor.y2))
                 result.Y = 1 - result.Y;
             return result;
         }
@@ -104,8 +105,8 @@ namespace osu.Framework.Graphics.Containers
 
                 // If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                 // If we are inheriting then we need to use the parent size (our ActualSize).
-                max.X = AutoSizeAxes.HasFlag(Axes.X) ? float.MaxValue : s.X;
-                max.Y = AutoSizeAxes.HasFlag(Axes.Y) ? float.MaxValue : s.Y;
+                max.X = AutoSizeAxes.HasFlagFast(Axes.X) ? float.MaxValue : s.X;
+                max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y;
             }
 
             var children = FlowingChildren.ToArray();
@@ -134,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable c = children[i];
 
-                Axes toAxes(FillDirection direction)
+                static Axes toAxes(FillDirection direction)
                 {
                     switch (direction)
                     {
@@ -159,9 +160,11 @@ namespace osu.Framework.Graphics.Containers
                 // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
                 if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                {
                     throw new InvalidOperationException(
                         "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
+                }
 
                 // Populate running variables with sane initial values.
                 if (i == 0)
@@ -191,7 +194,7 @@ namespace osu.Framework.Graphics.Containers
 
                     // Compute offset to the middle of the row, to be applied in case of centre anchor
                     // in a second pass.
-                    rowOffsetsToMiddle[rowOffsetsToMiddle.Count - 1] = rowBeginOffset - rowWidth / 2;
+                    rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
                 }
 
                 rowIndices[i] = rowOffsetsToMiddle.Count - 1;
@@ -231,40 +234,46 @@ namespace osu.Framework.Graphics.Containers
                 {
                     case FillDirection.Vertical:
                         if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
 
                     case FillDirection.Horizontal:
                         if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
 
                     default:
                         if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                        {
                             throw new InvalidOperationException(
                                 $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
                                 + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        }
 
                         break;
                 }
 
-                if (c.Anchor.HasFlag(Anchor.x1))
+                if (c.Anchor.HasFlagFast(Anchor.x1))
                     // Begin flow at centre of row
                     result[i].X += rowOffsetsToMiddle[rowIndices[i]];
-                else if (c.Anchor.HasFlag(Anchor.x2))
+                else if (c.Anchor.HasFlagFast(Anchor.x2))
                     // Flow right-to-left
                     result[i].X = -result[i].X;
 
-                if (c.Anchor.HasFlag(Anchor.y1))
+                if (c.Anchor.HasFlagFast(Anchor.y1))
                     // Begin flow at centre of total height
                     result[i].Y -= height / 2;
-                else if (c.Anchor.HasFlag(Anchor.y2))
+                else if (c.Anchor.HasFlagFast(Anchor.y2))
                     // Flow bottom-to-top
                     result[i].Y = -result[i].Y;
             }

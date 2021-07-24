@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             [BackgroundDependencyLoader]
             private async Task load()
             {
-                await Task.Delay((int)(1000 / Clock.Rate));
+                await Task.Delay((int)(1000 / Clock.Rate)).ConfigureAwait(false);
             }
         }
     }

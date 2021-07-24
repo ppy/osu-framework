@@ -7,14 +7,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
-using osuTK;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osu.Framework.Audio.Callbacks;
 
 namespace osu.Framework.Audio.Track
 {
     /// <summary>
-    /// Procsses audio sample data such that it can then be consumed to generate waveform plots of the audio.
+    /// Processes audio sample data such that it can then be consumed to generate waveform plots of the audio.
     /// </summary>
     public class Waveform : IDisposable
     {
@@ -164,8 +163,8 @@ namespace osu.Framework.Audio.Track
             int startBin = (int)(fft_bins * 2 * startFrequency / info.Frequency);
             int endBin = (int)(fft_bins * 2 * endFrequency / info.Frequency);
 
-            startBin = MathHelper.Clamp(startBin, 0, bins.Length);
-            endBin = MathHelper.Clamp(endBin, 0, bins.Length);
+            startBin = Math.Clamp(startBin, 0, bins.Length);
+            endBin = Math.Clamp(endBin, 0, bins.Length);
 
             double value = 0;
             for (int i = startBin; i < endBin; i++)
@@ -186,7 +185,7 @@ namespace osu.Framework.Audio.Track
             if (pointCount == 0 || readTask == null)
                 return new Waveform(null);
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
 
             return await Task.Run(() =>
             {
@@ -208,12 +207,19 @@ namespace osu.Framework.Audio.Track
                     filter[i] = (float)Blur.EvalGaussian(i, pointsPerGeneratedPoint);
                 }
 
-                for (float i = 0; i < points.Count; i += pointsPerGeneratedPoint)
+                // we're keeping two indices: one for the original (fractional!) point we're generating based on,
+                // and one (integral) for the points we're going to be generating.
+                // it's important to avoid adding by pointsPerGeneratedPoint in a loop, as floating-point errors can result in
+                // drifting of the computed values in either direction - we multiply the generated index by pointsPerGeneratedPoint instead.
+                float originalPointIndex = 0;
+                int generatedPointIndex = 0;
+
+                while (originalPointIndex < points.Count)
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    int startIndex = (int)i - kernelWidth;
-                    int endIndex = (int)i + kernelWidth;
+                    int startIndex = (int)originalPointIndex - kernelWidth;
+                    int endIndex = (int)originalPointIndex + kernelWidth;
 
                     var point = new Point(channels);
                     float totalWeight = 0;
@@ -240,6 +246,9 @@ namespace osu.Framework.Audio.Track
                     point.HighIntensity /= totalWeight;
 
                     generatedPoints.Add(point);
+
+                    generatedPointIndex += 1;
+                    originalPointIndex = generatedPointIndex * pointsPerGeneratedPoint;
                 }
 
                 return new Waveform(null)
@@ -247,7 +256,7 @@ namespace osu.Framework.Audio.Track
                     points = generatedPoints,
                     channels = channels
                 };
-            }, cancellationToken);
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -263,7 +272,8 @@ namespace osu.Framework.Audio.Track
             if (readTask == null)
                 return points;
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
+
             return points;
         }
 
@@ -280,16 +290,12 @@ namespace osu.Framework.Audio.Track
             if (readTask == null)
                 return channels;
 
-            await readTask;
+            await readTask.ConfigureAwait(false);
+
             return channels;
         }
 
         #region Disposal
-
-        ~Waveform()
-        {
-            Dispose(false);
-        }
 
         public void Dispose()
         {
@@ -342,7 +348,7 @@ namespace osu.Framework.Audio.Track
             public double HighIntensity;
 
             /// <summary>
-            /// Cconstructs a <see cref="Point"/>.
+            /// Constructs a <see cref="Point"/>.
             /// </summary>
             /// <param name="channels">The number of channels that contain data.</param>
             public Point(int channels)

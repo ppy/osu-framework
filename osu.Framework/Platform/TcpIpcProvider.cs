@@ -53,31 +53,35 @@ namespace osu.Framework.Platform
                 {
                     while (!listener.Pending())
                     {
-                        await Task.Delay(10, token);
+                        await Task.Delay(10, token).ConfigureAwait(false);
                         if (token.IsCancellationRequested)
                             return;
                     }
 
-                    using (var client = await listener.AcceptTcpClientAsync())
+                    using (var client = await listener.AcceptTcpClientAsync().ConfigureAwait(false))
                     {
                         using (var stream = client.GetStream())
                         {
                             byte[] header = new byte[sizeof(int)];
-                            await stream.ReadAsync(header, 0, sizeof(int), token);
+                            await stream.ReadAsync(header.AsMemory(), token).ConfigureAwait(false);
                             int len = BitConverter.ToInt32(header, 0);
                             byte[] data = new byte[len];
-                            await stream.ReadAsync(data, 0, len, token);
+                            await stream.ReadAsync(data.AsMemory(), token).ConfigureAwait(false);
                             var str = Encoding.UTF8.GetString(data);
                             var json = JToken.Parse(str);
+
                             var type = Type.GetType(json["Type"].Value<string>());
+                            var value = json["Value"];
+
                             Trace.Assert(type != null);
+                            Trace.Assert(value != null);
+
                             var msg = new IpcMessage
                             {
-                                // ReSharper disable once PossibleNullReferenceException
                                 Type = type.AssemblyQualifiedName,
-                                Value = JsonConvert.DeserializeObject(
-                                    json["Value"].ToString(), type),
+                                Value = JsonConvert.DeserializeObject(value.ToString(), type),
                             };
+
                             MessageReceived?.Invoke(msg);
                         }
                     }
@@ -102,16 +106,16 @@ namespace osu.Framework.Platform
         {
             using (var client = new TcpClient())
             {
-                await client.ConnectAsync(IPAddress.Loopback, ipc_port);
+                await client.ConnectAsync(IPAddress.Loopback, ipc_port).ConfigureAwait(false);
 
                 using (var stream = client.GetStream())
                 {
                     var str = JsonConvert.SerializeObject(message, Formatting.None);
                     byte[] data = Encoding.UTF8.GetBytes(str);
                     byte[] header = BitConverter.GetBytes(data.Length);
-                    await stream.WriteAsync(header, 0, header.Length);
-                    await stream.WriteAsync(data, 0, data.Length);
-                    await stream.FlushAsync();
+                    await stream.WriteAsync(header.AsMemory()).ConfigureAwait(false);
+                    await stream.WriteAsync(data.AsMemory()).ConfigureAwait(false);
+                    await stream.FlushAsync().ConfigureAwait(false);
                 }
             }
         }

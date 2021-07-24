@@ -26,8 +26,6 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         public bool Rewindable = true;
 
-        public Easing Easing;
-
         public abstract ITransformable TargetTransformable { get; }
 
         public double StartTime { get; internal set; }
@@ -37,6 +35,18 @@ namespace osu.Framework.Graphics.Transforms
         public double LoopDelay { get; internal set; }
 
         public abstract string TargetMember { get; }
+
+        /// <summary>
+        /// The name of the grouping this <see cref="Transform"/> belongs to.
+        /// Defaults to <see cref="TargetMember"/>.
+        /// </summary>
+        /// <remarks>
+        /// Transforms in a single group affect the same property (or properties) of a <see cref="Transformable"/>.
+        /// It is assumed that transforms in different groups are independent from each other
+        /// in that they affect different properties, and therefore they can be applied independently
+        /// in any order without affecting the end result.
+        /// </remarks>
+        public virtual string TargetGrouping => TargetMember;
 
         public abstract void Apply(double time);
 
@@ -75,12 +85,15 @@ namespace osu.Framework.Graphics.Transforms
         public TValue EndValue { get; protected internal set; }
     }
 
-    public abstract class Transform<TValue, T> : Transform<TValue>
-        where T : ITransformable
+    public abstract class Transform<TValue, TEasing, T> : Transform<TValue>
+        where TEasing : IEasingFunction
+        where T : class, ITransformable
     {
         public override ITransformable TargetTransformable => Target;
 
         public T Target { get; internal set; }
+
+        public TEasing Easing { get; internal set; }
 
         public sealed override void Apply(double time)
         {
@@ -94,6 +107,11 @@ namespace osu.Framework.Graphics.Transforms
 
         protected abstract void ReadIntoStartValue(T d);
 
-        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime}-{EndTime}ms {StartValue} -> {EndValue}";
+        public override string ToString() => $"{Target.GetType().Name}.{TargetMember} {StartTime:0.000}-{EndTime:0.000}ms {StartValue} -> {EndValue}";
+    }
+
+    public abstract class Transform<TValue, T> : Transform<TValue, DefaultEasingFunction, T>
+        where T : class, ITransformable
+    {
     }
 }

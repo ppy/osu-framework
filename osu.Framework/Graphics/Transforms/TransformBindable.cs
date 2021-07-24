@@ -2,22 +2,21 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Bindables;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    internal class TransformBindable<TValue, T> : Transform<TValue, T>
-        where T : ITransformable
+    internal class TransformBindable<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+        where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
         public override string TargetMember { get; }
 
         private readonly Bindable<TValue> targetBindable;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
 
-        public TransformBindable(Bindable<TValue> targetBindable, InterpolationFunc<TValue> interpolationFunc)
+        public TransformBindable(Bindable<TValue> targetBindable)
         {
             this.targetBindable = targetBindable;
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.ValueAt;
 
             TargetMember = $"{targetBindable.GetHashCode()}.Value";
         }
@@ -27,7 +26,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         protected override void Apply(T d, double time) => targetBindable.Value = valueAt(time);

@@ -6,7 +6,9 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
+using osu.Framework.Statistics;
+using osu.Framework.Utils;
+using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osuTK;
 
@@ -17,12 +19,14 @@ namespace osu.Framework.Graphics.Performance
         private readonly SpriteText counter;
 
         private readonly ThrottledFrameClock clock;
+        private readonly GameThread thread;
 
         public bool Counting = true;
 
-        public FrameTimeDisplay(ThrottledFrameClock clock)
+        public FrameTimeDisplay(ThrottledFrameClock clock, GameThread thread)
         {
             this.clock = clock;
+            this.thread = thread;
 
             Masking = true;
             CornerRadius = 5;
@@ -46,8 +50,14 @@ namespace osu.Framework.Graphics.Performance
         }
 
         private float aimWidth;
+
         private double displayFps;
-        private double displayFrameTime;
+
+        private double rollingElapsed;
+
+        private int framesSinceLastUpdate;
+
+        private double elapsedSinceLastUpdate;
 
         private const int updates_per_second = 10;
 
@@ -57,10 +67,15 @@ namespace osu.Framework.Graphics.Performance
 
             double lastUpdate = 0;
 
-            Scheduler.AddDelayed(() =>
-                {
-                    if (!Counting) return;
+            thread.Scheduler.AddDelayed(() =>
+            {
+                if (!Counting) return;
 
+                double clockFps = clock.FramesPerSecond;
+                double updateHz = clock.MaximumUpdateHz;
+
+                Schedule(() =>
+                {
                     if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
                     {
                         ClearTransforms();
@@ -77,35 +92,42 @@ namespace osu.Framework.Graphics.Performance
 
                     double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
 
-                    displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, dampRate);
-                    displayFrameTime = Interpolation.Damp(displayFrameTime, clock.ElapsedFrameTime - clock.SleptTime, 0.01, dampRate);
+                    displayFps = Interpolation.Damp(displayFps, clockFps, 0.01, dampRate);
+                    if (framesSinceLastUpdate > 0)
+                        rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
 
-                    lastUpdate = clock.CurrentTime;
+                    lastUpdate = Clock.CurrentTime;
 
-                    counter.Text = $"{displayFps:0}fps({displayFrameTime:0.00}ms)"
-                                   + $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz";
-                }, 1000.0 / updates_per_second, true);
+                    framesSinceLastUpdate = 0;
+                    elapsedSinceLastUpdate = 0;
+
+                    counter.Text = $"{displayFps:0}fps({rollingElapsed:0.00}ms)"
+                                   + (clock.Throttling ? $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz" : string.Empty);
+                });
+            }, 1000.0 / updates_per_second, true);
         }
 
         private class CounterText : SpriteText
         {
             public CounterText()
             {
-                Font = new FontUsage(fixedWidth: true);
+                Font = FrameworkFont.Regular.With(fixedWidth: true);
             }
 
-            protected override bool UseFixedWidthForCharacter(char c)
+            protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };
+        }
+
+        public void NewFrame(FrameStatistics frame)
+        {
+            if (!Counting) return;
+
+            foreach (var pair in frame.CollectedTimes)
             {
-                switch (c)
-                {
-                    case ',':
-                    case '.':
-                    case ' ':
-                        return false;
-                }
-
-                return true;
+                if (pair.Key != PerformanceCollectionType.Sleep)
+                    elapsedSinceLastUpdate += pair.Value;
             }
+
+            framesSinceLastUpdate++;
         }
     }
 }

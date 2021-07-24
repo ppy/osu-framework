@@ -5,6 +5,7 @@ using Markdig.Syntax.Inlines;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK.Graphics;
 
@@ -18,24 +19,38 @@ namespace osu.Framework.Graphics.Containers.Markdown
     /// </code>
     public class MarkdownLinkText : CompositeDrawable, IHasTooltip, IMarkdownTextComponent
     {
-        public string TooltipText => url;
+        public LocalisableString TooltipText => Url;
 
         [Resolved]
         private IMarkdownTextComponent parentTextComponent { get; set; }
 
-        private readonly string text;
-        private readonly string url;
+        [Resolved]
+        private GameHost host { get; set; }
 
-        public MarkdownLinkText(string text, LinkInline linkInline)
+        private readonly string text;
+
+        protected readonly string Url;
+
+        public MarkdownLinkText(string text, string url)
         {
             this.text = text;
-            url = linkInline.Url ?? string.Empty;
+            Url = url;
 
             AutoSizeAxes = Axes.Both;
         }
 
+        public MarkdownLinkText(string text, LinkInline linkInline)
+            : this(text, linkInline.Url ?? string.Empty)
+        {
+        }
+
+        public MarkdownLinkText(AutolinkInline autolinkInline)
+            : this(autolinkInline.Url, autolinkInline.Url)
+        {
+        }
+
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load()
         {
             SpriteText spriteText;
             InternalChildren = new Drawable[]
@@ -44,12 +59,14 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 {
                     AutoSizeAxes = Axes.Both,
                     Child = spriteText = CreateSpriteText(),
-                    Action = () => host.OpenUrlExternally(url)
+                    Action = OnLinkPressed,
                 }
             };
 
             spriteText.Text = text;
         }
+
+        protected virtual void OnLinkPressed() => host.OpenUrlExternally(Url);
 
         public virtual SpriteText CreateSpriteText()
         {

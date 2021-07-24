@@ -14,9 +14,9 @@ namespace osu.Framework.Bindables
 
         public override void Parse(object input)
         {
-            if (input.Equals("1"))
+            if (input is "1")
                 Value = true;
-            else if (input.Equals("0"))
+            else if (input is "0")
                 Value = false;
             else
                 base.Parse(input);

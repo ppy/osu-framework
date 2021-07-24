@@ -5,8 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -21,72 +22,118 @@ namespace osu.Framework.Graphics.UserInterface
     /// support for pinning items, causing them to be displayed before all other items at the
     /// start of the list.
     /// </summary>
+    /// <remarks>
+    /// If a multi-line (or vertical) tab control is required, <see cref="TabFillFlowContainer.AllowMultiline"/> must be set to true.
+    /// Without this, <see cref="TabControl{T}"/> will automatically hide extra items.
+    /// </remarks>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : CompositeDrawable, IHasCurrentValue<T>, IKeyBindingHandler<PlatformAction>
     {
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        private Bindable<T> currentBound;
+        private readonly BindableWithCurrent<T> current = new BindableWithCurrent<T>();
 
         public Bindable<T> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         /// <summary>
-        /// A list of items currently in the tab control in the order they are dispalyed.
+        /// A collection of all tabs which are valid switch targets, sorted by their order of appearance.
         /// </summary>
-        public IEnumerable<T> Items
+        protected internal IEnumerable<TabItem<T>> SwitchableTabs => AllTabs.Where(tab => tab.IsSwitchable);
+
+        /// <summary>
+        /// The collection of all tabs, sorted by their order of appearance.
+        /// </summary>
+        protected internal IEnumerable<TabItem<T>> AllTabs => TabContainer.AllTabItems;
+
+        /// <summary>
+        /// All items which are currently present and visible in the tab control.
+        /// </summary>
+        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
+
+        private readonly List<T> items = new List<T>();
+
+        /// <summary>
+        /// The list of all items contained by this <see cref="TabControl{T}"/>.
+        /// </summary>
+        [NotNull]
+        public IReadOnlyList<T> Items
         {
-            get
+            get => items;
+            set
             {
-                var items = TabContainer.TabItems.Select(t => t.Value);
+                foreach (var item in items.ToList())
+                    RemoveItem(item);
 
-                if (Dropdown != null)
-                    items = items.Concat(Dropdown.Items).Distinct();
-
-                return items;
+                foreach (var item in value)
+                    AddItem(item);
             }
         }
-
-        public IEnumerable<T> VisibleItems => TabContainer.TabItems.Select(t => t.Value).Distinct();
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
         /// </summary>
         public bool AutoSort { set; get; }
 
-        protected Dropdown<T> Dropdown;
-
-        protected readonly TabFillFlowContainer TabContainer;
-
-        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
-
-        protected TabItem<T> SelectedTab;
+        /// <summary>
+        /// The <see cref="Dropdown{T}"/> which is displayed when tabs overflow the visible bounds of this <see cref="TabControl{T}"/>.
+        /// </summary>
+        [CanBeNull]
+        protected readonly Dropdown<T> Dropdown;
 
         /// <summary>
-        /// When true, tabs can be switched back and forth using PlatformAction.DocumentPrevious and PlatformAction.DocumentNext respectively.
+        /// The flow of <see cref="TabItem{T}"/>s.
         /// </summary>
-        public virtual bool IsSwitchable => true;
+        protected readonly TabFillFlowContainer TabContainer;
+
+        /// <summary>
+        /// The currently-selected <see cref="TabItem{T}"/>.
+        /// </summary>
+        protected TabItem<T> SelectedTab { get; private set; }
+
+        /// <summary>
+        /// When <c>true</c>, the first available tab (if any) will be selected at the point of <see cref="LoadComplete"/>.
+        /// </summary>
+        public bool SelectFirstTabByDefault { get; set; } = true;
+
+        /// <summary>
+        /// When true, tabs can be switched back and forth using <see cref="PlatformAction.DocumentPrevious"/> and <see cref="PlatformAction.DocumentNext"/> respectively.
+        /// </summary>
+        public bool IsSwitchable { get; set; }
+
+        /// <summary>
+        /// Whether a new tab should be automatically switched to when the current tab is removed.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>:
+        /// <list type="bullet">
+        /// <item>
+        /// <description>If the current tab is not the only tab in the <see cref="TabControl{T}"/>, then the next or previous tab will be selected depending on the current tab's position.</description>
+        /// </item>
+        /// <item>
+        /// <description>If the current tab is the only tab in the <see cref="TabControl{T}"/>, then selection will be cleared.</description>
+        /// </item>
+        /// </list>
+        /// </remarks>
+        public bool SwitchTabOnRemove { get; set; } = true;
 
         /// <summary>
         /// Creates an optional overflow dropdown.
         /// When implementing this dropdown make sure:
-        ///  - It is made to be anchored to the right-hand side of its parent.
-        ///  - The dropdown's header does *not* have a relative x axis.
+        /// <list type="bullet">
+        /// <item>
+        /// <description>It is made to be anchored to the right-hand side of its parent.</description>
+        /// </item>
+        /// <item>
+        /// <description>The dropdown's header does *not* have a relative x axis.</description>
+        /// </item>
+        /// </list>
         /// </summary>
         protected abstract Dropdown<T> CreateDropdown();
 
         /// <summary>
-        /// Creates a tab item.
+        /// Creates a <see cref="TabItem{T}"/> for a given <typeparamref name="T"/> value.
         /// </summary>
         protected abstract TabItem<T> CreateTabItem(T value);
 
@@ -98,8 +145,18 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A mapping of tabs to their items.
         /// </summary>
-        private readonly Dictionary<T, TabItem<T>> tabMap;
+        /// <remarks>
+        /// There is no guaranteed order. To retrieve ordered tabs, use <see cref="SwitchableTabs"/> or <see cref="AllTabs"/> instead.
+        /// </remarks>
+        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
 
+        private readonly Dictionary<T, TabItem<T>> tabMap = new Dictionary<T, TabItem<T>>();
+
+        private bool firstSelection = true;
+
+        /// <summary>
+        /// Creates a new <see cref="TabControl{T}"/>.
+        /// </summary>
         protected TabControl()
         {
             Dropdown = CreateDropdown();
@@ -113,29 +170,21 @@ namespace osu.Framework.Graphics.UserInterface
 
                 AddInternal(Dropdown);
 
-                Trace.Assert(Dropdown.Header.Anchor.HasFlag(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
-                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlag(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
-
-                // create tab items for already existing items in dropdown (if any).
-                tabMap = Dropdown.Items.ToDictionary(item => item, item => addTab(item, false));
+                Trace.Assert(Dropdown.Header.Anchor.HasFlagFast(Anchor.x2), $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert(!Dropdown.Header.RelativeSizeAxes.HasFlagFast(Axes.X), $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
             }
-            else
-                tabMap = new Dictionary<T, TabItem<T>>();
 
             AddInternal(TabContainer = CreateTabFlow());
             TabContainer.TabVisibilityChanged = updateDropdown;
-            TabContainer.ChildrenEnumerable = tabMap.Values;
 
-            Current.ValueChanged += newSelection =>
+            if (Dropdown != null)
             {
-                var newTab = Current.Value != null ? tabMap[Current.Value] : null;
+                // create tab items for already existing items in dropdown (if any).
+                foreach (var item in Dropdown.Items)
+                    addTab(item, false);
+            }
 
-                if (IsLoaded)
-                    selectTab(newTab);
-                else
-                    //will be handled in LoadComplete
-                    SelectedTab = newTab;
-            };
+            Current.ValueChanged += _ => firstSelection = false;
         }
 
         protected override void Update()
@@ -149,17 +198,17 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (SelectedTab != null)
-                SelectTab(SelectedTab);
-            else if (TabContainer.Children.Any())
-                SelectTab(TabContainer.Children.First());
+            // Default to first selection in list, if we can
+            if (firstSelection && SelectFirstTabByDefault && !Current.Disabled && Items.Any())
+                Current.Value = Items.First();
+
+            Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
         }
 
         /// <summary>
-        /// Pin an item to the start of the list.
+        /// Pins an item to the start of the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="item">The item to pin.</param>
         public void PinItem(T item)
@@ -171,7 +220,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Unpin an item and return it to the start of unpinned items.
+        /// Unpins an item and returns it to the start of unpinned items.
         /// </summary>
         /// <param name="item">The item to unpin.</param>
         public void UnpinItem(T item)
@@ -183,21 +232,24 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Add a new item to the control.
+        /// Adds a new item to the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="item">The item to add.</param>
         public void AddItem(T item) => addTab(item);
 
         /// <summary>
-        /// Removes an item from the control.
+        /// Removes an item from the <see cref="TabControl{T}"/>.
         /// </summary>
+        /// <remarks>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
+        /// </remarks>
         /// <param name="item">The item to remove.</param>
         public void RemoveItem(T item) => removeTab(item);
 
         /// <summary>
-        /// Removes all items from the control.
+        /// Removes all items from the <see cref="TabControl{T}"/>.
         /// </summary>
-        public void Clear() => tabMap.Keys.ToArray().ForEach(item => removeTab(item));
+        public void Clear() => Items = Array.Empty<T>();
 
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
@@ -220,35 +272,50 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control.
+        /// Adds an arbitrary <see cref="TabItem{T}"/> to the <see cref="TabControl{T}"/>.
         /// </summary>
         /// <param name="tab">The tab to add.</param>
-        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += performTabSort;
+            tab.ActivationRequested += activationRequested;
 
-            tab.ActivationRequested += SelectTab;
-
+            items.Add(tab.Value);
             tabMap[tab.Value] = tab;
+
             if (addToDropdown)
                 Dropdown?.AddDropdownItem(tab.Value);
+
             TabContainer.Add(tab);
         }
 
         /// <summary>
         /// Removes a <see cref="TabItem{T}"/> from this <see cref="TabControl{T}"/>.
         /// </summary>
+        /// <remarks>
+        /// If the current tab is removed and <see cref="SwitchTabOnRemove"/> is <c>true</c>, then selection will change to a new tab if possible or be cleared if there are no tabs remaining in the <see cref="TabControl{T}"/>.
+        /// </remarks>
         /// <param name="tab">The tab to remove.</param>
-        /// <param name="removeFromDropdown">Whether the tab should be removed from the Dropdown if supported by the <see cref="TabControl{T}"/> implementation.</param>
+        /// <param name="removeFromDropdown">Whether the tab should be removed from the <see cref="Dropdown"/> if supported by the <see cref="TabControl{T}"/> implementation.</param>
         protected virtual void RemoveTabItem(TabItem<T> tab, bool removeFromDropdown = true)
         {
             if (!tab.IsRemovable)
                 throw new InvalidOperationException($"Cannot remove non-removable tab {tab}. Ensure {nameof(TabItem.IsRemovable)} is set appropriately.");
 
-            if (tab == SelectedTab)
-                SelectedTab = null;
+            if (SwitchTabOnRemove && tab == SelectedTab)
+            {
+                if (SwitchableTabs.Count() < 2)
+                    SelectedTab = null;
+                else
+                {
+                    // check all tabs as to include self (in correct iteration order)
+                    bool anySwitchableTabsToRight = AllTabs.SkipWhile(t => t != tab).Skip(1).Any(t => t.IsSwitchable);
+                    SwitchTab(anySwitchableTabsToRight ? 1 : -1);
+                }
+            }
 
+            items.Remove(tab.Value);
             tabMap.Remove(tab.Value);
 
             if (removeFromDropdown)
@@ -269,6 +336,10 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.ShowItem(tab.Value);
         }
 
+        /// <summary>
+        /// Selects a <see cref="TabItem{T}"/>.
+        /// </summary>
+        /// <param name="tab">The tab to select.</param>
         protected virtual void SelectTab(TabItem<T> tab)
         {
             selectTab(tab);
@@ -278,7 +349,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && !tab.Pinned)
+            if (AutoSort && tab != null && !tab.IsPresent && !tab.Pinned)
                 performTabSort(tab);
 
             // Deactivate previously selected tab
@@ -297,34 +368,30 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="wrap">If <c>true</c>, moving past the start or the end of the tab list will wrap to the opposite end.</param>
         public virtual void SwitchTab(int direction, bool wrap = true)
         {
-            if (Math.Abs(direction) != 1)
-                throw new ArgumentException("value must be -1 or 1", nameof(direction));
+            if (Math.Abs(direction) != 1) throw new ArgumentException("value must be -1 or 1", nameof(direction));
 
-            TabItem<T>[] switchableTabs = TabContainer.TabItems.Where(tab => tab.IsSwitchable).ToArray();
-            int tabCount = switchableTabs.Length;
+            // the current selected tab may be an non-switchable tab, so search all tabs for a candidate.
+            // this is done to ensure ordering (ie. if an non-switchable tab is in the middle).
+            var allTabs = TabContainer.AllTabItems.Where(t => t.IsSwitchable || t == SelectedTab);
 
-            if (tabCount == 0)
+            if (direction < 0)
+                allTabs = allTabs.Reverse();
+
+            var found = allTabs.SkipWhile(t => t != SelectedTab).Skip(1).FirstOrDefault();
+
+            if (found == null && wrap)
+                found = allTabs.FirstOrDefault(t => t != SelectedTab);
+
+            if (found != null)
+                SelectTab(found);
+        }
+
+        private void activationRequested(TabItem<T> tab)
+        {
+            if (Current.Disabled)
                 return;
 
-            if (tabCount == 1 || SelectedTab == null)
-            {
-                SelectTab(switchableTabs[0]);
-                return;
-            }
-
-            int selectedIndex = Array.IndexOf(switchableTabs, SelectedTab);
-            int targetIndex = selectedIndex + direction;
-
-            if (wrap)
-            {
-                targetIndex = targetIndex % tabCount;
-                if (targetIndex < 0)
-                    targetIndex += tabCount;
-            }
-
-            targetIndex = Math.Min(tabCount - 1, Math.Max(0, targetIndex));
-
-            SelectTab(switchableTabs[targetIndex]);
+            SelectTab(tab);
         }
 
         private void performTabSort(TabItem<T> tab)
@@ -342,13 +409,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsSwitchable)
             {
-                switch (e.Action.ActionType)
+                switch (e.Action)
                 {
-                    case PlatformActionType.DocumentNext:
+                    case PlatformAction.DocumentNext:
                         SwitchTab(1);
                         return true;
 
-                    case PlatformActionType.DocumentPrevious:
+                    case PlatformAction.DocumentPrevious:
                         SwitchTab(-1);
                         return true;
                 }
@@ -357,8 +424,13 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public bool OnReleased(KeyBindingReleaseEvent<PlatformAction> e) => false;
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
+        {
+        }
 
+        /// <summary>
+        /// Creates the <see cref="TabFillFlowContainer"/> to contain the <see cref="TabItem{T}"/>s.
+        /// </summary>
         protected virtual TabFillFlowContainer CreateTabFlow() => new TabFillFlowContainer
         {
             Direction = FillDirection.Full,
@@ -371,6 +443,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             private bool allowMultiline;
 
+            /// <summary>
+            /// Whether tabs should be allowed to flow beyond a single line. If set to false, overflowing tabs will be automatically hidden.
+            /// </summary>
             public bool AllowMultiline
             {
                 get => allowMultiline;
@@ -390,9 +465,25 @@ namespace osu.Framework.Graphics.UserInterface
             public Action<TabItem<T>, bool> TabVisibilityChanged;
 
             /// <summary>
-            /// The list of tabs currently displayed by this container.
+            /// The list of tabs currently displayed by this container, in order of appearance.
             /// </summary>
             public IEnumerable<TabItem<T>> TabItems => FlowingChildren.OfType<TabItem<T>>();
+
+            /// <summary>
+            /// The list of all tabs in this container, in order of appearance.
+            /// </summary>
+            public IEnumerable<TabItem<T>> AllTabItems => GetFlowingTabs(AliveInternalChildren).OfType<TabItem<T>>();
+
+            // The flowing children should only contain the present children, but we also need to consider the non-present children for retrieving all tab items.
+            // So the ordering is delegated to a separate method (GetFlowingTabs()).
+            public sealed override IEnumerable<Drawable> FlowingChildren => GetFlowingTabs(AliveInternalChildren.Where(d => d.IsPresent));
+
+            /// <summary>
+            /// Re-orders a given list of <see cref="TabItem{T}"/>s in the order that they should appear.
+            /// </summary>
+            /// <param name="tabs">The <see cref="TabItem{T}"/>s to order.</param>
+            /// <returns>The re-ordered list of <see cref="TabItem{T}"/>s.</returns>
+            public virtual IEnumerable<Drawable> GetFlowingTabs(IEnumerable<Drawable> tabs) => tabs.OrderBy(GetLayoutPosition).ThenBy(d => d.ChildID);
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
@@ -407,8 +498,7 @@ namespace osu.Framework.Graphics.UserInterface
                     bool isVisible = allowMultiline || result[i].Y == 0;
                     updateChildIfNeeded(child, isVisible);
 
-                    if (isVisible)
-                        yield return result[i];
+                    yield return result[i];
 
                     i++;
                 }
@@ -428,6 +518,18 @@ namespace osu.Framework.Graphics.UserInterface
                     else
                         child.Hide();
                 }
+            }
+
+            public override void Clear(bool disposeChildren)
+            {
+                tabVisibility.Clear();
+                base.Clear(disposeChildren);
+            }
+
+            public override bool Remove(TabItem<T> drawable)
+            {
+                tabVisibility.Remove(drawable);
+                return base.Remove(drawable);
             }
         }
     }

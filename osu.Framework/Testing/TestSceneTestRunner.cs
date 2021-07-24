@@ -52,10 +52,10 @@ namespace osu.Framework.Testing
                 volume.Value = 0;
             }
 
-            protected override void Dispose(bool isDisposing)
+            internal override void UnbindAllBindables()
             {
+                base.UnbindAllBindables();
                 if (volume != null) volume.Value = volumeAtStartup;
-                base.Dispose(isDisposing);
             }
 
             protected override void LoadComplete()
@@ -101,10 +101,7 @@ namespace osu.Framework.Testing
                         Scheduler.AddDelayed(complete, time_between_tests);
                     }, e =>
                     {
-                        if (e is DependencyInjectionException die)
-                            exception = die.DispatchInfo;
-                        else
-                            exception = ExceptionDispatchInfo.Capture(e);
+                        exception = ExceptionDispatchInfo.Capture(e);
                         complete();
                     });
                 });

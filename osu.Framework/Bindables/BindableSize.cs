@@ -6,44 +6,17 @@ using System.Drawing;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableSize : Bindable<Size>
+    /// <summary>
+    /// Represents a <see cref="Size"/> bindable with defined component-wise constraints applied to it.
+    /// </summary>
+    public class BindableSize : RangeConstrainedBindable<Size>
     {
-        public BindableSize(Size value = default)
-            : base(value)
+        protected override Size DefaultMinValue => new Size(int.MinValue, int.MinValue);
+        protected override Size DefaultMaxValue => new Size(int.MaxValue, int.MaxValue);
+
+        public BindableSize(Size defaultValue = default)
+            : base(defaultValue)
         {
-            MinValue = DefaultMinValue;
-            MaxValue = DefaultMaxValue;
-        }
-
-        public Size MinValue { get; set; }
-        public Size MaxValue { get; set; }
-
-        protected Size DefaultMinValue => new Size(int.MinValue, int.MinValue);
-        protected Size DefaultMaxValue => new Size(int.MaxValue, int.MaxValue);
-
-        public override Size Value
-        {
-            get => base.Value;
-            set => base.Value = clamp(value, MinValue, MaxValue);
-        }
-
-        public override void BindTo(Bindable<Size> them)
-        {
-            if (them is BindableSize other)
-            {
-                MinValue = new Size(Math.Max(MinValue.Width, other.MinValue.Width), Math.Max(MinValue.Height, other.MinValue.Height));
-                MaxValue = new Size(Math.Min(MaxValue.Width, other.MaxValue.Width), Math.Min(MaxValue.Height, other.MaxValue.Height));
-
-                if (MinValue.Width > MaxValue.Width || MinValue.Height > MaxValue.Height)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(them),
-                        $"Can not weld BindableSizes with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}]."
-                    );
-                }
-            }
-
-            base.BindTo(them);
         }
 
         public override string ToString() => $"{Value.Width}x{Value.Height}";
@@ -67,10 +40,15 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private static Size clamp(Size value, Size minValue, Size maxValue) =>
-            new Size(
-                Math.Max(minValue.Width, Math.Min(value.Width, maxValue.Width)),
-                Math.Max(minValue.Height, Math.Min(value.Height, maxValue.Height))
-            );
+        protected sealed override Size ClampValue(Size value, Size minValue, Size maxValue)
+        {
+            return new Size
+            {
+                Width = Math.Clamp(value.Width, minValue.Width, maxValue.Width),
+                Height = Math.Clamp(value.Height, minValue.Height, maxValue.Height)
+            };
+        }
+
+        protected sealed override bool IsValidRange(Size min, Size max) => min.Width <= max.Width && min.Height <= max.Height;
     }
 }

@@ -7,27 +7,17 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transforms;
-using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, ITexturedShaderDrawable, IHasCurrentValue<double>
     {
-        private readonly Bindable<double> current = new Bindable<double>();
-
-        private Bindable<double> currentBound;
+        private readonly BindableWithCurrent<double> current = new BindableWithCurrent<double>();
 
         public Bindable<double> Current
         {
-            get => current;
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (currentBound != null) current.UnbindFrom(currentBound);
-                current.BindTo(currentBound = value);
-            }
+            get => current.Current;
+            set => current.Current = value;
         }
 
         public CircularProgress()
@@ -53,6 +43,10 @@ namespace osu.Framework.Graphics.UserInterface
         protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode(this);
 
         public TransformSequence<CircularProgress> FillTo(double newValue, double duration = 0, Easing easing = Easing.None)
+            => FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public TransformSequence<CircularProgress> FillTo<TEasing>(double newValue, double duration, in TEasing easing)
+            where TEasing : IEasingFunction
             => this.TransformBindableTo(Current, newValue, duration, easing);
 
         [BackgroundDependencyLoader]
@@ -91,15 +85,19 @@ namespace osu.Framework.Graphics.UserInterface
             get => innerRadius;
             set
             {
-                innerRadius = MathHelper.Clamp(value, 0, 1);
+                innerRadius = Math.Clamp(value, 0, 1);
                 Invalidate(Invalidation.DrawNode);
             }
         }
     }
 
-    public static class CircularProgressExtensions
+    public static class CircularProgressTransformSequenceExtensions
     {
-        public static TransformSequence<CircularProgress> FillTo(this CircularProgress t, double newValue, double duration = 0, Easing easing = Easing.None)
-            => t.TransformBindableTo(t.Current, newValue, duration, easing);
+        public static TransformSequence<CircularProgress> FillTo(this TransformSequence<CircularProgress> t, double newValue, double duration = 0, Easing easing = Easing.None)
+            => t.FillTo(newValue, duration, new DefaultEasingFunction(easing));
+
+        public static TransformSequence<CircularProgress> FillTo<TEasing>(this TransformSequence<CircularProgress> t, double newValue, double duration, TEasing easing)
+            where TEasing : IEasingFunction
+            => t.Append(cp => cp.FillTo(newValue, duration, easing));
     }
 }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using osu.Framework.Graphics;
 using osu.Framework.IO.Network;
 using WebRequest = osu.Framework.IO.Network.WebRequest;
 
@@ -28,7 +29,7 @@ namespace osu.Framework.Tests.IO
 
         static TestWebRequest()
         {
-            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.ToLower().Equals("true") ?? false;
+            bool localHttpBin = Environment.GetEnvironmentVariable("LocalHttpBin")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
             if (localHttpBin)
             {
@@ -55,6 +56,24 @@ namespace osu.Framework.Tests.IO
                 AllowInsecureRequests = true
             };
 
+            testValidGetInternal(async, request, "osu-framework");
+        }
+
+        [Test, Retry(5)]
+        public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
+        {
+            var url = $"{protocol}://{host}/get";
+            var request = new CustomUserAgentWebRequest(url)
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            testValidGetInternal(async, request, "custom-ua");
+        }
+
+        private static void testValidGetInternal(bool async, JsonWebRequest<HttpBinGetResponse> request, string expectedUserAgent)
+        {
             bool hasThrown = false;
             request.Failed += exception => hasThrown = exception != null;
 
@@ -69,7 +88,7 @@ namespace osu.Framework.Tests.IO
             var responseObject = request.ResponseObject;
 
             Assert.IsTrue(responseObject != null);
-            Assert.IsTrue(responseObject.Headers.UserAgent == "osu!");
+            Assert.IsTrue(responseObject.Headers.UserAgent == expectedUserAgent);
 
             // disabled due to hosted version returning incorrect response (https://github.com/postmanlabs/httpbin/issues/545)
             // Assert.AreEqual(url, responseObject.Url);
@@ -160,7 +179,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsTrue(request.ResponseString == null);
+            Assert.IsTrue(request.GetResponseString() == null);
             Assert.IsNotNull(finishedException);
         }
 
@@ -183,7 +202,32 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
 
-            Assert.IsEmpty(request.ResponseString);
+            Assert.IsEmpty(request.GetResponseString());
+
+            Assert.IsTrue(hasThrown);
+        }
+
+        [Test, Retry(5)]
+        public void TestJsonWebRequestThrowsCorrectlyOnMultipleErrors([Values(true, false)] bool async)
+        {
+            var request = new JsonWebRequest<Drawable>("badrequest://www.google.com")
+            {
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            if (async)
+                Assert.ThrowsAsync<ArgumentException>(request.PerformAsync);
+            else
+                Assert.Throws<ArgumentException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsNull(request.GetResponseString());
+            Assert.IsNull(request.ResponseObject);
 
             Assert.IsTrue(hasThrown);
         }
@@ -272,6 +316,90 @@ namespace osu.Framework.Tests.IO
                 Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
             else
                 Assert.Throws<InvalidOperationException>(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(responseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests cancelling the <see cref="WebRequest"/> after response has been received from the server
+        /// but before data has been read.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestCancelReceive()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+            request.Started += () => cancellationSource.Cancel();
+
+            Assert.DoesNotThrowAsync(() => request.PerformAsync(cancellationSource.Token));
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(request.ResponseObject == null);
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests aborting the <see cref="WebRequest"/> before the request is sent to the server.
+        /// </summary>
+        [Test, Retry(5)]
+        public async Task TestCancelRequest()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            cancellationSource.Cancel();
+            await request.PerformAsync(cancellationSource.Token).ConfigureAwait(false);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsTrue(request.Aborted);
+
+            Assert.IsTrue(request.ResponseObject == null);
+
+            Assert.IsFalse(hasThrown);
+        }
+
+        /// <summary>
+        /// Tests being able to cancel + restart a request.
+        /// </summary>
+        [Test, Retry(5)]
+        public void TestRestartAfterAbort()
+        {
+            var cancellationSource = new CancellationTokenSource();
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            bool hasThrown = false;
+            request.Failed += exception => hasThrown = exception != null;
+
+            cancellationSource.Cancel();
+            request.PerformAsync(cancellationSource.Token);
+
+            Assert.ThrowsAsync<InvalidOperationException>(request.PerformAsync);
 
             Assert.IsTrue(request.Completed);
             Assert.IsTrue(request.Aborted);
@@ -395,6 +523,40 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        public void TestGetWithQueryStringParameters()
+        {
+            const string test_key_1 = "testkey1";
+            const string test_val_1 = "testval1 that ends with a #";
+
+            const string test_key_2 = "testkey2";
+            const string test_val_2 = "testval2 that ends with a space ";
+
+            var request = new JsonWebRequest<HttpBinGetResponse>($@"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            request.AddParameter(test_key_1, test_val_1);
+            request.AddParameter(test_key_2, test_val_2);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.NotNull(responseObject.Arguments);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, responseObject.Arguments[test_key_1]);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, responseObject.Arguments[test_key_2]);
+        }
+
+        [Test, Retry(5)]
         public void TestPostWithJsonResponse([Values(true, false)] bool async)
         {
             var request = new JsonWebRequest<HttpBinPostResponse>($"{default_protocol}://{host}/post")
@@ -427,7 +589,7 @@ namespace osu.Framework.Tests.IO
             Assert.IsTrue(responseObject.Form.ContainsKey("testkey2"));
             Assert.IsTrue(responseObject.Form["testkey2"] == "testval2");
 
-            Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary="));
+            Assert.IsTrue(responseObject.Headers.ContentType.StartsWith("multipart/form-data; boundary=", StringComparison.Ordinal));
         }
 
         [Test, Retry(5)]
@@ -460,6 +622,81 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        public void TestNoContentPost([Values(true, false)] bool async)
+        {
+            var request = new WebRequest($"{default_protocol}://{host}/anything")
+            {
+                Method = HttpMethod.Post,
+                AllowInsecureRequests = true,
+            };
+
+            if (async)
+                Assert.DoesNotThrowAsync(request.PerformAsync);
+            else
+                Assert.DoesNotThrow(request.Perform);
+
+            var responseJson = JsonConvert.DeserializeObject<HttpBinPostResponse>(request.GetResponseString());
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+            Assert.AreEqual(0, responseJson?.Headers.ContentLength);
+        }
+
+        [Test, Retry(5)]
+        public void TestPutWithQueryAndFormParams()
+        {
+            const string test_key_1 = "param1";
+            const string test_val_1 = "in query! ";
+
+            const string test_key_2 = "param2";
+            const string test_val_2 = "in form!";
+
+            const string test_key_3 = "param3";
+            const string test_val_3 = "in form by default!";
+
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/put")
+            {
+                Method = HttpMethod.Put,
+                AllowInsecureRequests = true,
+            };
+
+            request.AddParameter(test_key_1, test_val_1, RequestParameterType.Query);
+            request.AddParameter(test_key_2, test_val_2, RequestParameterType.Form);
+            request.AddParameter(test_key_3, test_val_3);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            var response = request.ResponseObject;
+
+            Assert.NotNull(response.Arguments);
+            Assert.True(response.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, response.Arguments[test_key_1]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, response.Form[test_key_2]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_3));
+            Assert.AreEqual(test_val_3, response.Form[test_key_3]);
+        }
+
+        [Test]
+        public void TestFormParamsNotSupportedForGet()
+        {
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            Assert.Throws<ArgumentException>(() => request.AddParameter("cannot", "work", RequestParameterType.Form));
+        }
+
+        [Test, Retry(5)]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
@@ -489,6 +726,9 @@ namespace osu.Framework.Tests.IO
         [Serializable]
         private class HttpBinGetResponse
         {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
             [JsonProperty("headers")]
             public HttpBinHeaders Headers { get; set; }
 
@@ -513,6 +753,16 @@ namespace osu.Framework.Tests.IO
         }
 
         [Serializable]
+        private class HttpBinPutResponse
+        {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
+            [JsonProperty("form")]
+            public Dictionary<string, string> Form { get; set; }
+        }
+
+        [Serializable]
         public class HttpBinHeaders
         {
             [JsonProperty("Content-Length")]
@@ -529,6 +779,16 @@ namespace osu.Framework.Tests.IO
         public class TestObject
         {
             public string TestString = "readable";
+        }
+
+        private class CustomUserAgentWebRequest : JsonWebRequest<HttpBinGetResponse>
+        {
+            public CustomUserAgentWebRequest(string url)
+                : base(url)
+            {
+            }
+
+            protected override string UserAgent => "custom-ua";
         }
 
         private class DelayedWebRequest : WebRequest

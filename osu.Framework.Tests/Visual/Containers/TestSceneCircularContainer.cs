@@ -4,7 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Containers

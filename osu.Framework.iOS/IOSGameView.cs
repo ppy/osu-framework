@@ -2,21 +2,25 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using CoreAnimation;
 using Foundation;
 using ObjCRuntime;
-using UIKit;
-using System.Threading.Tasks;
-using osu.Framework.Graphics.OpenGL;
 using OpenGLES;
-using CoreAnimation;
+using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
+using osuTK.iOS;
+using UIKit;
 
 namespace osu.Framework.iOS
 {
     [Register("iOSGameView")]
-    public class IOSGameView : osuTK.iOS.iOSGameView
+    public class IOSGameView : iOSGameView
     {
-        public event Action<NSSet> HandleTouches;
+        public event Action<NSSet, UIEvent> HandleTouches;
 
         public HiddenTextField KeyboardTextField { get; }
 
@@ -24,7 +28,7 @@ namespace osu.Framework.iOS
         public static Class LayerClass() => GetLayerClass();
 
         [Export("initWithFrame:")]
-        public IOSGameView(System.Drawing.RectangleF frame)
+        public IOSGameView(RectangleF frame)
             : base(frame)
         {
             Scale = (float)UIScreen.MainScreen.Scale;
@@ -56,15 +60,16 @@ namespace osu.Framework.iOS
             {
                 if (value.Equals(safeArea))
                     return;
+
                 safeArea = value;
                 OnResize(EventArgs.Empty);
             }
         }
 
-        public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesEnded(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
-        public override void TouchesMoved(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches);
+        public override void TouchesBegan(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesCancelled(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesEnded(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
+        public override void TouchesMoved(NSSet touches, UIEvent evt) => HandleTouches?.Invoke(touches, evt);
 
         protected override void CreateFrameBuffer()
         {
@@ -114,11 +119,29 @@ namespace osu.Framework.iOS
 
             private int responderSemaphore;
 
+            private readonly IEnumerable<Selector> softwareBlockedActions = new[]
+            {
+                new Selector("cut:"),
+                new Selector("copy:"),
+                new Selector("select:"),
+                new Selector("selectAll:"),
+            };
+
+            private readonly IEnumerable<Selector> rawBlockedActions = new[]
+            {
+                new Selector("cut:"),
+                new Selector("copy:"),
+                new Selector("paste:"),
+                new Selector("select:"),
+                new Selector("selectAll:"),
+            };
+
             public override UITextSmartDashesType SmartDashesType => UITextSmartDashesType.No;
             public override UITextSmartInsertDeleteType SmartInsertDeleteType => UITextSmartInsertDeleteType.No;
             public override UITextSmartQuotesType SmartQuotesType => UITextSmartQuotesType.No;
 
             private bool softwareKeyboard = true;
+
             internal bool SoftwareKeyboard
             {
                 get => softwareKeyboard;
@@ -160,6 +183,14 @@ namespace osu.Framework.iOS
                 UIKeyCommand.Create(UIKeyCommand.UpArrow, 0, new Selector("keyPressed:")),
                 UIKeyCommand.Create(UIKeyCommand.DownArrow, 0, new Selector("keyPressed:"))
             };
+
+            public override bool CanPerform(Selector action, NSObject withSender)
+            {
+                if ((!softwareKeyboard && rawBlockedActions.Contains(action)) || (softwareKeyboard && softwareBlockedActions.Contains(action)))
+                    return false;
+
+                return base.CanPerform(action, withSender);
+            }
 
             [Export("keyPressed:")]
             private void keyPressed(UIKeyCommand cmd) => HandleKeyCommand?.Invoke(cmd);

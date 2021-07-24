@@ -1,8 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Timing;
-using osuTK;
 
 namespace osu.Framework.Audio.Track
 {
@@ -19,9 +19,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool Seek(double seek)
         {
-            double current = CurrentTime;
-
-            seekOffset = seek;
+            seekOffset = Math.Clamp(seek, 0, Length);
 
             lock (clock)
             {
@@ -31,13 +29,14 @@ namespace osu.Framework.Audio.Track
                     clock.Reset();
             }
 
-            seekOffset = MathHelper.Clamp(seekOffset, 0, Length);
-
-            return current != seekOffset;
+            return seekOffset == seek;
         }
 
         public override void Start()
         {
+            if (Length == 0)
+                return;
+
             lock (clock) clock.Start();
         }
 
@@ -66,7 +65,7 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                lock (clock) return seekOffset + clock.CurrentTime;
+                lock (clock) return Math.Min(Length, seekOffset + clock.CurrentTime);
             }
         }
 
@@ -78,8 +77,13 @@ namespace osu.Framework.Audio.Track
             {
                 if (clock.IsRunning && CurrentTime >= Length)
                 {
-                    Stop();
-                    RaiseCompleted();
+                    if (Looping)
+                        Restart();
+                    else
+                    {
+                        Stop();
+                        RaiseCompleted();
+                    }
                 }
             }
         }
@@ -89,7 +93,7 @@ namespace osu.Framework.Audio.Track
             base.OnStateChanged();
 
             lock (clock)
-                clock.Rate = Tempo.Value * AggregateFrequency.Value;
+                clock.Rate = Rate;
         }
     }
 }

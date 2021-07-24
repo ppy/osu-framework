@@ -2,11 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osuTK;
-using osu.Framework.Caching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
+using osu.Framework.Layout;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,6 +17,12 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         internal event Action OnLayout;
+
+        protected FlowContainer()
+        {
+            AddLayout(layout);
+            AddLayout(childLayout);
+        }
 
         /// <summary>
         /// The easing that should be used when children are moved to their position in the layout.
@@ -54,7 +60,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout = new Cached();
+        private readonly LayoutValue layout = new LayoutValue(Invalidation.DrawSize);
+        private readonly LayoutValue childLayout = new LayoutValue(Invalidation.RequiredParentSizeToFit | Invalidation.Presence, InvalidationSource.Child);
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
@@ -62,14 +69,6 @@ namespace osu.Framework.Graphics.Containers
         /// Invoked when layout should be invalidated.
         /// </summary>
         protected virtual void InvalidateLayout() => layout.Invalidate();
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if ((invalidation & Invalidation.DrawSize) > 0)
-                InvalidateLayout();
-
-            return base.Invalidate(invalidation, source, shallPropagate);
-        }
 
         private readonly Dictionary<Drawable, float> layoutChildren = new Dictionary<Drawable, float>();
 
@@ -116,6 +115,17 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Inserts a new drawable at the specified layout position.
+        /// </summary>
+        /// <param name="position">The layout position of the new child.</param>
+        /// <param name="drawable">The drawable to be inserted.</param>
+        public void Insert(int position, T drawable)
+        {
+            Add(drawable);
+            SetLayoutPosition(drawable, position);
+        }
+
+        /// <summary>
         /// Gets the position of the drawable in the layout. A higher position value means the drawable will be processed later (that is, the drawables with the lowest position appear first, and the drawable with the highest position appear last).
         /// For example, the drawable with the lowest position value will be the left-most drawable in a horizontal <see cref="FillFlowContainer{T}"/> and the drawable with the highest position value will be the right-most drawable in a horizontal <see cref="FillFlowContainer{T}"/>.
         /// </summary>
@@ -137,14 +147,6 @@ namespace osu.Framework.Graphics.Containers
                 InvalidateLayout();
 
             return changed;
-        }
-
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
-                InvalidateLayout();
-
-            base.InvalidateFromChild(invalidation, source);
         }
 
         /// <summary>
@@ -193,13 +195,21 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (i != positions.Length)
+            {
                 throw new InvalidOperationException(
                     $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+            }
         }
 
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if (!childLayout.IsValid)
+            {
+                layout.Invalidate();
+                childLayout.Validate();
+            }
 
             if (!layout.IsValid)
             {

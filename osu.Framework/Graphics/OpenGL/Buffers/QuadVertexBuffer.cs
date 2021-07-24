@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
 
@@ -24,7 +25,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private readonly int amountQuads;
 
         internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
-            : base(amountQuads * 4, usage)
+            : base(amountQuads * TextureGLSingle.VERTICES_PER_QUAD, usage)
         {
             this.amountQuads = amountQuads;
         }
@@ -39,7 +40,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 ushort[] indices = new ushort[amountIndices];
 
-                for (ushort i = 0, j = 0; j < amountIndices; i += 4, j += 6)
+                for (ushort i = 0, j = 0; j < amountIndices; i += TextureGLSingle.VERTICES_PER_QUAD, j += 6)
                 {
                     indices[j] = i;
                     indices[j + 1] = (ushort)(i + 1);

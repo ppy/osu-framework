@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Lines
             }
         }
 
-        private Cached textureCache = new Cached();
+        private readonly Cached textureCache = new Cached();
 
         protected void InvalidateTexture()
         {
@@ -48,8 +48,6 @@ namespace osu.Framework.Graphics.Lines
 
             int textureWidth = (int)PathRadius * 2;
 
-            var texture = new Texture(textureWidth, 1);
-
             //initialise background
             var raw = new Image<Rgba32>(textureWidth, 1);
 
@@ -63,6 +61,7 @@ namespace osu.Framework.Graphics.Lines
                 raw[i, 0] = new Rgba32(colour.R, colour.G, colour.B, colour.A * Math.Min(progress / aa_portion, 1));
             }
 
+            var texture = new DisposableTexture(textureWidth, 1, true);
             texture.SetData(new TextureUpload(raw));
             Texture = texture;
 
@@ -79,7 +78,6 @@ namespace osu.Framework.Graphics.Lines
         /// Retrieves the colour from a position in the texture of the <see cref="Path"/>.
         /// </summary>
         /// <param name="position">The position within the texture. 0 indicates the outermost-point of the path, 1 indicates the centre of the path.</param>
-        /// <returns></returns>
         protected virtual Color4 ColourAt(float position) => Color4.White;
     }
 }

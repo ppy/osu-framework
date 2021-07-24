@@ -21,6 +21,9 @@ namespace osu.Framework.Graphics.Colour
         public static implicit operator SRGBColour(Color4 value) => new SRGBColour { Linear = value.ToLinear() };
         public static implicit operator Color4(SRGBColour value) => value.Linear.ToSRGB();
 
+        public static implicit operator SRGBColour(Colour4 value) => new SRGBColour { Linear = value.ToLinear() };
+        public static implicit operator Colour4(SRGBColour value) => value.Linear.ToSRGB();
+
         /// <summary>
         /// Multiplies 2 colours in linear colour space.
         /// </summary>
@@ -56,7 +59,7 @@ namespace osu.Framework.Graphics.Colour
                 first.Linear.A + second.Linear.A),
         };
 
-        public Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
+        public readonly Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
         public static SRGBColour FromVector(Vector4 v) => new SRGBColour { Linear = new Color4(v.X, v.Y, v.Z, v.W) };
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace osu.Framework.Graphics.Colour
         /// <param name="alpha">The alpha factor to multiply with.</param>
         public void MultiplyAlpha(float alpha) => Linear.A *= alpha;
 
-        public bool Equals(SRGBColour other) => Linear.Equals(other.Linear);
-        public override string ToString() => Linear.ToString();
+        public readonly bool Equals(SRGBColour other) => Linear.Equals(other.Linear);
+        public override readonly string ToString() => Linear.ToString();
     }
 }

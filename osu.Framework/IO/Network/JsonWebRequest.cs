@@ -18,10 +18,12 @@ namespace osu.Framework.IO.Network
         {
         }
 
-        protected override void ProcessResponse() => deserialisedResponse = JsonConvert.DeserializeObject<T>(ResponseString);
+        protected override void ProcessResponse()
+        {
+            if (ResponseStream != null)
+                ResponseObject = JsonConvert.DeserializeObject<T>(GetResponseString());
+        }
 
-        private T deserialisedResponse;
-
-        public T ResponseObject => deserialisedResponse;
+        public T ResponseObject { get; private set; }
     }
 }

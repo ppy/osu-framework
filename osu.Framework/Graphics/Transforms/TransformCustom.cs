@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Reflection.Emit;
@@ -15,9 +15,16 @@ namespace osu.Framework.Graphics.Transforms
     /// A transform which operates on arbitrary fields or properties of a given target.
     /// </summary>
     /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
+    /// <typeparam name="TEasing">The type of easing.</typeparam>
     /// <typeparam name="T">The type of the target to operate upon.</typeparam>
-    internal class TransformCustom<TValue, T> : Transform<TValue, T> where T : ITransformable
+    internal class TransformCustom<TValue, TEasing, T> : Transform<TValue, TEasing, T>
+        where T : class, ITransformable
+        where TEasing : IEasingFunction
     {
+        public override string TargetGrouping => targetGrouping ?? TargetMember;
+
+        private readonly string targetGrouping;
+
         private delegate TValue ReadFunc(T transformable);
 
         private delegate void WriteFunc(T transformable, TValue value);
@@ -59,7 +66,7 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createPropertyGetter(MethodInfo getter)
         {
-            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, new object[0]);
+            if (!RuntimeInfo.SupportsJIT) return transformable => (TValue)getter.Invoke(transformable, Array.Empty<object>());
 
             return (ReadFunc)getter.CreateDelegate(typeof(ReadFunc));
         }
@@ -78,21 +85,27 @@ namespace osu.Framework.Graphics.Transforms
             if (property != null)
             {
                 if (property.PropertyType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {property.PropertyType.ReadableName()}.");
+                }
 
                 var getter = property.GetGetMethod(true);
                 var setter = property.GetSetMethod(true);
 
                 if (getter == null || setter == null)
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
                         "since it needs to have both a getter and a setter.");
+                }
 
                 if (getter.IsStatic || setter.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -106,13 +119,17 @@ namespace osu.Framework.Graphics.Transforms
             if (field != null)
             {
                 if (field.FieldType != typeof(TValue))
+                {
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
                         $"since its type should be {typeof(TValue).ReadableName()}, but is {field.FieldType.ReadableName()}.");
+                }
 
                 if (field.IsStatic)
+                {
                     throw new NotSupportedException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+                }
 
                 return new Accessor
                 {
@@ -131,38 +148,24 @@ namespace osu.Framework.Graphics.Transforms
         private static Accessor getAccessor(string propertyOrFieldName) => accessors.GetOrAdd(propertyOrFieldName, key => findAccessor(typeof(T), key));
 
         private readonly Accessor accessor;
-        private readonly InterpolationFunc<TValue> interpolationFunc;
 
         /// <summary>
-        /// Creates a new instance operating on a property or field of <see cref="T"/>. The property or field is
+        /// Creates a new instance operating on a property or field of <typeparamref name="T"/>. The property or field is
         /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
         /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
         /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
         /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
         /// <see cref="Transform.EndTime"/>, and a current time.
-        /// Optionally, or when no suitable "ValueAt" from <see cref="Interpolation"/> exists, a custom function can be supplied
-        /// via <paramref name="interpolationFunc"/>.
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
-        /// <param name="interpolationFunc">
-        /// The function to be used for interpolating between <see cref="Transform{TValue}.StartValue"/> and
-        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
-        /// <see cref="Transform.EndTime"/>, and a current time.
-        /// If null, an interpolation method "ValueAt" from <see cref="Interpolation"/> with a suitable signature is picked.
-        /// If none exists, then this parameter must not be null.
-        /// </param>
-        public TransformCustom(string propertyOrFieldName, InterpolationFunc<TValue> interpolationFunc = null)
+        /// <param name="grouping">An optional grouping, for a case where the target property can potentially conflict with others.</param>
+        public TransformCustom(string propertyOrFieldName, string grouping = null)
         {
             TargetMember = propertyOrFieldName;
+            targetGrouping = grouping;
 
             accessor = getAccessor(propertyOrFieldName);
             Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
-
-            this.interpolationFunc = interpolationFunc ?? Interpolation<TValue>.FUNCTION;
-
-            if (this.interpolationFunc == null)
-                throw new InvalidOperationException(
-                    $"Need to pass a custom {nameof(interpolationFunc)} since no default {nameof(Interpolation)}.{nameof(Interpolation.ValueAt)} exists.");
         }
 
         private TValue valueAt(double time)
@@ -170,7 +173,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }
@@ -178,5 +181,14 @@ namespace osu.Framework.Graphics.Transforms
         protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+    }
+
+    internal class TransformCustom<TValue, T> : TransformCustom<TValue, DefaultEasingFunction, T>
+        where T : class, ITransformable
+    {
+        public TransformCustom(string propertyOrFieldName)
+            : base(propertyOrFieldName)
+        {
+        }
     }
 }

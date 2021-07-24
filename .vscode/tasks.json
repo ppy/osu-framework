@@ -9,11 +9,10 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "--no-restore",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
-                "osu-framework.sln"
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "osu.Framework.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -24,25 +23,14 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "--no-restore",
-                "/p:Configuration=Release",
-                "/p:GenerateFullPaths=true",
-                "/m",
-                "/verbosity:m",
-                "osu-framework.sln"
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "osu.Framework.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "Restore",
-            "type": "shell",
-            "command": "dotnet",
-            "args": [
-                "restore",
-                "osu-framework.sln"
-            ],
-            "problemMatcher": []
         }
     ]
 }

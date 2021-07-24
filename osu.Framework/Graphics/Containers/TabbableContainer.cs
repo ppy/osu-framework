@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// This interface is used for recognizing <see cref="TabbableContainer{T}"/> of any type without reflection.
     /// </summary>
-    internal interface ITabbableContainer
+    public interface ITabbableContainer
     {
         /// <summary>
         /// Whether this <see cref="ITabbableContainer"/> can be tabbed to.

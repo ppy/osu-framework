@@ -5,7 +5,7 @@ using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.MathUtils.Clipping;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Tests.Polygons
@@ -189,6 +189,34 @@ namespace osu.Framework.Tests.Polygons
 
             // The expected polygon is never reversed
             assertPolygonEquals(new SimpleConvexPolygon(resultingVertices), new SimpleConvexPolygon(clip(clipPolygon, subjectPolygon).ToArray()), false);
+        }
+
+        [Test]
+        public void TestTriangleClipping()
+        {
+            assertPolygonEquals(new SimpleConvexPolygon(new[] { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0) }),
+                new SimpleConvexPolygon(clip(new Quad(Vector2.Zero, Vector2.Zero, new Vector2(1, 0), new Vector2(0, 1)), new Quad(0, 0, 10, 10)).ToArray()),
+                false);
+        }
+
+        [Test]
+        public void TestLineClipping()
+        {
+            assertPolygonEquals(new SimpleConvexPolygon(Array.Empty<Vector2>()),
+                new SimpleConvexPolygon(clip(new Quad(25, 25, 0, 10), new Quad(0, 0, 100, 100)).ToArray()),
+                false);
+
+            assertPolygonEquals(new SimpleConvexPolygon(Array.Empty<Vector2>()),
+                new SimpleConvexPolygon(clip(new Quad(25, 25, 10, 0), new Quad(0, 0, 100, 100)).ToArray()),
+                false);
+        }
+
+        [Test]
+        public void TestPointClipping()
+        {
+            assertPolygonEquals(new SimpleConvexPolygon(Array.Empty<Vector2>()),
+                new SimpleConvexPolygon(clip(new Quad(25, 25, 0, 0), new Quad(0, 0, 100, 100)).ToArray()),
+                false);
         }
 
         [Test]

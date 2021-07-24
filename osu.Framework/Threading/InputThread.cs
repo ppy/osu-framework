@@ -3,6 +3,7 @@
 
 using osu.Framework.Statistics;
 using System.Collections.Generic;
+using osu.Framework.Development;
 
 namespace osu.Framework.Threading
 {
@@ -18,13 +19,24 @@ namespace osu.Framework.Threading
             StatisticsCounterType.MouseEvents,
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
+            StatisticsCounterType.MidiEvents,
+            StatisticsCounterType.TabletEvents,
         };
 
-        public override void Start()
+        protected override void PrepareForWork()
         {
-            // InputThread does not get started. it is run manually by GameHost.
+            // Intentionally inhibiting the base implementation which spawns a native thread.
+            // Therefore, we need to run Initialize inline.
+            Initialize(true);
         }
 
-        public void RunUpdate() => ProcessFrame();
+        public override bool IsCurrent => ThreadSafety.IsInputThread;
+
+        internal sealed override void MakeCurrent()
+        {
+            base.MakeCurrent();
+
+            ThreadSafety.IsInputThread = true;
+        }
     }
 }

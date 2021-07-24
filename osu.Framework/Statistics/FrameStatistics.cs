@@ -59,6 +59,7 @@ namespace osu.Framework.Statistics
         VBufBinds,
         VBufOverflow,
         TextureBinds,
+        FBORedraw,
         DrawCalls,
         ShaderBinds,
         VerticesDraw,
@@ -74,5 +75,7 @@ namespace osu.Framework.Statistics
         MouseEvents,
         KeyEvents,
         JoystickEvents,
+        MidiEvents,
+        TabletEvents,
     }
 }

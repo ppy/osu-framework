@@ -11,9 +11,7 @@ namespace osu.Framework.Testing.Dependencies
     internal class CachedStructProvider
     {
         [Cached]
-        private Struct cachedObject = new Struct { Value = 10 };
-
-        public Struct CachedObject => cachedObject;
+        public Struct CachedObject { get; } = new Struct { Value = 10 };
 
         public struct Struct
         {

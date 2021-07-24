@@ -8,39 +8,52 @@ using osu.Framework.Platform;
 namespace osu.Framework.Tests.IO
 {
     /// <summary>
-    /// Ad headless host for testing purposes. Contains an arbitrary game that is running after construction.
+    /// A headless host for testing purposes. Contains an arbitrary game that is running after construction.
     /// </summary>
     public class BackgroundGameHeadlessGameHost : HeadlessGameHost
     {
         private TestGame testGame;
 
-        public BackgroundGameHeadlessGameHost(string gameName = @"", bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
+        public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            Task.Run(() =>
+            using (var gameCreated = new ManualResetEventSlim(false))
             {
-                try
+                Task.Run(() =>
                 {
-                    Run(testGame = new TestGame());
-                }
-                catch
-                {
-                    // may throw an unobserved exception if we don't handle here.
-                }
-            });
+                    try
+                    {
+                        testGame = new TestGame();
+                        // ReSharper disable once AccessToDisposedClosure
+                        gameCreated.Set();
 
-            while (testGame?.HasProcessed != true)
-                Thread.Sleep(10);
+                        Run(testGame);
+                    }
+                    catch
+                    {
+                        // may throw an unobserved exception if we don't handle here.
+                    }
+                });
+
+                gameCreated.Wait();
+                testGame.HasProcessed.Wait();
+            }
         }
 
         private class TestGame : Game
         {
-            public bool HasProcessed;
+            internal readonly ManualResetEventSlim HasProcessed = new ManualResetEventSlim(false);
 
             protected override void Update()
             {
                 base.Update();
-                HasProcessed = true;
+                HasProcessed.Set();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                HasProcessed.Dispose();
+                base.Dispose(isDisposing);
             }
         }
 

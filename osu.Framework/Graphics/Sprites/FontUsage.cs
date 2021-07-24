@@ -81,7 +81,6 @@ namespace osu.Framework.Graphics.Sprites
                 FontName += "Italic";
 
             FontName = FontName.TrimEnd('-');
-            Legacy = false;
         }
 
         /// <summary>
@@ -99,47 +98,10 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString() => $"Font={FontName}, Size={Size}, Italics={Italics}, FixedWidth={FixedWidth}";
 
-        public bool Equals(FontUsage other) => string.Equals(Family, other.Family) && string.Equals(Weight, other.Weight) && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
+        public bool Equals(FontUsage other) => Family == other.Family && Weight == other.Weight && Italics == other.Italics && Size.Equals(other.Size) && FixedWidth == other.FixedWidth;
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
+        public override bool Equals(object obj) => obj is FontUsage other && Equals(other);
 
-            return obj is FontUsage other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = Family != null ? Family.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (Weight != null ? Weight.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ Italics.GetHashCode();
-                hashCode = (hashCode * 397) ^ Size.GetHashCode();
-                hashCode = (hashCode * 397) ^ FixedWidth.GetHashCode();
-                return hashCode;
-            }
-        }
-
-        #region Obsolete
-
-        internal bool Legacy { get; }
-
-        private FontUsage(string fontName, bool isLegacy)
-            : this(family: fontName)
-        {
-            Legacy = isLegacy;
-        }
-
-        [Obsolete("Setting font by name is deprecated. Use `Font = new FontUsage(...)` (see: https://github.com/ppy/osu-framework/pull/2043)")]
-        public static implicit operator FontUsage(string fontName) => new FontUsage(fontName, isLegacy: true);
-
-        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
-        public static bool operator ==(FontUsage fontUsage, string fontName) => fontUsage.FontName == fontName;
-
-        [Obsolete("Comparing fonts as strings is deprecated. See: https://github.com/ppy/osu-framework/pull/2043")]
-        public static bool operator !=(FontUsage fontUsage, string fontName) => fontUsage.FontName != fontName;
-
-        #endregion
+        public override int GetHashCode() => HashCode.Combine(Family, Weight, Italics, Size, FixedWidth);
     }
 }

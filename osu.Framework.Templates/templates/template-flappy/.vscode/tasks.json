@@ -1,0 +1,63 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [{
+            "label": "Build (Tests, Debug)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "FlappyDon.Game.Tests"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build (Tests, Release)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "FlappyDon.Game.Tests"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build (Desktop, Debug)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "FlappyDon.Desktop"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        }, {
+            "label": "Build (Desktop, Release)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "-p:Configuration=Release",
+                "-p:GenerateFullPaths=true",
+                "-m",
+                "-verbosity:m",
+                "FlappyDon.Desktop"
+            ],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

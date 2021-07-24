@@ -8,7 +8,7 @@ using osuTK.Input;
 namespace osu.Framework.Input.Events
 {
     /// <summary>
-    /// An event represeting the start of a mouse drag.
+    /// An event representing the start of a mouse drag.
     /// </summary>
     public class DragStartEvent : MouseButtonEvent
     {

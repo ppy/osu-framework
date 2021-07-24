@@ -40,7 +40,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
         /// <param name="axes">The axes to check for intersections along.</param>
         /// <param name="firstVertices">The first set of vertices.</param>
         /// <param name="secondVertices">The second set of vertices.</param>
-        /// <returns>Whether there is an intersection between <paramref name="firstVertices"/> and <see cref="secondVertices"/> along any of <paramref name="axes"/>.</returns>
+        /// <returns>Whether there is an intersection between <paramref name="firstVertices"/> and <paramref name="secondVertices"/> along any of <paramref name="axes"/>.</returns>
         private static bool intersects(ReadOnlySpan<Vector2> axes, ReadOnlySpan<Vector2> firstVertices, ReadOnlySpan<Vector2> secondVertices)
         {
             foreach (Vector2 axis in axes)

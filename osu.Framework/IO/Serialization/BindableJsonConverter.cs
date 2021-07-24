@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
 
@@ -10,20 +11,15 @@ namespace osu.Framework.IO.Serialization
     /// <summary>
     /// A converter used for serializing/deserializing <see cref="Bindable{T}"/> objects.
     /// </summary>
-    internal class BindableJsonConverter : JsonConverter
+    internal class BindableJsonConverter : JsonConverter<ISerializableBindable>
     {
-        public override bool CanConvert(Type objectType) => typeof(ISerializableBindable).IsAssignableFrom(objectType);
+        public override void WriteJson(JsonWriter writer, ISerializableBindable value, JsonSerializer serializer)
+            => value.SerializeTo(writer, serializer);
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override ISerializableBindable ReadJson(JsonReader reader, Type objectType, ISerializableBindable existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var bindable = (ISerializableBindable)value;
-            bindable.SerializeTo(writer, serializer);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            if (!(existingValue is ISerializableBindable bindable))
-                bindable = (ISerializableBindable)Activator.CreateInstance(objectType, true);
+            var bindable = existingValue ?? (ISerializableBindable)Activator.CreateInstance(objectType, true);
+            Debug.Assert(bindable != null);
 
             bindable.DeserializeFrom(reader, serializer);
 

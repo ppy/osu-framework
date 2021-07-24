@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
             [CanBeNull]
             set
             {
-                value = value ?? Array.Empty<TableColumn>();
+                value ??= Array.Empty<TableColumn>();
 
                 if (columns == value)
                     return;
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Containers
             [CanBeNull]
             set
             {
-                value = value ?? new Dimension();
+                value ??= new Dimension();
 
                 if (rowSize == value)
                     return;
@@ -185,12 +185,14 @@ namespace osu.Framework.Graphics.Containers
             var result = new Drawable[rowCount, columnCount];
 
             for (int row = 0; row < rowCount; row++)
-            for (int col = 0; col < columnCount; col++)
             {
-                if (row == 0)
-                    result[row, col] = CreateHeader(col, col >= Columns?.Length ? null : Columns?[col]);
-                else if (col < content.GetLength(1))
-                    result[row, col] = content[row - 1, col];
+                for (int col = 0; col < columnCount; col++)
+                {
+                    if (row == 0)
+                        result[row, col] = CreateHeader(col, col >= Columns?.Length ? null : Columns?[col]);
+                    else if (col < content.GetLength(1))
+                        result[row, col] = content[row - 1, col];
+                }
             }
 
             return result;

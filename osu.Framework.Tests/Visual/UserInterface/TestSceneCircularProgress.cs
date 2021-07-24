@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Collections.Generic;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Textures;
@@ -15,8 +13,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
 {
     public class TestSceneCircularProgress : FrameworkTestScene
     {
-        public override IReadOnlyList<Type> RequiredTypes => new[] { typeof(CircularProgress), typeof(CircularProgressDrawNode) };
-
         private readonly CircularProgress clock;
 
         private int rotateMode;
@@ -87,11 +83,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 },
             };
 
-            AddStep("Forward", delegate { rotateMode = 1; });
-            AddStep("Backward", delegate { rotateMode = 2; });
-            AddStep("Transition Focus", delegate { rotateMode = 3; });
-            AddStep("Transition Focus 2", delegate { rotateMode = 4; });
-            AddStep("Forward/Backward", delegate { rotateMode = 0; });
+            AddStep("Forward", delegate { setRotationMode(1); });
+            AddStep("Backward", delegate { setRotationMode(2); });
+            AddStep("Transition Focus", delegate { setRotationMode(3); });
+            AddStep("Transition Focus 2", delegate { setRotationMode(4); });
+            AddStep("Forward/Backward", delegate { setRotationMode(0); });
 
             AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
             AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
@@ -103,6 +99,11 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("Vertical Gradient Colour", delegate { setColour(3); });
             AddStep("2D Gradient Colour", delegate { setColour(4); });
             AddStep("White Colour", delegate { setColour(0); });
+
+            AddStep("Forward Transform", delegate { transform(0); });
+            AddStep("Backward Transform", delegate { transform(1); });
+            AddStep("Fwd/Bwd Transform", delegate { transform(2); });
+            AddStep("Easing Transform", delegate { transform(3); });
 
             AddSliderStep("Fill", 0, 10, 10, fill => clock.InnerRadius = fill / 10f);
         }
@@ -133,6 +134,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     clock.Current.Value = (Time.Current % transition_period / transition_period / 5 - 0.1f + 2) % 2 - 1;
                     break;
             }
+        }
+
+        private void setRotationMode(int mode)
+        {
+            clock.ClearTransforms();
+            rotateMode = mode;
         }
 
         private void setTexture(int textureMode)
@@ -166,7 +173,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     break;
 
                 case 1:
-                    clock.Colour = new Color4(255, 128, 128, 255);
+                    clock.Colour = new Color4(255, 88, 88, 255);
                     break;
 
                 case 2:
@@ -197,6 +204,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         BottomLeft = new Color4(128, 128, 255, 255),
                         BottomRight = new Color4(255, 255, 255, 255),
                     };
+                    break;
+            }
+        }
+
+        private void transform(int tf)
+        {
+            setRotationMode(-1);
+
+            switch (tf)
+            {
+                case 0:
+                    clock.FillTo(0).Then().FillTo(1, 1000).Loop();
+                    break;
+
+                case 1:
+                    clock.FillTo(1).Then().FillTo(0, 1000).Loop();
+                    break;
+
+                case 2:
+                    clock.FillTo(0, 1000).Then().FillTo(1, 1000).Loop();
+                    break;
+
+                case 3:
+                    clock.FillTo(0).Then().FillTo(1, 1000, Easing.InOutQuart).Loop();
                     break;
             }
         }

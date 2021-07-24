@@ -6,6 +6,7 @@ using System;
 namespace osu.Framework.Allocation
 {
     public class ObjectUsage<T> : IDisposable
+        where T : class
     {
         public T Object;
         public int Index;

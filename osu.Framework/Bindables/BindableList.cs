@@ -4,23 +4,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList
+    public class BindableList<T> : IBindableList<T>, IBindable, IParseable, IList<T>, IList
     {
         /// <summary>
-        /// An event which is raised when any items are added to this <see cref="BindableList{T}"/>.
+        /// An event which is raised when this <see cref="BindableList{T}"/> changes.
         /// </summary>
-        public event Action<IEnumerable<T>> ItemsAdded;
-
-        /// <summary>
-        /// An event which is raised when any items are removed from this <see cref="BindableList{T}"/>.
-        /// </summary>
-        public event Action<IEnumerable<T>> ItemsRemoved;
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         /// <summary>
         /// An event which is raised when <see cref="Disabled"/>'s state has changed (or manually via <see cref="triggerDisabledChange(bool)"/>).
@@ -29,7 +25,7 @@ namespace osu.Framework.Bindables
 
         private readonly List<T> collection = new List<T>();
 
-        private Cached<WeakReference<BindableList<T>>> weakReferenceCache;
+        private readonly Cached<WeakReference<BindableList<T>>> weakReferenceCache = new Cached<WeakReference<BindableList<T>>>();
 
         private WeakReference<BindableList<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<BindableList<T>>(this);
 
@@ -77,8 +73,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(new[] { lastItem });
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, lastItem, index));
         }
 
         /// <summary>
@@ -106,7 +101,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, collection.Count - 1));
         }
 
         /// <summary>
@@ -142,7 +137,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
         /// <summary>
@@ -175,7 +170,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(clearedItems);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, clearedItems, 0));
         }
 
         /// <summary>
@@ -199,25 +194,31 @@ namespace osu.Framework.Bindables
         {
             ensureMutationAllowed();
 
-            bool removed = collection.Remove(item);
+            int index = collection.IndexOf(item);
 
-            if (removed)
+            if (index < 0)
+                return false;
+
+            // Removal may have come from an equality comparison.
+            // Always return the original reference from the list to other bindings and events.
+            var listItem = collection[index];
+
+            collection.RemoveAt(index);
+
+            if (bindings != null)
             {
-                if (bindings != null)
+                foreach (var b in bindings)
                 {
-                    foreach (var b in bindings)
-                    {
-                        // prevent re-adding the item back to the callee.
-                        // That would result in a <see cref="StackOverflowException"/>.
-                        if (b != caller)
-                            b.remove(item, this);
-                    }
+                    // prevent re-removing from the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.remove(listItem, this);
                 }
-
-                ItemsRemoved?.Invoke(new[] { item });
             }
 
-            return removed;
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, listItem, index));
+
+            return true;
         }
 
         /// <summary>
@@ -252,7 +253,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(removedItems);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
         }
 
         /// <summary>
@@ -282,7 +283,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(new[] { item });
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
         }
 
         /// <summary>
@@ -298,6 +299,8 @@ namespace osu.Framework.Bindables
 
             var removed = collection.FindAll(match);
 
+            if (removed.Count == 0) return removed.Count;
+
             // RemoveAll is internally optimised
             collection.RemoveAll(match);
 
@@ -312,7 +315,7 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsRemoved?.Invoke(removed);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removed));
 
             return removed.Count;
         }
@@ -387,8 +390,14 @@ namespace osu.Framework.Bindables
                     break;
 
                 case IEnumerable<T> enumerable:
+                    // enumerate once locally before proceeding.
+                    var newItems = enumerable.ToList();
+
+                    if (this.SequenceEqual(newItems))
+                        return;
+
                     Clear();
-                    AddRange(enumerable);
+                    AddRange(newItems);
                     break;
 
                 default:
@@ -445,10 +454,9 @@ namespace osu.Framework.Bindables
 
         #region IUnbindable
 
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
-            ItemsAdded = null;
-            ItemsRemoved = null;
+            CollectionChanged = null;
             DisabledChanged = null;
         }
 
@@ -458,9 +466,7 @@ namespace osu.Framework.Bindables
                 return;
 
             foreach (var b in bindings)
-                b.unbind(this);
-
-            bindings?.Clear();
+                UnbindFrom(b);
         }
 
         public void UnbindAll()
@@ -469,7 +475,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is BindableList<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -477,9 +483,6 @@ namespace osu.Framework.Bindables
             removeWeakReference(tThem.weakReference);
             tThem.removeWeakReference(weakReference);
         }
-
-        private void unbind(BindableList<T> binding)
-            => bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
@@ -497,13 +500,13 @@ namespace osu.Framework.Bindables
         /// <param name="items">The collection whose items should be added to this collection.</param>
         /// <exception cref="InvalidOperationException">Thrown if this collection is <see cref="Disabled"/></exception>
         public void AddRange(IEnumerable<T> items)
-            => addRange(items, null);
+            => addRange(items as IList ?? items.ToArray(), null);
 
-        private void addRange(IEnumerable<T> items, BindableList<T> caller)
+        private void addRange(IList items, BindableList<T> caller)
         {
             ensureMutationAllowed();
 
-            collection.AddRange(items);
+            collection.AddRange(items.Cast<T>());
 
             if (bindings != null)
             {
@@ -516,7 +519,38 @@ namespace osu.Framework.Bindables
                 }
             }
 
-            ItemsAdded?.Invoke(items);
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, collection.Count - items.Count));
+        }
+
+        /// <summary>
+        /// Moves an item in this collection.
+        /// </summary>
+        /// <param name="oldIndex">The index of the item to move.</param>
+        /// <param name="newIndex">The index specifying the new location of the item.</param>
+        public void Move(int oldIndex, int newIndex)
+            => move(oldIndex, newIndex, null);
+
+        private void move(int oldIndex, int newIndex, BindableList<T> caller)
+        {
+            ensureMutationAllowed();
+
+            T item = collection[oldIndex];
+
+            collection.RemoveAt(oldIndex);
+            collection.Insert(newIndex, item);
+
+            if (bindings != null)
+            {
+                foreach (var b in bindings)
+                {
+                    // prevent re-adding the item back to the callee.
+                    // That would result in a <see cref="StackOverflowException"/>.
+                    if (b != caller)
+                        b.move(oldIndex, newIndex, this);
+                }
+            }
+
+            notifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
         }
 
         void IBindable.BindTo(IBindable them)
@@ -536,6 +570,15 @@ namespace osu.Framework.Bindables
         }
 
         /// <summary>
+        /// An alias of <see cref="BindTo"/> provided for use in object initializer scenarios.
+        /// Passes the provided value as the foreign (more permanent) bindable.
+        /// </summary>
+        public IBindableList<T> BindTarget
+        {
+            set => ((IBindableList<T>)this).BindTo(value);
+        }
+
+        /// <summary>
         /// Binds this <see cref="BindableList{T}"/> to another.
         /// </summary>
         /// <param name="them">The <see cref="BindableList{T}"/> to be bound to.</param>
@@ -543,7 +586,7 @@ namespace osu.Framework.Bindables
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) ?? false)
+            if (bindings?.Contains(weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");
@@ -556,11 +599,22 @@ namespace osu.Framework.Bindables
             them.addWeakReference(weakReference);
         }
 
+        /// <summary>
+        /// Bind an action to <see cref="CollectionChanged"/> with the option of running the bound action once immediately
+        /// with an <see cref="NotifyCollectionChangedAction.Add"/> event for the entire contents of this <see cref="BindableList{T}"/>.
+        /// </summary>
+        /// <param name="onChange">The action to perform when this <see cref="BindableList{T}"/> changes.</param>
+        /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
+        public void BindCollectionChanged(NotifyCollectionChangedEventHandler onChange, bool runOnceImmediately = false)
+        {
+            CollectionChanged += onChange;
+            if (runOnceImmediately)
+                onChange(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, collection));
+        }
+
         private void addWeakReference(WeakReference<BindableList<T>> weakReference)
         {
-            if (bindings == null)
-                bindings = new LockedWeakList<BindableList<T>>();
-
+            bindings ??= new LockedWeakList<BindableList<T>>();
             bindings.Add(weakReference);
         }
 
@@ -577,7 +631,7 @@ namespace osu.Framework.Bindables
         /// <returns>The created instance.</returns>
         public BindableList<T> GetBoundCopy()
         {
-            var copy = (BindableList<T>)Activator.CreateInstance(GetType(), new object[] { null });
+            var copy = new BindableList<T>();
             copy.BindTo(this);
             return copy;
         }
@@ -586,13 +640,15 @@ namespace osu.Framework.Bindables
 
         #region IEnumerable
 
-        public IEnumerator<T> GetEnumerator()
-            => collection.GetEnumerator();
+        public List<T>.Enumerator GetEnumerator() => collection.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #endregion IEnumerable
+
+        private void notifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
 
         private void ensureMutationAllowed()
         {

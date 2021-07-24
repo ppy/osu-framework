@@ -14,6 +14,24 @@ namespace osu.Framework.Tests.Platform
     public class HeadlessGameHostTest
     {
         [Test]
+        public void TestGameHostExceptionDuringSetupHost()
+        {
+            using (var host = new ExceptionDuringSetupGameHost(nameof(TestGameHostExceptionDuringSetupHost)))
+            {
+                Assert.Throws<InvalidOperationException>(() => host.Run(new TestGame()));
+            }
+        }
+
+        [Test]
+        public void TestGameHostDisposalWhenNeverRun()
+        {
+            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            {
+                // never call host.Run()
+            }
+        }
+
+        [Test]
         public void TestIpc()
         {
             using (var server = new BackgroundGameHeadlessGameHost(@"server", true))
@@ -25,20 +43,22 @@ namespace osu.Framework.Tests.Platform
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
 
-                Action waitAction = () =>
+                void waitAction()
                 {
-                    bool received = false;
-                    serverChannel.MessageReceived += message =>
+                    using (var received = new ManualResetEventSlim(false))
                     {
-                        Assert.AreEqual("example", message.Bar);
-                        received = true;
-                    };
+                        serverChannel.MessageReceived += message =>
+                        {
+                            Assert.AreEqual("example", message.Bar);
+                            // ReSharper disable once AccessToDisposedClosure
+                            received.Set();
+                        };
 
-                    clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
+                        clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
 
-                    while (!received)
-                        Thread.Sleep(1);
-                };
+                        received.Wait();
+                    }
+                }
 
                 Assert.IsTrue(Task.Run(waitAction).Wait(10000), @"Message was not received in a timely fashion");
             }
@@ -47,6 +67,20 @@ namespace osu.Framework.Tests.Platform
         private class Foobar
         {
             public string Bar;
+        }
+
+        public class ExceptionDuringSetupGameHost : HeadlessGameHost
+        {
+            public ExceptionDuringSetupGameHost(string gameName)
+                : base(gameName)
+            {
+            }
+
+            protected override void SetupForRun()
+            {
+                base.SetupForRun();
+                throw new InvalidOperationException();
+            }
         }
     }
 }

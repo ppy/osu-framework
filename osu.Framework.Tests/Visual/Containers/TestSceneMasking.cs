@@ -16,6 +16,8 @@ namespace osu.Framework.Tests.Visual.Containers
     public class TestSceneMasking : FrameworkTestScene
     {
         protected Container TestContainer;
+        protected int CurrentTest;
+        protected float TestCornerExponent = 2f;
 
         public TestSceneMasking()
         {
@@ -34,6 +36,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 @"Nested masking",
                 @"Rounded corner input",
                 @"Offset shadow",
+                @"Negative size"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -41,6 +44,12 @@ namespace osu.Framework.Tests.Visual.Containers
                 int test = i;
                 AddStep(testNames[i], delegate { loadTest(test); });
             }
+
+            AddSliderStep("Corner exponent", 0.01f, 10, 2, exponent =>
+            {
+                TestCornerExponent = exponent;
+                loadTest(CurrentTest);
+            });
 
             loadTest(0);
             addCrosshair();
@@ -84,6 +93,7 @@ namespace osu.Framework.Tests.Visual.Containers
         private void loadTest(int testType)
         {
             TestContainer.Clear();
+            CurrentTest = testType;
 
             switch (testType)
             {
@@ -96,6 +106,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Origin = Anchor.Centre,
                         Masking = true,
                         CornerRadius = 100,
+                        CornerExponent = TestCornerExponent,
                         BorderColour = Color4.Aquamarine,
                         BorderThickness = 3,
                         EdgeEffect = new EdgeEffectParameters
@@ -132,6 +143,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 100,
+                                CornerExponent = TestCornerExponent,
                                 Size = new Vector2(400, 400),
                                 Alpha = 0.5f,
                                 Origin = Anchor.Centre,
@@ -144,7 +156,7 @@ namespace osu.Framework.Tests.Visual.Containers
                     box.OnUpdate += delegate
                     {
                         box.Rotation += 0.05f;
-                        box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01);
+                        box.CornerRadius = 100 + 100 * MathF.Sin(box.Rotation * 0.01f);
                     };
                     break;
                 }
@@ -162,6 +174,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 25,
+                                CornerExponent = TestCornerExponent,
                                 Shear = new Vector2(0.5f, 0),
                                 Size = new Vector2(150, 150),
                                 Scale = new Vector2(2.5f, 1.5f),
@@ -204,6 +217,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 25,
+                                CornerExponent = TestCornerExponent,
                                 Shear = new Vector2(0.5f, 0),
                                 Alpha = 0.5f,
                                 Origin = Anchor.Centre,
@@ -215,6 +229,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                     {
                                         Masking = true,
                                         CornerRadius = 25,
+                                        CornerExponent = TestCornerExponent,
                                         Shear = new Vector2(0.25f, 0.25f),
                                         Size = new Vector2(100, 200),
                                         Alpha = 0.5f,
@@ -234,13 +249,14 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 case 4:
                 {
-                    Func<float, Drawable> createMaskingBox = delegate(float scale)
+                    static Drawable createMaskingBox(float scale, float testCornerExponent)
                     {
                         float size = 200 / scale;
                         return new Container
                         {
                             Masking = true,
                             CornerRadius = 25 / scale,
+                            CornerExponent = testCornerExponent,
                             BorderThickness = 12.5f / scale,
                             BorderColour = Color4.Red,
                             Size = new Vector2(size),
@@ -266,7 +282,7 @@ namespace osu.Framework.Tests.Visual.Containers
                                 },
                             }
                         };
-                    };
+                    }
 
                     TestContainer.Add(new FillFlowContainer
                     {
@@ -278,28 +294,28 @@ namespace osu.Framework.Tests.Visual.Containers
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(100) }
+                                Children = new[] { createMaskingBox(100, TestCornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(10) }
+                                Children = new[] { createMaskingBox(10, TestCornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(1) }
+                                Children = new[] { createMaskingBox(1, TestCornerExponent) }
                             },
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
                                 Masking = true,
-                                Children = new[] { createMaskingBox(0.1f) }
+                                Children = new[] { createMaskingBox(0.1f, TestCornerExponent) }
                             },
                         }
                     });
@@ -320,6 +336,7 @@ namespace osu.Framework.Tests.Visual.Containers
                             {
                                 Masking = true,
                                 CornerRadius = 100f,
+                                CornerExponent = TestCornerExponent,
                                 BorderThickness = 50f,
                                 BorderColour = Color4.Red,
                                 RelativeSizeAxes = Axes.Both,
@@ -444,6 +461,7 @@ namespace osu.Framework.Tests.Visual.Containers
                         Origin = Anchor.Centre,
                         Masking = true,
                         CornerRadius = 100,
+                        CornerExponent = TestCornerExponent,
                         Alpha = 0.8f,
                         EdgeEffect = new EdgeEffectParameters
                         {
@@ -467,6 +485,44 @@ namespace osu.Framework.Tests.Visual.Containers
                     box.OnUpdate += delegate { box.Rotation += 0.05f; };
                     break;
                 }
+
+                case 8:
+                    TestContainer.Add(new Container
+                    {
+                        Size = new Vector2(200, 200),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Gray,
+                            },
+                            new InfofulBox
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Masking = true,
+                                CornerRadius = 50,
+                                CornerExponent = TestCornerExponent,
+                                BorderColour = Color4.Red,
+                                BorderThickness = 10,
+                                EdgeEffect = new EdgeEffectParameters
+                                {
+                                    Type = EdgeEffectType.Glow,
+                                    Radius = 100,
+                                    Roundness = 50,
+                                    Colour = Color4.Blue,
+                                },
+                            }
+                        }
+                    }.With(c => c.OnLoadComplete += _ =>
+                    {
+                        c.ResizeWidthTo(-200, 1000, Easing.InOutSine).Then()
+                         .ResizeHeightTo(-200, 1000, Easing.InOutSine).Then()
+                         .ResizeTo(new Vector2(200, 200), 1000).Loop();
+                    }));
+                    break;
             }
 
 #if DEBUG

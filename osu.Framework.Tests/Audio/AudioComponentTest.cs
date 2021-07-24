@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Threading;
+using System.Reflection;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.IO.Stores;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
@@ -22,10 +22,8 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void SetUp()
         {
-            Architecture.SetIncludePath();
-
             thread = new AudioThread();
-            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
+            store = new NamespacedResourceStore<byte[]>(new DllResourceStore(new AssemblyName("osu.Framework")), @"Resources");
 
             manager = new AudioManager(thread, store, store);
 
@@ -39,9 +37,9 @@ namespace osu.Framework.Tests.Audio
 
             thread.Exit();
 
-            Thread.Sleep(500);
+            manager?.Dispose();
 
-            Assert.IsTrue(thread.Exited);
+            AudioThreadTest.WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
         }
 
         [Test]
@@ -69,7 +67,7 @@ namespace osu.Framework.Tests.Audio
 
         private void checkAggregateVolume(ISampleStore store, double expected)
         {
-            Assert.AreEqual(expected, ((IAggregateAudioAdjustment)store).AggregateVolume.Value);
+            Assert.AreEqual(expected, store.AggregateVolume.Value);
         }
 
         [Test]
@@ -96,6 +94,32 @@ namespace osu.Framework.Tests.Audio
             waitAudioFrame();
 
             checkTrackCount(0);
+        }
+
+        [Test]
+        public void TestTrackVirtualSeekCurrent()
+        {
+            var trackVirtual = manager.Tracks.GetVirtual();
+            trackVirtual.Start();
+
+            waitAudioFrame();
+
+            Assert.Greater(trackVirtual.CurrentTime, 0);
+
+            trackVirtual.Tempo.Value = 2.0f;
+            trackVirtual.Frequency.Value = 2.0f;
+
+            waitAudioFrame();
+
+            Assert.AreEqual(4.0f, trackVirtual.Rate);
+
+            trackVirtual.Stop();
+            var stoppedTime = trackVirtual.CurrentTime;
+            Assert.Greater(stoppedTime, 0);
+
+            trackVirtual.Seek(stoppedTime);
+
+            Assert.AreEqual(stoppedTime, trackVirtual.CurrentTime);
         }
 
         private void checkTrackCount(int expected)

@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Threading;
 using NUnit.Framework;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -14,26 +13,33 @@ namespace osu.Framework.Tests.Threading
     {
         private Scheduler scheduler;
 
+        private bool fromMainThread;
+
         [SetUp]
         public void Setup()
         {
-            scheduler = new Scheduler(new Thread(() => { }));
+            scheduler = new Scheduler(() => fromMainThread, new StopwatchClock(true));
         }
 
         [Test]
         public void TestScheduleOnce([Values(false, true)] bool fromMainThread, [Values(false, true)] bool forceScheduled)
         {
-            if (fromMainThread)
-                scheduler.SetCurrentThread();
+            this.fromMainThread = fromMainThread;
 
             int invocations = 0;
 
-            scheduler.Add(() => invocations++, forceScheduled);
+            var del = scheduler.Add(() => invocations++, forceScheduled);
 
             if (fromMainThread && !forceScheduled)
+            {
                 Assert.AreEqual(1, invocations);
+                Assert.That(del, Is.Null);
+            }
             else
+            {
                 Assert.AreEqual(0, invocations);
+                Assert.That(del, Is.Not.Null);
+            }
 
             scheduler.Update();
             Assert.AreEqual(1, invocations);
@@ -148,6 +154,37 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestCancelDelayedDelegateDuringRun()
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            ScheduledDelegate del = null;
+
+            scheduler.Add(del = new ScheduledDelegate(() =>
+            {
+                invocations++;
+
+                // ReSharper disable once AccessToModifiedClosure
+                del?.Cancel();
+            }, 1000));
+
+            Assert.AreEqual(ScheduledDelegate.RunState.Waiting, del.State);
+
+            clock.Seek(1500);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
+
+            clock.Seek(2500);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
         public void TestRepeatingDelayedDelegate()
         {
             var clock = new StopwatchClock();
@@ -175,6 +212,68 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestZeroDelayRepeatingDelegate()
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            Assert.Zero(scheduler.TotalPendingTasks);
+
+            scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 0));
+
+            Assert.AreEqual(1, scheduler.TotalPendingTasks);
+
+            int expectedInvocations = 0;
+
+            for (double d = 0; d <= 2500; d += 100)
+            {
+                clock.Seek(d);
+                scheduler.Update();
+
+                if (d >= 500)
+                    expectedInvocations++;
+
+                Assert.AreEqual(expectedInvocations, invocations);
+                Assert.AreEqual(1, scheduler.TotalPendingTasks);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestRepeatingDelayedDelegateCatchUp(bool performCatchUp)
+        {
+            var clock = new StopwatchClock();
+            scheduler.UpdateClock(clock);
+
+            int invocations = 0;
+
+            scheduler.Add(new ScheduledDelegate(() => invocations++, 500, 500)
+            {
+                PerformRepeatCatchUpExecutions = performCatchUp
+            });
+
+            for (double d = 0; d <= 10000; d += 2000)
+            {
+                clock.Seek(d);
+
+                for (int i = 0; i < 10; i++)
+                    // allow catch-up to potentially occur.
+                    scheduler.Update();
+
+                int expectedInovations;
+
+                if (performCatchUp)
+                    expectedInovations = (int)(d / 500);
+                else
+                    expectedInovations = (int)(d / 2000);
+
+                Assert.AreEqual(expectedInovations, invocations);
+            }
+        }
+
+        [Test]
         public void TestCancelAfterRepeatReschedule()
         {
             var clock = new StopwatchClock();
@@ -185,14 +284,23 @@ namespace osu.Framework.Tests.Threading
             ScheduledDelegate del;
             scheduler.Add(del = new ScheduledDelegate(() => invocations++, 500, 500));
 
+            Assert.AreEqual(ScheduledDelegate.RunState.Waiting, del.State);
+
             clock.Seek(750);
             scheduler.Update();
             Assert.AreEqual(1, invocations);
 
+            Assert.AreEqual(ScheduledDelegate.RunState.Complete, del.State);
+
             del.Cancel();
+
+            Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
+
             clock.Seek(1250);
             scheduler.Update();
             Assert.AreEqual(1, invocations);
+
+            Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
         }
 
         [Test]
@@ -200,7 +308,7 @@ namespace osu.Framework.Tests.Threading
         {
             int invocations = 0;
 
-            Action action = () => { invocations++; };
+            void action() => invocations++;
 
             scheduler.AddOnce(action);
             scheduler.AddOnce(action);
@@ -210,12 +318,26 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestPerUpdateTask()
+        {
+            int invocations = 0;
+
+            scheduler.AddDelayed(() => invocations++, 0, true);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(2, invocations);
+        }
+
+        [Test]
         public void TestScheduleFromInsideDelegate([Values(false, true)] bool forceScheduled)
         {
             const int max_reschedules = 3;
 
-            if (!forceScheduled)
-                scheduler.SetCurrentThread();
+            fromMainThread = !forceScheduled;
 
             int reschedules = 0;
 
@@ -240,6 +362,97 @@ namespace osu.Framework.Tests.Threading
                 reschedules++;
                 scheduleTask();
             }, forceScheduled);
+        }
+
+        [Test]
+        public void TestInvokeBeforeSchedulerRun()
+        {
+            int invocations = 0;
+
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
+
+            scheduler.Add(del);
+            Assert.AreEqual(0, invocations);
+
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestInvokeAfterSchedulerRun()
+        {
+            int invocations = 0;
+
+            ScheduledDelegate del = new ScheduledDelegate(() => invocations++);
+
+            scheduler.Add(del);
+            Assert.AreEqual(0, invocations);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+
+            Assert.Throws<InvalidOperationException>(del.RunTask);
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestInvokeBeforeScheduleUpdate()
+        {
+            int invocations = 0;
+            ScheduledDelegate del;
+            scheduler.Add(del = new ScheduledDelegate(() => invocations++));
+            Assert.AreEqual(0, invocations);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestRepeatAlreadyCompletedSchedule()
+        {
+            int invocations = 0;
+            var del = new ScheduledDelegate(() => invocations++);
+            del.RunTask();
+            Assert.AreEqual(1, invocations);
+            Assert.Throws<InvalidOperationException>(() => scheduler.Add(del));
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        /// <summary>
+        /// Tests that delegates added from inside a scheduled callback don't get executed when the scheduled callback cancels a prior intermediate task.
+        ///
+        /// Delegate 1 - Added at the start.
+        /// Delegate 2 - Added at the start, cancelled by Delegate 1.
+        /// Delegate 3 - Added during Delegate 1 callback, should not get executed.
+        /// </summary>
+        [Test]
+        public void TestDelegateAddedInCallbackNotExecutedAfterIntermediateCancelledDelegate()
+        {
+            int invocations = 0;
+
+            // Delegate 2
+            var cancelled = new ScheduledDelegate(() => { });
+
+            // Delegate 1
+            scheduler.Add(() =>
+            {
+                invocations++;
+
+                cancelled.Cancel();
+
+                // Delegate 3
+                scheduler.Add(() => invocations++);
+            });
+
+            scheduler.Add(cancelled);
+
+            scheduler.Update();
+            Assert.That(invocations, Is.EqualTo(1));
         }
     }
 }

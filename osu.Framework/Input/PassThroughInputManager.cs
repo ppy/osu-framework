@@ -28,7 +28,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
         /// </summary>
-        public bool UseParentInput
+        public virtual bool UseParentInput
         {
             get => useParentInput;
             set
@@ -44,18 +44,17 @@ namespace osu.Framework.Input
 
         private bool useParentInput = true;
 
+        public override bool HandleHoverEvents => UseParentInput ? parentInputManager.HandleHoverEvents : base.HandleHoverEvents;
+
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!PropagateNonPositionalInputSubTree) return false;
 
             if (!allowBlocking)
-            {
                 base.BuildNonPositionalInputQueue(queue, false);
-                return false;
-            }
-
-            if (UseParentInput)
+            else
                 queue.Add(this);
+
             return false;
         }
 
@@ -63,8 +62,7 @@ namespace osu.Framework.Input
         {
             if (!PropagatePositionalInputSubTree) return false;
 
-            if (UseParentInput)
-                queue.Add(this);
+            queue.Add(this);
             return false;
         }
 
@@ -84,6 +82,11 @@ namespace osu.Framework.Input
         protected override bool Handle(UIEvent e)
         {
             if (!UseParentInput) return false;
+
+            // Don't handle mouse events sourced from touches, we may have a
+            // child drawable handling actual touches, we will produce one ourselves.
+            if (e is MouseEvent && e.CurrentState.Mouse.LastSource is ISourcedFromTouch)
+                return false;
 
             switch (e)
             {
@@ -107,8 +110,19 @@ namespace osu.Framework.Input
                     new MouseScrollRelativeInput { Delta = scroll.ScrollDelta, IsPrecise = scroll.IsPrecise }.Apply(CurrentState, this);
                     break;
 
+                case TouchEvent touch:
+                    new TouchInput(touch.ScreenSpaceTouch, touch.IsActive(touch.ScreenSpaceTouch)).Apply(CurrentState, this);
+                    break;
+
+                case MidiEvent midi:
+                    new MidiKeyInput(midi.Key, midi.Velocity, midi.IsPressed(midi.Key)).Apply(CurrentState, this);
+                    break;
+
                 case KeyboardEvent _:
                 case JoystickButtonEvent _:
+                case JoystickAxisMoveEvent _:
+                case TabletPenButtonEvent _:
+                case TabletAuxiliaryButtonEvent _:
                     SyncInputState(e.CurrentState);
                     break;
             }
@@ -148,17 +162,30 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Sync current state to parent state.
+        /// Sync current state to a certain state.
         /// </summary>
-        /// <param name="parentState">Parent's state. If this is null, it is regarded as an empty state.</param>
-        protected virtual void SyncInputState(InputState parentState)
+        /// <param name="state">The state to synchronise current with. If this is null, it is regarded as an empty state.</param>
+        protected virtual void SyncInputState(InputState state)
         {
-            // release all buttons that is not pressed on parent state
-            var mouseButtonDifference = (parentState?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
+            // invariant: if mouse button is currently pressed, then it has been pressed in parent (but not the converse)
+            // therefore, mouse up events are always synced from parent
+            // mouse down events are not synced to prevent false clicks
+            var mouseButtonDifference = (state?.Mouse?.Buttons ?? new ButtonStates<MouseButton>()).EnumerateDifference(CurrentState.Mouse.Buttons);
             new MouseButtonInput(mouseButtonDifference.Released.Select(button => new ButtonInputEntry<MouseButton>(button, false))).Apply(CurrentState, this);
 
-            new KeyboardKeyInput(parentState?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
-            new JoystickButtonInput(parentState?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new KeyboardKeyInput(state?.Keyboard?.Keys, CurrentState.Keyboard.Keys).Apply(CurrentState, this);
+
+            var touchStateDifference = (state?.Touch ?? new TouchState()).EnumerateDifference(CurrentState.Touch);
+            new TouchInput(touchStateDifference.deactivated, false).Apply(CurrentState, this);
+            new TouchInput(touchStateDifference.activated, true).Apply(CurrentState, this);
+
+            new JoystickButtonInput(state?.Joystick?.Buttons, CurrentState.Joystick.Buttons).Apply(CurrentState, this);
+            new JoystickAxisInput(state?.Joystick?.GetAxes()).Apply(CurrentState, this);
+
+            new MidiKeyInput(state?.Midi, CurrentState.Midi).Apply(CurrentState, this);
+
+            new TabletPenButtonInput(state?.Tablet.PenButtons, CurrentState.Tablet.PenButtons).Apply(CurrentState, this);
+            new TabletAuxiliaryButtonInput(state?.Tablet.AuxiliaryButtons, CurrentState.Tablet.AuxiliaryButtons).Apply(CurrentState, this);
         }
     }
 }

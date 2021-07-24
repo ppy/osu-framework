@@ -1,90 +1,130 @@
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using osu.Framework.Allocation;
+using JetBrains.Annotations;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Logging;
+using osu.Framework.Text;
 using SharpFNT;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<TextureUpload>
+    /// <summary>
+    /// A basic glyph store that will load font sprite sheets every character retrieval.
+    /// </summary>
+    public class GlyphStore : IResourceStore<TextureUpload>, IGlyphStore
     {
-        private readonly string assetName;
+        protected readonly string AssetName;
+
+        protected readonly IResourceStore<TextureUpload> TextureLoader;
 
         public readonly string FontName;
 
-        private const float default_size = 96;
+        protected readonly ResourceStore<byte[]> Store;
 
-        private readonly ResourceStore<byte[]> store;
-
+        [CanBeNull]
         protected BitmapFont Font => completionSource.Task.Result;
-
-        private readonly TimedExpiryCache<int, TextureUpload> texturePages = new TimedExpiryCache<int, TextureUpload>();
 
         private readonly TaskCompletionSource<BitmapFont> completionSource = new TaskCompletionSource<BitmapFont>();
 
-        private Task fontLoadTask;
-
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
+        /// <summary>
+        /// Create a new glyph store.
+        /// </summary>
+        /// <param name="store">The store to provide font resources.</param>
+        /// <param name="assetName">The base name of thße font.</param>
+        /// <param name="textureLoader">An optional platform-specific store for loading textures. Should load for the store provided in <param ref="param"/>.</param>
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
         {
-            this.store = new ResourceStore<byte[]>(store);
+            Store = new ResourceStore<byte[]>(store);
 
-            this.store.AddExtension("fnt");
-            this.store.AddExtension("bin");
+            Store.AddExtension("fnt");
+            Store.AddExtension("bin");
 
-            this.assetName = assetName;
+            AssetName = assetName;
+            TextureLoader = textureLoader;
 
             FontName = assetName?.Split('/').Last();
         }
 
-        public Task LoadFontAsync() => fontLoadTask ?? (fontLoadTask = Task.Factory.StartNew(() =>
+        private Task fontLoadTask;
+
+        public Task LoadFontAsync() => fontLoadTask ??= Task.Factory.StartNew(() =>
         {
             try
             {
                 BitmapFont font;
-                using (var s = store.GetStream($@"{assetName}"))
+                using (var s = Store.GetStream($@"{AssetName}"))
                     font = BitmapFont.FromStream(s, FormatHint.Binary, false);
 
                 completionSource.SetResult(font);
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"Couldn't load font asset from {assetName}.");
+                Logger.Error(ex, $"Couldn't load font asset from {AssetName}.");
                 completionSource.SetResult(null);
                 throw;
             }
-        }, TaskCreationOptions.PreferFairness));
+        }, TaskCreationOptions.PreferFairness);
 
-        public bool HasGlyph(char c) => Font.Characters.ContainsKey(c);
+        public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
 
-        public int GetBaseHeight() => Font.Common.Base;
+        public int GetBaseHeight() => Font?.Common.Base ?? 0;
 
         public int? GetBaseHeight(string name)
         {
             if (name != FontName)
                 return null;
 
-            return Font.Common.Base;
+            return GetBaseHeight();
         }
+
+        protected virtual TextureUpload GetPageImage(int page)
+        {
+            if (TextureLoader != null)
+                return TextureLoader.Get(GetFilenameForPage(page));
+
+            using (var stream = Store.GetStream(GetFilenameForPage(page)))
+                return new TextureUpload(stream);
+        }
+
+        protected string GetFilenameForPage(int page)
+        {
+            Debug.Assert(Font != null);
+            return $@"{AssetName}_{page.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png";
+        }
+
+        [CanBeNull]
+        public CharacterGlyph Get(char character)
+        {
+            if (Font == null)
+                return null;
+
+            var bmCharacter = Font.GetCharacter(character);
+            return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, this);
+        }
+
+        public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;
+
+        Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name) => Task.Run(() => ((IGlyphStore)this).Get(name[0]));
+
+        CharacterGlyph IResourceStore<CharacterGlyph>.Get(string name) => Get(name[0]);
 
         public TextureUpload Get(string name)
         {
+            if (Font == null) return null;
+
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            if (!Font.Characters.TryGetValue(name.Last(), out Character c))
-                return null;
-
-            return loadCharacter(c);
+            return Font.Characters.TryGetValue(name.Last(), out Character c) ? LoadCharacter(c) : null;
         }
 
         public virtual async Task<TextureUpload> GetAsync(string name)
@@ -92,84 +132,49 @@ namespace osu.Framework.IO.Stores
             if (name.Length > 1 && !name.StartsWith($@"{FontName}/", StringComparison.Ordinal))
                 return null;
 
-            if (!(await completionSource.Task).Characters.TryGetValue(name.Last(), out Character c))
-                return null;
-
-            return loadCharacter(c);
+            return !(await completionSource.Task.ConfigureAwait(false)).Characters.TryGetValue(name.Last(), out Character c) ? null : LoadCharacter(c);
         }
 
-        private TextureUpload loadCharacter(Character c)
+        protected int LoadedGlyphCount;
+
+        protected virtual TextureUpload LoadCharacter(Character character)
         {
-            var page = getTexturePage(c.Page);
-            loadedGlyphCount++;
+            var page = GetPageImage(character.Page);
+            LoadedGlyphCount++;
 
-            int width = c.Width + c.XOffset + 1;
-            int height = c.Height + c.YOffset + 1;
+            var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
+            var source = page.Data;
 
-            var image = new Image<Rgba32>(width, height);
+            // the spritesheet may have unused pixels trimmed
+            int readableHeight = Math.Min(character.Height, page.Height - character.Y);
+            int readableWidth = Math.Min(character.Width, page.Width - character.X);
 
-            var pixels = image.GetPixelSpan();
-            var span = page.Data;
-
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < character.Height; y++)
             {
-                for (int x = 0; x < width; x++)
-                {
-                    int dest = y * width + x;
+                var pixelRowSpan = image.GetPixelRowSpan(y);
+                int readOffset = (character.Y + y) * page.Width + character.X;
 
-                    if (x >= c.XOffset && y >= c.YOffset && x - c.XOffset < c.Width && y - c.YOffset < c.Height)
-                        pixels[dest] = span[(c.Y + y - c.YOffset) * page.Width + (c.X + x - c.XOffset)];
-                    else
-                        pixels[dest] = new Rgba32(255, 255, 255, 0);
-                }
+                for (int x = 0; x < character.Width; x++)
+                    pixelRowSpan[x] = x < readableWidth && y < readableHeight ? source[readOffset + x] : new Rgba32(255, 255, 255, 0);
             }
 
             return new TextureUpload(image);
         }
 
-        private TextureUpload getTexturePage(int texturePage)
-        {
-            if (!texturePages.TryGetValue(texturePage, out TextureUpload t))
-            {
-                loadedPageCount++;
-                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((Font.Pages.Count - 1).ToString().Length, '0')}.png"))
-                    texturePages.Add(texturePage, t = new TextureUpload(stream));
-            }
-
-            return t;
-        }
-
         public Stream GetStream(string name) => throw new NotSupportedException();
 
-        public IEnumerable<string> GetAvailableResources() => Font.Characters.Keys.Select(k => $"{FontName}/{(char)k}");
-
-        private int loadedPageCount;
-        private int loadedGlyphCount;
-
-        public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
+        public IEnumerable<string> GetAvailableResources() => Font?.Characters.Keys.Select(k => $"{FontName}/{(char)k}") ?? Enumerable.Empty<string>();
 
         #region IDisposable Support
-
-        private bool isDisposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!isDisposed)
-            {
-                isDisposed = true;
-                texturePages.Dispose();
-            }
-        }
-
-        ~GlyphStore()
-        {
-            Dispose(false);
-        }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
 
         #endregion

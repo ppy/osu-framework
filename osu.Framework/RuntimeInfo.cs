@@ -2,32 +2,38 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using osu.Framework.Development;
 
 namespace osu.Framework
 {
     public static class RuntimeInfo
     {
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-        [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr GetModuleHandle(string lpModuleName);
+        /// <summary>
+        /// The absolute path to the startup directory of this game.
+        /// </summary>
+        public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
 
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
         /// </summary>
-        public static string GetFrameworkAssemblyPath() =>
-            System.Reflection.Assembly.GetAssembly(typeof(RuntimeInfo)).Location;
+        public static string GetFrameworkAssemblyPath()
+        {
+            var assembly = Assembly.GetAssembly(typeof(RuntimeInfo));
+            Debug.Assert(assembly != null);
 
-        public static bool Is32Bit { get; }
-        public static bool Is64Bit { get; }
+            return assembly.Location;
+        }
+
         public static Platform OS { get; }
-        public static bool IsUnix => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.iOS;
-        public static bool IsWine { get; }
+        public static bool IsUnix => OS != Platform.Windows;
+
         public static bool SupportsJIT => OS != Platform.iOS;
-        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.MacOsx || OS == Platform.Windows;
+        public static bool IsDesktop => OS == Platform.Linux || OS == Platform.macOS || OS == Platform.Windows;
         public static bool IsMobile => OS == Platform.iOS || OS == Platform.Android;
+        public static bool IsApple => OS == Platform.iOS || OS == Platform.macOS;
 
         static RuntimeInfo()
         {
@@ -38,35 +44,19 @@ namespace osu.Framework
             if (osuTK.Configuration.RunningOnAndroid)
                 OS = OS == 0 ? Platform.Android : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Android)}, but is already {Enum.GetName(typeof(Platform), OS)}");
             if (OS != Platform.iOS && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                OS = OS == 0 ? Platform.MacOsx : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.MacOsx)}, but is already {Enum.GetName(typeof(Platform), OS)}");
+                OS = OS == 0 ? Platform.macOS : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.macOS)}, but is already {Enum.GetName(typeof(Platform), OS)}");
             if (OS != Platform.Android && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 OS = OS == 0 ? Platform.Linux : throw new InvalidOperationException($"Tried to set OS Platform to {nameof(Platform.Linux)}, but is already {Enum.GetName(typeof(Platform), OS)}");
 
             if (OS == 0)
                 throw new PlatformNotSupportedException("Operating system could not be detected correctly.");
-
-            Is32Bit = IntPtr.Size == 4;
-            Is64Bit = IntPtr.Size == 8;
-
-            if (OS == Platform.Windows)
-            {
-                IntPtr hModule = GetModuleHandle(@"ntdll.dll");
-
-                if (hModule == IntPtr.Zero)
-                    IsWine = false;
-                else
-                {
-                    IntPtr fptr = GetProcAddress(hModule, @"wine_get_version");
-                    IsWine = fptr != IntPtr.Zero;
-                }
-            }
         }
 
         public enum Platform
         {
             Windows = 1,
             Linux = 2,
-            MacOsx = 3,
+            macOS = 3,
             iOS = 4,
             Android = 5
         }

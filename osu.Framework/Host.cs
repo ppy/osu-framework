@@ -22,7 +22,7 @@ namespace osu.Framework
 
             switch (RuntimeInfo.OS)
             {
-                case RuntimeInfo.Platform.MacOsx:
+                case RuntimeInfo.Platform.macOS:
                     return new MacOSGameHost(gameName, bindIPC, toolkitOptions, portableInstallation);
 
                 case RuntimeInfo.Platform.Linux:

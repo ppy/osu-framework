@@ -1,23 +1,24 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
-using osuTK.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using osu.Framework.Localisation;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
     /// <summary>
     /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces. Keep in mind that only children with <see cref="Drawable.HandlePositionalInput"/> set to true will be checked for their tooltips.
     /// </summary>
-    public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>, IHandleGlobalInput
+    public class TooltipContainer : CursorEffectContainer<TooltipContainer, ITooltipContentProvider>
     {
         private readonly CursorContainer cursorContainer;
         private readonly ITooltip defaultTooltip;
@@ -38,14 +39,12 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual float AppearRadius => 20;
 
-        private IHasTooltip currentlyDisplayed;
+        private ITooltipContentProvider currentlyDisplayed;
 
         /// <summary>
         /// Creates a new tooltip. Can be overridden to supply custom subclass of <see cref="Tooltip"/>.
         /// </summary>
         protected virtual ITooltip CreateTooltip() => new Tooltip();
-
-        private bool hasValidTooltip(IHasTooltip target) => !string.IsNullOrEmpty(target?.TooltipText);
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
@@ -119,7 +118,7 @@ namespace osu.Framework.Graphics.Cursor
             // Clamp position to tooltip container
             tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - CurrentTooltip.DrawSize.X - 5);
             float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
-            float dY = (float)Math.Sqrt(boundingRadius * boundingRadius - dX * dX);
+            float dY = MathF.Sqrt(boundingRadius * boundingRadius - dX * dX);
 
             if (tooltipPos.Y > DrawHeight - CurrentTooltip.DrawSize.Y - 5)
                 tooltipPos.Y = cursorCentre.Y - dY - CurrentTooltip.DrawSize.Y;
@@ -135,20 +134,22 @@ namespace osu.Framework.Graphics.Cursor
             public Vector2 Position;
         }
 
+        private object getTargetContent(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.TooltipContent ?? (target as IHasTooltip)?.TooltipText;
+
         protected override void Update()
         {
             base.Update();
 
-            IHasTooltip target = findTooltipTarget();
+            ITooltipContentProvider target = findTooltipTarget();
 
             if (target != null && target != currentlyDisplayed)
             {
                 currentlyDisplayed = target;
 
-                var newTooltip = getTooltip(target);
-
-                if (newTooltip != CurrentTooltip)
+                if (CurrentTooltip?.SetContent(getTargetContent(target)) != true)
                 {
+                    var newTooltip = getTooltip(target);
+
                     RemoveInternal((Drawable)CurrentTooltip);
                     CurrentTooltip = newTooltip;
                     AddInternal((Drawable)newTooltip);
@@ -161,10 +162,30 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            RefreshTooltip(CurrentTooltip, currentlyDisplayed);
+
+            if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed))
+                hideTooltip();
+        }
+
         private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
         private double lastRecordedPositionTime;
 
-        private IHasTooltip lastCandidate;
+        private bool hasValidTooltip(ITooltipContentProvider target)
+        {
+            var targetContent = getTargetContent(target);
+
+            if (targetContent is LocalisableString localisableString)
+                return !string.IsNullOrEmpty(localisableString.Data?.ToString());
+
+            return targetContent != null;
+        }
+
+        private ITooltipContentProvider lastCandidate;
 
         /// <summary>
         /// Determines which drawable should currently receive a tooltip, taking into account
@@ -172,13 +193,25 @@ namespace osu.Framework.Graphics.Cursor
         /// target is found.
         /// </summary>
         /// <returns>The tooltip target. null if no valid one is found.</returns>
-        private IHasTooltip findTooltipTarget()
+        private ITooltipContentProvider findTooltipTarget()
         {
             // While we are dragging a tooltipped drawable we should show a tooltip for it.
             if (inputManager.DraggedDrawable is IHasTooltip draggedTarget)
                 return hasValidTooltip(draggedTarget) ? draggedTarget : null;
 
-            IHasTooltip targetCandidate = FindTargets().Find(t => t.TooltipText != null);
+            if (inputManager.DraggedDrawable is IHasCustomTooltip customDraggedTarget)
+                return hasValidTooltip(customDraggedTarget) ? customDraggedTarget : null;
+
+            ITooltipContentProvider targetCandidate = null;
+
+            foreach (var target in FindTargets())
+            {
+                if (hasValidTooltip(target))
+                {
+                    targetCandidate = target;
+                    break;
+                }
+            }
 
             // check this first - if we find no target candidate we still want to clear the recorded positions and update the lastCandidate.
             if (targetCandidate != lastCandidate)
@@ -189,6 +222,15 @@ namespace osu.Framework.Graphics.Cursor
 
             if (targetCandidate == null)
                 return null;
+
+            return handlePotentialTarget(targetCandidate);
+        }
+
+        private ITooltipContentProvider handlePotentialTarget(ITooltipContentProvider targetCandidate)
+        {
+            // this method is intentionally split out from the main lookup above as it has several expensive delegate (LINQ) allocations.
+            // this allows the case where no tooltip is displayed to run with no allocations.
+            // further optimisation work can be done here to reduce allocations while a tooltip is being displayed.
 
             double appearDelay = (targetCandidate as IHasAppearDelay)?.AppearDelay ?? AppearDelay;
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
@@ -230,29 +272,19 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         /// <summary>
-        /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position, updates its <see cref="ITooltip.TooltipText"/> and calls its <see cref="ITooltip.Refresh"/> method.
+        /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position and updates its content via <see cref="ITooltip.SetContent"/>.
         /// </summary>
         /// <param name="tooltip">The tooltip that is refreshed.</param>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
-        protected virtual void RefreshTooltip(ITooltip tooltip, IHasTooltip tooltipTarget)
+        protected virtual void RefreshTooltip(ITooltip tooltip, ITooltipContentProvider tooltipTarget)
         {
-            if (tooltipTarget != null && hasValidTooltip(tooltipTarget))
-            {
-                tooltip.TooltipText = tooltipTarget.TooltipText;
-                tooltip.Refresh();
-            }
+            bool isValid = tooltipTarget != null && hasValidTooltip(tooltipTarget);
 
-            tooltip.Move(computeTooltipPosition());
-        }
+            if (isValid)
+                tooltip.SetContent(getTargetContent(tooltipTarget));
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            RefreshTooltip(CurrentTooltip, currentlyDisplayed);
-
-            if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed))
-                hideTooltip();
+            if (isValid || tooltip.IsPresent)
+                tooltip.Move(computeTooltipPosition());
         }
 
         private void hideTooltip()
@@ -266,9 +298,9 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(ITooltipContentProvider tooltipTarget) => !hasValidTooltip(tooltipTarget) || !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
 
-        private ITooltip getTooltip(IHasTooltip target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
+        private ITooltip getTooltip(ITooltipContentProvider target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 
         /// <summary>
         /// The default tooltip. Simply displays its text on a gray background and performs no easing.
@@ -282,7 +314,16 @@ namespace osu.Framework.Graphics.Cursor
             /// </summary>
             public virtual string TooltipText
             {
-                set => text.Text = value;
+                set => SetContent(value);
+            }
+
+            public virtual bool SetContent(object content)
+            {
+                if (!(content is LocalisableString contentString))
+                    return false;
+
+                text.Text = contentString;
+                return true;
             }
 
             private const float text_size = 16;
@@ -304,7 +345,7 @@ namespace osu.Framework.Graphics.Cursor
                     },
                     text = new SpriteText
                     {
-                        Font = new FontUsage(size: text_size),
+                        Font = FrameworkFont.Regular.With(size: text_size),
                         Padding = new MarginPadding(5),
                     }
                 };

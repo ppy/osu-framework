@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 
 namespace osu.Framework.Timing
@@ -33,11 +35,15 @@ namespace osu.Framework.Timing
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.
         /// </summary>
-        private IAdjustableClock adjustableSource => Source as IAdjustableClock;
+        private IAdjustableClock? adjustableSource => Source as IAdjustableClock;
 
         public override double CurrentTime => currentTime;
 
         private double currentTime;
+
+        public double ProposedCurrentTime => useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
+
+        public double ProposedElapsedTime => useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
 
         public override bool IsRunning => decoupledClock.IsRunning; // we always want to use our local IsRunning state, as it is more correct.
 
@@ -48,7 +54,13 @@ namespace osu.Framework.Timing
         public override double Rate
         {
             get => Source?.Rate ?? 1;
-            set => adjustableSource.Rate = value;
+            set
+            {
+                if (adjustableSource == null)
+                    throw new NotSupportedException("Source is not adjustable.");
+
+                adjustableSource.Rate = value;
+            }
         }
 
         public void ResetSpeedAdjustments() => Rate = 1;
@@ -62,43 +74,52 @@ namespace osu.Framework.Timing
         {
             base.ProcessFrame();
 
+            bool sourceRunning = Source?.IsRunning ?? false;
+
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
 
-            bool sourceRunning = Source?.IsRunning ?? false;
+            // if interpolating based on the source, keep the decoupled clock in sync with the interpolated time.
+            if (IsCoupled && sourceRunning)
+                decoupledStopwatch.Seek(base.CurrentTime);
+
+            // process the decoupled clock to update the current proposed time.
+            decoupledClock.ProcessFrame();
+
+            // if the source clock is started as a result of becoming capable of handling the decoupled time, the proposed time may change to reflect the interpolated source time.
+            // however the interpolated source time that was calculated inside base.ProcessFrame() (above) did not consider the current (post-seek) time of the source.
+            // in all other cases the proposed time will match before and after clocks are started/stopped.
+            double proposedTime = ProposedCurrentTime;
+            double elapsedTime = ProposedElapsedTime;
 
             if (IsRunning)
             {
                 if (IsCoupled)
                 {
                     // when coupled, we want to stop when our source clock stops.
-                    if (sourceRunning)
-                        decoupledStopwatch.Seek(base.CurrentTime);
-                    else
+                    if (!sourceRunning)
                         Stop();
                 }
                 else
                 {
-                    // when decoupled, if we're running but our source isn't, we should try a seek to see if it's capable to handle the current time.
+                    // when decoupled and running, we should try to start the source clock it if it's capable of handling the current time.
                     if (!sourceRunning)
                         Start();
                 }
             }
             else if (IsCoupled && sourceRunning)
             {
+                // when coupled and not running, we want to start when the source clock starts.
                 Start();
-                decoupledStopwatch.Seek(CurrentTime);
             }
 
-            decoupledClock.ProcessFrame();
+            elapsedFrameTime = elapsedTime;
 
-            double proposedTime = useInterpolatedSourceTime ? base.CurrentTime : decoupledClock.CurrentTime;
-
-            elapsedFrameTime = useInterpolatedSourceTime ? base.ElapsedFrameTime : decoupledClock.ElapsedFrameTime;
-
-            currentTime = elapsedFrameTime < 0 ? proposedTime : Math.Max(currentTime, proposedTime);
+            // the source may be started during playback but remain behind the current time in the playback direction for a number of frames.
+            // in such cases, the current time should remain paused until the source time catches up.
+            currentTime = elapsedFrameTime < 0 ? Math.Min(currentTime, proposedTime) : Math.Max(currentTime, proposedTime);
         }
 
-        public override void ChangeSource(IClock source)
+        public override void ChangeSource(IClock? source)
         {
             if (source == null) return;
 
@@ -120,7 +141,7 @@ namespace osu.Framework.Timing
         {
             if (adjustableSource?.IsRunning == false)
             {
-                if (adjustableSource.Seek(CurrentTime))
+                if (adjustableSource.Seek(ProposedCurrentTime))
                     //only start the source clock if our time values match.
                     //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
                     adjustableSource.Start();

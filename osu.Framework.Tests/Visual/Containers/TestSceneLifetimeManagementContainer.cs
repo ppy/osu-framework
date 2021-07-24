@@ -7,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Timing;
 
@@ -53,7 +54,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void Basic()
+        public void TestBasic()
         {
             AddStep("Add children", () =>
             {
@@ -76,7 +77,19 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void DynamicChange()
+        public void TestAddLoadedDrawable()
+        {
+            TestChild child = null;
+
+            AddStep("add child", () => container.AddInternal(child = new TestChild(0, 2)));
+            skipTo(1);
+            AddStep("remove child", () => container.RemoveInternal(child));
+            AddStep("add same child", () => container.AddInternal(child));
+            validate(1);
+        }
+
+        [Test]
+        public void TestDynamicChange()
         {
             TestChild a = null, b = null, c = null, d = null;
             AddStep("Add children", () =>
@@ -116,7 +129,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void BoundaryCrossing()
+        public void TestBoundaryCrossing()
         {
             TestChild a = null, b = null, c = null;
             AddStep("Add children", () =>
@@ -153,7 +166,7 @@ namespace osu.Framework.Tests.Visual.Containers
         }
 
         [Test]
-        public void LifetimeChangeOnCallback()
+        public void TestLifetimeChangeOnCallback()
         {
             AddStep("Add children", () =>
             {
@@ -181,8 +194,28 @@ namespace osu.Framework.Tests.Visual.Containers
             validate(1);
         }
 
+        [Test]
+        public void TestLifetimeMutatingChildren()
+        {
+            AddStep("detach container", () => Remove(container));
+
+            TestLifetimeMutatingChild first = null, second = null;
+            AddStep("add children", () =>
+            {
+                container.AddInternal(first = new TestLifetimeMutatingChild(3, 5));
+                container.AddInternal(second = new TestLifetimeMutatingChild(3, 5));
+            });
+
+            AddStep("process single frame when children alive", () =>
+            {
+                manualClock.CurrentTime = 4;
+                container.UpdateSubTree();
+            });
+            AddAssert("both children processed", () => first.Processed && second.Processed);
+        }
+
         [Test, Ignore("Takes too long. Unignore when you changed relevant code.")]
-        public void Fuzz()
+        public void TestFuzz()
         {
             var rng = new Random(2222);
 
@@ -231,6 +264,9 @@ namespace osu.Framework.Tests.Visual.Containers
                 Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;
+
+                // This is called from boundary crossing events and results in timing issues if the LTMC is not updated in time. Force an update here to prevent such issues.
+                container.UpdateSubTree();
                 checkAll();
             }
 
@@ -309,6 +345,24 @@ namespace osu.Framework.Tests.Visual.Containers
             }
         }
 
+        public class TestLifetimeMutatingChild : TestChild
+        {
+            public bool Processed { get; private set; }
+
+            public TestLifetimeMutatingChild(double lifetimeStart, double lifetimeEnd)
+                : base(lifetimeStart, lifetimeEnd)
+            {
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                LifetimeEnd = LifetimeStart;
+                Processed = true;
+            }
+        }
+
         public class TestContainer : LifetimeManagementContainer
         {
             public event Action<LifetimeBoundaryCrossedEvent> OnCrossing;
@@ -328,6 +382,8 @@ namespace osu.Framework.Tests.Visual.Containers
 
                 OnCrossing?.Invoke(e);
             }
+
+            public new void UpdateSubTree() => base.UpdateSubTree();
         }
     }
 }

@@ -4,17 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
+using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart
+    internal class ShaderPart : IDisposable
     {
-        internal const string BOUNDARY = @"----------------------{0}";
-
-        internal StringBuilder Log = new StringBuilder();
+        internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
         internal List<ShaderInputInfo> ShaderInputs = new List<ShaderInputInfo>();
 
@@ -33,7 +31,7 @@ namespace osu.Framework.Graphics.Shaders
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
-        private readonly Regex shaderInputRegex = new Regex("^\\s*(?>attribute|in)\\s+[^\\s]+\\s+([^;]+);");
+        private readonly Regex shaderInputRegex = new Regex(SHADER_ATTRIBUTE_PATTERN);
 
         private readonly ShaderManager manager;
 
@@ -70,7 +68,7 @@ namespace osu.Framework.Graphics.Shaders
                     if (string.IsNullOrEmpty(line))
                         continue;
 
-                    if (line.StartsWith("#version")) // the version directive has to appear before anything else in the shader
+                    if (line.StartsWith("#version", StringComparison.Ordinal)) // the version directive has to appear before anything else in the shader
                     {
                         shaderCodes.Add(line);
                         continue;
@@ -107,14 +105,19 @@ namespace osu.Framework.Graphics.Shaders
                     }
                 }
 
-                if (mainFile && isVertexShader)
+                if (mainFile)
                 {
-                    string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
+                    code = loadFile(manager.LoadRaw("sh_Precision_Internal.h"), false) + "\n" + code;
 
-                    string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+                    if (isVertexShader)
+                    {
+                        string realMainName = "real_main_" + Guid.NewGuid().ToString("N");
 
-                    backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
-                    code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                        string backbufferCode = loadFile(manager.LoadRaw("sh_Backbuffer_Internal.h"), false);
+
+                        backbufferCode = backbufferCode.Replace("{{ real_main }}", realMainName);
+                        code = Regex.Replace(code, @"void main\((.*)\)", $"void {realMainName}()") + backbufferCode + '\n';
+                    }
                 }
 
                 return code;
@@ -139,33 +142,40 @@ namespace osu.Framework.Graphics.Shaders
             GL.GetShader(this, ShaderParameter.CompileStatus, out int compileResult);
             Compiled = compileResult == 1;
 
-#if DEBUG
-            string compileLog = GL.GetShaderInfoLog(this);
-            Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
-            Log.AppendLine($"\tCompiled: {Compiled}");
-
             if (!Compiled)
-            {
-                Log.AppendLine("\tLog:");
-                Log.AppendLine('\t' + compileLog);
-            }
-#endif
-
-            if (!Compiled)
-                delete();
+                throw new Shader.PartCompilationFailedException(Name, GL.GetShaderInfoLog(this));
 
             return Compiled;
         }
 
         public static implicit operator int(ShaderPart program) => program.partID;
 
-        private void delete()
-        {
-            if (partID == -1) return;
+        #region IDisposable Support
 
-            GL.DeleteShader(this);
-            Compiled = false;
-            partID = -1;
+        protected internal bool IsDisposed { get; private set; }
+
+        ~ShaderPart()
+        {
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                if (partID != -1)
+                    GL.DeleteShader(this);
+            }
+        }
+
+        #endregion
     }
 }

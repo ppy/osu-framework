@@ -3,7 +3,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using osu.Framework.MathUtils;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// The direction of the second point from the first.
         /// </summary>
-        public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
+        public float Theta => MathF.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
 
         /// <summary>
         /// The direction of this <see cref="Line"/>.
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// Intersects this line with another.
         /// </summary>
-        /// <param name="otherStart">The start point of the other line to intsersect with.</param>
+        /// <param name="otherStart">The start point of the other line to intersect with.</param>
         /// <param name="otherEnd">The end point of the other line to intersect with.</param>
         /// <param name="distance">The distance along this line at which the intersection occurs. To compute the point of intersection, <see cref="At"/>.</param>
         /// <returns>Whether the two lines intersect. An intersection may occur even if the two lines don't touch, at which point the parameter will be outside the [0, 1] range.</returns>

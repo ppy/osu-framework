@@ -4,14 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.MathUtils;
+using osu.Framework.Layout;
+using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osuTK;
 using osuTK.Input;
@@ -54,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer.Children;
 
         protected readonly Direction Direction;
 
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box background;
 
-        private Cached sizeCache = new Cached();
+        private readonly LayoutValue sizeCache = new LayoutValue(Invalidation.RequiredParentSizeToFit, InvalidationSource.Child);
 
         private readonly Container<Menu> submenuContainer;
 
@@ -122,6 +123,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             // The menu will provide a valid size for the items container based on our own size
             ItemsContainer.RelativeSizeAxes = Axes.Both & ~ItemsContainer.AutoSizeAxes;
+
+            AddLayout(sizeCache);
         }
 
         protected override void LoadComplete()
@@ -236,16 +239,23 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case MenuState.Closed:
                     AnimateClose();
+
+                    if (HasFocus)
+                        GetContainingInputManager()?.ChangeFocus(parentMenu);
                     break;
 
                 case MenuState.Open:
                     AnimateOpen();
+
+                    // We may not be present at this point, so must run on the next frame.
                     if (!TopLevelMenu)
-                        // We may not be present at this point, so must run on the next frame.
+                    {
                         Schedule(delegate
                         {
                             if (State == MenuState.Open) GetContainingInputManager().ChangeFocus(this);
                         });
+                    }
+
                     break;
             }
 
@@ -325,13 +335,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected virtual void AnimateClose() => Hide();
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source = null)
-        {
-            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
-                sizeCache.Invalidate();
-            base.InvalidateFromChild(invalidation, source);
-        }
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -360,8 +363,8 @@ namespace osu.Framework.Graphics.UserInterface
                 height = Math.Min(MaxHeight, height);
 
                 // Regardless of the above result, if we are relative-sizing, just use the stored width/height
-                width = RelativeSizeAxes.HasFlag(Axes.X) ? Width : width;
-                height = RelativeSizeAxes.HasFlag(Axes.Y) ? Height : height;
+                width = RelativeSizeAxes.HasFlagFast(Axes.X) ? Width : width;
+                height = RelativeSizeAxes.HasFlagFast(Axes.Y) ? Height : height;
 
                 if (State == MenuState.Closed && Direction == Direction.Horizontal)
                     width = 0;
@@ -395,8 +398,10 @@ namespace osu.Framework.Graphics.UserInterface
             // Check if there is a sub menu to display
             if (item.Item.Items?.Count == 0)
             {
-                // This item must have attempted to invoke an action - close all menus
-                closeAll();
+                // This item must have attempted to invoke an action - close all menus if item allows
+                if (item.CloseMenuOnClick)
+                    closeAll();
+
                 return;
             }
 
@@ -477,6 +482,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        public override bool HandleNonPositionalInput => State == MenuState.Open;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (e.Key == Key.Escape && !TopLevelMenu)
@@ -519,7 +526,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsHovered || (parentMenu?.IsHovered ?? false)) return;
 
-            if (triggeringItem?.Items?.Contains(source) ?? false)
+            if (triggeringItem?.Items?.Contains(source) ?? triggeringItem == null)
             {
                 Close();
                 parentMenu?.closeFromChild(triggeringItem);
@@ -531,7 +538,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
-        /// <returns></returns>
         protected abstract Menu CreateSubMenu();
 
         /// <summary>
@@ -588,6 +594,11 @@ namespace osu.Framework.Graphics.UserInterface
             /// The foreground of this <see cref="DrawableMenuItem"/>. This contains the content of this <see cref="DrawableMenuItem"/>.
             /// </summary>
             protected readonly Container Foreground;
+
+            /// <summary>
+            /// Whether to close all menus when this action <see cref="DrawableMenuItem"/> is clicked.
+            /// </summary>
+            public virtual bool CloseMenuOnClick => true;
 
             protected DrawableMenuItem(MenuItem item)
             {

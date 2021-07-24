@@ -2,13 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
-using System.Collections.Generic;
-using System.Diagnostics;
-using osu.Framework.MathUtils;
+using osu.Framework.Timing;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -39,12 +37,18 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private readonly Lazy<SortedList<Transform>> transformsLazy = new Lazy<SortedList<Transform>>(() => new SortedList<Transform>(Transform.COMPARER));
-
         /// <summary>
         /// A lazily-initialized list of <see cref="Transform"/>s applied to this object.
         /// </summary>
-        public IReadOnlyList<Transform> Transforms => transformsLazy.IsValueCreated ? (IReadOnlyList<Transform>)transformsLazy.Value : Array.Empty<Transform>();
+        public IEnumerable<Transform> Transforms => targetGroupingTrackers.SelectMany(t => t.Transforms);
+
+        /// <summary>
+        /// Retrieves the <see cref="Transform"/>s for a given target member.
+        /// </summary>
+        /// <param name="targetMember">The target member to find the <see cref="Transform"/>s for.</param>
+        /// <returns>An enumeration over the transforms for the target member.</returns>
+        public IEnumerable<Transform> TransformsForTargetMember(string targetMember) =>
+            getTrackerFor(targetMember)?.Transforms ?? Enumerable.Empty<Transform>();
 
         /// <summary>
         /// The end time in milliseconds of the latest transform enqueued for this <see cref="Transformable"/>.
@@ -56,9 +60,12 @@ namespace osu.Framework.Graphics.Transforms
             {
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
+
                 foreach (Transform t in Transforms)
+                {
                     if (t.EndTime > max)
                         max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                }
 
                 return max;
             }
@@ -78,163 +85,51 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms(Time.Current);
         }
 
-        private readonly Lazy<List<Action>> removalActions = new Lazy<List<Action>>(() => new List<Action>());
-
         private double lastUpdateTransformsTime;
+
+        private readonly List<TargetGroupingTransformTracker> targetGroupingTrackers = new List<TargetGroupingTransformTracker>();
+
+        private TargetGroupingTransformTracker getTrackerFor(string targetMember)
+        {
+            foreach (var t in targetGroupingTrackers)
+            {
+                if (t.TargetMembers.Contains(targetMember))
+                    return t;
+            }
+
+            return null;
+        }
+
+        private TargetGroupingTransformTracker getTrackerForGrouping(string targetGrouping, bool createIfNotExisting)
+        {
+            foreach (var t in targetGroupingTrackers)
+            {
+                if (t.TargetGrouping == targetGrouping)
+                    return t;
+            }
+
+            if (!createIfNotExisting)
+                return null;
+
+            var tracker = new TargetGroupingTransformTracker(this, targetGrouping);
+            targetGroupingTrackers.Add(tracker);
+            return tracker;
+        }
 
         /// <summary>
         /// Process updates to this class based on loaded <see cref="Transform"/>s. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on <see cref="Transform"/>s when new <see cref="Transform"/>s are added.
         /// </summary>
-        private void updateTransforms(double time)
+        /// <param name="time">The point in time to update transforms to.</param>
+        /// <param name="forceRewindReprocess">Whether prior transforms should be reprocessed even if a rewind was not detected.</param>
+        private void updateTransforms(double time, bool forceRewindReprocess = false)
         {
-            bool rewinding = lastUpdateTransformsTime > time;
+            bool rewinding = lastUpdateTransformsTime > time || forceRewindReprocess;
             lastUpdateTransformsTime = time;
 
-            if (!transformsLazy.IsValueCreated)
-                return;
-
-            var transforms = transformsLazy.Value;
-
-            if (rewinding && !RemoveCompletedTransforms)
-            {
-                var appliedToEndReverts = new List<string>();
-
-                // Under the case that completed transforms are not removed, reversing the clock is permitted.
-                // We need to first look back through all the transforms and apply the start values of the ones that were previously
-                // applied, but now exist in the future relative to the current time.
-                for (int i = transforms.Count - 1; i >= 0; i--)
-                {
-                    var t = transforms[i];
-
-                    // rewind logic needs to only run on transforms which have been applied at least once.
-                    if (!t.Applied)
-                        continue;
-
-                    // some specific transforms can be marked as non-rewindable.
-                    if (!t.Rewindable)
-                        continue;
-
-                    if (time >= t.StartTime)
-                    {
-                        // we are in the middle of this transform, so we want to mark as not-completely-applied.
-                        // note that we should only do this for the last transform of each TargetMemeber to avoid incorrect application order.
-                        // the actual application will be in the main loop below now that AppliedToEnd is false.
-                        if (!appliedToEndReverts.Contains(t.TargetMember))
-                        {
-                            if (time < t.EndTime)
-                                t.AppliedToEnd = false;
-                            appliedToEndReverts.Add(t.TargetMember);
-                        }
-                    }
-                    else
-                    {
-                        // we are before the start time of this transform, so we want to eagerly apply the value at current time and mark as not-yet-applied.
-                        // this transform will not be applied again unless we play forward in the future.
-                        t.Apply(time);
-                        t.Applied = false;
-                        t.AppliedToEnd = false;
-                    }
-                }
-            }
-
-            for (int i = 0; i < transforms.Count; ++i)
-            {
-                var t = transforms[i];
-
-                var tCanRewind = !RemoveCompletedTransforms && t.Rewindable;
-
-                if (time < t.StartTime)
-                    break;
-
-                if (!t.Applied)
-                {
-                    // This is the first time we are updating this transform.
-                    // We will find other still active transforms which act on the same target member and remove them.
-                    // Since following transforms acting on the same target member are immediately removed when a
-                    // new one is added, we can be sure that previous transforms were added before this one and can
-                    // be safely removed.
-                    for (int j = 0; j < i; ++j)
-                    {
-                        var u = transforms[j];
-                        if (u.TargetMember != t.TargetMember) continue;
-
-                        if (!u.AppliedToEnd)
-                            // we may have applied the existing transforms too far into the future.
-                            // we want to prepare to potentially read into the newly activated transform's StartTime,
-                            // so we should re-apply using its StartTime as a basis.
-                            u.Apply(t.StartTime);
-
-                        if (!tCanRewind)
-                        {
-                            transforms.RemoveAt(j--);
-                            i--;
-
-                            if (u.OnAbort != null)
-                                removalActions.Value.Add(u.OnAbort);
-                        }
-                        else
-                            u.AppliedToEnd = true;
-                    }
-                }
-
-                if (!t.HasStartValue)
-                {
-                    t.ReadIntoStartValue();
-                    t.HasStartValue = true;
-                }
-
-                if (!t.AppliedToEnd)
-                {
-                    t.Apply(time);
-
-                    t.AppliedToEnd = time >= t.EndTime;
-
-                    if (t.AppliedToEnd)
-                    {
-                        if (!tCanRewind)
-                            transforms.RemoveAt(i--);
-
-                        if (t.IsLooping)
-                        {
-                            if (tCanRewind)
-                            {
-                                t.IsLooping = false;
-                                t = t.Clone();
-                            }
-
-                            t.AppliedToEnd = false;
-                            t.Applied = false;
-                            t.HasStartValue = false;
-
-                            t.IsLooping = true;
-
-                            t.StartTime += t.LoopDelay;
-                            t.EndTime += t.LoopDelay;
-
-                            // this could be added back at a lower index than where we are currently iterating, but
-                            // running the same transform twice isn't a huge deal.
-                            transforms.Add(t);
-                        }
-                        else if (t.OnComplete != null)
-                            removalActions.Value.Add(t.OnComplete);
-                    }
-                }
-            }
-
-            invokePendingRemovalActions();
-        }
-
-        private void invokePendingRemovalActions()
-        {
-            if (removalActions.IsValueCreated && removalActions.Value.Count > 0)
-            {
-                var toRemove = removalActions.Value.ToArray();
-                removalActions.Value.Clear();
-
-                foreach (var action in toRemove)
-                    action();
-            }
+            // collection may grow due to abort / completion events.
+            for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                targetGroupingTrackers[i].UpdateTransforms(time, rewinding);
         }
 
         /// <summary>
@@ -243,8 +138,9 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
         public void RemoveTransform(Transform toRemove)
         {
-            if (!transformsLazy.IsValueCreated || !transformsLazy.Value.Remove(toRemove))
-                return;
+            EnsureTransformMutationAllowed();
+
+            getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
             toRemove.OnAbort?.Invoke();
         }
@@ -257,7 +153,12 @@ namespace osu.Framework.Graphics.Transforms
         /// An optional <see cref="Transform.TargetMember"/> name of <see cref="Transform"/>s to clear.
         /// Null for clearing all <see cref="Transform"/>s.
         /// </param>
-        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null) => ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        public virtual void ClearTransforms(bool propagateChildren = false, string targetMember = null)
+        {
+            EnsureTransformMutationAllowed();
+
+            ClearTransformsAfter(double.NegativeInfinity, propagateChildren, targetMember);
+        }
 
         /// <summary>
         /// Removes <see cref="Transform"/>s that start after <paramref name="time"/>.
@@ -270,24 +171,18 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void ClearTransformsAfter(double time, bool propagateChildren = false, string targetMember = null)
         {
-            if (!transformsLazy.IsValueCreated)
-                return;
+            EnsureTransformMutationAllowed();
 
-            Transform[] toAbort;
-
-            if (targetMember == null)
+            if (targetMember != null)
             {
-                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time).ToArray();
-                transformsLazy.Value.RemoveAll(t => t.StartTime >= time);
+                getTrackerFor(targetMember)?.ClearTransformsAfter(time, targetMember);
             }
             else
             {
-                toAbort = transformsLazy.Value.Where(t => t.StartTime >= time && t.TargetMember == targetMember).ToArray();
-                transformsLazy.Value.RemoveAll(t => t.StartTime >= time && t.TargetMember == targetMember);
+                // collection may grow due to abort / completion events.
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].ClearTransformsAfter(time);
             }
-
-            foreach (var t in toAbort)
-                t.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -300,6 +195,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="propagateChildren">Whether to also apply children's <see cref="Transform"/>s at <paramref name="time"/>.</param>
         public virtual void ApplyTransformsAt(double time, bool propagateChildren = false)
         {
+            EnsureTransformMutationAllowed();
+
             if (RemoveCompletedTransforms) throw new InvalidOperationException($"Cannot arbitrarily apply transforms with {nameof(RemoveCompletedTransforms)} active.");
 
             updateTransforms(time);
@@ -315,24 +212,17 @@ namespace osu.Framework.Graphics.Transforms
         /// </param>
         public virtual void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            if (!transformsLazy.IsValueCreated)
-                return;
+            EnsureTransformMutationAllowed();
 
-            Func<Transform, bool> toFlushPredicate;
-            if (targetMember == null)
-                toFlushPredicate = t => !t.IsLooping;
-            else
-                toFlushPredicate = t => !t.IsLooping && t.TargetMember == targetMember;
-
-            // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Value.Where(toFlushPredicate).ToArray();
-
-            transformsLazy.Value.RemoveAll(t => toFlushPredicate(t));
-
-            foreach (Transform t in toFlush)
+            if (targetMember != null)
             {
-                t.Apply(t.EndTime);
-                t.OnComplete?.Invoke();
+                getTrackerFor(targetMember)?.FinishTransforms(targetMember);
+            }
+            else
+            {
+                // collection may grow due to abort / completion events.
+                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                    targetGroupingTrackers[i].FinishTransforms();
             }
         }
 
@@ -348,59 +238,93 @@ namespace osu.Framework.Graphics.Transforms
         /// Start a sequence of <see cref="Transform"/>s with a (cumulative) relative delay applied.
         /// </summary>
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
-        /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
-        public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
+        /// <param name="recursive">Whether this should be applied to all children. True by default.</param>
+        /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
+        public IDisposable BeginDelayedSequence(double delay, bool recursive = true)
         {
+            EnsureTransformMutationAllowed();
+
             if (delay == 0)
                 return null;
 
             AddDelay(delay, recursive);
             double newTransformDelay = TransformDelay;
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<DelayedSequenceSender>(new DelayedSequenceSender(this, delay, recursive, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
+                {
                     throw new InvalidOperationException(
-                        $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformDelay} end={TransformDelay})");
+                        $"{nameof(sender.Transformable.TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
+                }
 
-                AddDelay(-delay, recursive);
+                AddDelay(-sender.Delay, sender.Recursive);
             });
+        }
+
+        /// An ad-hoc struct used as a closure environment in <see cref="BeginDelayedSequence" />.
+        private readonly struct DelayedSequenceSender
+        {
+            public readonly Transformable Transformable;
+            public readonly double Delay;
+            public readonly bool Recursive;
+            public readonly double NewTransformDelay;
+
+            public DelayedSequenceSender(Transformable transformable, double delay, bool recursive, double newTransformDelay)
+            {
+                Transformable = transformable;
+                Delay = delay;
+                Recursive = recursive;
+                NewTransformDelay = newTransformDelay;
+            }
         }
 
         /// <summary>
         /// Start a sequence of <see cref="Transform"/>s from an absolute time value (adjusts <see cref="TransformStartTime"/>).
         /// </summary>
         /// <param name="newTransformStartTime">The new value for <see cref="TransformStartTime"/>.</param>
-        /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
+        /// <param name="recursive">Whether this should be applied to all children. True by default.</param>
+        /// <returns>An <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public virtual InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
+        public virtual IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
+            EnsureTransformMutationAllowed();
+
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            return new InvokeOnDisposal(() =>
+            return new ValueInvokeOnDisposal<AbsoluteSequenceSender>(new AbsoluteSequenceSender(this, oldTransformDelay, newTransformDelay), sender =>
             {
-                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
+                if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
+                {
                     throw new InvalidOperationException(
-                        $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformDelay} end={TransformDelay})");
+                        $"{nameof(sender.Transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
+                }
 
-                TransformDelay = oldTransformDelay;
+                sender.Transformable.TransformDelay = sender.OldTransformDelay;
             });
         }
 
-        /// <summary>
-        /// Used to assign a monotonically increasing ID to <see cref="Transform"/>s as they are added. This member is
-        /// incremented whenever a <see cref="Transform"/> is added.
-        /// </summary>
-        private ulong currentTransformID;
+        /// An ad-hoc struct used as a closure environment in <see cref="BeginAbsoluteSequence" />.
+        private readonly struct AbsoluteSequenceSender
+        {
+            public readonly Transformable Transformable;
+            public readonly double OldTransformDelay;
+            public readonly double NewTransformDelay;
+
+            public AbsoluteSequenceSender(Transformable transformable, double oldTransformDelay, double newTransformDelay)
+            {
+                Transformable = transformable;
+                OldTransformDelay = oldTransformDelay;
+                NewTransformDelay = newTransformDelay;
+            }
+        }
 
         /// <summary>
         /// Adds to this object a <see cref="Transform"/> which was previously populated using this object via
-        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TThis}(TThis, Transform{TValue, TThis}, TValue, double, Easing)"/>.
+        /// <see cref="TransformableExtensions.PopulateTransform{TValue, TEasing, TThis}"/>.
         /// Added <see cref="Transform"/>s are immediately applied, and therefore have an immediate effect on this object if the current time of this
         /// object falls within <see cref="Transform.StartTime"/> and <see cref="Transform.EndTime"/>.
         /// If <see cref="Clock"/> is null, e.g. because this object has just been constructed, then the given transform will be finished instantaneously.
@@ -409,51 +333,45 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="customTransformID">When not null, the <see cref="Transform.TransformID"/> to assign for ordering.</param>
         public void AddTransform(Transform transform, ulong? customTransformID = null)
         {
+            EnsureTransformMutationAllowed();
+
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
             if (!ReferenceEquals(transform.TargetTransformable, this))
+            {
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
                     "using this object prior to being added.");
+            }
 
             if (Clock == null)
             {
+                if (!transform.HasStartValue)
+                {
+                    transform.ReadIntoStartValue();
+                    transform.HasStartValue = true;
+                }
+
                 transform.Apply(transform.EndTime);
                 transform.OnComplete?.Invoke();
                 return;
             }
 
-            var transforms = transformsLazy.Value;
-
-            Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
-
-            // This contains check may be optimized away in the future, should it become a bottleneck
-            if (transform.TransformID != 0 && transforms.Contains(transform))
-                throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
-
-            transform.TransformID = customTransformID ?? ++currentTransformID;
-            int insertionIndex = transforms.Add(transform);
-
-            // Remove all existing following transforms touching the same property as this one.
-            for (int i = insertionIndex + 1; i < transforms.Count; ++i)
-            {
-                var t = transforms[i];
-
-                if (t.TargetMember == transform.TargetMember)
-                {
-                    transforms.RemoveAt(i--);
-                    if (t.OnAbort != null)
-                        removalActions.Value.Add(t.OnAbort);
-                }
-            }
-
-            invokePendingRemovalActions();
+            getTrackerForGrouping(transform.TargetGrouping, true).AddTransform(transform, customTransformID);
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
+            // This is done globally instead of locally in the single member tracker
+            // to keep the transformable's state consistent (e.g. with lastUpdateTransformsTime)
             if (transform.StartTime < Time.Current || transform.EndTime <= Time.Current)
-                updateTransforms(Time.Current);
+                updateTransforms(Time.Current, !RemoveCompletedTransforms && transform.StartTime <= Time.Current);
         }
+
+        /// <summary>
+        /// Check whether the current thread is valid for operating on thread-safe properties.
+        /// Will throw on failure.
+        /// </summary>
+        internal abstract void EnsureTransformMutationAllowed();
     }
 }
