@@ -380,6 +380,38 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("popover hidden", () => !this.ChildrenOfType<Popover>().Any());
         }
 
+        [Test]
+        public void TestPopoverCleanupOnTargetDisposal()
+        {
+            DrawableWithPopover target = null;
+
+            AddStep("add button", () => popoverContainer.Child = target = new DrawableWithPopover
+            {
+                Width = 200,
+                Height = 30,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Text = "open",
+                CreateContent = _ => new BasicPopover
+                {
+                    Child = new SpriteText
+                    {
+                        Text = "This popover should be cleaned up when its button is removed",
+                    }
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(target);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("dispose of button", () => popoverContainer.Clear());
+            AddUntilStep("no popover present", () => !this.ChildrenOfType<Popover>().Any());
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
