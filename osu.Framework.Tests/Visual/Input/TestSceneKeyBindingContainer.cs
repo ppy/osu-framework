@@ -171,9 +171,94 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("release received", () => releasedReceived);
         }
 
+        [Test]
+        public void TestSingleKeyRepeatEvents()
+        {
+            bool pressedReceived = false;
+            bool repeatedReceived = false;
+            bool releasedReceived = false;
+
+            AddStep("add container", () =>
+            {
+                pressedReceived = false;
+                repeatedReceived = false;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedReceived = a == TestAction.ActionA,
+                        Repeated = a => repeatedReceived = a == TestAction.ActionA,
+                        Released = a => releasedReceived = a == TestAction.ActionA
+                    }
+                };
+            });
+
+            AddStep("press A", () => InputManager.PressKey(Key.A));
+            AddAssert("press received", () => pressedReceived);
+
+            for (int i = 0; i < 10; i++)
+            {
+                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived);
+                AddStep("reset for next repeat", () => repeatedReceived = false);
+            }
+
+            AddStep("release A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("release received", () => releasedReceived);
+        }
+
+        [Test]
+        public void TestKeyCombinationRepeatEvents()
+        {
+            bool pressedReceived = false;
+            bool repeatedReceived = false;
+            bool releasedReceived = false;
+
+            AddStep("add container", () =>
+            {
+                pressedReceived = false;
+                repeatedReceived = false;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Child = new TestKeyBindingReceptor
+                    {
+                        Pressed = a => pressedReceived = a == TestAction.ActionAB,
+                        Repeated = a => repeatedReceived = a == TestAction.ActionAB,
+                        Released = a => releasedReceived = a == TestAction.ActionAB,
+                    }
+                };
+            });
+
+            AddStep("press A+B", () =>
+            {
+                InputManager.PressKey(Key.A);
+                InputManager.PressKey(Key.B);
+            });
+            AddAssert("press received", () => pressedReceived);
+
+            for (int i = 0; i < 10; i++)
+            {
+                AddUntilStep($"repeat #{1 + i} received", () => repeatedReceived);
+                AddStep("reset for next repeat", () => repeatedReceived = false);
+            }
+
+            AddStep("release A", () => InputManager.ReleaseKey(Key.A));
+            AddAssert("release received", () => releasedReceived);
+
+            AddStep("reset for potential repeat", () => repeatedReceived = false);
+            AddWaitStep("wait", 5);
+            AddAssert("no repeat received", () => !repeatedReceived);
+
+            AddStep("release B", () => InputManager.ReleaseKey(Key.B));
+        }
+
         private class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction> Pressed;
+            public Action<TestAction> Repeated;
             public Action<TestAction> Released;
 
             public TestKeyBindingReceptor()
@@ -183,7 +268,11 @@ namespace osu.Framework.Tests.Visual.Input
 
             public bool OnPressed(KeyBindingPressEvent<TestAction> e)
             {
-                Pressed?.Invoke(e.Action);
+                if (e.Repeat)
+                    Repeated?.Invoke(e.Action);
+                else
+                    Pressed?.Invoke(e.Action);
+
                 return true;
             }
 
@@ -195,6 +284,8 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
+            protected override bool SendRepeats => true;
+
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
                 new KeyBinding(InputKey.A, TestAction.ActionA),
