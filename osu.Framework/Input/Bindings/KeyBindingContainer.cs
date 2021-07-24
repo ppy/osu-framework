@@ -1,10 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -268,13 +268,13 @@ namespace osu.Framework.Input.Bindings
                 if (scrollAmount != 0)
                 {
                     var scrollEvent = new KeyBindingScrollEvent<T>(state, pressed, scrollAmount, isPrecise);
-                    handled = (Drawable)drawables.OfType<IScrollBindingHandler<T>>().FirstOrDefault(d => d.OnScroll(scrollEvent));
+                    handled = drawables.FirstOrDefault(d => triggerKeyBindingEvent(d, scrollEvent));
                 }
 
                 if (handled == null)
                 {
                     var pressEvent = new KeyBindingPressEvent<T>(state, pressed, repeat);
-                    handled = (Drawable)drawables.OfType<IKeyBindingHandler<T>>().FirstOrDefault(d => d.OnPressed(pressEvent));
+                    handled = drawables.FirstOrDefault(d => triggerKeyBindingEvent(d, pressEvent));
                 }
             }
 
@@ -295,7 +295,7 @@ namespace osu.Framework.Input.Bindings
                 var releaseEvent = new KeyBindingReleaseEvent<T>(state, action);
 
                 foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
-                    kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(releaseEvent));
+                    kvp.Value.ForEach(d => triggerKeyBindingEvent(d, releaseEvent));
             }
 
             pressedActions.Clear();
@@ -334,7 +334,7 @@ namespace osu.Framework.Input.Bindings
                 var releaseEvent = new KeyBindingReleaseEvent<T>(state, released);
 
                 foreach (var d in drawables.OfType<IKeyBindingHandler<T>>())
-                    d.OnReleased(releaseEvent);
+                    triggerKeyBindingEvent(d, releaseEvent);
 
                 pressedActions.Remove(released);
             }
@@ -363,6 +363,27 @@ namespace osu.Framework.Input.Bindings
                 currentQueue.AddRange(KeyBindingInputQueue);
 
             return currentQueue;
+        }
+
+        private bool triggerKeyBindingEvent(IDrawable drawable, KeyBindingEvent<T> e)
+        {
+            e.Target = (Drawable)drawable;
+
+            switch (e)
+            {
+                case KeyBindingPressEvent<T> press:
+                    return (drawable as IKeyBindingHandler<T>)?.OnPressed(press) ?? false;
+
+                case KeyBindingReleaseEvent<T> release:
+                    (drawable as IKeyBindingHandler<T>)?.OnReleased(release);
+                    return false;
+
+                case KeyBindingScrollEvent<T> scroll:
+                    return (drawable as IScrollBindingHandler<T>)?.OnScroll(scroll) ?? false;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(e));
+            }
         }
     }
 
