@@ -5,6 +5,10 @@ using osu.Framework.Input.States;
 
 namespace osu.Framework.Input.Events
 {
+    /// <summary>
+    /// An event representing a press of a key binding combination.
+    /// </summary>
+    /// <typeparam name="T">The action type.</typeparam>
     public class KeyBindingPressEvent<T> : KeyBindingEvent<T> where T : struct
     {
         public readonly bool Repeat;
