@@ -412,6 +412,50 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("no popover present", () => !this.ChildrenOfType<Popover>().Any());
         }
 
+        [Test]
+        public void TestPopoverEventHandling()
+        {
+            EventHandlingContainer eventHandlingContainer = null;
+            DrawableWithPopover target = null;
+
+            AddStep("add button", () => popoverContainer.Child = eventHandlingContainer = new EventHandlingContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = target = new DrawableWithPopover
+                {
+                    Width = 200,
+                    Height = 30,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Text = "open",
+                    CreateContent = _ => new BasicPopover
+                    {
+                        Child = new SpriteText
+                        {
+                            Text = "This popover should be handle hover and click events",
+                        }
+                    }
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(target);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("mouse over popover", () =>
+            {
+                eventHandlingContainer.Reset();
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().Single().Body);
+            });
+            AddAssert("container did not receive hover", () => !eventHandlingContainer.HoverReceived);
+
+            AddStep("click on popover", () => InputManager.Click(MouseButton.Left));
+            AddAssert("container did not receive click", () => !eventHandlingContainer.ClickReceived);
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
@@ -505,6 +549,29 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = "the text box has focus now!"
                 }
             };
+        }
+
+        private class EventHandlingContainer : Container
+        {
+            public bool ClickReceived { get; private set; }
+            public bool HoverReceived { get; private set; }
+
+            public void Reset()
+            {
+                ClickReceived = HoverReceived = false;
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                ClickReceived = true;
+                return true;
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                HoverReceived = true;
+                return true;
+            }
         }
     }
 }
