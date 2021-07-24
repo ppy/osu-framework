@@ -184,7 +184,7 @@ namespace osu.Framework.Tests.Visual.Input
                 repeatedReceived = false;
                 releasedReceived = false;
 
-                Child = new TestKeyBindingContainer
+                Child = new TestKeyBindingContainer(true)
                 {
                     Child = new TestKeyBindingReceptor
                     {
@@ -221,7 +221,7 @@ namespace osu.Framework.Tests.Visual.Input
                 repeatedReceived = false;
                 releasedReceived = false;
 
-                Child = new TestKeyBindingContainer
+                Child = new TestKeyBindingContainer(true)
                 {
                     Child = new TestKeyBindingReceptor
                     {
@@ -284,7 +284,12 @@ namespace osu.Framework.Tests.Visual.Input
 
         private class TestKeyBindingContainer : KeyBindingContainer<TestAction>
         {
-            protected override bool SendRepeats => true;
+            protected override bool SendRepeats { get; }
+
+            public TestKeyBindingContainer(bool sendRepeats = false)
+            {
+                SendRepeats = sendRepeats;
+            }
 
             public override IEnumerable<IKeyBinding> DefaultKeyBindings => new IKeyBinding[]
             {
