@@ -285,8 +285,10 @@ namespace osu.Framework.Input.Bindings
         {
             foreach (var action in pressedActions)
             {
+                var releaseEvent = new KeyBindingReleaseEvent<T>(state, action);
+
                 foreach (var kvp in keyBindingQueues.Where(k => EqualityComparer<T>.Default.Equals(k.Key.GetAction<T>(), action)))
-                    kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(new KeyBindingReleaseEvent<T>(state, action)));
+                    kvp.Value.OfType<IKeyBindingHandler<T>>().ForEach(d => d.OnReleased(releaseEvent));
             }
 
             pressedActions.Clear();
@@ -322,8 +324,10 @@ namespace osu.Framework.Input.Bindings
             // - are the last pressed binding with this action
             if (simultaneousMode == SimultaneousBindingMode.All || pressedActions.Contains(released) && pressedBindings.All(b => !EqualityComparer<T>.Default.Equals(b.GetAction<T>(), released)))
             {
+                var releaseEvent = new KeyBindingReleaseEvent<T>(state, released);
+
                 foreach (var d in drawables.OfType<IKeyBindingHandler<T>>())
-                    d.OnReleased(new KeyBindingReleaseEvent<T>(state, released));
+                    d.OnReleased(releaseEvent);
 
                 pressedActions.Remove(released);
             }
