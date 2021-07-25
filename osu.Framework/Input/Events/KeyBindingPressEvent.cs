@@ -13,7 +13,7 @@ namespace osu.Framework.Input.Events
     {
         public readonly bool Repeat;
 
-        public KeyBindingPressEvent(InputState state, T action, bool repeat)
+        public KeyBindingPressEvent(InputState state, T action, bool repeat = false)
             : base(state, action)
         {
             Repeat = repeat;

@@ -452,7 +452,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("select all", () => textBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.SelectAll, false)));
+            AddStep("select all", () => textBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.SelectAll)));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
         }
@@ -517,7 +517,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
             AddStep("make first textbox readonly again", () => firstTextBox.ReadOnly = true);
             AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
-            AddStep("delete last character", () => firstTextBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.DeleteBackwardChar, false)));
+            AddStep("delete last character", () => firstTextBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.DeleteBackwardChar)));
             AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
         }
 
@@ -558,14 +558,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     DeletePreviousCharacter();
             }
 
-            public void MoveToStart() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.MoveBackwardLine, false));
-            public void MoveToEnd() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.MoveForwardLine, false));
+            public void MoveToStart() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.MoveBackwardLine));
+            public void MoveToEnd() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.MoveForwardLine));
 
-            public void DeletePreviousCharacter() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteBackwardChar, false));
-            public void DeleteNextCharacter() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteForwardChar, false));
+            public void DeletePreviousCharacter() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteBackwardChar));
+            public void DeleteNextCharacter() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteForwardChar));
 
-            public void DeletePreviousWord() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteBackwardWord, false));
-            public void DeleteNextWord() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteForwardWord, false));
+            public void DeletePreviousWord() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteBackwardWord));
+            public void DeleteNextWord() => OnPressed(new KeyBindingPressEvent<PlatformAction>(GetContainingInputManager().CurrentState, PlatformAction.DeleteForwardWord));
         }
 
         private class NumberTextBox : BasicTextBox

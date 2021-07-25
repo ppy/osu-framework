@@ -123,7 +123,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 // Ensure dequeued caret move event has selecting = false.
                 textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
 
-            AddStep("invoke select action to expand selection", () => textBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.SelectForwardChar, false)));
+            AddStep("invoke select action to expand selection", () => textBox.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.SelectForwardChar)));
             AddAssert("caret moved event", () =>
                 // Ensure dequeued caret move event has selecting = true.
                 textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);

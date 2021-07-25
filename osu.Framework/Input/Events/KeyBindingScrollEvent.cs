@@ -24,7 +24,7 @@ namespace osu.Framework.Input.Events
         /// </remarks>
         public readonly bool IsPrecise;
 
-        public KeyBindingScrollEvent(InputState state, T action, float amount, bool isPrecise)
+        public KeyBindingScrollEvent(InputState state, T action, float amount, bool isPrecise = false)
             : base(state, action)
         {
             ScrollAmount = amount;
