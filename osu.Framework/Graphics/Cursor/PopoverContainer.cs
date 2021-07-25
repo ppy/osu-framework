@@ -7,6 +7,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -17,6 +18,7 @@ namespace osu.Framework.Graphics.Cursor
     public class PopoverContainer : Container
     {
         private readonly Container content;
+        private readonly Container dismissOnMouseDownContainer;
 
         private IHasPopover? target;
         private Popover? currentPopover;
@@ -31,6 +33,10 @@ namespace osu.Framework.Graphics.Cursor
                 {
                     RelativeSizeAxes = Axes.Both,
                 },
+                dismissOnMouseDownContainer = new DismissOnMouseDownContainer
+                {
+                    RelativeSizeAxes = Axes.Both
+                }
             };
         }
 
@@ -59,7 +65,7 @@ namespace osu.Framework.Graphics.Cursor
             if (target is Drawable newDrawableTarget)
                 newDrawableTarget.OnDispose += onTargetDisposed;
 
-            AddInternal(currentPopover = newPopover);
+            dismissOnMouseDownContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
             return true;
         }
@@ -197,6 +203,15 @@ namespace osu.Framework.Graphics.Cursor
 
             if (target is Drawable drawableTarget)
                 drawableTarget.OnDispose -= onTargetDisposed;
+        }
+
+        private class DismissOnMouseDownContainer : Container
+        {
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                this.HidePopover();
+                return false;
+            }
         }
     }
 }
