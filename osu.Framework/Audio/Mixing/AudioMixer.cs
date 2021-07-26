@@ -3,8 +3,6 @@
 
 #nullable enable
 
-using System;
-using System.Threading.Tasks;
 using ManagedBass;
 
 namespace osu.Framework.Audio.Mixing
@@ -72,7 +70,5 @@ namespace osu.Framework.Audio.Mixing
         protected abstract void AddInternal(IAudioChannel channel);
 
         protected abstract void RemoveInternal(IAudioChannel channel);
-
-        internal new Task EnqueueAction(Action action) => base.EnqueueAction(action);
     }
 }
