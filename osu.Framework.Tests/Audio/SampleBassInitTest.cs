@@ -49,8 +49,6 @@ namespace osu.Framework.Tests.Audio
 
             Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
             Bass.Init(0);
-
-            mixer.UpdateDevice(0);
         }
 
         [TearDown]
