@@ -23,8 +23,8 @@ namespace osu.Framework.Tests.Audio
         public void Setup()
         {
             pipeline = new TestBassAudioPipeline();
+            track = pipeline.GetTrack();
 
-            track = (TrackBass)pipeline.TrackStore.Get("Resources.Tracks.sample-track.mp3");
             pipeline.Update();
         }
 

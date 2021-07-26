@@ -34,7 +34,7 @@ namespace osu.Framework.Tests.Audio
                 Init();
 
             scheduler = new Scheduler();
-            Mixer = new BassAudioMixer(scheduler);
+            Mixer = CreateMixer();
 
             Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
             TrackStore = new TrackStore(Resources, Mixer);
@@ -53,6 +53,13 @@ namespace osu.Framework.Tests.Audio
         }
 
         public void Add(params AudioComponent[] component) => components.AddRange(component);
+
+        public BassAudioMixer CreateMixer()
+        {
+            var mixer = new BassAudioMixer(scheduler);
+            components.Insert(0, mixer);
+            return mixer;
+        }
 
         public void Update()
         {
@@ -83,5 +90,8 @@ namespace osu.Framework.Tests.Audio
             if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
                 throw new TimeoutException();
         }
+
+        internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
+        internal SampleBass GetSample() => (SampleBass)SampleStore.Get("Resources.Tracks.sample-track.mp3");
     }
 }

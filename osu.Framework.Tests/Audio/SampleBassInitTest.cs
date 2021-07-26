@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Audio
         public void Setup()
         {
             pipeline = new TestBassAudioPipeline(false);
-            sample = pipeline.SampleStore.Get("Resources.Tracks.sample-track.mp3");
+            sample = pipeline.GetSample();
 
             pipeline.Update();
             pipeline.Init();
