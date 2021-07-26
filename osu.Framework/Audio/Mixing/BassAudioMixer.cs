@@ -69,6 +69,8 @@ namespace osu.Framework.Audio.Mixing
 
         protected override void AddInternal(IAudioChannel channel)
         {
+            Debug.Assert(CanPerformInline);
+
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
@@ -83,6 +85,8 @@ namespace osu.Framework.Audio.Mixing
 
         protected override void RemoveInternal(IAudioChannel channel)
         {
+            Debug.Assert(CanPerformInline);
+
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
@@ -99,22 +103,20 @@ namespace osu.Framework.Audio.Mixing
 
         void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
         {
-            Trace.Assert(channel.Handle != 0);
+            Debug.Assert(CanPerformInline);
+            Debug.Assert(channel.Handle != 0);
 
-            channel.EnqueueAction(() =>
-            {
-                if (Handle == 0)
-                    return;
+            if (Handle == 0)
+                return;
 
-                if (!mixedChannels.Contains(channel))
-                    throw new InvalidOperationException("Channel needs to be added to the mixer first.");
+            if (!mixedChannels.Contains(channel))
+                throw new InvalidOperationException("Channel needs to be added to the mixer first.");
 
-                BassFlags flags = BassFlags.MixerChanBuffer;
-                if (channel.MixerChannelPaused)
-                    flags |= BassFlags.MixerChanPause;
+            BassFlags flags = BassFlags.MixerChanBuffer;
+            if (channel.MixerChannelPaused)
+                flags |= BassFlags.MixerChanPause;
 
-                BassMix.MixerAddChannel(Handle, channel.Handle, flags);
-            });
+            BassMix.MixerAddChannel(Handle, channel.Handle, flags);
         }
 
         bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
