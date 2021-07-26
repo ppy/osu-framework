@@ -238,8 +238,7 @@ namespace osu.Framework.Audio.Track
             if (activeStream != 0)
             {
                 isRunning = false;
-                bassMixer.Remove(this);
-                Bass.StreamFree(activeStream);
+                bassMixer.StreamFree(this);
             }
 
             activeStream = 0;

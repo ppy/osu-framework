@@ -86,6 +86,15 @@ namespace osu.Framework.Tests.Audio
             pipeline.Update();
         }
 
+        [Test]
+        public void TestFreedChannelRemovedFromDefault()
+        {
+            track.Dispose();
+            pipeline.Update();
+
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.Zero);
+        }
+
         private int getHandle() => ((IBassAudioChannel)track).Handle;
     }
 }

@@ -4,6 +4,7 @@
 #nullable enable
 
 using ManagedBass;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -32,7 +33,7 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 // Ensure the channel is removed from its current mixer.
-                channel.Mixer?.removeUnsafe(channel);
+                channel.Mixer?.Remove(channel, false);
 
                 AddInternal(channel);
 
@@ -40,10 +41,12 @@ namespace osu.Framework.Audio.Mixing
             });
         }
 
-        public void Remove(IAudioChannel channel)
+        public void Remove(IAudioChannel channel) => Remove(channel, true);
+
+        protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (defaultMixer == null)
+            if (returnToDefault && defaultMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -51,17 +54,13 @@ namespace osu.Framework.Audio.Mixing
                 if (channel.Mixer != this)
                     return;
 
-                removeUnsafe(channel);
+                RemoveInternal(channel);
 
                 // Add the channel back to the default mixer so audio can always be played.
-                defaultMixer.Add(channel);
+                if (returnToDefault)
+                    defaultMixer.AsNonNull().Add(channel);
             });
         }
-
-        /// <summary>
-        /// Removes a channel from the mixer, bypassing all sanity checks.
-        /// </summary>
-        private void removeUnsafe(IAudioChannel channel) => RemoveInternal(channel);
 
         public abstract void AddEffect(IEffectParameter effect, int priority);
 

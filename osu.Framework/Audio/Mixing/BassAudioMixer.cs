@@ -151,6 +151,15 @@ namespace osu.Framework.Audio.Mixing
 
         bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
 
+        public void StreamFree(IBassAudioChannel channel)
+        {
+            Debug.Assert(CanPerformInline);
+            Debug.Assert(channel.Handle != 0);
+
+            Remove(channel, false);
+            Bass.StreamFree(channel.Handle);
+        }
+
         public void UpdateDevice(int deviceIndex)
         {
             if (Handle == 0)

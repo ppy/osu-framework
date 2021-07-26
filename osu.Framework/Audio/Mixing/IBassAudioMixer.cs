@@ -61,5 +61,11 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="mode">The mode in which to interpret the given position.</param>
         /// <returns>Whether the channel position was set successfully.</returns>
         bool SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode = PositionFlags.Bytes);
+
+        /// <summary>
+        /// Frees a mixed channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
+        void StreamFree(IBassAudioChannel channel);
     }
 }
