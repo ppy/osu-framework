@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Threading.Tasks;
 using ManagedBass;
@@ -12,13 +14,25 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
+        private readonly AudioMixer? defaultMixer;
+
+        /// <summary>
+        /// Creates a new <see cref="AudioMixer"/>.
+        /// </summary>
+        /// <param name="defaultMixer">The default <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s will be moved to if removed from this one.
+        /// A <c>null</c> value indicates the default <see cref="AudioMixer"/>.</param>
+        protected AudioMixer(AudioMixer? defaultMixer)
+        {
+            this.defaultMixer = defaultMixer;
+        }
+
         public void Add(IAudioChannel channel)
         {
             if (channel.Mixer == this)
                 return;
 
             // Ensure the channel is removed from its current mixer.
-            channel.Mixer?.Remove(channel);
+            channel.Mixer?.removeUnsafe(channel);
 
             AddInternal(channel);
             channel.Mixer = this;
@@ -29,9 +43,20 @@ namespace osu.Framework.Audio.Mixing
             if (channel.Mixer != this)
                 return;
 
-            RemoveInternal(channel);
-            channel.Mixer = null;
+            // If this is the default mixer, prevent removal.
+            if (defaultMixer == null)
+                return;
+
+            removeUnsafe(channel);
+
+            // Add the channel back to the default mixer so audio can always be played.
+            defaultMixer.Add(channel);
         }
+
+        /// <summary>
+        /// Removes a channel from the mixer, bypassing all sanity checks.
+        /// </summary>
+        private void removeUnsafe(IAudioChannel channel) => RemoveInternal(channel);
 
         public abstract void AddEffect(IEffectParameter effect, int priority);
 

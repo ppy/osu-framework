@@ -22,10 +22,7 @@ namespace osu.Framework.Audio.Sample
         /// The <see cref="SampleChannel"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
         protected SampleChannel(IAudioMixer defaultMixer)
         {
-            this.defaultMixer = defaultMixer;
-
             defaultMixer.Add(this);
-
             Debug.Assert(Mixer != null);
         }
 
@@ -68,14 +65,12 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        protected IAudioMixer Mixer { get; private set; }
+        protected AudioMixer Mixer { get; private set; }
 
-        private readonly IAudioMixer defaultMixer;
-
-        IAudioMixer? IAudioChannel.Mixer
+        AudioMixer? IAudioChannel.Mixer
         {
             get => Mixer;
-            set => Mixer = value ?? defaultMixer;
+            set => Mixer = value!; // Temporary null in the constructor, and never afterwards.
         }
 
         #endregion

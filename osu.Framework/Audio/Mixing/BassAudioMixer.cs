@@ -31,7 +31,13 @@ namespace osu.Framework.Audio.Mixing
 
         private const int frequency = 44100;
 
-        public BassAudioMixer(Scheduler scheduler)
+        /// <summary>
+        /// Creates a new <see cref="BassAudioMixer"/>.
+        /// </summary>
+        /// <param name="defaultMixer"><inheritdoc /></param>
+        /// <param name="scheduler">The <see cref="Scheduler"/> on which <see cref="IAudioChannel"/> additions and removals is scheduled to.</param>
+        public BassAudioMixer(AudioMixer? defaultMixer, Scheduler scheduler)
+            : base(defaultMixer)
         {
             this.scheduler = scheduler;
             EnqueueAction(createMixer);
