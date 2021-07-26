@@ -225,6 +225,8 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
             {
                 bassMixer.Remove(this);
+                Bass.StreamFree(channel);
+
                 channel = 0;
             }
 

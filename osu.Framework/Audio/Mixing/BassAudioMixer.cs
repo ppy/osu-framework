@@ -97,7 +97,6 @@ namespace osu.Framework.Audio.Mixing
                 return;
 
             bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
-
             BassMix.MixerRemoveChannel(bassChannel.Handle);
         }
 
