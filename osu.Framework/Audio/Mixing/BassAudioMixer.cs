@@ -20,11 +20,14 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
     {
+        /// <summary>
+        /// The handle for this mixer.
+        /// </summary>
+        public int Handle { get; private set; }
+
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
         private readonly Scheduler scheduler;
-
-        private int mixerHandle;
 
         private const int frequency = 44100;
 
@@ -58,7 +61,7 @@ namespace osu.Framework.Audio.Mixing
                 if (effectWithPriority.Handle == 0)
                     return;
 
-                Bass.ChannelRemoveFX(mixerHandle, effectWithPriority.Handle);
+                Bass.ChannelRemoveFX(Handle, effectWithPriority.Handle);
             });
         }
 
@@ -74,7 +77,7 @@ namespace osu.Framework.Audio.Mixing
 
                 mixedChannels.Add(bassChannel);
 
-                if (mixerHandle == 0 || bassChannel.Handle == 0)
+                if (Handle == 0 || bassChannel.Handle == 0)
                     return;
 
                 ((IBassAudioMixer)this).RegisterChannel(bassChannel);
@@ -91,7 +94,7 @@ namespace osu.Framework.Audio.Mixing
                 if (!mixedChannels.Remove(bassChannel))
                     return;
 
-                if (mixerHandle == 0 || bassChannel.Handle == 0)
+                if (Handle == 0 || bassChannel.Handle == 0)
                     return;
 
                 bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
@@ -106,7 +109,7 @@ namespace osu.Framework.Audio.Mixing
             Trace.Assert(CanPerformInline);
             Trace.Assert(channel.Handle != 0);
 
-            if (mixerHandle == 0)
+            if (Handle == 0)
                 return;
 
             if (!mixedChannels.Contains(channel))
@@ -116,7 +119,7 @@ namespace osu.Framework.Audio.Mixing
             if (channel.MixerChannelPaused)
                 flags |= BassFlags.MixerChanPause;
 
-            BassMix.MixerAddChannel(mixerHandle, channel.Handle, flags);
+            BassMix.MixerAddChannel(Handle, channel.Handle, flags);
             BassUtils.CheckFaulted(true);
         }
 
@@ -155,15 +158,15 @@ namespace osu.Framework.Audio.Mixing
 
         public void UpdateDevice(int deviceIndex)
         {
-            if (mixerHandle == 0)
+            if (Handle == 0)
                 createMixer();
             else
-                Bass.ChannelSetDevice(mixerHandle, deviceIndex);
+                Bass.ChannelSetDevice(Handle, deviceIndex);
         }
 
         private void createMixer()
         {
-            if (mixerHandle != 0)
+            if (Handle != 0)
                 return;
 
             // Make sure that bass is initialised before trying to create a mixer.
@@ -171,8 +174,8 @@ namespace osu.Framework.Audio.Mixing
             if (!Bass.GetDeviceInfo(Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
-            if (mixerHandle == 0)
+            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            if (Handle == 0)
                 return;
 
             // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
@@ -185,7 +188,7 @@ namespace osu.Framework.Audio.Mixing
             foreach (var effect in effects)
                 applyEffect(effect);
 
-            Bass.ChannelPlay(mixerHandle);
+            Bass.ChannelPlay(Handle);
         }
 
         private void applyEffect(EffectWithPriority effectWithPriority)
@@ -193,10 +196,10 @@ namespace osu.Framework.Audio.Mixing
             Debug.Assert(CanPerformInline);
             Debug.Assert(effectWithPriority.Handle == 0);
 
-            if (mixerHandle == 0)
+            if (Handle == 0)
                 return;
 
-            effectWithPriority.Handle = Bass.ChannelSetFX(mixerHandle, effectWithPriority.Effect.FXType, effectWithPriority.Priority);
+            effectWithPriority.Handle = Bass.ChannelSetFX(Handle, effectWithPriority.Effect.FXType, effectWithPriority.Priority);
             Bass.FXSetParameters(effectWithPriority.Handle, effectWithPriority.Effect);
         }
 
