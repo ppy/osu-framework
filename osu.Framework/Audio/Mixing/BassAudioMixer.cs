@@ -72,7 +72,7 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            Debug.Assert(mixedChannels.Contains(bassChannel));
+            Debug.Assert(!mixedChannels.Contains(bassChannel));
             mixedChannels.Add(bassChannel);
 
             if (Handle == 0 || bassChannel.Handle == 0)
