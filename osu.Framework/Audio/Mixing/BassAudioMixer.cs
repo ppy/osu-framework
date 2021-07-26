@@ -86,8 +86,8 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            bool removed = mixedChannels.Remove(bassChannel);
-            Debug.Assert(removed);
+            if (!mixedChannels.Remove(bassChannel))
+                return;
 
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
