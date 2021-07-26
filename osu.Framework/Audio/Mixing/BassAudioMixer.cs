@@ -106,7 +106,6 @@ namespace osu.Framework.Audio.Mixing
                 bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
 
                 BassMix.MixerRemoveChannel(bassChannel.Handle);
-                BassUtils.CheckFaulted(true);
             });
         }
 
@@ -126,7 +125,6 @@ namespace osu.Framework.Audio.Mixing
                 flags |= BassFlags.MixerChanPause;
 
             BassMix.MixerAddChannel(Handle, channel.Handle, flags);
-            BassUtils.CheckFaulted(true);
         }
 
         bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
