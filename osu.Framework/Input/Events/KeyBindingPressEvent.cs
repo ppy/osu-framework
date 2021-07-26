@@ -11,6 +11,9 @@ namespace osu.Framework.Input.Events
     /// <typeparam name="T">The action type.</typeparam>
     public class KeyBindingPressEvent<T> : KeyBindingEvent<T> where T : struct
     {
+        /// <summary>
+        /// Whether this is a repeated event resulted from a held keyboard key.
+        /// </summary>
         public readonly bool Repeat;
 
         public KeyBindingPressEvent(InputState state, T action, bool repeat = false)
