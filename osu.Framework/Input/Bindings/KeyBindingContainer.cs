@@ -382,7 +382,7 @@ namespace osu.Framework.Input.Bindings
                     return (drawable as IScrollBindingHandler<T>)?.OnScroll(scroll) ?? false;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(e));
+                    throw new ArgumentException("Invalid event type.", nameof(e));
             }
         }
     }
