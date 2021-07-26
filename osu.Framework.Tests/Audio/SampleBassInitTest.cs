@@ -1,54 +1,26 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
-using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
-using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Development;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Audio
 {
     [TestFixture]
     public class SampleBassInitTest
     {
-        private DllResourceStore resources;
-        private SampleBassFactory sampleFactory;
+        private TestBassAudioPipeline pipeline;
         private Sample sample;
-        private BassAudioMixer mixer;
 
         [SetUp]
         public void Setup()
         {
-            AudioThread.PreloadBass();
+            pipeline = new TestBassAudioPipeline(false);
+            sample = pipeline.SampleStore.Get("Resources.Tracks.sample-track.mp3");
 
-            try
-            {
-                // Make sure that the audio device is not initialised.
-                if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                {
-                    Bass.CurrentDevice = 0;
-                    Bass.Free();
-                }
-            }
-            catch
-            {
-            }
-
-            mixer = new BassAudioMixer();
-
-            resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-            sampleFactory = new SampleBassFactory(resources.Get("Resources.Tracks.sample-track.mp3"), mixer);
-            sample = sampleFactory.CreateSample();
-
-            updateSample();
-
-            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
-            Bass.Init(0);
+            pipeline.Update();
+            pipeline.Init();
         }
 
         [TearDown]
@@ -62,43 +34,12 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSampleInitialisesOnUpdateDevice()
         {
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-                Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
+            // if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            //     Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
 
             Assert.That(sample.IsLoaded, Is.False);
-            runOnAudioThread(() => sampleFactory.UpdateDevice(0));
+            pipeline.RunOnAudioThread(() => pipeline.SampleStore.UpdateDevice(0));
             Assert.That(sample.IsLoaded, Is.True);
-        }
-
-        private void updateSample() => runOnAudioThread(() =>
-        {
-            mixer.Update();
-            sampleFactory.Update();
-        });
-
-        /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        private void runOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
         }
     }
 }

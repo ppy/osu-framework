@@ -11,6 +11,7 @@ using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -21,13 +22,15 @@ namespace osu.Framework.Audio.Mixing
     {
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
+        private readonly Scheduler scheduler;
 
         private int mixerHandle;
 
         private const int frequency = 44100;
 
-        public BassAudioMixer()
+        public BassAudioMixer(Scheduler scheduler)
         {
+            this.scheduler = scheduler;
             EnqueueAction(createMixer);
         }
 
@@ -64,7 +67,7 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
 
-            EnqueueAction(() =>
+            scheduler.Add(() =>
             {
                 if (mixedChannels.Contains(bassChannel))
                     return;
@@ -75,7 +78,7 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 ((IBassAudioMixer)this).RegisterChannel(bassChannel);
-            }).Wait(); // Wait on completion in order to ensure consistency in removing/adding channels.
+            });
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -83,7 +86,7 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
 
-            EnqueueAction(() =>
+            scheduler.Add(() =>
             {
                 if (!mixedChannels.Remove(bassChannel))
                     return;
@@ -95,7 +98,7 @@ namespace osu.Framework.Audio.Mixing
 
                 BassMix.MixerRemoveChannel(bassChannel.Handle);
                 BassUtils.CheckFaulted(true);
-            }).Wait(); // Wait on completion in order to ensure consistency in removing/adding channels.
+            });
         }
 
         void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
@@ -163,16 +166,18 @@ namespace osu.Framework.Audio.Mixing
             if (mixerHandle != 0)
                 return;
 
-            mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            // Make sure that bass is initialised before trying to create a mixer.
+            // If not, this will be called again when the device is initialised via UpdateDevice().
+            if (!Bass.GetDeviceInfo(Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
+                return;
 
+            mixerHandle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
             if (mixerHandle == 0)
                 return;
 
             // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
             foreach (var channel in mixedChannels)
             {
-                Debug.Assert(channel != null); // https://github.com/ppy/osu-framework/issues/4625
-
                 if (channel.Handle != 0)
                     ((IBassAudioMixer)this).RegisterChannel(channel);
             }

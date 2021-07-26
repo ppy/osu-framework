@@ -6,12 +6,8 @@ using System.Threading;
 using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
-using osu.Framework.IO.Stores;
-using osu.Framework.Threading;
 
 #pragma warning disable 4014
 
@@ -20,28 +16,16 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private DllResourceStore resources;
-
+        private TestBassAudioPipeline pipeline;
         private TrackBass track;
-
-        private BassAudioMixer mixer;
-        private TrackStore trackStore;
 
         [SetUp]
         public void Setup()
         {
-            AudioThread.PreloadBass();
+            pipeline = new TestBassAudioPipeline();
 
-            // Initialize bass with no audio to make sure the test remains consistent even if there is no audio device.
-            Bass.Configure(ManagedBass.Configuration.UpdatePeriod, 5);
-            Bass.Init(0);
-
-            resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
-
-            mixer = new BassAudioMixer();
-            trackStore = new TrackStore(resources, mixer);
-            track = (TrackBass)trackStore.Get("Resources.Tracks.sample-track.mp3");
-            updateTrack();
+            track = (TrackBass)pipeline.TrackStore.Get("Resources.Tracks.sample-track.mp3");
+            pipeline.Update();
         }
 
         [TearDown]
@@ -56,11 +40,11 @@ namespace osu.Framework.Tests.Audio
         public void TestStart()
         {
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
 
             Thread.Sleep(50);
 
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
@@ -70,15 +54,15 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
 
             Thread.Sleep(50);
 
-            updateTrack();
+            pipeline.Update();
             Assert.Greater(track.CurrentTime, 0);
 
             track.StopAsync();
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -95,9 +79,9 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            pipeline.Update();
             track.StopAsync();
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -107,7 +91,7 @@ namespace osu.Framework.Tests.Audio
         public void TestSeek()
         {
             track.SeekAsync(1000);
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
@@ -117,10 +101,10 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekWhileRunning()
         {
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
 
             track.SeekAsync(1000);
-            updateTrack();
+            pipeline.Update();
 
             takeEffectsAndUpdateAfter(50);
 
@@ -136,8 +120,8 @@ namespace osu.Framework.Tests.Audio
         {
             bool? success = null;
 
-            runOnAudioThread(() => { success = track.Seek(track.Length); });
-            updateTrack();
+            pipeline.RunOnAudioThread(() => { success = track.Seek(track.Length); });
+            pipeline.Update();
 
             Assert.AreEqual(0, track.CurrentTime);
             Assert.IsFalse(success);
@@ -148,11 +132,11 @@ namespace osu.Framework.Tests.Audio
         {
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            updateTrack();
+            pipeline.Update();
 
             Thread.Sleep(50);
 
-            updateTrack();
+            pipeline.Update();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
@@ -165,7 +149,7 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -181,10 +165,10 @@ namespace osu.Framework.Tests.Audio
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
-            updateTrack();
+            pipeline.Update();
 
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
@@ -255,7 +239,7 @@ namespace osu.Framework.Tests.Audio
 
             while (++loopCount < 50 && !track.IsRunning)
             {
-                updateTrack();
+                pipeline.Update();
                 Thread.Sleep(10);
             }
 
@@ -300,7 +284,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(track.HasCompleted);
             Assert.IsFalse(completedEvent);
 
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsTrue(track.IsRunning);
         }
@@ -316,13 +300,13 @@ namespace osu.Framework.Tests.Audio
 
             // ensure seeking to end doesn't reset completed state.
             track.SeekAsync(track.Length);
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsTrue(track.HasCompleted);
 
             // seeking back reset completed state.
             track.SeekAsync(track.Length - 1);
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.HasCompleted);
         }
@@ -370,7 +354,7 @@ namespace osu.Framework.Tests.Audio
 
             // stop track and update.
             track.StopAsync();
-            updateTrack();
+            pipeline.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -393,9 +377,9 @@ namespace osu.Framework.Tests.Audio
         public void TestCurrentTimeUpdatedAfterInlineSeek()
         {
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
 
-            runOnAudioThread(() => track.Seek(20000));
+            pipeline.RunOnAudioThread(() => track.Seek(20000));
 
             takeEffectsAndUpdateAfter(50);
 
@@ -404,57 +388,25 @@ namespace osu.Framework.Tests.Audio
 
         private void takeEffectsAndUpdateAfter(int after)
         {
-            updateTrack();
+            pipeline.Update();
             Thread.Sleep(after);
-            updateTrack();
+            pipeline.Update();
         }
 
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
             track.StartAsync();
-            updateTrack();
+            pipeline.Update();
         }
-
-        private void updateTrack() => runOnAudioThread(() =>
-        {
-            mixer.Update();
-            trackStore.Update();
-        });
 
         private void restartTrack()
         {
-            runOnAudioThread(() =>
+            pipeline.RunOnAudioThread(() =>
             {
                 track.Restart();
-                mixer.Update();
-                trackStore.Update();
+                pipeline.Update();
             });
-        }
-
-        /// <summary>
-        /// Certain actions are invoked on the audio thread.
-        /// Here we simulate this process on a correctly named thread to avoid endless blocking.
-        /// </summary>
-        /// <param name="action">The action to perform.</param>
-        private void runOnAudioThread(Action action)
-        {
-            var resetEvent = new ManualResetEvent(false);
-
-            new Thread(() =>
-            {
-                ThreadSafety.IsAudioThread = true;
-
-                action();
-
-                resetEvent.Set();
-            })
-            {
-                Name = GameThread.PrefixedThreadNameFor("Audio")
-            }.Start();
-
-            if (!resetEvent.WaitOne(TimeSpan.FromSeconds(10)))
-                throw new TimeoutException();
         }
     }
 }
