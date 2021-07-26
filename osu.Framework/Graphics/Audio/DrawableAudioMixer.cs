@@ -63,5 +63,11 @@ namespace osu.Framework.Graphics.Audio
                 mixer.RemoveEffect(effect);
             }
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            mixer?.Dispose();
+        }
     }
 }

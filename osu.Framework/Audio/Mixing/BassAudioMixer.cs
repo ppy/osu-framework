@@ -213,6 +213,21 @@ namespace osu.Framework.Audio.Mixing
             base.UpdateState();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            // Move all contained channels back to the default mixer.
+            foreach (var channel in mixedChannels.ToArray())
+                Remove(channel);
+
+            if (Handle != 0)
+            {
+                Bass.StreamFree(Handle);
+                Handle = 0;
+            }
+        }
+
         private class EffectWithPriority : IComparable<EffectWithPriority>
         {
             public int Handle { get; set; }

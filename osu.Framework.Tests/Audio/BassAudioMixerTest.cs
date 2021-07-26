@@ -95,6 +95,20 @@ namespace osu.Framework.Tests.Audio
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.Zero);
         }
 
+        [Test]
+        public void TestChannelMovedToDefaultMixerAfterDispose()
+        {
+            var secondMixer = pipeline.CreateMixer();
+
+            secondMixer.Add(track);
+            pipeline.Update();
+
+            secondMixer.Dispose();
+            pipeline.Update();
+
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+        }
+
         private int getHandle() => ((IBassAudioChannel)track).Handle;
     }
 }
