@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// A no-sound audio mixer.
     /// </summary>
-    internal class NullAudioMixer : AudioMixer
+    public class NullAudioMixer : AudioMixer
     {
         /// <summary>
         /// Creates a new <see cref="NullAudioMixer"/>.
