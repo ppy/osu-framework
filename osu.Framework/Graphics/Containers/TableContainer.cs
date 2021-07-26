@@ -6,6 +6,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -261,9 +262,9 @@ namespace osu.Framework.Graphics.Containers
     public class TableColumn
     {
         /// <summary>
-        /// The text to be displayed in the cell.
+        /// The localisable text to be displayed in the cell.
         /// </summary>
-        public readonly string Header;
+        public readonly LocalisableString Header;
 
         /// <summary>
         /// The anchor of all cells in this column of the <see cref="TableContainer"/>.
@@ -278,12 +279,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Constructs a new <see cref="TableColumn"/>.
         /// </summary>
-        /// <param name="header">The text to be displayed in the cell.</param>
+        /// <param name="header">The localisable text to be displayed in the cell.</param>
         /// <param name="anchor">The anchor of all cells in this column of the <see cref="TableContainer"/>.</param>
         /// <param name="dimension">The dimension of the column in the table.</param>
-        public TableColumn(string header = null, Anchor anchor = Anchor.TopLeft, Dimension dimension = null)
+        public TableColumn(LocalisableString? header = null, Anchor anchor = Anchor.TopLeft, Dimension dimension = null)
         {
-            Header = header ?? "";
+            Header = header ?? string.Empty;
             Anchor = anchor;
             Dimension = dimension ?? new Dimension();
         }
