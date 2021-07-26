@@ -10,11 +10,6 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public class NullAudioMixer : AudioMixer
     {
-        public NullAudioMixer()
-            : base(null)
-        {
-        }
-
         public override void AddEffect(IEffectParameter effect, int priority)
         {
         }

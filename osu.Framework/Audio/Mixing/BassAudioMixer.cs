@@ -21,14 +21,15 @@ namespace osu.Framework.Audio.Mixing
     {
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
+        private readonly AudioManager audioManager;
 
         private int mixerHandle;
 
         private const int frequency = 44100;
 
         public BassAudioMixer(AudioManager audioManager)
-            : base(audioManager)
         {
+            this.audioManager = audioManager;
             EnqueueAction(createMixer);
         }
 
@@ -65,7 +66,8 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
 
-            EnqueueAction(() =>
+            // Ensure a consistent ordering of channels being removed from/added to mixers by queuing to the global default audio mixer.
+            audioManager.Mixer.EnqueueAction(() =>
             {
                 if (mixedChannels.Contains(bassChannel))
                     return;
@@ -84,7 +86,8 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
 
-            EnqueueAction(() =>
+            // Ensure a consistent ordering of channels being removed from/added to mixers by queuing to the global default audio mixer.
+            audioManager.Mixer.EnqueueAction(() =>
             {
                 if (!mixedChannels.Remove(bassChannel))
                     return;

@@ -5,6 +5,7 @@
 
 using osu.Framework.Statistics;
 using System;
+using System.Diagnostics;
 using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
@@ -30,9 +31,11 @@ namespace osu.Framework.Audio.Track
         /// The <see cref="Track"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
         protected Track(IAudioMixer defaultMixer)
         {
-            Mixer = this.defaultMixer = defaultMixer;
+            this.defaultMixer = defaultMixer;
 
             defaultMixer.Add(this);
+
+            Debug.Assert(Mixer != null);
         }
 
         /// <summary>
@@ -134,11 +137,15 @@ namespace osu.Framework.Audio.Track
 
         #region Mixing
 
-        public IAudioMixer Mixer { get; private set; }
+        protected IAudioMixer Mixer { get; private set; }
 
         private readonly IAudioMixer defaultMixer;
 
-        void IAudioChannel.SetMixer(IAudioMixer? mixer) => Mixer = mixer ?? defaultMixer;
+        IAudioMixer? IAudioChannel.Mixer
+        {
+            get => Mixer;
+            set => Mixer = value ?? defaultMixer;
+        }
 
         #endregion
     }
