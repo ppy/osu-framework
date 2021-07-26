@@ -21,15 +21,13 @@ namespace osu.Framework.Audio.Mixing
     {
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
-        private readonly AudioManager audioManager;
 
         private int mixerHandle;
 
         private const int frequency = 44100;
 
-        public BassAudioMixer(AudioManager audioManager)
+        public BassAudioMixer()
         {
-            this.audioManager = audioManager;
             EnqueueAction(createMixer);
         }
 
@@ -66,8 +64,7 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
 
-            // Ensure a consistent ordering of channels being removed from/added to mixers by queuing to the global default audio mixer.
-            audioManager.Mixer.EnqueueAction(() =>
+            EnqueueAction(() =>
             {
                 if (mixedChannels.Contains(bassChannel))
                     return;
@@ -78,7 +75,7 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 ((IBassAudioMixer)this).RegisterChannel(bassChannel);
-            });
+            }).Wait(); // Wait on completion in order to ensure consistency in removing/adding channels.
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -86,8 +83,7 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
 
-            // Ensure a consistent ordering of channels being removed from/added to mixers by queuing to the global default audio mixer.
-            audioManager.Mixer.EnqueueAction(() =>
+            EnqueueAction(() =>
             {
                 if (!mixedChannels.Remove(bassChannel))
                     return;
@@ -99,7 +95,7 @@ namespace osu.Framework.Audio.Mixing
 
                 BassMix.MixerRemoveChannel(bassChannel.Handle);
                 BassUtils.CheckFaulted(true);
-            });
+            }).Wait(); // Wait on completion in order to ensure consistency in removing/adding channels.
         }
 
         void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
