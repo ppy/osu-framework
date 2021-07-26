@@ -34,8 +34,8 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestSampleInitialisesOnUpdateDevice()
         {
-            // if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            //     Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+                Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
 
             Assert.That(sample.IsLoaded, Is.False);
             pipeline.RunOnAudioThread(() => pipeline.SampleStore.UpdateDevice(0));
