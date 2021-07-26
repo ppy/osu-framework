@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Sample
 {
     public abstract class SampleChannel : AdjustableAudioComponent, ISampleChannel, IAudioChannel
     {
-        internal event Action<SampleChannel>? OnPlay;
+        internal Action<SampleChannel>? OnPlay;
 
         /// <summary>
         /// Creates a new <see cref="SampleChannel"/>.

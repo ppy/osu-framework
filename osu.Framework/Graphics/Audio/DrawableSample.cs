@@ -1,10 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Audio
 {
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Audio
     /// </summary>
     public class DrawableSample : DrawableAudioWrapper, ISample
     {
-        private readonly List<SampleChannel> playingChannels = new List<SampleChannel>();
+        private readonly WeakList<SampleChannel> playingChannels = new WeakList<SampleChannel>();
 
         private readonly ISample sample;
 
@@ -41,11 +41,8 @@ namespace osu.Framework.Graphics.Audio
         {
             var channel = sample.GetChannel();
 
-            channel.OnPlay += c =>
-            {
-                playingChannels.Add(c);
-                mixer?.Add(c);
-            };
+            playingChannels.Add(channel);
+            mixer?.Add(channel);
 
             return channel;
         }
