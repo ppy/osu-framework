@@ -79,14 +79,14 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, int, Drawable> factory) => iconFactories.Add(name, factory);
 
-        internal override IEnumerable<Drawable> AddLine(TextLine line, bool newLineIsParagraph)
+        internal override IEnumerable<Drawable> AddLine(TextChunk chunk)
         {
-            if (!newLineIsParagraph)
+            if (!chunk.NewLineIsParagraph)
                 AddInternal(new NewLineContainer(true));
 
             var sprites = new List<Drawable>();
             int index = 0;
-            string str = line.Text;
+            string str = chunk.Text;
 
             while (index < str.Length)
             {
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // unescape stuff
                 strPiece = Unescape(strPiece);
-                sprites.AddRange(AddString(new TextLine(strPiece, line.CreationParameters), newLineIsParagraph));
+                sprites.AddRange(AddString(new TextChunk(strPiece, chunk.NewLineIsParagraph, chunk.CreationParameters)));
 
                 if (placeholderDrawable != null)
                 {
