@@ -28,29 +28,36 @@ namespace osu.Framework.Audio.Mixing
 
         public void Add(IAudioChannel channel)
         {
-            if (channel.Mixer == this)
-                return;
+            channel.EnqueueAction(() =>
+            {
+                if (channel.Mixer == this)
+                    return;
 
-            // Ensure the channel is removed from its current mixer.
-            channel.Mixer?.removeUnsafe(channel);
+                // Ensure the channel is removed from its current mixer.
+                channel.Mixer?.removeUnsafe(channel);
 
-            AddInternal(channel);
-            channel.Mixer = this;
+                AddInternal(channel);
+
+                channel.Mixer = this;
+            });
         }
 
         public void Remove(IAudioChannel channel)
         {
-            if (channel.Mixer != this)
-                return;
-
             // If this is the default mixer, prevent removal.
             if (defaultMixer == null)
                 return;
 
-            removeUnsafe(channel);
+            channel.EnqueueAction(() =>
+            {
+                if (channel.Mixer != this)
+                    return;
 
-            // Add the channel back to the default mixer so audio can always be played.
-            defaultMixer.Add(channel);
+                removeUnsafe(channel);
+
+                // Add the channel back to the default mixer so audio can always be played.
+                defaultMixer.Add(channel);
+            });
         }
 
         /// <summary>

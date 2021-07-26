@@ -11,7 +11,6 @@ using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -27,7 +26,6 @@ namespace osu.Framework.Audio.Mixing
 
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
         private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
-        private readonly Scheduler scheduler;
 
         private const int frequency = 44100;
 
@@ -35,11 +33,9 @@ namespace osu.Framework.Audio.Mixing
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
         /// <param name="defaultMixer"><inheritdoc /></param>
-        /// <param name="scheduler">The <see cref="Scheduler"/> on which <see cref="IAudioChannel"/> additions and removals is scheduled to.</param>
-        public BassAudioMixer(AudioMixer? defaultMixer, Scheduler scheduler)
+        public BassAudioMixer(AudioMixer? defaultMixer)
             : base(defaultMixer)
         {
-            this.scheduler = scheduler;
             EnqueueAction(createMixer);
         }
 
@@ -76,18 +72,13 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            scheduler.Add(() =>
-            {
-                if (mixedChannels.Contains(bassChannel))
-                    return;
+            Debug.Assert(mixedChannels.Contains(bassChannel));
+            mixedChannels.Add(bassChannel);
 
-                mixedChannels.Add(bassChannel);
+            if (Handle == 0 || bassChannel.Handle == 0)
+                return;
 
-                if (Handle == 0 || bassChannel.Handle == 0)
-                    return;
-
-                ((IBassAudioMixer)this).RegisterChannel(bassChannel);
-            });
+            ((IBassAudioMixer)this).RegisterChannel(bassChannel);
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -95,36 +86,35 @@ namespace osu.Framework.Audio.Mixing
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            scheduler.Add(() =>
-            {
-                if (!mixedChannels.Remove(bassChannel))
-                    return;
+            bool removed = mixedChannels.Remove(bassChannel);
+            Debug.Assert(removed);
 
-                if (Handle == 0 || bassChannel.Handle == 0)
-                    return;
+            if (Handle == 0 || bassChannel.Handle == 0)
+                return;
 
-                bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
+            bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
 
-                BassMix.MixerRemoveChannel(bassChannel.Handle);
-            });
+            BassMix.MixerRemoveChannel(bassChannel.Handle);
         }
 
         void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
         {
-            Trace.Assert(CanPerformInline);
             Trace.Assert(channel.Handle != 0);
 
-            if (Handle == 0)
-                return;
+            channel.EnqueueAction(() =>
+            {
+                if (Handle == 0)
+                    return;
 
-            if (!mixedChannels.Contains(channel))
-                throw new InvalidOperationException("Channel needs to be added to the mixer first.");
+                if (!mixedChannels.Contains(channel))
+                    throw new InvalidOperationException("Channel needs to be added to the mixer first.");
 
-            BassFlags flags = BassFlags.MixerChanBuffer;
-            if (channel.MixerChannelPaused)
-                flags |= BassFlags.MixerChanPause;
+                BassFlags flags = BassFlags.MixerChanBuffer;
+                if (channel.MixerChannelPaused)
+                    flags |= BassFlags.MixerChanPause;
 
-            BassMix.MixerAddChannel(Handle, channel.Handle, flags);
+                BassMix.MixerAddChannel(Handle, channel.Handle, flags);
+            });
         }
 
         bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)

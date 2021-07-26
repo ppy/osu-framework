@@ -3,12 +3,16 @@
 
 #nullable enable
 
+using System;
+using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio
 {
     public interface IAudioChannel
     {
-        AudioMixer? Mixer { get; set; }
+        internal AudioMixer? Mixer { get; set; }
+
+        internal Task EnqueueAction(Action action);
     }
 }

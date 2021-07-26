@@ -25,7 +25,6 @@ namespace osu.Framework.Tests.Audio
         internal readonly TrackStore TrackStore;
         internal readonly SampleStore SampleStore;
 
-        private readonly Scheduler scheduler;
         private readonly List<AudioComponent> components = new List<AudioComponent>();
 
         public TestBassAudioPipeline(bool init = true)
@@ -33,7 +32,6 @@ namespace osu.Framework.Tests.Audio
             if (init)
                 Init();
 
-            scheduler = new Scheduler();
             Mixer = CreateMixer();
 
             Resources = new DllResourceStore(typeof(TrackBassTest).Assembly);
@@ -56,7 +54,7 @@ namespace osu.Framework.Tests.Audio
 
         internal BassAudioMixer CreateMixer()
         {
-            var mixer = new BassAudioMixer(Mixer, scheduler);
+            var mixer = new BassAudioMixer(Mixer);
             components.Insert(0, mixer);
             return mixer;
         }
@@ -65,7 +63,6 @@ namespace osu.Framework.Tests.Audio
         {
             RunOnAudioThread(() =>
             {
-                scheduler.Update();
                 Mixer.Update();
 
                 foreach (var c in components)

@@ -6,6 +6,7 @@
 using ManagedBass;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -38,7 +39,7 @@ namespace osu.Framework.Audio.Sample
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
-        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
 
         int IBassAudioChannel.Handle => channel;
 

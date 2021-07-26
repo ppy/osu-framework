@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Track
 {
@@ -57,7 +58,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer;
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
 

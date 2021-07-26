@@ -5,7 +5,7 @@
 
 using osu.Framework.Statistics;
 using System;
-using System.Diagnostics;
+using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
@@ -32,7 +32,6 @@ namespace osu.Framework.Audio.Track
         protected Track(IAudioMixer defaultMixer)
         {
             defaultMixer.Add(this);
-            Debug.Assert(Mixer != null);
         }
 
         /// <summary>
@@ -134,13 +133,15 @@ namespace osu.Framework.Audio.Track
 
         #region Mixing
 
-        protected AudioMixer Mixer { get; private set; }
+        protected AudioMixer? Mixer { get; private set; }
 
         AudioMixer? IAudioChannel.Mixer
         {
             get => Mixer;
-            set => Mixer = value!; // Temporary null in the constructor, and never afterwards.
+            set => Mixer = value;
         }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 
         #endregion
     }

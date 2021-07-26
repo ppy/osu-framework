@@ -4,7 +4,7 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
+using System.Threading.Tasks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Statistics;
 using osu.Framework.Audio.Track;
@@ -23,7 +23,6 @@ namespace osu.Framework.Audio.Sample
         protected SampleChannel(IAudioMixer defaultMixer)
         {
             defaultMixer.Add(this);
-            Debug.Assert(Mixer != null);
         }
 
         public virtual void Play()
@@ -65,13 +64,15 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        protected AudioMixer Mixer { get; private set; }
+        protected AudioMixer? Mixer { get; private set; }
 
         AudioMixer? IAudioChannel.Mixer
         {
             get => Mixer;
-            set => Mixer = value!; // Temporary null in the constructor, and never afterwards.
+            set => Mixer = value;
         }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
 
         #endregion
     }
