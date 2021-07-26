@@ -74,7 +74,7 @@ namespace osu.Framework.Audio.Mixing
         protected override void AddInternal(IAudioChannel channel)
         {
             if (!(channel is IBassAudioChannel bassChannel))
-                throw new ArgumentException($"Can only add {nameof(IBassAudioChannel)}s to a {nameof(BassAudioMixer)}.");
+                return;
 
             scheduler.Add(() =>
             {
@@ -93,7 +93,7 @@ namespace osu.Framework.Audio.Mixing
         protected override void RemoveInternal(IAudioChannel channel)
         {
             if (!(channel is IBassAudioChannel bassChannel))
-                throw new ArgumentException($"Can only remove {nameof(IBassAudioChannel)}s from a {nameof(BassAudioMixer)}.");
+                return;
 
             scheduler.Add(() =>
             {

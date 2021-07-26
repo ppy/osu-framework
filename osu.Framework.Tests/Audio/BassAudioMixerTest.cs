@@ -73,6 +73,19 @@ namespace osu.Framework.Tests.Audio
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
         }
 
+        [Test]
+        public void TestVirtualTrackCanBeAddedAndRemoved()
+        {
+            var secondMixer = pipeline.CreateMixer();
+            var virtualTrack = pipeline.TrackStore.GetVirtual();
+
+            secondMixer.Add(virtualTrack);
+            pipeline.Update();
+
+            secondMixer.Remove(virtualTrack);
+            pipeline.Update();
+        }
+
         private int getHandle() => ((IBassAudioChannel)track).Handle;
     }
 }
