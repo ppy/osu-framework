@@ -99,6 +99,7 @@ namespace osu.Framework.Audio.Track
                 Preview = quick;
 
                 activeStream = prepareStream(data, quick);
+                bassMixer.RegisterChannel(this);
 
                 long byteLength = Bass.ChannelGetLength(activeStream);
 
@@ -179,8 +180,6 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
             }
-
-            bassMixer.RegisterChannel(this);
 
             return stream;
         }
