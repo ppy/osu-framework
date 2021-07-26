@@ -20,7 +20,7 @@ namespace osu.Framework.Tests.Audio
     /// </summary>
     public class TestBassAudioPipeline
     {
-        public readonly BassAudioMixer Mixer;
+        internal readonly BassAudioMixer Mixer;
         public readonly DllResourceStore Resources;
         internal readonly TrackStore TrackStore;
         internal readonly SampleStore SampleStore;
@@ -54,7 +54,7 @@ namespace osu.Framework.Tests.Audio
 
         public void Add(params AudioComponent[] component) => components.AddRange(component);
 
-        public BassAudioMixer CreateMixer()
+        internal BassAudioMixer CreateMixer()
         {
             var mixer = new BassAudioMixer(Mixer, scheduler);
             components.Insert(0, mixer);

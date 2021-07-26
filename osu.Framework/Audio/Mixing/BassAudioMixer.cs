@@ -18,7 +18,7 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// A BASSmix audio mixer.
     /// </summary>
-    public class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
+    internal class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
     {
         /// <summary>
         /// The handle for this mixer.
