@@ -53,28 +53,26 @@ namespace osu.Framework.Graphics.Cursor
             currentPopover?.Hide();
             currentPopover?.Expire();
 
-            if (target is Drawable oldDrawableTarget)
-                oldDrawableTarget.OnDispose -= onTargetDisposed;
-
             target = newTarget;
 
             var newPopover = target?.GetPopover();
             if (newPopover == null)
                 return false;
 
-            if (target is Drawable newDrawableTarget)
-                newDrawableTarget.OnDispose += onTargetDisposed;
-
             dismissOnMouseDownContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
             return true;
         }
 
-        private void onTargetDisposed() => Schedule(() => SetTarget(null));
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if ((target as Drawable)?.FindClosestParent<PopoverContainer>() != this || target?.IsPresent != true)
+            {
+                SetTarget(null);
+                return;
+            }
 
             updatePopoverPositioning();
         }
@@ -195,14 +193,6 @@ namespace osu.Framework.Graphics.Cursor
 
             // the final size is the intersection of the X/Y areas.
             return availableSize;
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            if (target is Drawable drawableTarget)
-                drawableTarget.OnDispose -= onTargetDisposed;
         }
 
         private class DismissOnMouseDownContainer : Container
