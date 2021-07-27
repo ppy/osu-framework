@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -16,12 +17,12 @@ namespace osu.Framework.Tests.Visual.Input
     [HeadlessTest]
     public class TestSceneKeyBindingContainer : ManualInputManagerTestScene
     {
+        private bool pressedReceived;
+        private bool releasedReceived;
+
         [Test]
         public void TestTriggerWithNoKeyBindings()
         {
-            bool pressedReceived = false;
-            bool releasedReceived = false;
-
             TestKeyBindingContainer keyBindingContainer = null;
 
             AddStep("add container", () =>
@@ -170,6 +171,50 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("release received", () => releasedReceived);
         }
 
+        [Test]
+        public void TestKeyBindingPriority()
+        {
+            var keyDownReceived = false;
+
+            AddStep("Add container", () =>
+            {
+                keyDownReceived = false;
+                pressedReceived = false;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Children = new Drawable[]
+                    {
+                        new TestKeyBindingReceptor
+                        {
+                            Pressed = _ => pressedReceived = true,
+                            Released = _ => releasedReceived = true
+                        },
+                        new TestStandardInputReceptor
+                        {
+                            KeyDownAction = e =>
+                            {
+                                switch (e.Key)
+                                {
+                                    case Key.A:
+                                        keyDownReceived = true;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+
+            AddStep("Press and release A", () => InputManager.Key(Key.A));
+
+            AddAssert("Keybinding triggered", () => pressedReceived);
+            AddAssert("Keybinding released", () => releasedReceived);
+
+            AddAssert("Regular A key was not pressed", () => !keyDownReceived);
+        }
+
         private class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction> Pressed;
@@ -189,6 +234,18 @@ namespace osu.Framework.Tests.Visual.Input
             public void OnReleased(TestAction action)
             {
                 Released?.Invoke(action);
+            }
+        }
+
+        private class TestStandardInputReceptor : Drawable
+        {
+            public Action<KeyDownEvent> KeyDownAction { get; set; }
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                KeyDownAction(e);
+
+                return true;
             }
         }
 
