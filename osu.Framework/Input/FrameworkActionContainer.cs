@@ -25,8 +25,6 @@ namespace osu.Framework.Input
             : base(matchingMode: KeyCombinationMatchingMode.Exact)
         {
         }
-
-        protected override bool Prioritised => true;
     }
 
     public enum FrameworkAction

@@ -47,7 +47,7 @@ namespace osu.Framework.Input.Bindings
         public IEnumerable<T> PressedActions => pressedActions;
 
         private readonly Dictionary<IKeyBinding, List<Drawable>> keyBindingQueues = new Dictionary<IKeyBinding, List<Drawable>>();
-        private readonly List<Drawable> queue = new List<Drawable>();
+        private readonly InputQueue queue = new InputQueue();
 
         /// <summary>
         /// The input queue to be used for processing key bindings. Based on the non-positional <see cref="InputManager.NonPositionalInputQueue"/>.
@@ -58,10 +58,10 @@ namespace osu.Framework.Input.Bindings
             get
             {
                 queue.Clear();
-                //BuildNonPositionalInputQueue(queue, false);
+                BuildNonPositionalInputQueue(queue, false);
                 queue.Reverse();
 
-                return queue;
+                return queue.Regular;
             }
         }
 
@@ -78,25 +78,6 @@ namespace osu.Framework.Input.Bindings
         /// Each repeated action will have its own pressed/released event pair.
         /// </summary>
         protected virtual bool SendRepeats => false;
-
-        /// <summary>
-        /// Whether this <see cref="KeyBindingContainer"/> should attempt to handle input before any of its children.
-        /// </summary>
-        protected virtual bool Prioritised => false;
-
-        internal override bool BuildNonPositionalInputQueue(InputQueue queue, bool allowBlocking = true)
-        {
-            if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
-                return false;
-
-            if (Prioritised)
-            {
-                queue.AllList.Remove(this);
-                queue.AllList.Add(this);
-            }
-
-            return true;
-        }
 
         /// <summary>
         /// All input keys which are currently pressed and have reached this <see cref="KeyBindingContainer"/>.
