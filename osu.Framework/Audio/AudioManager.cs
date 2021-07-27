@@ -37,7 +37,7 @@ namespace osu.Framework.Audio
         private readonly AudioThread thread;
 
         /// <summary>
-        /// The default mixer that audio is routed into.
+        /// The global mixer which all audio is routed into by default.
         /// </summary>
         public readonly AudioMixer Mixer;
 
@@ -276,12 +276,6 @@ namespace osu.Framework.Audio
 
             //we have successfully initialised a new device.
             UpdateDevice(deviceIndex);
-
-            if (BassUtils.CheckFaulted(false))
-            {
-                Logger.Log("[BASS] AudioMixer failed to initialize", level: LogLevel.Error);
-                return false;
-            }
 
             return true;
         }

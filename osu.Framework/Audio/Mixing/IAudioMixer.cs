@@ -15,17 +15,26 @@ namespace osu.Framework.Audio.Mixing
         /// <summary>
         /// Adds an <see cref="IAudioChannel"/> to the mix.
         /// </summary>
-        /// <param name="channel">The <see cref="IAudioChannel"/>.</param>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to add.</param>
         void Add(IAudioChannel channel);
 
         /// <summary>
         /// Removes an <see cref="IAudioChannel"/> from the mix.
         /// </summary>
-        /// <param name="channel">The <see cref="IAudioChannel"/>.</param>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
         void Remove(IAudioChannel channel);
 
-        void AddEffect(IEffectParameter effect, int priority);
+        /// <summary>
+        /// Applies an effect to the mix.
+        /// </summary>
+        /// <param name="effect">The effect to apply.</param>
+        /// <param name="priority">The effect priority.</param>
+        void ApplyEffect(IEffectParameter effect, int priority);
 
+        /// <summary>
+        /// Removes an effect from the mix.
+        /// </summary>
+        /// <param name="effect">The effect to remove.</param>
         void RemoveEffect(IEffectParameter effect);
     }
 }

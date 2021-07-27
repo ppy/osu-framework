@@ -9,7 +9,7 @@ using osu.Framework.Extensions.ObjectExtensions;
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
-    /// Abstract class for an audio mixer.
+    /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
@@ -62,12 +62,20 @@ namespace osu.Framework.Audio.Mixing
             });
         }
 
-        public abstract void AddEffect(IEffectParameter effect, int priority);
+        public abstract void ApplyEffect(IEffectParameter effect, int priority);
 
         public abstract void RemoveEffect(IEffectParameter effect);
 
+        /// <summary>
+        /// Adds an <see cref="IAudioChannel"/> to the mix.
+        /// </summary>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to add.</param>
         protected abstract void AddInternal(IAudioChannel channel);
 
+        /// <summary>
+        /// Removes an <see cref="IAudioChannel"/> from the mix.
+        /// </summary>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
         protected abstract void RemoveInternal(IAudioChannel channel);
     }
 }

@@ -39,7 +39,7 @@ namespace osu.Framework.Audio.Mixing
             EnqueueAction(createMixer);
         }
 
-        public override void AddEffect(IEffectParameter effect, int priority)
+        public override void ApplyEffect(IEffectParameter effect, int priority)
         {
             EnqueueAction(() =>
             {

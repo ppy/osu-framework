@@ -195,7 +195,7 @@ namespace osu.Framework.Tests.Visual.Audio
                     Debug.Assert(effect == null);
                     effect = value;
 
-                    mixer.AddEffect(value, 0);
+                    mixer.ApplyEffect(value, 0);
                 }
             }
 

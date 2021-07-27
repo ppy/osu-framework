@@ -42,14 +42,14 @@ namespace osu.Framework.Graphics.Audio
             }
         }
 
-        public void AddEffect(IEffectParameter effect, int priority)
+        public void ApplyEffect(IEffectParameter effect, int priority)
         {
             if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.AddEffect(effect, priority));
+                Schedule(() => mixer.ApplyEffect(effect, priority));
             else
             {
                 Debug.Assert(mixer != null);
-                mixer.AddEffect(effect, priority);
+                mixer.ApplyEffect(effect, priority);
             }
         }
 
