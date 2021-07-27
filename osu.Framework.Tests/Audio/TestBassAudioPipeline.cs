@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Audio
     /// <summary>
     /// Provides a BASS audio pipeline to be used for testing audio components.
     /// </summary>
-    public class TestBassAudioPipeline
+    public class TestBassAudioPipeline : IDisposable
     {
         internal readonly BassAudioMixer Mixer;
         public readonly DllResourceStore Resources;
@@ -90,5 +90,12 @@ namespace osu.Framework.Tests.Audio
 
         internal TrackBass GetTrack() => (TrackBass)TrackStore.Get("Resources.Tracks.sample-track.mp3");
         internal SampleBass GetSample() => (SampleBass)SampleStore.Get("Resources.Tracks.sample-track.mp3");
+
+        public void Dispose()
+        {
+            // See AudioThread.FreeDevice().
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                Bass.Free();
+        }
     }
 }

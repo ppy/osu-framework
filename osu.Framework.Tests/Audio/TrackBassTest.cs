@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading;
-using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Track;
@@ -31,9 +30,7 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void Teardown()
         {
-            // See AudioThread.freeDevice().
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                Bass.Free();
+            pipeline?.Dispose();
         }
 
         [Test]

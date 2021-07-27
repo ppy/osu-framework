@@ -24,6 +24,12 @@ namespace osu.Framework.Tests.Audio
             pipeline.Update();
         }
 
+        [TearDown]
+        public void Teardown()
+        {
+            pipeline?.Dispose();
+        }
+
         [Test]
         public void TestMixerInitialised()
         {

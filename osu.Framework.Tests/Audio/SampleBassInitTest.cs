@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using ManagedBass;
 using NUnit.Framework;
 using osu.Framework.Audio.Sample;
 
@@ -26,9 +25,7 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void Teardown()
         {
-            // See AudioThread.FreeDevice().
-            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
-                Bass.Free();
+            pipeline?.Dispose();
         }
 
         [Test]
