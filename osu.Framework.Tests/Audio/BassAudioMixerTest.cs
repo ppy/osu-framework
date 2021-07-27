@@ -110,7 +110,7 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestTrackRetainsPlayingStateWhenMovedBetweenMixers()
+        public void TestChannelRetainsPlayingStateWhenMovedBetweenMixers()
         {
             var secondMixer = pipeline.CreateMixer();
 

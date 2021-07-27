@@ -120,19 +120,19 @@ namespace osu.Framework.Audio.Mixing
 
         bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
         {
-            BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.MixerChanPause);
+            BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
             return Bass.LastError == Errors.OK;
         }
 
         bool IBassAudioMixer.PauseChannel(IBassAudioChannel channel)
         {
-            BassMix.ChannelFlags(channel.Handle, BassFlags.MixerChanPause, BassFlags.MixerChanPause);
+            BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             return Bass.LastError == Errors.OK;
         }
 
         void IBassAudioMixer.StopChannel(IBassAudioChannel channel)
         {
-            BassMix.ChannelFlags(channel.Handle, BassFlags.MixerChanPause, BassFlags.MixerChanPause);
+            BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
