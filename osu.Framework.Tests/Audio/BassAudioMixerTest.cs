@@ -109,6 +109,27 @@ namespace osu.Framework.Tests.Audio
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
         }
 
+        [Test]
+        public void TestTrackRetainsPlayingStateWhenMovedBetweenMixers()
+        {
+            var secondMixer = pipeline.CreateMixer();
+
+            secondMixer.Add(track);
+            pipeline.Update();
+
+            Assert.That(!track.IsRunning);
+
+            pipeline.RunOnAudioThread(() => track.Start());
+            pipeline.Update();
+
+            Assert.That(track.IsRunning);
+
+            pipeline.Mixer.Add(track);
+            pipeline.Update();
+
+            Assert.That(track.IsRunning);
+        }
+
         private int getHandle() => ((IBassAudioChannel)track).Handle;
     }
 }

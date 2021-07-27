@@ -96,7 +96,7 @@ namespace osu.Framework.Audio.Mixing
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            bassChannel.MixerChannelPaused = Bass.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
+            bassChannel.MixerChannelPaused = BassMix.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
             BassMix.MixerRemoveChannel(bassChannel.Handle);
         }
 
