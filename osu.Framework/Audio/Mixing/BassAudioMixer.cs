@@ -5,10 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
+using osu.Framework.Bindables;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
@@ -25,7 +27,7 @@ namespace osu.Framework.Audio.Mixing
         public int Handle { get; private set; }
 
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
-        private readonly List<EffectWithPriority> effects = new List<EffectWithPriority>();
+        private readonly List<EffectWithHandle> effects = new List<EffectWithHandle>();
 
         private const int frequency = 44100;
 
@@ -39,33 +41,7 @@ namespace osu.Framework.Audio.Mixing
             EnqueueAction(createMixer);
         }
 
-        public override void ApplyEffect(IEffectParameter effect, int priority)
-        {
-            EnqueueAction(() =>
-            {
-                var effectWithPriority = new EffectWithPriority(effect, priority);
-                effects.Add(effectWithPriority);
-                applyEffect(effectWithPriority);
-            });
-        }
-
-        public override void RemoveEffect(IEffectParameter effect)
-        {
-            EnqueueAction(() =>
-            {
-                var foundIndex = effects.FindIndex(e => e.Effect == effect);
-                if (foundIndex == -1)
-                    return;
-
-                var effectWithPriority = effects[foundIndex];
-                effects.RemoveAt(foundIndex);
-
-                if (effectWithPriority.Handle == 0)
-                    return;
-
-                Bass.ChannelRemoveFX(Handle, effectWithPriority.Handle);
-            });
-        }
+        public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
         protected override void AddInternal(IAudioChannel channel)
         {
@@ -190,23 +166,85 @@ namespace osu.Framework.Audio.Mixing
                     ((IBassAudioMixer)this).RegisterChannel(channel);
             }
 
-            foreach (var effect in effects)
-                applyEffect(effect);
+            Effects.BindCollectionChanged(onEffectsChanged, true);
 
             Bass.ChannelPlay(Handle);
         }
 
-        private void applyEffect(EffectWithPriority effectWithPriority)
+        private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
         {
-            Debug.Assert(CanPerformInline);
-            Debug.Assert(effectWithPriority.Handle == 0);
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                {
+                    Debug.Assert(e.NewItems != null);
 
-            if (Handle == 0)
-                return;
+                    if (e.NewItems.Count == 0)
+                        break;
 
-            effectWithPriority.Handle = Bass.ChannelSetFX(Handle, effectWithPriority.Effect.FXType, effectWithPriority.Priority);
-            Bass.FXSetParameters(effectWithPriority.Handle, effectWithPriority.Effect);
-        }
+                    effects.InsertRange(e.NewStartingIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
+                    reapplyEffects(e.NewStartingIndex, effects.Count - 1);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Move:
+                {
+                    EffectWithHandle effect = effects[e.OldStartingIndex];
+                    effects.RemoveAt(e.OldStartingIndex);
+                    effects.Insert(e.NewStartingIndex, effect);
+                    reapplyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), effects.Count - 1);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Remove:
+                {
+                    Debug.Assert(e.OldItems != null);
+
+                    effects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+                    reapplyEffects(e.OldStartingIndex, effects.Count - 1);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Replace:
+                {
+                    Debug.Assert(e.NewItems != null);
+
+                    EffectWithHandle oldEffect = effects[e.NewStartingIndex];
+                    effects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter?)e.NewItems[0]);
+                    removeEffect(oldEffect);
+                    reapplyEffects(e.NewStartingIndex, e.NewStartingIndex);
+                    break;
+                }
+
+                case NotifyCollectionChangedAction.Reset:
+                {
+                    foreach (var effect in effects)
+                        removeEffect(effect);
+                    effects.Clear();
+                    break;
+                }
+            }
+
+            void removeEffect(EffectWithHandle effect)
+            {
+                if (effect.Handle != 0)
+                    Bass.ChannelRemoveFX(Handle, effect.Handle);
+            }
+
+            void reapplyEffects(int startIndex, int endIndex)
+            {
+                for (int i = startIndex; i <= endIndex; i++)
+                {
+                    var effect = effects[i];
+
+                    // Remove any existing effect (priority could have changed).
+                    removeEffect(effect);
+
+                    effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, i);
+                    Bass.FXSetParameters(effect.Handle, effect.Effect);
+                }
+            }
+        });
 
         protected override void UpdateState()
         {
@@ -229,25 +267,15 @@ namespace osu.Framework.Audio.Mixing
             }
         }
 
-        private class EffectWithPriority : IComparable<EffectWithPriority>
+        private class EffectWithHandle
         {
             public int Handle { get; set; }
 
             public readonly IEffectParameter Effect;
-            public readonly int Priority;
 
-            public EffectWithPriority(IEffectParameter effect, int priority)
+            public EffectWithHandle(IEffectParameter? effect)
             {
-                Effect = effect;
-                Priority = priority;
-            }
-
-            public int CompareTo(EffectWithPriority? other)
-            {
-                if (ReferenceEquals(this, other)) return 0;
-                if (ReferenceEquals(null, other)) return 1;
-
-                return Priority.CompareTo(other.Priority);
+                Effect = effect ?? throw new ArgumentNullException(nameof(effect));
             }
         }
     }

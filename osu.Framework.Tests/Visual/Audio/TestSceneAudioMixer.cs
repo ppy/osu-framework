@@ -1,13 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Diagnostics;
 using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -49,10 +49,13 @@ namespace osu.Framework.Tests.Visual.Audio
                 effectContainers.Add(new ContainerWithEffect($"<{centre}Hz", Color4.Blue)
                 {
                     Size = new Vector2(100),
-                    Effect = new BQFParameters
+                    Effects =
                     {
-                        lFilter = BQFType.LowPass,
-                        fCenter = centre
+                        new BQFParameters
+                        {
+                            lFilter = BQFType.LowPass,
+                            fCenter = centre
+                        }
                     }
                 });
             }
@@ -185,19 +188,7 @@ namespace osu.Framework.Tests.Visual.Audio
                 };
             }
 
-            private IEffectParameter effect;
-
-            public IEffectParameter Effect
-            {
-                get => effect;
-                set
-                {
-                    Debug.Assert(effect == null);
-                    effect = value;
-
-                    mixer.ApplyEffect(value, 0);
-                }
-            }
+            public BindableList<IEffectParameter> Effects => mixer.Effects;
 
             protected override void Update()
             {

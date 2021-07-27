@@ -4,6 +4,7 @@
 #nullable enable
 
 using ManagedBass;
+using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Mixing
 {
@@ -20,13 +21,7 @@ namespace osu.Framework.Audio.Mixing
         {
         }
 
-        public override void ApplyEffect(IEffectParameter effect, int priority)
-        {
-        }
-
-        public override void RemoveEffect(IEffectParameter effect)
-        {
-        }
+        public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
         protected override void AddInternal(IAudioChannel channel)
         {

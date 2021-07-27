@@ -6,6 +6,7 @@ using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Audio
@@ -18,7 +19,10 @@ namespace osu.Framework.Graphics.Audio
         private void load(AudioManager audio)
         {
             mixer = audio.CreateAudioMixer();
+            mixer.Effects.BindTo(Effects);
         }
+
+        public BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
         public void Add(IAudioChannel channel)
         {
@@ -39,28 +43,6 @@ namespace osu.Framework.Graphics.Audio
             {
                 Debug.Assert(mixer != null);
                 mixer.Remove(channel);
-            }
-        }
-
-        public void ApplyEffect(IEffectParameter effect, int priority)
-        {
-            if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.ApplyEffect(effect, priority));
-            else
-            {
-                Debug.Assert(mixer != null);
-                mixer.ApplyEffect(effect, priority);
-            }
-        }
-
-        public void RemoveEffect(IEffectParameter effect)
-        {
-            if (LoadState < LoadState.Ready)
-                Schedule(() => mixer.RemoveEffect(effect));
-            else
-            {
-                Debug.Assert(mixer != null);
-                mixer.RemoveEffect(effect);
             }
         }
 
