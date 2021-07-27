@@ -138,9 +138,10 @@ namespace osu.Framework.Audio.Mixing
 
         public PlaybackState ChannelIsActive(IBassAudioChannel channel)
         {
+            // The audio channel's state tells us whether it's stalled or stopped.
             var state = Bass.ChannelIsActive(channel.Handle);
 
-            // The channel may be playing meanwhile the mixer "channel" is paused.
+            // The channel is always in a playing state unless stopped or stalled as it's a decoding channel. Retrieve the true playing state from the mixer channel.
             if (state == PlaybackState.Playing)
                 state = BassMix.ChannelHasFlag(channel.Handle, BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
 
