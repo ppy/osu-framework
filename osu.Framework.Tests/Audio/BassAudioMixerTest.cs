@@ -110,6 +110,36 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
+        public void TestPlayPauseStop()
+        {
+            Assert.That(!track.IsRunning);
+
+            pipeline.RunOnAudioThread(() => track.Start());
+            pipeline.Update();
+
+            Assert.That(track.IsRunning);
+
+            pipeline.RunOnAudioThread(() => track.Stop());
+            pipeline.Update();
+
+            Assert.That(!track.IsRunning);
+
+            pipeline.RunOnAudioThread(() =>
+            {
+                track.Seek(track.Length - 1000);
+                track.Start();
+            });
+
+            pipeline.Update();
+
+            Assert.That(() =>
+            {
+                pipeline.Update();
+                return !track.IsRunning;
+            }, Is.True.After(3000));
+        }
+
+        [Test]
         public void TestChannelRetainsPlayingStateWhenMovedBetweenMixers()
         {
             var secondMixer = pipeline.CreateMixer();
