@@ -157,7 +157,7 @@ namespace osu.Framework.Input
             {
                 var manager = CreateButtonEventManagerFor(button);
                 manager.RequestFocus = ChangeFocusFromClick;
-                manager.GetInputQueue = () => PositionalInputQueue.All;
+                manager.GetInputQueue = () => PositionalInputQueue;
                 manager.GetCurrentTime = () => Time.Current;
                 mouseButtonEventManagers.Add(button, manager);
             }
@@ -215,7 +215,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
-            manager.GetInputQueue = () => NonPositionalInputQueue.All;
+            manager.GetInputQueue = () => NonPositionalInputQueue;
             return keyButtonEventManagers[key] = manager;
         }
 
@@ -237,7 +237,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(source);
-            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]).All;
+            manager.GetInputQueue = () => buildPositionalInputQueue(CurrentState.Touch.TouchPositions[(int)source]);
             return touchEventManagers[source] = manager;
         }
 
@@ -259,7 +259,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
-            manager.GetInputQueue = () => PositionalInputQueue.All;
+            manager.GetInputQueue = () => PositionalInputQueue;
             return tabletPenButtonEventManagers[button] = manager;
         }
 
@@ -281,7 +281,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
-            manager.GetInputQueue = () => NonPositionalInputQueue.All;
+            manager.GetInputQueue = () => NonPositionalInputQueue;
             return tabletAuxiliaryButtonEventManagers[button] = manager;
         }
 
@@ -303,7 +303,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(button);
-            manager.GetInputQueue = () => NonPositionalInputQueue.All;
+            manager.GetInputQueue = () => NonPositionalInputQueue;
             return joystickButtonEventManagers[button] = manager;
         }
 
@@ -325,7 +325,7 @@ namespace osu.Framework.Input
                 return existing;
 
             var manager = CreateButtonEventManagerFor(key);
-            manager.GetInputQueue = () => NonPositionalInputQueue.All;
+            manager.GetInputQueue = () => NonPositionalInputQueue;
             return midiKeyEventManagers[key] = manager;
         }
 
@@ -840,9 +840,10 @@ namespace osu.Framework.Input
                 manager.HandleButtonStateChange(e.State, e.Kind);
         }
 
-        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue.All, new MouseMoveEvent(state, lastPosition));
+        private bool handleMouseMove(InputState state, Vector2 lastPosition) => PropagateBlockableEvent(PositionalInputQueue, new MouseMoveEvent(state, lastPosition));
 
-        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) => PropagateBlockableEvent(PositionalInputQueue.All, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
+        private bool handleScroll(InputState state, Vector2 lastScroll, bool isPrecise) =>
+            PropagateBlockableEvent(PositionalInputQueue, new ScrollEvent(state, state.Mouse.Scroll - lastScroll, isPrecise));
 
         /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
@@ -850,7 +851,41 @@ namespace osu.Framework.Input
         /// <param name="drawables">The drawables in the queue.</param>
         /// <param name="e">The event.</param>
         /// <returns>Whether the event was handled.</returns>
-        protected virtual bool PropagateBlockableEvent(SlimReadOnlyListWrapper<Drawable> drawables, UIEvent e)
+        protected virtual bool PropagateBlockableEvent(ReadOnlyInputQueue drawables, UIEvent e)
+        {
+            var focused = drawables.GetFocusedDrawable();
+
+            return (focused != null && PropagateBlockableEvent(focused, e))
+                   || PropagateBlockableEvent(drawables.KeyBingingContainers, e)
+                   || PropagateBlockableEvent(drawables.Regular, e);
+        }
+
+        /// <summary>
+        /// Triggers event on <paramref name="drawable"/>.
+        /// </summary>
+        /// <param name="drawable">The drawable.</param>
+        /// <param name="e">The event.</param>
+        /// <returns>Whether the event was handled.</returns>
+        protected virtual bool PropagateBlockableEvent(Drawable drawable, UIEvent e)
+        {
+            if (!drawable.TriggerEvent(e)) return false;
+
+            if (shouldLog(e))
+            {
+                var detail = drawable is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                Logger.Log($"{detail} handled by {drawable}.", LoggingTarget.Runtime, LogLevel.Debug);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
+        /// </summary>
+        /// <param name="drawables">The drawables in the queue.</param>
+        /// <param name="e">The event.</param>
+        /// <returns>Whether the event was handled.</returns>
+        protected virtual bool PropagateBlockableEvent<T>(SlimReadOnlyListWrapper<T> drawables, UIEvent e) where T : Drawable
         {
             foreach (var d in drawables)
             {

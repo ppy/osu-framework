@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Graphics;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Input.States;
@@ -34,12 +35,12 @@ namespace osu.Framework.Input
         /// The input queue.
         /// </summary>
         [NotNull]
-        protected IEnumerable<Drawable> InputQueue => GetInputQueue.Invoke() ?? Enumerable.Empty<Drawable>();
+        protected ReadOnlyInputQueue InputQueue => GetInputQueue.Invoke() ?? new InputQueue();
 
         /// <summary>
         /// A function to retrieve the input queue.
         /// </summary>
-        internal Func<IEnumerable<Drawable>> GetInputQueue;
+        internal Func<ReadOnlyInputQueue> GetInputQueue;
 
         protected ButtonEventManager(TButton button)
         {
@@ -66,8 +67,14 @@ namespace osu.Framework.Input
         /// <returns>Whether the event was handled.</returns>
         private bool handleButtonDown(InputState state)
         {
-            List<Drawable> inputQueue = InputQueue.ToList();
-            Drawable handledBy = HandleButtonDown(state, inputQueue);
+            var handledBy = HandleButtonDown(state, InputQueue);
+
+            List<Drawable> inputQueue = handledBy switch
+            {
+                null => InputQueue.All.ToList(),
+                KeyBindingContainer _ => InputQueue.KeyBingingContainers.Cast<Drawable>().ToList(),
+                _ => InputQueue.Regular.ToList()
+            };
 
             if (handledBy != null)
             {
@@ -87,7 +94,7 @@ namespace osu.Framework.Input
         /// <param name="state">The current <see cref="InputState"/>.</param>
         /// <param name="targets">The list of possible targets that can handle the event.</param>
         /// <returns>The <see cref="Drawable"/> that handled the event.</returns>
-        protected abstract Drawable HandleButtonDown(InputState state, List<Drawable> targets);
+        protected abstract Drawable HandleButtonDown(InputState state, ReadOnlyInputQueue targets);
 
         /// <summary>
         /// Handles the button being released.
@@ -107,6 +114,40 @@ namespace osu.Framework.Input
         protected abstract void HandleButtonUp(InputState state, List<Drawable> targets);
 
         /// <summary>
+        /// Triggers events on drawables in <paramref name="inputQueue"/> until it is handled.
+        /// </summary>
+        /// <param name="inputQueue">The input queue.</param>
+        /// <param name="e">The event.</param>
+        /// <returns>The drawable which handled the event or null if none.</returns>
+        protected Drawable PropagateButtonEvent(ReadOnlyInputQueue inputQueue, UIEvent e)
+        {
+            return PropagateButtonEvent(inputQueue.GetFocusedDrawable(), e)
+                   ?? PropagateButtonEvent(inputQueue.KeyBingingContainers.ToList(), e)
+                   ?? PropagateButtonEvent(inputQueue.Regular.Where(drawable => !(drawable is KeyBindingContainer) && !drawable.HasFocus).ToList(), e);
+        }
+
+        /// <summary>
+        /// Triggers events on drawables in <paramref name="inputQueue"/> until it is handled.
+        /// </summary>
+        /// <param name="inputQueue">The input queue.</param>
+        /// <param name="e">The event.</param>
+        /// <param name="drawables">The inner queue where the event was handled.</param>
+        /// <returns>The drawable which handled the event or null if none.</returns>
+        protected Drawable PropagateButtonEvent(ReadOnlyInputQueue inputQueue, UIEvent e, out IList<Drawable> drawables)
+        {
+            drawables = null;
+
+            var handledBy = PropagateButtonEvent(inputQueue.GetFocusedDrawable(), e)
+                            ?? PropagateButtonEvent(drawables = inputQueue.KeyBingingContainers.Cast<Drawable>().ToList(), e)
+                            ?? PropagateButtonEvent(drawables = inputQueue.Regular, e);
+
+            if (handledBy != null && drawables == null)
+                drawables = new List<Drawable>(1) { inputQueue.GetFocusedDrawable() };
+
+            return handledBy;
+        }
+
+        /// <summary>
         /// Triggers events on drawables in <paramref name="drawables"/> until it is handled.
         /// </summary>
         /// <param name="drawables">The drawables in the queue.</param>
@@ -114,8 +155,26 @@ namespace osu.Framework.Input
         /// <returns>The drawable which handled the event or null if none.</returns>
         protected Drawable PropagateButtonEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
+            var handledBy = drawables.ToList().FirstOrDefault(target => target.TriggerEvent(e));
 
+            return propagateButtonEventInternal(e, handledBy);
+        }
+
+        /// <summary>
+        /// Triggers event on <paramref name="drawable"/>.
+        /// </summary>
+        /// <param name="drawable">The drawables in the queue.</param>
+        /// <param name="e">The event.</param>
+        /// <returns>The drawable which handled the event or null if none.</returns>
+        protected Drawable PropagateButtonEvent(Drawable drawable, UIEvent e)
+        {
+            var handledBy = drawable?.TriggerEvent(e) ?? false;
+
+            return propagateButtonEventInternal(e, handledBy ? drawable : null);
+        }
+
+        private Drawable propagateButtonEventInternal(UIEvent e, Drawable handledBy)
+        {
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
 

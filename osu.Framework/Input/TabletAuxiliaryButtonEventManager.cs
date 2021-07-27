@@ -15,7 +15,12 @@ namespace osu.Framework.Input
         {
         }
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new TabletAuxiliaryButtonPressEvent(state, Button));
+        protected override Drawable HandleButtonDown(InputState state, ReadOnlyInputQueue targets)
+        {
+            var tabletAuxiliaryButtonPressEvent = new TabletAuxiliaryButtonPressEvent(state, Button);
+
+            return PropagateButtonEvent(targets, tabletAuxiliaryButtonPressEvent);
+        }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {

@@ -100,18 +100,20 @@ namespace osu.Framework.Input
             }
         }
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
+        protected override Drawable HandleButtonDown(InputState state, ReadOnlyInputQueue targets)
         {
             Trace.Assert(state.Mouse.IsPressed(Button));
 
             if (state.Mouse.IsPositionValid)
                 MouseDownPosition = state.Mouse.Position;
 
-            Drawable handledBy = PropagateButtonEvent(targets, new MouseDownEvent(state, Button, MouseDownPosition));
+            var mouseDownEvent = new MouseDownEvent(state, Button, MouseDownPosition);
+
+            var handledBy = PropagateButtonEvent(targets, mouseDownEvent, out var drawables);
 
             if (LastClickTime != null && GetCurrentTime() - LastClickTime < DoubleClickTime)
             {
-                if (handleDoubleClick(state, targets))
+                if (handleDoubleClick(state, drawables))
                 {
                     //when we handle a double-click we want to block a normal click from firing.
                     BlockNextClick = true;
@@ -153,7 +155,7 @@ namespace osu.Framework.Input
             if (targets == null) return;
 
             // due to the laziness of IEnumerable, .Where check should be done right before it is triggered for the event.
-            var drawables = targets.Intersect(InputQueue)
+            var drawables = targets.Intersect(InputQueue.Regular)
                                    .Where(t => t.IsAlive && t.IsPresent && t.ReceivePositionalInputAt(state.Mouse.Position));
 
             var clicked = PropagateButtonEvent(drawables, new ClickEvent(state, Button, MouseDownPosition));
@@ -166,7 +168,7 @@ namespace osu.Framework.Input
                 Logger.Log($"MouseClick handled by {clicked}.", LoggingTarget.Runtime, LogLevel.Debug);
         }
 
-        private bool handleDoubleClick(InputState state, List<Drawable> targets)
+        private bool handleDoubleClick(InputState state, IList<Drawable> targets)
         {
             if (!ClickedDrawable.TryGetTarget(out Drawable clicked))
                 return false;
@@ -174,7 +176,7 @@ namespace osu.Framework.Input
             if (!targets.Contains(clicked))
                 return false;
 
-            return PropagateButtonEvent(new[] { clicked }, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
+            return PropagateButtonEvent(clicked, new DoubleClickEvent(state, Button, MouseDownPosition)) != null;
         }
 
         private void handleDrag(InputState state, Vector2 lastPosition)
@@ -182,7 +184,7 @@ namespace osu.Framework.Input
             if (DraggedDrawable == null) return;
 
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            PropagateButtonEvent(new[] { DraggedDrawable }, new DragEvent(state, Button, MouseDownPosition, lastPosition));
+            PropagateButtonEvent(DraggedDrawable, new DragEvent(state, Button, MouseDownPosition, lastPosition));
         }
 
         private void handleDragStart(InputState state)
@@ -212,7 +214,7 @@ namespace osu.Framework.Input
             previousDragged.IsDragged = false;
             DraggedDrawable = null;
 
-            PropagateButtonEvent(new[] { previousDragged }, new DragEndEvent(state, Button, MouseDownPosition));
+            PropagateButtonEvent(previousDragged, new DragEndEvent(state, Button, MouseDownPosition));
         }
     }
 }

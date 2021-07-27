@@ -15,7 +15,12 @@ namespace osu.Framework.Input
         {
         }
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets) => PropagateButtonEvent(targets, new MidiDownEvent(state, Button, state.Midi.Velocities[Button]));
+        protected override Drawable HandleButtonDown(InputState state, ReadOnlyInputQueue targets)
+        {
+            var midiDownEvent = new MidiDownEvent(state, Button, state.Midi.Velocities[Button]);
+
+            return PropagateButtonEvent(targets, midiDownEvent);
+        }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
         {

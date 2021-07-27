@@ -37,7 +37,7 @@ namespace osu.Framework.Input
             PropagateButtonEvent(ButtonDownInputQueue, new TouchMoveEvent(state, new Touch(Button, position), TouchDownPosition, lastPosition));
         }
 
-        protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
+        protected override Drawable HandleButtonDown(InputState state, ReadOnlyInputQueue targets)
         {
             Debug.Assert(HeldDrawable == null);
 
@@ -45,7 +45,9 @@ namespace osu.Framework.Input
             TouchDownPosition = state.Touch.GetTouchPosition(Button);
             Debug.Assert(TouchDownPosition != null);
 
-            return HeldDrawable = PropagateButtonEvent(targets, new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition)));
+            var touchDownEvent = new TouchDownEvent(state, new Touch(Button, (Vector2)TouchDownPosition));
+
+            return HeldDrawable = PropagateButtonEvent(targets, touchDownEvent);
         }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
