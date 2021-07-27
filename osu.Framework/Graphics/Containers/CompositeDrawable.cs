@@ -25,6 +25,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Input;
 using osu.Framework.Layout;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
@@ -1321,7 +1322,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether or not the specified drawable should be considered when building input queues.</returns>
         protected virtual bool ShouldBeConsideredForInput(Drawable child) => child.LoadState == LoadState.Loaded;
 
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(InputQueue queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
@@ -1346,7 +1347,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True if the subtree should receive input at the given screen-space position.</returns>
         protected virtual bool ReceivePositionalInputAtSubTree(Vector2 screenSpacePos) => !Masking || ReceivePositionalInputAt(screenSpacePos);
 
-        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        internal override bool BuildPositionalInputQueue(Vector2 screenSpacePos, InputQueue queue)
         {
             if (!base.BuildPositionalInputQueue(screenSpacePos, queue))
                 return false;

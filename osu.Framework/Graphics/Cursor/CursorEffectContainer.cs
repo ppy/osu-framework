@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Cursor
             Debug.Assert(targetChildren.Count == 0, $"{nameof(targetChildren)} should be empty but has {targetChildren.Count} elements.");
 
             // Skip all drawables in the hierarchy prior to (and including) ourself.
-            var targetCandidates = inputManager.PositionalInputQueue;
+            var targetCandidates = inputManager.PositionalInputQueue.All;
 
             int selfIndex = targetCandidates.IndexOf(this);
 

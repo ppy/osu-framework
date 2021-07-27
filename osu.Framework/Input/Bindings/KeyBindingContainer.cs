@@ -58,7 +58,7 @@ namespace osu.Framework.Input.Bindings
             get
             {
                 queue.Clear();
-                BuildNonPositionalInputQueue(queue, false);
+                //BuildNonPositionalInputQueue(queue, false);
                 queue.Reverse();
 
                 return queue;
@@ -84,15 +84,15 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
-        internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal override bool BuildNonPositionalInputQueue(InputQueue queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))
                 return false;
 
             if (Prioritised)
             {
-                queue.Remove(this);
-                queue.Add(this);
+                queue.AllList.Remove(this);
+                queue.AllList.Add(this);
             }
 
             return true;

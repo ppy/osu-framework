@@ -2553,7 +2553,7 @@ namespace osu.Framework.Graphics
         /// <param name="queue">The input queue to be built.</param>
         /// <param name="allowBlocking">Whether blocking at <see cref="PassThroughInputManager"/>s should be allowed.</param>
         /// <returns>Returns false if we should skip this sub-tree.</returns>
-        internal virtual bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
+        internal virtual bool BuildNonPositionalInputQueue(InputQueue queue, bool allowBlocking = true)
         {
             if (!PropagateNonPositionalInputSubTree)
                 return false;
@@ -2570,7 +2570,7 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpacePos">The screen space position of the positional input.</param>
         /// <param name="queue">The input queue to be built.</param>
         /// <returns>Returns false if we should skip this sub-tree.</returns>
-        internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, List<Drawable> queue)
+        internal virtual bool BuildPositionalInputQueue(Vector2 screenSpacePos, InputQueue queue)
         {
             if (!PropagatePositionalInputSubTree)
                 return false;
