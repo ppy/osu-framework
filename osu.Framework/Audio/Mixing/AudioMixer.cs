@@ -63,6 +63,7 @@ namespace osu.Framework.Audio.Mixing
                     return;
 
                 RemoveInternal(channel);
+                channel.Mixer = null;
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
