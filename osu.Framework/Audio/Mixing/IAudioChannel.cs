@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
-    /// Interface for audio channels. Audio channels can be routed into different mixers via <see cref="IAudioMixer.Add"/>.
+    /// An audio channel which plays audio. Audio channels can be routed into different mixers via <see cref="IAudioMixer.Add"/>.
     /// </summary>
     public interface IAudioChannel
     {

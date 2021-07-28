@@ -9,7 +9,8 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
-    /// Interface for an audio mixer.
+    /// An audio mixer which one or more <see cref="IAudioChannel"/>s can be routed into.
+    /// Supports DSP effects independent of other <see cref="IAudioMixer"/>s.
     /// </summary>
     public interface IAudioMixer
     {
