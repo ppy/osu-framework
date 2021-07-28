@@ -475,6 +475,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.MoveMouseTo(target);
                 InputManager.Click(MouseButton.Left);
             });
+
+            AddAssert("container received hover", () => eventHandlingContainer.HoverReceived);
+
             AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
 
             AddStep("mouse over popover", () =>
@@ -482,10 +485,21 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 eventHandlingContainer.Reset();
                 InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().Single().Body);
             });
+
             AddAssert("container did not receive hover", () => !eventHandlingContainer.HoverReceived);
 
             AddStep("click on popover", () => InputManager.Click(MouseButton.Left));
             AddAssert("container did not receive click", () => !eventHandlingContainer.ClickReceived);
+
+            AddStep("dismiss popover", () =>
+            {
+                InputManager.MoveMouseTo(eventHandlingContainer.ScreenSpaceDrawQuad.TopLeft + new Vector2(10));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("container received hover", () => eventHandlingContainer.HoverReceived);
+            AddStep("click again", () => InputManager.Click(MouseButton.Left));
+            AddAssert("container received click", () => eventHandlingContainer.ClickReceived);
         }
 
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
