@@ -7,6 +7,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
 
@@ -17,6 +18,7 @@ namespace osu.Framework.Graphics.Cursor
     public class PopoverContainer : Container
     {
         private readonly Container content;
+        private readonly Container dismissOnMouseDownContainer;
 
         private IHasPopover? target;
         private Popover? currentPopover;
@@ -31,6 +33,10 @@ namespace osu.Framework.Graphics.Cursor
                 {
                     RelativeSizeAxes = Axes.Both,
                 },
+                dismissOnMouseDownContainer = new DismissOnMouseDownContainer
+                {
+                    RelativeSizeAxes = Axes.Both
+                }
             };
         }
 
@@ -44,16 +50,16 @@ namespace osu.Framework.Graphics.Cursor
         /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
         internal bool SetTarget(IHasPopover? newTarget)
         {
-            target = newTarget;
-
             currentPopover?.Hide();
             currentPopover?.Expire();
+
+            target = newTarget;
 
             var newPopover = target?.GetPopover();
             if (newPopover == null)
                 return false;
 
-            AddInternal(currentPopover = newPopover);
+            dismissOnMouseDownContainer.Add(currentPopover = newPopover);
             currentPopover.Show();
             return true;
         }
@@ -61,6 +67,12 @@ namespace osu.Framework.Graphics.Cursor
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if ((target as Drawable)?.FindClosestParent<PopoverContainer>() != this || target?.IsPresent != true)
+            {
+                SetTarget(null);
+                return;
+            }
 
             updatePopoverPositioning();
         }
@@ -181,6 +193,15 @@ namespace osu.Framework.Graphics.Cursor
 
             // the final size is the intersection of the X/Y areas.
             return availableSize;
+        }
+
+        private class DismissOnMouseDownContainer : Container
+        {
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                this.HidePopover();
+                return false;
+            }
         }
     }
 }
