@@ -102,19 +102,19 @@ namespace osu.Framework.Audio.Mixing.Bass
             Remove(channel, false);
         }
 
-        bool IBassAudioChannelInterface.PlayChannel(IBassAudioChannel channel)
+        bool IBassAudioChannelInterface.ChannelPlay(IBassAudioChannel channel, bool restart = false)
         {
             BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
             return ManagedBass.Bass.LastError == Errors.OK;
         }
 
-        bool IBassAudioChannelInterface.PauseChannel(IBassAudioChannel channel)
+        bool IBassAudioChannelInterface.ChannelPause(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             return ManagedBass.Bass.LastError == Errors.OK;
         }
 
-        bool IBassAudioChannelInterface.StopChannel(IBassAudioChannel channel)
+        bool IBassAudioChannelInterface.ChannelStop(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
@@ -133,9 +133,9 @@ namespace osu.Framework.Audio.Mixing.Bass
             return state;
         }
 
-        long IBassAudioChannelInterface.GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
+        long IBassAudioChannelInterface.ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
 
-        bool IBassAudioChannelInterface.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
+        bool IBassAudioChannelInterface.ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, position, mode);
 
         bool IBassAudioChannelInterface.ChannelGetLevel(IBassAudioChannel channel, float[] levels, float length, LevelRetrievalFlags flags)
         {

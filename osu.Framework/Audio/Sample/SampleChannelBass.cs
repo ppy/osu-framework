@@ -170,7 +170,7 @@ namespace osu.Framework.Audio.Sample
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    Interface.PlayChannel(this);
+                    Interface.ChannelPlay(this);
             }
             finally
             {
@@ -181,7 +181,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                Interface.PauseChannel(this);
+                Interface.ChannelPause(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>

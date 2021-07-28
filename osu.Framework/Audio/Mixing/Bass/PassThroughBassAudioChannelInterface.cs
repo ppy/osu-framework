@@ -6,21 +6,21 @@ using ManagedBass;
 namespace osu.Framework.Audio.Mixing.Bass
 {
     /// <summary>
-    /// Implements the audio channel method interface by basic BASS method invocations.
+    /// Implements the audio channel method interface through basic BASS method invocations.
     /// </summary>
     internal class PassThroughBassAudioChannelInterface : IBassAudioChannelInterface
     {
-        public bool PlayChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelPlay(channel.Handle);
+        public bool ChannelPlay(IBassAudioChannel channel, bool restart = false) => ManagedBass.Bass.ChannelPlay(channel.Handle);
 
-        public bool PauseChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelPause(channel.Handle);
+        public bool ChannelPause(IBassAudioChannel channel) => ManagedBass.Bass.ChannelPause(channel.Handle);
 
-        public bool StopChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelStop(channel.Handle);
+        public bool ChannelStop(IBassAudioChannel channel) => ManagedBass.Bass.ChannelStop(channel.Handle);
 
         public PlaybackState ChannelIsActive(IBassAudioChannel channel) => ManagedBass.Bass.ChannelIsActive(channel.Handle);
 
-        public long GetChannelPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelGetPosition(channel.Handle, mode);
+        public long ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelGetPosition(channel.Handle, mode);
 
-        public bool SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelSetPosition(channel.Handle, pos, mode);
+        public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelSetPosition(channel.Handle, position, mode);
 
         public bool ChannelGetLevel(IBassAudioChannel channel, float[] levels, float length, LevelRetrievalFlags flags) => ManagedBass.Bass.ChannelGetLevel(channel.Handle, levels, length, flags);
 
