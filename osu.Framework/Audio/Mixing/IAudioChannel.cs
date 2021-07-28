@@ -19,7 +19,7 @@ namespace osu.Framework.Audio.Mixing
         internal AudioMixer? Mixer { get; set; }
 
         /// <summary>
-        /// Enqueues an action to be performed on the audio thread at time this channel is updated.
+        /// Enqueues an action to be performed on the audio thread as part of this channel.
         /// </summary>
         /// <param name="action">The action to perform.</param>
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>

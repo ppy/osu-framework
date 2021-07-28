@@ -23,15 +23,15 @@ namespace osu.Framework.Audio.Mixing
         BindableList<IEffectParameter> Effects { get; }
 
         /// <summary>
-        /// Adds an <see cref="IAudioChannel"/> to the mix.
+        /// Adds a channel to the mix.
         /// </summary>
-        /// <param name="channel">The <see cref="IAudioChannel"/> to add.</param>
+        /// <param name="channel">The channel to add.</param>
         void Add(IAudioChannel channel);
 
         /// <summary>
-        /// Removes an <see cref="IAudioChannel"/> from the mix.
+        /// Removes a channel from the mix.
         /// </summary>
-        /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
+        /// <param name="channel">The channel to remove.</param>
         void Remove(IAudioChannel channel);
     }
 }
