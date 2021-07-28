@@ -205,7 +205,7 @@ namespace osu.Framework.Audio.Track
         {
             base.UpdateState();
 
-            var running = isRunningState(Interface.ChannelIsActive(this));
+            var running = isRunningState(channelInterface.ChannelIsActive(this));
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
@@ -232,7 +232,7 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && Interface.ChannelPause(this);
+        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && channelInterface.ChannelPause(this);
 
         private int direction;
 
@@ -269,7 +269,7 @@ namespace osu.Framework.Audio.Track
 
             setLoopFlag(Looping);
 
-            return Interface.ChannelPlay(this);
+            return channelInterface.ChannelPlay(this);
         }
 
         public override bool Looping
@@ -305,8 +305,8 @@ namespace osu.Framework.Audio.Track
 
             long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
-            if (pos != Interface.ChannelGetPosition(this))
-                Interface.ChannelSetPosition(this, pos);
+            if (pos != channelInterface.ChannelGetPosition(this))
+                channelInterface.ChannelSetPosition(this, pos);
 
             // current time updates are safe to perform from enqueued actions,
             // but not always safe to perform from BASS callbacks, since those can sometimes use a separate thread.
@@ -319,7 +319,7 @@ namespace osu.Framework.Audio.Track
         {
             Debug.Assert(CanPerformInline);
 
-            var bytePosition = Interface.ChannelGetPosition(this);
+            var bytePosition = channelInterface.ChannelGetPosition(this);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
@@ -359,7 +359,7 @@ namespace osu.Framework.Audio.Track
 
         #region Mixing
 
-        public IBassAudioChannelInterface Interface { get; private set; } = new PassThroughBassAudioChannelInterface();
+        private IBassAudioChannelInterface channelInterface = new PassThroughBassAudioChannelInterface();
 
         protected override AudioMixer? Mixer
         {
@@ -367,13 +367,15 @@ namespace osu.Framework.Audio.Track
             set
             {
                 base.Mixer = value;
-                Interface = value as IBassAudioChannelInterface ?? new PassThroughBassAudioChannelInterface();
+                channelInterface = value as IBassAudioChannelInterface ?? new PassThroughBassAudioChannelInterface();
             }
         }
 
         int IBassAudioChannel.Handle => activeStream;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        IBassAudioChannelInterface IBassAudioChannel.Interface => channelInterface;
 
         #endregion
 

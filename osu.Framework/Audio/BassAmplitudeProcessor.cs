@@ -12,7 +12,7 @@ namespace osu.Framework.Audio
     /// <summary>
     /// Computes and caches amplitudes for a bass channel.
     /// </summary>
-    public class BassAmplitudeProcessor
+    internal class BassAmplitudeProcessor
     {
         /// <summary>
         /// The most recent amplitude data. Note that this is updated on an ongoing basis and there is no guarantee it is in a consistent (single sample) state.
