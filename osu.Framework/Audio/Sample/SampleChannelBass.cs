@@ -109,7 +109,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                switch (channelInterface.ChannelIsActive(this))
+                switch (Interface.ChannelIsActive(this))
                 {
                     case PlaybackState.Playing:
                     // Stalled counts as playing, as playback will continue once more data has streamed in.
@@ -164,13 +164,13 @@ namespace osu.Framework.Audio.Sample
                 // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
                 // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
                 // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && channelInterface.ChannelIsActive(this) == PlaybackState.Stopped)
+                if (Played && Interface.ChannelIsActive(this) == PlaybackState.Stopped)
                     return;
 
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    channelInterface.PlayChannel(this);
+                    Interface.PlayChannel(this);
             }
             finally
             {
@@ -181,7 +181,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                channelInterface.PauseChannel(this);
+                Interface.PauseChannel(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -210,7 +210,7 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        private IBassAudioChannelInterface channelInterface = new PassThroughBassAudioChannelInterface();
+        public IBassAudioChannelInterface Interface { get; private set; } = new PassThroughBassAudioChannelInterface();
 
         protected override AudioMixer? Mixer
         {
@@ -218,15 +218,13 @@ namespace osu.Framework.Audio.Sample
             set
             {
                 base.Mixer = value;
-                channelInterface = value as IBassAudioChannelInterface ?? new PassThroughBassAudioChannelInterface();
+                Interface = value as IBassAudioChannelInterface ?? new PassThroughBassAudioChannelInterface();
             }
         }
 
         int IBassAudioChannel.Handle => channel;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
-
-        IBassAudioChannelInterface IBassAudioChannel.Interface => channelInterface;
 
         #endregion
 

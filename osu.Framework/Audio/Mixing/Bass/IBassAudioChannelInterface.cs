@@ -9,7 +9,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// An interface providing all methods which an <see cref="IBassAudioChannel"/> may want to use.
     /// </summary>
-    internal interface IBassAudioChannelInterface
+    public interface IBassAudioChannelInterface
     {
         /// <summary>
         /// Plays a channel.

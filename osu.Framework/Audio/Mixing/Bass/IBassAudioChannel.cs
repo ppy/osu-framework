@@ -9,17 +9,17 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Interface for audio channels that play audio through BASS (<see cref="TrackBass"/>, <see cref="SampleChannelBass"/>, etc).
     /// </summary>
-    internal interface IBassAudioChannel : IAudioChannel
+    public interface IBassAudioChannel : IAudioChannel
     {
         /// <summary>
         /// The BASS channel handle.
         /// </summary>
-        int Handle { get; }
+        internal int Handle { get; }
 
         /// <summary>
         /// Whether the mixer channel is paused. Only set when removed from a <see cref="BassAudioMixer"/>.
         /// </summary>
-        bool MixerChannelPaused { get; set; }
+        internal bool MixerChannelPaused { get; set; }
 
         IBassAudioChannelInterface Interface { get; }
     }
