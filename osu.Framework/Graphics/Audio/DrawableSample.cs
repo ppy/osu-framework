@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
@@ -51,7 +53,7 @@ namespace osu.Framework.Graphics.Audio
 
         public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
-        private IAudioMixer mixer;
+        private IAudioMixer? mixer;
 
         protected override void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
         {
