@@ -8,7 +8,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Interface for a BASS audio mixer, providing redirects for common BASS methods.
     /// </summary>
-    internal interface IBassAudioMixer : IAudioMixer
+    internal interface IBassAudioMixer : IAudioMixer, IBassAudioChannelInterface
     {
         /// <summary>
         /// Signals that a <see cref="IBassAudioChannel"/>'s handle should be added to the mix.

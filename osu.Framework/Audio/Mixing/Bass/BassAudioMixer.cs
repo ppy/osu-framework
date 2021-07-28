@@ -19,7 +19,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
-    internal class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer, IBassAudioChannelInterface
+    internal class BassAudioMixer : AudioMixer, IBassAudioMixer, IBassAudio
     {
         /// <summary>
         /// The handle for this mixer.
