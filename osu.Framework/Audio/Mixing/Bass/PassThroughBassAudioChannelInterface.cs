@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class PassThroughBassAudioChannelInterface : IBassAudioChannelInterface
     {
-        public bool ChannelPlay(IBassAudioChannel channel, bool restart = false) => ManagedBass.Bass.ChannelPlay(channel.Handle);
+        public bool ChannelPlay(IBassAudioChannel channel, bool restart) => ManagedBass.Bass.ChannelPlay(channel.Handle, restart);
 
         public bool ChannelPause(IBassAudioChannel channel) => ManagedBass.Bass.ChannelPause(channel.Handle);
 
