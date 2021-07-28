@@ -179,11 +179,11 @@ namespace osu.Framework.Audio.Mixing
                 {
                     Debug.Assert(e.NewItems != null);
 
-                    if (e.NewItems.Count == 0)
-                        break;
+                    // Work around BindableList sending initial event start with index -1.
+                    int startIndex = Math.Max(0, e.NewStartingIndex);
 
-                    effects.InsertRange(e.NewStartingIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    reapplyEffects(e.NewStartingIndex, effects.Count - 1);
+                    effects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
+                    reapplyEffects(startIndex, effects.Count - 1);
                     break;
                 }
 
