@@ -96,10 +96,10 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         void IBassAudioMixer.UnregisterHandle(IBassAudioChannel channel)
         {
-            Debug.Assert(CanPerformInline);
             Debug.Assert(channel.Handle != 0);
 
-            Remove(channel, false);
+            // This method can be invoked from the channel's finaliser.
+            EnqueueAction(() => Remove(channel, false));
         }
 
         bool IBassAudioChannelInterface.ChannelPlay(IBassAudioChannel channel, bool restart)
