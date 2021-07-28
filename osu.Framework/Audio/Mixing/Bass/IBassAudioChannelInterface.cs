@@ -3,9 +3,12 @@
 
 using ManagedBass;
 
-namespace osu.Framework.Audio.Mixing
+namespace osu.Framework.Audio.Mixing.Bass
 {
-    public interface IBassAudioChannelInterface
+    /// <summary>
+    /// An interface providing all methods which an <see cref="IBassAudioChannel"/> may want to use.
+    /// </summary>
+    internal interface IBassAudioChannelInterface
     {
         /// <summary>
         /// Plays a mixed channel.

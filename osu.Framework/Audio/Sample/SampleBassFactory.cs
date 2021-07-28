@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using osu.Framework.Allocation;
-using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
 

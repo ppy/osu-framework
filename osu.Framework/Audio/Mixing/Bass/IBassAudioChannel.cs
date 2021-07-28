@@ -4,12 +4,12 @@
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 
-namespace osu.Framework.Audio.Mixing
+namespace osu.Framework.Audio.Mixing.Bass
 {
     /// <summary>
     /// Interface for audio channels that play audio through BASS (<see cref="TrackBass"/>, <see cref="SampleChannelBass"/>, etc).
     /// </summary>
-    public interface IBassAudioChannel : IAudioChannel
+    internal interface IBassAudioChannel : IAudioChannel
     {
         /// <summary>
         /// The BASS channel handle.
@@ -19,9 +19,6 @@ namespace osu.Framework.Audio.Mixing
         /// <summary>
         /// Whether the mixer channel is paused. Only set when removed from a <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <remarks>
-        /// Internal use only.
-        /// </remarks>
-        internal bool MixerChannelPaused { get; set; }
+        bool MixerChannelPaused { get; set; }
     }
 }

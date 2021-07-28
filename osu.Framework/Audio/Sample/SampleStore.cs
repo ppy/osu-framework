@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;
 

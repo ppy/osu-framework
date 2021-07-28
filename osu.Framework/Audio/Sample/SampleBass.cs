@@ -3,7 +3,7 @@
 
 #nullable enable
 
-using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 
 namespace osu.Framework.Audio.Sample
 {

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using ManagedBass;
 using osu.Framework.Audio;
-using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Development;

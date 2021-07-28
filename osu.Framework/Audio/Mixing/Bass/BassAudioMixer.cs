@@ -14,7 +14,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
-namespace osu.Framework.Audio.Mixing
+namespace osu.Framework.Audio.Mixing.Bass
 {
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
@@ -105,25 +105,25 @@ namespace osu.Framework.Audio.Mixing
         bool IBassAudioChannelInterface.PlayChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
-            return Bass.LastError == Errors.OK;
+            return ManagedBass.Bass.LastError == Errors.OK;
         }
 
         bool IBassAudioChannelInterface.PauseChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            return Bass.LastError == Errors.OK;
+            return ManagedBass.Bass.LastError == Errors.OK;
         }
 
         void IBassAudioChannelInterface.StopChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
+            ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
         PlaybackState IBassAudioChannelInterface.ChannelIsActive(IBassAudioChannel channel)
         {
             // The audio channel's state tells us whether it's stalled or stopped.
-            var state = Bass.ChannelIsActive(channel.Handle);
+            var state = ManagedBass.Bass.ChannelIsActive(channel.Handle);
 
             // The channel is always in a playing state unless stopped or stalled as it's a decoding channel. Retrieve the true playing state from the mixer channel.
             if (state == PlaybackState.Playing)
@@ -141,7 +141,7 @@ namespace osu.Framework.Audio.Mixing
             if (Handle == 0)
                 createMixer();
             else
-                Bass.ChannelSetDevice(Handle, deviceIndex);
+                ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
         }
 
         private void createMixer()
@@ -151,7 +151,7 @@ namespace osu.Framework.Audio.Mixing
 
             // Make sure that bass is initialised before trying to create a mixer.
             // If not, this will be called again when the device is initialised via UpdateDevice().
-            if (!Bass.GetDeviceInfo(Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
+            if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
             Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
@@ -167,7 +167,7 @@ namespace osu.Framework.Audio.Mixing
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
-            Bass.ChannelPlay(Handle);
+            ManagedBass.Bass.ChannelPlay(Handle);
         }
 
         private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
@@ -228,7 +228,7 @@ namespace osu.Framework.Audio.Mixing
             {
                 Debug.Assert(effect.Handle != 0);
 
-                Bass.ChannelRemoveFX(Handle, effect.Handle);
+                ManagedBass.Bass.ChannelRemoveFX(Handle, effect.Handle);
                 effect.Handle = 0;
             }
 
@@ -242,11 +242,11 @@ namespace osu.Framework.Audio.Mixing
                     effect.Priority = -i;
 
                     if (effect.Handle != 0)
-                        Bass.FXSetPriority(effect.Handle, effect.Priority);
+                        ManagedBass.Bass.FXSetPriority(effect.Handle, effect.Priority);
                     else
                     {
-                        effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
-                        Bass.FXSetParameters(effect.Handle, effect.Effect);
+                        effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
+                        ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
                     }
                 }
             }
@@ -268,7 +268,7 @@ namespace osu.Framework.Audio.Mixing
 
             if (Handle != 0)
             {
-                Bass.StreamFree(Handle);
+                ManagedBass.Bass.StreamFree(Handle);
                 Handle = 0;
             }
         }
