@@ -102,23 +102,16 @@ namespace osu.Framework.Audio.Mixing.Bass
             Remove(channel, false);
         }
 
-        bool IBassAudioChannelInterface.ChannelPlay(IBassAudioChannel channel, bool restart = false)
-        {
-            BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
-            return ManagedBass.Bass.LastError == Errors.OK;
-        }
+        bool IBassAudioChannelInterface.ChannelPlay(IBassAudioChannel channel, bool restart)
+            => BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
 
         bool IBassAudioChannelInterface.ChannelPause(IBassAudioChannel channel)
-        {
-            BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            return ManagedBass.Bass.LastError == Errors.OK;
-        }
+            => BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
 
         bool IBassAudioChannelInterface.ChannelStop(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
-            return ManagedBass.Bass.LastError == Errors.OK;
+            return ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
         PlaybackState IBassAudioChannelInterface.ChannelIsActive(IBassAudioChannel channel)
@@ -133,17 +126,17 @@ namespace osu.Framework.Audio.Mixing.Bass
             return state;
         }
 
-        long IBassAudioChannelInterface.ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
+        long IBassAudioChannelInterface.ChannelGetPosition(IBassAudioChannel channel, PositionFlags mode)
+            => BassMix.ChannelGetPosition(channel.Handle);
 
-        bool IBassAudioChannelInterface.ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, position, mode);
+        bool IBassAudioChannelInterface.ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode)
+            => BassMix.ChannelSetPosition(channel.Handle, position, mode);
 
         bool IBassAudioChannelInterface.ChannelGetLevel(IBassAudioChannel channel, float[] levels, float length, LevelRetrievalFlags flags)
-        {
-            BassMix.ChannelGetLevel(channel.Handle, levels, length, flags);
-            return ManagedBass.Bass.LastError == Errors.OK;
-        }
+            => BassMix.ChannelGetLevel(channel.Handle, levels, length, flags) != -1;
 
-        int IBassAudioChannelInterface.ChannelGetData(IBassAudioChannel channel, float[] buffer, int length) => BassMix.ChannelGetData(channel.Handle, buffer, length);
+        int IBassAudioChannelInterface.ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
+            => BassMix.ChannelGetData(channel.Handle, buffer, length);
 
         public void UpdateDevice(int deviceIndex)
         {
