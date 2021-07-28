@@ -201,6 +201,8 @@ namespace osu.Framework.Audio.Mixing.Bass
                 {
                     Debug.Assert(e.OldItems != null);
 
+                    for (int i = 0; i < e.OldItems.Count; i++)
+                        removeEffect(MixedEffects[e.OldStartingIndex + i]);
                     MixedEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
                     applyEffects(e.OldStartingIndex, MixedEffects.Count - 1);
                     break;
