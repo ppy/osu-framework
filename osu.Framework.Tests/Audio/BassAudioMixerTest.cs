@@ -315,7 +315,7 @@ namespace osu.Framework.Tests.Audio
                 for (int i = 0; i < pipeline.Mixer.MixedEffects.Count; i++)
                 {
                     Assert.That(pipeline.Mixer.MixedEffects[i].Effect, Is.EqualTo(pipeline.Mixer.Effects[i]));
-                    Assert.That(pipeline.Mixer.MixedEffects[i].Priority, Is.EqualTo(i));
+                    Assert.That(pipeline.Mixer.MixedEffects[i].Priority, Is.EqualTo(-i));
                 }
             });
         }

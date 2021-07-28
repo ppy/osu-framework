@@ -15,6 +15,10 @@ namespace osu.Framework.Audio.Mixing
     {
         /// <summary>
         /// The effects currently applied to the mix.
+        /// <para>
+        /// Effects are stored in order of decreasing priority such that the effect at <c>index = 0</c> in the list has the highest priority
+        /// and the effect at <c>index = Count - 1</c> in the list has the lowest priority.
+        /// </para>
         /// </summary>
         BindableList<IEffectParameter> Effects { get; }
 
