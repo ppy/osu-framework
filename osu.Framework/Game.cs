@@ -63,8 +63,6 @@ namespace osu.Framework
 
         private LogOverlay logOverlay;
 
-        private AudioMixerOverlay audioMixerOverlay;
-
         protected override Container<Drawable> Content => content;
 
         protected internal virtual UserInputManager CreateUserInputManager() => new UserInputManager();
@@ -336,18 +334,6 @@ namespace osu.Framework
 
                     executionMode.Value = nextExecutionMode;
                     break;
-
-                case FrameworkAction.ToggleAudioMixerOverlay:
-                    if (audioMixerOverlay == null)
-                    {
-                        LoadComponentAsync(audioMixerOverlay = new AudioMixerOverlay(Audio.Mixer)
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    audioMixerOverlay.ToggleVisibility();
-                    return true;
             }
 
             return false;
