@@ -46,7 +46,7 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        protected AudioMixer? Mixer { get; private set; }
+        protected virtual AudioMixer? Mixer { get; set; }
 
         AudioMixer? IAudioChannel.Mixer
         {

@@ -5,7 +5,7 @@ using System;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
-using osu.Framework.Audio;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 

@@ -19,7 +19,7 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
-    internal class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
+    internal class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer, IBassAudioChannelInterface
     {
         /// <summary>
         /// The handle for this mixer.
@@ -94,25 +94,33 @@ namespace osu.Framework.Audio.Mixing
             BassMix.MixerAddChannel(Handle, channel.Handle, flags);
         }
 
-        bool IBassAudioMixer.PlayChannel(IBassAudioChannel channel)
+        void IBassAudioMixer.UnregisterHandle(IBassAudioChannel channel)
+        {
+            Debug.Assert(CanPerformInline);
+            Debug.Assert(channel.Handle != 0);
+
+            Remove(channel, false);
+        }
+
+        bool IBassAudioChannelInterface.PlayChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
             return Bass.LastError == Errors.OK;
         }
 
-        bool IBassAudioMixer.PauseChannel(IBassAudioChannel channel)
+        bool IBassAudioChannelInterface.PauseChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             return Bass.LastError == Errors.OK;
         }
 
-        void IBassAudioMixer.StopChannel(IBassAudioChannel channel)
+        void IBassAudioChannelInterface.StopChannel(IBassAudioChannel channel)
         {
             BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
             Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
         }
 
-        public PlaybackState ChannelIsActive(IBassAudioChannel channel)
+        PlaybackState IBassAudioChannelInterface.ChannelIsActive(IBassAudioChannel channel)
         {
             // The audio channel's state tells us whether it's stalled or stopped.
             var state = Bass.ChannelIsActive(channel.Handle);
@@ -124,17 +132,9 @@ namespace osu.Framework.Audio.Mixing
             return state;
         }
 
-        long IBassAudioMixer.GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
+        long IBassAudioChannelInterface.GetChannelPosition(IBassAudioChannel channel, PositionFlags mode) => BassMix.ChannelGetPosition(channel.Handle);
 
-        bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
-
-        void IBassAudioMixer.UnregisterHandle(IBassAudioChannel channel)
-        {
-            Debug.Assert(CanPerformInline);
-            Debug.Assert(channel.Handle != 0);
-
-            Remove(channel, false);
-        }
+        bool IBassAudioChannelInterface.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
 
         public void UpdateDevice(int deviceIndex)
         {

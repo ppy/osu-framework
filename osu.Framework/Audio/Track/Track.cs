@@ -123,7 +123,7 @@ namespace osu.Framework.Audio.Track
 
         #region Mixing
 
-        protected AudioMixer? Mixer { get; private set; }
+        protected virtual AudioMixer? Mixer { get; set; }
 
         AudioMixer? IAudioChannel.Mixer
         {

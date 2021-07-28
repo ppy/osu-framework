@@ -5,9 +5,8 @@
 
 using System;
 using System.Threading.Tasks;
-using osu.Framework.Audio.Mixing;
 
-namespace osu.Framework.Audio
+namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
     /// Interface for audio channels. Audio channels can be routed into different mixers via <see cref="IAudioMixer.Add"/>.
