@@ -63,13 +63,6 @@ namespace osu.Framework.Audio.Sample
             // The sample may not have already loaded if a device wasn't present in a previous load attempt.
             if (!IsLoaded)
                 loadSample();
-
-            if (!IsLoaded)
-                return;
-
-            // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-            Bass.ChannelSetDevice(SampleId, deviceIndex);
-            BassUtils.CheckFaulted(true);
         }
 
         private void loadSample()

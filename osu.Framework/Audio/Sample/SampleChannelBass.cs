@@ -10,7 +10,7 @@ using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal sealed class SampleChannelBass : SampleChannel, IBassAudio, IBassAudioChannel
+    internal sealed class SampleChannelBass : SampleChannel, IBassAudioChannel
     {
         private readonly SampleBass sample;
         private volatile int channel;
@@ -72,15 +72,6 @@ namespace osu.Framework.Audio.Sample
             base.Play();
 
             playChannel();
-        }
-
-        void IBassAudio.UpdateDevice(int deviceIndex)
-        {
-            // Channels created from samples can not be migrated, so we need to ensure
-            // a new channel is created after switching the device. We do not need to
-            // manually free the channel, because our Bass.Free call upon switching devices
-            // takes care of that.
-            channel = 0;
         }
 
         internal override void OnStateChanged()
