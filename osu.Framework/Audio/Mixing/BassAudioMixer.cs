@@ -26,8 +26,8 @@ namespace osu.Framework.Audio.Mixing
         /// </summary>
         public int Handle { get; private set; }
 
+        internal readonly List<EffectWithHandle> MixedEffects = new List<EffectWithHandle>();
         private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
-        private readonly List<EffectWithHandle> effects = new List<EffectWithHandle>();
 
         private const int frequency = 44100;
 
@@ -181,17 +181,17 @@ namespace osu.Framework.Audio.Mixing
                     // Work around BindableList sending initial event start with index -1.
                     int startIndex = Math.Max(0, e.NewStartingIndex);
 
-                    effects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    updateEffects(startIndex, effects.Count - 1);
+                    MixedEffects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
+                    updateEffects(startIndex, MixedEffects.Count - 1);
                     break;
                 }
 
                 case NotifyCollectionChangedAction.Move:
                 {
-                    EffectWithHandle effect = effects[e.OldStartingIndex];
-                    effects.RemoveAt(e.OldStartingIndex);
-                    effects.Insert(e.NewStartingIndex, effect);
-                    updateEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), effects.Count - 1);
+                    EffectWithHandle effect = MixedEffects[e.OldStartingIndex];
+                    MixedEffects.RemoveAt(e.OldStartingIndex);
+                    MixedEffects.Insert(e.NewStartingIndex, effect);
+                    updateEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), MixedEffects.Count - 1);
                     break;
                 }
 
@@ -199,8 +199,8 @@ namespace osu.Framework.Audio.Mixing
                 {
                     Debug.Assert(e.OldItems != null);
 
-                    effects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    updateEffects(e.OldStartingIndex, effects.Count - 1);
+                    MixedEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+                    updateEffects(e.OldStartingIndex, MixedEffects.Count - 1);
                     break;
                 }
 
@@ -208,8 +208,8 @@ namespace osu.Framework.Audio.Mixing
                 {
                     Debug.Assert(e.NewItems != null);
 
-                    EffectWithHandle oldEffect = effects[e.NewStartingIndex];
-                    effects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter?)e.NewItems[0]);
+                    EffectWithHandle oldEffect = MixedEffects[e.NewStartingIndex];
+                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter?)e.NewItems[0]);
                     removeEffect(oldEffect);
                     updateEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
@@ -217,9 +217,9 @@ namespace osu.Framework.Audio.Mixing
 
                 case NotifyCollectionChangedAction.Reset:
                 {
-                    foreach (var effect in effects)
+                    foreach (var effect in MixedEffects)
                         removeEffect(effect);
-                    effects.Clear();
+                    MixedEffects.Clear();
                     break;
                 }
             }
@@ -234,13 +234,14 @@ namespace osu.Framework.Audio.Mixing
             {
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    var effect = effects[i];
+                    var effect = MixedEffects[i];
+                    effect.Priority = i;
 
                     if (effect.Handle != 0)
-                        Bass.FXSetPriority(effect.Handle, i);
+                        Bass.FXSetPriority(effect.Handle, effect.Priority);
                     else
                     {
-                        effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, i);
+                        effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
                         Bass.FXSetParameters(effect.Handle, effect.Effect);
                     }
                 }
@@ -268,9 +269,10 @@ namespace osu.Framework.Audio.Mixing
             }
         }
 
-        private class EffectWithHandle
+        internal class EffectWithHandle
         {
             public int Handle { get; set; }
+            public int Priority { get; set; }
 
             public readonly IEffectParameter Effect;
 

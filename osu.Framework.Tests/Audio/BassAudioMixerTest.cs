@@ -1,9 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
 using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 
 namespace osu.Framework.Tests.Audio
@@ -13,12 +16,14 @@ namespace osu.Framework.Tests.Audio
     {
         private TestBassAudioPipeline pipeline;
         private TrackBass track;
+        private SampleBass sample;
 
         [SetUp]
         public void Setup()
         {
             pipeline = new TestBassAudioPipeline();
-            track = track = pipeline.GetTrack();
+            track = pipeline.GetTrack();
+            sample = pipeline.GetSample();
 
             pipeline.Update();
             pipeline.Update();
@@ -164,6 +169,155 @@ namespace osu.Framework.Tests.Audio
             pipeline.Update();
 
             Assert.That(track.IsRunning);
+        }
+
+        [Test]
+        public void TestTrackReferenceLostWhenTrackIsDisposed()
+        {
+            track.Dispose();
+
+            // The first update disposes the track, the second one removes the track from the TrackStore.
+            pipeline.Update();
+            pipeline.Update();
+
+            var trackReference = new WeakReference<TrackBass>(track);
+            track = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            Assert.That(!trackReference.TryGetTarget(out _));
+        }
+
+        [Test]
+        public void TestSampleChannelReferenceLostWhenSampleChannelIsDisposed()
+        {
+            var channelReference = runTest(sample);
+
+            // The first update disposes the track, the second one removes the track from the TrackStore.
+            pipeline.Update();
+            pipeline.Update();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            Assert.That(!channelReference.TryGetTarget(out _));
+
+            static WeakReference<SampleChannel> runTest(SampleBass sample)
+            {
+                var channel = sample.GetChannel();
+
+                channel.Play(); // Creates the handle/adds to mixer.
+                channel.Stop();
+                channel.Dispose();
+
+                return new WeakReference<SampleChannel>(channel);
+            }
+        }
+
+        [Test]
+        public void TestAddEffect()
+        {
+            pipeline.Mixer.Effects.Add(new BQFParameters());
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.AddRange(new[]
+            {
+                new BQFParameters(),
+                new BQFParameters(),
+                new BQFParameters()
+            });
+            assertEffectParameters();
+        }
+
+        [Test]
+        public void TestRemoveEffect()
+        {
+            pipeline.Mixer.Effects.Add(new BQFParameters());
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.RemoveAt(0);
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.AddRange(new[]
+            {
+                new BQFParameters(),
+                new BQFParameters(),
+                new BQFParameters()
+            });
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.RemoveAt(1);
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.RemoveAt(1);
+            assertEffectParameters();
+        }
+
+        [Test]
+        public void TestMoveEffect()
+        {
+            pipeline.Mixer.Effects.AddRange(new[]
+            {
+                new BQFParameters(),
+                new BQFParameters(),
+                new BQFParameters()
+            });
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.Move(0, 1);
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.Move(2, 0);
+            assertEffectParameters();
+        }
+
+        [Test]
+        public void TestReplaceEffect()
+        {
+            pipeline.Mixer.Effects.AddRange(new[]
+            {
+                new BQFParameters(),
+                new BQFParameters(),
+                new BQFParameters()
+            });
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects[1] = new BQFParameters();
+            assertEffectParameters();
+        }
+
+        [Test]
+        public void TestInsertEffect()
+        {
+            pipeline.Mixer.Effects.AddRange(new[]
+            {
+                new BQFParameters(),
+                new BQFParameters()
+            });
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.Insert(1, new BQFParameters());
+            assertEffectParameters();
+
+            pipeline.Mixer.Effects.Insert(3, new BQFParameters());
+            assertEffectParameters();
+        }
+
+        private void assertEffectParameters()
+        {
+            pipeline.Update();
+
+            Assert.That(pipeline.Mixer.MixedEffects.Count, Is.EqualTo(pipeline.Mixer.Effects.Count));
+
+            Assert.Multiple(() =>
+            {
+                for (int i = 0; i < pipeline.Mixer.MixedEffects.Count; i++)
+                {
+                    Assert.That(pipeline.Mixer.MixedEffects[i].Effect, Is.EqualTo(pipeline.Mixer.Effects[i]));
+                    Assert.That(pipeline.Mixer.MixedEffects[i].Priority, Is.EqualTo(i));
+                }
+            });
         }
 
         private int getHandle() => ((IBassAudioChannel)track).Handle;
