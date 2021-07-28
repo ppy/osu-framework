@@ -100,7 +100,7 @@ namespace osu.Framework.Audio.Track
                 Preview = quick;
 
                 activeStream = prepareStream(data, quick);
-                bassMixer.RegisterChannel(this);
+                bassMixer.RegisterHandle(this);
 
                 long byteLength = Bass.ChannelGetLength(activeStream);
 
@@ -238,7 +238,8 @@ namespace osu.Framework.Audio.Track
             if (activeStream != 0)
             {
                 isRunning = false;
-                bassMixer.StreamFree(this);
+                bassMixer.UnregisterHandle(this);
+                Bass.StreamFree(activeStream);
             }
 
             activeStream = 0;

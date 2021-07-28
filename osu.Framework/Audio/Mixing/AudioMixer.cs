@@ -46,6 +46,11 @@ namespace osu.Framework.Audio.Mixing
 
         public void Remove(IAudioChannel channel) => Remove(channel, true);
 
+        /// <summary>
+        /// Removes an <see cref="IAudioChannel"/> from the mix.
+        /// </summary>
+        /// <param name="channel">The <see cref="IAudioChannel"/> to remove.</param>
+        /// <param name="returnToDefault">Whether <paramref name="channel"/> should be returned to the default mixer.</param>
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.

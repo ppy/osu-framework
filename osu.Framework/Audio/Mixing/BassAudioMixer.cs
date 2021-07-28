@@ -17,7 +17,7 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
-    /// A BASSmix audio mixer.
+    /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio, IBassAudioMixer
     {
@@ -56,7 +56,7 @@ namespace osu.Framework.Audio.Mixing
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            ((IBassAudioMixer)this).RegisterChannel(bassChannel);
+            ((IBassAudioMixer)this).RegisterHandle(bassChannel);
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -76,7 +76,7 @@ namespace osu.Framework.Audio.Mixing
             BassMix.MixerRemoveChannel(bassChannel.Handle);
         }
 
-        void IBassAudioMixer.RegisterChannel(IBassAudioChannel channel)
+        void IBassAudioMixer.RegisterHandle(IBassAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(channel.Handle != 0);
@@ -128,13 +128,12 @@ namespace osu.Framework.Audio.Mixing
 
         bool IBassAudioMixer.SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode) => BassMix.ChannelSetPosition(channel.Handle, pos, mode);
 
-        public void StreamFree(IBassAudioChannel channel)
+        void IBassAudioMixer.UnregisterHandle(IBassAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
             Debug.Assert(channel.Handle != 0);
 
             Remove(channel, false);
-            Bass.StreamFree(channel.Handle);
         }
 
         public void UpdateDevice(int deviceIndex)
@@ -163,7 +162,7 @@ namespace osu.Framework.Audio.Mixing
             foreach (var channel in mixedChannels)
             {
                 if (channel.Handle != 0)
-                    ((IBassAudioMixer)this).RegisterChannel(channel);
+                    ((IBassAudioMixer)this).RegisterHandle(channel);
             }
 
             Effects.BindCollectionChanged(onEffectsChanged, true);

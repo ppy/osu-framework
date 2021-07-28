@@ -13,10 +13,16 @@ namespace osu.Framework.Audio.Mixing
     public interface IBassAudioMixer : IAudioMixer
     {
         /// <summary>
-        /// Registers a channel to the mix.
+        /// Signals that a <see cref="IBassAudioChannel"/>'s handle should be added to the mix.
         /// </summary>
-        /// <param name="channel">The <see cref="IBassAudioChannel"/> to register.</param>
-        internal void RegisterChannel(IBassAudioChannel channel);
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> providing the handle.</param>
+        internal void RegisterHandle(IBassAudioChannel channel);
+
+        /// <summary>
+        /// Signals that a <see cref="IBassAudioChannel"/>'s handle should be removed to the mix.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
+        internal void UnregisterHandle(IBassAudioChannel channel);
 
         /// <summary>
         /// Plays a mixed channel.
@@ -61,11 +67,5 @@ namespace osu.Framework.Audio.Mixing
         /// <param name="mode">The mode in which to interpret the given position.</param>
         /// <returns>Whether the channel position was set successfully.</returns>
         bool SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode = PositionFlags.Bytes);
-
-        /// <summary>
-        /// Frees a mixed channel.
-        /// </summary>
-        /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
-        void StreamFree(IBassAudioChannel channel);
     }
 }

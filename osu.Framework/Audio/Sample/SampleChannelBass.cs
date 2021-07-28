@@ -208,7 +208,7 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            bassMixer.RegisterChannel(this);
+            bassMixer.RegisterHandle(this);
 
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
@@ -224,7 +224,8 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                bassMixer.StreamFree(this);
+                bassMixer.UnregisterHandle(this);
+                Bass.StreamFree(channel);
                 channel = 0;
             }
 
