@@ -24,6 +24,11 @@ namespace osu.Framework.Audio.Sample
             PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
-        protected override SampleChannel CreateChannel() => new SampleChannelBass(this, mixer);
+        protected override SampleChannel CreateChannel()
+        {
+            var channel = new SampleChannelBass(this);
+            mixer.Add(channel);
+            return channel;
+        }
     }
 }

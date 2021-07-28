@@ -39,19 +39,11 @@ namespace osu.Framework.Audio.Sample
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
         private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
-        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
-
-        int IBassAudioChannel.Handle => channel;
-
-        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
-
         /// <summary>
         /// Creates a new <see cref="SampleChannelBass"/>.
         /// </summary>
         /// <param name="sample">The <see cref="SampleBass"/> to create the channel from.</param>
-        /// <param name="defaultMixer"><inheritdoc/></param>
-        public SampleChannelBass(SampleBass sample, IBassAudioMixer defaultMixer)
-            : base(defaultMixer)
+        public SampleChannelBass(SampleBass sample)
         {
             this.sample = sample;
 
@@ -216,6 +208,16 @@ namespace osu.Framework.Audio.Sample
             relativeFrequencyHandler.SetChannel(channel);
             bassAmplitudeProcessor?.SetChannel(channel);
         });
+
+        #region Mixing
+
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
+
+        int IBassAudioChannel.Handle => channel;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        #endregion
 
         protected override void Dispose(bool disposing)
         {

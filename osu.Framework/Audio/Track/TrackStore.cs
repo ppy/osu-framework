@@ -44,8 +44,9 @@ namespace osu.Framework.Audio.Track
             if (dataStream == null)
                 return null;
 
-            TrackBass trackBass = new TrackBass(dataStream, (IBassAudioMixer)mixer);
+            TrackBass trackBass = new TrackBass(dataStream);
 
+            mixer.Add(trackBass);
             AddItem(trackBass);
 
             return trackBass;

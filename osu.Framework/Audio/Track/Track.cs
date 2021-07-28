@@ -25,16 +25,6 @@ namespace osu.Framework.Audio.Track
         public virtual bool Looping { get; set; }
 
         /// <summary>
-        /// Creates a new <see cref="Track"/>.
-        /// </summary>
-        /// <param name="defaultMixer">The default <see cref="AudioMixer"/> to house this <see cref="Track"/>.
-        /// The <see cref="Track"/> can never be removed from this <see cref="AudioMixer"/>, but can be moved to other mixers via <see cref="AudioMixer.Add"/>.</param>
-        protected Track(IAudioMixer defaultMixer)
-        {
-            defaultMixer.Add(this);
-        }
-
-        /// <summary>
         /// Reset this track to a logical default state.
         /// </summary>
         public virtual void Reset()

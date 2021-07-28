@@ -58,18 +58,14 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
-
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
 
         /// <summary>
         /// Constructs a new <see cref="TrackBass"/> from provided audio data.
         /// </summary>
         /// <param name="data">The sample data stream.</param>
-        /// <param name="defaultMixer"><inheritdoc/></param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass([NotNull] Stream data, IBassAudioMixer defaultMixer, bool quick = false)
-            : base(defaultMixer)
+        public TrackBass([NotNull] Stream data, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -225,43 +221,6 @@ namespace osu.Framework.Audio.Track
             bassAmplitudeProcessor?.Update();
         }
 
-        ~TrackBass()
-        {
-            Dispose(false);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            if (activeStream != 0)
-            {
-                isRunning = false;
-                bassMixer.UnregisterHandle(this);
-                Bass.StreamFree(activeStream);
-            }
-
-            activeStream = 0;
-
-            dataStream?.Dispose();
-            dataStream = null;
-
-            fileCallbacks?.Dispose();
-            fileCallbacks = null;
-
-            stopCallback?.Dispose();
-            stopCallback = null;
-
-            endCallback?.Dispose();
-            endCallback = null;
-
-            endMixtimeCallback?.Dispose();
-            endMixtimeCallback = null;
-
-            base.Dispose(disposing);
-        }
-
         public override bool IsDummyDevice => false;
 
         public override void Stop()
@@ -402,8 +361,51 @@ namespace osu.Framework.Audio.Track
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
 
+        #region Mixing
+
+        private IBassAudioMixer bassMixer => (IBassAudioMixer)Mixer.AsNonNull();
+
         int IBassAudioChannel.Handle => activeStream;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        #endregion
+
+        ~TrackBass()
+        {
+            Dispose(false);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
+            if (activeStream != 0)
+            {
+                isRunning = false;
+                bassMixer.UnregisterHandle(this);
+                Bass.StreamFree(activeStream);
+            }
+
+            activeStream = 0;
+
+            dataStream?.Dispose();
+            dataStream = null;
+
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
+
+            stopCallback?.Dispose();
+            stopCallback = null;
+
+            endCallback?.Dispose();
+            endCallback = null;
+
+            endMixtimeCallback?.Dispose();
+            endMixtimeCallback = null;
+
+            base.Dispose(disposing);
+        }
     }
 }
