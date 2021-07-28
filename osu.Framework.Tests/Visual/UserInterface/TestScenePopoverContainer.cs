@@ -444,6 +444,64 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddUntilStep("no popover present", () => !this.ChildrenOfType<Popover>().Any());
         }
 
+        [Test]
+        public void TestPopoverEventHandling()
+        {
+            EventHandlingContainer eventHandlingContainer = null;
+            DrawableWithPopover target = null;
+
+            AddStep("add button", () => popoverContainer.Child = eventHandlingContainer = new EventHandlingContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = target = new DrawableWithPopover
+                {
+                    Width = 200,
+                    Height = 30,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Text = "open",
+                    CreateContent = _ => new BasicPopover
+                    {
+                        Child = new SpriteText
+                        {
+                            Text = "This popover should be handle hover and click events",
+                        }
+                    }
+                }
+            });
+
+            AddStep("click button", () =>
+            {
+                InputManager.MoveMouseTo(target);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("container received hover", () => eventHandlingContainer.HoverReceived);
+
+            AddAssert("popover created", () => this.ChildrenOfType<Popover>().Any());
+
+            AddStep("mouse over popover", () =>
+            {
+                eventHandlingContainer.Reset();
+                InputManager.MoveMouseTo(this.ChildrenOfType<Popover>().Single().Body);
+            });
+
+            AddAssert("container did not receive hover", () => !eventHandlingContainer.HoverReceived);
+
+            AddStep("click on popover", () => InputManager.Click(MouseButton.Left));
+            AddAssert("container did not receive click", () => !eventHandlingContainer.ClickReceived);
+
+            AddStep("dismiss popover", () =>
+            {
+                InputManager.MoveMouseTo(eventHandlingContainer.ScreenSpaceDrawQuad.TopLeft + new Vector2(10));
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddAssert("container received hover", () => eventHandlingContainer.HoverReceived);
+            AddStep("click again", () => InputManager.Click(MouseButton.Left));
+            AddAssert("container received click", () => eventHandlingContainer.ClickReceived);
+        }
+
         private void createContent(Func<DrawableWithPopover, Popover> creationFunc)
             => AddStep("create content", () =>
             {
@@ -537,6 +595,59 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     Text = "the text box has focus now!"
                 }
             };
+        }
+
+        private class EventHandlingContainer : Container
+        {
+            private readonly Box colourBox;
+
+            public bool ClickReceived { get; private set; }
+            public bool HoverReceived { get; private set; }
+
+            protected override Container<Drawable> Content { get; }
+
+            public EventHandlingContainer()
+            {
+                AddInternal(new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        colourBox = new Box
+                        {
+                            Colour = Color4.Black,
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        Content = new Container { RelativeSizeAxes = Axes.Both },
+                    }
+                });
+            }
+
+            public void Reset()
+            {
+                ClickReceived = HoverReceived = false;
+                colourBox.FadeColour(Color4.Black);
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                ClickReceived = true;
+                colourBox.FlashColour(Color4.White, 200);
+                return true;
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                HoverReceived = true;
+                colourBox.FadeColour(Color4.DarkSlateBlue, 200);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                colourBox.FadeColour(Color4.Black, 200);
+                base.OnHoverLost(e);
+            }
         }
     }
 }
