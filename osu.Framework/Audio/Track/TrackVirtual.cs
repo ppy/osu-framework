@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Track
         private double seekOffset;
 
         public TrackVirtual(double length)
-            : base(new NullAudioMixer())
+            : base(new VirtualAudioMixer())
         {
             Length = length;
         }

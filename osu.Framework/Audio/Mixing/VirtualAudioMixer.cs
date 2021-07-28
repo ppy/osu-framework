@@ -9,14 +9,14 @@ using osu.Framework.Bindables;
 namespace osu.Framework.Audio.Mixing
 {
     /// <summary>
-    /// A no-sound audio mixer.
+    /// A no-sound audio mixer to be used for virtual channels.
     /// </summary>
-    public class NullAudioMixer : AudioMixer
+    public class VirtualAudioMixer : AudioMixer
     {
         /// <summary>
-        /// Creates a new <see cref="NullAudioMixer"/>.
+        /// Creates a new <see cref="VirtualAudioMixer"/>.
         /// </summary>
-        public NullAudioMixer()
+        public VirtualAudioMixer()
             : base(null)
         {
         }

@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Sample
         public override bool Playing => playing;
 
         public SampleChannelVirtual()
-            : base(new NullAudioMixer())
+            : base(new VirtualAudioMixer())
         {
         }
 
