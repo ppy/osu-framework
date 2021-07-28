@@ -11,7 +11,6 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
-using osu.Framework.Lists;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
@@ -19,7 +18,7 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/> into one output via BASSmix.
     /// </summary>
-    internal class BassAudioMixer : AudioMixer, IBassAudioMixer, IBassAudio
+    internal class BassAudioMixer : AudioMixer, IBassAudioChannelInterface, IBassAudio
     {
         /// <summary>
         /// The handle for this mixer.
@@ -27,7 +26,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         public int Handle { get; private set; }
 
         internal readonly List<EffectWithHandle> MixedEffects = new List<EffectWithHandle>();
-        private readonly WeakList<IBassAudioChannel> mixedChannels = new WeakList<IBassAudioChannel>();
+        private readonly List<IBassAudioChannel> mixedChannels = new List<IBassAudioChannel>();
 
         private const int frequency = 44100;
 
@@ -50,13 +49,11 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            Debug.Assert(!mixedChannels.Contains(bassChannel));
-            mixedChannels.Add(bassChannel);
-
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            ((IBassAudioMixer)this).RegisterHandle(bassChannel);
+            if (!bassChannel.MixerChannelPaused)
+                ((IBassAudioChannelInterface)this).ChannelPlay(bassChannel);
         }
 
         protected override void RemoveInternal(IAudioChannel channel)
@@ -66,47 +63,25 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!(channel is IBassAudioChannel bassChannel))
                 return;
 
-            if (!mixedChannels.Remove(bassChannel))
-                return;
-
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            bassChannel.MixerChannelPaused = BassMix.ChannelHasFlag(bassChannel.Handle, BassFlags.MixerChanPause);
-            BassMix.MixerRemoveChannel(bassChannel.Handle);
+            if (mixedChannels.Remove(bassChannel))
+                removeChannelFromBassMix(bassChannel);
         }
 
-        void IBassAudioMixer.RegisterHandle(IBassAudioChannel channel)
+        public bool ChannelPlay(IBassAudioChannel channel, bool restart)
         {
-            Debug.Assert(CanPerformInline);
-            Debug.Assert(channel.Handle != 0);
+            if (Handle == 0 || channel.Handle == 0)
+                return false;
 
-            if (Handle == 0)
-                return;
+            AddChannelToBassMix(channel);
+            BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
 
-            if (!mixedChannels.Contains(channel))
-                throw new InvalidOperationException("Channel needs to be added to the mixer first.");
-
-            BassFlags flags = BassFlags.MixerChanBuffer;
-            if (channel.MixerChannelPaused)
-                flags |= BassFlags.MixerChanPause;
-
-            BassMix.MixerAddChannel(Handle, channel.Handle, flags);
+            return true;
         }
 
-        void IBassAudioMixer.UnregisterHandle(IBassAudioChannel channel)
-        {
-            Debug.Assert(channel.Handle != 0);
-
-            // This method can be invoked from the channel's finaliser.
-            EnqueueAction(() => Remove(channel, false));
-        }
-
-        bool IBassAudioChannelInterface.ChannelPlay(IBassAudioChannel channel, bool restart)
-            => BassMix.ChannelRemoveFlag(channel.Handle, BassFlags.MixerChanPause);
-
-        bool IBassAudioChannelInterface.ChannelPause(IBassAudioChannel channel)
-            => BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
+        bool IBassAudioChannelInterface.ChannelPause(IBassAudioChannel channel) => BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
 
         bool IBassAudioChannelInterface.ChannelStop(IBassAudioChannel channel)
         {
@@ -138,12 +113,34 @@ namespace osu.Framework.Audio.Mixing.Bass
         int IBassAudioChannelInterface.ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
             => BassMix.ChannelGetData(channel.Handle, buffer, length);
 
+        bool IBassAudioChannelInterface.StreamFree(IBassAudioChannel channel)
+        {
+            Remove(channel, false);
+            return ManagedBass.Bass.StreamFree(channel.Handle);
+        }
+
         public void UpdateDevice(int deviceIndex)
         {
             if (Handle == 0)
                 createMixer();
             else
                 ManagedBass.Bass.ChannelSetDevice(Handle, deviceIndex);
+        }
+
+        protected override void UpdateState()
+        {
+            for (int i = 0; i < mixedChannels.Count; i++)
+            {
+                var channel = mixedChannels[i];
+                if (channel.IsActive)
+                    continue;
+
+                mixedChannels.RemoveAt(i--);
+                removeChannelFromBassMix(channel);
+            }
+
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count);
+            base.UpdateState();
         }
 
         private void createMixer()
@@ -160,16 +157,43 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0)
                 return;
 
-            // Register all channels that have an active handle, which were added to the mixer prior to it being loaded.
-            foreach (var channel in mixedChannels)
-            {
-                if (channel.Handle != 0)
-                    ((IBassAudioMixer)this).RegisterHandle(channel);
-            }
+            // Register all channels that were previously played prior to the mixer being loaded.
+            var toAdd = mixedChannels.ToArray();
+            mixedChannels.Clear();
+            foreach (var channel in toAdd)
+                AddChannelToBassMix(channel);
 
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
             ManagedBass.Bass.ChannelPlay(Handle);
+        }
+
+        /// <summary>
+        /// Adds a channel to the native BASS mix.
+        /// </summary>
+        public void AddChannelToBassMix(IBassAudioChannel channel)
+        {
+            Debug.Assert(Handle != 0);
+            Debug.Assert(channel.Handle != 0);
+
+            BassFlags flags = BassFlags.MixerChanBuffer;
+            if (channel.MixerChannelPaused)
+                flags |= BassFlags.MixerChanPause;
+
+            if (BassMix.MixerAddChannel(Handle, channel.Handle, flags))
+                mixedChannels.Add(channel);
+        }
+
+        /// <summary>
+        /// Removes a channel from the native BASS mix.
+        /// </summary>
+        private void removeChannelFromBassMix(IBassAudioChannel channel)
+        {
+            Debug.Assert(Handle != 0);
+            Debug.Assert(channel.Handle != 0);
+
+            channel.MixerChannelPaused = BassMix.ChannelHasFlag(channel.Handle, BassFlags.MixerChanPause);
+            BassMix.MixerRemoveChannel(channel.Handle);
         }
 
         private void onEffectsChanged(object? sender, NotifyCollectionChangedEventArgs e) => EnqueueAction(() =>
@@ -213,7 +237,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.NewItems != null);
 
                     EffectWithHandle oldEffect = MixedEffects[e.NewStartingIndex];
-                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter?)e.NewItems[0]);
+                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0]);
                     removeEffect(oldEffect);
                     applyEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
@@ -255,12 +279,6 @@ namespace osu.Framework.Audio.Mixing.Bass
                 }
             }
         });
-
-        protected override void UpdateState()
-        {
-            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count());
-            base.UpdateState();
-        }
 
         protected override void Dispose(bool disposing)
         {

@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 
@@ -11,6 +13,11 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal interface IBassAudioChannel : IAudioChannel
     {
+        /// <summary>
+        /// Whether this channel is still active within the mix.
+        /// </summary>
+        bool IsActive { get; }
+
         /// <summary>
         /// The BASS channel handle.
         /// </summary>

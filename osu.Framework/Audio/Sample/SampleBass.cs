@@ -14,9 +14,9 @@ namespace osu.Framework.Audio.Sample
         public override bool IsLoaded => factory.IsLoaded;
 
         private readonly SampleBassFactory factory;
-        private readonly IBassAudioMixer mixer;
+        private readonly BassAudioMixer mixer;
 
-        internal SampleBass(SampleBassFactory factory, IBassAudioMixer mixer)
+        internal SampleBass(SampleBassFactory factory, BassAudioMixer mixer)
         {
             this.factory = factory;
             this.mixer = mixer;

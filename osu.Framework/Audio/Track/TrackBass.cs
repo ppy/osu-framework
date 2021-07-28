@@ -96,7 +96,6 @@ namespace osu.Framework.Audio.Track
                 Preview = quick;
 
                 activeStream = prepareStream(data, quick);
-                (Mixer as IBassAudioMixer)?.RegisterHandle(this);
 
                 long byteLength = Bass.ChannelGetLength(activeStream);
 
@@ -367,9 +366,15 @@ namespace osu.Framework.Audio.Track
             set
             {
                 base.Mixer = value;
+
+                // Tracks are always active until they're disposed, so they need to be added to the mix prematurely for operations like Seek() to work immediately.
+                (Mixer as BassAudioMixer)?.AddChannelToBassMix(this);
+
                 channelInterface = value as IBassAudioChannelInterface ?? new PassThroughBassAudioChannelInterface();
             }
         }
+
+        bool IBassAudioChannel.IsActive => !IsDisposed;
 
         int IBassAudioChannel.Handle => activeStream;
 
@@ -392,8 +397,7 @@ namespace osu.Framework.Audio.Track
             if (activeStream != 0)
             {
                 isRunning = false;
-                (Mixer as IBassAudioMixer)?.UnregisterHandle(this);
-                Bass.StreamFree(activeStream);
+                channelInterface.StreamFree(this);
             }
 
             activeStream = 0;

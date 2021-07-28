@@ -191,8 +191,6 @@ namespace osu.Framework.Audio.Sample
             if (!hasChannel)
                 return;
 
-            (Mixer as IBassAudioMixer)?.RegisterHandle(this);
-
             Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
 
@@ -213,6 +211,8 @@ namespace osu.Framework.Audio.Sample
             }
         }
 
+        bool IBassAudioChannel.IsActive => IsAlive;
+
         int IBassAudioChannel.Handle => channel;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
@@ -228,8 +228,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                (Mixer as IBassAudioMixer)?.UnregisterHandle(this);
-                Bass.StreamFree(channel);
+                channelInterface.StreamFree(this);
                 channel = 0;
             }
 

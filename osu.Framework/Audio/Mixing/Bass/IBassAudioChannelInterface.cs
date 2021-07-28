@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System.Runtime.InteropServices;
 using ManagedBass;
 
@@ -102,5 +104,12 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <para>When using the <see cref="F:ManagedBass.DataFlags.Available"/> flag, the number of bytes in the channel's buffer is returned.</para>
         /// </returns>
         int ChannelGetData(IBassAudioChannel channel, [In, Out] float[] buffer, int length);
+
+        /// <summary>
+        /// Frees a channel's resources.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        bool StreamFree(IBassAudioChannel channel);
     }
 }

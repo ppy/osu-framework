@@ -33,5 +33,8 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public int ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
             => ManagedBass.Bass.ChannelGetData(channel.Handle, buffer, length);
+
+        public bool StreamFree(IBassAudioChannel channel)
+            => ManagedBass.Bass.StreamFree(channel.Handle);
     }
 }
