@@ -60,7 +60,10 @@ namespace osu.Framework.Graphics.Audio
             this.mixer = mixer.NewValue;
 
             foreach (var channel in playingChannels)
+            {
+                mixer.OldValue?.Remove(channel);
                 mixer.NewValue?.Add(channel);
+            }
         }
     }
 }
