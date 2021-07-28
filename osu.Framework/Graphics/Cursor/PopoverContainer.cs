@@ -44,10 +44,10 @@ namespace osu.Framework.Graphics.Cursor
         /// <returns><see langword="true"/> if a new popover was shown, <see langword="false"/> otherwise.</returns>
         internal bool SetTarget(IHasPopover? newTarget)
         {
-            target = newTarget;
-
             currentPopover?.Hide();
             currentPopover?.Expire();
+
+            target = newTarget;
 
             var newPopover = target?.GetPopover();
             if (newPopover == null)
@@ -61,6 +61,12 @@ namespace osu.Framework.Graphics.Cursor
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
+
+            if ((target as Drawable)?.FindClosestParent<PopoverContainer>() != this || target?.IsPresent != true)
+            {
+                SetTarget(null);
+                return;
+            }
 
             updatePopoverPositioning();
         }
