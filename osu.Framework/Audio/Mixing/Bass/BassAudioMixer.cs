@@ -11,6 +11,7 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio.Mixing.Bass
@@ -237,7 +238,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.NewItems != null);
 
                     EffectWithHandle oldEffect = MixedEffects[e.NewStartingIndex];
-                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0]);
+                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
                     removeEffect(oldEffect);
                     applyEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
