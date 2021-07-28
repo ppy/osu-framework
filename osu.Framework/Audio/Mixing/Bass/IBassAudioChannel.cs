@@ -20,5 +20,7 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Whether the mixer channel is paused. Only set when removed from a <see cref="BassAudioMixer"/>.
         /// </summary>
         bool MixerChannelPaused { get; set; }
+
+        IBassAudioChannelInterface Interface { get; }
     }
 }

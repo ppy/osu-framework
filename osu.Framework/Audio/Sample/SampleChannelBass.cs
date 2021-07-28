@@ -144,7 +144,7 @@ namespace osu.Framework.Audio.Sample
             stopChannel();
         }
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
 
         private bool hasChannel => channel != 0;
 
@@ -206,7 +206,6 @@ namespace osu.Framework.Audio.Sample
             setLoopFlag(Looping);
 
             relativeFrequencyHandler.SetChannel(channel);
-            bassAmplitudeProcessor?.SetChannel(channel);
         });
 
         #region Mixing
@@ -226,6 +225,8 @@ namespace osu.Framework.Audio.Sample
         int IBassAudioChannel.Handle => channel;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        IBassAudioChannelInterface IBassAudioChannel.Interface => channelInterface;
 
         #endregion
 

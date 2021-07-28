@@ -14,12 +14,16 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public bool PauseChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelPause(channel.Handle);
 
-        public void StopChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelStop(channel.Handle);
+        public bool StopChannel(IBassAudioChannel channel) => ManagedBass.Bass.ChannelStop(channel.Handle);
 
         public PlaybackState ChannelIsActive(IBassAudioChannel channel) => ManagedBass.Bass.ChannelIsActive(channel.Handle);
 
         public long GetChannelPosition(IBassAudioChannel channel, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelGetPosition(channel.Handle, mode);
 
         public bool SetChannelPosition(IBassAudioChannel channel, long pos, PositionFlags mode = PositionFlags.Bytes) => ManagedBass.Bass.ChannelSetPosition(channel.Handle, pos, mode);
+
+        public bool ChannelGetLevel(IBassAudioChannel channel, float[] levels, float length, LevelRetrievalFlags flags) => ManagedBass.Bass.ChannelGetLevel(channel.Handle, levels, length, flags);
+
+        public int ChannelGetData(IBassAudioChannel channel, float[] buffer, int length) => ManagedBass.Bass.ChannelGetData(channel.Handle, buffer, length);
     }
 }

@@ -135,7 +135,6 @@ namespace osu.Framework.Audio.Track
                     isLoaded = true;
 
                     relativeFrequencyHandler.SetChannel(activeStream);
-                    bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });
 
@@ -359,7 +358,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
 
         #region Mixing
 
@@ -378,6 +377,8 @@ namespace osu.Framework.Audio.Track
         int IBassAudioChannel.Handle => activeStream;
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        IBassAudioChannelInterface IBassAudioChannel.Interface => channelInterface;
 
         #endregion
 
