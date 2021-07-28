@@ -599,24 +599,54 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private class EventHandlingContainer : Container
         {
+            private readonly Box colourBox;
+
             public bool ClickReceived { get; private set; }
             public bool HoverReceived { get; private set; }
+
+            protected override Container<Drawable> Content { get; }
+
+            public EventHandlingContainer()
+            {
+                AddInternal(new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        colourBox = new Box
+                        {
+                            Colour = Color4.Black,
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        Content = new Container { RelativeSizeAxes = Axes.Both },
+                    }
+                });
+            }
 
             public void Reset()
             {
                 ClickReceived = HoverReceived = false;
+                colourBox.FadeColour(Color4.Black);
             }
 
             protected override bool OnClick(ClickEvent e)
             {
                 ClickReceived = true;
+                colourBox.FlashColour(Color4.White, 200);
                 return true;
             }
 
             protected override bool OnHover(HoverEvent e)
             {
                 HoverReceived = true;
+                colourBox.FadeColour(Color4.DarkSlateBlue, 200);
                 return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                colourBox.FadeColour(Color4.Black, 200);
+                base.OnHoverLost(e);
             }
         }
     }
