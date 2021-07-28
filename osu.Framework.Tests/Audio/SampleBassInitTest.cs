@@ -9,13 +9,13 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleBassInitTest
     {
-        private TestBassAudioPipeline pipeline;
+        private BassAudioPipeline pipeline;
         private Sample sample;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new TestBassAudioPipeline(false);
+            pipeline = new BassAudioPipeline(false);
             sample = pipeline.GetSample();
 
             pipeline.Update();

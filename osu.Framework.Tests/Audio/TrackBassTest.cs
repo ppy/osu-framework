@@ -15,13 +15,13 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private TestBassAudioPipeline pipeline;
+        private BassAudioPipeline pipeline;
         private TrackBass track;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new TestBassAudioPipeline();
+            pipeline = new BassAudioPipeline();
             track = pipeline.GetTrack();
 
             pipeline.Update();
