@@ -182,7 +182,7 @@ namespace osu.Framework.Audio.Mixing
                     int startIndex = Math.Max(0, e.NewStartingIndex);
 
                     effects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    reapplyEffects(startIndex, effects.Count - 1);
+                    updateEffects(startIndex, effects.Count - 1);
                     break;
                 }
 
@@ -191,7 +191,7 @@ namespace osu.Framework.Audio.Mixing
                     EffectWithHandle effect = effects[e.OldStartingIndex];
                     effects.RemoveAt(e.OldStartingIndex);
                     effects.Insert(e.NewStartingIndex, effect);
-                    reapplyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), effects.Count - 1);
+                    updateEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), effects.Count - 1);
                     break;
                 }
 
@@ -200,7 +200,7 @@ namespace osu.Framework.Audio.Mixing
                     Debug.Assert(e.OldItems != null);
 
                     effects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    reapplyEffects(e.OldStartingIndex, effects.Count - 1);
+                    updateEffects(e.OldStartingIndex, effects.Count - 1);
                     break;
                 }
 
@@ -211,7 +211,7 @@ namespace osu.Framework.Audio.Mixing
                     EffectWithHandle oldEffect = effects[e.NewStartingIndex];
                     effects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter?)e.NewItems[0]);
                     removeEffect(oldEffect);
-                    reapplyEffects(e.NewStartingIndex, e.NewStartingIndex);
+                    updateEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
                 }
 
@@ -230,17 +230,19 @@ namespace osu.Framework.Audio.Mixing
                     Bass.ChannelRemoveFX(Handle, effect.Handle);
             }
 
-            void reapplyEffects(int startIndex, int endIndex)
+            void updateEffects(int startIndex, int endIndex)
             {
                 for (int i = startIndex; i <= endIndex; i++)
                 {
                     var effect = effects[i];
 
-                    // Remove any existing effect (priority could have changed).
-                    removeEffect(effect);
-
-                    effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, i);
-                    Bass.FXSetParameters(effect.Handle, effect.Effect);
+                    if (effect.Handle != 0)
+                        Bass.FXSetPriority(effect.Handle, i);
+                    else
+                    {
+                        effect.Handle = Bass.ChannelSetFX(Handle, effect.Effect.FXType, i);
+                        Bass.FXSetParameters(effect.Handle, effect.Effect);
+                    }
                 }
             }
         });
