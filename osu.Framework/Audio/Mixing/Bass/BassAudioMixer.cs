@@ -26,8 +26,15 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         public int Handle { get; private set; }
 
-        internal readonly List<EffectWithHandle> MixedEffects = new List<EffectWithHandle>();
-        private readonly List<IBassAudioChannel> mixedChannels = new List<IBassAudioChannel>();
+        /// <summary>
+        /// The list of effects which are currently active in the BASS mix.
+        /// </summary>
+        internal readonly List<EffectWithHandle> ActiveEffects = new List<EffectWithHandle>();
+
+        /// <summary>
+        /// The list of channels which are currently active in the BASS mix.
+        /// </summary>
+        private readonly List<IBassAudioChannel> activeChannels = new List<IBassAudioChannel>();
 
         private const int frequency = 44100;
 
@@ -67,7 +74,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0 || bassChannel.Handle == 0)
                 return;
 
-            if (mixedChannels.Remove(bassChannel))
+            if (activeChannels.Remove(bassChannel))
                 removeChannelFromBassMix(bassChannel);
         }
 
@@ -130,17 +137,17 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         protected override void UpdateState()
         {
-            for (int i = 0; i < mixedChannels.Count; i++)
+            for (int i = 0; i < activeChannels.Count; i++)
             {
-                var channel = mixedChannels[i];
+                var channel = activeChannels[i];
                 if (channel.IsActive)
                     continue;
 
-                mixedChannels.RemoveAt(i--);
+                activeChannels.RemoveAt(i--);
                 removeChannelFromBassMix(channel);
             }
 
-            FrameStatistics.Add(StatisticsCounterType.MixChannels, mixedChannels.Count);
+            FrameStatistics.Add(StatisticsCounterType.MixChannels, activeChannels.Count);
             base.UpdateState();
         }
 
@@ -162,8 +169,8 @@ namespace osu.Framework.Audio.Mixing.Bass
             ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
 
             // Register all channels that were previously played prior to the mixer being loaded.
-            var toAdd = mixedChannels.ToArray();
-            mixedChannels.Clear();
+            var toAdd = activeChannels.ToArray();
+            activeChannels.Clear();
             foreach (var channel in toAdd)
                 AddChannelToBassMix(channel);
 
@@ -185,7 +192,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                 flags |= BassFlags.MixerChanPause;
 
             if (BassMix.MixerAddChannel(Handle, channel.Handle, flags))
-                mixedChannels.Add(channel);
+                activeChannels.Add(channel);
         }
 
         /// <summary>
@@ -211,17 +218,17 @@ namespace osu.Framework.Audio.Mixing.Bass
                     // Work around BindableList sending initial event start with index -1.
                     int startIndex = Math.Max(0, e.NewStartingIndex);
 
-                    MixedEffects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
-                    applyEffects(startIndex, MixedEffects.Count - 1);
+                    ActiveEffects.InsertRange(startIndex, e.NewItems.OfType<IEffectParameter>().Select(eff => new EffectWithHandle(eff)));
+                    applyEffects(startIndex, ActiveEffects.Count - 1);
                     break;
                 }
 
                 case NotifyCollectionChangedAction.Move:
                 {
-                    EffectWithHandle effect = MixedEffects[e.OldStartingIndex];
-                    MixedEffects.RemoveAt(e.OldStartingIndex);
-                    MixedEffects.Insert(e.NewStartingIndex, effect);
-                    applyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), MixedEffects.Count - 1);
+                    EffectWithHandle effect = ActiveEffects[e.OldStartingIndex];
+                    ActiveEffects.RemoveAt(e.OldStartingIndex);
+                    ActiveEffects.Insert(e.NewStartingIndex, effect);
+                    applyEffects(Math.Min(e.OldStartingIndex, e.NewStartingIndex), ActiveEffects.Count - 1);
                     break;
                 }
 
@@ -230,9 +237,9 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.OldItems != null);
 
                     for (int i = 0; i < e.OldItems.Count; i++)
-                        removeEffect(MixedEffects[e.OldStartingIndex + i]);
-                    MixedEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
-                    applyEffects(e.OldStartingIndex, MixedEffects.Count - 1);
+                        removeEffect(ActiveEffects[e.OldStartingIndex + i]);
+                    ActiveEffects.RemoveRange(e.OldStartingIndex, e.OldItems.Count);
+                    applyEffects(e.OldStartingIndex, ActiveEffects.Count - 1);
                     break;
                 }
 
@@ -240,8 +247,8 @@ namespace osu.Framework.Audio.Mixing.Bass
                 {
                     Debug.Assert(e.NewItems != null);
 
-                    EffectWithHandle oldEffect = MixedEffects[e.NewStartingIndex];
-                    MixedEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
+                    EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
+                    ActiveEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
                     removeEffect(oldEffect);
                     applyEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
@@ -249,9 +256,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
                 case NotifyCollectionChangedAction.Reset:
                 {
-                    foreach (var effect in MixedEffects)
+                    foreach (var effect in ActiveEffects)
                         removeEffect(effect);
-                    MixedEffects.Clear();
+                    ActiveEffects.Clear();
                     break;
                 }
             }
@@ -268,7 +275,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             {
                 for (int i = startIndex; i <= endIndex; i++)
                 {
-                    var effect = MixedEffects[i];
+                    var effect = ActiveEffects[i];
 
                     // Effects with greatest priority are stored at the front of the list.
                     effect.Priority = -i;
@@ -289,7 +296,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             base.Dispose(disposing);
 
             // Move all contained channels back to the default mixer.
-            foreach (var channel in mixedChannels.ToArray())
+            foreach (var channel in activeChannels.ToArray())
                 Remove(channel);
 
             if (Handle != 0)

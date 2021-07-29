@@ -307,14 +307,14 @@ namespace osu.Framework.Tests.Audio
         {
             bass.Update();
 
-            Assert.That(bass.Mixer.MixedEffects.Count, Is.EqualTo(bass.Mixer.Effects.Count));
+            Assert.That(bass.Mixer.ActiveEffects.Count, Is.EqualTo(bass.Mixer.Effects.Count));
 
             Assert.Multiple(() =>
             {
-                for (int i = 0; i < bass.Mixer.MixedEffects.Count; i++)
+                for (int i = 0; i < bass.Mixer.ActiveEffects.Count; i++)
                 {
-                    Assert.That(bass.Mixer.MixedEffects[i].Effect, Is.EqualTo(bass.Mixer.Effects[i]));
-                    Assert.That(bass.Mixer.MixedEffects[i].Priority, Is.EqualTo(-i));
+                    Assert.That(bass.Mixer.ActiveEffects[i].Effect, Is.EqualTo(bass.Mixer.Effects[i]));
+                    Assert.That(bass.Mixer.ActiveEffects[i].Priority, Is.EqualTo(-i));
                 }
             });
         }
