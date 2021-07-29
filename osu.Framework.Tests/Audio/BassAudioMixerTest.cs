@@ -41,13 +41,13 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestAddedToDefaultMixerByDefault()
+        public void TestAddedToGlobalMixerByDefault()
         {
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
         }
 
         [Test]
-        public void TestCannotBeRemovedFromDefaultMixer()
+        public void TestCannotBeRemovedFromGlobalMixer()
         {
             pipeline.Mixer.Remove(track);
             pipeline.Update();
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestMovedToDefaultMixerWhenRemovedFromMixer()
+        public void TestMovedToGlobalMixerWhenRemovedFromMixer()
         {
             var secondMixer = pipeline.CreateMixer();
 
@@ -106,7 +106,7 @@ namespace osu.Framework.Tests.Audio
         }
 
         [Test]
-        public void TestChannelMovedToDefaultMixerAfterDispose()
+        public void TestChannelMovedToGlobalMixerAfterDispose()
         {
             var secondMixer = pipeline.CreateMixer();
 

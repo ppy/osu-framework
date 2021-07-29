@@ -14,16 +14,16 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
-        private readonly AudioMixer? defaultMixer;
+        private readonly AudioMixer? globalMixer;
 
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
-        /// <param name="defaultMixer">The default <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s will be moved to if removed from this one.
-        /// A <c>null</c> value indicates the default <see cref="AudioMixer"/>.</param>
-        protected AudioMixer(AudioMixer? defaultMixer)
+        /// <param name="globalMixer">The global <see cref="AudioMixer"/>, which <see cref="IAudioChannel"/>s are moved to if removed from this one.
+        /// A <c>null</c> value indicates this is the global <see cref="AudioMixer"/>.</param>
+        protected AudioMixer(AudioMixer? globalMixer)
         {
-            this.defaultMixer = defaultMixer;
+            this.globalMixer = globalMixer;
         }
 
         public abstract BindableList<IEffectParameter> Effects { get; }
@@ -54,7 +54,7 @@ namespace osu.Framework.Audio.Mixing
         protected void Remove(IAudioChannel channel, bool returnToDefault)
         {
             // If this is the default mixer, prevent removal.
-            if (returnToDefault && defaultMixer == null)
+            if (returnToDefault && globalMixer == null)
                 return;
 
             channel.EnqueueAction(() =>
@@ -67,7 +67,7 @@ namespace osu.Framework.Audio.Mixing
 
                 // Add the channel back to the default mixer so audio can always be played.
                 if (returnToDefault)
-                    defaultMixer.AsNonNull().Add(channel);
+                    globalMixer.AsNonNull().Add(channel);
             });
         }
 

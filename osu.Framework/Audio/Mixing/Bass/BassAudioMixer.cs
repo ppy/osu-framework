@@ -34,9 +34,9 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// <summary>
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
-        /// <param name="defaultMixer"><inheritdoc /></param>
-        public BassAudioMixer(AudioMixer? defaultMixer)
-            : base(defaultMixer)
+        /// <param name="globalMixer"><inheritdoc /></param>
+        public BassAudioMixer(AudioMixer? globalMixer)
+            : base(globalMixer)
         {
             EnqueueAction(createMixer);
         }
