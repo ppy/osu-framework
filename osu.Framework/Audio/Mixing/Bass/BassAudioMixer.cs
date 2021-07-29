@@ -158,6 +158,9 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (Handle == 0)
                 return;
 
+            // Lower latency is valued more for the time since we are not using complex DSP effects. Disable buffering on the mixer channel in order for data to be produced immediately.
+            ManagedBass.Bass.ChannelSetAttribute(Handle, ChannelAttribute.Buffer, 0);
+
             // Register all channels that were previously played prior to the mixer being loaded.
             var toAdd = mixedChannels.ToArray();
             mixedChannels.Clear();
