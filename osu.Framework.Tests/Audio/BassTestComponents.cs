@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.Audio
     /// <summary>
     /// Provides a BASS audio pipeline to be used for testing audio components.
     /// </summary>
-    public class BassAudioPipeline : IDisposable
+    public class BassTestComponents : IDisposable
     {
         internal readonly BassAudioMixer Mixer;
         public readonly DllResourceStore Resources;
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Audio
 
         private readonly List<AudioComponent> components = new List<AudioComponent>();
 
-        public BassAudioPipeline(bool init = true)
+        public BassTestComponents(bool init = true)
         {
             if (init)
                 Init();

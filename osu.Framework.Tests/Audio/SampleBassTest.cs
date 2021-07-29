@@ -11,23 +11,23 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleBassTest
     {
-        private BassAudioPipeline pipeline;
+        private BassTestComponents bass;
         private Sample sample;
         private SampleChannel channel;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new BassAudioPipeline();
-            sample = pipeline.GetSample();
+            bass = new BassTestComponents();
+            sample = bass.GetSample();
 
-            pipeline.Update();
+            bass.Update();
         }
 
         [TearDown]
         public void Teardown()
         {
-            pipeline?.Dispose();
+            bass?.Dispose();
         }
 
         [Test]
@@ -45,11 +45,11 @@ namespace osu.Framework.Tests.Audio
         public void TestStart()
         {
             channel = sample.Play();
-            pipeline.Update();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsTrue(channel.Playing);
         }
@@ -58,10 +58,10 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             channel = sample.Play();
-            pipeline.Update();
+            bass.Update();
 
             channel.Stop();
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }
@@ -72,7 +72,7 @@ namespace osu.Framework.Tests.Audio
             channel = sample.Play();
             channel.Stop();
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }
@@ -81,10 +81,10 @@ namespace osu.Framework.Tests.Audio
         public void TestStopsWhenFactoryDisposed()
         {
             channel = sample.Play();
-            pipeline.Update();
+            bass.Update();
 
-            pipeline.SampleStore.Dispose();
-            pipeline.Update();
+            bass.SampleStore.Dispose();
+            bass.Update();
 
             Assert.IsFalse(channel.Playing);
         }

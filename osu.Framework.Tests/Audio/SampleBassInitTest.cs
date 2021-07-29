@@ -9,23 +9,23 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class SampleBassInitTest
     {
-        private BassAudioPipeline pipeline;
+        private BassTestComponents bass;
         private Sample sample;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new BassAudioPipeline(false);
-            sample = pipeline.GetSample();
+            bass = new BassTestComponents(false);
+            sample = bass.GetSample();
 
-            pipeline.Update();
-            pipeline.Init();
+            bass.Update();
+            bass.Init();
         }
 
         [TearDown]
         public void Teardown()
         {
-            pipeline?.Dispose();
+            bass?.Dispose();
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace osu.Framework.Tests.Audio
                 Assert.Ignore("Test may be intermittent on linux (see AudioThread.FreeDevice()).");
 
             Assert.That(sample.IsLoaded, Is.False);
-            pipeline.RunOnAudioThread(() => pipeline.SampleStore.UpdateDevice(0));
+            bass.RunOnAudioThread(() => bass.SampleStore.UpdateDevice(0));
             Assert.That(sample.IsLoaded, Is.True);
         }
     }

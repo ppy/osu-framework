@@ -15,33 +15,33 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class TrackBassTest
     {
-        private BassAudioPipeline pipeline;
+        private BassTestComponents bass;
         private TrackBass track;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new BassAudioPipeline();
-            track = pipeline.GetTrack();
+            bass = new BassTestComponents();
+            track = bass.GetTrack();
 
-            pipeline.Update();
+            bass.Update();
         }
 
         [TearDown]
         public void Teardown()
         {
-            pipeline?.Dispose();
+            bass?.Dispose();
         }
 
         [Test]
         public void TestStart()
         {
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsTrue(track.IsRunning);
             Assert.Greater(track.CurrentTime, 0);
@@ -51,15 +51,15 @@ namespace osu.Framework.Tests.Audio
         public void TestStop()
         {
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
             Assert.Greater(track.CurrentTime, 0);
 
             track.StopAsync();
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -76,9 +76,9 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
             track.StopAsync();
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -88,7 +88,7 @@ namespace osu.Framework.Tests.Audio
         public void TestSeek()
         {
             track.SeekAsync(1000);
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(1000, track.CurrentTime);
@@ -98,10 +98,10 @@ namespace osu.Framework.Tests.Audio
         public void TestSeekWhileRunning()
         {
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
 
             track.SeekAsync(1000);
-            pipeline.Update();
+            bass.Update();
 
             takeEffectsAndUpdateAfter(50);
 
@@ -117,8 +117,8 @@ namespace osu.Framework.Tests.Audio
         {
             bool? success = null;
 
-            pipeline.RunOnAudioThread(() => { success = track.Seek(track.Length); });
-            pipeline.Update();
+            bass.RunOnAudioThread(() => { success = track.Seek(track.Length); });
+            bass.Update();
 
             Assert.AreEqual(0, track.CurrentTime);
             Assert.IsFalse(success);
@@ -129,11 +129,11 @@ namespace osu.Framework.Tests.Audio
         {
             track.SeekAsync(1000);
             track.SeekAsync(0);
-            pipeline.Update();
+            bass.Update();
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.GreaterOrEqual(track.CurrentTime, 0);
             Assert.Less(track.CurrentTime, 1000);
@@ -146,7 +146,7 @@ namespace osu.Framework.Tests.Audio
 
             Thread.Sleep(50);
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(track.Length, track.CurrentTime);
@@ -162,10 +162,10 @@ namespace osu.Framework.Tests.Audio
             startPlaybackAt(track.Length - 1);
 
             Thread.Sleep(50);
-            pipeline.Update();
+            bass.Update();
 
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
 
             Assert.AreEqual(track.Length, track.CurrentTime);
         }
@@ -236,7 +236,7 @@ namespace osu.Framework.Tests.Audio
 
             while (++loopCount < 50 && !track.IsRunning)
             {
-                pipeline.Update();
+                bass.Update();
                 Thread.Sleep(10);
             }
 
@@ -281,7 +281,7 @@ namespace osu.Framework.Tests.Audio
             Assert.IsFalse(track.HasCompleted);
             Assert.IsFalse(completedEvent);
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsTrue(track.IsRunning);
         }
@@ -297,13 +297,13 @@ namespace osu.Framework.Tests.Audio
 
             // ensure seeking to end doesn't reset completed state.
             track.SeekAsync(track.Length);
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsTrue(track.HasCompleted);
 
             // seeking back reset completed state.
             track.SeekAsync(track.Length - 1);
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.HasCompleted);
         }
@@ -351,7 +351,7 @@ namespace osu.Framework.Tests.Audio
 
             // stop track and update.
             track.StopAsync();
-            pipeline.Update();
+            bass.Update();
 
             Assert.IsFalse(track.IsRunning);
 
@@ -374,9 +374,9 @@ namespace osu.Framework.Tests.Audio
         public void TestCurrentTimeUpdatedAfterInlineSeek()
         {
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
 
-            pipeline.RunOnAudioThread(() => track.Seek(20000));
+            bass.RunOnAudioThread(() => track.Seek(20000));
 
             takeEffectsAndUpdateAfter(50);
 
@@ -385,24 +385,24 @@ namespace osu.Framework.Tests.Audio
 
         private void takeEffectsAndUpdateAfter(int after)
         {
-            pipeline.Update();
+            bass.Update();
             Thread.Sleep(after);
-            pipeline.Update();
+            bass.Update();
         }
 
         private void startPlaybackAt(double time)
         {
             track.SeekAsync(time);
             track.StartAsync();
-            pipeline.Update();
+            bass.Update();
         }
 
         private void restartTrack()
         {
-            pipeline.RunOnAudioThread(() =>
+            bass.RunOnAudioThread(() =>
             {
                 track.Restart();
-                pipeline.Update();
+                bass.Update();
             });
         }
     }

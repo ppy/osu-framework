@@ -14,93 +14,93 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public class BassAudioMixerTest
     {
-        private BassAudioPipeline pipeline;
+        private BassTestComponents bass;
         private TrackBass track;
         private SampleBass sample;
 
         [SetUp]
         public void Setup()
         {
-            pipeline = new BassAudioPipeline();
-            track = pipeline.GetTrack();
-            sample = pipeline.GetSample();
+            bass = new BassTestComponents();
+            track = bass.GetTrack();
+            sample = bass.GetSample();
 
-            pipeline.Update();
+            bass.Update();
         }
 
         [TearDown]
         public void Teardown()
         {
-            pipeline?.Dispose();
+            bass?.Dispose();
         }
 
         [Test]
         public void TestMixerInitialised()
         {
-            Assert.That(pipeline.Mixer.Handle, Is.Not.Zero);
+            Assert.That(bass.Mixer.Handle, Is.Not.Zero);
         }
 
         [Test]
         public void TestAddedToGlobalMixerByDefault()
         {
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]
         public void TestCannotBeRemovedFromGlobalMixer()
         {
-            pipeline.Mixer.Remove(track);
-            pipeline.Update();
+            bass.Mixer.Remove(track);
+            bass.Update();
 
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]
         public void TestTrackIsMovedBetweenMixers()
         {
-            var secondMixer = pipeline.CreateMixer();
+            var secondMixer = bass.CreateMixer();
 
             secondMixer.Add(track);
-            pipeline.Update();
+            bass.Update();
 
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(secondMixer.Handle));
 
-            pipeline.Mixer.Add(track);
-            pipeline.Update();
+            bass.Mixer.Add(track);
+            bass.Update();
 
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]
         public void TestMovedToGlobalMixerWhenRemovedFromMixer()
         {
-            var secondMixer = pipeline.CreateMixer();
+            var secondMixer = bass.CreateMixer();
 
             secondMixer.Add(track);
             secondMixer.Remove(track);
-            pipeline.Update();
+            bass.Update();
 
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]
         public void TestVirtualTrackCanBeAddedAndRemoved()
         {
-            var secondMixer = pipeline.CreateMixer();
-            var virtualTrack = pipeline.TrackStore.GetVirtual();
+            var secondMixer = bass.CreateMixer();
+            var virtualTrack = bass.TrackStore.GetVirtual();
 
             secondMixer.Add(virtualTrack);
-            pipeline.Update();
+            bass.Update();
 
             secondMixer.Remove(virtualTrack);
-            pipeline.Update();
+            bass.Update();
         }
 
         [Test]
         public void TestFreedChannelRemovedFromDefault()
         {
             track.Dispose();
-            pipeline.Update();
+            bass.Update();
 
             Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.Zero);
         }
@@ -108,15 +108,15 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestChannelMovedToGlobalMixerAfterDispose()
         {
-            var secondMixer = pipeline.CreateMixer();
+            var secondMixer = bass.CreateMixer();
 
             secondMixer.Add(track);
-            pipeline.Update();
+            bass.Update();
 
             secondMixer.Dispose();
-            pipeline.Update();
+            bass.Update();
 
-            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(pipeline.Mixer.Handle));
+            Assert.That(BassMix.ChannelGetMixer(getHandle()), Is.EqualTo(bass.Mixer.Handle));
         }
 
         [Test]
@@ -124,27 +124,27 @@ namespace osu.Framework.Tests.Audio
         {
             Assert.That(!track.IsRunning);
 
-            pipeline.RunOnAudioThread(() => track.Start());
-            pipeline.Update();
+            bass.RunOnAudioThread(() => track.Start());
+            bass.Update();
 
             Assert.That(track.IsRunning);
 
-            pipeline.RunOnAudioThread(() => track.Stop());
-            pipeline.Update();
+            bass.RunOnAudioThread(() => track.Stop());
+            bass.Update();
 
             Assert.That(!track.IsRunning);
 
-            pipeline.RunOnAudioThread(() =>
+            bass.RunOnAudioThread(() =>
             {
                 track.Seek(track.Length - 1000);
                 track.Start();
             });
 
-            pipeline.Update();
+            bass.Update();
 
             Assert.That(() =>
             {
-                pipeline.Update();
+                bass.Update();
                 return !track.IsRunning;
             }, Is.True.After(3000));
         }
@@ -152,20 +152,20 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestChannelRetainsPlayingStateWhenMovedBetweenMixers()
         {
-            var secondMixer = pipeline.CreateMixer();
+            var secondMixer = bass.CreateMixer();
 
             secondMixer.Add(track);
-            pipeline.Update();
+            bass.Update();
 
             Assert.That(!track.IsRunning);
 
-            pipeline.RunOnAudioThread(() => track.Start());
-            pipeline.Update();
+            bass.RunOnAudioThread(() => track.Start());
+            bass.Update();
 
             Assert.That(track.IsRunning);
 
-            pipeline.Mixer.Add(track);
-            pipeline.Update();
+            bass.Mixer.Add(track);
+            bass.Update();
 
             Assert.That(track.IsRunning);
         }
@@ -176,8 +176,8 @@ namespace osu.Framework.Tests.Audio
             track.Dispose();
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
-            pipeline.Update();
-            pipeline.Update();
+            bass.Update();
+            bass.Update();
 
             var trackReference = new WeakReference<TrackBass>(track);
             track = null;
@@ -194,8 +194,8 @@ namespace osu.Framework.Tests.Audio
             var channelReference = runTest(sample);
 
             // The first update disposes the track, the second one removes the track from the TrackStore.
-            pipeline.Update();
-            pipeline.Update();
+            bass.Update();
+            bass.Update();
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -217,10 +217,10 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestAddEffect()
         {
-            pipeline.Mixer.Effects.Add(new BQFParameters());
+            bass.Mixer.Effects.Add(new BQFParameters());
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.AddRange(new[]
+            bass.Mixer.Effects.AddRange(new[]
             {
                 new BQFParameters(),
                 new BQFParameters(),
@@ -232,13 +232,13 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestRemoveEffect()
         {
-            pipeline.Mixer.Effects.Add(new BQFParameters());
+            bass.Mixer.Effects.Add(new BQFParameters());
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.RemoveAt(0);
+            bass.Mixer.Effects.RemoveAt(0);
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.AddRange(new[]
+            bass.Mixer.Effects.AddRange(new[]
             {
                 new BQFParameters(),
                 new BQFParameters(),
@@ -246,17 +246,17 @@ namespace osu.Framework.Tests.Audio
             });
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.RemoveAt(1);
+            bass.Mixer.Effects.RemoveAt(1);
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.RemoveAt(1);
+            bass.Mixer.Effects.RemoveAt(1);
             assertEffectParameters();
         }
 
         [Test]
         public void TestMoveEffect()
         {
-            pipeline.Mixer.Effects.AddRange(new[]
+            bass.Mixer.Effects.AddRange(new[]
             {
                 new BQFParameters(),
                 new BQFParameters(),
@@ -264,17 +264,17 @@ namespace osu.Framework.Tests.Audio
             });
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.Move(0, 1);
+            bass.Mixer.Effects.Move(0, 1);
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.Move(2, 0);
+            bass.Mixer.Effects.Move(2, 0);
             assertEffectParameters();
         }
 
         [Test]
         public void TestReplaceEffect()
         {
-            pipeline.Mixer.Effects.AddRange(new[]
+            bass.Mixer.Effects.AddRange(new[]
             {
                 new BQFParameters(),
                 new BQFParameters(),
@@ -282,39 +282,39 @@ namespace osu.Framework.Tests.Audio
             });
             assertEffectParameters();
 
-            pipeline.Mixer.Effects[1] = new BQFParameters();
+            bass.Mixer.Effects[1] = new BQFParameters();
             assertEffectParameters();
         }
 
         [Test]
         public void TestInsertEffect()
         {
-            pipeline.Mixer.Effects.AddRange(new[]
+            bass.Mixer.Effects.AddRange(new[]
             {
                 new BQFParameters(),
                 new BQFParameters()
             });
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.Insert(1, new BQFParameters());
+            bass.Mixer.Effects.Insert(1, new BQFParameters());
             assertEffectParameters();
 
-            pipeline.Mixer.Effects.Insert(3, new BQFParameters());
+            bass.Mixer.Effects.Insert(3, new BQFParameters());
             assertEffectParameters();
         }
 
         private void assertEffectParameters()
         {
-            pipeline.Update();
+            bass.Update();
 
-            Assert.That(pipeline.Mixer.MixedEffects.Count, Is.EqualTo(pipeline.Mixer.Effects.Count));
+            Assert.That(bass.Mixer.MixedEffects.Count, Is.EqualTo(bass.Mixer.Effects.Count));
 
             Assert.Multiple(() =>
             {
-                for (int i = 0; i < pipeline.Mixer.MixedEffects.Count; i++)
+                for (int i = 0; i < bass.Mixer.MixedEffects.Count; i++)
                 {
-                    Assert.That(pipeline.Mixer.MixedEffects[i].Effect, Is.EqualTo(pipeline.Mixer.Effects[i]));
-                    Assert.That(pipeline.Mixer.MixedEffects[i].Priority, Is.EqualTo(-i));
+                    Assert.That(bass.Mixer.MixedEffects[i].Effect, Is.EqualTo(bass.Mixer.Effects[i]));
+                    Assert.That(bass.Mixer.MixedEffects[i].Priority, Is.EqualTo(-i));
                 }
             });
         }
