@@ -26,7 +26,6 @@ namespace osu.Framework.Tests.Audio
             sample = pipeline.GetSample();
 
             pipeline.Update();
-            pipeline.Update();
         }
 
         [TearDown]
