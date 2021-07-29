@@ -232,7 +232,7 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && bassMixer.AsNonNull().ChannelPause(this);
+        private bool stopInternal() => isRunningState(bassMixer.AsNonNull().ChannelIsActive(this)) && bassMixer.AsNonNull().ChannelPause(this);
 
         private int direction;
 
