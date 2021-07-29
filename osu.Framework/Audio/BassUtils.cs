@@ -39,7 +39,7 @@ namespace osu.Framework.Audio
         {
             if (level == 0) return 0;
 
-            return Math.Log(Math.Sqrt(level), 10) * 20f;
+            return Math.Log(level, 10) * 20f;
         }
     }
 }
