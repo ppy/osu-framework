@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool SelectFirstTabByDefault { get; set; } = true;
 
         /// <summary>
-        /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
+        /// When true, tabs can be switched back and forth using <see cref="PlatformAction.DocumentPrevious"/> and <see cref="PlatformAction.DocumentNext"/> respectively.
         /// </summary>
         public bool IsSwitchable { get; set; }
 
@@ -408,13 +408,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (IsSwitchable)
             {
-                switch (action.ActionType)
+                switch (action)
                 {
-                    case PlatformActionType.DocumentNext:
+                    case PlatformAction.DocumentNext:
                         SwitchTab(1);
                         return true;
 
-                    case PlatformActionType.DocumentPrevious:
+                    case PlatformAction.DocumentPrevious:
                         SwitchTab(-1);
                         return true;
                 }

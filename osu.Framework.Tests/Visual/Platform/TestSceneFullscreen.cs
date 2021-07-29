@@ -24,6 +24,7 @@ namespace osu.Framework.Tests.Visual.Platform
         private readonly SpriteText currentActualSize = new SpriteText();
         private readonly SpriteText currentDisplayMode = new SpriteText();
         private readonly SpriteText currentWindowMode = new SpriteText();
+        private readonly SpriteText currentWindowState = new SpriteText();
         private readonly SpriteText supportedWindowModes = new SpriteText();
         private readonly Dropdown<Display> displaysDropdown;
 
@@ -45,6 +46,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     currentActualSize,
                     currentDisplayMode,
                     currentWindowMode,
+                    currentWindowState,
                     supportedWindowModes,
                     displaysDropdown = new BasicDropdown<Display> { Width = 600 }
                 },
@@ -92,7 +94,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Windowed))
             {
                 AddStep("change to windowed", () => windowMode.Value = WindowMode.Windowed);
-                AddStep("change window size", () => config.GetBindable<Size>(FrameworkSetting.WindowedSize).Value = new Size(640, 640));
+                AddStep("change window size", () => config.SetValue(FrameworkSetting.WindowedSize, new Size(640, 640)));
             }
 
             // if we support borderless, test that it can be used
@@ -103,6 +105,7 @@ namespace osu.Framework.Tests.Visual.Platform
             if (window.SupportedWindowModes.Contains(WindowMode.Fullscreen))
             {
                 AddStep("change to fullscreen", () => windowMode.Value = WindowMode.Fullscreen);
+                AddAssert("window position updated", () => ((SDL2DesktopWindow)window).Position == new Point(0, 0));
                 testResolution(1920, 1080);
                 testResolution(1280, 960);
                 testResolution(9999, 9999);
@@ -131,9 +134,9 @@ namespace osu.Framework.Tests.Visual.Platform
         [Test]
         public void TestConfineModes()
         {
-            AddStep("set confined to never", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
-            AddStep("set confined to fullscreen", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
-            AddStep("set confined to always", () => config.Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
+            AddStep("set confined to never", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Never));
+            AddStep("set confined to fullscreen", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen));
+            AddStep("set confined to always", () => config.SetValue(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Always));
         }
 
         protected override void Update()
@@ -142,6 +145,7 @@ namespace osu.Framework.Tests.Visual.Platform
 
             currentActualSize.Text = $"Window size: {window?.ClientSize}";
             currentDisplayMode.Text = $"Display mode: {window?.CurrentDisplayMode}";
+            currentWindowState.Text = $"Window State: {window?.WindowState}";
         }
 
         private void testResolution(int w, int h)

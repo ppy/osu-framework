@@ -5,5 +5,9 @@ namespace osu.Framework.Bindables
 {
     public class BindableLong : BindableNumber<long>
     {
+        public BindableLong(long defaultValue = default)
+            : base(defaultValue)
+        {
+        }
     }
 }

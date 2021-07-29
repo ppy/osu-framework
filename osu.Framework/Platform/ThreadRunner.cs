@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using osu.Framework.Development;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
@@ -54,6 +56,8 @@ namespace osu.Framework.Platform
                 updateMainThreadRates();
             }
         }
+
+        private readonly object startStopLock = new object();
 
         /// <summary>
         /// Construct a new ThreadRunner instance.
@@ -105,7 +109,7 @@ namespace osu.Framework.Platform
                     lock (threads)
                     {
                         foreach (var t in threads)
-                            t.ProcessFrame();
+                            t.RunSingleFrame();
                     }
 
                     break;
@@ -113,7 +117,7 @@ namespace osu.Framework.Platform
 
                 case ExecutionMode.MultiThreaded:
                     // still need to run the main/input thread on the window loop
-                    mainThread.ProcessFrame();
+                    mainThread.RunSingleFrame();
                     break;
             }
         }
@@ -122,10 +126,11 @@ namespace osu.Framework.Platform
 
         public void Suspend()
         {
-            pauseAllThreads();
-
-            // set the active execution mode back to null to set the state checking back to when it can be resumed.
-            activeExecutionMode = null;
+            lock (startStopLock)
+            {
+                pauseAllThreads();
+                activeExecutionMode = null;
+            }
         }
 
         public void Stop()
@@ -148,19 +153,22 @@ namespace osu.Framework.Platform
             });
 
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            while (!mainThread.Exited)
-                mainThread.ProcessFrame();
+            mainThread.WaitForState(GameThreadState.Exited);
 
             ThreadSafety.ResetAllForCurrentThread();
         }
 
         private void ensureCorrectExecutionMode()
         {
-            if (ExecutionMode == activeExecutionMode)
-                return;
+            // locking is required as this method may be called from two different threads.
+            lock (startStopLock)
+            {
+                if (ExecutionMode == activeExecutionMode)
+                    return;
 
-            // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
-            activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
+                activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
+                Logger.Log($"Execution mode changed to {activeExecutionMode}");
+            }
 
             pauseAllThreads();
 
@@ -170,10 +178,7 @@ namespace osu.Framework.Platform
                 {
                     // switch to multi-threaded
                     foreach (var t in Threads)
-                    {
                         t.Start();
-                        t.Clock.Throttling = true;
-                    }
 
                     break;
                 }
@@ -193,8 +198,6 @@ namespace osu.Framework.Platform
                     break;
                 }
             }
-
-            activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
             updateMainThreadRates();
         }
@@ -217,6 +220,23 @@ namespace osu.Framework.Platform
             {
                 mainThread.ActiveHz = GameThread.DEFAULT_ACTIVE_HZ;
                 mainThread.InactiveHz = GameThread.DEFAULT_INACTIVE_HZ;
+            }
+        }
+
+        /// <summary>
+        /// Sets the current culture of all threads to the supplied <paramref name="culture"/>.
+        /// </summary>
+        public void SetCulture(CultureInfo culture)
+        {
+            // for single-threaded mode, switch the current (assumed to be main) thread's culture, since it's actually the one that's running the frames.
+            Thread.CurrentThread.CurrentCulture = culture;
+
+            // for multi-threaded mode, schedule the culture change on all threads.
+            // note that if the threads haven't been created yet (e.g. if the game started single-threaded), this will only store the culture in GameThread.CurrentCulture.
+            // in that case, the stored value will be set on the actual threads after the next Start() call.
+            foreach (var t in Threads)
+            {
+                t.Scheduler.Add(() => t.CurrentCulture = culture);
             }
         }
     }

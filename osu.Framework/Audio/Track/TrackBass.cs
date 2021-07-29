@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using ManagedBass;
@@ -105,8 +106,6 @@ namespace osu.Framework.Audio.Track
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
                     lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
 
-                    bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
-
                     stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
                     endCallback = new SyncCallback((a, b, c, d) =>
                     {
@@ -152,6 +151,8 @@ namespace osu.Framework.Audio.Track
 
             BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
             int stream = Bass.CreateStream(StreamSystem.NoBuffer, flags, fileCallbacks.Callbacks, fileCallbacks.Handle);
+
+            bitrate = (int)Math.Round(Bass.ChannelGetAttribute(stream, ChannelAttribute.Bitrate));
 
             if (!Preview)
             {
@@ -203,14 +204,13 @@ namespace osu.Framework.Audio.Track
             base.UpdateState();
 
             var running = isRunningState(Bass.ChannelIsActive(activeStream));
-            var bytePosition = Bass.ChannelGetPosition(activeStream);
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
             // this makes us appear to be playing, even if we may not be.
             isRunning = running || (isPlayed && !hasCompleted);
 
-            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
+            updateCurrentTime();
 
             bassAmplitudeProcessor?.Update();
         }
@@ -341,6 +341,20 @@ namespace osu.Framework.Audio.Track
 
             if (pos != Bass.ChannelGetPosition(activeStream))
                 Bass.ChannelSetPosition(activeStream, pos);
+
+            // current time updates are safe to perform from enqueued actions,
+            // but not always safe to perform from BASS callbacks, since those can sometimes use a separate thread.
+            // if it's not safe to update immediately here, the next UpdateState() call is guaranteed to update the time safely anyway.
+            if (CanPerformInline)
+                updateCurrentTime();
+        }
+
+        private void updateCurrentTime()
+        {
+            Debug.Assert(CanPerformInline);
+
+            var bytePosition = Bass.ChannelGetPosition(activeStream);
+            Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
         private double currentTime;

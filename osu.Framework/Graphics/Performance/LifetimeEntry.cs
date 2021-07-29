@@ -21,16 +21,8 @@ namespace osu.Framework.Graphics.Performance
         public double LifetimeStart
         {
             get => lifetimeStart;
-            set
-            {
-                if (lifetimeStart == value)
-                    return;
-
-                if (RequestLifetimeUpdate != null)
-                    RequestLifetimeUpdate.Invoke(this, value, lifetimeEnd);
-                else
-                    SetLifetime(value, lifetimeEnd);
-            }
+            // A method is used as C# doesn't allow the combination of a non-virtual getter and a virtual setter.
+            set => SetLifetimeStart(value);
         }
 
         private double lifetimeEnd = double.MaxValue;
@@ -41,36 +33,51 @@ namespace osu.Framework.Graphics.Performance
         public double LifetimeEnd
         {
             get => lifetimeEnd;
-            set
-            {
-                if (lifetimeEnd == value)
-                    return;
-
-                if (RequestLifetimeUpdate != null)
-                    RequestLifetimeUpdate.Invoke(this, lifetimeStart, value);
-                else
-                    SetLifetime(lifetimeStart, value);
-            }
+            set => SetLifetimeEnd(value);
         }
 
         /// <summary>
-        /// Invoked when this <see cref="LifetimeEntry"/> is attached to a <see cref="LifetimeEntryManager"/> and either
-        /// <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> are changed.
+        /// Invoked before <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
+        /// It is used because <see cref="LifetimeChanged"/> cannot be used to ensure comparator stability.
         /// </summary>
-        /// <remarks>
-        /// If this is handled, make sure to call <see cref="SetLifetime"/> to continue with the lifetime update.
-        /// </remarks>
-        internal event RequestLifetimeUpdateDelegate RequestLifetimeUpdate;
+        internal event Action<LifetimeEntry> RequestLifetimeUpdate;
+
+        /// <summary>
+        /// Invoked after <see cref="LifetimeStart"/> or <see cref="LifetimeEnd"/> changes.
+        /// </summary>
+        public event Action<LifetimeEntry> LifetimeChanged;
+
+        /// <summary>
+        /// Update <see cref="LifetimeStart"/> of this <see cref="LifetimeEntry"/>.
+        /// </summary>
+        protected virtual void SetLifetimeStart(double start)
+        {
+            if (start != lifetimeStart)
+                SetLifetime(start, lifetimeEnd);
+        }
+
+        /// <summary>
+        /// Update <see cref="LifetimeEnd"/> of this <see cref="LifetimeEntry"/>.
+        /// </summary>
+        protected virtual void SetLifetimeEnd(double end)
+        {
+            if (end != lifetimeEnd)
+                SetLifetime(lifetimeStart, end);
+        }
 
         /// <summary>
         /// Updates the stored lifetimes of this <see cref="LifetimeEntry"/>.
         /// </summary>
         /// <param name="start">The new <see cref="LifetimeStart"/> value.</param>
         /// <param name="end">The new <see cref="LifetimeEnd"/> value.</param>
-        internal void SetLifetime(double start, double end)
+        protected void SetLifetime(double start, double end)
         {
+            RequestLifetimeUpdate?.Invoke(this);
+
             lifetimeStart = start;
             lifetimeEnd = Math.Max(start, end); // Negative intervals are undesired.
+
+            LifetimeChanged?.Invoke(this);
         }
 
         /// <summary>
@@ -83,6 +90,4 @@ namespace osu.Framework.Graphics.Performance
         /// </summary>
         internal ulong ChildId { get; set; }
     }
-
-    internal delegate void RequestLifetimeUpdateDelegate(LifetimeEntry entry, double lifetimeStart, double lifetimeEnd);
 }

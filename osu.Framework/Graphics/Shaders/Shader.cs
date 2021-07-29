@@ -4,43 +4,120 @@
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics.ES30;
+using static osu.Framework.Threading.ScheduledDelegate;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class Shader : IShader
+    public class Shader : IShader, IDisposable
     {
-        public bool IsLoaded { get; private set; }
-
-        internal bool IsBound;
-
         private readonly string name;
-        private int programID = -1;
+        private readonly List<ShaderPart> parts;
+
+        private readonly ScheduledDelegate shaderCompileDelegate;
 
         internal readonly Dictionary<string, IUniform> Uniforms = new Dictionary<string, IUniform>();
-        private IUniform[] uniformsArray;
-        private readonly List<ShaderPart> parts;
+
+        /// <summary>
+        /// Holds all the <see cref="Uniforms"/> values for faster access than iterating on <see cref="Dictionary{TKey,TValue}.Values"/>.
+        /// </summary>
+        private IUniform[] uniformsValues;
+
+        public bool IsLoaded { get; private set; }
+
+        internal bool IsBound { get; private set; }
+
+        private int programID = -1;
 
         internal Shader(string name, List<ShaderPart> parts)
         {
             this.name = name;
             this.parts = parts;
 
-            GLWrapper.EnqueueShaderCompile(this);
+            GLWrapper.ScheduleExpensiveOperation(shaderCompileDelegate = new ScheduledDelegate(compile));
         }
 
-        internal void Compile()
+        private void compile()
         {
-            parts.RemoveAll(p => p == null);
-            Uniforms.Clear();
-            uniformsArray = null;
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
 
+            if (IsLoaded)
+                throw new InvalidOperationException("Attempting to compile an already-compiled shader.");
+
+            parts.RemoveAll(p => p == null);
             if (parts.Count == 0)
                 return;
 
-            programID = GL.CreateProgram();
+            programID = CreateProgram();
 
+            if (!CompileInternal())
+                throw new ProgramLinkingFailedException(name, GetProgramLog());
+
+            IsLoaded = true;
+
+            SetupUniforms();
+
+            GlobalPropertyManager.Register(this);
+        }
+
+        internal void EnsureShaderCompiled()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not compile a disposed shader.");
+
+            if (shaderCompileDelegate.State == RunState.Waiting)
+                shaderCompileDelegate.RunTask();
+        }
+
+        public void Bind()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not bind a disposed shader.");
+
+            if (IsBound)
+                return;
+
+            EnsureShaderCompiled();
+
+            GLWrapper.UseProgram(this);
+
+            foreach (var uniform in uniformsValues)
+                uniform?.Update();
+
+            IsBound = true;
+        }
+
+        public void Unbind()
+        {
+            if (!IsBound)
+                return;
+
+            GLWrapper.UseProgram(null);
+
+            IsBound = false;
+        }
+
+        /// <summary>
+        /// Returns a uniform from the shader.
+        /// </summary>
+        /// <param name="name">The name of the uniform.</param>
+        /// <returns>Returns a base uniform.</returns>
+        public Uniform<T> GetUniform<T>(string name)
+            where T : struct, IEquatable<T>
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not retrieve uniforms from a disposed shader.");
+
+            EnsureShaderCompiled();
+
+            return (Uniform<T>)Uniforms[name];
+        }
+
+        private protected virtual bool CompileInternal()
+        {
             foreach (ShaderPart p in parts)
             {
                 if (!p.Compiled) p.Compile();
@@ -56,28 +133,18 @@ namespace osu.Framework.Graphics.Shaders
             foreach (var part in parts)
                 GL.DetachShader(this, part);
 
-            IsLoaded = linkResult == 1;
+            return linkResult == 1;
+        }
 
-            if (!IsLoaded)
-                throw new ProgramLinkingFailedException(name, GL.GetProgramInfoLog(this));
-
-            // Obtain all the shader uniforms
+        private protected virtual void SetupUniforms()
+        {
             GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out int uniformCount);
-            uniformsArray = new IUniform[uniformCount];
+
+            uniformsValues = new IUniform[uniformCount];
 
             for (int i = 0; i < uniformCount; i++)
             {
                 GL.GetActiveUniform(this, i, 100, out _, out _, out ActiveUniformType type, out string uniformName);
-
-                IUniform createUniform<T>(string name)
-                    where T : struct, IEquatable<T>
-                {
-                    int location = GL.GetUniformLocation(this, name);
-
-                    if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
-
-                    return new Uniform<T>(this, name, location);
-                }
 
                 IUniform uniform;
 
@@ -123,60 +190,62 @@ namespace osu.Framework.Graphics.Shaders
                         continue;
                 }
 
-                uniformsArray[i] = uniform;
-                Uniforms.Add(uniformName, uniformsArray[i]);
+                Uniforms.Add(uniformName, uniform);
+                uniformsValues[i] = uniform;
             }
 
-            GlobalPropertyManager.Register(this);
+            IUniform createUniform<T>(string name)
+                where T : struct, IEquatable<T>
+            {
+                int location = GL.GetUniformLocation(this, name);
+
+                if (GlobalPropertyManager.CheckGlobalExists(name)) return new GlobalUniform<T>(this, name, location);
+
+                return new Uniform<T>(this, name, location);
+            }
         }
 
-        internal void EnsureLoaded()
-        {
-            if (!IsLoaded)
-                Compile();
-        }
+        private protected virtual string GetProgramLog() => GL.GetProgramInfoLog(this);
 
-        public void Bind()
-        {
-            if (IsBound)
-                return;
+        private protected virtual int CreateProgram() => GL.CreateProgram();
 
-            EnsureLoaded();
-
-            GLWrapper.UseProgram(this);
-
-            foreach (var uniform in uniformsArray)
-                uniform?.Update();
-
-            IsBound = true;
-        }
-
-        public void Unbind()
-        {
-            if (!IsBound)
-                return;
-
-            GLWrapper.UseProgram(null);
-
-            IsBound = false;
-        }
+        private protected virtual void DeleteProgram(int id) => GL.DeleteProgram(id);
 
         public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
 
-        /// <summary>
-        /// Returns a uniform from the shader.
-        /// </summary>
-        /// <param name="name">The name of the uniform.</param>
-        /// <returns>Returns a base uniform.</returns>
-        public Uniform<T> GetUniform<T>(string name)
-            where T : struct, IEquatable<T>
-        {
-            EnsureLoaded();
+        public static implicit operator int(Shader shader) => shader.programID;
 
-            return (Uniform<T>)Uniforms[name];
+        #region IDisposable Support
+
+        protected internal bool IsDisposed { get; private set; }
+
+        ~Shader()
+        {
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
 
-        public static implicit operator int(Shader shader) => shader.programID;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                shaderCompileDelegate?.Cancel();
+
+                GlobalPropertyManager.Unregister(this);
+
+                if (programID != -1)
+                    DeleteProgram(this);
+            }
+        }
+
+        #endregion
 
         public class PartCompilationFailedException : Exception
         {

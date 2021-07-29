@@ -35,7 +35,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public void Deactivate(object sender)
+        public void Deactivate()
         {
             switch (window)
             {
@@ -49,7 +49,7 @@ namespace osu.Framework.Input
             }
         }
 
-        public void Activate(object sender)
+        public void Activate()
         {
             switch (window)
             {
@@ -61,6 +61,10 @@ namespace osu.Framework.Input
                     tkWin.KeyPress += HandleKeyPress;
                     break;
             }
+        }
+
+        public void EnsureActivated()
+        {
         }
 
         private void imeCompose()

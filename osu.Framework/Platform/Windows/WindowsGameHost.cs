@@ -19,8 +19,6 @@ namespace osu.Framework.Platform.Windows
     {
         private TimePeriod timePeriod;
 
-        private WindowsRawInputMouseHandler rawInputHandler;
-
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
         public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -51,11 +49,7 @@ namespace osu.Framework.Platform.Windows
             // for windows platforms we want to override the relative mouse event handling behaviour.
             return base.CreateAvailableInputHandlers()
                        .Where(t => !(t is MouseHandler))
-                       .Concat(new InputHandler[]
-                       {
-                           rawInputHandler = new WindowsRawInputMouseHandler(),
-                           new WindowsMouseHandler(() => rawInputHandler.IsActive),
-                       });
+                       .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
 
         protected override void SetupForRun()
@@ -65,14 +59,14 @@ namespace osu.Framework.Platform.Windows
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
-            timePeriod = new TimePeriod(1) { Active = true };
+            timePeriod = new TimePeriod(1);
         }
 
         protected override IWindow CreateWindow() => new WindowsWindow();
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => base.PlatformKeyBindings.Concat(new[]
         {
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), new PlatformAction(PlatformActionType.Exit))
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.F4), PlatformAction.Exit)
         }).ToList();
 
         protected override void Dispose(bool isDisposing)
@@ -83,16 +77,12 @@ namespace osu.Framework.Platform.Windows
 
         protected override void OnActivated()
         {
-            timePeriod.Active = true;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
-            timePeriod.Active = false;
-
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated();
         }

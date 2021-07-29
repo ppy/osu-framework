@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 
@@ -37,21 +36,9 @@ namespace osu.Framework.Graphics.Cursor
 
         public override bool PropagatePositionalInputSubTree => IsPresent; // make sure we are still updating position during possible fade out.
 
-        private Vector2? lastPosition;
-
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            // required due to IRequireHighFrequencyMousePosition firing with the last known position even when the source is not in a
-            // valid state (ie. receiving updates from user or otherwise). in this case, we generally want the cursor to remain at its
-            // last *relative* position.
-            if (lastPosition.HasValue && Precision.AlmostEquals(e.ScreenSpaceMousePosition, lastPosition.Value))
-                return false;
-
-            lastPosition = e.ScreenSpaceMousePosition;
-
-            ActiveCursor.RelativePositionAxes = Axes.None;
             ActiveCursor.Position = e.MousePosition;
-            ActiveCursor.RelativePositionAxes = Axes.Both;
             return base.OnMouseMove(e);
         }
 

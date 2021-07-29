@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Whether keyboard control should be allowed even when the bar is not hovered.
         /// </summary>
+        [Obsolete("Implement this kind of behaviour separately instead.")] // Can be removed 20220107
         protected virtual bool AllowKeyboardInputWhenNotHovered => false;
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
@@ -107,12 +108,14 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            currentNumberInstantaneous.ValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MinValueChanged += _ => UpdateValue(NormalizedValue);
-            currentNumberInstantaneous.MaxValueChanged += _ => UpdateValue(NormalizedValue);
+            currentNumberInstantaneous.ValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MinValueChanged += _ => Scheduler.AddOnce(updateValue);
+            currentNumberInstantaneous.MaxValueChanged += _ => Scheduler.AddOnce(updateValue);
 
-            UpdateValue(NormalizedValue);
+            Scheduler.AddOnce(updateValue);
         }
+
+        private void updateValue() => UpdateValue(NormalizedValue);
 
         private bool handleClick;
 
@@ -163,7 +166,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (currentNumberInstantaneous.Disabled)
                 return false;
 
+#pragma warning disable 618
             bool shouldHandle = IsHovered || AllowKeyboardInputWhenNotHovered;
+#pragma warning restore 618
             if (!shouldHandle)
                 return false;
 

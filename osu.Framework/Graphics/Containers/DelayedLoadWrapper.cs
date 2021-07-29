@@ -16,10 +16,6 @@ namespace osu.Framework.Graphics.Containers
     /// Has the ability to delay the loading until it has been visible on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer{T}"/>.
     /// </summary>
-    /// <remarks>
-    /// <see cref="LifetimeStart"/> and <see cref="LifetimeEnd"/> are propagated from the wrapper to the content on content load.
-    /// After load, the content's lifetime is preferred, meaning any changes to content's lifetime post-load will be respected.
-    /// </remarks>
     public class DelayedLoadWrapper : CompositeDrawable
     {
         [Resolved]
@@ -58,32 +54,6 @@ namespace osu.Framework.Graphics.Containers
 
             AddLayout(optimisingContainerCache);
             AddLayout(isIntersectingCache);
-        }
-
-        private double lifetimeStart = double.MinValue;
-
-        public override double LifetimeStart
-        {
-            get => Content?.LifetimeStart ?? lifetimeStart;
-            set
-            {
-                if (Content != null)
-                    Content.LifetimeStart = value;
-                lifetimeStart = value;
-            }
-        }
-
-        private double lifetimeEnd = double.MaxValue;
-
-        public override double LifetimeEnd
-        {
-            get => Content?.LifetimeEnd ?? lifetimeEnd;
-            set
-            {
-                if (Content != null)
-                    Content.LifetimeEnd = value;
-                lifetimeEnd = value;
-            }
         }
 
         private Drawable content;
@@ -149,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            // The callback is run on the game's scheduler since DLUW needs to unload when no updates are being received.
+            // The callback is run on the game's scheduler since DelayedLoadUnloadWrapper needs to unload when no updates are being received.
             LoadComponentAsync(Content, EndDelayedLoad, scheduler: Game.Scheduler, cancellation: cancellationTokenSource.Token);
         }
 
@@ -157,12 +127,9 @@ namespace osu.Framework.Graphics.Containers
         {
             timeVisible = 0;
 
-            // This code is running on the game's scheduler, while this DLW may have been async disposed, so the addition is scheduled locally to prevent adding to disposed DLWs.
+            // This code is running on the game's scheduler, while this wrapper may have been async disposed, so the addition is scheduled locally to prevent adding to disposed wrappers.
             scheduledAddition = Schedule(() =>
             {
-                content.LifetimeStart = lifetimeStart;
-                content.LifetimeEnd = lifetimeEnd;
-
                 AddInternal(content);
 
                 DelayedLoadCompleted = true;

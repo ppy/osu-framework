@@ -4,6 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.StateChanges;
 using osu.Framework.Platform;
@@ -41,16 +42,29 @@ namespace osu.Framework.Testing.Input
 
         private readonly TestCursorContainer testCursor;
 
+        private readonly LocalPlatformActionContainer platformActionContainer;
+
+        public override bool UseParentInput
+        {
+            get => base.UseParentInput;
+            set
+            {
+                base.UseParentInput = value;
+                platformActionContainer.ShouldHandle = !value;
+            }
+        }
+
         public ManualInputManager()
         {
-            UseParentInput = true;
             AddHandler(handler = new ManualInputHandler());
 
             InternalChildren = new Drawable[]
             {
-                content = new Container { RelativeSizeAxes = Axes.Both },
+                platformActionContainer = new LocalPlatformActionContainer().WithChild(content = new Container { RelativeSizeAxes = Axes.Both }),
                 testCursor = new TestCursorContainer(),
             };
+
+            UseParentInput = true;
         }
 
         public void Input(IInput input)
@@ -127,11 +141,29 @@ namespace osu.Framework.Testing.Input
         public void PressMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, true));
         public void ReleaseMidiKey(MidiKey key, byte velocity) => Input(new MidiKeyInput(key, velocity, false));
 
+        public void PressTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, true));
+        public void ReleaseTabletPenButton(TabletPenButton penButton) => Input(new TabletPenButtonInput(penButton, false));
+
+        public void PressTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, true));
+        public void ReleaseTabletAuxiliaryButton(TabletAuxiliaryButton auxiliaryButton) => Input(new TabletAuxiliaryButtonInput(auxiliaryButton, false));
+
+        private class LocalPlatformActionContainer : PlatformActionContainer
+        {
+            public bool ShouldHandle;
+
+            protected override bool Handle(UIEvent e)
+            {
+                if (!ShouldHandle)
+                    return false;
+
+                return base.Handle(e);
+            }
+        }
+
         private class ManualInputHandler : InputHandler
         {
             public override bool Initialize(GameHost host) => true;
             public override bool IsActive => true;
-            public override int Priority => 0;
 
             public void EnqueueInput(IInput input)
             {

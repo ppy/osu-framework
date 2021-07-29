@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Gets the item representations contained by this <see cref="Menu"/>.
         /// </summary>
-        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer;
+        protected internal IReadOnlyList<DrawableMenuItem> Children => ItemsContainer.Children;
 
         protected readonly Direction Direction;
 
@@ -538,7 +538,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a sub-menu for <see cref="MenuItem.Items"/> of <see cref="MenuItem"/>s added to this <see cref="Menu"/>.
         /// </summary>
-        /// <returns></returns>
         protected abstract Menu CreateSubMenu();
 
         /// <summary>

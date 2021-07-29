@@ -14,12 +14,15 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private readonly JoystickButton[] axisDirectionButtons = new JoystickButton[(int)JoystickAxisSource.AxisCount];
 
-        public override bool IsActive => true;
+        public override string Description => "Joystick / Gamepad";
 
-        public override int Priority => 0;
+        public override bool IsActive => true;
 
         public override bool Initialize(GameHost host)
         {
+            if (!base.Initialize(host))
+                return false;
+
             if (!(host.Window is SDL2DesktopWindow window))
                 return false;
 

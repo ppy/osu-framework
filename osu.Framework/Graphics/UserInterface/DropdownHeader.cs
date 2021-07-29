@@ -131,13 +131,13 @@ namespace osu.Framework.Graphics.UserInterface
             if (!Enabled.Value)
                 return true;
 
-            switch (action.ActionType)
+            switch (action)
             {
-                case PlatformActionType.ListStart:
+                case PlatformAction.MoveToListStart:
                     ChangeSelection?.Invoke(DropdownSelectionAction.First);
                     return true;
 
-                case PlatformActionType.ListEnd:
+                case PlatformAction.MoveToListEnd:
                     ChangeSelection?.Invoke(DropdownSelectionAction.Last);
                     return true;
 

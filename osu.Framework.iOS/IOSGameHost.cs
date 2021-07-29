@@ -65,7 +65,7 @@ namespace osu.Framework.iOS
         {
             base.SetupForRun();
 
-            AllowScreenSuspension.BindValueChanged(allow =>
+            AllowScreenSuspension.Result.BindValueChanged(allow =>
                     InputThread.Scheduler.Add(() => UIApplication.SharedApplication.IdleTimerDisabled = !allow.NewValue),
                 true);
         }
@@ -79,7 +79,7 @@ namespace osu.Framework.iOS
 
             base.SetupConfig(defaultOverrides);
 
-            DebugConfig.Set(DebugSetting.BypassFrontToBackPass, true);
+            DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);
         }
 
         protected override void PerformExit(bool immediately)
@@ -102,7 +102,7 @@ namespace osu.Framework.iOS
                 keyboardHandler = new IOSKeyboardHandler(gameView),
                 rawKeyboardHandler = new IOSRawKeyboardHandler(),
                 new IOSMouseHandler(gameView),
-                new MidiInputHandler()
+                new MidiHandler()
             };
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
@@ -126,38 +126,39 @@ namespace osu.Framework.iOS
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new IOSVideoDecoder(stream, scheduler);
+        public override VideoDecoder CreateVideoDecoder(Stream stream) => new IOSVideoDecoder(stream);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), new PlatformAction(PlatformActionType.Cut)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.C), new PlatformAction(PlatformActionType.Copy)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.V), new PlatformAction(PlatformActionType.Paste)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.A), new PlatformAction(PlatformActionType.SelectAll)),
-            new KeyBinding(InputKey.Left, new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.Right, new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.BackSpace, new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(InputKey.Delete, new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Left), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Right), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.BackSpace), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Delete), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Left), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Left), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Right), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.BackSpace), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Delete), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Left), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), new PlatformAction(PlatformActionType.DocumentPrevious)),
-            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), new PlatformAction(PlatformActionType.DocumentNext)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.X), PlatformAction.Cut),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.C), PlatformAction.Copy),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.V), PlatformAction.Paste),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.A), PlatformAction.SelectAll),
+            new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
+            new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),
+            new KeyBinding(InputKey.BackSpace, PlatformAction.DeleteBackwardChar),
+            new KeyBinding(InputKey.Delete, PlatformAction.DeleteForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), PlatformAction.DeleteBackwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Delete), PlatformAction.DeleteForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Left), PlatformAction.MoveBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Right), PlatformAction.MoveForwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.BackSpace), PlatformAction.DeleteBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Delete), PlatformAction.DeleteForwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Left), PlatformAction.MoveBackwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Right), PlatformAction.MoveForwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.BackSpace), PlatformAction.DeleteBackwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Delete), PlatformAction.DeleteForwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), PlatformAction.DocumentPrevious),
+            new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), PlatformAction.DocumentNext),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), PlatformAction.DocumentNext),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), PlatformAction.DocumentPrevious),
+            new KeyBinding(new KeyCombination(InputKey.Delete), PlatformAction.Delete),
         };
     }
 }

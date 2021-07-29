@@ -90,6 +90,24 @@ namespace osu.Framework.Platform
             }
         }
 
+        private bool resizable = true;
+
+        /// <summary>
+        /// Returns or sets whether the window is resizable or not. Only valid when in <see cref="osu.Framework.Platform.WindowState.Normal"/>.
+        /// </summary>
+        public bool Resizable
+        {
+            get => resizable;
+            set
+            {
+                if (resizable == value)
+                    return;
+
+                resizable = value;
+                ScheduleCommand(() => SDL.SDL_SetWindowResizable(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
+            }
+        }
+
         private bool relativeMouseMode;
 
         /// <summary>
@@ -105,15 +123,30 @@ namespace osu.Framework.Platform
                 if (relativeMouseMode == value)
                     return;
 
+                if (value && !CursorState.HasFlagFast(CursorState.Hidden))
+                    throw new InvalidOperationException($"Cannot set {nameof(RelativeMouseMode)} to true when the cursor is not hidden via {nameof(CursorState)}.");
+
                 relativeMouseMode = value;
                 ScheduleCommand(() => SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
             }
         }
 
+        private Size size = new Size(default_width, default_height);
+
         /// <summary>
         /// Returns or sets the window's internal size, before scaling.
         /// </summary>
-        public Size Size { get; private set; } = new Size(default_width, default_height);
+        public Size Size
+        {
+            get => size;
+            private set
+            {
+                if (value.Equals(size)) return;
+
+                size = value;
+                ScheduleEvent(() => Resized?.Invoke());
+            }
+        }
 
         /// <summary>
         /// Provides a bindable that controls the window's <see cref="CursorStateBindable"/>.
@@ -130,11 +163,11 @@ namespace osu.Framework.Platform
 
         public Bindable<WindowMode> WindowMode { get; } = new Bindable<WindowMode>();
 
-        private readonly BindableBool isActive = new BindableBool(true);
+        private readonly BindableBool isActive = new BindableBool();
 
         public IBindable<bool> IsActive => isActive;
 
-        private readonly BindableBool cursorInWindow = new BindableBool(true);
+        private readonly BindableBool cursorInWindow = new BindableBool();
 
         public IBindable<bool> CursorInWindow => cursorInWindow;
 
@@ -192,36 +225,11 @@ namespace osu.Framework.Platform
             }
         }
 
-        private bool cursorVisible = true;
+        private void updateCursorVisibility(bool visible) =>
+            ScheduleCommand(() => SDL.SDL_ShowCursor(visible ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
 
-        /// <summary>
-        /// Returns or sets the cursor's visibility within the window.
-        /// </summary>
-        public bool CursorVisible
-        {
-            get => cursorVisible;
-            set
-            {
-                cursorVisible = value;
-                ScheduleCommand(() => SDL.SDL_ShowCursor(value ? SDL.SDL_ENABLE : SDL.SDL_DISABLE));
-            }
-        }
-
-        private bool cursorConfined;
-
-        /// <summary>
-        /// Returns or sets whether the cursor is confined to the window's
-        /// drawable area.
-        /// </summary>
-        public bool CursorConfined
-        {
-            get => cursorConfined;
-            set
-            {
-                cursorConfined = value;
-                ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
-            }
-        }
+        private void updateCursorConfined(bool confined) =>
+            ScheduleCommand(() => SDL.SDL_SetWindowGrab(SDLWindowHandle, confined ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE));
 
         private WindowState windowState = WindowState.Normal;
 
@@ -275,22 +283,12 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        private DisplayMode currentDisplayMode;
+        private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
         /// <summary>
-        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// The <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        public DisplayMode CurrentDisplayMode
-        {
-            get => currentDisplayMode;
-            set
-            {
-                currentDisplayMode = value;
-
-                // todo: proper handling of this, if we decide we want it.
-                pendingWindowState = windowState;
-            }
-        }
+        public IBindable<DisplayMode> CurrentDisplayMode => currentDisplayMode;
 
         /// <summary>
         /// Gets the native window handle as provided by the operating system.
@@ -354,6 +352,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        public bool CapsLockPressed => SDL.SDL_GetModState().HasFlagFast(SDL.SDL_Keymod.KMOD_CAPS);
+
         private bool firstDraw = true;
 
         private readonly BindableSize sizeFullscreen = new BindableSize();
@@ -372,17 +372,11 @@ namespace osu.Framework.Platform
 
             CursorStateBindable.ValueChanged += evt =>
             {
-                CursorVisible = !evt.NewValue.HasFlagFast(CursorState.Hidden);
-                CursorConfined = evt.NewValue.HasFlagFast(CursorState.Confined);
+                updateCursorVisibility(!evt.NewValue.HasFlagFast(CursorState.Hidden));
+                updateCursorConfined(evt.NewValue.HasFlagFast(CursorState.Confined));
             };
 
-            cursorInWindow.ValueChanged += evt =>
-            {
-                if (evt.NewValue)
-                    OnMouseEntered();
-                else
-                    OnMouseLeft();
-            };
+            populateJoysticks();
         }
 
         /// <summary>
@@ -397,6 +391,7 @@ namespace osu.Framework.Platform
                                         WindowState.ToFlags();
 
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
@@ -429,10 +424,7 @@ namespace osu.Framework.Platform
 
                 if (e.type == SDL.SDL_EventType.SDL_WINDOWEVENT && e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                 {
-                    // This function will be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
-                    // Therefore we should only update the client size without saving to config, as we don't know what state the window would end up in.
                     updateWindowSize();
-                    return 0;
                 }
 
                 return 1;
@@ -455,10 +447,10 @@ namespace osu.Framework.Platform
 
                 eventScheduler.Update();
 
-                OnUpdate();
+                Update?.Invoke();
             }
 
-            OnExited();
+            Exited?.Invoke();
 
             if (SDLWindowHandle != IntPtr.Zero)
                 SDL.SDL_DestroyWindow(SDLWindowHandle);
@@ -473,17 +465,14 @@ namespace osu.Framework.Platform
         private void updateWindowSize()
         {
             SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
-            var newSize = new Size(w, h);
-
             SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
+
             Scale = (float)w / actualW;
+            Size = new Size(w, h);
 
-            if (!newSize.Equals(Size))
-            {
-                Size = newSize;
-
-                ScheduleEvent(() => OnResized());
-            }
+            // This function may be invoked before the SDL internal states are all changed. (as documented here: https://wiki.libsdl.org/SDL_SetEventFilter)
+            // Scheduling the store to config until after the event poll has run will ensure the window is in the correct state.
+            eventScheduler.Add(storeWindowSizeToConfig, true);
         }
 
         /// <summary>
@@ -496,7 +485,7 @@ namespace osu.Framework.Platform
         /// </summary>
         public void RequestClose() => ScheduleEvent(() =>
         {
-            if (!OnExitRequested())
+            if (ExitRequested?.Invoke() != true)
                 Close();
         });
 
@@ -526,15 +515,15 @@ namespace osu.Framework.Platform
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
             var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
-            ScheduleEvent(() => OnJoystickAxisChanged(new JoystickAxis(axisSource, clamped)));
+            ScheduleEvent(() => JoystickAxisChanged?.Invoke(new JoystickAxis(axisSource, clamped)));
         }
 
         private void enqueueJoystickButtonInput(JoystickButton button, bool isPressed)
         {
             if (isPressed)
-                ScheduleEvent(() => OnJoystickButtonDown(button));
+                ScheduleEvent(() => JoystickButtonDown?.Invoke(button));
             else
-                ScheduleEvent(() => OnJoystickButtonUp(button));
+                ScheduleEvent(() => JoystickButtonUp?.Invoke(button));
         }
 
         /// <summary>
@@ -573,7 +562,7 @@ namespace osu.Framework.Platform
             var rx = x - pos.X;
             var ry = y - pos.Y;
 
-            ScheduleEvent(() => OnMouseMove(new Vector2(rx * Scale, ry * Scale)));
+            ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
         }
 
         #region SDL Event Handling
@@ -695,7 +684,7 @@ namespace osu.Framework.Platform
                 case SDL.SDL_EventType.SDL_DROPFILE:
                     var str = SDL.UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
-                        ScheduleEvent(() => OnDragDrop(str));
+                        ScheduleEvent(() => DragDrop?.Invoke(str));
 
                     break;
             }
@@ -710,10 +699,7 @@ namespace osu.Framework.Platform
             switch (evtCdevice.type)
             {
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    var controller = SDL.SDL_GameControllerOpen(evtCdevice.which);
-                    var joystick = SDL.SDL_GameControllerGetJoystick(controller);
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtCdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+                    addJoystick(evtCdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
@@ -748,19 +734,40 @@ namespace osu.Framework.Platform
         private void handleControllerAxisEvent(SDL.SDL_ControllerAxisEvent evtCaxis) =>
             enqueueJoystickAxisInput(((SDL.SDL_GameControllerAxis)evtCaxis.axis).ToJoystickAxisSource(), evtCaxis.axisValue);
 
+        private void addJoystick(int which)
+        {
+            var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
+
+            // if the joystick is already opened, ignore it
+            if (controllers.ContainsKey(instanceID))
+                return;
+
+            var joystick = SDL.SDL_JoystickOpen(which);
+
+            var controller = IntPtr.Zero;
+            if (SDL.SDL_IsGameController(which) == SDL.SDL_bool.SDL_TRUE)
+                controller = SDL.SDL_GameControllerOpen(which);
+
+            controllers[instanceID] = new SDL2ControllerBindings(joystick, controller);
+        }
+
+        /// <summary>
+        /// Populates <see cref="controllers"/> with joysticks that are already connected.
+        /// </summary>
+        private void populateJoysticks()
+        {
+            for (int i = 0; i < SDL.SDL_NumJoysticks(); i++)
+            {
+                addJoystick(i);
+            }
+        }
+
         private void handleJoyDeviceEvent(SDL.SDL_JoyDeviceEvent evtJdevice)
         {
             switch (evtJdevice.type)
             {
                 case SDL.SDL_EventType.SDL_JOYDEVICEADDED:
-                    var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(evtJdevice.which);
-
-                    // if the joystick is already opened, ignore it
-                    if (controllers.ContainsKey(instanceID))
-                        break;
-
-                    var joystick = SDL.SDL_JoystickOpen(evtJdevice.which);
-                    controllers[instanceID] = new SDL2ControllerBindings(joystick, IntPtr.Zero);
+                    addJoystick(evtJdevice.which);
                     break;
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
@@ -812,7 +819,7 @@ namespace osu.Framework.Platform
         }
 
         private void handleMouseWheelEvent(SDL.SDL_MouseWheelEvent evtWheel) =>
-            ScheduleEvent(() => OnMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
+            ScheduleEvent(() => TriggerMouseWheel(new Vector2(evtWheel.x, evtWheel.y), false));
 
         private void handleMouseButtonEvent(SDL.SDL_MouseButtonEvent evtButton)
         {
@@ -821,11 +828,11 @@ namespace osu.Framework.Platform
             switch (evtButton.type)
             {
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
-                    ScheduleEvent(() => OnMouseDown(button));
+                    ScheduleEvent(() => MouseDown?.Invoke(button));
                     break;
 
                 case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
-                    ScheduleEvent(() => OnMouseUp(button));
+                    ScheduleEvent(() => MouseUp?.Invoke(button));
                     break;
             }
         }
@@ -833,9 +840,9 @@ namespace osu.Framework.Platform
         private void handleMouseMotionEvent(SDL.SDL_MouseMotionEvent evtMotion)
         {
             if (SDL.SDL_GetRelativeMouseMode() == SDL.SDL_bool.SDL_FALSE)
-                ScheduleEvent(() => OnMouseMove(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
+                ScheduleEvent(() => MouseMove?.Invoke(new Vector2(evtMotion.x * Scale, evtMotion.y * Scale)));
             else
-                ScheduleEvent(() => OnMouseMoveRelative(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale)));
+                ScheduleEvent(() => MouseMoveRelative?.Invoke(new Vector2(evtMotion.xrel * Scale, evtMotion.yrel * Scale)));
         }
 
         private unsafe void handleTextInputEvent(SDL.SDL_TextInputEvent evtText)
@@ -847,7 +854,7 @@ namespace osu.Framework.Platform
             string text = Marshal.PtrToStringUTF8(ptr) ?? "";
 
             foreach (char c in text)
-                ScheduleEvent(() => OnKeyTyped(c));
+                ScheduleEvent(() => KeyTyped?.Invoke(c));
         }
 
         private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -858,17 +865,17 @@ namespace osu.Framework.Platform
         {
             Key key = evtKey.keysym.ToKey();
 
-            if (key == Key.Unknown || key == Key.CapsLock)
+            if (key == Key.Unknown)
                 return;
 
             switch (evtKey.type)
             {
                 case SDL.SDL_EventType.SDL_KEYDOWN:
-                    ScheduleEvent(() => OnKeyDown(key));
+                    ScheduleEvent(() => KeyDown?.Invoke(key));
                     break;
 
                 case SDL.SDL_EventType.SDL_KEYUP:
-                    ScheduleEvent(() => OnKeyUp(key));
+                    ScheduleEvent(() => KeyUp?.Invoke(key));
                     break;
             }
         }
@@ -879,53 +886,44 @@ namespace osu.Framework.Platform
 
             switch (evtWindow.windowEvent)
             {
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
-                    ScheduleEvent(OnShown);
-                    break;
-
-                case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN:
-                    ScheduleEvent(OnHidden);
-                    break;
-
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MOVED:
                     // explicitly requery as there are occasions where what SDL has provided us with is not up-to-date.
                     SDL.SDL_GetWindowPosition(SDLWindowHandle, out int x, out int y);
                     var newPosition = new Point(x, y);
 
-                    if (WindowMode.Value == Configuration.WindowMode.Windowed && !newPosition.Equals(Position))
+                    if (!newPosition.Equals(Position))
                     {
                         position = newPosition;
-                        storeWindowPositionToConfig();
-                        ScheduleEvent(() => OnMoved(newPosition));
+                        ScheduleEvent(() => Moved?.Invoke(newPosition));
+
+                        if (WindowMode.Value == Configuration.WindowMode.Windowed)
+                            storeWindowPositionToConfig();
                     }
 
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                     updateWindowSize();
-                    if (WindowState == WindowState.Normal)
-                        storeWindowSizeToConfig();
-
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_ENTER:
                     cursorInWindow.Value = true;
-                    ScheduleEvent(OnMouseEntered);
+                    ScheduleEvent(() => MouseEntered?.Invoke());
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE:
                     cursorInWindow.Value = false;
-                    ScheduleEvent(OnMouseLeft);
+                    ScheduleEvent(() => MouseLeft?.Invoke());
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
-                    ScheduleEvent(OnFocusGained);
+                    ScheduleEvent(() => Focused = true);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED:
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
-                    ScheduleEvent(OnFocusLost);
+                    ScheduleEvent(() => Focused = false);
                     break;
 
                 case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE:
@@ -959,7 +957,7 @@ namespace osu.Framework.Platform
 
             if (windowState != stateBefore)
             {
-                ScheduleEvent(() => OnWindowStateChanged(windowState));
+                ScheduleEvent(() => WindowStateChanged?.Invoke(windowState));
                 updateMaximisedState();
             }
 
@@ -969,7 +967,10 @@ namespace osu.Framework.Platform
             {
                 displayIndex = newDisplayIndex;
                 currentDisplay = Displays.ElementAtOrDefault(displayIndex) ?? PrimaryDisplay;
-                ScheduleEvent(() => OnDisplayChanged(currentDisplay));
+                ScheduleEvent(() =>
+                {
+                    CurrentDisplayBindable.Value = currentDisplay;
+                });
             }
         }
 
@@ -991,12 +992,13 @@ namespace osu.Framework.Platform
 
                     SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_SetWindowSize(SDLWindowHandle, sizeWindowed.Value.Width, sizeWindowed.Value.Height);
+                    SDL.SDL_SetWindowResizable(SDLWindowHandle, Resizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
 
                     readWindowPositionFromConfig();
                     break;
 
                 case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
+                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
 
                     Size = new Size(closestMode.w, closestMode.h);
 
@@ -1009,6 +1011,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -1023,7 +1026,7 @@ namespace osu.Framework.Platform
             updateMaximisedState();
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
+                currentDisplayMode.Value = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
         }
 
         private void updateMaximisedState()
@@ -1070,6 +1073,9 @@ namespace osu.Framework.Platform
 
         private void storeWindowSizeToConfig()
         {
+            if (WindowState != WindowState.Normal)
+                return;
+
             storingSizeToConfig = true;
             sizeWindowed.Value = (Size / Scale).ToSize();
             storingSizeToConfig = false;
@@ -1088,18 +1094,6 @@ namespace osu.Framework.Platform
 
             return currentDisplay.Bounds.Size;
         }
-
-        protected void OnHidden() { }
-
-        protected void OnShown() { }
-
-        protected void OnWindowStateChanged(WindowState state) => WindowStateChanged?.Invoke(state);
-
-        protected void OnDisplayChanged(Display display) => CurrentDisplayBindable.Value = display;
-
-        protected void OnFocusGained() => Focused = true;
-
-        protected void OnFocusLost() => Focused = false;
 
         private MouseButton mouseButtonFromEvent(byte button)
         {
@@ -1217,7 +1211,7 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="position">A position inside the window.</param>
         public void UpdateMousePosition(Vector2 position) => ScheduleCommand(() =>
-            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)position.X, (int)position.Y));
+            SDL.SDL_WarpMouseInWindow(SDLWindowHandle, (int)(position.X / Scale), (int)(position.Y / Scale)));
 
         public void SetIconFromStream(Stream stream)
         {
@@ -1333,7 +1327,7 @@ namespace osu.Framework.Platform
         public event Action<WindowState> WindowStateChanged;
 
         /// <summary>
-        /// Invoked when the user attempts to close the window.
+        /// Invoked when the user attempts to close the window. Return value of true will cancel exit.
         /// </summary>
         public event Func<bool> ExitRequested;
 
@@ -1361,6 +1355,8 @@ namespace osu.Framework.Platform
         /// Invoked when the user scrolls the mouse wheel over the window.
         /// </summary>
         public event Action<Vector2, bool> MouseWheel;
+
+        protected void TriggerMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
 
         /// <summary>
         /// Invoked when the user moves the mouse cursor within the window.
@@ -1416,32 +1412,6 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
-
-        #endregion
-
-        #region Event Invocation
-
-        protected void OnUpdate() => Update?.Invoke();
-
-        protected void OnResized() => Resized?.Invoke();
-
-        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
-        protected void OnExited() => Exited?.Invoke();
-        protected void OnMouseEntered() => MouseEntered?.Invoke();
-        protected void OnMouseLeft() => MouseLeft?.Invoke();
-        protected void OnMoved(Point point) => Moved?.Invoke(point);
-        protected void OnMouseWheel(Vector2 delta, bool precise) => MouseWheel?.Invoke(delta, precise);
-        protected void OnMouseMove(Vector2 position) => MouseMove?.Invoke(position);
-        protected void OnMouseMoveRelative(Vector2 position) => MouseMoveRelative?.Invoke(position);
-        protected void OnMouseDown(MouseButton button) => MouseDown?.Invoke(button);
-        protected void OnMouseUp(MouseButton button) => MouseUp?.Invoke(button);
-        protected void OnKeyDown(Key key) => KeyDown?.Invoke(key);
-        protected void OnKeyUp(Key key) => KeyUp?.Invoke(key);
-        protected void OnKeyTyped(char c) => KeyTyped?.Invoke(c);
-        protected void OnJoystickAxisChanged(JoystickAxis axis) => JoystickAxisChanged?.Invoke(axis);
-        protected void OnJoystickButtonDown(JoystickButton button) => JoystickButtonDown?.Invoke(button);
-        protected void OnJoystickButtonUp(JoystickButton button) => JoystickButtonUp?.Invoke(button);
-        protected void OnDragDrop(string file) => DragDrop?.Invoke(file);
 
         #endregion
 

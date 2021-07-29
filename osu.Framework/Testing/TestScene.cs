@@ -291,20 +291,6 @@ namespace osu.Framework.Testing
 
         public void AddStep(StepButton step) => schedule(() => StepsContainer.Add(step));
 
-        [Obsolete("Specify normal steps via AddStep inside a method marked with [SetUpSteps] instead")] // can be removed 20210325
-        public StepButton AddSetupStep(string description, Action action)
-        {
-            var step = new SingleStepButton(true)
-            {
-                Text = description,
-                Action = action
-            };
-
-            AddStep(step);
-
-            return step;
-        }
-
         private bool addStepsAsSetupSteps;
 
         public StepButton AddStep(string description, Action action)
@@ -408,7 +394,6 @@ namespace osu.Framework.Testing
         /// Remove the "TestScene" prefix from a name.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
         public static string RemovePrefix(string name)
         {
             return name.Replace("TestCase", string.Empty) // TestScene used to be called TestCase. This handles consumer projects which haven't updated their naming for the near future.

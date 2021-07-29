@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#pragma warning disable 8632 // TODO: can be #nullable enable when Bindables are updated to also be.
+
 using osu.Framework.Bindables;
 
 namespace osu.Framework.Localisation
@@ -9,20 +11,18 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<ILocalisationStore> storage = new Bindable<ILocalisationStore>();
-            private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
+            private readonly IBindable<LocalisationParameters> parameters = new Bindable<LocalisationParameters>();
 
             private LocalisableString text;
 
-            public LocalisedBindableString(LocalisableString text, IBindable<ILocalisationStore> storage, IBindable<bool> preferUnicode)
+            public LocalisedBindableString(LocalisableString text, IBindable<LocalisationParameters> parameters)
             {
                 this.text = text;
 
-                this.storage.BindTo(storage);
-                this.preferUnicode.BindTo(preferUnicode);
+                this.parameters.BindTo(parameters);
+                this.parameters.BindValueChanged(_ => updateValue());
 
-                this.storage.BindValueChanged(_ => updateValue());
-                this.preferUnicode.BindValueChanged(_ => updateValue(), true);
+                updateValue();
             }
 
             private void updateValue()
@@ -33,12 +33,8 @@ namespace osu.Framework.Localisation
                         Value = plain;
                         break;
 
-                    case RomanisableString romanisable:
-                        Value = romanisable.GetPreferred(preferUnicode.Value);
-                        break;
-
-                    case TranslatableString translatable:
-                        Value = translatable.Format(storage.Value);
+                    case ILocalisableStringData data:
+                        Value = data.GetLocalised(parameters.Value);
                         break;
 
                     default:

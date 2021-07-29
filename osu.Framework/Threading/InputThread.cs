@@ -20,7 +20,15 @@ namespace osu.Framework.Threading
             StatisticsCounterType.KeyEvents,
             StatisticsCounterType.JoystickEvents,
             StatisticsCounterType.MidiEvents,
+            StatisticsCounterType.TabletEvents,
         };
+
+        protected override void PrepareForWork()
+        {
+            // Intentionally inhibiting the base implementation which spawns a native thread.
+            // Therefore, we need to run Initialize inline.
+            Initialize(true);
+        }
 
         public override bool IsCurrent => ThreadSafety.IsInputThread;
 
@@ -29,11 +37,6 @@ namespace osu.Framework.Threading
             base.MakeCurrent();
 
             ThreadSafety.IsInputThread = true;
-        }
-
-        public override void Start()
-        {
-            // InputThread does not get started. it is run manually by GameHost.
         }
     }
 }

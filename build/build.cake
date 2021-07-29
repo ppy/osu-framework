@@ -123,8 +123,10 @@ Task("CodeFileSanity")
         });
     });
 
-Task("DotnetFormat")
-    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
+// Temporarily disabled until the tool is upgraded to 5.0.
+// The version specified in .config/dotnet-tools.json (3.1.37601) won't run on .NET hosts >=5.0.7.
+// Task("DotnetFormat")
+//    .Does(() => DotNetCoreTool(sln.FullPath, "format", "--dry-run --check"));
 
 Task("PackFramework")
     .Does(() => {
@@ -222,7 +224,7 @@ Task("Build")
     .IsDependentOn("Clean")
     .IsDependentOn("DetermineAppveyorBuildProperties")
     .IsDependentOn("CodeFileSanity")
-    .IsDependentOn("DotnetFormat")
+    //.IsDependentOn("DotnetFormat") <- To be uncommented after fixing the task.
     .IsDependentOn("InspectCode")
     .IsDependentOn("Test")
     .IsDependentOn("DetermineAppveyorDeployProperties")

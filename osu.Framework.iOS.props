@@ -60,16 +60,16 @@
     </NativeReference>
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Markdig" Version="0.22.1" />
+    <PackageReference Include="Markdig" Version="0.25.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="SharpFNT" Version="2.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.173" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="ppy.Microsoft.Diagnostics.Runtime" Version="0.9.180305.1" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="ManagedBass" Version="2.0.4" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
@@ -79,6 +79,6 @@
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
-    <PackageReference Include="System.Memory" Version="4.5.0" NoWarn="NU1605" />
+    <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605" />
   </ItemGroup>
 </Project>

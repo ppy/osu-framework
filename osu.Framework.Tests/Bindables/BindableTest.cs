@@ -96,10 +96,10 @@ namespace osu.Framework.Tests.Bindables
         [TestCaseSource(nameof(getParsingConversionTests))]
         public void TestParse(Type type, object input, object output)
         {
-            IBindable bindable = (IBindable)Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
+            object bindable = Activator.CreateInstance(typeof(Bindable<>).MakeGenericType(type), type == typeof(string) ? "" : Activator.CreateInstance(type));
             Debug.Assert(bindable != null);
 
-            bindable.Parse(input);
+            ((IParseable)bindable).Parse(input);
             object value = bindable.GetType().GetProperty(nameof(Bindable<object>.Value), BindingFlags.Public | BindingFlags.Instance)?.GetValue(bindable);
 
             Assert.That(value, Is.EqualTo(output));

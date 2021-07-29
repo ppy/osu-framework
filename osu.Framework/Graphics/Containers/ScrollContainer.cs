@@ -135,7 +135,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="position">The value to clamp.</param>
         /// <param name="extension">An extension value beyond the normal extent.</param>
-        /// <returns></returns>
         protected float Clamp(float position, float extension = 0) => Math.Max(Math.Min(position, ScrollableExtent + extension), -extension);
 
         protected override Container<T> Content => ScrollContent;
@@ -636,13 +635,13 @@ namespace osu.Framework.Graphics.Containers
             if (!IsHandlingKeyboardScrolling)
                 return false;
 
-            switch (action.ActionType)
+            switch (action)
             {
-                case PlatformActionType.LineStart:
+                case PlatformAction.MoveBackwardLine:
                     ScrollToStart();
                     return true;
 
-                case PlatformActionType.LineEnd:
+                case PlatformAction.MoveForwardLine:
                     ScrollToEnd();
                     return true;
 

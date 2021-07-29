@@ -39,8 +39,6 @@ namespace osu.Framework.Graphics.Containers
 
             drawable.Position = Vector2.Zero;
             drawable.Rotation = 0;
-            drawable.Anchor = Anchor.TopLeft;
-            drawable.Origin = Anchor.TopLeft;
 
             // For anchor/origin positioning to be preserved correctly,
             // relatively sized axes must be lifted to the wrapping container.

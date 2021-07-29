@@ -113,9 +113,9 @@ namespace osu.Framework.Platform
         Bindable<Display> CurrentDisplayBindable { get; }
 
         /// <summary>
-        /// Gets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// The <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        DisplayMode CurrentDisplayMode { get; }
+        IBindable<DisplayMode> CurrentDisplayMode { get; }
 
         /// <summary>
         /// Makes this window the current graphics context, if appropriate for the driver.
@@ -151,14 +151,12 @@ namespace osu.Framework.Platform
         /// Convert a screen based coordinate to local window space.
         /// </summary>
         /// <param name="point"></param>
-        /// <returns></returns>
         Point PointToClient(Point point);
 
         /// <summary>
         /// Convert a window based coordinate to global screen space.
         /// </summary>
         /// <param name="point"></param>
-        /// <returns></returns>
         Point PointToScreen(Point point);
 
         /// <summary>

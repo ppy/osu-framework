@@ -4,12 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
 
@@ -56,8 +59,8 @@ namespace osu.Framework.Extensions
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>
         /// <param name="lookup">The lookup key.</param>
-        /// <returns></returns>
-        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.TryGetValue(lookup, out TValue outVal) ? outVal : default;
+        [Obsolete("Use System.Collections.Generic.CollectionExtensions.GetValueOrDefault instead.")] // Can be removed 20220115
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup) => dictionary.GetValueOrDefault(lookup);
 
         /// <summary>
         /// Converts a rectangular array to a jagged array.
@@ -174,9 +177,74 @@ namespace osu.Framework.Extensions
             }
         }
 
+        /// <summary>
+        /// Returns the description of a given enum value, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any <see cref="LocalisableEnumAttribute"/> attached to the enum type.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description><see cref="GetDescription"/></description>
+        ///   </item>
+        /// </list>
+        /// </summary>
+        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
+        /// and the <see cref="EnumLocalisationMapper{T}"/> could not be instantiated.</exception>
+        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
+        /// and the type handled by the <see cref="EnumLocalisationMapper{T}"/> is not <typeparamref name="T"/>.</exception>
+        public static LocalisableString GetLocalisableDescription<T>(this T value)
+            where T : Enum
+        {
+            var enumType = value.GetType();
+
+            var mapperType = enumType.GetCustomAttribute<LocalisableEnumAttribute>()?.MapperType;
+            if (mapperType == null)
+                return GetDescription(value);
+
+            var mapperInstance = Activator.CreateInstance(mapperType);
+            if (mapperInstance == null)
+                throw new InvalidOperationException($"Could not create the {nameof(EnumLocalisationMapper<T>)} for enum type {enumType.ReadableName()}");
+
+            var mapMethod = mapperType.GetMethod(nameof(EnumLocalisationMapper<T>.Map), BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(mapMethod != null);
+
+            var expectedMappingType = mapMethod.GetParameters()[0].ParameterType;
+            if (expectedMappingType != enumType)
+                throw new InvalidOperationException($"Cannot use {mapperType.ReadableName()} (maps {expectedMappingType.ReadableName()} enum values) to map {enumType.ReadableName()} enum values.");
+
+            var mappedValue = mapMethod.Invoke(mapperInstance, new object[] { value });
+            Debug.Assert(mappedValue != null);
+
+            return (LocalisableString)mappedValue;
+        }
+
+        /// <summary>
+        /// Returns the description of a given object, via (in order):
+        /// <list type="number">
+        ///   <item>
+        ///     <description>Any attached <see cref="DescriptionAttribute"/>.</description>
+        ///   </item>
+        ///   <item>
+        ///     <description>The object's <see cref="object.ToString()"/>.</description>
+        ///   </item>
+        /// </list>
+        /// </summary>
         public static string GetDescription(this object value)
-            => value.GetType().GetField(value.ToString())
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+            => value.GetType()
+                    .GetField(value.ToString())?
+                    .GetCustomAttribute<DescriptionAttribute>()?.Description
+               ?? value.ToString();
+
+        private static string toLowercaseHex(this byte[] bytes)
+        {
+            // Convert.ToHexString is upper-case, so we are doing this ourselves
+
+            return string.Create(bytes.Length * 2, bytes, (span, b) =>
+            {
+                for (int i = 0; i < b.Length; i++)
+                    _ = b[i].TryFormat(span[(i * 2)..], out _, "x2");
+            });
+        }
 
         /// <summary>
         /// Gets a SHA-2 (256bit) hash for the given stream, seeking the stream before and after.
@@ -190,7 +258,7 @@ namespace osu.Framework.Extensions
             stream.Seek(0, SeekOrigin.Begin);
 
             using (var alg = SHA256.Create())
-                hash = BitConverter.ToString(alg.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                hash = alg.ComputeHash(stream).toLowercaseHex();
 
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -205,7 +273,7 @@ namespace osu.Framework.Extensions
         public static string ComputeSHA2Hash(this string str)
         {
             using (var alg = SHA256.Create())
-                return BitConverter.ToString(alg.ComputeHash(new UTF8Encoding().GetBytes(str))).Replace("-", "").ToLowerInvariant();
+                return alg.ComputeHash(Encoding.UTF8.GetBytes(str)).toLowercaseHex();
         }
 
         public static string ComputeMD5Hash(this Stream stream)
@@ -214,7 +282,7 @@ namespace osu.Framework.Extensions
 
             stream.Seek(0, SeekOrigin.Begin);
             using (var md5 = MD5.Create())
-                hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                hash = md5.ComputeHash(stream).toLowercaseHex();
             stream.Seek(0, SeekOrigin.Begin);
 
             return hash;
@@ -222,17 +290,8 @@ namespace osu.Framework.Extensions
 
         public static string ComputeMD5Hash(this string input)
         {
-            StringBuilder hash = new StringBuilder();
-
             using (var md5 = MD5.Create())
-            {
-                byte[] bytes = md5.ComputeHash(new UTF8Encoding().GetBytes(input));
-
-                for (int i = 0; i < bytes.Length; i++)
-                    hash.Append(bytes[i].ToString("x2"));
-
-                return hash.ToString();
-            }
+                return md5.ComputeHash(Encoding.UTF8.GetBytes(input)).toLowercaseHex();
         }
 
         public static DisplayIndex GetIndex(this DisplayDevice display)

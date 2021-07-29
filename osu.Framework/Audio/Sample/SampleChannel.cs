@@ -22,8 +22,6 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Stop()
         {
-            if (IsDisposed)
-                throw new ObjectDisposedException(ToString(), "Can not stop disposed sample channels.");
         }
 
         protected override void Dispose(bool disposing)

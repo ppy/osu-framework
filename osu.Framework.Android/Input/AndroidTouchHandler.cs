@@ -19,8 +19,6 @@ namespace osu.Framework.Android.Input
 
         public override bool IsActive => true;
 
-        public override int Priority => 0;
-
         public AndroidTouchHandler(AndroidGameView view)
         {
             this.view = view;

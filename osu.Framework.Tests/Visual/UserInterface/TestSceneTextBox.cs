@@ -258,6 +258,49 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestBackspaceWhileShifted()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("type character", () =>
+            {
+                // tests don't actually send consumable text, but this important part is that we fire the key event to begin consuming.
+                InputManager.Key(Key.A);
+                textBox.Text += "a";
+            });
+
+            AddStep("backspace character", () => InputManager.Key(Key.BackSpace));
+            AddAssert("character removed", () => textBox.Text == string.Empty);
+
+            AddStep("shift down", () => InputManager.PressKey(Key.ShiftLeft));
+
+            AddStep("type character", () =>
+            {
+                InputManager.Key(Key.A);
+                textBox.Text += "A";
+            });
+
+            AddStep("backspace character", () => InputManager.Key(Key.BackSpace));
+            AddAssert("character removed", () => textBox.Text == string.Empty);
+
+            AddStep("shift up", () => InputManager.ReleaseKey(Key.ShiftLeft));
+        }
+
+        [Test]
         public void TestPreviousWordDeletion()
         {
             InsertableTextBox textBox = null;
@@ -408,9 +451,73 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
+            AddStep("select all", () => textBox.OnPressed(PlatformAction.SelectAll));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
+        }
+
+        [Test]
+        public void TestReadOnly()
+        {
+            BasicTextBox firstTextBox = null;
+            BasicTextBox secondTextBox = null;
+
+            AddStep("add textboxes", () => textBoxes.AddRange(new[]
+            {
+                firstTextBox = new BasicTextBox
+                {
+                    Text = "Readonly textbox",
+                    Size = new Vector2(500, 30),
+                    ReadOnly = true,
+                    TabbableContentContainer = textBoxes
+                },
+                secondTextBox = new BasicTextBox
+                {
+                    Text = "Standard textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                }
+            }));
+
+            AddStep("click first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("click second (editable) textbox", () =>
+            {
+                InputManager.MoveMouseTo(secondTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("try to tab backwards", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("first (readonly) has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("drag on first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("make first textbox non-readonly", () => firstTextBox.ReadOnly = false);
+            AddStep("click first textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("make first textbox readonly again", () => firstTextBox.ReadOnly = true);
+            AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
+            AddStep("delete last character", () => firstTextBox.OnPressed(PlatformAction.DeleteBackwardChar));
+            AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
         }
 
         public class InsertableTextBox : BasicTextBox
@@ -450,14 +557,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     DeletePreviousCharacter();
             }
 
-            public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
-            public void MoveToEnd() => OnPressed(new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move));
+            public void MoveToStart() => OnPressed(PlatformAction.MoveBackwardLine);
+            public void MoveToEnd() => OnPressed(PlatformAction.MoveForwardLine);
 
-            public void DeletePreviousCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete));
+            public void DeletePreviousCharacter() => OnPressed(PlatformAction.DeleteBackwardChar);
+            public void DeleteNextCharacter() => OnPressed(PlatformAction.DeleteForwardChar);
 
-            public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
+            public void DeletePreviousWord() => OnPressed(PlatformAction.DeleteBackwardWord);
+            public void DeleteNextWord() => OnPressed(PlatformAction.DeleteForwardWord);
         }
 
         private class NumberTextBox : BasicTextBox

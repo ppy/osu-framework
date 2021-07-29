@@ -33,7 +33,6 @@ namespace osu.Framework.Statistics
         /// <param name="group">The group specification.</param>
         /// <param name="name">The name specification.</param>
         /// <typeparam name="T">The type.</typeparam>
-        /// <returns></returns>
         public static GlobalStatistic<T> Get<T>(string group, string name)
         {
             lock (statistics)

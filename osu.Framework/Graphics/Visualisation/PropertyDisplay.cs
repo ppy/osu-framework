@@ -140,15 +140,18 @@ namespace osu.Framework.Graphics.Visualisation
                                 {
                                     Text = info.Name,
                                     Colour = FrameworkColour.Yellow,
+                                    Font = FrameworkFont.Regular
                                 },
                                 new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
                                     Colour = FrameworkColour.YellowGreen,
+                                    Font = FrameworkFont.Regular
                                 },
                                 valueText = new SpriteText
                                 {
                                     Colour = Color4.White,
+                                    Font = FrameworkFont.Regular
                                 },
                             }
                         }

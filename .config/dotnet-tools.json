@@ -20,10 +20,16 @@
         "jb"
       ]
     },
-    "nvika": {
-      "version": "2.0.0",
+    "smoogipoo.nvika": {
+      "version": "1.0.1",
       "commands": [
         "nvika"
+      ]
+    },
+    "codefilesanity": {
+      "version": "0.0.36",
+      "commands": [
+        "CodeFileSanity"
       ]
     }
   }

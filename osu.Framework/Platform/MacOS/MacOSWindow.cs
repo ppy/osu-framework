@@ -43,7 +43,10 @@ namespace osu.Framework.Platform.MacOS
             if (!hasPrecise)
             {
                 // calls the unswizzled [SDLView scrollWheel:(NSEvent *)] method if this is a regular scroll wheel event
-                Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+                // the receiver may sometimes not be SDLView, ensure it has a scroll wheel selector implemented before attempting to call.
+                if (Cocoa.SendBool(receiver, sel_respondstoselector_, originalScrollWheel))
+                    Cocoa.SendVoid(receiver, originalScrollWheel, theEvent);
+
                 return;
             }
 
@@ -53,7 +56,7 @@ namespace osu.Framework.Platform.MacOS
             float scrollingDeltaX = Cocoa.SendFloat(theEvent, sel_scrollingdeltax);
             float scrollingDeltaY = Cocoa.SendFloat(theEvent, sel_scrollingdeltay);
 
-            ScheduleEvent(() => OnMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
+            ScheduleEvent(() => TriggerMouseWheel(new Vector2(scrollingDeltaX * scale_factor, scrollingDeltaY * scale_factor), true));
         }
     }
 }

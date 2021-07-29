@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Layout;
 using osuTK;
 
@@ -72,7 +73,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException(nameof(RowDimensions));
+                    throw new ArgumentNullException(nameof(value));
 
                 if (rowDimensions == value)
                     return;
@@ -93,7 +94,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException(nameof(ColumnDimensions));
+                    throw new ArgumentNullException(nameof(value));
 
                 if (columnDimensions == value)
                     return;
@@ -267,13 +268,25 @@ namespace osu.Framework.Graphics.Containers
                         {
                             // Go through each row and get the width of the cell at the indexed column
                             for (int r = 0; r < cellRows; r++)
-                                size = Math.Max(size, getCellWidth(Content[r]?[i]));
+                            {
+                                var cell = Content[r]?[i];
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                    continue;
+
+                                size = Math.Max(size, getCellWidth(cell));
+                            }
                         }
                         else
                         {
                             // Go through each column and get the height of the cell at the indexed row
                             for (int c = 0; c < cellColumns; c++)
-                                size = Math.Max(size, getCellHeight(Content[i]?[c]));
+                            {
+                                var cell = Content[i]?[c];
+                                if (cell == null || cell.RelativeSizeAxes.HasFlagFast(axis))
+                                    continue;
+
+                                size = Math.Max(size, getCellHeight(cell));
+                            }
                         }
 
                         sizes[i] = size;

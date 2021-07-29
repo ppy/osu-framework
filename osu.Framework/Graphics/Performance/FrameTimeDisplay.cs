@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Performance
         {
             public CounterText()
             {
-                Font = new FontUsage(fixedWidth: true);
+                Font = FrameworkFont.Regular.With(fixedWidth: true);
             }
 
             protected override char[] FixedWidthExcludeCharacters { get; } = { ',', '.', ' ' };

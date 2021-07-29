@@ -4,37 +4,28 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableNumber<T> : Bindable<T>, IBindableNumber<T>
+    public class BindableNumber<T> : RangeConstrainedBindable<T>, IBindableNumber<T>
         where T : struct, IComparable<T>, IConvertible, IEquatable<T>
     {
         public event Action<T> PrecisionChanged;
 
-        public event Action<T> MinValueChanged;
-
-        public event Action<T> MaxValueChanged;
-
         public BindableNumber(T defaultValue = default)
             : base(defaultValue)
         {
-            // Directly comparing typeof(T) to type literal is recognized pattern of JIT and very fast.
-            // Just a pointer comparison for reference types, or constant for value types.
-            // The check will become NOP after optimization.
-            if (!isSupportedType())
+            if (!Validation.IsSupportedBindableNumberType<T>())
             {
                 throw new NotSupportedException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
             }
 
-            minValue = DefaultMinValue;
-            maxValue = DefaultMaxValue;
             precision = DefaultPrecision;
 
-            // Re-apply the current value to apply the default min/max/precision values
-            SetValue(Value);
+            // Re-apply the current value to apply the default precision value
+            setValue(Value);
         }
 
         private T precision;
@@ -68,101 +59,34 @@ namespace osu.Framework.Bindables
             if (updateCurrentValue)
             {
                 // Re-apply the current value to apply the new precision
-                SetValue(Value);
+                setValue(Value);
             }
         }
 
         public override T Value
         {
             get => base.Value;
-            set => SetValue(value);
+            set => setValue(value);
         }
 
-        internal void SetValue(T value)
+        private void setValue(T value)
         {
             if (Precision.CompareTo(DefaultPrecision) > 0)
             {
-                double doubleValue = clamp(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
+                double doubleValue = ClampValue(value, MinValue, MaxValue).ToDouble(NumberFormatInfo.InvariantInfo);
                 doubleValue = Math.Round(doubleValue / Precision.ToDouble(NumberFormatInfo.InvariantInfo)) * Precision.ToDouble(NumberFormatInfo.InvariantInfo);
 
                 base.Value = (T)Convert.ChangeType(doubleValue, typeof(T), CultureInfo.InvariantCulture);
             }
             else
-                base.Value = clamp(value, MinValue, MaxValue);
+                base.Value = value;
         }
 
-        private T minValue;
-
-        public T MinValue
-        {
-            get => minValue;
-            set
-            {
-                if (minValue.Equals(value))
-                    return;
-
-                SetMinValue(value, true, this);
-            }
-        }
-
-        /// <summary>
-        /// Sets the minimum value. This method does no equality comparisons.
-        /// </summary>
-        /// <param name="minValue">The new minimum value.</param>
-        /// <param name="updateCurrentValue">Whether to update the current value after the minimum value is set.</param>
-        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMinValue(T minValue, bool updateCurrentValue, BindableNumber<T> source)
-        {
-            this.minValue = minValue;
-            TriggerMinValueChange(source);
-
-            if (updateCurrentValue)
-            {
-                // Re-apply the current value to apply the new minimum value
-                SetValue(Value);
-            }
-        }
-
-        private T maxValue;
-
-        public T MaxValue
-        {
-            get => maxValue;
-            set
-            {
-                if (maxValue.Equals(value))
-                    return;
-
-                SetMaxValue(value, true, this);
-            }
-        }
-
-        /// <summary>
-        /// Sets the maximum value. This method does no equality comparisons.
-        /// </summary>
-        /// <param name="maxValue">The new maximum value.</param>
-        /// <param name="updateCurrentValue">Whether to update the current value after the maximum value is set.</param>
-        /// <param name="source">The bindable that triggered this. A null value represents the current bindable instance.</param>
-        internal void SetMaxValue(T maxValue, bool updateCurrentValue, BindableNumber<T> source)
-        {
-            this.maxValue = maxValue;
-            TriggerMaxValueChange(source);
-
-            if (updateCurrentValue)
-            {
-                // Re-apply the current value to apply the new maximum value
-                SetValue(Value);
-            }
-        }
-
-        /// <summary>
-        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <typeparamref name="T"/>.
-        /// </summary>
-        protected virtual T DefaultMinValue
+        protected override T DefaultMinValue
         {
             get
             {
-                Debug.Assert(isSupportedType());
+                Debug.Assert(Validation.IsSupportedBindableNumberType<T>());
 
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MinValue;
@@ -187,14 +111,11 @@ namespace osu.Framework.Bindables
             }
         }
 
-        /// <summary>
-        /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <typeparamref name="T"/>.
-        /// </summary>
-        protected virtual T DefaultMaxValue
+        protected override T DefaultMaxValue
         {
             get
             {
-                Debug.Assert(isSupportedType());
+                Debug.Assert(Validation.IsSupportedBindableNumberType<T>());
 
                 if (typeof(T) == typeof(sbyte))
                     return (T)(object)sbyte.MaxValue;
@@ -254,8 +175,6 @@ namespace osu.Framework.Bindables
             base.TriggerChange();
 
             TriggerPrecisionChange(this, false);
-            TriggerMinValueChange(this, false);
-            TriggerMaxValueChange(this, false);
         }
 
         protected void TriggerPrecisionChange(BindableNumber<T> source = null, bool propagateToBindings = true)
@@ -278,68 +197,20 @@ namespace osu.Framework.Bindables
                 PrecisionChanged?.Invoke(precision);
         }
 
-        protected void TriggerMinValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = minValue;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in Bindings)
-                {
-                    if (b == source) continue;
-
-                    if (b is BindableNumber<T> bn)
-                        bn.SetMinValue(minValue, false, this);
-                }
-            }
-
-            if (beforePropagation.Equals(minValue))
-                MinValueChanged?.Invoke(minValue);
-        }
-
-        protected void TriggerMaxValueChange(BindableNumber<T> source = null, bool propagateToBindings = true)
-        {
-            // check a bound bindable hasn't changed the value again (it will fire its own event)
-            T beforePropagation = maxValue;
-
-            if (propagateToBindings && Bindings != null)
-            {
-                foreach (var b in Bindings)
-                {
-                    if (b == source) continue;
-
-                    if (b is BindableNumber<T> bn)
-                        bn.SetMaxValue(maxValue, false, this);
-                }
-            }
-
-            if (beforePropagation.Equals(maxValue))
-                MaxValueChanged?.Invoke(maxValue);
-        }
-
         public override void BindTo(Bindable<T> them)
         {
             if (them is BindableNumber<T> other)
-            {
                 Precision = other.Precision;
-                MinValue = other.MinValue;
-                MaxValue = other.MaxValue;
-
-                if (MinValue.CompareTo(MaxValue) > 0)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(them), $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{other.MinValue} - {other.MaxValue}].");
-                }
-            }
 
             base.BindTo(them);
         }
 
-        /// <summary>
-        /// Whether this bindable has a user-defined range that is not the full range of the <typeparamref name="T"/> type.
-        /// </summary>
-        public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) || !MaxValue.Equals(DefaultMaxValue);
+        public override void UnbindEvents()
+        {
+            base.UnbindEvents();
+
+            PrecisionChanged = null;
+        }
 
         public bool IsInteger =>
             typeof(T) != typeof(float) &&
@@ -348,7 +219,7 @@ namespace osu.Framework.Bindables
         public void Set<TNewValue>(TNewValue val) where TNewValue : struct,
             IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
-            Debug.Assert(isSupportedType());
+            Debug.Assert(Validation.IsSupportedBindableNumberType<T>());
 
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code paths for other types will be eliminated.
@@ -377,7 +248,7 @@ namespace osu.Framework.Bindables
         public void Add<TNewValue>(TNewValue val) where TNewValue : struct,
             IFormattable, IConvertible, IComparable<TNewValue>, IEquatable<TNewValue>
         {
-            Debug.Assert(isSupportedType());
+            Debug.Assert(Validation.IsSupportedBindableNumberType<T>());
 
             // Comparison between typeof(T) and type literals are treated as **constant** on value types.
             // Code pathes for other types will be eliminated.
@@ -446,6 +317,10 @@ namespace osu.Framework.Bindables
             }
         }
 
+        protected sealed override T ClampValue(T value, T minValue, T maxValue) => max(minValue, min(maxValue, value));
+
+        protected sealed override bool IsValidRange(T min, T max) => min.CompareTo(max) <= 0;
+
         private static T max(T value1, T value2)
         {
             var comparison = value1.CompareTo(value2);
@@ -457,21 +332,5 @@ namespace osu.Framework.Bindables
             var comparison = value1.CompareTo(value2);
             return comparison > 0 ? value2 : value1;
         }
-
-        private static T clamp(T value, T minValue, T maxValue)
-            => max(minValue, min(maxValue, value));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool isSupportedType() =>
-            typeof(T) == typeof(sbyte)
-            || typeof(T) == typeof(byte)
-            || typeof(T) == typeof(short)
-            || typeof(T) == typeof(ushort)
-            || typeof(T) == typeof(int)
-            || typeof(T) == typeof(uint)
-            || typeof(T) == typeof(long)
-            || typeof(T) == typeof(ulong)
-            || typeof(T) == typeof(float)
-            || typeof(T) == typeof(double);
     }
 }

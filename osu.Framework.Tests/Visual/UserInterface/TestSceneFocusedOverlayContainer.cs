@@ -47,8 +47,9 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("not visible", () => overlayContainer.State.Value == Visibility.Hidden);
         }
 
-        [Test]
-        public void TestScrollBlocking()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void TestScrollBlocking(bool isBlocking)
         {
             AddStep("create container", () =>
             {
@@ -57,7 +58,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        overlayContainer = new TestFocusedOverlayContainer()
+                        overlayContainer = new TestFocusedOverlayContainer(blockScrollInput: isBlocking)
                     }
                 };
             });
@@ -75,7 +76,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.ScrollVerticalBy(1);
             });
 
-            AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived == initialScrollCount);
+            if (isBlocking)
+                AddAssert("scroll not received by parent", () => parentContainer.ScrollReceived == initialScrollCount);
+            else
+                AddAssert("scroll received by parent", () => parentContainer.ScrollReceived == ++initialScrollCount);
 
             AddStep("scroll outside", () =>
             {
@@ -94,8 +98,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             protected override bool BlockNonPositionalInput => false;
 
-            public TestFocusedOverlayContainer(bool startHidden = true)
+            protected override bool BlockScrollInput { get; }
+
+            public TestFocusedOverlayContainer(bool startHidden = true, bool blockScrollInput = true)
             {
+                BlockScrollInput = blockScrollInput;
+
                 StartHidden = startHidden;
 
                 Size = new Vector2(0.5f);

@@ -254,7 +254,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 localisation.AddLanguage("en", new FakeStorage("en"));
                 localisation.AddLanguage("ja", new FakeStorage("ja"));
 
-                config.Set(FrameworkSetting.Locale, "ja");
+                config.SetValue(FrameworkSetting.Locale, "ja");
             }
         }
 
@@ -269,8 +269,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             protected override void InitialiseDefaults()
             {
-                Set(FrameworkSetting.Locale, "ja");
-                Set(FrameworkSetting.ShowUnicode, false);
+                SetDefault(FrameworkSetting.Locale, "ja");
+                SetDefault(FrameworkSetting.ShowUnicode, false);
             }
         }
 

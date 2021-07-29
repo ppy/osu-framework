@@ -45,7 +45,9 @@ namespace osu.Framework.Tests.Audio
         [TearDown]
         public void Teardown()
         {
-            Bass.Free();
+            // See AudioThread.freeDevice().
+            if (RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+                Bass.Free();
         }
 
         [Test]
@@ -380,6 +382,22 @@ namespace osu.Framework.Tests.Audio
             // assert track channel still paused regardless of frequency because it's stopped via Stop() above.
             Assert.IsFalse(track.IsRunning);
             Assert.AreEqual(0, track.CurrentTime);
+        }
+
+        [Test]
+        public void TestBitrate()
+        {
+            Assert.Greater(track.Bitrate, 0);
+        }
+
+        [Test]
+        public void TestCurrentTimeUpdatedAfterInlineSeek()
+        {
+            track.StartAsync();
+            updateTrack();
+
+            runOnAudioThread(() => track.Seek(20000));
+            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
         private void takeEffectsAndUpdateAfter(int after)

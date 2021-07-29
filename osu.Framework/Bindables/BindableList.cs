@@ -11,7 +11,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Bindables
 {
-    public class BindableList<T> : IBindableList<T>, IList<T>, IList
+    public class BindableList<T> : IBindableList<T>, IBindable, IParseable, IList<T>, IList
     {
         /// <summary>
         /// An event which is raised when this <see cref="BindableList{T}"/> changes.
@@ -209,7 +209,7 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    // prevent re-adding the item back to the callee.
+                    // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
                         b.remove(listItem, this);
@@ -454,7 +454,7 @@ namespace osu.Framework.Bindables
 
         #region IUnbindable
 
-        public void UnbindEvents()
+        public virtual void UnbindEvents()
         {
             CollectionChanged = null;
             DisabledChanged = null;
@@ -466,9 +466,7 @@ namespace osu.Framework.Bindables
                 return;
 
             foreach (var b in bindings)
-                b.unbind(this);
-
-            bindings?.Clear();
+                UnbindFrom(b);
         }
 
         public void UnbindAll()
@@ -477,7 +475,7 @@ namespace osu.Framework.Bindables
             UnbindBindings();
         }
 
-        public void UnbindFrom(IUnbindable them)
+        public virtual void UnbindFrom(IUnbindable them)
         {
             if (!(them is BindableList<T> tThem))
                 throw new InvalidCastException($"Can't unbind a bindable of type {them.GetType()} from a bindable of type {GetType()}.");
@@ -485,9 +483,6 @@ namespace osu.Framework.Bindables
             removeWeakReference(tThem.weakReference);
             tThem.removeWeakReference(weakReference);
         }
-
-        private void unbind(BindableList<T> binding)
-            => bindings.Remove(binding.weakReference);
 
         #endregion IUnbindable
 
@@ -591,7 +586,7 @@ namespace osu.Framework.Bindables
         {
             if (them == null)
                 throw new ArgumentNullException(nameof(them));
-            if (bindings?.Contains(weakReference) ?? false)
+            if (bindings?.Contains(weakReference) == true)
                 throw new ArgumentException("An already bound collection can not be bound again.");
             if (them == this)
                 throw new ArgumentException("A collection can not be bound to itself");

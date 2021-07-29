@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
+using osu.Framework.Testing;
 using osu.Framework.Testing.Input;
 using osu.Framework.Utils;
 using osuTK;
@@ -27,15 +28,36 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TestScreen baseScreen;
         private ScreenStack stack;
 
+        private readonly List<TestScreenSlow> slowLoaders = new List<TestScreenSlow>();
+
         [SetUp]
         public void SetupTest() => Schedule(() =>
         {
             Clear();
+
             Add(stack = new ScreenStack(baseScreen = new TestScreen())
             {
                 RelativeSizeAxes = Axes.Both
             });
+
+            stack.ScreenPushed += (last, current) =>
+            {
+                if (current is TestScreenSlow slow)
+                    slowLoaders.Add(slow);
+            };
         });
+
+        [TearDownSteps]
+        public void Teardown()
+        {
+            AddStep("unblock any slow loaders", () =>
+            {
+                foreach (var slow in slowLoaders)
+                    slow.AllowLoad.Set();
+
+                slowLoaders.Clear();
+            });
+        }
 
         [Test]
         public void TestPushFocusLost()
@@ -240,6 +262,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             TestScreen screen1 = null;
 
             AddStep("push once", () => stack.Push(screen1 = new TestScreen()));
+            AddUntilStep("wait for screen to be loaded", () => screen1.IsLoaded);
             AddStep("exit", () => screen1.Exit());
             AddStep("push again fails", () => Assert.Throws<InvalidOperationException>(() => stack.Push(screen1)));
             AddAssert("stack in valid state", () => stack.CurrentScreen == baseScreen);
@@ -871,6 +894,37 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("screen2 resumed from screen3", () => screen2.ResumedFrom == screen3);
         }
 
+        [Test]
+        public void TestGetChildScreenAndGetParentScreenReturnNullWhenNotInStack()
+        {
+            TestScreen screen1 = null;
+            TestScreen screen2 = null;
+            TestScreen screen3 = null;
+
+            pushAndEnsureCurrent(() => screen1 = new TestScreen(id: 1));
+            pushAndEnsureCurrent(() => screen2 = new TestScreen(id: 2), () => screen1);
+            pushAndEnsureCurrent(() => screen3 = new TestScreen(id: 3), () => screen2);
+
+            AddStep("exit from screen 3", () => screen3.Exit());
+            AddAssert("screen 3 parent is null", () => screen3.GetParentScreen() == null);
+            AddAssert("screen 3 child is null", () => screen3.GetChildScreen() == null);
+        }
+
+        /// <summary>
+        /// Ensure that an intermediary screen doesn't block and doesn't attempt to fire events when not loaded.
+        /// </summary>
+        [Test]
+        public void TestMakeCurrentWhileScreensStillLoading()
+        {
+            TestScreen root = null;
+
+            pushAndEnsureCurrent(() => root = new TestScreen(id: 1));
+            AddStep("push slow", () => stack.Push(new TestScreenSlow { Exiting = () => true }));
+            AddStep("push second slow", () => stack.Push(new TestScreenSlow()));
+
+            AddStep("make screen1 current", () => root.MakeCurrent());
+        }
+
         private void clickScreen(ManualInputManager inputManager, TestScreen screen)
         {
             inputManager.MoveMouseTo(screen);
@@ -1019,6 +1073,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnEntering(IScreen last)
             {
+                attemptTransformMutation();
+
                 EnteredFrom = last;
                 Entered?.Invoke();
 
@@ -1043,6 +1099,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override bool OnExiting(IScreen next)
             {
+                attemptTransformMutation();
+
                 ExitedTo = next;
                 Exited?.Invoke();
 
@@ -1055,6 +1113,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnSuspending(IScreen next)
             {
+                attemptTransformMutation();
+
                 SuspendedTo = next;
                 Suspended?.Invoke();
 
@@ -1064,11 +1124,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             public override void OnResuming(IScreen last)
             {
+                attemptTransformMutation();
+
                 ResumedFrom = last;
                 Resumed?.Invoke();
 
                 base.OnResuming(last);
                 this.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
+            }
+
+            private void attemptTransformMutation()
+            {
+                // all callbacks should be in a state where transforms are able to be run.
+                this.FadeIn();
             }
 
             protected override bool OnClick(ClickEvent e)

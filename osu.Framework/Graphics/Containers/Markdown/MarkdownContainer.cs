@@ -12,6 +12,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace osu.Framework.Graphics.Containers.Markdown
@@ -172,7 +173,12 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 // Turn all relative URIs in the document into absolute URIs
                 foreach (var link in parsed.Descendants().OfType<LinkInline>())
                 {
-                    if (!Uri.TryCreate(link.Url, UriKind.RelativeOrAbsolute, out Uri linkUri))
+                    string url = link.Url;
+
+                    if (string.IsNullOrEmpty(url))
+                        continue;
+
+                    if (!Validation.TryParseUri(url, out Uri linkUri))
                         continue;
 
                     if (linkUri.IsAbsoluteUri)
@@ -180,13 +186,10 @@ namespace osu.Framework.Graphics.Containers.Markdown
 
                     if (documentUri != null)
                     {
-                        if (rootUri != null && link.Url.StartsWith('/'))
-                        {
+                        link.Url = rootUri != null && url.StartsWith('/')
                             // Ensure the URI is document-relative by removing all trailing slashes
-                            link.Url = new Uri(rootUri, new Uri(link.Url.TrimStart('/'), UriKind.Relative)).AbsoluteUri;
-                        }
-                        else
-                            link.Url = new Uri(documentUri, linkUri).AbsoluteUri;
+                            ? new Uri(rootUri, new Uri(url.TrimStart('/'), UriKind.Relative)).AbsoluteUri
+                            : new Uri(documentUri, new Uri(url, UriKind.Relative)).AbsoluteUri;
                     }
                 }
 

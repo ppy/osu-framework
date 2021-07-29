@@ -17,7 +17,7 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<int>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value, deserialized.Value);
+            Assert.AreEqual(toSerialize.Value, deserialized?.Value);
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<int>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value, deserialized.Value);
+            Assert.AreEqual(toSerialize.Value, deserialized?.Value);
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<double>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value, deserialized.Value);
+            Assert.AreEqual(toSerialize.Value, deserialized?.Value);
         }
 
         [Test]
@@ -47,7 +47,20 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<string>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value, deserialized.Value);
+            Assert.AreEqual(toSerialize.Value, deserialized?.Value);
+        }
+
+        [Test]
+        public void TestClassWithInitialisationFromCtorArgs()
+        {
+            var toSerialize = new CustomObjWithCtorInit
+            {
+                Bindable1 = { Value = 5 }
+            };
+
+            var deserialized = JsonConvert.DeserializeObject<CustomObjWithCtorInit>(JsonConvert.SerializeObject(toSerialize));
+
+            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized?.Bindable1.Value);
         }
 
         [Test]
@@ -64,7 +77,7 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<CustomObj2>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(deserialized.Bindable.MaxValue, deserialized.Bindable.Value);
+            Assert.AreEqual(deserialized?.Bindable.MaxValue, deserialized?.Bindable.Value);
         }
 
         [Test]
@@ -78,8 +91,8 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<CustomObj>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized.Bindable1.Value);
-            Assert.AreEqual(toSerialize.Bindable2.Value, deserialized.Bindable2.Value);
+            Assert.AreEqual(toSerialize.Bindable1.Value, deserialized?.Bindable1.Value);
+            Assert.AreEqual(toSerialize.Bindable2.Value, deserialized?.Bindable2.Value);
         }
 
         [Test]
@@ -96,8 +109,8 @@ namespace osu.Framework.Tests.Bindables
 
             var deserialized = JsonConvert.DeserializeObject<Bindable<CustomObj>>(JsonConvert.SerializeObject(toSerialize));
 
-            Assert.AreEqual(toSerialize.Value.Bindable1.Value, deserialized.Value.Bindable1.Value);
-            Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized.Value.Bindable2.Value);
+            Assert.AreEqual(toSerialize.Value.Bindable1.Value, deserialized?.Value.Bindable1.Value);
+            Assert.AreEqual(toSerialize.Value.Bindable2.Value, deserialized?.Value.Bindable2.Value);
         }
 
         [Test]
@@ -121,6 +134,16 @@ namespace osu.Framework.Tests.Bindables
             JsonConvert.PopulateObject(serialized, obj);
 
             Assert.IsTrue(valueChanged);
+        }
+
+        private class CustomObjWithCtorInit
+        {
+            public readonly Bindable<int> Bindable1 = new Bindable<int>();
+
+            public CustomObjWithCtorInit(int bindable1 = 0)
+            {
+                Bindable1.Value = bindable1;
+            }
         }
 
         private class CustomObj

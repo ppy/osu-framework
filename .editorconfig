@@ -212,3 +212,9 @@ dotnet_diagnostic.CA2225.severity = none
 
 # Banned APIs
 dotnet_diagnostic.RS0030.severity = error
+
+[*.{yaml,yml}]
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true

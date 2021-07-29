@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Audio
         [SetUp]
         public void Setup()
         {
-            track = new TrackVirtual(10000);
+            track = new TrackVirtual(60000);
             updateTrack();
         }
 
@@ -251,6 +251,48 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(1.5, track.Rate);
 
             testPlaybackRate(1.5);
+        }
+
+        [Test]
+        public void TestCurrentTimeUpdatedAfterInlineSeek()
+        {
+            track.Start();
+            updateTrack();
+
+            RunOnAudioThread(() => track.Seek(20000));
+            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
+        }
+
+        [Test]
+        public void TestSeekToCurrentTime()
+        {
+            track.Seek(5000);
+
+            bool seekSucceeded = false;
+            RunOnAudioThread(() => seekSucceeded = track.Seek(track.CurrentTime));
+
+            Assert.That(seekSucceeded, Is.True);
+            Assert.That(track.CurrentTime, Is.EqualTo(5000));
+        }
+
+        [Test]
+        public void TestSeekBeyondStartTime()
+        {
+            bool seekSucceeded = false;
+            RunOnAudioThread(() => seekSucceeded = track.Seek(-1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestSeekBeyondEndTime()
+        {
+            bool seekSucceeded = false;
+            RunOnAudioThread(() => seekSucceeded = track.Seek(track.Length + 1000));
+
+            Assert.That(seekSucceeded, Is.False);
+            Assert.That(track.CurrentTime, Is.EqualTo(track.Length));
         }
 
         private void testPlaybackRate(double expectedRate)

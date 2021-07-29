@@ -49,22 +49,30 @@ namespace osu.Framework.Tests.Visual.Containers
                     cursorContainer.ActiveCursor.ScreenSpaceDrawQuad.Centre,
                     container.ScreenSpaceDrawQuad.Centre);
 
+            bool cursorAtMouseScreenSpace() =>
+                Precision.AlmostEquals(
+                    cursorContainer.ActiveCursor.ScreenSpaceDrawQuad.Centre,
+                    InputManager.CurrentState.Mouse.Position);
+
             createContent();
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(container.ScreenSpaceDrawQuad.Centre));
-            AddAssert("cursor is centered", cursorCenteredInContainer);
+            AddAssert("cursor is centered", () => cursorCenteredInContainer());
             AddStep("Move container", () => container.Y += 50);
-            AddAssert("cursor is still centered", cursorCenteredInContainer);
+            AddAssert("cursor no longer centered", () => !cursorCenteredInContainer());
+            AddAssert("cursor at mouse position", () => cursorAtMouseScreenSpace());
             AddStep("Resize container", () => container.Size *= new Vector2(1.4f, 1));
-            AddAssert("cursor is still centered", cursorCenteredInContainer);
+            AddAssert("cursor at mouse position", () => cursorAtMouseScreenSpace());
 
             // ensure positional updates work
             AddStep("Move cursor to centre", () => InputManager.MoveMouseTo(container.ScreenSpaceDrawQuad.Centre));
-            AddAssert("cursor is still centered", cursorCenteredInContainer);
+            AddAssert("cursor is not centered", () => cursorCenteredInContainer());
+            AddAssert("cursor at mouse position", () => cursorAtMouseScreenSpace());
 
             // ensure we received the mouse position update from IRequireHighFrequencyMousePosition
             AddStep("Move cursor to test centre", () => InputManager.MoveMouseTo(Content.ScreenSpaceDrawQuad.Centre));
             AddStep("Recreate container with mouse already in place", createContent);
-            AddAssert("cursor is centered", cursorCenteredInContainer);
+            AddAssert("cursor is centered", () => cursorCenteredInContainer());
+            AddAssert("cursor at mouse position", () => cursorAtMouseScreenSpace());
         }
 
         private class TestCursorContainer : CursorContainer

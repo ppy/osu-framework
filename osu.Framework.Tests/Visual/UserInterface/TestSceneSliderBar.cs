@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -220,6 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public bool KeyboardInput;
 
+            [Obsolete("Implement this kind of behaviour separately instead.")]
             protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }
