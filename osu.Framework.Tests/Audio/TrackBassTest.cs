@@ -170,11 +170,11 @@ namespace osu.Framework.Tests.Audio
         public void TestRestart()
         {
             startPlaybackAt(1000);
+            takeEffectsAndUpdateAfter(50);
 
-            Thread.Sleep(50);
-
-            bass.Update();
             restartTrack();
+
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.Less(track.CurrentTime, 1000);
@@ -198,9 +198,10 @@ namespace osu.Framework.Tests.Audio
         public void TestRestartFromRestartPoint()
         {
             track.RestartPoint = 1000;
-
             startPlaybackAt(3000);
+
             restartTrack();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.GreaterOrEqual(track.CurrentTime, 1000);
@@ -310,13 +311,12 @@ namespace osu.Framework.Tests.Audio
 
             // now set to zero frequency and update track to take effects.
             track.Frequency.Value = 0;
-            bass.Update();
+            takeEffectsAndUpdateAfter(50);
 
             var currentTime = track.CurrentTime;
 
             // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
-            Thread.Sleep(50);
-            bass.Update();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.IsRunning);
             Assert.AreEqual(currentTime, track.CurrentTime);
@@ -374,6 +374,8 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             bass.RunOnAudioThread(() => track.Seek(20000));
+            takeEffectsAndUpdateAfter(50);
+
             Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
