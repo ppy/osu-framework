@@ -34,17 +34,20 @@ namespace osu.Framework.Audio
             if (channel.Handle == 0)
                 return;
 
-            bool active = channel.Interface.ChannelIsActive(channel) == PlaybackState.Playing;
+            if (channel.Mixer == null)
+                return;
+
+            bool active = channel.Mixer.ChannelIsActive(channel) == PlaybackState.Playing;
 
             float[] channelLevels = new float[2];
-            channel.Interface.ChannelGetLevel(channel, channelLevels, 1 / 60f, LevelRetrievalFlags.Stereo);
+            channel.Mixer.ChannelGetLevel(channel, channelLevels, 1 / 60f, LevelRetrievalFlags.Stereo);
             var leftChannel = active ? channelLevels[0] : -1;
             var rightChannel = active ? channelLevels[1] : -1;
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {
                 frequencyData ??= new float[ChannelAmplitudes.AMPLITUDES_SIZE];
-                channel.Interface.ChannelGetData(channel, frequencyData, (int)DataFlags.FFT512);
+                channel.Mixer.ChannelGetData(channel, frequencyData, (int)DataFlags.FFT512);
                 CurrentAmplitudes = new ChannelAmplitudes(leftChannel, rightChannel, frequencyData);
             }
             else

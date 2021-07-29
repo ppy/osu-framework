@@ -28,6 +28,6 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         bool MixerChannelPaused { get; set; }
 
-        IBassAudioChannelInterface Interface { get; }
+        new BassAudioMixer? Mixer { get; }
     }
 }
