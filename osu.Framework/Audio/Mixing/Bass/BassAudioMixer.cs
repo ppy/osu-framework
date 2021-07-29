@@ -395,9 +395,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             public readonly IEffectParameter Effect;
 
-            public EffectWithHandle(IEffectParameter? effect)
+            public EffectWithHandle(IEffectParameter effect)
             {
-                Effect = effect ?? throw new ArgumentNullException(nameof(effect));
+                Effect = effect;
             }
         }
     }
