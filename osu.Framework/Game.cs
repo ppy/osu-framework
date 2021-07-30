@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Graphics.Visualisation.Audio;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
@@ -62,6 +63,8 @@ namespace osu.Framework
         private TextureVisualiser textureVisualiser;
 
         private LogOverlay logOverlay;
+
+        private AudioMixerOverlay audioMixerOverlay;
 
         protected override Container<Drawable> Content => content;
 
@@ -334,6 +337,18 @@ namespace osu.Framework
 
                     executionMode.Value = nextExecutionMode;
                     break;
+
+                case FrameworkAction.ToggleAudioMixerOverlay:
+                    if (audioMixerOverlay == null)
+                    {
+                        LoadComponentAsync(audioMixerOverlay = new AudioMixerOverlay
+                        {
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    audioMixerOverlay.ToggleVisibility();
+                    return true;
             }
 
             return false;
