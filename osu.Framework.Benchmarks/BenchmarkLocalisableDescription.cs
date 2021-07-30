@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Extensions;
 using osu.Framework.Localisation;
@@ -30,25 +29,15 @@ namespace osu.Framework.Benchmarks
             return descriptions;
         }
 
-        [LocalisableEnum(typeof(TestEnumLocalisationMapper))]
         private enum TestLocalisableEnum
         {
+            [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.One))]
             One,
         }
 
-        private class TestEnumLocalisationMapper : EnumLocalisationMapper<TestLocalisableEnum>
+        private static class TestStrings
         {
-            public override LocalisableString Map(TestLocalisableEnum value)
-            {
-                switch (value)
-                {
-                    case TestLocalisableEnum.One:
-                        return "1";
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(value));
-                }
-            }
+            public static LocalisableString One => "1";
         }
     }
 }
