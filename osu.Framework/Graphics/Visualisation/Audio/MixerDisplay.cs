@@ -11,13 +11,13 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class MixerVisualiser : CompositeDrawable
+    public class MixerDisplay : CompositeDrawable
     {
         public readonly int MixerHandle;
 
-        private readonly FillFlowContainer<AudioChannelVisualiser> channelsContainer;
+        private readonly FillFlowContainer<AudioChannelDisplay> channelsContainer;
 
-        public MixerVisualiser(int mixerHandle)
+        public MixerDisplay(int mixerHandle)
         {
             MixerHandle = mixerHandle;
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Black.Opacity(0.2f)
                     },
-                    channelsContainer = new FillFlowContainer<AudioChannelVisualiser>
+                    channelsContainer = new FillFlowContainer<AudioChannelDisplay>
                     {
                         RelativeSizeAxes = Axes.Y,
                         AutoSizeAxes = Axes.X,
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             foreach (var channel in channels)
             {
                 if (channelsContainer.All(ch => ch.ChannelHandle != channel))
-                    channelsContainer.Add(new AudioChannelVisualiser(channel));
+                    channelsContainer.Add(new AudioChannelDisplay(channel));
             }
 
             channelsContainer.RemoveAll(ch => !channels.Contains(ch.ChannelHandle));

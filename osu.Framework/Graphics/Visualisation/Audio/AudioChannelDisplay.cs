@@ -13,7 +13,7 @@ using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    public class AudioChannelVisualiser : CompositeDrawable
+    public class AudioChannelDisplay : CompositeDrawable
     {
         private const int sample_window = 30;
         private const int peak_hold_time = 3000;
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         private float maxPeak = float.MinValue;
         private double lastMaxPeakTime;
 
-        public AudioChannelVisualiser(int channelHandle)
+        public AudioChannelDisplay(int channelHandle)
         {
             ChannelHandle = channelHandle;
 

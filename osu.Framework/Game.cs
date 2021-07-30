@@ -64,7 +64,7 @@ namespace osu.Framework
 
         private LogOverlay logOverlay;
 
-        private AudioMixerOverlay audioMixerOverlay;
+        private AudioMixerVisualiser audioMixerVisualiser;
 
         protected override Container<Drawable> Content => content;
 
@@ -338,16 +338,16 @@ namespace osu.Framework
                     executionMode.Value = nextExecutionMode;
                     break;
 
-                case FrameworkAction.ToggleAudioMixerOverlay:
-                    if (audioMixerOverlay == null)
+                case FrameworkAction.ToggleAudioMixerVisualiser:
+                    if (audioMixerVisualiser == null)
                     {
-                        LoadComponentAsync(audioMixerOverlay = new AudioMixerOverlay
+                        LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
                         {
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
 
-                    audioMixerOverlay.ToggleVisibility();
+                    audioMixerVisualiser.ToggleVisibility();
                     return true;
             }
 

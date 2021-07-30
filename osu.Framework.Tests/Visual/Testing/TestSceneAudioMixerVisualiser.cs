@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Visualisation.Audio;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
-    public class TestSceneAudioMixerOverlay : FrameworkTestScene
+    public class TestSceneAudioMixerVisualiser : FrameworkTestScene
     {
         private Container<TestAudioPlayingSource> mixedSources = new Container<TestAudioPlayingSource>();
         private TestAudioPlayingSource globalSource;
@@ -20,16 +20,16 @@ namespace osu.Framework.Tests.Visual.Testing
         [BackgroundDependencyLoader]
         private void load(AudioManager audioManager)
         {
-            AudioMixerOverlay overlay;
+            AudioMixerVisualiser visualiser;
 
             Children = new Drawable[]
             {
                 globalSource = new TestAudioPlayingSource(false),
                 mixedSources = new Container<TestAudioPlayingSource>(),
-                overlay = new AudioMixerOverlay()
+                visualiser = new AudioMixerVisualiser()
             };
 
-            overlay.Show();
+            visualiser.Show();
         }
 
         protected override void LoadComplete()

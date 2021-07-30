@@ -12,15 +12,15 @@ using osuTK;
 
 namespace osu.Framework.Graphics.Visualisation.Audio
 {
-    internal class AudioMixerOverlay : ToolWindow
+    internal class AudioMixerVisualiser : ToolWindow
     {
         [Resolved]
         private AudioManager audioManager { get; set; }
 
-        private readonly FillFlowContainer<MixerVisualiser> mixerFlow;
+        private readonly FillFlowContainer<MixerDisplay> mixerFlow;
         private readonly IBindableList<int> activeMixerHandles = new BindableList<int>();
 
-        public AudioMixerOverlay()
+        public AudioMixerVisualiser()
             : base("AudioMixer", "(Ctrl+F9 to toggle)")
         {
             ScrollContent.Expire();
@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                 Width = WIDTH,
                 Children = new[]
                 {
-                    mixerFlow = new FillFlowContainer<MixerVisualiser>
+                    mixerFlow = new FillFlowContainer<MixerDisplay>
                     {
                         RelativeSizeAxes = Axes.Y,
                         AutoSizeAxes = Axes.X,
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                 case NotifyCollectionChangedAction.Add:
                     Debug.Assert(e.NewItems != null);
                     foreach (var handle in e.NewItems.OfType<int>())
-                        mixerFlow.Add(new MixerVisualiser(handle));
+                        mixerFlow.Add(new MixerDisplay(handle));
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             foreach (var mixer in audioManager.ActiveMixerHandles)
             {
                 if (mixerFlow.All(m => m.MixerHandle != mixer))
-                    mixerFlow.Add(new MixerVisualiser(mixer));
+                    mixerFlow.Add(new MixerDisplay(mixer));
             }
 
             mixerFlow.RemoveAll(m => !audioManager.ActiveMixerHandles.Contains(m.MixerHandle));
