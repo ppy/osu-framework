@@ -22,6 +22,15 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddUntilStep("has spun", () => box.Rotation == 180);
         }
 
+        [Test]
+        public void TestUsingLocalScheduler()
+        {
+            AddStep("add box", () => Child = box = new AsyncPerformingBox());
+            AddAssert("scheduler null", () => box.Scheduler == null);
+            AddStep("trigger", () => box.Trigger());
+            AddUntilStep("scheduler non-null", () => box.Scheduler != null);
+        }
+
         public class AsyncPerformingBox : Box
         {
             private readonly SemaphoreSlim waiter = new SemaphoreSlim(0);
