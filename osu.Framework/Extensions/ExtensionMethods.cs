@@ -4,14 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
 using osuTK;
@@ -178,44 +177,46 @@ namespace osu.Framework.Extensions
         }
 
         /// <summary>
-        /// Returns the description of a given enum value, via (in order):
+        /// Returns the localisable description of a given object, via (in order):
         /// <list type="number">
         ///   <item>
-        ///     <description>Any <see cref="LocalisableEnumAttribute"/> attached to the enum type.</description>
+        ///     <description>Any attached <see cref="LocalisableDescriptionAttribute"/>.</description>
         ///   </item>
         ///   <item>
         ///     <description><see cref="GetDescription"/></description>
         ///   </item>
         /// </list>
         /// </summary>
-        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
-        /// and the <see cref="EnumLocalisationMapper{T}"/> could not be instantiated.</exception>
-        /// <exception cref="InvalidOperationException">When the enum type has an attached <see cref="LocalisableEnumAttribute"/>
-        /// and the type handled by the <see cref="EnumLocalisationMapper{T}"/> is not <typeparamref name="T"/>.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// When the name specified in the localisable description attribute
+        /// does not match any of the existing members declared by the specified type.
+        /// </exception>
         public static LocalisableString GetLocalisableDescription<T>(this T value)
-            where T : Enum
         {
-            var enumType = value.GetType();
+            MemberInfo type;
 
-            var mapperType = enumType.GetCustomAttribute<LocalisableEnumAttribute>()?.MapperType;
-            if (mapperType == null)
+            if (value is Enum)
+                type = value.GetType().GetField(value.ToString());
+            else
+                type = value.GetType();
+
+            var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>();
+            if (attribute == null)
                 return GetDescription(value);
 
-            var mapperInstance = Activator.CreateInstance(mapperType);
-            if (mapperInstance == null)
-                throw new InvalidOperationException($"Could not create the {nameof(EnumLocalisationMapper<T>)} for enum type {enumType.ReadableName()}");
+            var property = attribute.DeclaringType.GetMember(attribute.Name, BindingFlags.Static | BindingFlags.Public).FirstOrDefault();
 
-            var mapMethod = mapperType.GetMethod(nameof(EnumLocalisationMapper<T>.Map), BindingFlags.Instance | BindingFlags.Public);
-            Debug.Assert(mapMethod != null);
+            switch (property)
+            {
+                case FieldInfo f:
+                    return (LocalisableString)f.GetValue(null).AsNonNull();
 
-            var expectedMappingType = mapMethod.GetParameters()[0].ParameterType;
-            if (expectedMappingType != enumType)
-                throw new InvalidOperationException($"Cannot use {mapperType.ReadableName()} (maps {expectedMappingType.ReadableName()} enum values) to map {enumType.ReadableName()} enum values.");
+                case PropertyInfo p:
+                    return (LocalisableString)p.GetValue(null).AsNonNull();
 
-            var mappedValue = mapMethod.Invoke(mapperInstance, new object[] { value });
-            Debug.Assert(mappedValue != null);
-
-            return (LocalisableString)mappedValue;
+                default:
+                    throw new InvalidOperationException("Specified member was not found in declaring type (must be a static field or property)");
+            }
         }
 
         /// <summary>
