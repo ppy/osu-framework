@@ -34,9 +34,6 @@ namespace osu.Framework.Audio
             if (channel.Handle == 0)
                 return;
 
-            if (channel.Mixer == null)
-                return;
-
             bool active = channel.Mixer.ChannelIsActive(channel) == PlaybackState.Playing;
 
             float[] channelLevels = new float[2];

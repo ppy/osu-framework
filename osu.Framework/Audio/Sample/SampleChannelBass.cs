@@ -100,7 +100,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                switch (bassMixer.AsNonNull().ChannelIsActive(this))
+                switch (bassMixer.ChannelIsActive(this))
                 {
                     case PlaybackState.Playing:
                     // Stalled counts as playing, as playback will continue once more data has streamed in.
@@ -155,13 +155,13 @@ namespace osu.Framework.Audio.Sample
                 // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
                 // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
                 // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && bassMixer.AsNonNull().ChannelIsActive(this) == PlaybackState.Stopped)
+                if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
                     return;
 
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    bassMixer.AsNonNull().ChannelPlay(this);
+                    bassMixer.ChannelPlay(this);
             }
             finally
             {
@@ -172,7 +172,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                bassMixer.AsNonNull().ChannelPause(this);
+                bassMixer.ChannelPause(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -199,7 +199,7 @@ namespace osu.Framework.Audio.Sample
 
         #region Mixing
 
-        private BassAudioMixer? bassMixer => Mixer as BassAudioMixer;
+        private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
 
         bool IBassAudioChannel.IsActive => IsAlive;
 
@@ -207,7 +207,7 @@ namespace osu.Framework.Audio.Sample
 
         bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
 
-        BassAudioMixer? IBassAudioChannel.Mixer => bassMixer;
+        BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
 
         #endregion
 
@@ -218,7 +218,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                bassMixer.AsNonNull().StreamFree(this);
+                bassMixer.StreamFree(this);
                 channel = 0;
             }
 
