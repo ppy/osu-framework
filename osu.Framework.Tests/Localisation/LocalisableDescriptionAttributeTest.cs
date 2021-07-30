@@ -26,6 +26,12 @@ namespace osu.Framework.Tests.Localisation
         }
 
         [Test]
+        public void TestClassLocalisableDescription()
+        {
+            Assert.That(new ClassA().GetLocalisableDescription().ToString(), Is.EqualTo("Localised A"));
+        }
+
+        [Test]
         public void TestLocalisableDescriptionWithNonExistingMemberThrows()
         {
             Assert.Throws<InvalidOperationException>(() => EnumC.Item1.GetLocalisableDescription());
@@ -64,6 +70,11 @@ namespace osu.Framework.Tests.Localisation
         {
             [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.Instance))]
             Item1,
+        }
+
+        [LocalisableDescription(typeof(TestStrings), nameof(TestStrings.A))]
+        public class ClassA
+        {
         }
 
         private class TestStrings
