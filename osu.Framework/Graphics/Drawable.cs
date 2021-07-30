@@ -256,9 +256,15 @@ namespace osu.Framework.Graphics
             }
         }
 
+        /// <summary>
+        /// A synchronisation context which posts all continuations to this scheduler instance.
+        /// </summary>
+        private SynchronizationContext synchronizationContext;
+
         private void load(IFrameBasedClock clock, IReadOnlyDependencyContainer dependencies)
         {
             LoadThread = Thread.CurrentThread;
+            synchronizationContext = new DrawableSynchronizationContext(this);
 
             UpdateClock(clock);
 
@@ -463,6 +469,8 @@ namespace osu.Framework.Graphics
 
             if (loadState < LoadState.Ready)
                 return false;
+
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
 
             if (loadState == LoadState.Ready)
                 loadComplete();
