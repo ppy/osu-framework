@@ -215,7 +215,7 @@ namespace osu.Framework.Extensions
                     return (LocalisableString)p.GetValue(null).AsNonNull();
 
                 default:
-                    throw new InvalidOperationException("Specified member was not found in declaring type (must be a static field or property)");
+                    throw new InvalidOperationException($"Member \"{attribute.Name}\" was not found in type {attribute.DeclaringType} (must be a static field or property)");
             }
         }
 
