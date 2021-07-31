@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void hueChanged()
             {
-                box.HueValue = Hue.Value;
+                box.Hue = Hue.Value;
                 updateCurrent();
             }
 
@@ -210,16 +210,16 @@ namespace osu.Framework.Graphics.UserInterface
                 public new IShader TextureShader { get; private set; }
                 public new IShader RoundedTextureShader { get; private set; }
 
-                private float hueValue;
+                private float hue;
 
-                public float HueValue
+                public float Hue
                 {
-                    get => hueValue;
+                    get => hue;
                     set
                     {
-                        if (hueValue == value) return;
+                        if (hue == value) return;
 
-                        hueValue = value;
+                        hue = value;
                         Invalidate(Invalidation.DrawInfo);
                     }
                 }
@@ -247,17 +247,17 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                     }
 
-                    private float hueValue;
+                    private float hue;
 
                     public override void ApplyState()
                     {
                         base.ApplyState();
-                        hueValue = Source.hueValue;
+                        hue = Source.hue;
                     }
 
                     protected override void Blit(Action<TexturedVertex2D> vertexAction)
                     {
-                        Shader.GetUniform<float>("hueValue").UpdateValue(ref hueValue);
+                        Shader.GetUniform<float>("hue").UpdateValue(ref hue);
                         base.Blit(vertexAction);
                     }
                 }
