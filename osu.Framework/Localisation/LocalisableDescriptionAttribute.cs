@@ -10,17 +10,26 @@ namespace osu.Framework.Localisation
     /// Specifies a <see cref="LocalisableString"/>-based description for the target element.
     /// The description can be retrieved through <see cref="ExtensionMethods.GetLocalisableDescription{T}"/>.
     /// </summary>
+    /// <remarks>
+    /// The C# language specification
+    /// <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/attributes#attribute-parameter-types">
+    /// only permits a limited set of parameter types for attributes,
+    /// </a>
+    /// and as such <see cref="LocalisableString"/> instances cannot be passed in directly.
+    /// Therefore usages must pass both the target type in which the <see cref="LocalisableString"/> description is declared,
+    /// as well as the name of the member which contains/returns the <see cref="LocalisableString"/> (using <see langword="nameof"/> for this is strongly encouraged).
+    /// </remarks>
     /// <example>
-    /// Since attribute parameter types are limited and <see cref="LocalisableString"/>s can't be directly passed to the attribute,
-    /// the type declaring the static member which holds the <see cref="LocalisableString"/> and the member's name will both be required.
-    ///
+    /// Assuming the following source class from which the <see cref="LocalisableString"/> description should be returned:
     /// <code>
     /// class Strings
     /// {
-    ///     public static LocalisableString Xyz => ...;
+    ///     public static LocalisableString Example => "example string";
     /// }
-    ///
-    /// [LocalisableDescription(typeof(Strings), nameof(Strings.Xyz))]
+    /// </code>
+    /// the attribute should be used in the following way:
+    /// <code>
+    /// [LocalisableDescription(typeof(Strings), nameof(Strings.Example))]
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.All)]
