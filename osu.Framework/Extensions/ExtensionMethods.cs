@@ -188,8 +188,8 @@ namespace osu.Framework.Extensions
         /// </list>
         /// </summary>
         /// <exception cref="InvalidOperationException">
-        /// When the name specified in the localisable description attribute
-        /// does not match any of the existing members declared by the specified type.
+        /// When the <see cref="LocalisableDescriptionAttribute.Name"/> specified in the <see cref="LocalisableDescriptionAttribute"/>
+        /// does not match any of the existing members in <see cref="LocalisableDescriptionAttribute.DeclaringType"/>.
         /// </exception>
         public static LocalisableString GetLocalisableDescription<T>(this T value)
         {
