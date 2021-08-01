@@ -165,7 +165,7 @@
     <PackageReference Include="ppy.osu.Framework.iOS" Version="2021.630.0" />
   </ItemGroup>
   <ItemGroup Label="Transitive Dependencies">
-    <PackageReference Include="ppy.osu.Framework" Version="2021.630.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2021.728.0" />
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2019.1104.0" ExcludeAssets="all" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
