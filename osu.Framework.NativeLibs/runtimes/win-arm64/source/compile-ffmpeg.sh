@@ -13,11 +13,11 @@ cd ffmpeg-"${ffmpeg_version}" || exit 1;
 
 echo "Configuring FFMPEG build"
 ./configure --arch=aarch64 --target-os=mingw32 --cross-prefix=aarch64-w64-mingw32- \
---enable-shared --disable-static --prefix=build --disable-programs --disable-doc
+--enable-shared --disable-static --prefix=build --disable-programs --disable-doc || exit 1
 
 echo "Compiling FFMPEG binaries"
-make -j
-make install
+make -j || exit 1
+make install || exit 1
 
 echo "Moving binaries to native folder"
-cp build/bin/*.dll ../../native
+cp build/bin/*.dll ../../native || exit 1
