@@ -19,20 +19,9 @@ namespace osu.Framework.Graphics.UserInterface
     /// </summary>
     public abstract class Popover : FocusedOverlayContainer
     {
-        protected override bool BlockPositionalInput => false; // not required as we only care about intercepting mouse down in certain cases.
+        protected override bool BlockPositionalInput => true;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => State.Value == Visibility.Visible;
-
-        protected override bool OnMouseDown(MouseDownEvent e)
-        {
-            if (Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition))
-                return true;
-
-            this.HidePopover();
-            return base.OnMouseDown(e);
-        }
-
-        protected override bool OnClick(ClickEvent e) => Body.ReceivePositionalInputAt(e.ScreenSpaceMousePosition);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Body.ReceivePositionalInputAt(screenSpacePos) || Arrow.ReceivePositionalInputAt(screenSpacePos);
 
         public override bool HandleNonPositionalInput => State.Value == Visibility.Visible;
 
