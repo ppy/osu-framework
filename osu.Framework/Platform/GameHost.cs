@@ -1028,6 +1028,7 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), PlatformAction.DocumentPrevious),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.W), PlatformAction.DocumentClose),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), PlatformAction.DocumentClose),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.N), PlatformAction.DocumentNew),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.T), PlatformAction.TabNew),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.T), PlatformAction.TabRestore),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), PlatformAction.Save),

@@ -16,6 +16,7 @@ namespace osu.Framework.Input
         Exit,
         MoveToListStart,
         MoveToListEnd,
+        DocumentNew,
         DocumentPrevious,
         DocumentNext,
         DocumentClose,
