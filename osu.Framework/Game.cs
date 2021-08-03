@@ -169,6 +169,7 @@ namespace osu.Framework
 
             // for testing.
             addTtfFont(localFonts, Resources, @"Fonts/Ttf/WendyOne-Regular");
+            addTtfFont(localFonts, Resources, @"Fonts/Ttf/Makinas4-Regular");
 
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
