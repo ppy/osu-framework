@@ -287,13 +287,13 @@ namespace osu.Framework.Tests.Audio
 
             // ensure seeking to end doesn't reset completed state.
             track.SeekAsync(track.Length);
-            bass.Update();
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsTrue(track.HasCompleted);
 
             // seeking back reset completed state.
-            track.SeekAsync(track.Length - 1);
-            bass.Update();
+            track.SeekAsync(0);
+            takeEffectsAndUpdateAfter(50);
 
             Assert.IsFalse(track.HasCompleted);
         }
