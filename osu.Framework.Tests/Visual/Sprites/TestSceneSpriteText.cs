@@ -33,7 +33,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             flow.Add(new SpriteText
             {
-                Text = @"the quick red fox jumps over the lazy brown dog"
+                Font = new FontUsage("WendyOne", weight: "Regular"),
+                Text = @"the quick red fox jumps over the lazy brown dog カラオケ 123aaa"
             });
             flow.Add(new SpriteText
             {

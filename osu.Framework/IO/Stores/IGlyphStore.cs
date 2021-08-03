@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Threading.Tasks;
 using osu.Framework.Text;
 
 namespace osu.Framework.IO.Stores
@@ -24,5 +25,15 @@ namespace osu.Framework.IO.Stores
         /// <param name="right">The character to the right.</param>
         /// <returns>The kerning.</returns>
         int GetKerning(char left, char right);
+
+        Task LoadFontAsync();
+
+        string FontName { get; }
+
+        bool HasGlyph(char c);
+
+        int GetBaseHeight();
+
+        int? GetBaseHeight(string name);
     }
 }

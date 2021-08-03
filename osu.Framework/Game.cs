@@ -167,6 +167,9 @@ namespace osu.Framework
             addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
             addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
 
+            // for testing.
+            addTtfFont(localFonts, Resources, @"Fonts/Ttf/WendyOne-Regular");
+
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
             addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
@@ -213,6 +216,9 @@ namespace osu.Framework
 
         private void addFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
             => target.AddStore(new RawCachingGlyphStore(store, assetName, Host.CreateTextureLoaderStore(store)));
+
+        private void addTtfFont(FontStore target, ResourceStore<byte[]> store, string assetName = null)
+            => target.AddStore(new TtfGlyphStore(store, assetName));
 
         protected override void LoadComplete()
         {
