@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using osu.Framework.Development;
 
 namespace osu.Framework
 {
@@ -14,7 +13,7 @@ namespace osu.Framework
         /// <summary>
         /// The absolute path to the startup directory of this game.
         /// </summary>
-        public static string StartupDirectory { get; } = DebugUtils.GetEntryPath();
+        public static string StartupDirectory { get; } = AppContext.BaseDirectory;
 
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
