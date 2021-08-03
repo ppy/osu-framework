@@ -21,6 +21,8 @@ namespace osu.Framework.IO.Stores
 {
     public class TtfGlyphStore : IResourceStore<TextureUpload>, IGlyphStore
     {
+        private static readonly float scale = 8f;
+
         protected readonly string AssetName;
 
         public string FontName { get; }
@@ -101,10 +103,14 @@ namespace osu.Framework.IO.Stores
             if (glyphInstance.GlyphType == GlyphType.Fallback)
                 return null;
 
-            // todo : get x and y offset.
-            var xOffset = glyphInstance.LeftSideBearing;
-            var yOffset = glyphInstance.Side
-            return new CharacterGlyph(character, glyphInstance.LeftSideBearing, 0, glyphInstance.AdvanceWidth / 10, this);
+            var text = new string(new[] { character });
+            var style = new RendererOptions(Font);
+            var bounds = TextMeasurer.MeasureBounds(text, style);
+
+            var xOffset = bounds.X * scale;
+            var yOffset = bounds.Y * scale;
+            var advanceWidth = bounds.Width * scale;
+            return new CharacterGlyph(character, xOffset, yOffset, advanceWidth, this);
         }
 
         public int GetKerning(char left, char right)
@@ -150,15 +156,13 @@ namespace osu.Framework.IO.Stores
 
             // see: https://stackoverflow.com/a/53023454/4105113
 
-            const int font_size = 10;
-
             var style = new RendererOptions(Font);
             var text = new string(new[] { c });
             var bounds = TextMeasurer.MeasureBounds(text, style);
             var targetSize = new
             {
-                Width = (int)(bounds.Width * font_size),
-                Height = (int)(bounds.Height * font_size),
+                Width = (int)(bounds.Width * scale),
+                Height = (int)(bounds.Height * scale),
             };
 
             // this is the important line, where we render the glyphs to a vector instead of directly to the image
