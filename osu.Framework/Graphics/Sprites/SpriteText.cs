@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -460,7 +459,9 @@ namespace osu.Framework.Graphics.Sprites
 
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
+            // Todo: Re-enable this assert after autosize is split into two passes.
+            // Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
+
             isComputingCharacters = true;
 
             Vector2 textBounds = Vector2.Zero;
