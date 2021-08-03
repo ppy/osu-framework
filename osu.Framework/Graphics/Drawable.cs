@@ -428,7 +428,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
         /// </summary>
-        private readonly object schedulerAcquisitionLock = new object();
+        private static readonly object scheduler_acquisition_lock = new object();
 
         private Scheduler scheduler;
 
@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (schedulerAcquisitionLock)
+                lock (scheduler_acquisition_lock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
