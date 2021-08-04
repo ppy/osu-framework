@@ -33,7 +33,5 @@ namespace osu.Framework.IO.Stores
         bool HasGlyph(char c);
 
         int GetBaseHeight();
-
-        int? GetBaseHeight(string name);
     }
 }

@@ -85,14 +85,6 @@ namespace osu.Framework.IO.Stores
 
         public int GetBaseHeight() => fontInstance?.LineHeight ?? 0;
 
-        public int? GetBaseHeight(string name)
-        {
-            if (name != FontName)
-                return null;
-
-            return GetBaseHeight();
-        }
-
         [CanBeNull]
         public CharacterGlyph Get(char character)
         {
@@ -121,7 +113,8 @@ namespace osu.Framework.IO.Stores
             var leftGlyphInstance = fontInstance.GetGlyph(left);
             var rightGlyphInstance = fontInstance.GetGlyph(right);
 
-            var kerning = fontInstance.GetOffset(leftGlyphInstance, rightGlyphInstance).X;
+            // todo : got no idea why all offset is zero.
+            var kerning = fontInstance.GetOffset(rightGlyphInstance, leftGlyphInstance).X;
             return (int)(kerning * scale);
         }
 
