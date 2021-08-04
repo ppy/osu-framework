@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
+using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
@@ -17,7 +18,7 @@ namespace osu.Framework.IO.Stores
 {
     public class FontStore : TextureStore, ITexturedGlyphLookupStore
     {
-        private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
+        private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
 
@@ -73,7 +74,7 @@ namespace osu.Framework.IO.Stores
                     nestedFontStores.Add(fs);
                     return;
 
-                case GlyphStore gs:
+                case IGlyphStore gs:
 
                     if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
                         raw.CacheStorage = cacheStorage;
@@ -91,7 +92,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Append child stores to a single threaded load task.
         /// </summary>
-        private void queueLoad(GlyphStore store)
+        private void queueLoad(IGlyphStore store)
         {
             var previousLoadStream = childStoreLoadTasks;
 
@@ -194,11 +195,12 @@ namespace osu.Framework.IO.Stores
 
         public float? GetBaseHeight(string fontName)
         {
-            foreach (var store in glyphStores)
+            var matchedGlyphStore = glyphStores.FirstOrDefault(x => x.FontName == fontName);
+
+            if (matchedGlyphStore != null)
             {
-                var bh = store.GetBaseHeight(fontName);
-                if (bh.HasValue)
-                    return bh.Value / ScaleAdjust;
+                var bh = matchedGlyphStore.GetBaseHeight();
+                return bh / ScaleAdjust;
             }
 
             foreach (var store in nestedFontStores)

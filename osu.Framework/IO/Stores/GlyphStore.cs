@@ -78,14 +78,6 @@ namespace osu.Framework.IO.Stores
 
         public int GetBaseHeight() => Font?.Common.Base ?? 0;
 
-        public int? GetBaseHeight(string name)
-        {
-            if (name != FontName)
-                return null;
-
-            return GetBaseHeight();
-        }
-
         protected virtual TextureUpload GetPageImage(int page)
         {
             if (TextureLoader != null)
