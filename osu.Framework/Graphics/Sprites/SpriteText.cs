@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -442,8 +441,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool isComputingCharacters;
-
         /// <summary>
         /// Compute character textures and positions.
         /// </summary>
@@ -460,8 +457,8 @@ namespace osu.Framework.Graphics.Sprites
 
             charactersBacking.Clear();
 
-            Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
-            isComputingCharacters = true;
+            // Todo: Re-enable this assert after autosize is split into two passes.
+            // Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
 
             Vector2 textBounds = Vector2.Zero;
 
@@ -485,7 +482,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 base.Width = Math.Min(base.Width, MaxWidth);
 
-                isComputingCharacters = false;
                 charactersCache.Validate();
             }
         }
