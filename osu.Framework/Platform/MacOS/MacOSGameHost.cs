@@ -100,6 +100,7 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Left), PlatformAction.DocumentPrevious),
             new KeyBinding(new KeyCombination(InputKey.Alt, InputKey.Super, InputKey.Right), PlatformAction.DocumentNext),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.W), PlatformAction.DocumentClose),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.N), PlatformAction.DocumentNew),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.T), PlatformAction.TabNew),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.T), PlatformAction.TabRestore),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), PlatformAction.DocumentNext),
