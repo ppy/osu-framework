@@ -26,7 +26,7 @@ namespace osu.Framework.IO.Stores
 
         protected readonly IResourceStore<TextureUpload> TextureLoader;
 
-        public readonly string FontName;
+        public string FontName { get; }
 
         protected readonly ResourceStore<byte[]> Store;
 
