@@ -441,8 +441,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private bool isComputingCharacters;
-
         /// <summary>
         /// Compute character textures and positions.
         /// </summary>
@@ -461,8 +459,6 @@ namespace osu.Framework.Graphics.Sprites
 
             // Todo: Re-enable this assert after autosize is split into two passes.
             // Debug.Assert(!isComputingCharacters, "Cyclic invocation of computeCharacters()!");
-
-            isComputingCharacters = true;
 
             Vector2 textBounds = Vector2.Zero;
 
@@ -486,7 +482,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 base.Width = Math.Min(base.Width, MaxWidth);
 
-                isComputingCharacters = false;
                 charactersCache.Validate();
             }
         }
