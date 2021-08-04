@@ -11,6 +11,27 @@ namespace osu.Framework.IO.Stores
     /// </summary>
     public interface IGlyphStore : IResourceStore<CharacterGlyph>
     {
+        string FontName { get; }
+
+        /// <summary>
+        /// Load glyph info once glyph has been imported in <see cref="FontStore"/>
+        /// </summary>
+        /// <returns>The task.</returns>
+        Task LoadFontAsync();
+
+        /// <summary>
+        /// Check the char has glyph.
+        /// </summary>
+        /// <param name="c">The character.</param>
+        /// <returns>Has glyph.</returns>
+        bool HasGlyph(char c);
+
+        /// <summary>
+        /// Get base height.
+        /// </summary>
+        /// <returns></returns>
+        int GetBaseHeight();
+
         /// <summary>
         /// Retrieves a <see cref="CharacterGlyph"/> that contains associated spacing information for a character.
         /// </summary>
@@ -25,13 +46,5 @@ namespace osu.Framework.IO.Stores
         /// <param name="right">The character to the right.</param>
         /// <returns>The kerning.</returns>
         int GetKerning(char left, char right);
-
-        Task LoadFontAsync();
-
-        string FontName { get; }
-
-        bool HasGlyph(char c);
-
-        int GetBaseHeight();
     }
 }
