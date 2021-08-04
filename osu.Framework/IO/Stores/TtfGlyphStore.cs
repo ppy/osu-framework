@@ -121,7 +121,8 @@ namespace osu.Framework.IO.Stores
             var leftGlyphInstance = fontInstance.GetGlyph(left);
             var rightGlyphInstance = fontInstance.GetGlyph(right);
 
-            return (int)fontInstance.GetOffset(leftGlyphInstance, rightGlyphInstance).X;
+            var kerning = fontInstance.GetOffset(leftGlyphInstance, rightGlyphInstance).X;
+            return (int)(kerning * scale);
         }
 
         Task<CharacterGlyph> IResourceStore<CharacterGlyph>.GetAsync(string name) => Task.Run(() => ((IGlyphStore)this).Get(name[0]));
