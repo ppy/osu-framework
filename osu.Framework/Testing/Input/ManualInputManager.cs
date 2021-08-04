@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -122,6 +123,9 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
         public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
+
+        public new bool TriggerClick() =>
+            throw new InvalidOperationException($"To trigger a click via a {nameof(ManualInputManager)} use {nameof(Click)} instead.");
 
         /// <summary>
         /// Press and release the specified button.

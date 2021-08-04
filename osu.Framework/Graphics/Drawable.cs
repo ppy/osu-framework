@@ -2086,11 +2086,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
+        public bool Click() => TriggerClick();
+
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
-        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+        public bool TriggerClick() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
 
