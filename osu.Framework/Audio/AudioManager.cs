@@ -104,6 +104,9 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
+        internal IBindableList<int> ActiveMixerHandles => activeMixerHandles;
+        private readonly BindableList<int> activeMixerHandles = new BindableList<int>();
+
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
@@ -193,6 +196,8 @@ namespace osu.Framework.Audio
         public AudioMixer CreateAudioMixer()
         {
             var mixer = new BassAudioMixer(Mixer);
+            mixer.HandleCreated += i => activeMixerHandles.Add(i);
+            mixer.HandleDestroyed += i => activeMixerHandles.Remove(i);
             AddItem(mixer);
             return mixer;
         }
