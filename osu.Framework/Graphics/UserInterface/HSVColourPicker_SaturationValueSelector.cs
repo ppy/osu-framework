@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.UserInterface
                         if (hue == value) return;
 
                         hue = value;
-                        Invalidate(Invalidation.DrawInfo);
+                        Invalidate(Invalidation.DrawNode);
                     }
                 }
 
