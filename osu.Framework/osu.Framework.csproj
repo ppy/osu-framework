@@ -34,7 +34,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.226801" />
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="ppy.ManagedBass" Version="3.1.0-alpha" />
+    <PackageReference Include="ppy.ManagedBass" Version="3.1.2-alpha" />
     <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
@@ -43,7 +43,7 @@
     <PackageReference Include="ppy.SDL2-CS" Version="1.0.346-alpha" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
-    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.504.0-alpha" />
+    <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.805.0" />
     <!-- DO NOT use ProjectReference for native packaging project.
          See https://github.com/NuGet/Home/issues/4514 and https://github.com/dotnet/sdk/issues/765 . -->
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />

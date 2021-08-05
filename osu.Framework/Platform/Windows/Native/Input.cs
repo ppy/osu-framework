@@ -10,8 +10,11 @@ namespace osu.Framework.Platform.Windows.Native
     internal static class Input
     {
         [DllImport("user32.dll")]
-        public static extern bool RegisterRawInputDevices([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]
-                                                          RawInputDevice[] pRawInputDevices, int uiNumDevices, int cbSize);
+        public static extern bool RegisterRawInputDevices(
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]
+            RawInputDevice[] pRawInputDevices,
+            int uiNumDevices,
+            int cbSize);
 
         [DllImport("user32.dll")]
         public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInputData pData, ref int pcbSize, int cbSizeHeader);
