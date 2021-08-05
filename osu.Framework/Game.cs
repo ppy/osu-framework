@@ -270,20 +270,6 @@ namespace osu.Framework
 
                     return true;
 
-                case FrameworkAction.ToggleGlobalStatistics:
-
-                    if (globalStatistics == null)
-                    {
-                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
-                        {
-                            Depth = float.MinValue / 2,
-                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
-                        }, AddInternal);
-                    }
-
-                    globalStatistics.ToggleVisibility();
-                    return true;
-
                 case FrameworkAction.ToggleDrawVisualiser:
 
                     if (drawVisualiser == null)
@@ -298,6 +284,20 @@ namespace osu.Framework
                     drawVisualiser.ToggleVisibility();
                     return true;
 
+                case FrameworkAction.ToggleGlobalStatistics:
+
+                    if (globalStatistics == null)
+                    {
+                        LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
+                        {
+                            Depth = float.MinValue / 2,
+                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                        }, AddInternal);
+                    }
+
+                    globalStatistics.ToggleVisibility();
+                    return true;
+
                 case FrameworkAction.ToggleAtlasVisualiser:
 
                     if (textureVisualiser == null)
@@ -310,6 +310,19 @@ namespace osu.Framework
                     }
 
                     textureVisualiser.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleAudioMixerVisualiser:
+                    if (audioMixerVisualiser == null)
+                    {
+                        LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
+                        {
+                            Position = new Vector2(100, 100 + TitleBar.HEIGHT + 5),
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    audioMixerVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
@@ -337,18 +350,6 @@ namespace osu.Framework
 
                     executionMode.Value = nextExecutionMode;
                     break;
-
-                case FrameworkAction.ToggleAudioMixerVisualiser:
-                    if (audioMixerVisualiser == null)
-                    {
-                        LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
-                        {
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    audioMixerVisualiser.ToggleVisibility();
-                    return true;
             }
 
             return false;
