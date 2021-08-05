@@ -276,7 +276,7 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(drawVisualiser = new DrawVisualiser
                         {
-                            ToolPosition = new Vector2(100),
+                            ToolPosition = getCascadeLocation(0),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
@@ -291,7 +291,7 @@ namespace osu.Framework
                         LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
                         {
                             Depth = float.MinValue / 2,
-                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                            Position = getCascadeLocation(1),
                         }, AddInternal);
                     }
 
@@ -304,7 +304,7 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
-                            Position = new Vector2(100 + 2 * ToolWindow.WIDTH, 100),
+                            Position = getCascadeLocation(2),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
@@ -317,7 +317,7 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
                         {
-                            Position = new Vector2(100, 100 + TitleBar.HEIGHT + 5),
+                            Position = getCascadeLocation(3),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
@@ -353,6 +353,9 @@ namespace osu.Framework
             }
 
             return false;
+
+            Vector2 getCascadeLocation(int index)
+                => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
         public void OnReleased(FrameworkAction action)
