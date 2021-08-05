@@ -45,6 +45,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Whether a null value can be accepted if the member doesn't exist in the cache.
         /// </summary>
+        [Obsolete("Directly setting CanBeNull is deprecated, please refrain from doing that in the future.")]
         public bool CanBeNull;
 
         /// <summary>
