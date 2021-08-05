@@ -32,7 +32,7 @@ namespace osu.Framework.Allocation
         ///
         /// Then the cached type will be "DerivedType".
         /// </example>
-        public Type Type;
+        public readonly Type Type;
 
         /// <summary>
         /// The name to identify this member with.
@@ -40,7 +40,7 @@ namespace osu.Framework.Allocation
         /// <remarks>
         /// If the member is cached with a custom <see cref="CacheInfo"/> that provides a parent, the name is automatically inferred from the field/property.
         /// </remarks>
-        public string Name;
+        public readonly string Name;
 
         /// <summary>
         /// Identifies a member to be cached to a <see cref="DependencyContainer"/>.
