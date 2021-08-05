@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver3
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             private BaseObject obj { get; set; }
         }
 
@@ -234,37 +234,37 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver5
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; set; }
         }
 
         private class Receiver6
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; protected set; }
         }
 
         private class Receiver7
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; internal set; }
         }
 
         private class Receiver8
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; private set; }
         }
 
         private class Receiver9
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; protected internal set; }
         }
 
         private class Receiver10
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public BaseObject Obj { get; }
         }
 
@@ -292,7 +292,7 @@ namespace osu.Framework.Tests.Dependencies
 
         private class Receiver15
         {
-            [Resolved(CanBeNull = true)]
+            [Resolved(canBeNull: true)]
             public int Obj { get; private set; } = 1;
         }
 

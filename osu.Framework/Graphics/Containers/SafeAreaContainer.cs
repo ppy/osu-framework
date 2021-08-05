@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Containers
             safeAreaPadding.BindTo(safeArea.SafeAreaPadding);
         }
 
-        [Resolved(CanBeNull = true)]
+        [Resolved(canBeNull: true)]
         private ISafeArea safeArea { get; set; }
 
         /// <summary>

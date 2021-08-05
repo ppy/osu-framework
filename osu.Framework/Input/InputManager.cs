@@ -40,7 +40,7 @@ namespace osu.Framework.Input
         /// </summary>
         private const int repeat_tick_rate = 70;
 
-        [Resolved(CanBeNull = true)]
+        [Resolved(canBeNull:true)]
         protected GameHost Host { get; private set; }
 
         /// <summary>
