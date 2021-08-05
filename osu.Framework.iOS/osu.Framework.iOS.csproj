@@ -35,4 +35,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="app.config" CopyToOutputDirectory="Always" />
+  </ItemGroup>
 </Project>
