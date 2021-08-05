@@ -32,7 +32,7 @@ namespace osu.Framework.Allocation
         /// <remarks>
         /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
         /// </remarks>
-        public Type Parent;
+        public readonly Type Parent;
 
         /// <summary>
         /// The name of the cached member in the <see cref="DependencyContainer"/>.
@@ -40,13 +40,12 @@ namespace osu.Framework.Allocation
         /// <remarks>
         /// This is only set if the member was cached with a custom <see cref="CacheInfo"/>.
         /// </remarks>
-        public string Name;
+        public readonly string Name;
 
         /// <summary>
         /// Whether a null value can be accepted if the member doesn't exist in the cache.
         /// </summary>
-        [Obsolete("Directly setting CanBeNull is deprecated, please refrain from doing that in the future.", false)]
-        public bool CanBeNull;
+        public readonly bool CanBeNull;
 
         /// <summary>
         /// Identifies a member to be resolved from a <see cref="DependencyContainer"/>.
