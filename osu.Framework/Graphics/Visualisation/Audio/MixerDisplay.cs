@@ -53,6 +53,9 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
             var channels = BassMix.MixerGetChannels(MixerHandle);
 
+            if (channels == null)
+                return;
+
             foreach (var channel in channels)
             {
                 if (channelsContainer.All(ch => ch.ChannelHandle != channel))
