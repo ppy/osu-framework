@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Effects;
@@ -236,13 +237,16 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return startColour;
 
+                var startLinear = startColour.ToLinear();
+                var endLinear = endColour.ToLinear();
+
                 float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
 
                 return new Color4(
-                    startColour.R + t * (endColour.R - startColour.R),
-                    startColour.G + t * (endColour.G - startColour.G),
-                    startColour.B + t * (endColour.B - startColour.B),
-                    startColour.A + t * (endColour.A - startColour.A));
+                    startLinear.R + t * (endLinear.R - startLinear.R),
+                    startLinear.G + t * (endLinear.G - startLinear.G),
+                    startLinear.B + t * (endLinear.B - startLinear.B),
+                    startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
             }
 
             public static Colour4 ValueAt(double time, Colour4 startColour, Colour4 endColour, double startTime, double endTime, in TEasing easing)
@@ -256,13 +260,16 @@ namespace osu.Framework.Utils
                 if (duration == 0 || current == 0)
                     return startColour;
 
+                var startLinear = startColour.ToLinear();
+                var endLinear = endColour.ToLinear();
+
                 float t = Math.Max(0, Math.Min(1, (float)easing.ApplyEasing(current / duration)));
 
                 return new Colour4(
-                    startColour.R + t * (endColour.R - startColour.R),
-                    startColour.G + t * (endColour.G - startColour.G),
-                    startColour.B + t * (endColour.B - startColour.B),
-                    startColour.A + t * (endColour.A - startColour.A));
+                    startLinear.R + t * (endLinear.R - startLinear.R),
+                    startLinear.G + t * (endLinear.G - startLinear.G),
+                    startLinear.B + t * (endLinear.B - startLinear.B),
+                    startLinear.A + t * (endLinear.A - startLinear.A)).ToSRGB();
             }
 
             public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, in TEasing easing)
