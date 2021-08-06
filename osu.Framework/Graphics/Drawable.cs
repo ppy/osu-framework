@@ -428,7 +428,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
         /// </summary>
-        private readonly object schedulerAcquisitionLock = new object();
+        private static readonly object scheduler_acquisition_lock = new object();
 
         private Scheduler scheduler;
 
@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (schedulerAcquisitionLock)
+                lock (scheduler_acquisition_lock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
@@ -2086,11 +2086,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
+        public bool Click() => TriggerClick();
+
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
-        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+        public bool TriggerClick() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
 

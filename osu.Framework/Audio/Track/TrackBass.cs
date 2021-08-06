@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -9,15 +11,19 @@ using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Audio.Callbacks;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Track
 {
-    public sealed class TrackBass : Track, IBassAudio
+    public sealed class TrackBass : Track, IBassAudio, IBassAudioChannel
     {
         public const int BYTES_PER_SAMPLE = 4;
 
-        private AsyncBufferStream dataStream;
+        private AsyncBufferStream? dataStream;
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
@@ -44,10 +50,10 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private double lastSeekablePosition;
 
-        private FileCallbacks fileCallbacks;
-        private SyncCallback endMixtimeCallback;
-        private SyncCallback stopCallback;
-        private SyncCallback endCallback;
+        private FileCallbacks? fileCallbacks;
+        private SyncCallback? endMixtimeCallback;
+        private SyncCallback? stopCallback;
+        private SyncCallback? endCallback;
 
         private volatile bool isLoaded;
 
@@ -60,7 +66,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass(Stream data, bool quick = false)
+        public TrackBass([NotNull] Stream data, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -129,7 +135,6 @@ namespace osu.Framework.Audio.Track
                     isLoaded = true;
 
                     relativeFrequencyHandler.SetChannel(activeStream);
-                    bassAmplitudeProcessor?.SetChannel(activeStream);
                 }
             });
 
@@ -165,7 +170,7 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelSetDevice(stream, bass_nodevice);
                 tempoAdjustStream = BassFx.TempoCreate(stream, BassFlags.Decode | BassFlags.FxFreeSource);
                 Bass.ChannelSetDevice(tempoAdjustStream, bass_nodevice);
-                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
+                stream = BassFx.ReverseCreate(tempoAdjustStream, 5f, BassFlags.Default | BassFlags.FxFreeSource | BassFlags.Decode);
 
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
@@ -183,9 +188,6 @@ namespace osu.Framework.Audio.Track
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            Bass.ChannelSetDevice(activeStream, deviceIndex);
-            BassUtils.CheckFaulted(true);
-
             // Bass may leave us in an invalid state after the output device changes (this is true for "No sound" device)
             // if the observed state was playing before change, we should force things into a good state.
             if (isPlayed)
@@ -197,13 +199,13 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        private BassAmplitudeProcessor bassAmplitudeProcessor;
+        private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
         protected override void UpdateState()
         {
             base.UpdateState();
 
-            var running = isRunningState(Bass.ChannelIsActive(activeStream));
+            var running = isRunningState(bassMixer.ChannelIsActive(this));
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
@@ -215,48 +217,12 @@ namespace osu.Framework.Audio.Track
             bassAmplitudeProcessor?.Update();
         }
 
-        ~TrackBass()
-        {
-            Dispose(false);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (IsDisposed)
-                return;
-
-            if (activeStream != 0)
-            {
-                isRunning = false;
-                Bass.ChannelStop(activeStream);
-                Bass.StreamFree(activeStream);
-            }
-
-            activeStream = 0;
-
-            dataStream?.Dispose();
-            dataStream = null;
-
-            fileCallbacks?.Dispose();
-            fileCallbacks = null;
-
-            stopCallback?.Dispose();
-            stopCallback = null;
-
-            endCallback?.Dispose();
-            endCallback = null;
-
-            endMixtimeCallback?.Dispose();
-            endMixtimeCallback = null;
-
-            base.Dispose(disposing);
-        }
-
         public override bool IsDummyDevice => false;
 
         public override void Stop()
         {
             base.Stop();
+
             StopAsync().Wait();
         }
 
@@ -266,7 +232,7 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(Bass.ChannelIsActive(activeStream)) && Bass.ChannelPause(activeStream);
+        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this);
 
         private int direction;
 
@@ -303,7 +269,7 @@ namespace osu.Framework.Audio.Track
 
             setLoopFlag(Looping);
 
-            return Bass.ChannelPlay(activeStream);
+            return bassMixer.ChannelPlay(this);
         }
 
         public override bool Looping
@@ -339,8 +305,8 @@ namespace osu.Framework.Audio.Track
 
             long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
 
-            if (pos != Bass.ChannelGetPosition(activeStream))
-                Bass.ChannelSetPosition(activeStream, pos);
+            if (pos != bassMixer.ChannelGetPosition(this))
+                bassMixer.ChannelSetPosition(this, pos);
 
             // current time updates are safe to perform from enqueued actions,
             // but not always safe to perform from BASS callbacks, since those can sometimes use a separate thread.
@@ -353,7 +319,7 @@ namespace osu.Framework.Audio.Track
         {
             Debug.Assert(CanPerformInline);
 
-            var bytePosition = Bass.ChannelGetPosition(activeStream);
+            var bytePosition = bassMixer.ChannelGetPosition(this);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 
@@ -389,6 +355,69 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(activeStream)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
+
+        #region Mixing
+
+        protected override AudioMixer? Mixer
+        {
+            get => base.Mixer;
+            set
+            {
+                base.Mixer = value;
+
+                // Tracks are always active until they're disposed, so they need to be added to the mix prematurely for operations like Seek() to work immediately.
+                // The mixer can be null in this case, if set via Dispose() / bassMixer.StreamFree(this).
+                (Mixer as BassAudioMixer)?.AddChannelToBassMix(this);
+            }
+        }
+
+        private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
+
+        bool IBassAudioChannel.IsActive => !IsDisposed;
+
+        int IBassAudioChannel.Handle => activeStream;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
+
+        #endregion
+
+        ~TrackBass()
+        {
+            Dispose(false);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (IsDisposed)
+                return;
+
+            if (activeStream != 0)
+            {
+                isRunning = false;
+                bassMixer.StreamFree(this);
+            }
+
+            activeStream = 0;
+
+            dataStream?.Dispose();
+            dataStream = null;
+
+            fileCallbacks?.Dispose();
+            fileCallbacks = null;
+
+            stopCallback?.Dispose();
+            stopCallback = null;
+
+            endCallback?.Dispose();
+            endCallback = null;
+
+            endMixtimeCallback?.Dispose();
+            endMixtimeCallback = null;
+
+            base.Dispose(disposing);
+        }
     }
 }

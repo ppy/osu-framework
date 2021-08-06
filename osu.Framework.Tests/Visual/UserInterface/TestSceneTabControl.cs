@@ -229,7 +229,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             });
 
-            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].Click());
+            AddStep("click a tab", () => simpleTabcontrol.TabMap[TestEnum.Test2].TriggerClick());
             AddAssert("test0 still selected", () => simpleTabcontrol.SelectedTab.Value == TestEnum.Test0);
         }
 

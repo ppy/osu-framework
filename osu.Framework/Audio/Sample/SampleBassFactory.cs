@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Bindables;
 using osu.Framework.Platform;
 
@@ -28,12 +29,15 @@ namespace osu.Framework.Audio.Sample
         /// </summary>
         internal readonly Bindable<int> PlaybackConcurrency = new Bindable<int>(Sample.DEFAULT_CONCURRENCY);
 
+        private readonly BassAudioMixer mixer;
+
         private NativeMemoryTracker.NativeMemoryLease? memoryLease;
         private byte[]? data;
 
-        public SampleBassFactory(byte[] data)
+        public SampleBassFactory(byte[] data, BassAudioMixer mixer)
         {
             this.data = data;
+            this.mixer = mixer;
 
             EnqueueAction(loadSample);
 
@@ -59,13 +63,6 @@ namespace osu.Framework.Audio.Sample
             // The sample may not have already loaded if a device wasn't present in a previous load attempt.
             if (!IsLoaded)
                 loadSample();
-
-            if (!IsLoaded)
-                return;
-
-            // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-            Bass.ChannelSetDevice(SampleId, deviceIndex);
-            BassUtils.CheckFaulted(true);
         }
 
         private void loadSample()
@@ -95,7 +92,7 @@ namespace osu.Framework.Audio.Sample
             memoryLease = NativeMemoryTracker.AddMemory(this, dataLength);
         }
 
-        public Sample CreateSample() => new SampleBass(this) { OnPlay = onPlay };
+        public Sample CreateSample() => new SampleBass(this, mixer) { OnPlay = onPlay };
 
         private void onPlay(Sample sample)
         {
