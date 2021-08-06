@@ -38,7 +38,7 @@ namespace osu.Framework.Tests.Visual.Drawables
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Text = $"d3.interpolateRgb.gamma(2.2)(\"red\", \"blue\")"
+                            Text = "d3.interpolateRgb.gamma(2.2)(\"red\", \"blue\")"
                         },
                         new SampleSpriteD3
                         {
