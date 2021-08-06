@@ -4,13 +4,12 @@
 using System;
 using System.IO;
 using osu.Framework.Platform.Linux.SDL2;
-using osuTK;
 
 namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
         {
         }

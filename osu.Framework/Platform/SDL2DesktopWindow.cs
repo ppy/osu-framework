@@ -25,6 +25,8 @@ using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
+// ReSharper disable UnusedParameter.Local (Class regularly handles native events where we don't consume all parameters)
+
 namespace osu.Framework.Platform
 {
     /// <summary>
