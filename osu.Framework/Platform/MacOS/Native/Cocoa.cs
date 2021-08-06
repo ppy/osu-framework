@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osuTK;
 using System.Runtime.InteropServices;
 
 namespace osu.Framework.Platform.MacOS.Native
@@ -57,6 +58,9 @@ namespace osu.Framework.Platform.MacOS.Native
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
         public static extern void SendVoid(IntPtr receiver, IntPtr selector, IntPtr intPtr1, IntPtr intPtr2, IntPtr intPtr3, IntPtr intPtr4);
 
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        public static extern void SendVoid(IntPtr receiver, IntPtr selector, bool arg);
+
         [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
         public static extern float SendFloat_i386(IntPtr receiver, IntPtr selector);
 
@@ -64,6 +68,40 @@ namespace osu.Framework.Platform.MacOS.Native
         public static extern double SendFloat_x64(IntPtr receiver, IntPtr selector);
 
         public static float SendFloat(IntPtr receiver, IntPtr selector) => IntPtr.Size == 4 ? SendFloat_i386(receiver, selector) : (float)SendFloat_x64(receiver, selector);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        private static extern Vector2 SendVector2d_i386(IntPtr receiver, IntPtr selector);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        private static extern Vector2d SendVector2d_x64(IntPtr receiver, IntPtr selector);
+
+        public static Vector2 SendVector2d(IntPtr receiver, IntPtr selector)
+        {
+            if (IntPtr.Size == 4)
+            {
+                return SendVector2d_i386(receiver, selector);
+            }
+
+            Vector2d point = SendVector2d_x64(receiver, selector);
+            return new Vector2((float)point.X, (float)point.Y);
+        }
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend_fpret")]
+        private static extern Vector2 SendVector2d_i386(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+
+        [DllImport(LIB_OBJ_C, EntryPoint = "objc_msgSend")]
+        private static extern Vector2d SendVector2d_x64(IntPtr receiver, IntPtr selector, IntPtr ptr1);
+
+        public static Vector2 SendVector2d(IntPtr receiver, IntPtr selector, IntPtr ptr1)
+        {
+            if (IntPtr.Size == 4)
+            {
+                return SendVector2d_i386(receiver, selector, ptr1);
+            }
+
+            Vector2d point = SendVector2d_x64(receiver, selector, ptr1);
+            return new Vector2((float)point.X, (float)point.Y);
+        }
 
         public static IntPtr AppKitLibrary;
 

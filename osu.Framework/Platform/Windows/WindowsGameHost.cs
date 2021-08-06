@@ -10,8 +10,10 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touchpad;
 using osu.Framework.Platform.Windows.Native;
 using osuTK;
+using SDL2;
 
 namespace osu.Framework.Platform.Windows
 {
@@ -28,9 +30,17 @@ namespace osu.Framework.Platform.Windows
 #endif
         public override bool CapsLockEnabled => Console.CapsLock;
 
+        private readonly SDL.SDL_WindowsMessageHook hook;
+
         internal WindowsGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
         {
+            hook = (userdata, hwnd, message, wparam, lparam) =>
+            {
+                IntPtr returnCode = IntPtr.Zero;
+                OnWndProc?.Invoke(userdata, hwnd, message, wparam, lparam, ref returnCode);
+                return returnCode;
+            };
         }
 
         public override void OpenFileExternally(string filename)
@@ -46,8 +56,8 @@ namespace osu.Framework.Platform.Windows
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            // for windows platforms we want to override the relative mouse event handling behaviour.
             return base.CreateAvailableInputHandlers()
+                       .Select(inputHandler => inputHandler is TouchpadHandler ? new WindowsTouchpadHandler() : inputHandler)
                        .Where(t => !(t is MouseHandler))
                        .Concat(new InputHandler[] { new WindowsMouseHandler() });
         }
@@ -78,13 +88,19 @@ namespace osu.Framework.Platform.Windows
         protected override void OnActivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
+            InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(hook, IntPtr.Zero));
             base.OnActivated();
         }
 
         protected override void OnDeactivated()
         {
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
+            InputThread.Scheduler.Add(() => SDL.SDL_SetWindowsMessageHook(null, IntPtr.Zero));
             base.OnDeactivated();
         }
+
+        public delegate void WindowsMessageHook(IntPtr userdata, IntPtr hwnd, uint message, ulong wparm, long lparam, ref IntPtr returnCode);
+
+        public event WindowsMessageHook OnWndProc;
     }
 }

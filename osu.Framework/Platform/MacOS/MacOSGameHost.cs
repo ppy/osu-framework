@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Touchpad;
 using osuTK;
 using osuTK.Graphics.OpenGL;
 
@@ -60,7 +61,8 @@ namespace osu.Framework.Platform.MacOS
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            var handlers = base.CreateAvailableInputHandlers();
+            var handlers = base.CreateAvailableInputHandlers()
+                               .Select(inputHandler => inputHandler is TouchpadHandler ? new MacOSTouchpadHandler() : inputHandler);
 
             foreach (var h in handlers.OfType<MouseHandler>())
             {
