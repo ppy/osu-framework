@@ -226,6 +226,12 @@ namespace osu.Framework.Utils
             public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, in TEasing easing)
                 => ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
 
+            /// <summary>
+            /// Interpolates between two sRGB <see cref="Color4"/>s in a linear (gamma-correct) RGB space.
+            /// </summary>
+            /// <remarks>
+            /// For more information regarding linear interpolation, see https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/#gradients.
+            /// </remarks>
             public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, in TEasing easing)
             {
                 if (startColour == endColour)
