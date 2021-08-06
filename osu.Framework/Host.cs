@@ -16,13 +16,13 @@ namespace osu.Framework
             switch (RuntimeInfo.OS)
             {
                 case RuntimeInfo.Platform.macOS:
-                    return new MacOSGameHost(gameName, bindIPC);
+                    return new MacOSGameHost(gameName, bindIPC, portableInstallation);
 
                 case RuntimeInfo.Platform.Linux:
-                    return new LinuxGameHost(gameName, bindIPC);
+                    return new LinuxGameHost(gameName, bindIPC, portableInstallation);
 
                 case RuntimeInfo.Platform.Windows:
-                    return new WindowsGameHost(gameName, bindIPC);
+                    return new WindowsGameHost(gameName, bindIPC, portableInstallation);
 
                 default:
                     throw new InvalidOperationException($"Could not find a suitable host for the selected operating system ({Enum.GetName(typeof(RuntimeInfo.Platform), RuntimeInfo.OS)}).");
