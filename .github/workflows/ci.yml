@@ -90,7 +90,12 @@ jobs:
       #   run: dotnet format --dry-run --check
 
       - name: InspectCode
-        run: dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode --verbosity=TRACE --debug
+        run: |
+          chmod +x "${GITHUB_WORKSPACE}/test.sh"
+          "${GITHUB_WORKSPACE}/test.sh"
 
-      - name: NVika
-        run: dotnet nvika parsereport "${{github.workspace}}/inspectcodereport.xml" --treatwarningsaserrors
+      - name: Upload Dump
+        uses: actions/upload-artifact@v2
+        with:
+          name: deadlock
+          path: deadlock.tar.bz2
