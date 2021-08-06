@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using osu.Framework.Logging;
 using System.Collections.Concurrent;
-using System.Linq;
 using JetBrains.Annotations;
 using osu.Framework.Platform;
 using osu.Framework.Text;
@@ -195,11 +194,12 @@ namespace osu.Framework.IO.Stores
 
         public float? GetBaseHeight(string fontName)
         {
-            var matchedGlyphStore = glyphStores.FirstOrDefault(x => x.FontName == fontName);
-
-            if (matchedGlyphStore != null)
+            foreach (var store in glyphStores)
             {
-                var bh = matchedGlyphStore.GetBaseHeight();
+                if (store.FontName != fontName)
+                    continue;
+
+                var bh = store.GetBaseHeight();
                 return bh / ScaleAdjust;
             }
 
