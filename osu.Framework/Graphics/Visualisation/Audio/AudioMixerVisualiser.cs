@@ -61,22 +61,9 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 
                 case NotifyCollectionChangedAction.Remove:
                     Debug.Assert(e.OldItems != null);
-                    mixerFlow.RemoveAll(m => !e.OldItems.OfType<int>().Contains(m.MixerHandle));
+                    mixerFlow.RemoveAll(m => e.OldItems.OfType<int>().Contains(m.MixerHandle));
                     break;
             }
         });
-
-        protected override void Update()
-        {
-            base.Update();
-
-            foreach (var mixer in audioManager.ActiveMixerHandles)
-            {
-                if (mixerFlow.All(m => m.MixerHandle != mixer))
-                    mixerFlow.Add(new MixerDisplay(mixer));
-            }
-
-            mixerFlow.RemoveAll(m => !audioManager.ActiveMixerHandles.Contains(m.MixerHandle));
-        }
     }
 }
