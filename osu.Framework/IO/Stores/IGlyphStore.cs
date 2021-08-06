@@ -19,20 +19,16 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Loads glyph information for consumption asynchronously.
         /// </summary>
-        /// <returns>The task.</returns>
         Task LoadFontAsync();
 
         /// <summary>
         /// Whether a glyph exists for the specified character in this store.
         /// </summary>
-        /// <param name="c">The character.</param>
-        /// <returns>Has glyph.</returns>
         bool HasGlyph(char c);
 
         /// <summary>
         /// Retrieves the height from the top of the glyph cell to the baseline.
         /// </summary>
-        /// <returns>The height.</returns>
         int GetBaseHeight();
 
         /// <summary>
