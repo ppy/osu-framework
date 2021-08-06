@@ -49,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             var data = upload.Data;
 
-            uploadCornerPadding(data, middleBounds, actualPadding);
-            uploadHorizontalPadding(data, middleBounds, actualPadding);
-            uploadVerticalPadding(data, middleBounds, actualPadding);
+            uploadCornerPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None && wrapModeT != WrapMode.None);
+            uploadHorizontalPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None);
+            uploadVerticalPadding(data, middleBounds, actualPadding, wrapModeT != WrapMode.None);
 
             // Upload the middle part of the texture
             // For a texture atlas, we don't care about opacity, so we avoid
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
         }
 
-        private void uploadVerticalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadVerticalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] sideBoundsArray =
             {
@@ -92,8 +92,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             Rgba32 pixel = upload[index + x];
                             allTransparent &= checkEdgeRGB(pixel);
 
-                            // fill the padding with a transparent version of the adjacent pixel.
-                            pixel.A = 0;
+                            if (!fillOpaque)
+                                pixel.A = 0;
+
                             data[y * sideBounds.Width + x] = pixel;
                         }
                     }
@@ -109,7 +110,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void uploadHorizontalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadHorizontalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] sideBoundsArray =
             {
@@ -144,8 +145,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             Rgba32 pixel = upload[index + y * stride];
                             allTransparent &= checkEdgeRGB(pixel);
 
-                            // fill the padding with a transparent version of the adjacent pixel.
-                            pixel.A = 0;
+                            if (!fillOpaque)
+                                pixel.A = 0;
+
                             data[y * sideBounds.Width + x] = pixel;
                         }
                     }
@@ -161,7 +163,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void uploadCornerPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadCornerPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] cornerBoundsArray =
             {
@@ -188,7 +190,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 // Only upload if we have a non-zero size and if the colour isn't already transparent white
                 if (nCornerPixels > 0 && !checkEdgeRGB(cornerPixel))
                 {
-                    cornerPixel.A = 0;
+                    if (!fillOpaque)
+                        cornerPixel.A = 0;
 
                     var cornerUpload = new MemoryAllocatorTextureUpload(cornerBounds.Width, cornerBounds.Height) { Bounds = cornerBounds };
                     var data = cornerUpload.RawData;
