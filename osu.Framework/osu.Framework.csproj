@@ -40,7 +40,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.173" />
     <PackageReference Include="StbiSharp" Version="1.0.13" />
-    <PackageReference Include="ppy.SDL2-CS" Version="1.0.346-alpha" />
+    <PackageReference Include="ppy.SDL2-CS" Version="1.0.367-alpha" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFrameworkIdentifier) == '.NETCoreApp'">
     <PackageReference Include="ppy.osu.Framework.NativeLibs" Version="2021.805.0" />
