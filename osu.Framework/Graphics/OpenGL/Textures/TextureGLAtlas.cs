@@ -49,9 +49,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             var data = upload.Data;
 
-            uploadCornerPadding(data, middleBounds, actualPadding);
-            uploadHorizontalPadding(data, middleBounds, actualPadding);
-            uploadVerticalPadding(data, middleBounds, actualPadding);
+            uploadCornerPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None && wrapModeT != WrapMode.None);
+            uploadHorizontalPadding(data, middleBounds, actualPadding, wrapModeS != WrapMode.None);
+            uploadVerticalPadding(data, middleBounds, actualPadding, wrapModeT != WrapMode.None);
 
             // Upload the middle part of the texture
             // For a texture atlas, we don't care about opacity, so we avoid
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             base.SetData(upload, wrapModeS, wrapModeT, Opacity.Mixed);
         }
 
-        private void uploadVerticalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadVerticalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] sideBoundsArray =
             {
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             Rgba32 pixel = upload[index + x];
                             allTransparent &= checkEdgeRGB(pixel);
 
-                            transferBorderPixel(ref data[y * sideBounds.Width + x], pixel);
+                            transferBorderPixel(ref data[y * sideBounds.Width + x], pixel, fillOpaque);
                         }
                     }
 
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void uploadHorizontalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadHorizontalPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] sideBoundsArray =
             {
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             allTransparent &= checkEdgeRGB(pixel);
 
-                            transferBorderPixel(ref data[y * sideBounds.Width + x], pixel);
+                            transferBorderPixel(ref data[y * sideBounds.Width + x], pixel, fillOpaque);
                         }
                     }
 
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private void uploadCornerPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding)
+        private void uploadCornerPadding(ReadOnlySpan<Rgba32> upload, RectangleI middleBounds, int actualPadding, bool fillOpaque)
         {
             RectangleI[] cornerBoundsArray =
             {
@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     var data = cornerUpload.RawData;
 
                     for (int j = 0; j < nCornerPixels; ++j)
-                        transferBorderPixel(ref data[j], pixel);
+                        transferBorderPixel(ref data[j], pixel, fillOpaque);
 
                     // For a texture atlas, we don't care about opacity, so we avoid
                     // any computations related to it by assuming it to be mixed.
@@ -199,14 +199,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void transferBorderPixel(ref Rgba32 dest, Rgba32 source)
+        private void transferBorderPixel(ref Rgba32 dest, Rgba32 source, bool fillOpaque)
         {
             dest.R = source.R;
             dest.G = source.G;
             dest.B = source.B;
-            // in the case the adjacent pixel is solid, we presume that it should interpolate to itself (creating a hard edge).
-            // in the case of pixels with transparency it makes more sense to interpolate to nothing.
-            dest.A = source.A < 255 ? (byte)0 : source.A;
+            dest.A = fillOpaque ? source.A : (byte)0;
         }
 
         /// <summary>
