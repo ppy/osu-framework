@@ -282,6 +282,29 @@ namespace osu.Framework.Graphics.Containers
             return part;
         }
 
+        /// <summary>
+        /// Removes an <see cref="ITextPart"/> from this text flow.
+        /// </summary>
+        /// <returns>Whether <see cref="ITextPart"/> was successfully removed from the flow.</returns>
+        public bool RemovePart(ITextPart partToRemove)
+        {
+            if (!parts.Remove(partToRemove))
+                return false;
+
+            // manual parts need to be manually removed before clearing contents,
+            // to avoid accidentally disposing of them in the process.
+            foreach (var manualPart in parts.OfType<TextPartManual>())
+                RemoveRange(manualPart.Drawables);
+
+            // make sure not to clear the list of parts on accident.
+            base.Clear(true);
+
+            foreach (var part in parts)
+                AddPart(part);
+
+            return true;
+        }
+
         private readonly Cached layout = new Cached();
 
         private void computeLayout()
