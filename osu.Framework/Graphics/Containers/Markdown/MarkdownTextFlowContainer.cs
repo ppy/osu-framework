@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
             => base.AddText(Escape(text), creationParameters);
 
-        public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
+        public new ITextPart AddParagraph(string text, Action<SpriteText> creationParameters = null)
             => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
