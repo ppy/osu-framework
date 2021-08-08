@@ -85,17 +85,17 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Vector2 spacingFactor(Drawable c)
+        private CrossAxes spacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
             if (c.Anchor.HasFlagFast(Anchor.x2))
                 result.X = 1 - result.X;
             if (c.Anchor.HasFlagFast(Anchor.y2))
                 result.Y = 1 - result.Y;
-            return result;
+            return new CrossAxes { Direction = Direction, Vector = result };
         }
 
-        protected override IEnumerable<Vector2> ComputeLayoutPositions()
+        private CrossAxes calculateMaximumCrossSize()
         {
             var max = MaximumSize;
 
@@ -109,126 +109,140 @@ namespace osu.Framework.Graphics.Containers
                 max.Y = AutoSizeAxes.HasFlagFast(Axes.Y) ? float.MaxValue : s.Y;
             }
 
-            var children = FlowingChildren.ToArray();
-            if (children.Length == 0)
-                return new List<Vector2>();
+            return new CrossAxes { Direction = Direction, Vector = max };
+        }
+        // Lists used to reduce allocations when computing layout positions. Take note that List.Clear does not reduce the already allocated capacity.
+        private List<Drawable> children = new List<Drawable>();
+        private List<Vector2> layoutPositions = new List<Vector2>();
+        private List<int> rowIndices = new List<int>();
+        private List<float> rowOffsetsToMiddle = new List<float>();
+        protected override IEnumerable<Vector2> ComputeLayoutPositions()
+        {
+            if (!FlowingChildren.Any())
+                return Array.Empty<Vector2>();
+            children.Clear();
+            children.AddRange(FlowingChildren);
 
             // The positions for each child we will return later on.
-            Vector2[] result = new Vector2[children.Length];
+            layoutPositions.Clear();
 
             // We need to keep track of row widths such that we can compute correct
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
-            int[] rowIndices = new int[children.Length];
-            List<float> rowOffsetsToMiddle = new List<float> { 0 };
+            rowIndices.Clear();
+            rowOffsetsToMiddle.Clear();
+            rowOffsetsToMiddle.Add(0);
 
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
-            float rowHeight = 0;
-            float rowBeginOffset = 0;
-            var current = Vector2.Zero;
+            float rowCross = 0;
+            var current = new CrossAxes { Direction = Direction };
+            var max = calculateMaximumCrossSize();
+            var size = new CrossAxes { Direction = Direction, Vector = children[ 0 ].BoundingBox.Size };
+            Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
+            var rowBeginOffset = spacingFactor(children[0]) * size;
+
 
             // First pass, computing initial flow positions
-            Vector2 size = Vector2.Zero;
-
-            for (int i = 0; i < children.Length; ++i)
+            for (int i = 0; i < children.Count; i++)
             {
                 Drawable c = children[i];
+                validateChild(c);
 
-                static Axes toAxes(FillDirection direction)
+                float rowMain = rowBeginOffset.Main + current.Main + (1 - spacingFactor(c).Main) * size.Main;
+
+                //We've exceeded our allowed main size, move to a new row
+                if ((Direction.AffectedAxes() == Axes.Both && Precision.DefinitelyBigger(rowMain, max.Main)) || ForceNewRow(c))
                 {
-                    switch (direction)
-                    {
-                        case FillDirection.Full:
-                            return Axes.Both;
+                    current.Main = 0;
+                    current.Cross += rowCross;
 
-                        case FillDirection.Horizontal:
-                            return Axes.X;
+                    layoutPositions.Add(current);
 
-                        case FillDirection.Vertical:
-                            return Axes.Y;
+                    rowOffsetsToMiddle.Add(0);
+                    rowBeginOffset = spacingFactor(c) * size;
 
-                        default:
-                            throw new ArgumentException($"{direction.ToString()} is not defined");
-                    }
+                    rowCross = 0;
+                }
+                else
+                {
+                    layoutPositions.Add(current);
+
+                    // Compute offset to the middle of the row, to be applied in case of centre anchor
+                    // in a second pass.
+                    rowOffsetsToMiddle[^1] = rowBeginOffset.Main - rowMain / 2;
                 }
 
+                rowIndices.Add(rowOffsetsToMiddle.Count - 1);
+
+                CrossAxes stride = new CrossAxes { Direction = Direction };
+
+                if (i < children.Count - 1)
+                {
+                    // Compute stride. Note, that the stride depends on the origins of the drawables
+                    // on both sides of the step to be taken.
+                    stride.Vector = (Vector2.One - spacingFactor(c)) * size;
+
+                    c = children[i + 1];
+                    size.Vector = c.BoundingBox.Size;
+
+                    stride.Vector += spacingFactor(c) * size;
+                }
+
+                stride.Vector += Spacing;
+
+                if (stride.Cross > rowCross)
+                    rowCross = stride.Cross;
+                current.Main += stride.Main;
+            }
+
+            float cross = Direction.MainAxis() == Axes.X ? layoutPositions.Last().Y : layoutPositions.Last().X;
+
+            // Second pass, adjusting the positions for anchors of children.
+            // Uses rowWidths and height for centre-anchors.
+            for (int i = 0; i < children.Count; i++)
+            {
+                var c = children[i];
+
+                if (c.Anchor.HasFlagFast(Anchor.x2))
+                    // Flow right-to-left
+                    layoutPositions[i] = new Vector2(-layoutPositions[i].X, layoutPositions[i].Y);
+                else if (c.Anchor.HasFlagFast(Anchor.x1))
+                {
+                    // Begin flow at centre of row
+                    if (Direction.MainAxis() == Axes.X)
+                        layoutPositions[i] += new Vector2(rowOffsetsToMiddle[rowIndices[i]], 0);
+                    else
+                        layoutPositions[i] -= new Vector2(cross / 2, 0);
+                }
+
+                if (c.Anchor.HasFlagFast(Anchor.y2))
+                    // Flow bottom-to-top
+                    layoutPositions[i] = new Vector2(layoutPositions[i].X, -layoutPositions[i].Y);
+                else if (c.Anchor.HasFlagFast(Anchor.y1))
+                {
+                    // Begin flow at centre of total height
+                    if (Direction.MainAxis() == Axes.Y)
+                        layoutPositions[i] += new Vector2(0, rowOffsetsToMiddle[rowIndices[i]]);
+                    else
+                        layoutPositions[i] -= new Vector2(0, cross / 2);
+                }
+            }
+
+            void validateChild(Drawable c)
+            {
                 // In some cases (see the right hand side of the conditional) we want to permit relatively sized children
                 // in our fill direction; specifically, when children use FillMode.Fit to preserve the aspect ratio.
                 // Consider the following use case: A fill flow container has a fixed width but an automatic height, and fills
                 // in the vertical direction. Now, we can add relatively sized children with FillMode.Fit to make sure their
                 // aspect ratio is preserved while still allowing them to fill vertically. This special case can not result
                 // in an autosize-related feedback loop, and we can thus simply allow it.
-                if ((c.RelativeSizeAxes & AutoSizeAxes & toAxes(Direction)) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
+                if ((c.RelativeSizeAxes & AutoSizeAxes & Direction.AffectedAxes()) != 0 && (c.FillMode != FillMode.Fit || c.RelativeSizeAxes != Axes.Both || c.Size.X > RelativeChildSize.X || c.Size.Y > RelativeChildSize.Y || AutoSizeAxes == Axes.Both))
                 {
                     throw new InvalidOperationException(
                         "Drawables inside a fill flow container may not have a relative size axis that the fill flow container is filling in and auto sizing for. " +
                         $"The fill flow container is set to flow in the {Direction} direction and autosize in {AutoSizeAxes} axes and the child is set to relative size in {c.RelativeSizeAxes} axes.");
                 }
-
-                // Populate running variables with sane initial values.
-                if (i == 0)
-                {
-                    size = c.BoundingBox.Size;
-                    rowBeginOffset = spacingFactor(c).X * size.X;
-                }
-
-                float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
-
-                //We've exceeded our allowed width, move to a new row
-                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical || ForceNewRow(c)))
-                {
-                    current.X = 0;
-                    current.Y += rowHeight;
-
-                    result[i] = current;
-
-                    rowOffsetsToMiddle.Add(0);
-                    rowBeginOffset = spacingFactor(c).X * size.X;
-
-                    rowHeight = 0;
-                }
-                else
-                {
-                    result[i] = current;
-
-                    // Compute offset to the middle of the row, to be applied in case of centre anchor
-                    // in a second pass.
-                    rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
-                }
-
-                rowIndices[i] = rowOffsetsToMiddle.Count - 1;
-
-                Vector2 stride = Vector2.Zero;
-
-                if (i < children.Length - 1)
-                {
-                    // Compute stride. Note, that the stride depends on the origins of the drawables
-                    // on both sides of the step to be taken.
-                    stride = (Vector2.One - spacingFactor(c)) * size;
-
-                    c = children[i + 1];
-                    size = c.BoundingBox.Size;
-
-                    stride += spacingFactor(c) * size;
-                }
-
-                stride += Spacing;
-
-                if (stride.Y > rowHeight)
-                    rowHeight = stride.Y;
-                current.X += stride.X;
-            }
-
-            float height = result.Last().Y;
-
-            Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
-
-            // Second pass, adjusting the positions for anchors of children.
-            // Uses rowWidths and height for centre-anchors.
-            for (int i = 0; i < children.Length; ++i)
-            {
-                var c = children[i];
 
                 switch (Direction)
                 {
@@ -262,31 +276,63 @@ namespace osu.Framework.Graphics.Containers
 
                         break;
                 }
-
-                if (c.Anchor.HasFlagFast(Anchor.x1))
-                    // Begin flow at centre of row
-                    result[i].X += rowOffsetsToMiddle[rowIndices[i]];
-                else if (c.Anchor.HasFlagFast(Anchor.x2))
-                    // Flow right-to-left
-                    result[i].X = -result[i].X;
-
-                if (c.Anchor.HasFlagFast(Anchor.y1))
-                    // Begin flow at centre of total height
-                    result[i].Y -= height / 2;
-                else if (c.Anchor.HasFlagFast(Anchor.y2))
-                    // Flow bottom-to-top
-                    result[i].Y = -result[i].Y;
             }
 
-            return result;
+            return layoutPositions;
         }
 
         /// <summary>
         /// Returns true if the given child should be placed on a new row, false otherwise. This will be called automatically for each child in this FillFlowContainers FlowingChildren-List.
+        /// Take note that if the main axis is vertical this will force a new column instead.
         /// </summary>
         /// <param name="child">The child to check.</param>
         /// <returns>True if the given child should be placed on a new row, false otherwise.</returns>
         protected virtual bool ForceNewRow(Drawable child) => false;
+    }
+
+    internal struct CrossAxes
+    {
+        public FillDirection Direction;
+        public float Main;
+        public float Cross;
+        public float X
+        {
+            get => Direction.MainAxis() == Axes.X ? Main : Cross;
+            set
+            {
+                if (Direction.MainAxis() == Axes.X)
+                    Main = value;
+                else
+                    Cross = value;
+            }
+        }
+        public float Y
+        {
+            get => Direction.MainAxis() == Axes.Y ? Main : Cross;
+            set
+            {
+                if (Direction.MainAxis() == Axes.Y)
+                    Main = value;
+                else
+                    Cross = value;
+            }
+        }
+        public Vector2 Vector
+        {
+            get => new Vector2(X, Y);
+            set
+            {
+                X = value.X;
+                Y = value.Y;
+            }
+        }
+        public static implicit operator Vector2(CrossAxes axes)
+            => axes.Vector;
+        public static CrossAxes operator *(CrossAxes a, CrossAxes scale)
+        {
+            if (a.Direction != scale.Direction) throw new InvalidOperationException("Cannot multiply cross axes with different orientations");
+            return new CrossAxes { Direction = a.Direction, Vector = a.Vector * scale.Vector };
+        }
     }
 
     /// <summary>
@@ -307,6 +353,41 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Fill only vertically.
         /// </summary>
-        Vertical
+        Vertical,
+
+        /// <summary>
+        /// Fill vertically first, then fill horizontally via multiple rows.
+        /// </summary>
+        FullVertical
+    }
+
+    public static class FillDirectionExtensions
+    {
+        public static Axes AffectedAxes(this FillDirection direction)
+        {
+            return direction switch
+            {
+                FillDirection.Full => Axes.Both,
+                FillDirection.FullVertical => Axes.Both,
+                FillDirection.Horizontal => Axes.X,
+                FillDirection.Vertical => Axes.Y,
+                _ => throw new ArgumentException($"{nameof(FillDirection)} {direction} is not defined")
+            };
+        }
+
+        public static Axes MainAxis(this FillDirection direction)
+        {
+            return direction switch
+            {
+                FillDirection.Full => Axes.X,
+                FillDirection.Horizontal => Axes.X,
+                FillDirection.FullVertical => Axes.Y,
+                FillDirection.Vertical => Axes.Y,
+                _ => throw new ArgumentException($"{nameof(FillDirection)} {direction} is not defined")
+            };
+        }
+
+        public static Axes CrossAxis(this FillDirection direction)
+            => direction.MainAxis() == Axes.X ? Axes.Y : Axes.X;
     }
 }

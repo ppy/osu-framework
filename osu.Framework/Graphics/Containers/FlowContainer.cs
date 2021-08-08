@@ -156,6 +156,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
+        // List used to reduce allocations when computing layout positions. Take note that List.Clear does not reduce the already allocated capacity.
+        private List<Vector2> layoutPositions = new List<Vector2>();
         private void performLayout()
         {
             OnLayout?.Invoke();
@@ -163,19 +165,20 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            var positions = ComputeLayoutPositions().ToArray();
+            layoutPositions.Clear();
+            layoutPositions.AddRange(ComputeLayoutPositions());
 
             int i = 0;
 
             foreach (var d in FlowingChildren)
             {
-                if (i > positions.Length)
+                if (i > layoutPositions.Count)
                     break;
 
                 if (d.RelativePositionAxes != Axes.None)
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
-                var finalPos = positions[i];
+                var finalPos = layoutPositions[i];
 
                 var existingTransform = d.Transforms.OfType<FlowTransform>().FirstOrDefault();
                 Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
@@ -194,10 +197,10 @@ namespace osu.Framework.Graphics.Containers
                 ++i;
             }
 
-            if (i != positions.Length)
+            if (i != layoutPositions.Count)
             {
                 throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {layoutPositions.Count} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 

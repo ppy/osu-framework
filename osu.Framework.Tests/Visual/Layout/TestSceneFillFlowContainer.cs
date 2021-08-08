@@ -375,6 +375,13 @@ namespace osu.Framework.Tests.Visual.Layout
             fillContainer.Spacing = new Vector2(5, 5);
         }
 
+        [FlowTestCase(FlowTestType.FullVertical)]
+        private void test4()
+        {
+            fillContainer.Direction = FillDirection.FullVertical;
+            fillContainer.Spacing = new Vector2(5, 5);
+        }
+
         private class TestSceneDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
@@ -423,6 +430,7 @@ namespace osu.Framework.Tests.Visual.Layout
             Full,
             Horizontal,
             Vertical,
+            FullVertical
         }
     }
 }
