@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk"/> for this text flow container type.
         /// </summary>
-        internal virtual TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+        protected internal virtual TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
             => new TextChunk(text, newLineIsParagraph, creationParameters);
 
         /// <summary>
@@ -300,7 +300,11 @@ namespace osu.Framework.Graphics.Containers
             base.Clear(true);
 
             foreach (var part in parts)
-                AddPart(part);
+            {
+                part.RecreateDrawablesFor(this);
+                foreach (var drawable in part.Drawables)
+                    base.Add(drawable);
+            }
 
             return true;
         }

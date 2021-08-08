@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Represents a plain chunk of text to be displayed in a text flow.
     /// </summary>
-    internal class TextChunk : TextPart
+    public class TextChunk : TextPart
     {
         private readonly string text;
         private readonly bool newLineIsParagraph;

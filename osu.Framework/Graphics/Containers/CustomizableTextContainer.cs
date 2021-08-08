@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether an icon factory was found for the given <paramref name="name"/>.</returns>
         internal bool TryGetIconFactory(string name, out Delegate iconFactory) => iconFactories.TryGetValue(name, out iconFactory);
 
-        internal override TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+        protected internal override TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
             => new CustomizableTextChunk(text, newLineIsParagraph, creationParameters);
     }
 }
