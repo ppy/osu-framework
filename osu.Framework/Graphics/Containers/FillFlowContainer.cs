@@ -126,9 +126,10 @@ namespace osu.Framework.Graphics.Containers
             // The positions for each child we will return later on.
             layoutPositions.Clear();
 
-            // We need to keep track of row widths such that we can compute correct
-            // positions for horizontal centre anchor children.
+            // We need to keep track of row size such that we can compute correct
+            // positions for centre anchor children.
             // We also store for each child to which row it belongs.
+            // Take note that the term "row" refers to column in the case of a vertical main axis.
             rowIndices.Clear();
             rowOffsetsToMiddle.Clear();
             rowOffsetsToMiddle.Add(0);
@@ -138,10 +139,9 @@ namespace osu.Framework.Graphics.Containers
             float rowCross = 0;
             var current = new CrossAxes { Direction = Direction };
             var max = calculateMaximumCrossSize();
-            var size = new CrossAxes { Direction = Direction, Vector = children[ 0 ].BoundingBox.Size };
+            var size = new CrossAxes { Direction = Direction, Vector = children[0].BoundingBox.Size };
             Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
             var rowBeginOffset = spacingFactor(children[0]) * size;
-
 
             // First pass, computing initial flow positions
             for (int i = 0; i < children.Count; i++)
@@ -199,7 +199,6 @@ namespace osu.Framework.Graphics.Containers
             float cross = Direction.MainAxis() == Axes.X ? layoutPositions.Last().Y : layoutPositions.Last().X;
 
             // Second pass, adjusting the positions for anchors of children.
-            // Uses rowWidths and height for centre-anchors.
             for (int i = 0; i < children.Count; i++)
             {
                 var c = children[i];
@@ -356,7 +355,7 @@ namespace osu.Framework.Graphics.Containers
         Vertical,
 
         /// <summary>
-        /// Fill vertically first, then fill horizontally via multiple rows.
+        /// Fill vertically first, then fill horizontally via multiple columns.
         /// </summary>
         FullVertical
     }
