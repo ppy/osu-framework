@@ -202,6 +202,28 @@ namespace osu.Framework.Audio.Mixing.Bass
             => BassMix.ChannelGetData(channel.Handle, buffer, length);
 
         /// <summary>
+        /// Sets up a synchroniser on a mixer source channel.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Mix.BassMix.ChannelSetSync(int, SyncFlags, long, SyncProcedure, IntPtr)"/>.</remarks>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to set up the synchroniser for.</param>
+        /// <param name="type">The type of sync.</param>
+        /// <param name="parameter">The sync parameters, depending on the sync type.</param>
+        /// <param name="procedure">The callback function which should be invoked with the sync.</param>
+        /// <param name="user">User instance data to pass to the callback function.</param>
+        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
+            => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
+
+        /// <summary>
+        /// Removes a synchroniser from a mixer source channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to remove the synchroniser for.</param>
+        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="M:ManagedBass.Mix.BassMix.ChannelSetSync(System.Int32,ManagedBass.SyncFlags,System.Int64,ManagedBass.SyncProcedure,System.IntPtr)" /> call).</param>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
+            => BassMix.ChannelRemoveSync(channel.Handle, sync);
+
+        /// <summary>
         /// Frees a channel's resources.
         /// </summary>
         /// <param name="channel">The <see cref="IBassAudioChannel"/> to free.</param>
