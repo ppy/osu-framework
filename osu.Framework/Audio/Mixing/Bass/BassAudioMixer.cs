@@ -305,7 +305,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             Debug.Assert(Handle != 0);
             Debug.Assert(channel.Handle != 0);
 
-            BassFlags flags = BassFlags.MixerChanBuffer;
+            BassFlags flags = BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin;
             if (channel.MixerChannelPaused)
                 flags |= BassFlags.MixerChanPause;
 
