@@ -2,6 +2,9 @@
 
 DEADLOCK_TIME=600
 
+UPTIME=$(uptime -p)
+echo "Uptime: $UPTIME"
+
 rm -rf inspectcode
 dotnet tool restore
 
