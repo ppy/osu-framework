@@ -374,7 +374,9 @@ namespace osu.Framework.Tests.Audio
             bass.Update();
 
             bass.RunOnAudioThread(() => track.Seek(20000));
-            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(500));
+            takeEffectsAndUpdateAfter(50);
+
+            Assert.That(track.CurrentTime, Is.EqualTo(20000).Within(100));
         }
 
         private void takeEffectsAndUpdateAfter(int after)
