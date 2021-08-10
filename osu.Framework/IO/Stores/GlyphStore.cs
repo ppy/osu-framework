@@ -26,7 +26,7 @@ namespace osu.Framework.IO.Stores
 
         protected readonly IResourceStore<TextureUpload> TextureLoader;
 
-        public readonly string FontName;
+        public string FontName { get; }
 
         protected readonly ResourceStore<byte[]> Store;
 
@@ -77,14 +77,6 @@ namespace osu.Framework.IO.Stores
         public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
 
         public int GetBaseHeight() => Font?.Common.Base ?? 0;
-
-        public int? GetBaseHeight(string name)
-        {
-            if (name != FontName)
-                return null;
-
-            return GetBaseHeight();
-        }
 
         protected virtual TextureUpload GetPageImage(int page)
         {
