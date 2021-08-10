@@ -112,7 +112,12 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
         /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
-        public bool ChannelPause(IBassAudioChannel channel) => BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
+        public bool ChannelPause(IBassAudioChannel channel)
+        {
+            bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
+            flush();
+            return result;
+        }
 
         /// <summary>
         /// Stops a channel.
@@ -125,8 +130,9 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelStop(IBassAudioChannel channel)
         {
-            BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            return ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
+            bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
+            flush();
+            return result;
         }
 
         /// <summary>
@@ -172,7 +178,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
-            => BassMix.ChannelSetPosition(channel.Handle, position, mode);
+        {
+            bool result = BassMix.ChannelSetPosition(channel.Handle, position, mode);
+            flush();
+            return result;
+        }
 
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
@@ -398,6 +408,15 @@ namespace osu.Framework.Audio.Mixing.Bass
                 }
             }
         });
+
+        /// <summary>
+        /// Flushes the mixer.
+        /// </summary>
+        private void flush()
+        {
+            if (Handle != 0)
+                ManagedBass.Bass.ChannelSetPosition(Handle, 0);
+        }
 
         protected override void Dispose(bool disposing)
         {
