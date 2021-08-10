@@ -330,10 +330,10 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("attempt to select previous", () => performKeypress(disabledDropdown, Key.Up));
             valueIsUnchanged();
 
-            AddStep("attempt to select first", () => disabledDropdown.Header.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.MoveToListStart)));
+            AddStep("attempt to select first", () => InputManager.Keys(PlatformAction.MoveToListStart));
             valueIsUnchanged();
 
-            AddStep("attempt to select last", () => disabledDropdown.Header.OnPressed(new KeyBindingPressEvent<PlatformAction>(InputManager.CurrentState, PlatformAction.MoveToListEnd)));
+            AddStep("attempt to select last", () => InputManager.Keys(PlatformAction.MoveToListEnd));
             valueIsUnchanged();
 
             AddStep("enable current", () => disabledDropdown.Current.Disabled = false);

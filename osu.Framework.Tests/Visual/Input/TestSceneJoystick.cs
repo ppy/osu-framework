@@ -1,15 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osuTK;
 using osuTK.Graphics;
-using JoystickState = osu.Framework.Input.States.JoystickState;
 
 namespace osu.Framework.Tests.Visual.Input
 {
@@ -77,6 +78,7 @@ namespace osu.Framework.Tests.Visual.Input
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
+                        Font = FrameworkFont.Condensed,
                         Text = $"B{buttonIndex + 1}"
                     }
                 };
@@ -199,11 +201,13 @@ namespace osu.Framework.Tests.Visual.Input
         private class JoystickAxisButtonHandler : CompositeDrawable
         {
             private readonly JoystickAxisSource trackedAxis;
-            private readonly Drawable background;
+            private readonly Container background;
 
             private readonly JoystickButton positiveAxisButton;
             private readonly JoystickButton negativeAxisButton;
             private readonly SpriteText rawValue;
+
+            private readonly Box fill;
 
             public JoystickAxisButtonHandler(int trackedAxis)
             {
@@ -213,19 +217,28 @@ namespace osu.Framework.Tests.Visual.Input
 
                 Size = new Vector2(100, 50);
 
-                InternalChildren = new[]
+                InternalChildren = new Drawable[]
                 {
+                    fill = new Box
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.CentreLeft,
+                        RelativeSizeAxes = Axes.Both,
+                        Width = 0,
+                        Colour = Color4.SkyBlue,
+                    },
                     background = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Transparent,
-                        Child = new Box { RelativeSizeAxes = Axes.Both }
+                        Masking = true,
+                        BorderThickness = 3,
+                        Child = new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Transparent },
                     },
                     new SpriteText
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = $"AX{trackedAxis + 1}"
+                        Text = $"Axis {trackedAxis + 1}"
                     },
                     rawValue = new SpriteText
                     {
@@ -239,19 +252,17 @@ namespace osu.Framework.Tests.Visual.Input
             protected override bool OnJoystickPress(JoystickPressEvent e)
             {
                 if (e.Button == positiveAxisButton)
-                    background.FadeColour(Color4.DarkGreen, 100, Easing.OutQuint);
+                    background.BorderColour = Color4.DarkGreen;
                 else if (e.Button == negativeAxisButton)
-                    background.FadeColour(Color4.DarkRed, 100, Easing.OutQuint);
-                else
-                    return base.OnJoystickPress(e);
+                    background.BorderColour = Color4.DarkRed;
 
-                return true;
+                return base.OnJoystickPress(e);
             }
 
             protected override void OnJoystickRelease(JoystickReleaseEvent e)
             {
                 if (e.Button == positiveAxisButton || e.Button == negativeAxisButton)
-                    background.FadeColour(new Color4(0, 0, 0, 0), 100, Easing.OutQuint);
+                    background.BorderColour = Color4.Transparent;
                 else
                     base.OnJoystickRelease(e);
             }
@@ -259,7 +270,11 @@ namespace osu.Framework.Tests.Visual.Input
             protected override bool OnJoystickAxisMove(JoystickAxisMoveEvent e)
             {
                 if (e.Axis.Source == trackedAxis)
+                {
                     rawValue.Text = e.Axis.Value.ToString("0.0000000");
+                    fill.Width = e.Axis.Value / 2;
+                    fill.Alpha = Math.Abs(e.Axis.Value) == 1 ? 1 : 0.6f;
+                }
 
                 return false;
             }

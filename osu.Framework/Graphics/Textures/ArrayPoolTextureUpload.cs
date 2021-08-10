@@ -23,7 +23,8 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="arrayPool">The source pool to retrieve memory from. Shared default is used if null.</param>
         public ArrayPoolTextureUpload(int width, int height, ArrayPool<Rgba32> arrayPool = null)
         {
-            data = (this.arrayPool ??= ArrayPool<Rgba32>.Shared).Rent(width * height);
+            this.arrayPool = arrayPool ?? ArrayPool<Rgba32>.Shared;
+            data = this.arrayPool.Rent(width * height);
         }
 
         public void Dispose()
