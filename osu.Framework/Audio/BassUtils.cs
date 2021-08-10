@@ -27,5 +27,19 @@ namespace osu.Framework.Audio
             Logger.Log(failMessage, LoggingTarget.Runtime, LogLevel.Important);
             return true;
         }
+
+        internal static double DbToLevel(double gain)
+        {
+            if (gain == 0) return 0;
+
+            return Math.Pow(10, gain / 20);
+        }
+
+        internal static double LevelToDb(double level)
+        {
+            if (level == 0) return 0;
+
+            return Math.Log(level, 10) * 20f;
+        }
     }
 }

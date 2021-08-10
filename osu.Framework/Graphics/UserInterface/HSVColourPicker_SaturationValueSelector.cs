@@ -2,10 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
@@ -41,8 +44,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected Container SelectionArea { get; }
 
-            private readonly Box hueBox;
             private readonly Drawable marker;
+            private readonly SaturationBox box;
 
             protected SaturationValueSelector()
             {
@@ -53,27 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectionArea = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new[]
-                        {
-                            hueBox = new Box
-                            {
-                                Name = "Hue",
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = new Colour4(255, 0, 0, 255)
-                            },
-                            new Box
-                            {
-                                Name = "Saturation",
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0))
-                            },
-                            new Box
-                            {
-                                Name = "Value",
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = ColourInfo.GradientVertical(Colour4.Black.Opacity(0), Colour4.Black)
-                            },
-                        }
+                        Child = box = new SaturationBox()
                     },
                     marker = CreateMarker().With(d =>
                     {
@@ -161,7 +144,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void hueChanged()
             {
-                hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
+                box.Hue = Hue.Value;
                 updateCurrent();
             }
 
@@ -220,6 +203,64 @@ namespace osu.Framework.Graphics.UserInterface
             protected abstract class Marker : CompositeDrawable
             {
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
+            }
+
+            private class SaturationBox : Box, ITexturedShaderDrawable
+            {
+                public new IShader TextureShader { get; private set; }
+                public new IShader RoundedTextureShader { get; private set; }
+
+                private float hue;
+
+                public float Hue
+                {
+                    get => hue;
+                    set
+                    {
+                        if (hue == value) return;
+
+                        hue = value;
+                        Invalidate(Invalidation.DrawNode);
+                    }
+                }
+
+                public SaturationBox()
+                {
+                    RelativeSizeAxes = Axes.Both;
+                }
+
+                [BackgroundDependencyLoader]
+                private void load(ShaderManager shaders)
+                {
+                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
+                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
+                }
+
+                protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
+
+                private class SaturationBoxDrawNode : SpriteDrawNode
+                {
+                    public new SaturationBox Source => (SaturationBox)base.Source;
+
+                    public SaturationBoxDrawNode(SaturationBox source)
+                        : base(source)
+                    {
+                    }
+
+                    private float hue;
+
+                    public override void ApplyState()
+                    {
+                        base.ApplyState();
+                        hue = Source.hue;
+                    }
+
+                    protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                    {
+                        Shader.GetUniform<float>("hue").UpdateValue(ref hue);
+                        base.Blit(vertexAction);
+                    }
+                }
             }
         }
     }
