@@ -285,6 +285,7 @@ namespace osu.Framework.Graphics.Containers
                         layoutPosition.Y = -layoutPosition.Y;
 
                     yield return layoutPosition;
+
                     i++;
                 }
             }
