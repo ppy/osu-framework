@@ -55,6 +55,16 @@ namespace osu.Framework.Localisation
                     updateValue();
                 }
             }
+
+            internal override void UnbindAllInternal()
+            {
+                base.UnbindAllInternal();
+
+                // optimisation to ensure cleanup happens aggressively.
+                // without this, the central parameters bindable's internal WeakList can balloon out of control due to the
+                // weak reference cleanup only occurring on Value retrieval (which rarely/never happens in this case).
+                parameters?.UnbindAll();
+            }
         }
     }
 }
