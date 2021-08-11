@@ -179,6 +179,9 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
+            if (ChannelIsActive(channel) == PlaybackState.Stopped)
+                ChannelPause(channel);
+
             bool result = BassMix.ChannelSetPosition(channel.Handle, position, mode);
             flush();
             return result;
