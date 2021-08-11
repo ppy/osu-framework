@@ -96,11 +96,6 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        /// <summary>
-        /// A list reused in <see cref="ComputeLayoutPositions"/> in order to reduce allocations.
-        /// </summary>
-        private readonly List<Vector2> layoutPositions = new List<Vector2>();
-
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
@@ -117,10 +112,10 @@ namespace osu.Framework.Graphics.Containers
 
             var children = FlowingChildren.ToArray();
             if (children.Length == 0)
-                return Array.Empty<Vector2>();
+                yield break;
 
             // The positions for each child we will return later on.
-            layoutPositions.Clear();
+            using var layoutPositions = ListPool<Vector2>.Shared.Rent();
 
             // We need to keep track of row widths such that we can compute correct
             // positions for horizontal centre anchor children.
@@ -289,12 +284,10 @@ namespace osu.Framework.Graphics.Containers
                         // Flow bottom-to-top
                         layoutPosition.Y = -layoutPosition.Y;
 
-                    layoutPositions[i] = layoutPosition;
+                    yield return layoutPosition;
                     i++;
                 }
             }
-
-            return layoutPositions;
         }
 
         /// <summary>
