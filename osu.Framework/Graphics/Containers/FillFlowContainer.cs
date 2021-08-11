@@ -7,6 +7,7 @@ using osuTK;
 using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Utils;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -95,6 +96,11 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
+        /// <summary>
+        /// A list reused in <see cref="ComputeLayoutPositions"/> in order to reduce allocations.
+        /// </summary>
+        private readonly List<Vector2> layoutPositions = new List<Vector2>();
+
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
@@ -111,17 +117,18 @@ namespace osu.Framework.Graphics.Containers
 
             var children = FlowingChildren.ToArray();
             if (children.Length == 0)
-                return new List<Vector2>();
+                return Array.Empty<Vector2>();
 
             // The positions for each child we will return later on.
-            Vector2[] result = new Vector2[children.Length];
+            layoutPositions.Clear();
 
             // We need to keep track of row widths such that we can compute correct
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
-            int[] rowIndices = new int[children.Length];
-            List<float> rowOffsetsToMiddle = new List<float> { 0 };
-
+            using var rowChildCounts = ListPool<int>.Shared.Rent();
+            rowChildCounts.Add(0);
+            using var rowOffsetsToMiddle = ListPool<float>.Shared.Rent();
+            rowOffsetsToMiddle.Add(0);
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
             float rowHeight = 0;
@@ -181,23 +188,23 @@ namespace osu.Framework.Graphics.Containers
                     current.X = 0;
                     current.Y += rowHeight;
 
-                    result[i] = current;
+                    layoutPositions.Add(current);
 
                     rowOffsetsToMiddle.Add(0);
+                    rowChildCounts.Add(1);
                     rowBeginOffset = spacingFactor(c).X * size.X;
 
                     rowHeight = 0;
                 }
                 else
                 {
-                    result[i] = current;
+                    layoutPositions.Add(current);
 
                     // Compute offset to the middle of the row, to be applied in case of centre anchor
                     // in a second pass.
                     rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
+                    rowChildCounts[^1]++;
                 }
-
-                rowIndices[i] = rowOffsetsToMiddle.Count - 1;
 
                 Vector2 stride = Vector2.Zero;
 
@@ -220,65 +227,74 @@ namespace osu.Framework.Graphics.Containers
                 current.X += stride.X;
             }
 
-            float height = result.Last().Y;
+            float height = layoutPositions[^1].Y;
 
             Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
             // Second pass, adjusting the positions for anchors of children.
             // Uses rowWidths and height for centre-anchors.
-            for (int i = 0; i < children.Length; ++i)
+            for (int i = 0, j = 0; j < rowChildCounts.Count; j++)
             {
-                var c = children[i];
+                int rowChildCount = rowChildCounts[j];
 
-                switch (Direction)
+                for (int k = 0; k < rowChildCount; k++)
                 {
-                    case FillDirection.Vertical:
-                        if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
-                        {
-                            throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
-                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                        }
+                    var c = children[i];
 
-                        break;
+                    switch (Direction)
+                    {
+                        case FillDirection.Vertical:
+                            if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                            {
+                                throw new InvalidOperationException(
+                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
+                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                            }
 
-                    case FillDirection.Horizontal:
-                        if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
-                        {
-                            throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
-                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                        }
+                            break;
 
-                        break;
+                        case FillDirection.Horizontal:
+                            if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                            {
+                                throw new InvalidOperationException(
+                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
+                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                            }
 
-                    default:
-                        if (c.RelativeAnchorPosition != ourRelativeAnchor)
-                        {
-                            throw new InvalidOperationException(
-                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
-                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                        }
+                            break;
 
-                        break;
+                        default:
+                            if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                            {
+                                throw new InvalidOperationException(
+                                    $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
+                                    + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                            }
+
+                            break;
+                    }
+
+                    var layoutPosition = layoutPositions[i];
+                    if (c.Anchor.HasFlagFast(Anchor.x1))
+                        // Begin flow at centre of row
+                        layoutPosition.X += rowOffsetsToMiddle[j];
+                    else if (c.Anchor.HasFlagFast(Anchor.x2))
+                        // Flow right-to-left
+                        layoutPosition.X = -layoutPosition.X;
+
+                    if (c.Anchor.HasFlagFast(Anchor.y1))
+                        // Begin flow at centre of total height
+                        layoutPosition.Y -= height / 2;
+                    else if (c.Anchor.HasFlagFast(Anchor.y2))
+                        // Flow bottom-to-top
+                        layoutPosition.Y = -layoutPosition.Y;
+
+                    layoutPositions[i] = layoutPosition;
+                    i++;
                 }
-
-                if (c.Anchor.HasFlagFast(Anchor.x1))
-                    // Begin flow at centre of row
-                    result[i].X += rowOffsetsToMiddle[rowIndices[i]];
-                else if (c.Anchor.HasFlagFast(Anchor.x2))
-                    // Flow right-to-left
-                    result[i].X = -result[i].X;
-
-                if (c.Anchor.HasFlagFast(Anchor.y1))
-                    // Begin flow at centre of total height
-                    result[i].Y -= height / 2;
-                else if (c.Anchor.HasFlagFast(Anchor.y2))
-                    // Flow bottom-to-top
-                    result[i].Y = -result[i].Y;
             }
 
-            return result;
+            return layoutPositions;
         }
 
         /// <summary>

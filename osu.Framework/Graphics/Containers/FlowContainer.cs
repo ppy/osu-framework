@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -163,13 +164,14 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            var positions = ComputeLayoutPositions().ToArray();
+            using var positions = ListPool<Vector2>.Shared.Rent();
+            positions.AddRange(ComputeLayoutPositions());
 
             int i = 0;
 
             foreach (var d in FlowingChildren)
             {
-                if (i > positions.Length)
+                if (i > positions.Count)
                     break;
 
                 if (d.RelativePositionAxes != Axes.None)
@@ -194,10 +196,10 @@ namespace osu.Framework.Graphics.Containers
                 ++i;
             }
 
-            if (i != positions.Length)
+            if (i != positions.Count)
             {
                 throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 
