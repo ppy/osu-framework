@@ -11,16 +11,16 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<LocalisationParameters> parameters = new Bindable<LocalisationParameters>();
+            private IBindable<LocalisationParameters> parameters;
 
             private LocalisableString text;
 
-            public LocalisedBindableString(LocalisableString text, IBindable<LocalisationParameters> parameters)
+            private readonly LocalisationManager manager;
+
+            public LocalisedBindableString(LocalisableString text, LocalisationManager manager)
             {
                 this.text = text;
-
-                this.parameters.BindTo(parameters);
-                this.parameters.BindValueChanged(_ => updateValue());
+                this.manager = manager;
 
                 updateValue();
             }
@@ -34,6 +34,13 @@ namespace osu.Framework.Localisation
                         break;
 
                     case ILocalisableStringData data:
+                        if (parameters == null)
+                        {
+                            parameters = new Bindable<LocalisationParameters>();
+                            parameters.BindTo(manager.currentParameters);
+                            parameters.BindValueChanged(_ => updateValue());
+                        }
+
                         Value = data.GetLocalised(parameters.Value);
                         break;
 
