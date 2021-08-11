@@ -10,7 +10,7 @@ dotnet tool restore
 
 dotnet tool install -g dotnet-dump
 
-dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --debug --verbosity=TRACE --no-build --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode &
+dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --debug --loglevel=TRACE --logfile=$(pwd)/inspectcode.log --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode &
 
 echo "Waiting for R# CLI"
 sleep 10
@@ -31,6 +31,9 @@ dotnet dump collect -p $PID -o deadlock.dmp
 
 echo "Compressing dump..."
 tar -cjSf deadlock.tar.bz2 deadlock.dmp
+
+echo "Compressing log..."
+tar -cjSf inspectcode.log.tar.bz2 $(pwd)/inspectcode.log
 
 echo "Killing R# process"
 kill $PID

@@ -99,3 +99,9 @@ jobs:
         with:
           name: deadlock
           path: deadlock.tar.bz2
+
+      - name: Upload Log
+        uses: actions/upload-artifact@v2
+        with:
+          name: log
+          path: inspectcode.log.tar.bz2
