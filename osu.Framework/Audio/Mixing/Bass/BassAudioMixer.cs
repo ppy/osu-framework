@@ -179,6 +179,12 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
+            // All BASS channels enter a stopped state once they reach the end.
+            // Non-decoding channels remain in the stopped state when seeked afterwards, however decoding channels are put back into a playing state which causes audio to play.
+            // Thus, on seek, in order to reproduce the expectations set out by non-decoding channels, manually pause the mixer channel when the decoding channel is stopped.
+            if (ChannelIsActive(channel) == PlaybackState.Stopped)
+                ChannelPause(channel);
+
             bool result = BassMix.ChannelSetPosition(channel.Handle, position, mode);
             flush();
             return result;

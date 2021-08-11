@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -74,6 +73,7 @@ namespace osu.Framework.Development
         /// Gets the absolute path to the directory containing the assembly determined by <see cref="GetEntryAssembly"/>.
         /// </summary>
         /// <returns>The entry path (usually obtained via the entry assembly's <see cref="Assembly.Location"/> directory.</returns>
-        public static string GetEntryPath() => Path.GetDirectoryName(GetEntryAssembly().Location);
+        [Obsolete("Use AppContext.BaseDirectory instead")] // Can be removed 20220211
+        public static string GetEntryPath() => AppContext.BaseDirectory;
     }
 }
