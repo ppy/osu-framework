@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
-using osu.Framework.Allocation;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {

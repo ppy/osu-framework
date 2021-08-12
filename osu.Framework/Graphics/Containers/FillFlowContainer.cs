@@ -7,7 +7,7 @@ using osuTK;
 using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Utils;
-using osu.Framework.Allocation;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {
