@@ -37,7 +37,7 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
-        public void SingleWholeLayout ()
+        public void SingleWholeLayout()
         {
             game.Mode = 0;
             RunSingleFrame();
@@ -64,7 +64,7 @@ namespace osu.Framework.Benchmarks
         {
             public void TestComputeLayoutPositions()
             {
-                ComputeLayoutPositions();
+                _ = ComputeLayoutPositions();
             }
 
             public void TestPerfromLayout()
@@ -100,7 +100,7 @@ namespace osu.Framework.Benchmarks
                 }
             }
 
-            protected override void Update ()
+            protected override void Update()
             {
                 base.Update();
 
@@ -112,7 +112,7 @@ namespace osu.Framework.Benchmarks
                 {
                     for (int i = 0; i < Containers.Count; i++)
                     {
-                         Containers[i].Invalidate(source: Layout.InvalidationSource.Child);
+                        Containers[i].Invalidate(source: Layout.InvalidationSource.Child);
                     }
                 }
             }
