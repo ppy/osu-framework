@@ -120,22 +120,6 @@ namespace osu.Framework.Audio.Mixing.Bass
         }
 
         /// <summary>
-        /// Stops a channel.
-        /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelStop"/>.</remarks>
-        /// <param name="channel">The channel to stop.</param>
-        /// <returns>
-        /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
-        /// </returns>
-        public bool ChannelStop(IBassAudioChannel channel)
-        {
-            bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            flush();
-            return result;
-        }
-
-        /// <summary>
         /// Checks if a channel is active (playing) or stalled.
         /// </summary>
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelIsActive"/>.</remarks>
