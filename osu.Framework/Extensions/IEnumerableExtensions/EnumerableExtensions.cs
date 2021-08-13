@@ -104,5 +104,20 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
                     select accseq.Concat(new[] { item })
             );
         }
+
+        /// <summary>
+        /// Gets the first element of type <typeparamref name="T"/> or default from a sequence.
+        /// </summary>
+        public static T FirstOrDefaultOfType<T>(this IEnumerable<object> self)
+        {
+            using var enumerator = self.GetEnumerator();
+
+            while (enumerator.MoveNext())
+            {
+                if (enumerator.Current is T t) return t;
+            }
+
+            return default;
+        }
     }
 }

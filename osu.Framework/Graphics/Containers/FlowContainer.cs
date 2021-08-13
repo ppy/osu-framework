@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
-using osu.Framework.Allocation;
+using osu.Framework.Lists;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -164,22 +165,24 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            using var positions = ListPool<Vector2>.Shared.Rent();
-            positions.AddRange(ComputeLayoutPositions());
+            using var positions = ListPool<Vector2>.Shared.Rent(ComputeLayoutPositions());
+            using var flowingChildren = ListPool<Drawable>.Shared.Rent(FlowingChildren);
 
-            int i = 0;
-
-            foreach (var d in FlowingChildren)
+            if (flowingChildren.Count != positions.Count)
             {
-                if (i > positions.Count)
-                    break;
+                throw new InvalidOperationException(
+                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {flowingChildren.Count} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+            }
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                var d = flowingChildren[i];
+                var finalPos = positions[i];
 
                 if (d.RelativePositionAxes != Axes.None)
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
-                var finalPos = positions[i];
-
-                var existingTransform = d.Transforms.OfType<FlowTransform>().FirstOrDefault();
+                var existingTransform = d.TransformsForTargetMember(nameof(FlowTransform)).FirstOrDefaultOfType<FlowTransform>();
                 Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
 
                 if (currentTargetPos != finalPos)
@@ -192,14 +195,6 @@ namespace osu.Framework.Graphics.Containers
                         d.Position = finalPos;
                     }
                 }
-
-                ++i;
-            }
-
-            if (i != positions.Count)
-            {
-                throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 
