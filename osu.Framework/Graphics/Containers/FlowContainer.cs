@@ -165,36 +165,45 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            using var positions = ListPool<Vector2>.Shared.Rent(ComputeLayoutPositions());
-            using var flowingChildren = ListPool<Drawable>.Shared.Rent(FlowingChildren);
+            var positions = ListPool<Vector2>.Shared.Rent(ComputeLayoutPositions());
+            var flowingChildren = ListPool<Drawable>.Shared.Rent(FlowingChildren);
 
-            if (flowingChildren.Count != positions.Count)
+            // defer the return of the rented lists
+            try
             {
-                throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {flowingChildren.Count} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
-            }
-
-            for (int i = 0; i < positions.Count; i++)
-            {
-                var d = flowingChildren[i];
-                var finalPos = positions[i];
-
-                if (d.RelativePositionAxes != Axes.None)
-                    throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
-
-                var existingTransform = d.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
-                Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
-
-                if (currentTargetPos != finalPos)
+                if (flowingChildren.Count != positions.Count)
                 {
-                    if (LayoutDuration > 0)
-                        d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
-                    else
+                    throw new InvalidOperationException(
+                        $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {flowingChildren.Count} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                }
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    var d = flowingChildren[i];
+                    var finalPos = positions[i];
+
+                    if (d.RelativePositionAxes != Axes.None)
+                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
+
+                    var existingTransform = d.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
+                    Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
+
+                    if (currentTargetPos != finalPos)
                     {
-                        if (existingTransform != null) d.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
-                        d.Position = finalPos;
+                        if (LayoutDuration > 0)
+                            d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
+                        else
+                        {
+                            if (existingTransform != null) d.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
+                            d.Position = finalPos;
+                        }
                     }
                 }
+            }
+            finally
+            {
+                ListPool<Vector2>.Shared.Return(positions);
+                ListPool<Drawable>.Shared.Return(flowingChildren);
             }
         }
 
