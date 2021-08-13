@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Containers
                 if (d.RelativePositionAxes != Axes.None)
                     throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
 
-                var existingTransform = d.TransformsForTargetMember(nameof(FlowTransform)).FirstOrDefaultOfType<FlowTransform>();
+                var existingTransform = d.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
                 Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
 
                 if (currentTargetPos != finalPos)
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Containers
                         d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
                     else
                     {
-                        if (existingTransform != null) d.ClearTransforms(false, nameof(FlowTransform));
+                        if (existingTransform != null) d.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
                         d.Position = finalPos;
                     }
                 }
@@ -217,8 +217,10 @@ namespace osu.Framework.Graphics.Containers
 
         private class FlowTransform : TransformCustom<Vector2, Drawable>
         {
+            public const string TARGET_MEMBER = nameof(Position);
+
             public FlowTransform()
-                : base(nameof(Position))
+                : base(TARGET_MEMBER)
             {
             }
         }
