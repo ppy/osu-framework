@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Bindables
 {
@@ -30,8 +31,34 @@ namespace osu.Framework.Bindables
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.
         /// </summary>
+        /// <remarks>
+        /// The copy bindable is instantiated via the protected method <see cref="CreateInstance"/>.
+        /// All bindable types must override this method to instantiate a bindable of their own kind.
+        /// </remarks>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindable GetBoundCopy();
+        /// <exception cref="InvalidOperationException">Thrown when attempting to instantiate a copy bindable that's not matching the original's type.</exception>
+        sealed IBindable GetBoundCopy()
+        {
+            var copy = CreateInstance();
+
+            if (copy.GetType() != GetType())
+            {
+                throw new InvalidOperationException($"Attempted to create a copy of {GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
+                                                    + $"Override {GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
+            }
+
+            copy.BindTo(this);
+            return copy;
+        }
+
+        /// <summary>
+        /// Creates a new instance of this <see cref="IBindable"/> for use in <see cref="GetBoundCopy"/>.
+        /// The returned instance must have match the most derived type of the bindable class this method is implemented on.
+        /// </summary>
+        /// <remarks>
+        /// This method was declared as a faster alternative to <see cref="Activator.CreateInstance(Type, object[])"/>, which appeared to have had
+        /// </remarks>
+        protected IBindable CreateInstance();
     }
 
     /// <summary>

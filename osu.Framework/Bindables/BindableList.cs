@@ -620,21 +620,12 @@ namespace osu.Framework.Bindables
 
         private void removeWeakReference(WeakReference<BindableList<T>> weakReference) => bindings?.Remove(weakReference);
 
-        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+        IBindable IBindable.CreateInstance() => new BindableList<T>();
 
-        IBindableList<T> IBindableList<T>.GetBoundCopy()
-            => GetBoundCopy();
+        IBindableList<T> IBindableList<T>.GetBoundCopy() => GetBoundCopy();
 
-        /// <summary>
-        /// Create a new instance of <see cref="BindableList{T}"/> and binds it to this instance.
-        /// </summary>
-        /// <returns>The created instance.</returns>
-        public BindableList<T> GetBoundCopy()
-        {
-            var copy = new BindableList<T>();
-            copy.BindTo(this);
-            return copy;
-        }
+        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
+        public BindableList<T> GetBoundCopy() => (BindableList<T>)((IBindable)this).GetBoundCopy();
 
         #endregion IBindableCollection
 
