@@ -9,36 +9,20 @@ namespace osu.Framework.Benchmarks
 {
     public class BenchmarkBindableInstantiation
     {
-        private Bindable<int> bindable;
-
-        [GlobalSetup]
-        public void GlobalSetup() => bindable = new Bindable<int>();
-
-        /// <summary>
-        /// Creates an instance of the bindable directly by construction.
-        /// </summary>
         [Benchmark(Baseline = true)]
-        public Bindable<int> CreateInstanceViaConstruction() => new Bindable<int>();
+        public Bindable<int> GetBoundCopyOld() => new BindableOld<int>().GetBoundCopy();
 
-        /// <summary>
-        /// Creates an instance of the bindable via <see cref="Activator.CreateInstance(Type, object[])"/>.
-        /// This used to be how <see cref="Bindable{T}.GetBoundCopy"/> creates an instance before binding, which has turned out to be inefficient in performance.
-        /// </summary>
         [Benchmark]
-        public Bindable<int> CreateInstanceViaActivatorWithParams() => (Bindable<int>)Activator.CreateInstance(typeof(Bindable<int>), 0);
+        public Bindable<int> GetBoundCopy() => new Bindable<int>().GetBoundCopy();
 
-        /// <summary>
-        /// Creates an instance of the bindable via <see cref="Activator.CreateInstance(Type)"/>.
-        /// More performant than <see cref="CreateInstanceViaActivatorWithParams"/>, due to not passing parameters to <see cref="Activator"/> during instance creation.
-        /// </summary>
-        [Benchmark]
-        public Bindable<int> CreateInstanceViaActivatorWithoutParams() => (Bindable<int>)Activator.CreateInstance(typeof(Bindable<int>), true);
+        private class BindableOld<T> : Bindable<T>
+        {
+            public BindableOld(T defaultValue = default)
+                : base(defaultValue)
+            {
+            }
 
-        /// <summary>
-        /// Creates an instance of the bindable via <see cref="IBindable.CreateInstance"/>.
-        /// This is the current and most performant version used for <see cref="IBindable.GetBoundCopy"/>, as equally performant as <see cref="CreateInstanceViaConstruction"/>.
-        /// </summary>
-        [Benchmark]
-        public Bindable<int> CreateInstanceViaBindableCreateInstance() => bindable.CreateInstance();
+            protected internal override Bindable<T> CreateInstance() => (BindableOld<T>)Activator.CreateInstance(GetType(), Value);
+        }
     }
 }
