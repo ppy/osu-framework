@@ -36,7 +36,7 @@ namespace osu.Framework.Bindables
             initialValue = result.Value;
         }
 
-        private readonly Dictionary<WeakReference<IBindable<T>>, IBindable<T>> sourceMapping = new Dictionary<WeakReference<IBindable<T>>, IBindable<T>>();
+        private readonly List<WeakRefPair> sourceMapping = new List<WeakRefPair>();
 
         /// <summary>
         /// Add a new source to be included in aggregation.
@@ -46,11 +46,11 @@ namespace osu.Framework.Bindables
         {
             lock (sourceMapping)
             {
-                if (findExistingWeak(bindable) != null)
+                if (findExistingPair(bindable) != null)
                     return;
 
                 var boundCopy = bindable.GetBoundCopy();
-                sourceMapping.Add(new WeakReference<IBindable<T>>(bindable), boundCopy);
+                sourceMapping.Add(new WeakRefPair(new WeakReference<IBindable<T>>(bindable), boundCopy));
                 boundCopy.BindValueChanged(recalculateAggregate, true);
             }
         }
@@ -63,11 +63,11 @@ namespace osu.Framework.Bindables
         {
             lock (sourceMapping)
             {
-                var weak = findExistingWeak(bindable);
+                var weak = findExistingPair(bindable);
 
                 if (weak != null)
                 {
-                    sourceMapping[weak].UnbindAll();
+                    weak.BoundCopy.UnbindAll();
                     sourceMapping.Remove(weak);
                 }
 
@@ -75,7 +75,8 @@ namespace osu.Framework.Bindables
             }
         }
 
-        private WeakReference<IBindable<T>> findExistingWeak(IBindable<T> bindable) => sourceMapping.Keys.FirstOrDefault(k => k.TryGetTarget(out var target) && target == bindable);
+        private WeakRefPair findExistingPair(IBindable<T> bindable) =>
+            sourceMapping.FirstOrDefault(p => p.WeakReference.TryGetTarget(out var target) && target == bindable);
 
         private void recalculateAggregate(ValueChangedEvent<T> obj = null)
         {
@@ -83,14 +84,15 @@ namespace osu.Framework.Bindables
 
             lock (sourceMapping)
             {
-                foreach (var weakRef in sourceMapping.Keys.ToArray())
+                for (var i = 0; i < sourceMapping.Count; i++)
                 {
-                    if (!weakRef.TryGetTarget(out _))
-                        sourceMapping.Remove(weakRef);
-                }
+                    var pair = sourceMapping[i];
 
-                foreach (var s in sourceMapping.Values)
-                    calculated = aggregateFunction(calculated, s.Value);
+                    if (!pair.WeakReference.TryGetTarget(out _))
+                        sourceMapping.RemoveAt(i--);
+                    else
+                        calculated = aggregateFunction(calculated, pair.BoundCopy.Value);
+                }
             }
 
             result.Value = calculated;
@@ -100,11 +102,23 @@ namespace osu.Framework.Bindables
         {
             lock (sourceMapping)
             {
-                foreach (var mapping in sourceMapping.ToList())
+                foreach (var mapping in sourceMapping)
                 {
-                    if (mapping.Key.TryGetTarget(out var b))
+                    if (mapping.WeakReference.TryGetTarget(out var b))
                         RemoveSource(b);
                 }
+            }
+        }
+
+        private class WeakRefPair
+        {
+            public readonly WeakReference<IBindable<T>> WeakReference;
+            public readonly IBindable<T> BoundCopy;
+
+            public WeakRefPair(WeakReference<IBindable<T>> weakReference, IBindable<T> boundCopy)
+            {
+                WeakReference = weakReference;
+                BoundCopy = boundCopy;
             }
         }
     }
