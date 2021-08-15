@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
 {
@@ -43,8 +44,8 @@ namespace osu.Framework.Bindables
 
             if (copy.GetType() != GetType())
             {
-                throw new InvalidOperationException($"Attempted to create a copy of {GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
-                                                    + $"Override {GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
+                ThrowHelper.ThrowInvalidOperationException($"Attempted to create a copy of {GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
+                                                           + $"Override {GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
             }
 
             copy.BindTo(this);
