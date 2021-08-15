@@ -83,8 +83,11 @@ namespace osu.Framework.Bindables
 
             lock (sourceMapping)
             {
-                foreach (var dead in sourceMapping.Keys.Where(k => !k.TryGetTarget(out var _)).ToArray())
-                    sourceMapping.Remove(dead);
+                foreach (var weakRef in sourceMapping.Keys.ToArray())
+                {
+                    if (!weakRef.TryGetTarget(out _))
+                        sourceMapping.Remove(weakRef);
+                }
 
                 foreach (var s in sourceMapping.Values)
                     calculated = aggregateFunction(calculated, s.Value);
