@@ -102,7 +102,7 @@ namespace osu.Framework.Bindables
         {
             lock (sourceMapping)
             {
-                foreach (var mapping in sourceMapping)
+                foreach (var mapping in sourceMapping.ToArray())
                 {
                     if (mapping.WeakReference.TryGetTarget(out var b))
                         RemoveSource(b);
