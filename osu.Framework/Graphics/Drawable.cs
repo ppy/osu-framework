@@ -2362,6 +2362,26 @@ namespace osu.Framework.Graphics
         public virtual bool HandlePositionalInput => RequestsPositionalInput;
 
         /// <summary>
+        /// Whether this <see cref="Drawable"/> handles input when <see cref="Key.LControl"/> or <see cref="Key.RControl"/> is pressed
+        /// </summary>
+        public virtual bool HandleControl => false;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> handles input when <see cref="Key.LAlt"/> or <see cref="Key.RAlt"/> is pressed
+        /// </summary>
+        public virtual bool HandleAlt => false;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> handles input when <see cref="Key.LShift"/> or <see cref="Key.RShift"/> is pressed
+        /// </summary>
+        public virtual bool HandleShift => false;
+
+        /// <summary>
+        /// Whether this <see cref="Drawable"/> handles input when <see cref="Key.LWin"/> or <see cref="Key.RWin"/> is pressed
+        /// </summary>
+        public virtual bool HandleSuper => false;
+
+        /// <summary>
         /// Nested class which is used for caching <see cref="Drawable.HandleNonPositionalInput"/>, <see cref="Drawable.HandlePositionalInput"/> values obtained via reflection.
         /// </summary>
         private static class HandleInputCache
