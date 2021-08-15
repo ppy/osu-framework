@@ -9,5 +9,7 @@ namespace osu.Framework.Bindables
             : base(defaultValue)
         {
         }
+
+        protected internal override Bindable<long> CreateInstance() => new BindableLong();
     }
 }
