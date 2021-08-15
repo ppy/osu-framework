@@ -84,6 +84,14 @@ namespace osu.Framework.Input.Bindings
         /// </summary>
         protected virtual bool Prioritised => false;
 
+        public override bool HandleControl => true;
+
+        public override bool HandleAlt => true;
+
+        public override bool HandleShift => true;
+
+        public override bool HandleSuper => true;
+
         internal override bool BuildNonPositionalInputQueue(List<Drawable> queue, bool allowBlocking = true)
         {
             if (!base.BuildNonPositionalInputQueue(queue, allowBlocking))

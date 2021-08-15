@@ -182,6 +182,8 @@ namespace osu.Framework.Tests.Visual.Audio
             private void updateLocal(ValueChangedEvent<double> obj) =>
                 textLocal.Text = $"local: vol {audio.Volume.Value:F1} freq {audio.Frequency.Value:F1} tempo {audio.Tempo.Value:F1} bal {audio.Balance.Value:F1}";
 
+            public override bool HandleControl => true;
+
             protected override void OnDrag(DragEvent e)
             {
                 Position += e.Delta;

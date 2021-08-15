@@ -36,6 +36,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public CompositeDrawable TabbableContentContainer { private get; set; }
 
+        public override bool HandleShift => true;
+
         protected override bool OnKeyDown(KeyDownEvent e)
         {
             if (TabbableContentContainer == null || e.Key != Key.Tab)

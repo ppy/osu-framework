@@ -774,9 +774,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true || ReadOnly) return true;
 
-            if (e.ControlPressed || e.SuperPressed || e.AltPressed)
-                return false;
-
             // we only care about keys which can result in text output.
             if (keyProducesCharacter(e.Key))
                 BeginConsumingText();

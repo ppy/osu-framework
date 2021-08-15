@@ -210,6 +210,8 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        public override bool HandleShift => true;
+
         private void handleMouseInput(UIEvent e)
         {
             var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;

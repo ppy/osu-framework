@@ -105,6 +105,8 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnKeyDown(e);
         }
 
+        public override bool HandleControl => true;
+
         protected override void OnKeyUp(KeyUpEvent e)
         {
             if (!e.ControlPressed)
