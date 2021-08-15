@@ -33,5 +33,12 @@ namespace osu.Framework.Benchmarks
         /// </summary>
         [Benchmark]
         public Bindable<int> CreateInstanceViaActivatorWithoutParams() => (Bindable<int>)Activator.CreateInstance(typeof(Bindable<int>), true);
+
+        /// <summary>
+        /// Creates an instance of the bindable via <see cref="IBindable.CreateInstance"/>.
+        /// This is the current and most performant version used for <see cref="IBindable.GetBoundCopy"/>, as equally performant as <see cref="CreateInstanceViaConstruction"/>.
+        /// </summary>
+        [Benchmark]
+        public Bindable<int> CreateInstanceViaBindableCreateInstance() => bindable.CreateInstance();
     }
 }
