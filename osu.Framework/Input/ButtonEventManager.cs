@@ -114,7 +114,11 @@ namespace osu.Framework.Input
         /// <returns>The drawable which handled the event or null if none.</returns>
         protected Drawable PropagateButtonEvent(IEnumerable<Drawable> drawables, UIEvent e)
         {
-            var handledBy = drawables.FirstOrDefault(target => target.TriggerEvent(e));
+            var handledBy = drawables.FirstOrDefault(target => (!e.ControlPressed || target.HandleControl)
+                                                               && (!e.AltPressed || target.HandleAlt)
+                                                               && (!e.ShiftPressed || target.HandleShift)
+                                                               && (!e.SuperPressed || target.HandleSuper)
+                                                               && target.TriggerEvent(e));
 
             if (handledBy != null)
                 Logger.Log($"{e} handled by {handledBy}.", LoggingTarget.Runtime, LogLevel.Debug);
