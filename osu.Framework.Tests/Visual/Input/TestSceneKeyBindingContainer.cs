@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Testing;
 using osuTK;
 using osuTK.Input;
@@ -170,6 +171,53 @@ namespace osu.Framework.Tests.Visual.Input
             AddAssert("release received", () => releasedReceived);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestModifierHandling(bool handleStandardControlPress)
+        {
+            var keyDownReceived = false;
+            var pressedReceived = false;
+            var releasedReceived = false;
+
+            AddStep("Add container", () =>
+            {
+                keyDownReceived = false;
+                pressedReceived = false;
+                releasedReceived = false;
+
+                Child = new TestKeyBindingContainer
+                {
+                    Children = new Drawable[]
+                    {
+                        new TestKeyBindingReceptor
+                        {
+                            Pressed = _ => pressedReceived = true,
+                            Released = _ => releasedReceived = true
+                        },
+                        new TestStandardInputReceptor(handleStandardControlPress)
+                        {
+                            KeyDownAction = e =>
+                            {
+                                switch (e.Key)
+                                {
+                                    case Key.LControl:
+                                        keyDownReceived = true;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                };
+            });
+
+            AddStep("Press and release Ctrl", () => InputManager.Key(Key.LControl));
+
+            AddAssert("Keybinding triggered", () => pressedReceived == !handleStandardControlPress);
+            AddAssert("Keybinding released", () => releasedReceived == !handleStandardControlPress);
+
+            AddAssert("Regular Ctrl key was not pressed", () => keyDownReceived == handleStandardControlPress);
+        }
+
         private class TestKeyBindingReceptor : Drawable, IKeyBindingHandler<TestAction>
         {
             public Action<TestAction> Pressed;
@@ -189,6 +237,25 @@ namespace osu.Framework.Tests.Visual.Input
             public void OnReleased(TestAction action)
             {
                 Released?.Invoke(action);
+            }
+        }
+
+        private class TestStandardInputReceptor : Drawable
+        {
+            public TestStandardInputReceptor(bool handleControl)
+            {
+                HandleControl = handleControl;
+            }
+
+            public override bool HandleControl { get; }
+
+            public Action<KeyDownEvent> KeyDownAction { get; set; }
+
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                KeyDownAction(e);
+
+                return true;
             }
         }
 
