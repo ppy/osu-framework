@@ -394,8 +394,6 @@ namespace osu.Framework.Bindables
 
         protected internal virtual Bindable<T> CreateInstance() => new Bindable<T>();
 
-        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
-
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         public Bindable<T> GetBoundCopy() => (Bindable<T>)((IBindable)this).GetBoundCopy();
 

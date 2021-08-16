@@ -105,12 +105,7 @@ namespace osu.Framework.Bindables
         /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false);
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
-        IBindable<T> GetBoundCopy();
+        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
+        sealed IBindable<T> GetBoundCopy() => (IBindable<T>)((IBindable)this).GetBoundCopy();
     }
 }
