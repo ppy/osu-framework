@@ -622,9 +622,7 @@ namespace osu.Framework.Bindables
 
         IBindable IBindable.CreateInstance() => CreateInstance();
 
-        IBindableList<T> IBindableList<T>.CreateInstance() => CreateInstance();
-
-        /// <inheritdoc cref="IBindableList{T}.CreateInstance"/>
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
         protected virtual BindableList<T> CreateInstance() => new BindableList<T>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();

@@ -40,8 +40,5 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindableDictionary<TKey, TValue> GetBoundCopy();
-
-        /// <inheritdoc cref="IBindable.CreateInstance"/>
-        protected IBindableDictionary<TKey, TValue> CreateInstance();
     }
 }

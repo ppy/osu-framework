@@ -499,9 +499,7 @@ namespace osu.Framework.Bindables
 
         IBindable IBindable.CreateInstance() => CreateInstance();
 
-        IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.CreateInstance() => CreateInstance();
-
-        /// <inheritdoc cref="IBindableDictionary{TKey,TValue}.CreateInstance"/>
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
         protected virtual BindableDictionary<TKey, TValue> CreateInstance() => new BindableDictionary<TKey, TValue>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();

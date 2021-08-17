@@ -109,8 +109,5 @@ namespace osu.Framework.Bindables
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindable<T> GetBoundCopy();
-
-        /// <inheritdoc cref="IBindable.CreateInstance"/>
-        protected IBindable<T> CreateInstance();
     }
 }
