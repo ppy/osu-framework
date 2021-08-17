@@ -497,12 +497,19 @@ namespace osu.Framework.Bindables
 
         private void removeWeakReference(WeakReference<BindableDictionary<TKey, TValue>> weakReference) => bindings?.Remove(weakReference);
 
-        IBindable IBindable.CreateInstance() => new BindableDictionary<TKey, TValue>();
+        IBindable IBindable.CreateInstance() => CreateInstance();
+
+        IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.CreateInstance() => CreateInstance();
+
+        /// <inheritdoc cref="IBindableDictionary{TKey,TValue}.CreateInstance"/>
+        protected virtual BindableDictionary<TKey, TValue> CreateInstance() => new BindableDictionary<TKey, TValue>();
+
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.GetBoundCopy() => GetBoundCopy();
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
-        public BindableDictionary<TKey, TValue> GetBoundCopy() => (BindableDictionary<TKey, TValue>)((IBindable)this).GetBoundCopy();
+        public BindableDictionary<TKey, TValue> GetBoundCopy() => IBindable.GetBoundCopyImpl(this);
 
         #endregion IBindableCollection
 

@@ -63,6 +63,6 @@ namespace osu.Framework.Bindables
                    min.Right <= max.Right;
         }
 
-        protected internal override Bindable<MarginPadding> CreateInstance() => new BindableMarginPadding();
+        protected override Bindable<MarginPadding> CreateInstance() => new BindableMarginPadding();
     }
 }

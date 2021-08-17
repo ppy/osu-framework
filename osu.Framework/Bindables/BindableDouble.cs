@@ -14,6 +14,6 @@ namespace osu.Framework.Bindables
 
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
-        protected internal override Bindable<double> CreateInstance() => new BindableDouble();
+        protected override Bindable<double> CreateInstance() => new BindableDouble();
     }
 }

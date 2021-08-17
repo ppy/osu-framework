@@ -117,7 +117,7 @@ namespace osu.Framework.Bindables
             base.UnbindAllInternal();
         }
 
-        protected internal override Bindable<T> CreateInstance() => new LeasedBindable<T>();
+        protected override Bindable<T> CreateInstance() => new LeasedBindable<T>();
 
         private void checkValid()
         {

@@ -317,7 +317,7 @@ namespace osu.Framework.Bindables
             }
         }
 
-        protected internal override Bindable<T> CreateInstance() => new BindableNumber<T>();
+        protected override Bindable<T> CreateInstance() => new BindableNumber<T>();
 
         protected sealed override T ClampValue(T value, T minValue, T maxValue) => max(minValue, min(maxValue, value));
 

@@ -35,12 +35,10 @@ namespace osu.Framework.Bindables
             set => BindTo(value);
         }
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
+        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindableList<T> GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected IBindableList<T> CreateInstance();
     }
 }

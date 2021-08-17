@@ -22,7 +22,7 @@ namespace osu.Framework.Benchmarks
             {
             }
 
-            protected internal override Bindable<T> CreateInstance() => (BindableOld<T>)Activator.CreateInstance(GetType(), Value);
+            protected override Bindable<T> CreateInstance() => (BindableOld<T>)Activator.CreateInstance(GetType(), Value);
         }
     }
 }

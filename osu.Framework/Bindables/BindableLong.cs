@@ -10,6 +10,6 @@ namespace osu.Framework.Bindables
         {
         }
 
-        protected internal override Bindable<long> CreateInstance() => new BindableLong();
+        protected override Bindable<long> CreateInstance() => new BindableLong();
     }
 }

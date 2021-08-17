@@ -31,6 +31,6 @@ namespace osu.Framework.Bindables
         {
         }
 
-        protected internal override Bindable<T> CreateInstance() => new BindableWithCurrent<T>();
+        protected override Bindable<T> CreateInstance() => new BindableWithCurrent<T>();
     }
 }

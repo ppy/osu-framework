@@ -14,6 +14,6 @@ namespace osu.Framework.Bindables
 
         public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
 
-        protected internal override Bindable<int> CreateInstance() => new BindableInt();
+        protected override Bindable<int> CreateInstance() => new BindableInt();
     }
 }

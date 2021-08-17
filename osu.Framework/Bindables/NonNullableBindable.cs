@@ -32,6 +32,6 @@ namespace osu.Framework.Bindables
             }
         }
 
-        protected internal override Bindable<T> CreateInstance() => new NonNullableBindable<T>();
+        protected override Bindable<T> CreateInstance() => new NonNullableBindable<T>();
     }
 }

@@ -32,34 +32,36 @@ namespace osu.Framework.Bindables
         /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
         /// a local reference.
         /// </summary>
-        /// <remarks>
-        /// The copy bindable is instantiated via the protected method <see cref="CreateInstance"/>.
-        /// All bindable types must override this method to instantiate a bindable of their own kind.
-        /// </remarks>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         /// <exception cref="InvalidOperationException">Thrown when attempting to instantiate a copy bindable that's not matching the original's type.</exception>
-        sealed IBindable GetBoundCopy()
-        {
-            var copy = CreateInstance();
-
-            if (copy.GetType() != GetType())
-            {
-                ThrowHelper.ThrowInvalidOperationException($"Attempted to create a copy of {GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
-                                                           + $"Override {GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
-            }
-
-            copy.BindTo(this);
-            return copy;
-        }
+        IBindable GetBoundCopy();
 
         /// <summary>
         /// Creates a new instance of this <see cref="IBindable"/> for use in <see cref="GetBoundCopy"/>.
         /// The returned instance must have match the most derived type of the bindable class this method is implemented on.
         /// </summary>
-        /// <remarks>
-        /// This method was declared as a faster alternative to <see cref="Activator.CreateInstance(Type, object[])"/>, which appeared to have had
-        /// </remarks>
         protected IBindable CreateInstance();
+
+        /// <summary>
+        /// Helper method which implements <see cref="GetBoundCopy"/> for use in final classes.
+        /// </summary>
+        /// <param name="source">The source <see cref="IBindable"/>.</param>
+        /// <typeparam name="T">The bindable type.</typeparam>
+        /// <returns>The bound copy.</returns>
+        protected static T GetBoundCopyImpl<T>(T source)
+            where T : IBindable
+        {
+            var copy = source.CreateInstance();
+
+            if (copy.GetType() != source.GetType())
+            {
+                ThrowHelper.ThrowInvalidOperationException($"Attempted to create a copy of {source.GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
+                                                           + $"Override {source.GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
+            }
+
+            copy.BindTo(source);
+            return (T)copy;
+        }
     }
 
     /// <summary>
@@ -106,6 +108,9 @@ namespace osu.Framework.Bindables
         void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false);
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
-        sealed IBindable<T> GetBoundCopy() => (IBindable<T>)((IBindable)this).GetBoundCopy();
+        IBindable<T> GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected IBindable<T> CreateInstance();
     }
 }

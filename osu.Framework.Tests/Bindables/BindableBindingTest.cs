@@ -600,7 +600,7 @@ namespace osu.Framework.Tests.Bindables
                 IsBound = false;
             }
 
-            protected internal override Bindable<int> CreateInstance() => new TestCustomBindable();
+            protected override Bindable<int> CreateInstance() => new TestCustomBindable();
         }
     }
 }

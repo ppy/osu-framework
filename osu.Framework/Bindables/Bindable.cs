@@ -392,10 +392,17 @@ namespace osu.Framework.Bindables
 
         IBindable IBindable.CreateInstance() => CreateInstance();
 
-        protected internal virtual Bindable<T> CreateInstance() => new Bindable<T>();
+        IBindable<T> IBindable<T>.CreateInstance() => CreateInstance();
 
-        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
-        public Bindable<T> GetBoundCopy() => (Bindable<T>)((IBindable)this).GetBoundCopy();
+        /// <inheritdoc cref="IBindable{T}.CreateInstance"/>
+        protected virtual Bindable<T> CreateInstance() => new Bindable<T>();
+
+        IBindable IBindable.GetBoundCopy() => GetBoundCopy();
+
+        IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>
+        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImpl(this);
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {
