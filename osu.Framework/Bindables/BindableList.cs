@@ -630,7 +630,7 @@ namespace osu.Framework.Bindables
         IBindableList<T> IBindableList<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <inheritdoc cref="IBindableList{T}.GetBoundCopy"/>
-        public BindableList<T> GetBoundCopy() => IBindable.GetBoundCopyImpl(this);
+        public BindableList<T> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         #endregion IBindableCollection
 

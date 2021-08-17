@@ -48,7 +48,7 @@ namespace osu.Framework.Bindables
         /// <param name="source">The source <see cref="IBindable"/>.</param>
         /// <typeparam name="T">The bindable type.</typeparam>
         /// <returns>The bound copy.</returns>
-        protected static T GetBoundCopyImpl<T>(T source)
+        protected static T GetBoundCopyImplementation<T>(T source)
             where T : IBindable
         {
             var copy = source.CreateInstance();

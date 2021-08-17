@@ -400,7 +400,7 @@ namespace osu.Framework.Bindables
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
 
         /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>
-        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImpl(this);
+        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {

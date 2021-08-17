@@ -507,7 +507,7 @@ namespace osu.Framework.Bindables
         IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.GetBoundCopy() => GetBoundCopy();
 
         /// <inheritdoc cref="IBindable.GetBoundCopy"/>
-        public BindableDictionary<TKey, TValue> GetBoundCopy() => IBindable.GetBoundCopyImpl(this);
+        public BindableDictionary<TKey, TValue> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         #endregion IBindableCollection
 
