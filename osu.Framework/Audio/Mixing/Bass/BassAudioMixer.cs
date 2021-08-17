@@ -108,25 +108,23 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelPause"/>.</remarks>
         /// <param name="channel">The channel to pause.</param>
+        /// <param name="flushMixer">Set to <c>true</c> to make the pause take effect immediately.
+        /// <para>
+        /// This will change the timing of <see cref="ChannelGetPosition"/>, so should be used sparingly.
+        /// </para>
+        /// </param>
         /// <returns>
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
         /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
-        public bool ChannelPause(IBassAudioChannel channel) => BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-
-        /// <summary>
-        /// Stops a channel.
-        /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelStop"/>.</remarks>
-        /// <param name="channel">The channel to stop.</param>
-        /// <returns>
-        /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
-        /// </returns>
-        public bool ChannelStop(IBassAudioChannel channel)
+        public bool ChannelPause(IBassAudioChannel channel, bool flushMixer = false)
         {
-            BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            return ManagedBass.Bass.ChannelSetPosition(channel.Handle, 0); // resets position and also flushes buffer
+            bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
+
+            if (flushMixer)
+                flush();
+
+            return result;
         }
 
         /// <summary>
@@ -172,7 +170,20 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Use <see cref="P:ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
-            => BassMix.ChannelSetPosition(channel.Handle, position, mode);
+        {
+            // All BASS channels enter a stopped state once they reach the end.
+            // Non-decoding channels remain in the stopped state when seeked afterwards, however decoding channels are put back into a playing state which causes audio to play.
+            // Thus, on seek, in order to reproduce the expectations set out by non-decoding channels, manually pause the mixer channel when the decoding channel is stopped.
+            if (ChannelIsActive(channel) == PlaybackState.Stopped)
+                ChannelPause(channel, true);
+
+            bool result = BassMix.ChannelSetPosition(channel.Handle, position, mode);
+
+            // Perform a flush so that ChannelGetPosition() immediately returns the new value.
+            flush();
+
+            return result;
+        }
 
         /// <summary>
         /// Retrieves the level (peak amplitude) of a channel.
@@ -200,6 +211,28 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public int ChannelGetData(IBassAudioChannel channel, float[] buffer, int length)
             => BassMix.ChannelGetData(channel.Handle, buffer, length);
+
+        /// <summary>
+        /// Sets up a synchroniser on a mixer source channel.
+        /// </summary>
+        /// <remarks>See: <see cref="ManagedBass.Mix.BassMix.ChannelSetSync(int, SyncFlags, long, SyncProcedure, IntPtr)"/>.</remarks>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to set up the synchroniser for.</param>
+        /// <param name="type">The type of sync.</param>
+        /// <param name="parameter">The sync parameters, depending on the sync type.</param>
+        /// <param name="procedure">The callback function which should be invoked with the sync.</param>
+        /// <param name="user">User instance data to pass to the callback function.</param>
+        /// <returns>If successful, then the new synchroniser's handle is returned, else 0 is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        public int ChannelSetSync(IBassAudioChannel channel, SyncFlags type, long parameter, SyncProcedure procedure, IntPtr user = default)
+            => BassMix.ChannelSetSync(channel.Handle, type, parameter, procedure, user);
+
+        /// <summary>
+        /// Removes a synchroniser from a mixer source channel.
+        /// </summary>
+        /// <param name="channel">The <see cref="IBassAudioChannel"/> to remove the synchroniser for.</param>
+        /// <param name="sync">Handle of the synchroniser to remove (return value of a previous <see cref="M:ManagedBass.Mix.BassMix.ChannelSetSync(System.Int32,ManagedBass.SyncFlags,System.Int64,ManagedBass.SyncProcedure,System.IntPtr)" /> call).</param>
+        /// <returns>If successful, <see langword="true" /> is returned, else <see langword="false" /> is returned. Use <see cref="P:ManagedBass.Bass.LastError" /> to get the error code.</returns>
+        public bool ChannelRemoveSync(IBassAudioChannel channel, int sync)
+            => BassMix.ChannelRemoveSync(channel.Handle, sync);
 
         /// <summary>
         /// Frees a channel's resources.
@@ -246,7 +279,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
             if (Handle == 0)
                 return;
 
@@ -273,7 +306,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             Debug.Assert(Handle != 0);
             Debug.Assert(channel.Handle != 0);
 
-            BassFlags flags = BassFlags.MixerChanBuffer;
+            BassFlags flags = BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin;
             if (channel.MixerChannelPaused)
                 flags |= BassFlags.MixerChanPause;
 
@@ -376,6 +409,18 @@ namespace osu.Framework.Audio.Mixing.Bass
                 }
             }
         });
+
+        /// <summary>
+        /// Flushes the mixer, causing pause and seek events to take effect immediately.
+        /// </summary>
+        /// <remarks>
+        /// This will change the timing of <see cref="ChannelGetPosition"/>, so should be used sparingly.
+        /// </remarks>
+        private void flush()
+        {
+            if (Handle != 0)
+                ManagedBass.Bass.ChannelSetPosition(Handle, 0);
+        }
 
         protected override void Dispose(bool disposing)
         {

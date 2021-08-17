@@ -11,11 +11,11 @@ using ManagedBass;
 using ManagedBass.Fx;
 using osu.Framework.IO;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Audio.Track
 {
@@ -51,9 +51,12 @@ namespace osu.Framework.Audio.Track
         private double lastSeekablePosition;
 
         private FileCallbacks? fileCallbacks;
-        private SyncCallback? endMixtimeCallback;
+
         private SyncCallback? stopCallback;
         private SyncCallback? endCallback;
+
+        private int? stopSync;
+        private int? endSync;
 
         private volatile bool isLoaded;
 
@@ -66,7 +69,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         /// <param name="data">The sample data stream.</param>
         /// <param name="quick">If true, the track will not be fully loaded, and should only be used for preview purposes.  Defaults to false.</param>
-        public TrackBass([NotNull] Stream data, bool quick = false)
+        public TrackBass(Stream data, bool quick = false)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -111,26 +114,6 @@ namespace osu.Framework.Audio.Track
 
                     // Bass does not allow seeking to the end of the track, so the last available position is 1 sample before.
                     lastSeekablePosition = Bass.ChannelBytes2Seconds(activeStream, byteLength - BYTES_PER_SAMPLE) * 1000;
-
-                    stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
-                    endCallback = new SyncCallback((a, b, c, d) =>
-                    {
-                        if (Looping) return;
-
-                        hasCompleted = true;
-                        RaiseCompleted();
-                    });
-                    endMixtimeCallback = new SyncCallback((a, b, c, d) =>
-                    {
-                        // this is separate from the above callback as this is required to be invoked on mixtime.
-                        // see "BASS_SYNC_MIXTIME" part of http://www.un4seen.com/doc/#bass/BASS_ChannelSetSync.html for reason why.
-                        if (Looping)
-                            seekInternal(RestartPoint);
-                    });
-
-                    Bass.ChannelSetSync(activeStream, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
-                    Bass.ChannelSetSync(activeStream, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
-                    Bass.ChannelSetSync(activeStream, SyncFlags.End | SyncFlags.Mixtime, 0, endMixtimeCallback.Callback, endMixtimeCallback.Handle);
 
                     isLoaded = true;
 
@@ -232,7 +215,7 @@ namespace osu.Framework.Audio.Track
             isPlayed = false;
         });
 
-        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this);
+        private bool stopInternal() => isRunningState(bassMixer.ChannelIsActive(this)) && bassMixer.ChannelPause(this, true);
 
         private int direction;
 
@@ -357,6 +340,56 @@ namespace osu.Framework.Audio.Track
 
         public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
 
+        private void initializeSyncs()
+        {
+            Debug.Assert(stopCallback == null
+                         && stopSync == null
+                         && endCallback == null
+                         && endSync == null);
+
+            stopCallback = new SyncCallback((a, b, c, d) => RaiseFailed());
+            endCallback = new SyncCallback((a, b, c, d) =>
+            {
+                if (Looping)
+                {
+                    // because the sync callback doesn't necessarily fire in the right moment and the transition may not always be smooth,
+                    // do not attempt to seek back to restart point if it is 0, and defer to the channel loop flag instead.
+                    // a mixtime callback was used for this previously, but it is incompatible with mixers
+                    // (as they have a playback buffer, and so a skip forward would be audible).
+                    if (Precision.DefinitelyBigger(RestartPoint, 0, 1))
+                        seekInternal(RestartPoint);
+
+                    return;
+                }
+
+                hasCompleted = true;
+                RaiseCompleted();
+            });
+
+            stopSync = bassMixer.ChannelSetSync(this, SyncFlags.Stop, 0, stopCallback.Callback, stopCallback.Handle);
+            endSync = bassMixer.ChannelSetSync(this, SyncFlags.End, 0, endCallback.Callback, endCallback.Handle);
+        }
+
+        private void cleanUpSyncs()
+        {
+            Debug.Assert(stopCallback != null
+                         && stopSync != null
+                         && endCallback != null
+                         && endSync != null);
+
+            bassMixer.ChannelRemoveSync(this, stopSync.Value);
+            bassMixer.ChannelRemoveSync(this, endSync.Value);
+
+            stopSync = null;
+            endSync = null;
+
+            stopCallback.Dispose();
+            stopCallback = null;
+
+            endCallback.Dispose();
+            endCallback = null;
+        }
+
         #region Mixing
 
         protected override AudioMixer? Mixer
@@ -364,11 +397,21 @@ namespace osu.Framework.Audio.Track
             get => base.Mixer;
             set
             {
+                // While BASS cleans up syncs automatically on mixer change, ManagedBass internally tracks the sync procedures via ChannelReferences, so clean up eagerly for safety.
+                if (Mixer != null)
+                    cleanUpSyncs();
+
                 base.Mixer = value;
 
-                // Tracks are always active until they're disposed, so they need to be added to the mix prematurely for operations like Seek() to work immediately.
                 // The mixer can be null in this case, if set via Dispose() / bassMixer.StreamFree(this).
-                (Mixer as BassAudioMixer)?.AddChannelToBassMix(this);
+                if (Mixer != null)
+                {
+                    // Tracks are always active until they're disposed, so they need to be added to the mix prematurely for operations like Seek() to work immediately.
+                    bassMixer.AddChannelToBassMix(this);
+
+                    // Syncs are not automatically moved on mixer change, so restore them on the new mixer manually.
+                    initializeSyncs();
+                }
             }
         }
 
@@ -413,9 +456,6 @@ namespace osu.Framework.Audio.Track
 
             endCallback?.Dispose();
             endCallback = null;
-
-            endMixtimeCallback?.Dispose();
-            endMixtimeCallback = null;
 
             base.Dispose(disposing);
         }
