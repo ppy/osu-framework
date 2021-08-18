@@ -21,8 +21,12 @@ namespace osu.Framework.Platform
 
         protected override void Dispose(bool isDisposing)
         {
+            // ensure no more log entries are written during cleanup.
+            // there is a flush call in base.Dispose which seals the deal.
             Logger.Enabled = false;
+
             base.Dispose(isDisposing);
+
             Storage?.DeleteDirectory(string.Empty);
         }
     }

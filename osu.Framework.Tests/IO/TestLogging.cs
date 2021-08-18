@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
+            Logger.Enabled = true;
             Logger.NewEntry += logTest;
             Logger.Error(new TestException(), "message");
             Logger.NewEntry -= logTest;
@@ -204,6 +205,7 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
+            Logger.Enabled = true;
             Logger.NewEntry += logTest;
             Logger.Error(new TestExceptionWithInnerException(), "message", recursive: true);
             Logger.NewEntry -= logTest;
