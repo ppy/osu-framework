@@ -22,53 +22,67 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestOldConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost())
+            try
             {
-                host.Run(new TestGame((h, config) =>
+                using (var host = new TestHeadlessGameHost())
                 {
-                    storage = h.Storage;
+                    host.Run(new TestGame((h, config) =>
+                    {
+                        storage = h.Storage;
 #pragma warning disable 618
-                    config.SetValue(FrameworkSetting.CursorSensitivity, 5.0);
+                        config.SetValue(FrameworkSetting.CursorSensitivity, 5.0);
 #pragma warning restore 618
-                }));
+                    }));
+                }
+
+                // test with only FrameworkConfigManager configuration file present
+                storage.Delete(InputConfigManager.FILENAME);
+
+                double sensitivity = 0;
+
+                using (var host = new TestHeadlessGameHost())
+                {
+                    host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                }
+
+                Assert.AreEqual(5, sensitivity);
             }
-
-            // test with only FrameworkConfigManager configuration file present
-            storage.Delete(InputConfigManager.FILENAME);
-
-            double sensitivity = 0;
-
-            using (var host = new TestHeadlessGameHost())
+            finally
             {
-                host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                storage.DeleteDirectory(string.Empty);
             }
-
-            Assert.AreEqual(5, sensitivity);
         }
 
         [Test]
         public void TestNewConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost())
+            try
             {
-                host.Run(new TestGame((h, config) =>
+                using (var host = new TestHeadlessGameHost())
                 {
-                    storage = h.Storage;
-                    h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = 5;
-                }));
+                    host.Run(new TestGame((h, config) =>
+                    {
+                        storage = h.Storage;
+                        h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value = 5;
+                    }));
+                }
+
+                // test with only InputConfigManager configuration file present
+                storage.Delete(FrameworkConfigManager.FILENAME);
+
+                double sensitivity = 0;
+
+                using (var host = new TestHeadlessGameHost())
+                {
+                    host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                }
+
+                Assert.AreEqual(5, sensitivity);
             }
-
-            // test with only InputConfigManager configuration file present
-            storage.Delete(FrameworkConfigManager.FILENAME);
-
-            double sensitivity = 0;
-
-            using (var host = new TestHeadlessGameHost())
+            finally
             {
-                host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
+                storage.DeleteDirectory(string.Empty);
             }
-
-            Assert.AreEqual(5, sensitivity);
         }
 
         public class TestHeadlessGameHost : HeadlessGameHost

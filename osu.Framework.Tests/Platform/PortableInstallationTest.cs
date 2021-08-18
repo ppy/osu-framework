@@ -4,6 +4,7 @@
 using NUnit.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -41,7 +42,7 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var nonPortable = new TestHeadlessGameHost(@"non-portable"))
+            using (var nonPortable = new TestRunHeadlessGameHost(@"non-portable"))
             {
                 nonPortable.Run(new TestGame());
                 Assert.AreNotEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), nonPortable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));

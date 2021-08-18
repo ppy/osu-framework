@@ -3,17 +3,18 @@
 
 using System.IO;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Testing
 {
     /// <summary>
     /// A GameHost which writes to the system temporary directory, attempting to clean up after the test run completes.
     /// </summary>
-    public class TestHeadlessGameHost : HeadlessGameHost
+    public class TestRunHeadlessGameHost : HeadlessGameHost
     {
         public override string UserStoragePath { get; }
 
-        public TestHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false)
+        public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false)
             : base(name, bindIPC, realtime, portableInstallation)
         {
             UserStoragePath = $"{Path.GetTempPath()}/of-test-headless";
