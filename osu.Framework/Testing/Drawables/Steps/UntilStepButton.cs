@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Drawables.Steps
                     success = true;
                     Success();
                 }
-                else if (elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
+                else if (!Debugger.IsAttached && elapsedTime.ElapsedMilliseconds >= max_attempt_milliseconds)
                     throw new TimeoutException($"\"{Text}\" timed out");
 
                 Action?.Invoke();
