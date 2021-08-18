@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
+            Logger.Storage = new TemporaryNativeStorage()
             Logger.Enabled = true;
             Logger.NewEntry += logTest;
             Logger.Error(new TestException(), "message");

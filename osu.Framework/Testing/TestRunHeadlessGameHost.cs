@@ -14,10 +14,12 @@ namespace osu.Framework.Testing
     {
         public override string UserStoragePath { get; }
 
+        internal static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
+
         public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false)
             : base(name, bindIPC, realtime, portableInstallation)
         {
-            UserStoragePath = $"{Path.GetTempPath()}/of-test-headless";
+            UserStoragePath = TemporaryTestDirectory;
         }
 
         protected override void Dispose(bool isDisposing)
