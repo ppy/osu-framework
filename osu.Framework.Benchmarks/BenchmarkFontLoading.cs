@@ -9,7 +9,6 @@ using NUnit.Framework;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
-using osu.Framework.Tests;
 using SixLabors.ImageSharp.Memory;
 
 namespace osu.Framework.Benchmarks
