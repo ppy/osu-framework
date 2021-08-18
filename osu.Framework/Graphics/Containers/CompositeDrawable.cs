@@ -1242,19 +1242,29 @@ namespace osu.Framework.Graphics.Containers
         {
             EnsureTransformMutationAllowed();
 
-            var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
-            if (!recursive)
-                return baseDisposalAction;
+            if (!recursive || internalChildren.Count == 0)
+                return base.BeginAbsoluteSequence(newTransformStartTime, false);
 
-            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1) { baseDisposalAction };
+            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1);
+
+            base.BeginAbsoluteSequenceRecursive(newTransformStartTime, disposalActions);
+
             foreach (var c in internalChildren)
-                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
+                c.BeginAbsoluteSequenceRecursive(newTransformStartTime, disposalActions);
 
             return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
             {
                 foreach (var a in actions)
                     a.Dispose();
             });
+        }
+
+        internal override void BeginAbsoluteSequenceRecursive(double newTransformStartTime, List<IDisposable> actions)
+        {
+            base.BeginAbsoluteSequenceRecursive(newTransformStartTime, actions);
+
+            foreach (var c in internalChildren)
+                c.BeginAbsoluteSequenceRecursive(newTransformStartTime, actions);
         }
 
         public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
