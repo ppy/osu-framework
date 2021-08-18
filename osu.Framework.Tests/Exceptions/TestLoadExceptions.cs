@@ -198,7 +198,7 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                using (var host = new TestHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
                 {
                     using (var game = new TestGame())
                     {

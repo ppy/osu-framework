@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.IO;
 using NUnit.Framework;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
@@ -42,10 +41,10 @@ namespace osu.Framework.Tests.Platform
         {
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));
 
-            using (var portable = new HeadlessGameHost(@"non-portable"))
+            using (var nonPortable = new TestHeadlessGameHost(@"non-portable"))
             {
-                portable.Run(new TestGame());
-                Assert.AreEqual(startupStorage.GetFullPath(Path.Combine("headless", "non-portable", FrameworkConfigManager.FILENAME)), portable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
+                nonPortable.Run(new TestGame());
+                Assert.AreNotEqual(startupStorage.GetFullPath(FrameworkConfigManager.FILENAME), nonPortable.Storage.GetFullPath(FrameworkConfigManager.FILENAME));
             }
 
             Assert.IsFalse(startupStorage.Exists(FrameworkConfigManager.FILENAME));

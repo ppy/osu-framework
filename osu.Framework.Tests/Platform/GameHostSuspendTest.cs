@@ -81,7 +81,7 @@ namespace osu.Framework.Tests.Platform
             Assert.AreEqual(GameThreadState.Exited, updateThreadState.Value);
         }
 
-        private class ExecutionModeGameHost : HeadlessGameHost
+        private class ExecutionModeGameHost : TestHeadlessGameHost
         {
             private readonly ExecutionMode threadMode;
 

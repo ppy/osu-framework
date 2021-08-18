@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Platform
 
             var task = Task.Run(() =>
             {
-                using (host = new HeadlessGameHost(@"host", false))
+                using (host = new TestHeadlessGameHost(@"host", false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();

@@ -25,7 +25,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new TestHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
             {
                 // never call host.Run()
             }
@@ -69,7 +69,7 @@ namespace osu.Framework.Tests.Platform
             public string Bar;
         }
 
-        public class ExceptionDuringSetupGameHost : HeadlessGameHost
+        public class ExceptionDuringSetupGameHost : TestHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
                 : base(gameName)
