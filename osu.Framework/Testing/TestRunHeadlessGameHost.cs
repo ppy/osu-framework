@@ -12,13 +12,16 @@ namespace osu.Framework.Testing
     /// </summary>
     public class TestRunHeadlessGameHost : HeadlessGameHost
     {
+        private readonly bool bypassCleanup;
+
         public override string UserStoragePath { get; }
 
-        internal static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
+        public static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
 
-        public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false)
+        public TestRunHeadlessGameHost(string name = null, bool bindIPC = false, bool realtime = false, bool portableInstallation = false, bool bypassCleanup = false)
             : base(name, bindIPC, realtime, portableInstallation)
         {
+            this.bypassCleanup = bypassCleanup;
             UserStoragePath = TemporaryTestDirectory;
         }
 
@@ -30,7 +33,8 @@ namespace osu.Framework.Testing
 
             base.Dispose(isDisposing);
 
-            Storage?.DeleteDirectory(string.Empty);
+            if (!bypassCleanup)
+                Storage?.DeleteDirectory(string.Empty);
         }
     }
 }
