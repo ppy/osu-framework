@@ -27,13 +27,20 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
-            Logger.Storage = new TemporaryNativeStorage()
-            Logger.Enabled = true;
-            Logger.NewEntry += logTest;
-            Logger.Error(new TestException(), "message");
-            Logger.NewEntry -= logTest;
+            using (var storage = new TemporaryNativeStorage(nameof(TestExceptionLogging)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
 
-            Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+                Logger.NewEntry += logTest;
+                Logger.Error(new TestException(), "message");
+                Logger.NewEntry -= logTest;
+
+                Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+
+                Logger.Enabled = false;
+                Logger.Flush();
+            }
         }
 
         [Test]
