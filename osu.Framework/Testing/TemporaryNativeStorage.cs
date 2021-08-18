@@ -4,10 +4,13 @@
 using System;
 using System.IO;
 using osu.Framework.Platform;
-using osu.Framework.Testing;
 
-namespace osu.Framework.Tests
+namespace osu.Framework.Testing
 {
+    /// <summary>
+    /// A temporary storage that can be used for testing purposes.
+    /// Writes files to the OS temporary directory and cleans up on disposal.
+    /// </summary>
     public class TemporaryNativeStorage : NativeStorage, IDisposable
     {
         public TemporaryNativeStorage(string path, GameHost host = null)
