@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Append(Generator childGenerator)
         {
             TransformSequence<T> child;
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 child = childGenerator(origin);
 
             if (!ReferenceEquals(child.origin, origin))
@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Append<TResult>(Func<T, TResult> originFunc, out TResult result)
         {
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 result = originFunc(origin);
 
             return this;
@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Append(Action<T> originAction)
         {
-            using (origin.BeginAbsoluteSequence(currentTime))
+            using (origin.BeginAbsoluteSequence(currentTime, false))
                 originAction(origin);
 
             return this;
