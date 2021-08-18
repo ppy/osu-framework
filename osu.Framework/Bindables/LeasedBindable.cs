@@ -37,8 +37,8 @@ namespace osu.Framework.Bindables
             Disabled = true;
         }
 
-        public LeasedBindable(T value)
-            : base(value)
+        private LeasedBindable(T defaultValue = default)
+            : base(defaultValue)
         {
             // used for GetBoundCopy, where we don't want a source.
         }
@@ -116,6 +116,8 @@ namespace osu.Framework.Bindables
 
             base.UnbindAllInternal();
         }
+
+        protected override Bindable<T> CreateInstance() => new LeasedBindable<T>();
 
         private void checkValid()
         {

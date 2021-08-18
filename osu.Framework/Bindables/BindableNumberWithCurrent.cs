@@ -31,5 +31,7 @@ namespace osu.Framework.Bindables
             : base(defaultValue)
         {
         }
+
+        protected override Bindable<T> CreateInstance() => new BindableNumberWithCurrent<T>();
     }
 }
