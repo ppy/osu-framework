@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using NUnit.Framework;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.IO
 {

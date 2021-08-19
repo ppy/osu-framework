@@ -724,6 +724,7 @@ namespace osu.Framework.Platform
         protected virtual void SetupForRun()
         {
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+            Logger.Enabled = true;
         }
 
         private void populateInputHandlers()

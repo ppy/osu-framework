@@ -4,6 +4,7 @@
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Stores;
+using osu.Framework.Testing;
 using osu.Framework.Text;
 
 namespace osu.Framework.Tests.IO

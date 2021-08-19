@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using osu.Framework.Configuration;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Configuration
 {
