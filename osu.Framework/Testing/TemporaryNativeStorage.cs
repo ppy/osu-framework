@@ -22,7 +22,13 @@ namespace osu.Framework.Testing
 
         public void Dispose()
         {
-            DeleteDirectory(string.Empty);
+            try
+            {
+                DeleteDirectory(string.Empty);
+            }
+            catch
+            {
+            }
         }
     }
 }

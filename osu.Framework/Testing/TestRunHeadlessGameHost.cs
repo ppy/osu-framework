@@ -34,7 +34,15 @@ namespace osu.Framework.Testing
             base.Dispose(isDisposing);
 
             if (!bypassCleanup)
-                Storage?.DeleteDirectory(string.Empty);
+            {
+                try
+                {
+                    Storage.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                }
+            }
         }
     }
 }
