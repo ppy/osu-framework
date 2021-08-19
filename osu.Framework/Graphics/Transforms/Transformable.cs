@@ -294,7 +294,7 @@ namespace osu.Framework.Graphics.Transforms
             return createAbsoluteSequenceAction(newTransformStartTime);
         }
 
-        internal virtual void BeginAbsoluteSequenceRecursive(double newTransformStartTime, List<IDisposable> actions)
+        internal virtual void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<IDisposable> actions)
         {
             actions.Add(createAbsoluteSequenceAction(newTransformStartTime));
         }

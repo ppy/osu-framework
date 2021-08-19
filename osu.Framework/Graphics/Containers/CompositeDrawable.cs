@@ -1247,10 +1247,10 @@ namespace osu.Framework.Graphics.Containers
 
             List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1);
 
-            base.BeginAbsoluteSequenceRecursive(newTransformStartTime, disposalActions);
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
 
             foreach (var c in internalChildren)
-                c.BeginAbsoluteSequenceRecursive(newTransformStartTime, disposalActions);
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
 
             return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
             {
@@ -1259,12 +1259,12 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        internal override void BeginAbsoluteSequenceRecursive(double newTransformStartTime, List<IDisposable> actions)
+        internal override void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<IDisposable> actions)
         {
-            base.BeginAbsoluteSequenceRecursive(newTransformStartTime, actions);
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
 
             foreach (var c in internalChildren)
-                c.BeginAbsoluteSequenceRecursive(newTransformStartTime, actions);
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
         }
 
         public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
