@@ -146,11 +146,15 @@ namespace osu.Framework.Benchmarks
 
                 Add(VeryNested = new Container());
 
-                Container nestedContainer = null;
+                Container target = VeryNested;
 
                 for (int i = 0; i < 1000; i++)
                 {
-                    (nestedContainer ?? VeryNested).Add(nestedContainer = new Container { Size = new Vector2(100), Colour = Color4.Black });
+                    var container = new Container { Size = new Vector2(100), Colour = Color4.Black };
+
+                    target.Add(container);
+
+                    target = container;
                 }
             }
         }
