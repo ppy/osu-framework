@@ -4,12 +4,14 @@
 
 # osu!framework
 
-[![Build status](https://github.com/ppy/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/ppy/osu-framework/actions/workflows/ci.yml)
-[![GitHub release](https://img.shields.io/github/release/ppy/osu-framework.svg)](https://github.com/ppy/osu-framework/releases/latest)
-[![CodeFactor](https://www.codefactor.io/repository/github/ppy/osu-framework/badge)](https://www.codefactor.io/repository/github/ppy/osu-framework)
+[![Build status](https://github.com/ppy/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/devclyde/osu-framework/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/release/ppy/osu-framework.svg)](https://github.com/devclyde/osu-framework/releases/latest)
+[![CodeFactor](https://www.codefactor.io/repository/github/ppy/osu-framework/badge)](https://www.codefactor.io/repository/github/devclyde/osu-framework)
 [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
 A game framework written with [osu!](https://github.com/ppy/osu) in mind.
+
+**This branch extends the master branch by adding new features. Everything from the master branch is updated here, but none of that branch updates the master branch.**
 
 ## Requirements
 
@@ -56,7 +58,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 ## Developing a game using osu!framework
 
-If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/master/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/extended/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
 
 ## Projects that use osu!framework
 
@@ -68,8 +70,7 @@ If you want to get started making your own game project using osu!framework, che
 
 [IWBTM](https://github.com/EVAST9919/iwbtm) - A platform game with level editor based off of "I Wanna..." games
 
-<!--
-We love to see people using our framework! Add your project here via a PR!
+### We love to see people using our framework! Add your project here via a PR!
 
 Conditions:
  - Must be a GitHub link (i.e. your project is open source)
