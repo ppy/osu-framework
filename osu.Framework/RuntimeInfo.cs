@@ -13,7 +13,7 @@ namespace osu.Framework
         /// <summary>
         /// The absolute path to the startup directory of this game.
         /// </summary>
-        public static string StartupDirectory { get; } = AppContext.BaseDirectory;
+        public static string StartupDirectory => AppContext.BaseDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
         /// <summary>
         /// Returns the absolute path of osu.Framework.dll.
