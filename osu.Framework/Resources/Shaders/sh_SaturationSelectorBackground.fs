@@ -1,6 +1,6 @@
 #include "sh_Utils.h"
 
-varying mediump vec2 v_TexCoord;
+varying highp vec2 v_TexCoord;
 varying mediump vec4 v_TexRect;
 
 uniform mediump float hue;

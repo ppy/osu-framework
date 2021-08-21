@@ -1,7 +1,7 @@
 #include "sh_Utils.h"
 #include "sh_Masking.h"
 
-varying mediump vec2 v_TexCoord;
+varying highp vec2 v_TexCoord;
 
 uniform mediump float hue;
 
