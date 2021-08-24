@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Textures
                 if (e is DllNotFoundException)
                     stbiNotFound = true;
 
-                Logger.Error(e, "Texture could not be loaded via STB; falling back to ImageSharp.");
+                Logger.Log($"Texture could not be loaded via STB; falling back to ImageSharp: {e.Message}");
                 stream.Position = initialPos;
                 return Image.Load<TPixel>(stream);
             }
