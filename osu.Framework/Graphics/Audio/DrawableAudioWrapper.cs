@@ -98,12 +98,6 @@ namespace osu.Framework.Graphics.Audio
         {
             // because these components may be pooled, relying on DI is not feasible.
             // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
-            if (parentAdjustment != null)
-            {
-                adjustments.UnbindAdjustments(parentAdjustment);
-                parentAdjustment = null;
-            }
-
             Drawable cursor = this;
             bool foundMixer = false;
             bool foundAdjustments = false;
@@ -117,8 +111,12 @@ namespace osu.Framework.Graphics.Audio
                     // to avoid binding to one's self, check reference equality on an arbitrary bindable.
                     if (candidateAdjustment.AggregateVolume != adjustments.AggregateVolume)
                     {
-                        parentAdjustment = candidateAdjustment;
-                        adjustments.BindAdjustments(parentAdjustment);
+                        if (candidateAdjustment != parentAdjustment)
+                        {
+                            unbindParentAdjustments();
+                            parentAdjustment = candidateAdjustment;
+                            adjustments.BindAdjustments(parentAdjustment);
+                        }
 
                         foundAdjustments = true;
                     }
@@ -134,10 +132,22 @@ namespace osu.Framework.Graphics.Audio
                     break;
             }
 
+            if (!foundAdjustments)
+                unbindParentAdjustments();
+
             if (parentMixer != newMixer)
                 OnMixerChanged(new ValueChangedEvent<IAudioMixer>(parentMixer, newMixer));
 
             parentMixer = newMixer;
+
+            void unbindParentAdjustments()
+            {
+                if (parentAdjustment != null)
+                {
+                    adjustments.UnbindAdjustments(parentAdjustment);
+                    parentAdjustment = null;
+                }
+            }
         }
 
         protected virtual void OnMixerChanged(ValueChangedEvent<IAudioMixer> mixer)
