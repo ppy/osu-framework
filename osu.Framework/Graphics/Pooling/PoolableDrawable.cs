@@ -2,10 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Pooling
 {
@@ -25,14 +25,9 @@ namespace osu.Framework.Graphics.Pooling
 
         private IDrawablePool pool;
 
-        /// <summary>
-        /// A flag to keep the drawable present to guarantee the prepare call can be performed as a scheduled call.
-        /// </summary>
-        private bool waitingForPrepare;
+        private readonly Cached prepare = new Cached();
 
-        private ScheduledDelegate scheduledPrepare;
-
-        public override bool IsPresent => waitingForPrepare || base.IsPresent;
+        public override bool IsPresent => !prepare.IsValid || base.IsPresent;
 
         protected override void LoadComplete()
         {
@@ -41,6 +36,8 @@ namespace osu.Framework.Graphics.Pooling
             // this allows a PooledDrawable to still function outside of a pool.
             if (!IsInPool)
                 Assign();
+
+            ensurePrepared();
         }
 
         /// <summary>
@@ -58,7 +55,7 @@ namespace osu.Framework.Graphics.Pooling
             // intentionally don't throw if a pool was not associated or otherwise.
             // supports use of PooledDrawables outside of a pooled scenario without special handling.
             pool?.Return(this);
-            waitingForPrepare = false;
+            prepare.Validate();
         }
 
         /// <summary>
@@ -103,17 +100,23 @@ namespace osu.Framework.Graphics.Pooling
                 throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
 
             IsInUse = true;
+            prepare.Invalidate();
+        }
 
-            waitingForPrepare = true;
+        public override bool UpdateSubTree()
+        {
+            if (IsLoaded)
+                ensurePrepared();
 
-            // prepare call is scheduled as it may contain user code dependent on the clock being updated.
-            // must use Scheduler.Add, not Schedule as we may have the wrong clock at this point in load.
-            scheduledPrepare?.Cancel();
-            scheduledPrepare = Scheduler.Add(() =>
-            {
-                PrepareForUse();
-                waitingForPrepare = false;
-            });
+            return base.UpdateSubTree();
+        }
+
+        private void ensurePrepared()
+        {
+            if (prepare.IsValid) return;
+
+            PrepareForUse();
+            prepare.Validate();
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
