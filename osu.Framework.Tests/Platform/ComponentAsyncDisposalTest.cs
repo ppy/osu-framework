@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.Tests.Platform
 
             var task = Task.Run(() =>
             {
-                using (host = new HeadlessGameHost(@"host", false))
+                using (host = new TestRunHeadlessGameHost(@"host", false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();

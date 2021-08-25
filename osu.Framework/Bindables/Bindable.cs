@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
@@ -391,24 +390,17 @@ namespace osu.Framework.Bindables
             return clone;
         }
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
-        public Bindable<T> GetBoundCopy()
-        {
-            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            Debug.Assert(copy != null);
+        IBindable IBindable.CreateInstance() => CreateInstance();
 
-            copy.BindTo(this);
-            return copy;
-        }
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected virtual Bindable<T> CreateInstance() => new Bindable<T>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>
+        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {

@@ -5,7 +5,7 @@ using System;
 using BenchmarkDotNet.Attributes;
 using osu.Framework.Configuration;
 using osu.Framework.Localisation;
-using osu.Framework.Tests;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Benchmarks
 {

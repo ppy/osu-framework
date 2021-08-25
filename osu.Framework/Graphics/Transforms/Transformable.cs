@@ -291,6 +291,16 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
+            return createAbsoluteSequenceAction(newTransformStartTime);
+        }
+
+        internal virtual void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<IDisposable> actions)
+        {
+            actions.Add(createAbsoluteSequenceAction(newTransformStartTime));
+        }
+
+        private IDisposable createAbsoluteSequenceAction(double newTransformStartTime)
+        {
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 

@@ -42,7 +42,7 @@ namespace osu.Framework.Testing
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false);
+            host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}");
             runner = CreateRunner();
 
             if (!(runner is Game game))

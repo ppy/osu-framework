@@ -3,7 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Graphics;
-using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -21,7 +21,7 @@ namespace osu.Framework.Tests.Platform
             }
         }
 
-        private class TestHeadlessGameHost : HeadlessGameHost
+        private class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
             public Drawable CurrentRoot => Root;
 

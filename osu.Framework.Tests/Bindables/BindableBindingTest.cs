@@ -599,6 +599,8 @@ namespace osu.Framework.Tests.Bindables
                 base.UnbindFrom(them);
                 IsBound = false;
             }
+
+            protected override Bindable<int> CreateInstance() => new TestCustomBindable();
         }
     }
 }
