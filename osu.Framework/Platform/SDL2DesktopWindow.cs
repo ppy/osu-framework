@@ -367,6 +367,9 @@ namespace osu.Framework.Platform
         public SDL2DesktopWindow()
         {
             SDL.SDL_Init(SDL.SDL_INIT_VIDEO | SDL.SDL_INIT_GAMECONTROLLER);
+            // On most platforms SDL_Init already calls this function for us, but not on all.
+            // So call it explicitly, to make sure that we will receive SDL_TEXTINPUT events.
+            SDL.SDL_StartTextInput();
 
             graphicsBackend = CreateGraphicsBackend();
 
