@@ -2,12 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using osuTK;
 using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Utils;
-using osu.Framework.Lists;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -115,14 +115,15 @@ namespace osu.Framework.Graphics.Containers
                 yield break;
 
             // The positions for each child we will return later on.
-            var layoutPositions = ListPool<Vector2>.Shared.Rent();
+            var layoutPositions = ArrayPool<Vector2>.Shared.Rent(children.Length);
 
             // We need to keep track of row widths such that we can compute correct
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
-            var rowIndices = ListPool<int>.Shared.Rent();
-            var rowOffsetsToMiddle = ListPool<float>.Shared.Rent();
-            rowOffsetsToMiddle.Add(0);
+            var rowIndices = ArrayPool<int>.Shared.Rent(children.Length);
+
+            var rowOffsetsToMiddle = new List<float> { 0 };
+
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
             float rowHeight = 0;
@@ -185,7 +186,7 @@ namespace osu.Framework.Graphics.Containers
                         current.X = 0;
                         current.Y += rowHeight;
 
-                        layoutPositions.Add(current);
+                        layoutPositions[i] = current;
 
                         rowOffsetsToMiddle.Add(0);
                         rowBeginOffset = spacingFactor(c).X * size.X;
@@ -194,14 +195,14 @@ namespace osu.Framework.Graphics.Containers
                     }
                     else
                     {
-                        layoutPositions.Add(current);
+                        layoutPositions[i] = current;
 
                         // Compute offset to the middle of the row, to be applied in case of centre anchor
                         // in a second pass.
                         rowOffsetsToMiddle[^1] = rowBeginOffset - rowWidth / 2;
                     }
 
-                    rowIndices.Add(rowOffsetsToMiddle.Count - 1);
+                    rowIndices[i] = rowOffsetsToMiddle.Count - 1;
                     Vector2 stride = Vector2.Zero;
 
                     if (i < children.Length - 1)
@@ -286,9 +287,8 @@ namespace osu.Framework.Graphics.Containers
             }
             finally
             {
-                ListPool<Vector2>.Shared.Return(layoutPositions);
-                ListPool<int>.Shared.Return(rowIndices);
-                ListPool<float>.Shared.Return(rowOffsetsToMiddle);
+                ArrayPool<Vector2>.Shared.Return(layoutPositions);
+                ArrayPool<int>.Shared.Return(rowIndices);
             }
         }
 

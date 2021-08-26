@@ -1,14 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osuTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Layout;
-using osu.Framework.Lists;
-using osu.Framework.Extensions.IEnumerableExtensions;
+using osuTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -165,45 +164,37 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            var positions = ListPool<Vector2>.Shared.Rent(ComputeLayoutPositions());
-            var flowingChildren = ListPool<Drawable>.Shared.Rent(FlowingChildren);
+            var computedPairs = ComputeLayoutPositions().Zip(FlowingChildren, (v, d) => (v, d));
 
-            // defer the return of the rented lists
-            try
+            int processedCount = 0;
+
+            foreach (var (pos, drawable) in computedPairs)
             {
-                if (flowingChildren.Count != positions.Count)
+                processedCount++;
+
+                if (drawable.RelativePositionAxes != Axes.None)
+                    throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {drawable.RelativePositionAxes}).");
+
+                var existingTransform = drawable.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
+                Vector2 currentTargetPos = existingTransform?.EndValue ?? drawable.Position;
+
+                if (currentTargetPos == pos) continue;
+
+                if (LayoutDuration > 0)
+                    drawable.TransformTo(drawable.PopulateTransform(new FlowTransform { Rewindable = false }, pos, LayoutDuration, LayoutEasing));
+                else
                 {
-                    throw new InvalidOperationException(
-                        $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Count} positions for {flowingChildren.Count} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
-                }
-
-                for (int i = 0; i < positions.Count; i++)
-                {
-                    var d = flowingChildren[i];
-                    var finalPos = positions[i];
-
-                    if (d.RelativePositionAxes != Axes.None)
-                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {d.RelativePositionAxes}).");
-
-                    var existingTransform = d.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
-                    Vector2 currentTargetPos = existingTransform?.EndValue ?? d.Position;
-
-                    if (currentTargetPos != finalPos)
-                    {
-                        if (LayoutDuration > 0)
-                            d.TransformTo(d.PopulateTransform(new FlowTransform { Rewindable = false }, finalPos, LayoutDuration, LayoutEasing));
-                        else
-                        {
-                            if (existingTransform != null) d.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
-                            d.Position = finalPos;
-                        }
-                    }
+                    if (existingTransform != null) drawable.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
+                    drawable.Position = pos;
                 }
             }
-            finally
+
+            var expectedCount = FlowingChildren.Count();
+
+            if (expectedCount != processedCount)
             {
-                ListPool<Vector2>.Shared.Return(positions);
-                ListPool<Drawable>.Shared.Return(flowingChildren);
+                throw new InvalidOperationException(
+                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {processedCount} positions for {expectedCount} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 
