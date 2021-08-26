@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Hide this container by setting its visibility to <see cref="Visibility.Visible"/>.
+        /// Show this container by setting its visibility to <see cref="Visibility.Visible"/>.
         /// </summary>
         public override void Show() => State.Value = Visibility.Visible;
 
