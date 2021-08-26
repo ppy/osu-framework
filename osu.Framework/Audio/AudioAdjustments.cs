@@ -12,6 +12,8 @@ namespace osu.Framework.Audio
     /// </summary>
     public class AudioAdjustments : IAdjustableAudioComponent
     {
+        private static readonly AdjustableProperty[] all_adjustments = (AdjustableProperty[])Enum.GetValues(typeof(AdjustableProperty));
+
         /// <summary>
         /// The volume of this component.
         /// </summary>
@@ -59,7 +61,7 @@ namespace osu.Framework.Audio
 
         public AudioAdjustments()
         {
-            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+            foreach (AdjustableProperty type in all_adjustments)
             {
                 var aggregate = getAggregate(type) = new AggregateBindable<double>(getAggregateFunction(type), getProperty(type).GetUnboundCopy());
                 aggregate.AddSource(getProperty(type));
@@ -74,13 +76,13 @@ namespace osu.Framework.Audio
 
         public void BindAdjustments(IAggregateAudioAdjustment component)
         {
-            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+            foreach (AdjustableProperty type in all_adjustments)
                 getAggregate(type).AddSource(component.GetAggregate(type));
         }
 
         public void UnbindAdjustments(IAggregateAudioAdjustment component)
         {
-            foreach (AdjustableProperty type in Enum.GetValues(typeof(AdjustableProperty)))
+            foreach (AdjustableProperty type in all_adjustments)
                 getAggregate(type).RemoveSource(component.GetAggregate(type));
         }
 
