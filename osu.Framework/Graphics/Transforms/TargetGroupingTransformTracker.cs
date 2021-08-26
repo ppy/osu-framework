@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A list of <see cref="Transform"/>s associated with the <see cref="TargetGrouping"/>.
         /// </summary>
-        public IEnumerable<Transform> Transforms => transforms;
+        public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
         /// The member this instance is tracking.

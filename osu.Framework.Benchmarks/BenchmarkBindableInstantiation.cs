@@ -7,13 +7,17 @@ using osu.Framework.Bindables;
 
 namespace osu.Framework.Benchmarks
 {
+    [MemoryDiagnoser]
     public class BenchmarkBindableInstantiation
     {
-        [Benchmark(Baseline = true)]
-        public Bindable<int> GetBoundCopyOld() => new BindableOld<int>().GetBoundCopy();
+        [Benchmark]
+        public Bindable<int> Instantiate() => new Bindable<int>();
 
         [Benchmark]
         public Bindable<int> GetBoundCopy() => new Bindable<int>().GetBoundCopy();
+
+        [Benchmark(Baseline = true)]
+        public Bindable<int> GetBoundCopyOld() => new BindableOld<int>().GetBoundCopy();
 
         private class BindableOld<T> : Bindable<T>
         {
