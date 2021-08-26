@@ -26,6 +26,24 @@ namespace osu.Framework.Benchmarks
         public Transform CreateSingleBlank() => new TestTransform();
 
         [Benchmark]
+        public void CreateSequenceThenClearAfter()
+        {
+            target.FadeIn(1000, Easing.OutQuint)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000)
+                  .Then().FadeOut(1000);
+
+            target.ClearTransformsAfter(5000);
+        }
+
+        [Benchmark]
         public void Expiry()
         {
             target.FadeIn(1000, Easing.OutQuint)

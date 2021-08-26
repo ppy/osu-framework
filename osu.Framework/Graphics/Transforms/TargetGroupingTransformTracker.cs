@@ -263,21 +263,36 @@ namespace osu.Framework.Graphics.Transforms
         {
             resetLastAppliedCache();
 
-            Transform[] toAbort;
-
             if (targetMember == null)
             {
-                toAbort = transforms.Where(t => t.StartTime >= time).ToArray();
-                transforms.RemoveAll(t => t.StartTime >= time);
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    var t = transforms[i];
+
+                    if (t.StartTime >= time)
+                    {
+                        transforms.RemoveAt(i--);
+                        if (t.OnAbort != null)
+                            removalActions.Enqueue(t.OnAbort);
+                    }
+                }
             }
             else
             {
-                toAbort = transforms.Where(t => t.TargetMember == targetMember && t.StartTime >= time).ToArray();
-                transforms.RemoveAll(t => t.TargetMember == targetMember && t.StartTime >= time);
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    var t = transforms[i];
+
+                    if (t.TargetMember == targetMember && t.StartTime >= time)
+                    {
+                        transforms.RemoveAt(i--);
+                        if (t.OnAbort != null)
+                            removalActions.Enqueue(t.OnAbort);
+                    }
+                }
             }
 
-            foreach (var t in toAbort)
-                t.OnAbort?.Invoke();
+            invokePendingRemovalActions();
         }
 
         /// <summary>
