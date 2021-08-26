@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Transforms;
@@ -164,37 +165,49 @@ namespace osu.Framework.Graphics.Containers
             if (!Children.Any())
                 return;
 
-            var computedPairs = ComputeLayoutPositions().Zip(FlowingChildren, (v, d) => (v, d));
-
             int processedCount = 0;
 
-            foreach (var (pos, drawable) in computedPairs)
+            using (IEnumerator<Vector2> positionEnumerator = ComputeLayoutPositions().GetEnumerator())
+            using (IEnumerator<Drawable> drawableEnumerator = FlowingChildren.GetEnumerator())
             {
-                processedCount++;
-
-                if (drawable.RelativePositionAxes != Axes.None)
-                    throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {drawable.RelativePositionAxes}).");
-
-                var existingTransform = drawable.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
-                Vector2 currentTargetPos = existingTransform?.EndValue ?? drawable.Position;
-
-                if (currentTargetPos == pos) continue;
-
-                if (LayoutDuration > 0)
-                    drawable.TransformTo(drawable.PopulateTransform(new FlowTransform { Rewindable = false }, pos, LayoutDuration, LayoutEasing));
-                else
+                while (true)
                 {
-                    if (existingTransform != null) drawable.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
-                    drawable.Position = pos;
+                    bool nextPos = positionEnumerator.MoveNext();
+                    bool nextDrawable = drawableEnumerator.MoveNext();
+
+                    if (nextPos != nextDrawable)
+                    {
+                        throw new InvalidOperationException(
+                            $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {processedCount} positions for {FlowingChildren.Count()} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                    }
+
+                    // at this point we only need to check one of the two iterators (due to the conditional directly above).
+                    if (!nextPos)
+                        return;
+
+                    var drawable = drawableEnumerator.Current;
+                    var pos = positionEnumerator.Current;
+
+                    processedCount++;
+
+                    Debug.Assert(drawable != null);
+
+                    if (drawable.RelativePositionAxes != Axes.None)
+                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {drawable.RelativePositionAxes}).");
+
+                    var existingTransform = drawable.TransformsForTargetMember(FlowTransform.TARGET_MEMBER).FirstOrDefaultOfType<FlowTransform>();
+                    Vector2 currentTargetPos = existingTransform?.EndValue ?? drawable.Position;
+
+                    if (currentTargetPos == pos) continue;
+
+                    if (LayoutDuration > 0)
+                        drawable.TransformTo(drawable.PopulateTransform(new FlowTransform { Rewindable = false }, pos, LayoutDuration, LayoutEasing));
+                    else
+                    {
+                        if (existingTransform != null) drawable.ClearTransforms(false, FlowTransform.TARGET_MEMBER);
+                        drawable.Position = pos;
+                    }
                 }
-            }
-
-            var expectedCount = FlowingChildren.Count();
-
-            if (expectedCount != processedCount)
-            {
-                throw new InvalidOperationException(
-                    $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {processedCount} positions for {expectedCount} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
             }
         }
 
