@@ -272,7 +272,8 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-                        t.OnAbort?.Invoke();
+                        if (t.OnAbort != null)
+                            removalActions.Enqueue(t.OnAbort);
                     }
                 }
             }
@@ -285,10 +286,13 @@ namespace osu.Framework.Graphics.Transforms
                     if (t.TargetMember == targetMember && t.StartTime >= time)
                     {
                         transforms.RemoveAt(i--);
-                        t.OnAbort?.Invoke();
+                        if (t.OnAbort != null)
+                            removalActions.Enqueue(t.OnAbort);
                     }
                 }
             }
+
+            invokePendingRemovalActions();
         }
 
         /// <summary>
