@@ -567,6 +567,10 @@ namespace osu.Framework.Platform
             ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
         }
 
+        public void StartTextInput() => ScheduleCommand(() => { SDL.SDL_StartTextInput(); });
+
+        public void StopTextInput() => ScheduleCommand(() => { SDL.SDL_StopTextInput(); });
+
         #region SDL Event Handling
 
         /// <summary>
@@ -853,14 +857,14 @@ namespace osu.Framework.Platform
             if (ptr == IntPtr.Zero)
                 return;
 
-            string text = Marshal.PtrToStringUTF8(ptr) ?? "";
+            string text = Marshal.PtrToStringUTF8(ptr) ?? String.Empty;
 
-            foreach (char c in text)
-                ScheduleEvent(() => KeyTyped?.Invoke(c));
+            ScheduleEvent(() => TextInput?.Invoke(text));
         }
 
         private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
         {
+            // TODO
         }
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
@@ -1391,11 +1395,6 @@ namespace osu.Framework.Platform
         public event Action<Key> KeyUp;
 
         /// <summary>
-        /// Invoked when the user types a character.
-        /// </summary>
-        public event Action<char> KeyTyped;
-
-        /// <summary>
         /// Invoked when a joystick axis changes.
         /// </summary>
         public event Action<JoystickAxis> JoystickAxisChanged;
@@ -1414,6 +1413,11 @@ namespace osu.Framework.Platform
         /// Invoked when the user drops a file into the window.
         /// </summary>
         public event Action<string> DragDrop;
+
+        /// <summary>
+        /// Invoked when the user enters text.
+        /// </summary>
+        public event Action<string> TextInput;
 
         #endregion
 
