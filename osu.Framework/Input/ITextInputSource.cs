@@ -11,13 +11,11 @@ namespace osu.Framework.Input
     /// </summary>
     public interface ITextInputSource
     {
-        bool ImeActive { get; }
-
-        string GetPendingText();
-
-        void Deactivate();
+        bool Active { get; }
 
         void Activate();
+
+        void Deactivate();
 
         /// <summary>
         /// Ensures that the native implementation that retrieves user text input is activated
@@ -25,7 +23,6 @@ namespace osu.Framework.Input
         /// </summary>
         void EnsureActivated();
 
-        event Action<string> OnNewImeComposition;
-        event Action<string> OnNewImeResult;
+        event Action<string> OnTextInput;
     }
 }
