@@ -61,10 +61,13 @@ namespace osu.Framework.Graphics.Transforms
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
 
-                foreach (Transform t in Transforms)
+                foreach (var tracker in targetGroupingTrackers)
                 {
-                    if (t.EndTime > max)
-                        max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                    foreach (Transform t in tracker.Transforms)
+                    {
+                        if (t.EndTime > max)
+                            max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                    }
                 }
 
                 return max;
