@@ -44,7 +44,19 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
+        public override ITextInputSource GetTextInput()
+        {
+            if (Window == null)
+                return null;
+
+            if (Window is SDL2DesktopWindow)
+                return new SDL2DesktopWindowTextInput(Window as SDL2DesktopWindow);
+
+            if (Window is OsuTKWindow)
+                return new MacOSOsuTKTextInput(Window as OsuTKWindow);
+
+            throw new InvalidOperationException($"Unable to create text input source instance from window type {nameof(Window)}");
+        }
 
         public override Clipboard GetClipboard() => new MacOSClipboard();
 
