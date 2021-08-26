@@ -6,7 +6,7 @@ using osu.Framework.Platform.MacOS.Native;
 
 namespace osu.Framework.Platform.MacOS
 {
-    internal class MacOSTextInput : GameWindowTextInput
+    internal class MacOSOsuTKTextInput : OsuTKWindowTextInput
     {
         // Defined as kCGEventFlagMaskAlphaShift in CoreGraphics
         private const ulong event_flag_mask_alpha_shift = 65536;
@@ -16,10 +16,9 @@ namespace osu.Framework.Platform.MacOS
 
         private static bool isCapsLockOn => (Cocoa.CGEventSourceFlagsState(event_source_state_hid_system_state) & event_flag_mask_alpha_shift) != 0;
 
-        public MacOSTextInput(IWindow window)
+        public MacOSOsuTKTextInput(OsuTKWindow window)
             : base(window)
-        {
-        }
+        { }
 
         protected override void HandleKeyPress(object sender, osuTK.KeyPressEventArgs e)
         {
