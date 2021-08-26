@@ -78,9 +78,9 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        internal void TriggerComplete() => AbortTargetSequence?.TransformCompleted();
+        internal void TriggerComplete() => CompletionTargetSequence?.TransformCompleted();
 
-        internal void TriggerAbort() => CompletionTargetSequence?.TransformAborted();
+        internal void TriggerAbort() => AbortTargetSequence?.TransformAborted();
     }
 
     public abstract class Transform<TValue> : Transform
