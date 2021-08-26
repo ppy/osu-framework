@@ -143,20 +143,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
-
-            if (textInput != null)
-            {
-                textInput.OnNewImeComposition += s =>
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += s =>
-                {
-                    textUpdateScheduler.Add(onImeResult);
-                    cursorAndLayout.Invalidate();
-                };
-            }
         }
 
         public virtual bool OnPressed(PlatformAction action)
@@ -166,6 +152,11 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (!HandleLeftRightArrows && (action == PlatformAction.MoveBackwardChar || action == PlatformAction.MoveForwardChar))
                 return false;
+
+            if (textInput?.Active == true)
+                textInput.Deactivate();
+
+            bool handled = false;
 
             switch (action)
             {
@@ -179,101 +170,119 @@ namespace osu.Framework.Graphics.UserInterface
                     if (action == PlatformAction.Cut)
                         DeleteBy(0);
 
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.Paste:
-                    //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                    string pending = textInput?.GetPendingText();
-
-                    if (string.IsNullOrEmpty(pending))
-                        pending = clipboard?.GetText();
-
+                    string pending = clipboard?.GetText();
                     InsertString(pending);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectAll:
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
-                    return true;
+                    handled = true;
+                    break;
 
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
                     MoveCursorBy(-1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.MoveForwardChar:
                     MoveCursorBy(1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.MoveBackwardWord:
                     MoveCursorBy(GetBackwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.MoveForwardWord:
                     MoveCursorBy(GetForwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.MoveBackwardLine:
                     MoveCursorBy(GetBackwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.MoveForwardLine:
                     MoveCursorBy(GetForwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 // Deletion
                 case PlatformAction.DeleteBackwardChar:
                     DeleteBy(-1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.DeleteForwardChar:
                     DeleteBy(1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.DeleteBackwardWord:
                     DeleteBy(GetBackwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.DeleteForwardWord:
                     DeleteBy(GetForwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.DeleteBackwardLine:
                     DeleteBy(GetBackwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.DeleteForwardLine:
                     DeleteBy(GetForwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
-                    return true;
+                    handled = true;
+                    break;
             }
 
-            return false;
+            textInput?.Activate();
+
+            return handled;
         }
 
         public virtual void OnReleased(PlatformAction action)
@@ -469,7 +478,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.ImeActive == true) return;
+            if (textInput?.Active == true)
+                textInput.Deactivate();
 
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
@@ -730,56 +740,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
-        private bool consumingText;
-
-        /// <summary>
-        /// Begin consuming text from an <see cref="ITextInputSource"/>.
-        /// Continues to consume every <see cref="Drawable.Update"/> loop until <see cref="EndConsumingText"/> is called.
-        /// </summary>
-        protected void BeginConsumingText()
-        {
-            consumingText = true;
-            Schedule(consumePendingText);
-        }
-
-        /// <summary>
-        /// Stops consuming text from an <see cref="ITextInputSource"/>.
-        /// </summary>
-        protected void EndConsumingText()
-        {
-            consumingText = false;
-        }
-
-        /// <summary>
-        /// Consumes any pending characters and adds them to the textbox if not <see cref="ReadOnly"/>.
-        /// </summary>
-        /// <returns>Whether any characters were consumed.</returns>
-        private void consumePendingText()
-        {
-            string pendingText = textInput?.GetPendingText();
-
-            if (!string.IsNullOrEmpty(pendingText) && !ReadOnly)
-            {
-                InsertString(pendingText);
-                OnUserTextAdded(pendingText);
-            }
-
-            if (consumingText)
-                Schedule(consumePendingText);
-        }
-
         #region Input event handling
 
         protected override bool OnKeyDown(KeyDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (ReadOnly)
+                return true;
 
             if (e.ControlPressed || e.SuperPressed || e.AltPressed)
                 return false;
-
-            // we only care about keys which can result in text output.
-            if (keyProducesCharacter(e.Key))
-                BeginConsumingText();
 
             switch (e.Key)
             {
@@ -798,10 +767,8 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
             }
 
-            return base.OnKeyDown(e) || consumingText;
+            return (textInput?.Active ?? false) || base.OnKeyDown(e);
         }
-
-        private bool keyProducesCharacter(Key key) => (key == Key.Space || key >= Key.Keypad0 && key <= Key.NonUSBackSlash) && key != Key.KeypadEnter;
 
         /// <summary>
         /// Removes focus from this <see cref="TextBox"/> if it currently has focus.
@@ -837,20 +804,13 @@ namespace osu.Framework.Graphics.UserInterface
             OnCommit?.Invoke(this, isNew);
         }
 
-        protected override void OnKeyUp(KeyUpEvent e)
-        {
-            if (!e.HasAnyKeyPressed)
-                EndConsumingText();
-
-            base.OnKeyUp(e);
-        }
-
         protected override void OnDrag(DragEvent e)
         {
-            //if (textInput?.ImeActive == true) return true;
-
             if (ReadOnly)
                 return;
+
+            if (textInput?.Active == true)
+                textInput.Deactivate();
 
             if (doubleClickWord != null)
             {
@@ -899,7 +859,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.Active == true)
+                textInput.Deactivate();
 
             if (text.Length == 0) return true;
 
@@ -941,7 +902,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true || ReadOnly) return true;
+            if (ReadOnly)
+                return true;
+
+            if (textInput?.Active == true)
+                textInput.Deactivate();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -990,12 +955,25 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void unbindInput()
         {
-            textInput?.Deactivate();
+            if (textInput == null)
+                return;
+
+            textInput.Deactivate();
+            textInput.OnTextInput -= handleTextInput;
         }
 
         private void bindInput()
         {
-            textInput?.Activate();
+            if (textInput == null)
+                return;
+
+            textInput.Activate();
+            textInput.OnTextInput += handleTextInput;
+        }
+
+        private void handleTextInput(string text)
+        {
+            Schedule(() => InsertString(text));
         }
 
         private void onImeResult()
