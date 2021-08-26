@@ -1238,14 +1238,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
+        private static readonly ThreadLocal<List<AbsoluteSequenceSender>> thread_local_sender_list = new ThreadLocal<List<AbsoluteSequenceSender>>(() => new List<AbsoluteSequenceSender>());
+
         public override IDisposable BeginAbsoluteSequence(double newTransformStartTime, bool recursive = true)
         {
-            EnsureTransformMutationAllowed();
-
             if (!recursive || internalChildren.Count == 0)
                 return base.BeginAbsoluteSequence(newTransformStartTime, false);
 
-            List<AbsoluteSequenceSender> disposalActions = new List<AbsoluteSequenceSender>(internalChildren.Count + 1);
+            List<AbsoluteSequenceSender> disposalActions = thread_local_sender_list.Value;
+            disposalActions.Clear();
+
+            Thread retrievalThread = Thread.CurrentThread;
 
             base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
 
@@ -1254,6 +1257,9 @@ namespace osu.Framework.Graphics.Containers
 
             return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(disposalActions, actions =>
             {
+                if (Thread.CurrentThread != retrievalThread)
+                    throw new InvalidOperationException($"Detected cross-thread usage of {nameof(BeginAbsoluteSequence)}. Make sure to dispose on the same thread as beginning the sequence.");
+
                 foreach (var a in actions)
                     a.Dispose();
             });
