@@ -107,6 +107,8 @@ namespace osu.Framework.Tests.Bindables
             }
 
             protected override int DefaultMaxValue => 1;
+
+            protected override Bindable<int> CreateInstance() => new BindableNumberWithDefaultMaxValue();
         }
 
         private class BindableNumberWithDefaultMinValue : BindableInt
@@ -117,6 +119,8 @@ namespace osu.Framework.Tests.Bindables
             }
 
             protected override int DefaultMinValue => 3;
+
+            protected override Bindable<int> CreateInstance() => new BindableNumberWithDefaultMinValue();
         }
     }
 }

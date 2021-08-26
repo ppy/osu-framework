@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Logging;
-using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.IO
 {
@@ -27,11 +27,20 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
-            Logger.NewEntry += logTest;
-            Logger.Error(new TestException(), "message");
-            Logger.NewEntry -= logTest;
+            using (var storage = new TemporaryNativeStorage(nameof(TestExceptionLogging)))
+            {
+                Logger.Storage = storage;
+                Logger.Enabled = true;
 
-            Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+                Logger.NewEntry += logTest;
+                Logger.Error(new TestException(), "message");
+                Logger.NewEntry -= logTest;
+
+                Assert.IsNotNull(resolvedException, "exception wasn't forwarded by logger");
+
+                Logger.Enabled = false;
+                Logger.Flush();
+            }
         }
 
         [Test]
@@ -52,7 +61,7 @@ namespace osu.Framework.Tests.IO
 
             try
             {
-                using (var host = new HeadlessGameHost())
+                using (var host = new TestRunHeadlessGameHost())
                 {
                     var game = new TestGame();
                     game.Schedule(() => throw new TestException());
@@ -87,7 +96,7 @@ namespace osu.Framework.Tests.IO
         /// <param name="fireCount">How many exceptions to fire.</param>
         private void runWithIgnoreCount(int ignoreCount, int fireCount)
         {
-            using (var host = new HeadlessGameHost())
+            using (var host = new TestRunHeadlessGameHost())
             {
                 host.ExceptionThrown += ex => ignoreCount-- > 0;
 
@@ -106,7 +115,7 @@ namespace osu.Framework.Tests.IO
         {
             Assert.Throws<TestException>(() =>
             {
-                using (var host = new HeadlessGameHost())
+                using (var host = new TestRunHeadlessGameHost())
                     host.Run(new CrashTestGame());
             });
         }
@@ -123,7 +132,7 @@ namespace osu.Framework.Tests.IO
         [Test]
         public void TestGameUnobservedExceptionDoesntCrashGame()
         {
-            using (var host = new HeadlessGameHost())
+            using (var host = new TestRunHeadlessGameHost())
             {
                 TaskCrashTestGame game = new TaskCrashTestGame();
                 host.Run(game);
@@ -204,6 +213,7 @@ namespace osu.Framework.Tests.IO
                 }
             }
 
+            Logger.Enabled = true;
             Logger.NewEntry += logTest;
             Logger.Error(new TestExceptionWithInnerException(), "message", recursive: true);
             Logger.NewEntry -= logTest;

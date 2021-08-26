@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Utils;
 
 namespace osu.Framework.Bindables
 {
@@ -31,7 +33,35 @@ namespace osu.Framework.Bindables
         /// a local reference.
         /// </summary>
         /// <returns>A weakly bound copy of the specified bindable.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when attempting to instantiate a copy bindable that's not matching the original's type.</exception>
         IBindable GetBoundCopy();
+
+        /// <summary>
+        /// Creates a new instance of this <see cref="IBindable"/> for use in <see cref="GetBoundCopy"/>.
+        /// The returned instance must have match the most derived type of the bindable class this method is implemented on.
+        /// </summary>
+        protected IBindable CreateInstance();
+
+        /// <summary>
+        /// Helper method which implements <see cref="GetBoundCopy"/> for use in final classes.
+        /// </summary>
+        /// <param name="source">The source <see cref="IBindable"/>.</param>
+        /// <typeparam name="T">The bindable type.</typeparam>
+        /// <returns>The bound copy.</returns>
+        protected static T GetBoundCopyImplementation<T>(T source)
+            where T : IBindable
+        {
+            var copy = source.CreateInstance();
+
+            if (copy.GetType() != source.GetType())
+            {
+                ThrowHelper.ThrowInvalidOperationException($"Attempted to create a copy of {source.GetType().ReadableName()}, but the returned instance type was {copy.GetType().ReadableName()}. "
+                                                           + $"Override {source.GetType().ReadableName()}.{nameof(CreateInstance)}() for {nameof(GetBoundCopy)}() to function properly.");
+            }
+
+            copy.BindTo(source);
+            return (T)copy;
+        }
     }
 
     /// <summary>
@@ -77,12 +107,7 @@ namespace osu.Framework.Bindables
         /// <param name="runOnceImmediately">Whether the action provided in <paramref name="onChange"/> should be run once immediately.</param>
         void BindValueChanged(Action<ValueChangedEvent<T>> onChange, bool runOnceImmediately = false);
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
+        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
         IBindable<T> GetBoundCopy();
     }
 }

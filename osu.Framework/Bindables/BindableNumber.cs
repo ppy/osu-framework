@@ -317,6 +317,8 @@ namespace osu.Framework.Bindables
             }
         }
 
+        protected override Bindable<T> CreateInstance() => new BindableNumber<T>();
+
         protected sealed override T ClampValue(T value, T minValue, T maxValue) => max(minValue, min(maxValue, value));
 
         protected sealed override bool IsValidRange(T min, T max) => min.CompareTo(max) <= 0;

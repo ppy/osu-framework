@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 
@@ -140,7 +141,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             // The channel is always in a playing state unless stopped or stalled as it's a decoding channel. Retrieve the true playing state from the mixer channel.
             if (state == PlaybackState.Playing)
-                state = BassMix.ChannelHasFlag(channel.Handle, BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
+                state = BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.Default).HasFlagFast(BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
 
             return state;
         }
@@ -279,7 +280,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
             if (Handle == 0)
                 return;
 
