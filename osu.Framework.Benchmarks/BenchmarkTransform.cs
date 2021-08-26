@@ -44,6 +44,17 @@ namespace osu.Framework.Benchmarks
         }
 
         [Benchmark]
+        public void Expiry()
+        {
+            target.FadeIn(1000, Easing.OutQuint)
+                  .ScaleTo(2, 1000, Easing.OutQuint)
+                  .RotateTo(2, 1000, Easing.OutQuint);
+
+            target.Expire();
+            target.ClearTransforms();
+        }
+
+        [Benchmark]
         public void CreateSequenceWithDefaultEasing()
         {
             target.FadeIn(1000, Easing.OutQuint)
