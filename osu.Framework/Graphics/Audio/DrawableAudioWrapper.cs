@@ -161,6 +161,9 @@ namespace osu.Framework.Graphics.Audio
 
             if (disposeUnderlyingComponentOnDispose)
                 (component as IDisposable)?.Dispose();
+
+            parentAdjustment = null;
+            parentMixer = null;
         }
 
         public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)
