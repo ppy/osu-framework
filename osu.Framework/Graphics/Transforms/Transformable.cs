@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
 
             getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
-            toRemove.OnAbort?.Invoke();
+            toRemove.TriggerAbort();
         }
 
         /// <summary>
@@ -372,7 +372,8 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 transform.Apply(transform.EndTime);
-                transform.OnComplete?.Invoke();
+                transform.TriggerComplete();
+
                 return;
             }
 
