@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
                         }
                         catch (Exception e)
                         {
-                            Logger.Log($"Failed to unbind a local bindable in {type.ReadableName()}: {e}");
+                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
                         }
                     }
                 };
