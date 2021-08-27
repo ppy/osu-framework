@@ -203,9 +203,9 @@ namespace osu.Framework.Audio
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <remarks>
-        /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="TrackMixer"/>.
+        /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
         /// </remarks>
-        public AudioMixer CreateAudioMixer() => createAudioMixer(TrackMixer);
+        public AudioMixer CreateAudioMixer() => createAudioMixer(SampleMixer);
 
         private AudioMixer createAudioMixer(AudioMixer globalMixer)
         {
