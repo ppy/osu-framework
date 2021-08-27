@@ -11,9 +11,7 @@ using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
-    /// <summary>
-    /// A drawable text object that supports more advanced text formatting.
-    /// </summary>
+    /// <inheritdoc />
     public class TextFlowContainer : TextFlowContainer<SpriteText>
     {
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
