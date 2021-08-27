@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
         private float firstLineIndent;
         private readonly Action<T> defaultCreationParameters;
 
-        public TextFlowContainer(Action<T> defaultCreationParameters = null)
+        protected TextFlowContainer(Action<T> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
         }
