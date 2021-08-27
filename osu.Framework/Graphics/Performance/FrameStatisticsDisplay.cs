@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                Running = true;
+                Running = state != FrameStatisticsMode.None;
                 Expanded = false;
 
                 StateChanged?.Invoke(State);
