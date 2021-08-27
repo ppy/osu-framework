@@ -63,8 +63,9 @@ namespace osu.Framework.Graphics.Transforms
 
                 foreach (var tracker in targetGroupingTrackers)
                 {
-                    foreach (Transform t in tracker.Transforms)
+                    for (int i = 0; i < tracker.Transforms.Count; i++)
                     {
+                        var t = tracker.Transforms[i];
                         if (t.EndTime > max)
                             max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
                     }
