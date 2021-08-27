@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Transforms
     /// <typeparam name="T">
     /// The type of the <see cref="ITransformable"/> the <see cref="Transform"/>s in this sequence operate upon.
     /// </typeparam>
-    public class TransformSequence<T> where T : class, ITransformable
+    public class TransformSequence<T> : ITransformSequence where T : class, ITransformable
     {
         /// <summary>
         /// A delegate that generates a new <see cref="TransformSequence{T}"/> on a given <paramref name="origin"/>.
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Transforms
             // As soon as we have an infinitely looping transform,
             // completion no longer makes sense.
             if (last != null)
-                last.OnComplete = null;
+                last.CompletionTargetSequence = null;
 
             last = null;
             lastEndTime = double.PositiveInfinity;
@@ -81,8 +81,8 @@ namespace osu.Framework.Graphics.Transforms
 
             transforms.Add(transform);
 
-            transform.OnComplete = null;
-            transform.OnAbort = onTransformAborted;
+            transform.CompletionTargetSequence = this;
+            transform.AbortTargetSequence = this;
 
             if (transform.IsLooping)
                 onLoopingTransform();
@@ -91,10 +91,10 @@ namespace osu.Framework.Graphics.Transforms
             if (last == null || transform.EndTime > lastEndTime)
             {
                 if (last != null)
-                    last.OnComplete = null;
+                    last.CompletionTargetSequence = null;
 
                 last = transform;
-                last.OnComplete = onTransformsComplete;
+                last.CompletionTargetSequence = this;
                 lastEndTime = last.EndTime;
                 hasCompleted = false;
             }
@@ -173,34 +173,6 @@ namespace osu.Framework.Graphics.Transforms
                 originAction(origin);
 
             return this;
-        }
-
-        private void onTransformAborted()
-        {
-            if (transforms.Count == 0)
-                return;
-
-            // No need for OnAbort events to trigger anymore, since
-            // we are already aware of the abortion.
-            foreach (var t in transforms)
-            {
-                t.OnAbort = null;
-                t.OnComplete = null;
-
-                if (!t.HasStartValue)
-                    t.TargetTransformable.RemoveTransform(t);
-            }
-
-            transforms.Clear();
-            last = null;
-
-            onAbort?.Invoke();
-        }
-
-        private void onTransformsComplete()
-        {
-            hasCompleted = true;
-            onComplete?.Invoke();
         }
 
         private void subscribeComplete(Action func)
@@ -342,10 +314,10 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (var t in transforms)
             {
-                Action tmpOnAbort = t.OnAbort;
-                t.OnAbort = null;
+                var tmpOnAbort = t.AbortTargetSequence;
+                t.AbortTargetSequence = null;
                 t.TargetTransformable.RemoveTransform(t);
-                t.OnAbort = tmpOnAbort;
+                t.AbortTargetSequence = tmpOnAbort;
 
                 // Update start and end times such that no transformations need to be instantly
                 // looped right after they're added. This is required so that transforms can be
@@ -457,6 +429,34 @@ namespace osu.Framework.Graphics.Transforms
             if (hasEnd)
                 OnComplete(function);
             OnAbort(function);
+        }
+
+        void ITransformSequence.TransformAborted()
+        {
+            if (transforms.Count == 0)
+                return;
+
+            // No need for OnAbort events to trigger anymore, since
+            // we are already aware of the abortion.
+            foreach (var t in transforms)
+            {
+                t.AbortTargetSequence = null;
+                t.CompletionTargetSequence = null;
+
+                if (!t.HasStartValue)
+                    t.TargetTransformable.RemoveTransform(t);
+            }
+
+            transforms.Clear();
+            last = null;
+
+            onAbort?.Invoke();
+        }
+
+        void ITransformSequence.TransformCompleted()
+        {
+            hasCompleted = true;
+            onComplete?.Invoke();
         }
     }
 }
