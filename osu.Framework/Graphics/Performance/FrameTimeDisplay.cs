@@ -58,53 +58,50 @@ namespace osu.Framework.Graphics.Performance
         private int framesSinceLastUpdate;
 
         private double elapsedSinceLastUpdate;
+        private double lastUpdateLocalTime;
+        private double lastFrameFramesPerSecond;
 
         private const int updates_per_second = 10;
 
-        protected override void LoadComplete()
+        protected override void Update()
         {
-            base.LoadComplete();
+            base.Update();
 
-            double lastUpdate = 0;
+            if (Clock.CurrentTime - lastUpdateLocalTime > 1000.0 / updates_per_second)
+                updateDisplay();
+        }
 
-            thread.Scheduler.AddDelayed(() =>
+        private void updateDisplay()
+        {
+            if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
             {
-                if (!Counting) return;
+                ClearTransforms();
 
-                double clockFps = clock.FramesPerSecond;
-                double updateHz = clock.MaximumUpdateHz;
+                if (aimWidth == 0)
+                    Size = counter.DrawSize;
+                else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
+                    this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+                else
+                    this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                aimWidth = counter.DrawWidth;
+            }
 
-                Schedule(() =>
-                {
-                    if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
-                    {
-                        ClearTransforms();
+            double dampRate = Math.Max(Clock.CurrentTime - lastUpdateLocalTime, 0) / 1000;
 
-                        if (aimWidth == 0)
-                            Size = counter.DrawSize;
-                        else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                            this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
-                        else
-                            this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+            displayFps = Interpolation.Damp(displayFps, lastFrameFramesPerSecond, 0.01, dampRate);
 
-                        aimWidth = counter.DrawWidth;
-                    }
+            if (framesSinceLastUpdate > 0)
+            {
+                rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
+            }
 
-                    double dampRate = Math.Max(Clock.CurrentTime - lastUpdate, 0) / 1000;
+            lastUpdateLocalTime = Clock.CurrentTime;
 
-                    displayFps = Interpolation.Damp(displayFps, clockFps, 0.01, dampRate);
-                    if (framesSinceLastUpdate > 0)
-                        rollingElapsed = Interpolation.Damp(rollingElapsed, elapsedSinceLastUpdate / framesSinceLastUpdate, 0.01, dampRate);
+            framesSinceLastUpdate = 0;
+            elapsedSinceLastUpdate = 0;
 
-                    lastUpdate = Clock.CurrentTime;
-
-                    framesSinceLastUpdate = 0;
-                    elapsedSinceLastUpdate = 0;
-
-                    counter.Text = $"{displayFps:0}fps({rollingElapsed:0.00}ms)"
-                                   + (clock.Throttling ? $"{(updateHz < 10000 ? updateHz.ToString("0") : "∞").PadLeft(4)}hz" : string.Empty);
-                });
-            }, 1000.0 / updates_per_second, true);
+            counter.Text = $"{displayFps:0}fps ({rollingElapsed:0.00}ms)"
+                           + (clock.Throttling ? $"{(clock.MaximumUpdateHz < 10000 ? clock.MaximumUpdateHz.ToString("0") : "∞").PadLeft(4)}hz" : string.Empty);
         }
 
         private class CounterText : SpriteText
@@ -128,6 +125,7 @@ namespace osu.Framework.Graphics.Performance
             }
 
             framesSinceLastUpdate++;
+            lastFrameFramesPerSecond = frame.FramesPerSecond;
         }
     }
 }
