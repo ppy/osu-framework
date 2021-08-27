@@ -50,7 +50,9 @@ namespace osu.Framework.Benchmarks
                   .ScaleTo(2, 1000, Easing.OutQuint)
                   .RotateTo(2, 1000, Easing.OutQuint);
 
-            target.Expire();
+            for (int i = 0; i < 1000; i++)
+                target.Expire();
+
             target.ClearTransforms();
         }
 
