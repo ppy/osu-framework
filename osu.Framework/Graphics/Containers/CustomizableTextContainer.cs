@@ -7,6 +7,9 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A <see cref="TextFlowContainer"/> that supports adding icons into its text. Inherit from this class to define reusable custom placeholders for icons.
+    /// </summary>
     public class CustomizableTextContainer : CustomizableTextContainer<SpriteText>
     {
         protected override SpriteText CreateSpriteText() => new SpriteText();
