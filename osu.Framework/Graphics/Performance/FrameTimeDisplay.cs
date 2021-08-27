@@ -2,15 +2,15 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osuTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Statistics;
-using osu.Framework.Utils;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using osu.Framework.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -67,12 +67,6 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            if (Clock.CurrentTime - lastUpdateLocalTime > 1000.0 / updates_per_second)
-                updateDisplay();
-        }
-
-        private void updateDisplay()
-        {
             if (!Precision.AlmostEquals(counter.DrawWidth, aimWidth))
             {
                 ClearTransforms();
@@ -80,12 +74,19 @@ namespace osu.Framework.Graphics.Performance
                 if (aimWidth == 0)
                     Size = counter.DrawSize;
                 else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
-                    this.ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+                    this.ResizeTo(counter.DrawSize, 200, Easing.OutQuint);
                 else
-                    this.Delay(1500).ResizeTo(counter.DrawSize, 500, Easing.InOutSine);
+                    this.Delay(500).ResizeTo(counter.DrawSize, 200, Easing.InOutSine);
+
                 aimWidth = counter.DrawWidth;
             }
 
+            if (Clock.CurrentTime - lastUpdateLocalTime > 1000.0 / updates_per_second)
+                updateDisplay();
+        }
+
+        private void updateDisplay()
+        {
             double dampRate = Math.Max(Clock.CurrentTime - lastUpdateLocalTime, 0) / 1000;
 
             displayFps = Interpolation.Damp(displayFps, lastFrameFramesPerSecond, 0.01, dampRate);
