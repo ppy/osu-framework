@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Statistics;
-using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
 using osuTK;
@@ -19,14 +18,12 @@ namespace osu.Framework.Graphics.Performance
         private readonly SpriteText counter;
 
         private readonly ThrottledFrameClock clock;
-        private readonly GameThread thread;
 
         public bool Counting = true;
 
-        public FrameTimeDisplay(ThrottledFrameClock clock, GameThread thread)
+        public FrameTimeDisplay(ThrottledFrameClock clock)
         {
             this.clock = clock;
-            this.thread = thread;
 
             Masking = true;
             CornerRadius = 5;
