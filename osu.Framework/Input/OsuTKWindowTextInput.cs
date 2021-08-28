@@ -23,9 +23,9 @@ namespace osu.Framework.Input
                 OnTextInput?.Invoke(e.KeyChar.ToString());
         }
 
-        public void Deactivate() => Active = true;
+        public void Activate() => Active = true;
 
-        public void Activate() => Active = false;
+        public void Deactivate() => Active = false;
 
         public void EnsureActivated()
         {
