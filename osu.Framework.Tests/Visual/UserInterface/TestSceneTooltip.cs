@@ -79,14 +79,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestEmptyTooltip()
         {
             AddStep("hover empty tooltip", () => InputManager.MoveMouseTo(emptyTooltipText));
-            AddAssert("tooltip not appeared", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+            AddAssert("tooltip not shown", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
         }
 
         [Test]
         public void TestNullTooltip()
         {
             AddStep("hover null tooltip", () => InputManager.MoveMouseTo(nullTooltipText));
-            AddAssert("tooltip not appeared", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+            AddAssert("tooltip not shown", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
         }
 
         [Test]
