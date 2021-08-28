@@ -12,6 +12,10 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The custom tooltip that should be displayed.
         /// </summary>
+        /// <remarks>
+        /// A tooltip may be reused between different drawables with different content if they share the same tooltip type.
+        /// Therefore it is recommended for all displayed content in the tooltip to be provided by <see cref="TooltipContent"/> instead.
+        /// </remarks>
         /// <returns>The custom tooltip that should be displayed.</returns>
         ITooltip GetCustomTooltip();
 
