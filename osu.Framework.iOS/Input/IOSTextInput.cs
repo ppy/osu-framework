@@ -11,43 +11,31 @@ namespace osu.Framework.iOS.Input
     {
         private readonly IOSGameView view;
 
-        private string pending = string.Empty;
+        public event Action<string> OnTextInput;
+
+        public bool Active { get; private set; }
 
         public IOSTextInput(IOSGameView view)
         {
             this.view = view;
         }
 
-        public bool ImeActive => false;
-
-        public string GetPendingText()
-        {
-            try
-            {
-                return pending;
-            }
-            finally
-            {
-                pending = string.Empty;
-            }
-        }
-
         private void handleShouldChangeCharacters(NSRange range, string text)
         {
-            if (text == " " || text.Trim().Length > 0)
-                pending += text;
-        }
-
-        public void Deactivate()
-        {
-            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
-            view.KeyboardTextField.UpdateFirstResponder(false);
+            if (Active && (text == " " || text.Trim().Length > 0))
+                OnTextInput?.Invoke(text);
         }
 
         public void Activate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
+        }
+
+        public void Deactivate()
+        {
+            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
+            view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
         public void EnsureActivated()
@@ -57,18 +45,6 @@ namespace osu.Framework.iOS.Input
             /// `responderSemaphore` currently works.
 
             // TODO: add iOS implementation
-        }
-
-        public event Action<string> OnNewImeComposition
-        {
-            add { }
-            remove { }
-        }
-
-        public event Action<string> OnNewImeResult
-        {
-            add { }
-            remove { }
         }
     }
 }
