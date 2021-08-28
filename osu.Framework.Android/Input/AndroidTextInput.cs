@@ -14,8 +14,10 @@ namespace osu.Framework.Android.Input
         private readonly AndroidGameView view;
         private readonly AndroidGameActivity activity;
         private readonly InputMethodManager inputMethodManager;
-        private string pending = string.Empty;
-        private readonly object pendingLock = new object();
+
+        public event Action<string> OnTextInput;
+
+        public bool Active { get; private set; }
 
         public AndroidTextInput(AndroidGameView view)
         {
@@ -23,6 +25,30 @@ namespace osu.Framework.Android.Input
             activity = (AndroidGameActivity)view.Context;
 
             inputMethodManager = view.Context.GetSystemService(Context.InputMethodService) as InputMethodManager;
+        }
+
+        private void commitText(string text)
+        {
+            if (Active)
+                OnTextInput?.Invoke(text);
+        }
+
+        private void keyDown(Keycode arg, KeyEvent e)
+        {
+            if (Active && e.UnicodeChar != 0)
+                OnTextInput?.Invoke((char)e.UnicodeChar.ToString());
+        }
+
+        public void Activate()
+        {
+            activity.RunOnUiThread(() =>
+            {
+                view.RequestFocus();
+                inputMethodManager.ShowSoftInput(view, 0);
+                view.KeyDown += keyDown;
+                view.CommitText += commitText;
+            });
+            Active = true;
         }
 
         public void Deactivate()
@@ -34,44 +60,7 @@ namespace osu.Framework.Android.Input
                 view.KeyDown -= keyDown;
                 view.CommitText -= commitText;
             });
-        }
-
-        public string GetPendingText()
-        {
-            lock (pendingLock)
-            {
-                var oldPending = pending;
-                pending = string.Empty;
-                return oldPending;
-            }
-        }
-
-        private void commitText(string text)
-        {
-            OnNewImeComposition?.Invoke(text);
-            OnNewImeResult?.Invoke(text);
-        }
-
-        private void keyDown(Keycode arg, KeyEvent e)
-        {
-            if (e.UnicodeChar != 0)
-                pending += (char)e.UnicodeChar;
-        }
-
-        public bool ImeActive => false;
-
-        public event Action<string> OnNewImeComposition;
-        public event Action<string> OnNewImeResult;
-
-        public void Activate()
-        {
-            activity.RunOnUiThread(() =>
-            {
-                view.RequestFocus();
-                inputMethodManager.ShowSoftInput(view, 0);
-                view.KeyDown += keyDown;
-                view.CommitText += commitText;
-            });
+            Active = false;
         }
 
         public void EnsureActivated()
