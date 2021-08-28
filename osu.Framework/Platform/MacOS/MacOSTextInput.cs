@@ -18,7 +18,8 @@ namespace osu.Framework.Platform.MacOS
 
         public MacOSOsuTKTextInput(OsuTKWindow window)
             : base(window)
-        { }
+        {
+        }
 
         protected override void HandleKeyPress(object sender, osuTK.KeyPressEventArgs e)
         {

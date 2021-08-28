@@ -857,7 +857,7 @@ namespace osu.Framework.Platform
             if (ptr == IntPtr.Zero)
                 return;
 
-            string text = Marshal.PtrToStringUTF8(ptr) ?? String.Empty;
+            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
             ScheduleEvent(() => TextInput?.Invoke(text));
         }

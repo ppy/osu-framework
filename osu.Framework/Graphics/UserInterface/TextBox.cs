@@ -89,6 +89,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool CanBeTabbedTo => !ReadOnly;
 
+        /// <remarks>
+        /// The ITextInputSource will be activated while this TextBox instance has focus and will be deactivated on loss
+        /// of focus or when the TextBox is set to be ReadOnly. It will otherwise be temporarily deactivated when the
+        /// TextBox is handling non-textinput events.
+        /// </remarks>
         private ITextInputSource textInput;
 
         private Clipboard clipboard;
@@ -153,8 +158,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!HandleLeftRightArrows && (action == PlatformAction.MoveBackwardChar || action == PlatformAction.MoveForwardChar))
                 return false;
 
-            if (textInput?.Active == true)
-                textInput.Deactivate();
+            deactivateInput();
 
             bool handled = false;
 
@@ -280,7 +284,7 @@ namespace osu.Framework.Graphics.UserInterface
                     break;
             }
 
-            textInput?.Activate();
+            textInput?.EnsureActivated();
 
             return handled;
         }
@@ -478,9 +482,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.Active == true)
-                textInput.Deactivate();
-
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
@@ -767,7 +768,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return false;
             }
 
-            return (textInput?.Active ?? false) || base.OnKeyDown(e);
+            return (textInput?.Active == true) || base.OnKeyDown(e);
         }
 
         /// <summary>
@@ -809,8 +810,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return;
 
-            if (textInput?.Active == true)
-                textInput.Deactivate();
+            deactivateInput();
 
             if (doubleClickWord != null)
             {
@@ -859,8 +859,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            if (textInput?.Active == true)
-                textInput.Deactivate();
+            deactivateInput();
 
             if (text.Length == 0) return true;
 
@@ -905,8 +904,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return true;
 
-            if (textInput?.Active == true)
-                textInput.Deactivate();
+            deactivateInput();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -971,9 +969,18 @@ namespace osu.Framework.Graphics.UserInterface
             textInput.OnTextInput += handleTextInput;
         }
 
+        private void deactivateInput()
+        {
+            if (textInput?.Active == true)
+                textInput.Deactivate();
+        }
+
         private void handleTextInput(string text)
         {
-            Schedule(() => InsertString(text));
+            Schedule(() => {
+                InsertString(text);
+                OnUserTextAdded(text);
+            });
         }
 
         private void onImeResult()
