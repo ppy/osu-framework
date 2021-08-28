@@ -977,7 +977,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleTextInput(string text)
         {
-            Schedule(() => {
+            Schedule(() =>
+            {
                 InsertString(text);
                 OnUserTextAdded(text);
             });
