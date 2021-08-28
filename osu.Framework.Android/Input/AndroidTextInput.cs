@@ -36,7 +36,7 @@ namespace osu.Framework.Android.Input
         private void keyDown(Keycode arg, KeyEvent e)
         {
             if (Active && e.UnicodeChar != 0)
-                OnTextInput?.Invoke((char)e.UnicodeChar.ToString());
+                OnTextInput?.Invoke(((char)e.UnicodeChar).ToString());
         }
 
         public void Activate()
