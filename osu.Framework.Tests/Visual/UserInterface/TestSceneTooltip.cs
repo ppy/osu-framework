@@ -25,6 +25,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         private TooltipSpriteText instantTooltipText;
         private CustomTooltipSpriteText customTooltipTextA;
         private CustomTooltipSpriteText customTooltipTextB;
+        private CustomTooltipSpriteTextAlt customTooltipTextAlt;
         private TooltipSpriteText emptyTooltipText;
         private TooltipSpriteText nullTooltipText;
         private TooltipTextBox tooltipTextBox;
@@ -73,6 +74,25 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             AddAssert("custom tooltip reused", () => tooltipContainer.CurrentTooltip == originalInstance);
             assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+        }
+
+        [Test]
+        public void TestDifferentCustomTooltips()
+        {
+            hoverTooltipProvider(() => customTooltipTextA);
+            assertTooltipText(() => ((CustomContent)customTooltipTextA.TooltipContent).Text);
+
+            AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
+
+            hoverTooltipProvider(() => customTooltipTextAlt);
+            assertTooltipText(() => ((CustomContent)customTooltipTextAlt.TooltipContent).Text);
+
+            AddAssert("current tooltip type alt", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltipAlt));
+
+            hoverTooltipProvider(() => customTooltipTextB);
+            assertTooltipText(() => ((CustomContent)customTooltipTextB.TooltipContent).Text);
+
+            AddAssert("current tooltip type normal", () => tooltipContainer.CurrentTooltip.GetType() == typeof(CustomTooltip));
         }
 
         [Test]
@@ -184,6 +204,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
                             instantTooltipText = new InstantTooltipSpriteText("this text has an instant tooltip!"),
                             customTooltipTextA = new CustomTooltipSpriteText("this one is custom!"),
                             customTooltipTextB = new CustomTooltipSpriteText("this one is also!"),
+                            customTooltipTextAlt = new CustomTooltipSpriteTextAlt("but this one is different."),
                             emptyTooltipText = new InstantTooltipSpriteText("this text has an empty tooltip!", string.Empty),
                             nullTooltipText = new InstantTooltipSpriteText("this text has a nulled tooltip!", null),
                             tooltipTextBox = new TooltipTextBox
@@ -265,7 +286,17 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public ITooltip GetCustomTooltip() => new CustomTooltip();
+            public virtual ITooltip GetCustomTooltip() => new CustomTooltip();
+        }
+
+        private class CustomTooltipSpriteTextAlt : CustomTooltipSpriteText
+        {
+            public CustomTooltipSpriteTextAlt(string displayedContent, string tooltipContent = null)
+                : base(displayedContent, tooltipContent)
+            {
+            }
+
+            public override ITooltip GetCustomTooltip() => new CustomTooltipAlt();
         }
 
         private class CustomContent
@@ -278,7 +309,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class CustomTooltip : CompositeDrawable, ITooltip
+        private class CustomTooltip : CompositeDrawable, ITooltip<CustomContent>
         {
             private static int i;
 
@@ -310,16 +341,19 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 };
             }
 
-            public bool SetContent(object content)
-            {
-                if (!(content is CustomContent custom))
-                    return false;
-
-                text.Text = custom.Text;
-                return true;
-            }
+            public void SetContent(CustomContent content) => text.Text = content.Text;
 
             public void Move(Vector2 pos) => Position = pos;
+        }
+
+        private class CustomTooltipAlt : CustomTooltip
+        {
+            public CustomTooltipAlt()
+            {
+                AutoSizeAxes = Axes.Both;
+
+                Colour = Color4.Red;
+            }
         }
 
         private class TooltipSpriteText : Container, IHasTooltip
