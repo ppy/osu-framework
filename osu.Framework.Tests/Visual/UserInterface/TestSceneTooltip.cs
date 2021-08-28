@@ -278,20 +278,27 @@ namespace osu.Framework.Tests.Visual.UserInterface
             }
         }
 
-        private class CustomTooltip : TooltipContainer.Tooltip
+        private class CustomTooltip : CompositeDrawable, ITooltip
         {
             private static int i;
 
+            private readonly SpriteText text;
+
             public CustomTooltip()
             {
-                AddRangeInternal(new Drawable[]
+                AutoSizeAxes = Axes.Both;
+
+                InternalChildren = new Drawable[]
                 {
                     new Box
                     {
-                        Anchor = Anchor.BottomLeft,
-                        Colour = Color4.Black,
-                        RelativeSizeAxes = Axes.X,
-                        Height = 12,
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = FrameworkColour.GreenDark,
+                    },
+                    text = new SpriteText
+                    {
+                        Font = FrameworkFont.Regular.With(size: 16),
+                        Padding = new MarginPadding(5),
                     },
                     new SpriteText
                     {
@@ -299,18 +306,20 @@ namespace osu.Framework.Tests.Visual.UserInterface
                         Font = FontUsage.Default.With(size: 12),
                         Colour = Color4.Yellow,
                         Text = $"Custom tooltip instance {i++}"
-                    }
-                });
+                    },
+                };
             }
 
-            public override bool SetContent(object content)
+            public bool SetContent(object content)
             {
                 if (!(content is CustomContent custom))
                     return false;
 
-                base.SetContent(custom.Text);
+                text.Text = custom.Text;
                 return true;
             }
+
+            public void Move(Vector2 pos) => Position = pos;
         }
 
         private class TooltipSpriteText : Container, IHasTooltip
