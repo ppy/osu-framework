@@ -3,6 +3,8 @@
 
 using System;
 
+#nullable enable
+
 namespace osu.Framework.Localisation
 {
     public static class LocalisableStringExtensions
@@ -12,6 +14,7 @@ namespace osu.Framework.Localisation
         /// </summary>
         /// <param name="value">The value to format.</param>
         /// <param name="format">The format string.</param>
-        public static LocalisableFormattableString ToLocalisableString(this IFormattable value, string format) => new LocalisableFormattableString(value, format);
+        public static LocalisableFormattableString ToLocalisableString(this IFormattable value, string? format)
+            => new LocalisableFormattableString(value, format);
     }
 }
