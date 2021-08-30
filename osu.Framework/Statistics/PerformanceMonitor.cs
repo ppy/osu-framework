@@ -150,6 +150,7 @@ namespace osu.Framework.Statistics
 
                     global.Value = count;
                     currentFrame.Counts[type] = count;
+                    currentFrame.FramesPerSecond = Clock.FramesPerSecond;
 
                     FrameStatistics.COUNTERS[i] = 0;
                 }

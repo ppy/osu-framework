@@ -151,6 +151,24 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestShowHideViaExtensionMethod()
+        {
+            createContent(button => new BasicPopover
+            {
+                Child = new SpriteText
+                {
+                    Text = $"{button.Anchor} popover"
+                }
+            });
+
+            AddStep("show popover manually", () => this.ChildrenOfType<DrawableWithPopover>().First().ShowPopover());
+            AddAssert("popover shown", () => this.ChildrenOfType<Popover>().Any(popover => popover.State.Value == Visibility.Visible));
+
+            AddStep("hide popover manually", () => popoverContainer.HidePopover());
+            AddAssert("all hidden", () => this.ChildrenOfType<Popover>().All(popover => popover.State.Value != Visibility.Visible));
+        }
+
+        [Test]
         public void TestClickBetweenMultiple()
         {
             createContent(button => new BasicPopover
