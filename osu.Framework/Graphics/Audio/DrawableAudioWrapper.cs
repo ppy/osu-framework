@@ -98,40 +98,32 @@ namespace osu.Framework.Graphics.Audio
         {
             // because these components may be pooled, relying on DI is not feasible.
             // in the majority of cases the traversal should be quite short. may require later attention if a use case comes up which this is not true for.
-            if (parentAdjustment != null)
-            {
-                adjustments.UnbindAdjustments(parentAdjustment);
-                parentAdjustment = null;
-            }
-
             Drawable cursor = this;
-            bool foundMixer = false;
-            bool foundAdjustments = false;
+            IAggregateAudioAdjustment newAdjustments = null;
             IAudioMixer newMixer = null;
 
             while ((cursor = cursor.Parent) != null)
             {
-                if (!foundAdjustments && cursor is IAggregateAudioAdjustment candidateAdjustment)
+                if (newAdjustments == null && cursor is IAggregateAudioAdjustment candidateAdjustment)
                 {
                     // components may be delegating the aggregates of a contained child.
                     // to avoid binding to one's self, check reference equality on an arbitrary bindable.
                     if (candidateAdjustment.AggregateVolume != adjustments.AggregateVolume)
-                    {
-                        parentAdjustment = candidateAdjustment;
-                        adjustments.BindAdjustments(parentAdjustment);
-
-                        foundAdjustments = true;
-                    }
+                        newAdjustments = candidateAdjustment;
                 }
 
-                if (!foundMixer && cursor is IAudioMixer candidateMixer)
-                {
+                if (newMixer == null && cursor is IAudioMixer candidateMixer)
                     newMixer = candidateMixer;
-                    foundMixer = true;
-                }
 
-                if (foundAdjustments && foundMixer)
+                if (newAdjustments != null && newMixer != null)
                     break;
+            }
+
+            if (newAdjustments != parentAdjustment)
+            {
+                if (parentAdjustment != null) adjustments.UnbindAdjustments(parentAdjustment);
+                parentAdjustment = newAdjustments;
+                if (parentAdjustment != null) adjustments.BindAdjustments(parentAdjustment);
             }
 
             if (parentMixer != newMixer)
@@ -151,6 +143,9 @@ namespace osu.Framework.Graphics.Audio
 
             if (disposeUnderlyingComponentOnDispose)
                 (component as IDisposable)?.Dispose();
+
+            parentAdjustment = null;
+            parentMixer = null;
         }
 
         public void AddAdjustment(AdjustableProperty type, IBindable<double> adjustBindable)

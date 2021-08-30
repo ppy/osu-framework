@@ -16,11 +16,13 @@ namespace osu.Framework.Benchmarks
     {
         private ManualGameHost gameHost;
 
+        protected Game Game { get; private set; }
+
         [GlobalSetup]
         [OneTimeSetUp]
         public virtual void SetUp()
         {
-            gameHost = new ManualGameHost(CreateGame());
+            gameHost = new ManualGameHost(Game = CreateGame());
         }
 
         [GlobalCleanup]
