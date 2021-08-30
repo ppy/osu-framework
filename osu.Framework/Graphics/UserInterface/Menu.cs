@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsLoaded)
                 return;
 
-            submenu?.Close();
+            resetState();
 
             switch (State)
             {
@@ -258,7 +258,14 @@ namespace osu.Framework.Graphics.UserInterface
 
                     break;
             }
+        }
 
+        private void resetState()
+        {
+            if (!IsLoaded)
+                return;
+
+            submenu?.Close();
             sizeCache.Invalidate();
         }
 
@@ -307,7 +314,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Clear()
         {
             ItemsContainer.Clear();
-            updateState();
+            resetState();
         }
 
         /// <summary>
