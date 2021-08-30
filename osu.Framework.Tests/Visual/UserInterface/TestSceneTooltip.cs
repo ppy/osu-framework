@@ -99,14 +99,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
         public void TestEmptyTooltip()
         {
             AddStep("hover empty tooltip", () => InputManager.MoveMouseTo(emptyTooltipText));
-            AddAssert("tooltip not appeared", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+            AddAssert("tooltip not shown", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
         }
 
         [Test]
         public void TestNullTooltip()
         {
             AddStep("hover null tooltip", () => InputManager.MoveMouseTo(nullTooltipText));
-            AddAssert("tooltip not appeared", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
+            AddAssert("tooltip not shown", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
         }
 
         [Test]
@@ -120,14 +120,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertTooltipText(() => "updated!");
         }
 
-        private void hoverTooltipProvider(Func<Drawable> getProvider, bool waitOnDisplay = true)
+        private void hoverTooltipProvider(Func<Drawable> getProvider, bool waitForDisplay = true)
         {
             AddStep("hover away from tooltips", () => InputManager.MoveMouseTo(Vector2.Zero));
             AddAssert("tooltip hidden", () => tooltipContainer.CurrentTooltip?.IsPresent != true);
 
             AddStep("hover tooltip", () => InputManager.MoveMouseTo(getProvider()));
 
-            if (waitOnDisplay)
+            if (waitForDisplay)
                 AddUntilStep("wait for tooltip", () => tooltipContainer.CurrentTooltip?.IsPresent == true);
             else
                 AddAssert("tooltip instantly displayed", () => tooltipContainer.CurrentTooltip?.IsPresent == true);
