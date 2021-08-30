@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Transforms
 
             transforms.Add(transform);
 
-            transform.CompletionTargetSequence = this;
+            transform.CompletionTargetSequence = null;
             transform.AbortTargetSequence = this;
 
             if (transform.IsLooping)
