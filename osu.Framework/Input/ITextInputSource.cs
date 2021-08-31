@@ -11,6 +11,8 @@ namespace osu.Framework.Input
     /// </summary>
     public interface ITextInputSource
     {
+        event Action<string> OnTextInput;
+
         bool Active { get; }
 
         void Activate();
@@ -22,7 +24,5 @@ namespace osu.Framework.Input
         /// and that the user can start entering text.
         /// </summary>
         void EnsureActivated();
-
-        event Action<string> OnTextInput;
     }
 }
