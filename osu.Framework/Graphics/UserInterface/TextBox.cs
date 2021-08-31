@@ -91,8 +91,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         /// <remarks>
         /// The ITextInputSource will be activated while this TextBox instance has focus and will be deactivated on loss
-        /// of focus or when the TextBox is set to be ReadOnly. It will otherwise be temporarily deactivated when the
-        /// TextBox is handling non-textinput events.
+        /// of focus or when the TextBox is set to be ReadOnly.
         /// </remarks>
         private ITextInputSource textInput;
 
