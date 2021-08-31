@@ -158,10 +158,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (!HandleLeftRightArrows && (action == PlatformAction.MoveBackwardChar || action == PlatformAction.MoveForwardChar))
                 return false;
 
-            deactivateInput();
-
-            bool handled = false;
-
             switch (action)
             {
                 // Clipboard
@@ -174,119 +170,96 @@ namespace osu.Framework.Graphics.UserInterface
                     if (action == PlatformAction.Cut)
                         DeleteBy(0);
 
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.Paste:
                     string pending = clipboard?.GetText();
                     InsertString(pending);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectAll:
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
-                    handled = true;
-                    break;
+                    return true;
 
                 // Cursor Manipulation
                 case PlatformAction.MoveBackwardChar:
                     MoveCursorBy(-1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.MoveForwardChar:
                     MoveCursorBy(1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.MoveBackwardWord:
                     MoveCursorBy(GetBackwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.MoveForwardWord:
                     MoveCursorBy(GetForwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.MoveBackwardLine:
                     MoveCursorBy(GetBackwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.MoveForwardLine:
                     MoveCursorBy(GetForwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 // Deletion
                 case PlatformAction.DeleteBackwardChar:
                     DeleteBy(-1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.DeleteForwardChar:
                     DeleteBy(1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.DeleteBackwardWord:
                     DeleteBy(GetBackwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.DeleteForwardWord:
                     DeleteBy(GetForwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.DeleteBackwardLine:
                     DeleteBy(GetBackwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.DeleteForwardLine:
                     DeleteBy(GetForwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 // Expand selection
                 case PlatformAction.SelectBackwardChar:
                     ExpandSelectionBy(-1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectForwardChar:
                     ExpandSelectionBy(1);
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectBackwardWord:
                     ExpandSelectionBy(GetBackwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectForwardWord:
                     ExpandSelectionBy(GetForwardWordAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectBackwardLine:
                     ExpandSelectionBy(GetBackwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
 
                 case PlatformAction.SelectForwardLine:
                     ExpandSelectionBy(GetForwardLineAmount());
-                    handled = true;
-                    break;
+                    return true;
             }
 
-            textInput?.EnsureActivated();
-
-            return handled;
+            return false;
         }
 
         public virtual void OnReleased(PlatformAction action)
@@ -810,8 +783,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly)
                 return;
 
-            deactivateInput();
-
             if (doubleClickWord != null)
             {
                 //select words at a time
@@ -859,8 +830,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(DoubleClickEvent e)
         {
-            deactivateInput();
-
             if (text.Length == 0) return true;
 
             if (AllowClipboardExport)
@@ -903,8 +872,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ReadOnly)
                 return true;
-
-            deactivateInput();
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -967,12 +934,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             textInput.Activate();
             textInput.OnTextInput += handleTextInput;
-        }
-
-        private void deactivateInput()
-        {
-            if (textInput?.Active == true)
-                textInput.Deactivate();
         }
 
         private void handleTextInput(string text)
