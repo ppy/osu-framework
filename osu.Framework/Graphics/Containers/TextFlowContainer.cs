@@ -202,12 +202,19 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
+        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break.
+        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(string, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null) => AddPart(CreateChunkFor(text, true, creationParameters));
+        public ITextPart AddText<TSpriteText>(string text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(text, true, creationParameters));
+
+        /// <inheritdoc cref="AddText{TSpriteText}(string,System.Action{TSpriteText})"/>
+        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null)
+            => AddPart(new DefaultTextChunk(text, true, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -216,7 +223,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public void AddText(SpriteText text, Action<SpriteText> creationParameters = null)
+        public void AddText<TSpriteText>(TSpriteText text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText
         {
             defaultCreationParameters?.Invoke(text);
             creationParameters?.Invoke(text);
@@ -224,18 +232,26 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
+        /// Add a new paragraph to this text flow. The \n character will create a line break
+        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(string, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddPart(CreateChunkFor(paragraph, false, creationParameters));
+        public ITextPart AddParagraph<TSpriteText>(string paragraph, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(paragraph, false, creationParameters));
+
+        /// <inheritdoc cref="AddParagraph{TSpriteText}(string,Action{TSpriteText})"/>
+        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null)
+            => AddPart(new DefaultTextChunk(paragraph, false, creationParameters));
 
         /// <summary>
-        /// Creates an appropriate implementation of <see cref="TextChunk"/> for this text flow container type.
+        /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
         /// </summary>
-        protected internal virtual TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
-            => new TextChunk(text, newLineIsParagraph, creationParameters);
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationParameters);
 
         /// <summary>
         /// End current line and start a new one.
@@ -247,15 +263,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void NewParagraph() => AddPart(new TextNewLine(true));
 
-        protected virtual SpriteText CreateSpriteText() => new SpriteText();
+        protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal SpriteText CreateSpriteTextWithChunk(TextChunk chunk)
-        {
-            var spriteText = CreateSpriteText();
-            defaultCreationParameters?.Invoke(spriteText);
-            chunk.ApplyParameters(spriteText);
-            return spriteText;
-        }
+        internal void ApplyDefaultCreationParamters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public override void Add(Drawable drawable)
         {

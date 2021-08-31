@@ -9,12 +9,13 @@ using osu.Framework.Graphics.Sprites;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// Implementation of <see cref="TextChunk"/> that support substitution of text placeholders for arbitrary placeholders
+    /// Implementation of <see cref="TextChunk{TSpriteText}"/> that support substitution of text placeholders for arbitrary placeholders
     /// as provided by <see cref="CustomizableTextContainer.TryGetIconFactory"/>.
     /// </summary>
-    internal class CustomizableTextChunk : TextChunk
+    internal class CustomizableTextChunk<TSpriteText> : TextChunk<TSpriteText>
+        where TSpriteText : SpriteText, new()
     {
-        public CustomizableTextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+        public CustomizableTextChunk(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
             : base(text, newLineIsParagraph, creationParameters)
         {
         }

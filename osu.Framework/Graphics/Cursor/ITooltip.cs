@@ -14,13 +14,21 @@ namespace osu.Framework.Graphics.Cursor
         /// Set new content be displayed on this tooltip.
         /// </summary>
         /// <param name="content">The content to be displayed.</param>
-        /// <returns>Whether this <see cref="ITooltip"/> can display the provided content.</returns>
-        bool SetContent(object content);
+        void SetContent(object content);
 
         /// <summary>
         /// Moves the tooltip to the given position. May use easing.
         /// </summary>
         /// <param name="pos">The position the tooltip should be moved to.</param>
         void Move(Vector2 pos);
+    }
+
+    /// <inheritdoc />
+    public interface ITooltip<in T> : ITooltip
+    {
+        void ITooltip.SetContent(object content) => SetContent((T)content);
+
+        /// <inheritdoc cref="ITooltip.SetContent"/>
+        void SetContent(T content);
     }
 }

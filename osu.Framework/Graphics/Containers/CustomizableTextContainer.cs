@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>Whether an icon factory was found for the given <paramref name="name"/>.</returns>
         internal bool TryGetIconFactory(string name, out Delegate iconFactory) => iconFactories.TryGetValue(name, out iconFactory);
 
-        protected internal override TextChunk CreateChunkFor(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
-            => new CustomizableTextChunk(text, newLineIsParagraph, creationParameters);
+        protected internal override TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
+            => new CustomizableTextChunk<TSpriteText>(text, newLineIsParagraph, creationParameters);
     }
 }

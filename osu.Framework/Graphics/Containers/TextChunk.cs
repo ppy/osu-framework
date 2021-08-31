@@ -12,22 +12,20 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Represents a plain chunk of text to be displayed in a text flow.
     /// </summary>
-    public class TextChunk : TextPart
+    public class TextChunk<TSpriteText> : TextPart
+        where TSpriteText : SpriteText, new()
     {
+        protected readonly Action<TSpriteText> CreationParameters;
+
         private readonly string text;
         private readonly bool newLineIsParagraph;
-        private readonly Action<SpriteText> creationParameters;
 
-        public TextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+        public TextChunk(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
         {
+            CreationParameters = creationParameters;
+
             this.text = text;
             this.newLineIsParagraph = newLineIsParagraph;
-            this.creationParameters = creationParameters;
-        }
-
-        public void ApplyParameters(SpriteText spriteText)
-        {
-            creationParameters?.Invoke(spriteText);
         }
 
         protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
@@ -65,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     if (string.IsNullOrEmpty(word)) continue;
 
-                    var textSprite = textFlowContainer.CreateSpriteTextWithChunk(this);
+                    var textSprite = CreateSpriteText(textFlowContainer);
                     textSprite.Text = word;
                     sprites.Add(textSprite);
                 }
@@ -96,6 +94,30 @@ namespace osu.Framework.Graphics.Containers
                 words.Add(builder.ToString());
 
             return words.ToArray();
+        }
+
+        protected virtual TSpriteText CreateSpriteText(TextFlowContainer textFlowContainer)
+        {
+            var spriteText = new TSpriteText();
+            textFlowContainer.ApplyDefaultCreationParamters(spriteText);
+            CreationParameters?.Invoke(spriteText);
+            return spriteText;
+        }
+    }
+
+    public class DefaultTextChunk : TextChunk<SpriteText>
+    {
+        public DefaultTextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+            : base(text, newLineIsParagraph, creationParameters)
+        {
+        }
+
+        protected override SpriteText CreateSpriteText(TextFlowContainer textFlowContainer)
+        {
+            var spriteText = textFlowContainer.CreateSpriteText();
+            textFlowContainer.ApplyDefaultCreationParamters(spriteText);
+            CreationParameters?.Invoke(spriteText);
+            return spriteText;
         }
     }
 }

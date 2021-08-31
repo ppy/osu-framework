@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AddDrawable(textDrawable);
         }
 
-        protected override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
+        protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 
         /// <summary>
         /// Creates an emphasised <see cref="SpriteText"/>.

@@ -12,6 +12,10 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// The custom tooltip that should be displayed.
         /// </summary>
+        /// <remarks>
+        /// A tooltip may be reused between different drawables with different content if they share the same tooltip type.
+        /// Therefore it is recommended for all displayed content in the tooltip to be provided by <see cref="TooltipContent"/> instead.
+        /// </remarks>
         /// <returns>The custom tooltip that should be displayed.</returns>
         ITooltip GetCustomTooltip();
 
@@ -19,5 +23,19 @@ namespace osu.Framework.Graphics.Cursor
         /// Tooltip text that shows when hovering the drawable.
         /// </summary>
         object TooltipContent { get; }
+    }
+
+    /// <inheritdoc />
+    public interface IHasCustomTooltip<TContent> : IHasCustomTooltip
+    {
+        ITooltip IHasCustomTooltip.GetCustomTooltip() => GetCustomTooltip();
+
+        /// <inheritdoc cref="IHasCustomTooltip.GetCustomTooltip"/>
+        new ITooltip<TContent> GetCustomTooltip();
+
+        object IHasCustomTooltip.TooltipContent => TooltipContent;
+
+        /// <inheritdoc cref="IHasCustomTooltip.TooltipContent"/>
+        new TContent TooltipContent { get; }
     }
 }
