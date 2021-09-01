@@ -379,12 +379,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("insert three words", () => textBox.InsertString("a b c"));
+            AddStep("insert three words", () => textBox.InsertString("some long text"));
             AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("two words remain", () => textBox.Text == " b c");
+            AddAssert("two words remain", () => textBox.Text == " long text");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("one word remains", () => textBox.Text == " c");
+            AddAssert("one word remains", () => textBox.Text == " text");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
@@ -410,12 +410,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("insert three words", () => textBox.InsertString("some long text"));
+            AddStep("insert three words", () => textBox.InsertString("a b c"));
             AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("two words remain", () => textBox.Text == " long text");
+            AddAssert("two words remain", () => textBox.Text == " b c");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
-            AddAssert("one word remains", () => textBox.Text == " text");
+            AddAssert("one word remains", () => textBox.Text == " c");
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
             AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
