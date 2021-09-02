@@ -96,6 +96,17 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestDecodingContinuesBeforeStartTimeIfLooping()
+        {
+            AddStep("Set looping", () => video.Loop = true);
+
+            AddStep("Jump back to before start time", () => clock.CurrentTime = -30000);
+
+            AddStep("reset decode state", () => didDecode = false);
+            AddUntilStep("decoding ran", () => didDecode);
+        }
+
+        [Test]
         public void TestDecodingStopsBeforeStartTime()
         {
             AddStep("Jump back to before start time", () => clock.CurrentTime = -30000);
