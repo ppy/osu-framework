@@ -151,9 +151,9 @@ namespace osu.Framework.Graphics
                         {
                             a(target);
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            // Execution should continue regardless of whether an unbind failed
+                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
                         }
                     }
                 };

@@ -6,20 +6,21 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
-    internal class TextChunk
+    internal class TextChunk<T>
+        where T : SpriteText
     {
         public readonly string Text;
         public readonly bool NewLineIsParagraph;
-        internal readonly Action<SpriteText> CreationParameters;
+        internal readonly Action<T> CreationParameters;
 
-        public TextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
+        public TextChunk(string text, bool newLineIsParagraph, Action<T> creationParameters = null)
         {
             Text = text;
             NewLineIsParagraph = newLineIsParagraph;
             CreationParameters = creationParameters;
         }
 
-        public void ApplyParameters(SpriteText spriteText)
+        public void ApplyParameters(T spriteText)
         {
             CreationParameters?.Invoke(spriteText);
         }
