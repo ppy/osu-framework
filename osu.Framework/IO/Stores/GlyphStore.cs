@@ -28,6 +28,8 @@ namespace osu.Framework.IO.Stores
 
         public string FontName { get; }
 
+        public float? Baseline => Font?.Common.Base;
+
         protected readonly ResourceStore<byte[]> Store;
 
         [CanBeNull]
@@ -39,7 +41,7 @@ namespace osu.Framework.IO.Stores
         /// Create a new glyph store.
         /// </summary>
         /// <param name="store">The store to provide font resources.</param>
-        /// <param name="assetName">The base name of thße font.</param>
+        /// <param name="assetName">The base name of the font.</param>
         /// <param name="textureLoader">An optional platform-specific store for loading textures. Should load for the store provided in <param ref="param"/>.</param>
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null, IResourceStore<TextureUpload> textureLoader = null)
         {
@@ -99,8 +101,10 @@ namespace osu.Framework.IO.Stores
             if (Font == null)
                 return null;
 
+            Debug.Assert(Baseline != null);
+
             var bmCharacter = Font.GetCharacter(character);
-            return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, this);
+            return new CharacterGlyph(character, bmCharacter.XOffset, bmCharacter.YOffset, bmCharacter.XAdvance, Baseline.Value, this);
         }
 
         public int GetKerning(char left, char right) => Font?.GetKerningAmount(left, right) ?? 0;

@@ -13,6 +13,7 @@ namespace osu.Framework.Text
         public float XOffset => glyph.XOffset * Scale;
         public float YOffset => glyph.YOffset * Scale;
         public float XAdvance => glyph.XAdvance * Scale;
+        public float Baseline => glyph.Baseline * Scale;
         public char Character => glyph.Character;
         public float Width => Texture.Width * Scale;
         public float Height => Texture.Height * Scale;

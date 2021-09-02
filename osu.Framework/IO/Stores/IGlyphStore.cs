@@ -17,6 +17,11 @@ namespace osu.Framework.IO.Stores
         string FontName { get; }
 
         /// <summary>
+        /// The font's baseline position, or <see langword="null"/> if not available (i.e. font not loaded or failed to load).
+        /// </summary>
+        float? Baseline { get; }
+
+        /// <summary>
         /// Loads glyph information for consumption asynchronously.
         /// </summary>
         Task LoadFontAsync();
