@@ -127,24 +127,33 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+            // if not looping and not yet having reached the start of the video, don't attempt to consume frames yet.
+            // if we begin consuming frames the decoder will be performing unnecessary work.
+            if (!Loop && PlaybackPosition < 0)
+                return;
 
-            if (nextFrame != null)
+            var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
+            bool outOfSync = false;
+
+            if (peekFrame != null)
             {
-                bool tooFarBehind = Math.Abs(PlaybackPosition - nextFrame.Time) > lenience_before_seek &&
-                                    (!Loop ||
-                                     (Math.Abs(PlaybackPosition - decoder.Duration - nextFrame.Time) > lenience_before_seek &&
-                                      Math.Abs(PlaybackPosition + decoder.Duration - nextFrame.Time) > lenience_before_seek)
-                                    );
+                outOfSync = Math.Abs(PlaybackPosition - peekFrame.Time) > lenience_before_seek;
 
-                // we are too far ahead or too far behind
-                if (tooFarBehind && decoder.CanSeek)
+                if (Loop)
                 {
-                    Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
+                    // handle looping bounds (as we could be in the roll-over process between loops).
+                    outOfSync &= Math.Abs(PlaybackPosition - decoder.Duration - peekFrame.Time) > lenience_before_seek &&
+                                 Math.Abs(PlaybackPosition + decoder.Duration - peekFrame.Time) > lenience_before_seek;
                 }
+            }
+
+            // we are too far ahead or too far behind
+            if (outOfSync && decoder.CanSeek)
+            {
+                Logger.Log($"Video too far out of sync ({peekFrame.Time}), seeking to {PlaybackPosition}");
+                decoder.Seek(PlaybackPosition);
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
             }
 
             var frameTime = CurrentFrameTime;
