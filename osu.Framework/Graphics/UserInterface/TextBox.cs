@@ -288,7 +288,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            int searchPrev = Math.Clamp(selectionEnd - 2, 0, Math.Max(0, Text.Length - 1));
+            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
             while (searchPrev > 0 && text[searchPrev] == ' ')
                 searchPrev--;
             int lastSpace = text.LastIndexOf(' ', searchPrev);
