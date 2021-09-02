@@ -252,7 +252,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
-        private static long seek(void* opaque, long offset, int whence)
+        private static long streamSeekCallbacks(void* opaque, long offset, int whence)
         {
             var handle = new ObjectHandle<VideoDecoder>((IntPtr)opaque);
             if (!handle.GetTarget(out VideoDecoder decoder))
@@ -312,7 +312,7 @@ namespace osu.Framework.Graphics.Video
             contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
-            seekCallback = seek;
+            seekCallback = streamSeekCallbacks;
             formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
