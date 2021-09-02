@@ -174,4 +174,4 @@ jobs:
       - name: Deploy
         run: |
             dotnet nuget push ${{github.workspace}}/artifacts/*.nupkg --api-key ${{secrets.NUGET_API_TOKEN}} --source https://api.nuget.org/v3/index.json
-: 
+
