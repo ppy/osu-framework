@@ -112,6 +112,19 @@ namespace osu.Framework.Tests.Visual.Sprites
         }
 
         [Test]
+        public void TestJumpBackAfterEndOfPlayback()
+        {
+            AddStep("Jump ahead by 60 seconds", () => clock.CurrentTime += 60000);
+
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
+            AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
+            AddStep("reset decode state", () => didDecode = false);
+
+            AddStep("Jump back to valid time", () => clock.CurrentTime = 20000);
+            AddUntilStep("decoding ran", () => didDecode);
+        }
+
+        [Test]
         public void TestVideoDoesNotLoopIfDisabled()
         {
             AddStep("Seek to end", () => clock.CurrentTime = video.Duration);
