@@ -12,7 +12,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework</Title>
-    <PackageId>ppy.osu.Framework</PackageId>
+    <PackageId>libselena.osu.Framework</PackageId>
     <PackageReleaseNotes>Automated release.</PackageReleaseNotes>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>

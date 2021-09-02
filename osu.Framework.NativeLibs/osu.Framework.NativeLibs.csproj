@@ -9,7 +9,7 @@
     <IsPackable>true</IsPackable>
     <Title>osu!framework Libraries</Title>
     <Description>Native libraries for osu!framework</Description>
-    <PackageId>ppy.osu.Framework.NativeLibs</PackageId>
+    <PackageId>libselena.osu.Framework.NativeLibs</PackageId>
     <PackageTags>osu game framework libraries</PackageTags>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>

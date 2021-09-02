@@ -11,7 +11,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework iOS</Title>
-    <PackageId>ppy.osu.Framework.iOS</PackageId>
+    <PackageId>libselena.osu.Framework.iOS</PackageId>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>

@@ -10,7 +10,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Nuget">
     <Title>osu!framework Android</Title>
-    <PackageId>ppy.osu.Framework.Android</PackageId>
+    <PackageId>libselena.osu.Framework.Android</PackageId>
     <PackageTags>osu game framework</PackageTags>
   </PropertyGroup>
   <ItemGroup>
