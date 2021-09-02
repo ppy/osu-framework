@@ -160,6 +160,9 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public void StartDecoding()
         {
+            if (decodingTask != null)
+                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecoding)} first.");
+
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
             {
