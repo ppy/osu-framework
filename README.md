@@ -4,9 +4,9 @@
 
 # osu!framework
 
-[![Build status](https://github.com/libselena/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/devclyde/osu-framework/actions/workflows/ci.yml)
-[![GitHub release](https://img.shields.io/github/release/libselena/osu-framework.svg)](https://github.com/devclyde/osu-framework/releases/latest)
-[![CodeFactor](https://www.codefactor.io/repository/github/libselena/osu-framework/badge)](https://www.codefactor.io/repository/github/devclyde/osu-framework)
+[![Build status](https://github.com/libselena/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/libselena/osu-framework/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/release/libselena/osu-framework.svg)](https://github.com/libselena/osu-framework/releases/latest)
+[![CodeFactor](https://www.codefactor.io/repository/github/libselena/osu-framework/badge)](https://www.codefactor.io/repository/github/libselena/osu-framework)
 [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
 A game framework written with [osu!](https://github.com/ppy/osu) in mind.
