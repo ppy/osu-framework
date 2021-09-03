@@ -4,9 +4,9 @@
 
 # osu!framework
 
-[![Build status](https://github.com/ppy/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/devclyde/osu-framework/actions/workflows/ci.yml)
+[![Build status](https://github.com/libselena/osu-framework/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/devclyde/osu-framework/actions/workflows/ci.yml)
 [![GitHub release](https://img.shields.io/github/release/ppy/osu-framework.svg)](https://github.com/devclyde/osu-framework/releases/latest)
-[![CodeFactor](https://www.codefactor.io/repository/github/ppy/osu-framework/badge)](https://www.codefactor.io/repository/github/devclyde/osu-framework)
+[![CodeFactor](https://www.codefactor.io/repository/github/libselena/osu-framework/badge)](https://www.codefactor.io/repository/github/devclyde/osu-framework)
 [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
 A game framework written with [osu!](https://github.com/ppy/osu) in mind.
@@ -42,7 +42,7 @@ Code analysis can be run with `powershell ./InspectCode.ps1` or `InspectCode.sh`
 
 Contributions can be made via pull requests to this repository.
 
-If you're unsure of what you can help with, check out the [list of open issues](https://github.com/ppy/osu-framework/issues) (especially those with the ["good first issue"](https://github.com/ppy/osu-framework/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22) label).
+If you're unsure of what you can help with, check out the [list of open issues](https://github.com/libselena/osu-framework/issues) (especially those with the ["good first issue"](https://github.com/ppy/osu-framework/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22) label).
 
 Before starting, please make sure you are familiar with the [development and testing](https://github.com/ppy/osu-framework/wiki/Development-and-Testing) procedure we have set up. New component development, and where possible, bug fixing and debugging existing components **should always be done under VisualTests**.
 
@@ -58,7 +58,7 @@ The BASS audio library (a dependency of this framework) is a commercial product.
 
 ## Developing a game using osu!framework
 
-If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/ppy/osu-framework/tree/extended/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
+If you want to get started making your own game project using osu!framework, check out our [project templates](https://github.com/libselena/osu-framework/tree/extended/osu.Framework.Templates). You can either start off from an empty project, or take a peek at a working sample game. Either way, full project structure, cross-platform support, and testing setup are included!
 
 ## Projects that use osu!framework
 
