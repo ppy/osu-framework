@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Textures
 
         public IReadOnlyList<TextureCropSchema> Crops => crops;
 
-        private List<TextureCropSchema> crops;
+        private readonly List<TextureCropSchema> crops;
 
         public TextureSheet(Texture texture)
         {
@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Textures
             var sheet = new TextureSheet(texture);
 
             for (int y = 0; y < rows; y++)
+            {
                 for (int x = 0; x < columns; x++)
                 {
                     sheet.Append(new TextureCropSchema
@@ -73,6 +74,7 @@ namespace osu.Framework.Graphics.Textures
                         WrapModeT = wrapModeT
                     });
                 }
+            }
 
             return sheet;
         }
