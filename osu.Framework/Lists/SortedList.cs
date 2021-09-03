@@ -94,15 +94,7 @@ namespace osu.Framework.Lists
 
         public virtual void RemoveAt(int index) => list.RemoveAt(index);
 
-        public int RemoveAll(Predicate<T> match)
-        {
-            List<T> found = (List<T>)FindAll(match);
-
-            foreach (var i in found)
-                Remove(i);
-
-            return found.Count;
-        }
+        public int RemoveAll(Predicate<T> match) => list.RemoveAll(match);
 
         public virtual void Clear() => list.Clear();
 

@@ -23,7 +23,8 @@ namespace osu.Framework.Extensions
 
         private static void setTargetOnNearestPopover(Drawable origin, IHasPopover? target)
         {
-            var popoverContainer = origin.FindClosestParent<PopoverContainer>()
+            var popoverContainer = origin as PopoverContainer
+                                   ?? origin.FindClosestParent<PopoverContainer>()
                                    ?? throw new InvalidOperationException($"Cannot show or hide a popover without a parent {nameof(PopoverContainer)} in the hierarchy");
 
             popoverContainer.SetTarget(target);

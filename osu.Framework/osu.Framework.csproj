@@ -23,7 +23,7 @@
   <ItemGroup Label="Package References">
     <PackageReference Include="managed-midi" Version="1.9.14" />
     <PackageReference Include="ManagedBass.Mix" Version="3.0.0" />
-    <PackageReference Include="Markdig" Version="0.25.0" />
+    <PackageReference Include="Markdig" Version="0.26.0" />
     <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.1" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.9" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
