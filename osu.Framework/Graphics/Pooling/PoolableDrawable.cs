@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Caching;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Layout;
@@ -25,9 +24,9 @@ namespace osu.Framework.Graphics.Pooling
 
         private IDrawablePool pool;
 
-        private readonly Cached prepare = new Cached();
+        private bool waitingForPrepare;
 
-        public override bool IsPresent => !prepare.IsValid || base.IsPresent;
+        public override bool IsPresent => waitingForPrepare || base.IsPresent;
 
         protected override void LoadComplete()
         {
@@ -55,7 +54,7 @@ namespace osu.Framework.Graphics.Pooling
             // intentionally don't throw if a pool was not associated or otherwise.
             // supports use of PooledDrawables outside of a pooled scenario without special handling.
             pool?.Return(this);
-            prepare.Validate();
+            waitingForPrepare = false;
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace osu.Framework.Graphics.Pooling
                 throw new InvalidOperationException($"This {nameof(PoolableDrawable)} is already in use");
 
             IsInUse = true;
-            prepare.Invalidate();
+            waitingForPrepare = true;
         }
 
         public override bool UpdateSubTree()
@@ -113,10 +112,10 @@ namespace osu.Framework.Graphics.Pooling
 
         private void ensurePrepared()
         {
-            if (prepare.IsValid) return;
+            if (!waitingForPrepare) return;
 
             PrepareForUse();
-            prepare.Validate();
+            waitingForPrepare = false;
         }
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
