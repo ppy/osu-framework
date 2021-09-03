@@ -127,11 +127,6 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            // if not looping and not yet having reached the start of the video, don't attempt to consume frames yet.
-            // if we begin consuming frames the decoder will be performing unnecessary work.
-            if (!Loop && PlaybackPosition < 0)
-                return;
-
             var peekFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
             bool outOfSync = false;
 
