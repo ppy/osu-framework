@@ -1,0 +1,11 @@
+﻿{
+  "solution": {
+    "path": "Template.sln",
+    "projects": [
+      "desktop\\Template.Desktop.csproj",
+      "game\\Template.Game.csproj",
+      "tests\\Template.Game.Tests.csproj",
+      "resources\\Template.Resources.csproj"
+    ]
+  }
+}

@@ -11,7 +11,3 @@ dotnet new -i ppy.osu.Framework.Templates
 
 # create a new empty freeform osu!framework game
 dotnet new osu-framework-game -n MyNewGame
-
-# ...or start with a working Flappy Bird clone
-dotnet new osu-framework-flappy-game -n MyNewFlappyGame
-```

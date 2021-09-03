@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\resources\Template.Resources.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="libselena.osu.Framework" Version="2021.902.5" />
+  </ItemGroup>
+</Project>

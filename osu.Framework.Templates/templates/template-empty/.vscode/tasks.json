@@ -11,7 +11,7 @@
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "TemplateGame.Game.Tests"
+                "Template.Game.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -26,7 +26,7 @@
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "TemplateGame.Game.Tests"
+                "Template.Game.Tests"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -40,7 +40,7 @@
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "TemplateGame.Desktop"
+                "Template.Desktop"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -54,7 +54,7 @@
                 "-p:GenerateFullPaths=true",
                 "-m",
                 "-verbosity:m",
-                "TemplateGame.Desktop"
+                "Template.Desktop"
             ],
             "group": "build",
             "problemMatcher": "$msCompile"
@@ -64,7 +64,7 @@
             "command": "dotnet",
             "args": [
                 "restore",
-                "TemplateGame.sln"
+                "Template.sln"
             ],
             "problemMatcher": []
         }
