@@ -104,6 +104,7 @@ namespace osu.Framework.Graphics.Pooling
 
         public override bool UpdateSubTree()
         {
+            // Ensure that this isn't run before LoadComplete, as we don't want to call PrepareForUse in that state.
             if (IsLoaded)
                 ensurePrepared();
 

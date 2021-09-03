@@ -386,6 +386,8 @@ namespace osu.Framework.Tests.Visual.Drawables
 
                 Expire();
 
+                Assert.AreEqual(LoadState.Loaded, LoadState);
+
                 PreparedCount++;
             }
 
