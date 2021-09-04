@@ -391,7 +391,7 @@ namespace osu.Framework.Graphics.Video
                             break;
 
                         default:
-                            Debug.Fail($"Video decoder should never be in a {State} during decode.");
+                            Debug.Fail($"Video decoder should never be in a \"{State}\" state during decode.");
                             return;
                     }
 
