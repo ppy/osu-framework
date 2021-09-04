@@ -174,45 +174,6 @@ namespace osu.Framework.IO.Stores
 
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
 
-        public float? GetBaseHeight(char c)
-        {
-            foreach (var store in glyphStores)
-            {
-                if (store.HasGlyph(c))
-                    return store.GetBaseHeight() / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(c);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
-
-        public float? GetBaseHeight(string fontName)
-        {
-            foreach (var store in glyphStores)
-            {
-                if (store.FontName != fontName)
-                    continue;
-
-                var bh = store.GetBaseHeight();
-                return bh / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(fontName);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

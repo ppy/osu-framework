@@ -78,8 +78,6 @@ namespace osu.Framework.IO.Stores
 
         public bool HasGlyph(char c) => Font?.Characters.ContainsKey(c) == true;
 
-        public int GetBaseHeight() => Font?.Common.Base ?? 0;
-
         protected virtual TextureUpload GetPageImage(int page)
         {
             if (TextureLoader != null)

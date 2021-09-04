@@ -32,11 +32,6 @@ namespace osu.Framework.IO.Stores
         bool HasGlyph(char c);
 
         /// <summary>
-        /// Retrieves the height from the top of the glyph cell to the baseline.
-        /// </summary>
-        int GetBaseHeight();
-
-        /// <summary>
         /// Retrieves a <see cref="CharacterGlyph"/> that contains associated spacing information for a character.
         /// </summary>
         /// <param name="character">The character to retrieve the <see cref="CharacterGlyph"/> for.</param>
