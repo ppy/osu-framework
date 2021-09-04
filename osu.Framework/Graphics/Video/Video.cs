@@ -121,10 +121,7 @@ namespace osu.Framework.Graphics.Video
             {
                 // if at the end of the stream but our playback enters a valid time region again, a seek operation is required to get the decoder back on track.
                 if (PlaybackPosition < decoder.Duration)
-                {
-                    decoder.Seek(PlaybackPosition);
-                    availableFrames.Clear();
-                }
+                    seekIntoSync();
             }
 
             var nextFrame = availableFrames.Count > 0 ? availableFrames.Peek() : null;
@@ -141,9 +138,7 @@ namespace osu.Framework.Graphics.Video
                 if (tooFarBehind && decoder.CanSeek)
                 {
                     Logger.Log($"Video too far out of sync ({nextFrame.Time}), seeking to {PlaybackPosition}");
-                    decoder.Seek(PlaybackPosition);
-                    decoder.ReturnFrames(availableFrames);
-                    availableFrames.Clear();
+                    seekIntoSync();
                 }
             }
 
@@ -174,6 +169,13 @@ namespace osu.Framework.Graphics.Video
 
             if (frameTime != CurrentFrameTime)
                 FramesProcessed++;
+
+            void seekIntoSync()
+            {
+                decoder.Seek(PlaybackPosition);
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+            }
         }
 
         private bool checkNextFrameValid(DecodedFrame frame)
