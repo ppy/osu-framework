@@ -704,8 +704,7 @@ namespace osu.Framework.Platform
                     return storage.GetStorageForDirectory(Name);
             }
 
-            // should never actually get here.
-            return null;
+            throw new InvalidOperationException("No valid user storage path could be resolved.");
         }
 
         /// <summary>
