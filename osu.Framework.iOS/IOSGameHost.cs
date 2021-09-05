@@ -107,8 +107,6 @@ namespace osu.Framework.iOS
 
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
-        public override string UserStoragePath => Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
