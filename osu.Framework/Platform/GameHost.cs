@@ -695,13 +695,17 @@ namespace osu.Framework.Platform
                     return storage.GetStorageForDirectory(Name);
             }
 
-            // if an existing directory could not be found, use the first available valid path.
+            // if an existing directory could not be found, use the first path that can be created.
             foreach (var path in UserStoragePaths)
             {
-                var storage = GetStorage(path);
-
-                if (storage.ExistsDirectory(string.Empty))
-                    return storage.GetStorageForDirectory(Name);
+                try
+                {
+                    return GetStorage(path).GetStorageForDirectory(Name);
+                }
+                catch
+                {
+                    // may fail on directory creation.
+                }
             }
 
             throw new InvalidOperationException("No valid user storage path could be resolved.");

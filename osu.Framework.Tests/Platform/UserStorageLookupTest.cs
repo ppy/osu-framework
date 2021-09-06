@@ -22,6 +22,15 @@ namespace osu.Framework.Tests.Platform
         {
             try
             {
+                File.Delete(path1);
+                File.Delete(path2);
+            }
+            catch
+            {
+            }
+
+            try
+            {
                 Directory.Delete(path1, true);
                 Directory.Delete(path2, true);
             }
@@ -43,27 +52,27 @@ namespace osu.Framework.Tests.Platform
         }
 
         [Test]
-        public void TestSecondBaseExisting()
+        public void TestSecondBaseExistingStillPrefersFirst()
         {
-            Directory.CreateDirectory(path2);
-
-            using (var host = new StorageLookupHeadlessGameHost())
-            {
-                runHost(host);
-                Assert.IsTrue(host.Storage.GetFullPath(string.Empty).StartsWith(path2, StringComparison.Ordinal));
-            }
-        }
-
-        [Test]
-        public void TestPrefersFirstBase()
-        {
-            Directory.CreateDirectory(path1);
             Directory.CreateDirectory(path2);
 
             using (var host = new StorageLookupHeadlessGameHost())
             {
                 runHost(host);
                 Assert.IsTrue(host.Storage.GetFullPath(string.Empty).StartsWith(path1, StringComparison.Ordinal));
+            }
+        }
+
+        [Test]
+        public void TestSecondBaseUsedIfFirstFails()
+        {
+            // write a file so directory creation fails.
+            File.WriteAllText(path1, "");
+
+            using (var host = new StorageLookupHeadlessGameHost())
+            {
+                runHost(host);
+                Assert.IsTrue(host.Storage.GetFullPath(string.Empty).StartsWith(path2, StringComparison.Ordinal));
             }
         }
 
