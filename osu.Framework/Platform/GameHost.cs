@@ -136,7 +136,10 @@ namespace osu.Framework.Platform
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
         public abstract Storage GetStorage(string path);
 
-        public abstract string UserStoragePath { get; }
+        /// <summary>
+        /// All valid user storage paths in order of usage priority.
+        /// </summary>
+        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -680,7 +683,33 @@ namespace osu.Framework.Platform
         /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
         /// </summary>
         /// <returns>The <see cref="Storage"/>.</returns>
-        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        protected virtual Storage GetDefaultGameStorage()
+        {
+            // first check all valid paths for any existing install.
+            foreach (var path in UserStoragePaths)
+            {
+                var storage = GetStorage(path);
+
+                // if an existing data directory exists for this application, prefer it immediately.
+                if (storage.ExistsDirectory(Name))
+                    return storage.GetStorageForDirectory(Name);
+            }
+
+            // if an existing directory could not be found, use the first path that can be created.
+            foreach (var path in UserStoragePaths)
+            {
+                try
+                {
+                    return GetStorage(path).GetStorageForDirectory(Name);
+                }
+                catch
+                {
+                    // may fail on directory creation.
+                }
+            }
+
+            throw new InvalidOperationException("No valid user storage path could be resolved.");
+        }
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.

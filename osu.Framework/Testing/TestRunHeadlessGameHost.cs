@@ -1,7 +1,9 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -14,7 +16,7 @@ namespace osu.Framework.Testing
     {
         private readonly bool bypassCleanup;
 
-        public override string UserStoragePath { get; }
+        public override IEnumerable<string> UserStoragePaths { get; }
 
         public static string TemporaryTestDirectory = Path.Combine(Path.GetTempPath(), "of-test-headless");
 
@@ -22,7 +24,7 @@ namespace osu.Framework.Testing
             : base(name, bindIPC, realtime, portableInstallation)
         {
             this.bypassCleanup = bypassCleanup;
-            UserStoragePath = TemporaryTestDirectory;
+            UserStoragePaths = TemporaryTestDirectory.Yield();
         }
 
         protected override void Dispose(bool isDisposing)
