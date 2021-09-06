@@ -11,12 +11,9 @@
 
 A game framework written with [osu!](https://github.com/ppy/osu) in mind.
 
-## Requirements
+## Using the framework
 
-- A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
-- When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
-- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
-- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
+If you are interested in **creating a project** using the framework, please start from the [getting started](https://github.com/ppy/osu-framework/wiki/Setting-up-your-first-project) wiki resources. The rest of the information on this page is related to working *on* the framework, not *using* it!
 
 ## Objectives
 
@@ -25,6 +22,13 @@ This framework is intended to take steps beyond what you would normally expect f
 - Anywhere we implement graphical components, they will be displayed with a generic design and will be derivable for further customisation.
 - Common elements used by games (texture caching, font loading) will be automatically initialised at runtime.
 - Allow for isolated development of components via a solid testing environment (`VisualTests` and `TestCases`). Check the [wiki](https://github.com/ppy/osu-framework/wiki/Development-and-Testing) for more information on how these can be used to streamline development.
+
+## Requirements
+
+- A desktop platform with the [.NET 5.0 SDK](https://dotnet.microsoft.com/download) or higher installed.
+- When running on linux, please have a system-wide ffmpeg installation available to support video decoding.
+- When running on Windows 7 or 8.1, *[additional prerequisites](https://docs.microsoft.com/en-us/dotnet/core/install/windows?tabs=net50&pivots=os-windows#dependencies)** may be required to correctly run .NET 5 applications if your operating system is not up-to-date with the latest service packs.
+- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2019+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
 
 ### Building
 
@@ -75,3 +79,4 @@ Conditions:
  - Must be a GitHub link (i.e. your project is open source)
  - Must be actively developed (and have executable releases)
 -->
+
