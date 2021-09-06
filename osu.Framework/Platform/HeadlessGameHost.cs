@@ -26,7 +26,7 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
-        public override string UserStoragePath => "./headless/";
+        public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };
 
         public HeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName ?? Guid.NewGuid().ToString(), bindIPC, portableInstallation: portableInstallation)

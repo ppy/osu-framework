@@ -22,25 +22,19 @@ namespace osu.Framework.Platform.MacOS
 
         protected override IWindow CreateWindow() => new MacOSWindow();
 
-        public override string UserStoragePath
+        public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                string[] paths =
-                {
-                    xdg ?? Path.Combine(home, ".local", "share"),
-                    Path.Combine(home)
-                };
 
-                foreach (string path in paths)
-                {
-                    if (Directory.Exists(path))
-                        return path;
-                }
+                if (!string.IsNullOrEmpty(xdg))
+                    yield return xdg;
 
-                return paths[0];
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+
+                foreach (var path in base.UserStoragePaths)
+                    yield return path;
             }
         }
 
