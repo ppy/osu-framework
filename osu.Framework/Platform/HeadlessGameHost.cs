@@ -51,9 +51,8 @@ namespace osu.Framework.Platform
         {
             base.SetupForRun();
 
-            MaximumDrawHz = double.MaxValue;
-            MaximumUpdateHz = double.MaxValue;
-            MaximumInactiveHz = double.MaxValue;
+            MaximumDrawHz = 60;
+            MaximumUpdateHz = MaximumInactiveHz = 1000;
 
             if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
         }
