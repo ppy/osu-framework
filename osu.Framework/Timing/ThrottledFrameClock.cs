@@ -40,7 +40,7 @@ namespace osu.Framework.Timing
 
             if (Throttling)
             {
-                if (MaximumUpdateHz > 0)
+                if (MaximumUpdateHz > 0 && MaximumUpdateHz < double.MaxValue)
                 {
                     throttle();
                 }

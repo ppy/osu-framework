@@ -57,7 +57,7 @@ namespace osu.Framework.Statistics
 
         private Thread thread;
 
-        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz ?? double.MaxValue);
+        public double FrameAimTime => 1000.0 / (Clock?.MaximumUpdateHz > 0 ? Clock.MaximumUpdateHz : double.MaxValue);
 
         internal PerformanceMonitor(GameThread thread, IEnumerable<StatisticsCounterType> counters)
         {
