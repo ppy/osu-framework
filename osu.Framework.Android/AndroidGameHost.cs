@@ -59,7 +59,10 @@ namespace osu.Framework.Android
 
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
-        public override string UserStoragePath => Application.Context.GetExternalFilesDir(string.Empty).ToString();
+        public override IEnumerable<string> UserStoragePaths => new[]
+        {
+            Application.Context.GetExternalFilesDir(string.Empty).ToString()
+        };
 
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
