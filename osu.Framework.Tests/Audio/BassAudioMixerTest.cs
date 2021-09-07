@@ -346,6 +346,41 @@ namespace osu.Framework.Tests.Audio
             Assert.That(secondMixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
         }
 
+        [Test]
+        public void TestPlaybackDoesNotExceedConcurrency()
+        {
+            // Remove the track's channel.
+            bass.RunOnAudioThread(() =>
+            {
+                track.Stop();
+                track.Dispose();
+            });
+
+            bass.RunOnAudioThread(() => sample.PlaybackConcurrency.Value = 2);
+
+            var channel1 = sample.GetChannel();
+            var channel2 = sample.GetChannel();
+            var channel3 = sample.GetChannel();
+
+            channel1.Looping = true;
+            channel2.Looping = true;
+            channel3.Looping = true;
+
+            channel1.Play();
+            channel2.Play();
+            bass.Update();
+
+            Assert.That(BassMix.MixerGetChannels(bass.Mixer.Handle).Length, Is.EqualTo(2));
+
+            channel3.Play();
+            bass.Update();
+
+            Assert.That(BassMix.MixerGetChannels(bass.Mixer.Handle).Length, Is.EqualTo(2));
+            Assert.That(!channel1.Playing);
+            Assert.That(channel2.Playing);
+            Assert.That(channel3.Playing);
+        }
+
         private void assertEffectParameters()
         {
             bass.Update();
