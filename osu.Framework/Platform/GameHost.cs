@@ -190,6 +190,12 @@ namespace osu.Framework.Platform
 
         private double maximumUpdateHz;
 
+        /// <summary>
+        /// The target number of update frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
@@ -198,12 +204,25 @@ namespace osu.Framework.Platform
 
         private double maximumDrawHz;
 
+        /// <summary>
+        /// The target number of draw frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
             set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
+        /// <summary>
+        /// The target number of updates per second when the game window is inactive.
+        /// This is applied to all threads.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumInactiveHz
         {
             get => DrawThread.InactiveHz;
