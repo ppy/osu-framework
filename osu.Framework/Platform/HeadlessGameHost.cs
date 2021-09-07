@@ -51,10 +51,23 @@ namespace osu.Framework.Platform
         {
             base.SetupForRun();
 
+            // We want the draw thread to run, but it doesn't matter how fast it runs.
+            // This limiting is mostly to reduce CPU overhead.
             MaximumDrawHz = 60;
-            MaximumUpdateHz = MaximumInactiveHz = 1000;
 
-            if (!realtime) customClock = new FramedClock(new FastClock(CLOCK_RATE));
+            if (!realtime)
+            {
+                customClock = new FramedClock(new FastClock(CLOCK_RATE));
+
+                // time is incremented per frame, rather than based on the real-world time.
+                // therefore our goal is to run frames as fast as possible.
+                MaximumUpdateHz = MaximumInactiveHz = 0;
+            }
+            else
+            {
+                // in realtime runs, set a sane upper limit to avoid cpu overhead from spinning.
+                MaximumUpdateHz = MaximumInactiveHz = 1000;
+            }
         }
 
         protected override void DrawFrame()
