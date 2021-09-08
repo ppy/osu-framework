@@ -19,6 +19,7 @@ namespace osu.Framework.Text
         public readonly float Baseline => Glyph.Baseline * textSize;
         public readonly float Width => Glyph.Width * textSize;
         public readonly float Height => Glyph.Height * textSize;
+        public readonly FontMetrics? Metrics => Glyph.Metrics;
         public readonly char Character => Glyph.Character;
 
         public readonly ITexturedCharacterGlyph Glyph;

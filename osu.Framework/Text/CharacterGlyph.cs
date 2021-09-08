@@ -9,13 +9,15 @@ namespace osu.Framework.Text
 {
     public sealed class CharacterGlyph : ICharacterGlyph
     {
+        private readonly IGlyphStore containingStore;
+
         public float XOffset { get; }
         public float YOffset { get; }
         public float XAdvance { get; }
         public float Baseline { get; }
         public char Character { get; }
 
-        private readonly IGlyphStore containingStore;
+        public FontMetrics? Metrics => containingStore?.Metrics;
 
         public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, [CanBeNull] IGlyphStore containingStore)
         {
