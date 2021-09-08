@@ -200,7 +200,7 @@ namespace osu.Framework.Extensions
             else
                 type = value.GetType();
 
-            var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>();
+            var attribute = type.GetCustomAttribute<LocalisableDescriptionAttribute>(false);
             if (attribute == null)
                 return GetDescription(value);
 
@@ -233,7 +233,7 @@ namespace osu.Framework.Extensions
         public static string GetDescription(this object value)
             => value.GetType()
                     .GetField(value.ToString())?
-                    .GetCustomAttribute<DescriptionAttribute>()?.Description
+                    .GetCustomAttribute<DescriptionAttribute>(false)?.Description
                ?? value.ToString();
 
         private static string toLowercaseHex(this byte[] bytes)
