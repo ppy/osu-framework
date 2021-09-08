@@ -50,6 +50,7 @@ namespace osu.Framework.Text
         /// Returns a scale computed from the font's metrics to apply to their respective glyphs,
         /// to display in a similar scale with other fonts that have different metrics.
         /// </summary>
+        /// <seealso cref="FontUsage.CssScaling"/>
         public float GlyphScale => (Ascent + Descent + LineGap) / EmSize;
     }
 }

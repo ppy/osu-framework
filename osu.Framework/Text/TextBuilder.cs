@@ -360,11 +360,16 @@ namespace osu.Framework.Text
                 return false;
             }
 
+            float size = font.Size;
+
+            if (font.CssScaling && fontStoreGlyph.Metrics is FontMetrics metrics)
+                size *= metrics.GlyphScale;
+
             // Array.IndexOf is used to avoid LINQ
             if (font.FixedWidth && Array.IndexOf(neverFixedWidthCharacters, character) == -1)
-                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size, getConstantWidth());
+                glyph = new TextBuilderGlyph(fontStoreGlyph, size, getConstantWidth());
             else
-                glyph = new TextBuilderGlyph(fontStoreGlyph, font.Size);
+                glyph = new TextBuilderGlyph(fontStoreGlyph, size);
 
             return true;
         }

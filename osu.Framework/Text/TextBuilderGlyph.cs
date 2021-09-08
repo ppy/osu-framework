@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Text
@@ -13,13 +14,13 @@ namespace osu.Framework.Text
     public struct TextBuilderGlyph : ITexturedCharacterGlyph
     {
         public readonly Texture Texture => Glyph.Texture;
-        public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * textSize;
-        public readonly float YOffset => Glyph.YOffset * textSize;
-        public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * textSize;
-        public readonly float Baseline => Glyph.Baseline * textSize;
-        public readonly float Width => Glyph.Width * textSize;
-        public readonly float Height => Glyph.Height * textSize;
         public readonly FontMetrics? Metrics => Glyph.Metrics;
+        public readonly float XOffset => ((fixedWidth - Glyph.Width) / 2 ?? Glyph.XOffset) * Size;
+        public readonly float YOffset => Glyph.YOffset * Size;
+        public readonly float XAdvance => (fixedWidth ?? Glyph.XAdvance) * Size;
+        public readonly float Baseline => Glyph.Baseline * Size;
+        public readonly float Width => Glyph.Width * Size;
+        public readonly float Height => Glyph.Height * Size;
         public readonly char Character => Glyph.Character;
 
         public readonly ITexturedCharacterGlyph Glyph;
@@ -34,16 +35,23 @@ namespace osu.Framework.Text
         /// </summary>
         public bool OnNewLine { get; internal set; }
 
-        private readonly float textSize;
+        /// <summary>
+        /// The size to draw the glyph at.
+        /// </summary>
+        /// <remarks>
+        /// Note that this can differ per font on one specified <see cref="FontUsage.Size"/>, depending on each one's font metrics.
+        /// </remarks>
+        public readonly float Size;
+
         private readonly float? fixedWidth;
 
-        internal TextBuilderGlyph(ITexturedCharacterGlyph glyph, float textSize, float? fixedWidth = null)
+        internal TextBuilderGlyph(ITexturedCharacterGlyph glyph, float glyphSize, float? fixedWidth = null)
         {
             this = default;
-            this.textSize = textSize;
             this.fixedWidth = fixedWidth;
 
             Glyph = glyph;
+            Size = glyphSize;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
