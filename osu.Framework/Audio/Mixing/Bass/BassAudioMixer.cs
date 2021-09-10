@@ -55,6 +55,29 @@ namespace osu.Framework.Audio.Mixing.Bass
 
         public override BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
+        private int concurrency = int.MaxValue;
+
+        public override int Concurrency
+        {
+            get => concurrency;
+            set
+            {
+                concurrency = value;
+                EnqueueAction(updateConcurrency);
+            }
+        }
+
+        private void updateConcurrency()
+        {
+            if (activeChannels.Count <= concurrency)
+                return;
+
+            int countToRemove = activeChannels.Count - concurrency;
+            for (int i = 0; i < countToRemove; i++)
+                removeChannelFromBassMix(activeChannels[i]);
+            activeChannels.RemoveRange(0, countToRemove);
+        }
+
         protected override void AddInternal(IAudioChannel channel)
         {
             Debug.Assert(CanPerformInline);
@@ -313,11 +336,16 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (BassMix.MixerAddChannel(Handle, channel.Handle, flags))
                 activeChannels.Add(channel);
+
+            updateConcurrency();
         }
 
         /// <summary>
         /// Removes a channel from the native BASS mix.
         /// </summary>
+        /// <remarks>
+        /// This does not remove the channel from <see cref="activeChannels"/>.
+        /// </remarks>
         private void removeChannelFromBassMix(IBassAudioChannel channel)
         {
             Debug.Assert(Handle != 0);

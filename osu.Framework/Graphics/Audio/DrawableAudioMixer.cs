@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics.Audio
 
         public BindableList<IEffectParameter> Effects { get; } = new BindableList<IEffectParameter>();
 
+        public int Concurrency
+        {
+            get => mixer.Concurrency;
+            set => mixer.Concurrency = value;
+        }
+
         public void Add(IAudioChannel channel)
         {
             if (LoadState < LoadState.Ready)

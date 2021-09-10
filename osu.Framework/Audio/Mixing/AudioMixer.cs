@@ -28,6 +28,8 @@ namespace osu.Framework.Audio.Mixing
 
         public abstract BindableList<IEffectParameter> Effects { get; }
 
+        public abstract int Concurrency { get; set; }
+
         public void Add(IAudioChannel channel)
         {
             channel.EnqueueAction(() =>

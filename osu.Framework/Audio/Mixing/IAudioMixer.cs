@@ -24,6 +24,14 @@ namespace osu.Framework.Audio.Mixing
         BindableList<IEffectParameter> Effects { get; }
 
         /// <summary>
+        /// The number of audio channels allowed to be played concurrently by this <see cref="IAudioMixer"/>.
+        /// <para>
+        /// If the number of active channels exceeds this value, the earliest played channel is removed from the mix.
+        /// </para>
+        /// </summary>
+        int Concurrency { get; set; }
+
+        /// <summary>
         /// Adds a channel to the mix.
         /// </summary>
         /// <param name="channel">The channel to add.</param>
