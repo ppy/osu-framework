@@ -73,8 +73,15 @@ namespace osu.Framework.Audio.Mixing.Bass
                 return;
 
             int countToRemove = activeChannels.Count - concurrency;
+
             for (int i = 0; i < countToRemove; i++)
+            {
                 removeChannelFromBassMix(activeChannels[i]);
+
+                // Notify the source channel that it's stopped.
+                ManagedBass.Bass.ChannelStop(activeChannels[i].Handle);
+            }
+
             activeChannels.RemoveRange(0, countToRemove);
         }
 
