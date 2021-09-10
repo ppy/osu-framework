@@ -7,6 +7,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -349,14 +350,8 @@ namespace osu.Framework.Tests.Audio
         [Test]
         public void TestPlaybackDoesNotExceedConcurrency()
         {
-            // Remove the track's channel.
-            bass.RunOnAudioThread(() =>
-            {
-                track.Stop();
-                track.Dispose();
-            });
-
-            bass.RunOnAudioThread(() => sample.PlaybackConcurrency.Value = 2);
+            BassAudioMixer mixer = bass.CreateMixer();
+            mixer.Concurrency = 2;
 
             var channel1 = sample.GetChannel();
             var channel2 = sample.GetChannel();
@@ -366,16 +361,23 @@ namespace osu.Framework.Tests.Audio
             channel2.Looping = true;
             channel3.Looping = true;
 
+            mixer.Add(channel1);
+            mixer.Add(channel2);
+            mixer.Add(channel3);
+
             channel1.Play();
             channel2.Play();
             bass.Update();
 
-            Assert.That(BassMix.MixerGetChannels(bass.Mixer.Handle).Length, Is.EqualTo(2));
+            Assert.That(channel1.Playing, Is.True);
+            Assert.That(channel2.Playing, Is.True);
 
             channel3.Play();
             bass.Update();
 
-            Assert.That(BassMix.MixerGetChannels(bass.Mixer.Handle).Length, Is.EqualTo(2));
+            // Since channel3 is the last channel in the update queue, we need to update once more for channel1 and channel2 to receive their correct playing states.
+            bass.Update();
+
             Assert.That(!channel1.Playing);
             Assert.That(channel2.Playing);
             Assert.That(channel3.Playing);
