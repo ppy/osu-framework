@@ -21,8 +21,6 @@ namespace osu.Framework.Audio.Sample
 
         private readonly ConcurrentDictionary<string, SampleBassFactory> factories = new ConcurrentDictionary<string, SampleBassFactory>();
 
-        public int PlaybackConcurrency { get; set; } = Sample.DEFAULT_CONCURRENCY;
-
         internal SampleStore([NotNull] IResourceStore<byte[]> store, [NotNull] AudioMixer mixer)
         {
             this.store = store;
@@ -45,7 +43,7 @@ namespace osu.Framework.Audio.Sample
                     this.LogIfNonBackgroundThread(name);
 
                     byte[] data = store.Get(name);
-                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, (BassAudioMixer)mixer) { PlaybackConcurrency = { Value = PlaybackConcurrency } };
+                    factory = factories[name] = data == null ? null : new SampleBassFactory(data, (BassAudioMixer)mixer);
 
                     if (factory != null)
                         AddItem(factory);

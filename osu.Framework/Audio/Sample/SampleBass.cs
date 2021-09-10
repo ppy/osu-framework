@@ -20,8 +20,6 @@ namespace osu.Framework.Audio.Sample
         {
             this.factory = factory;
             this.mixer = mixer;
-
-            PlaybackConcurrency.BindTo(factory.PlaybackConcurrency);
         }
 
         protected override SampleChannel CreateChannel()

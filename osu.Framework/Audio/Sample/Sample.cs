@@ -2,17 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Bindables;
 
 namespace osu.Framework.Audio.Sample
 {
     public abstract class Sample : AudioCollectionManager<SampleChannel>, ISample
     {
-        public const int DEFAULT_CONCURRENCY = 2;
-
         public double Length { get; protected set; }
-
-        public Bindable<int> PlaybackConcurrency { get; } = new Bindable<int>(DEFAULT_CONCURRENCY);
 
         internal Action<Sample> OnPlay;
 
