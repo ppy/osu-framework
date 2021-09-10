@@ -7,7 +7,6 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
-using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -356,14 +355,17 @@ namespace osu.Framework.Tests.Audio
             var channel1 = sample.GetChannel();
             var channel2 = sample.GetChannel();
             var channel3 = sample.GetChannel();
+            var channel4 = sample.GetChannel();
 
             channel1.Looping = true;
             channel2.Looping = true;
             channel3.Looping = true;
+            channel4.Looping = true;
 
             mixer.Add(channel1);
             mixer.Add(channel2);
             mixer.Add(channel3);
+            mixer.Add(channel4);
 
             channel1.Play();
             channel2.Play();
@@ -371,16 +373,66 @@ namespace osu.Framework.Tests.Audio
 
             Assert.That(channel1.Playing, Is.True);
             Assert.That(channel2.Playing, Is.True);
+            Assert.That(!channel3.Playing);
+            Assert.That(!channel4.Playing);
 
             channel3.Play();
             bass.Update();
-
-            // Since channel3 is the last channel in the update queue, we need to update once more for channel1 and channel2 to receive their correct playing states.
-            bass.Update();
+            bass.Update(); // Since channel 3 is the last in the update queue, we need to update once more for channel 1 to receive its correct playing state.
 
             Assert.That(!channel1.Playing);
             Assert.That(channel2.Playing);
             Assert.That(channel3.Playing);
+            Assert.That(!channel4.Playing);
+
+            channel4.Play();
+            bass.Update();
+            bass.Update(); // Since channel 4 is the last in the update queue, we need to update once more for channel 2 to receive its correct playing state.
+
+            Assert.That(!channel1.Playing);
+            Assert.That(!channel2.Playing);
+            Assert.That(channel3.Playing);
+            Assert.That(channel4.Playing);
+        }
+
+        [Test]
+        public void TestPlaybacksExceedingConcurrencyLimitStopWhenConcurrencyIsChanged()
+        {
+            BassAudioMixer mixer = bass.CreateMixer();
+
+            var channel1 = sample.GetChannel();
+            var channel2 = sample.GetChannel();
+            var channel3 = sample.GetChannel();
+            var channel4 = sample.GetChannel();
+
+            channel1.Looping = true;
+            channel2.Looping = true;
+            channel3.Looping = true;
+            channel4.Looping = true;
+
+            mixer.Add(channel1);
+            mixer.Add(channel2);
+            mixer.Add(channel3);
+            mixer.Add(channel4);
+
+            channel1.Play();
+            channel2.Play();
+            channel3.Play();
+            channel4.Play();
+            bass.Update();
+
+            Assert.That(channel1.Playing);
+            Assert.That(channel2.Playing);
+            Assert.That(channel3.Playing);
+            Assert.That(channel4.Playing);
+
+            mixer.Concurrency = 2;
+            bass.Update();
+
+            Assert.That(!channel1.Playing);
+            Assert.That(!channel2.Playing);
+            Assert.That(channel3.Playing);
+            Assert.That(channel4.Playing);
         }
 
         private void assertEffectParameters()
