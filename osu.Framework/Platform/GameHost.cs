@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
@@ -128,6 +129,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IWindow CreateWindow() => null;
 
+        [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
 
         /// <summary>
