@@ -20,6 +20,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
+using osu.Framework.Text;
 using osuTK;
 
 namespace osu.Framework
@@ -161,19 +162,24 @@ namespace osu.Framework
             // note that currently this means there could be two async font load operations.
             Fonts.AddStore(localFonts = new FontStore(useAtlas: false));
 
+            // Roboto and Font Awesome have different metrics for Windows and macOS.
+            // The ones used for Windows are used here for the time being.
+            var robotoMetrics = new FontMetrics(ascent: 1946, descent: 512, emSize: 2048);
+            var fontAwesomeMetrics = new FontMetrics(ascent: 460, descent: 84, emSize: 512);
+
             // Roboto (FrameworkFont.Regular)
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold");
-            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic");
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Regular", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-RegularItalic", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-Bold", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/Roboto/Roboto-BoldItalic", robotoMetrics);
 
             // RobotoCondensed (FrameworkFont.Condensed)
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular");
-            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold");
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Regular", robotoMetrics);
+            addFont(localFonts, Resources, @"Fonts/RobotoCondensed/RobotoCondensed-Bold", robotoMetrics);
 
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid");
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular");
-            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands");
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Solid", fontAwesomeMetrics);
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Regular", fontAwesomeMetrics);
+            addFont(Fonts, Resources, @"Fonts/FontAwesome5/FontAwesome-Brands", fontAwesomeMetrics);
 
             dependencies.Cache(Fonts);
 
