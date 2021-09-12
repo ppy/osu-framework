@@ -17,6 +17,11 @@ namespace osu.Framework.IO.Stores
 {
     public class FontStore : TextureStore, ITexturedGlyphLookupStore
     {
+        /// <summary>
+        /// The font size of the raw glyph textures.
+        /// </summary>
+        internal const float BASE_FONT_SIZE = 100;
+
         private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
@@ -34,7 +39,7 @@ namespace osu.Framework.IO.Stores
         /// </summary>
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE)
             : this(store, scaleAdjust, false)
         {
         }
@@ -46,12 +51,12 @@ namespace osu.Framework.IO.Stores
         /// <param name="store">The texture source.</param>
         /// <param name="scaleAdjust">The raw pixel height of the font. Can be used to apply a global scale or metric to font usages.</param>
         /// <param name="minFilterMode">The texture minification filtering mode to use.</param>
-        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, All minFilterMode = All.Linear)
+        public FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE, All minFilterMode = All.Linear)
             : this(store, scaleAdjust, true, filteringMode: minFilterMode)
         {
         }
 
-        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = 100, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
+        internal FontStore(IResourceStore<TextureUpload> store = null, float scaleAdjust = BASE_FONT_SIZE, bool useAtlas = false, Storage cacheStorage = null, All filteringMode = All.Linear)
             : base(store, scaleAdjust: scaleAdjust, useAtlas: useAtlas, filteringMode: filteringMode)
         {
             this.cacheStorage = cacheStorage;
