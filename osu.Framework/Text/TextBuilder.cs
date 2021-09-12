@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -35,6 +36,12 @@ namespace osu.Framework.Text
         private readonly Vector2 startOffset;
         private readonly Vector2 spacing;
         private readonly float maxWidth;
+
+        /// <summary>
+        /// The <see cref="IGlyphStore"/> of the font specified in the <see cref="FontUsage"/>.
+        /// </summary>
+        [CanBeNull]
+        private readonly IGlyphStore fontGlyphStore;
 
         private Vector2 currentPos;
         private float currentLineHeight;
@@ -80,6 +87,8 @@ namespace osu.Framework.Text
             this.startOffset = startOffset;
             this.spacing = spacing;
             this.maxWidth = maxWidth;
+
+            fontGlyphStore = store.GetFont(font.FontName);
 
             Characters = characterList ?? new List<TextBuilderGlyph>();
             this.neverFixedWidthCharacters = neverFixedWidthCharacters ?? Array.Empty<char>();
@@ -196,12 +205,17 @@ namespace osu.Framework.Text
         /// Adds a new line to this <see cref="TextBuilder"/>.
         /// </summary>
         /// <remarks>
-        /// A height equal to that of the font size will be assumed if the current line is empty, regardless of <see cref="useFontSizeAsHeight"/>.
+        /// A height equal to that of the font size will be assumed if the current line is empty, regardless of <see cref="useFullGlyphHeight"/>.
         /// </remarks>
         public void AddNewLine()
         {
             if (currentNewLine)
+            {
                 currentLineHeight = font.Size;
+
+                if (font.CssScaling && fontGlyphStore?.Metrics is FontMetrics metrics)
+                    currentLineHeight *= metrics.GlyphScale;
+            }
 
             // Reset + vertically offset the current position
             currentPos.X = startOffset.X;

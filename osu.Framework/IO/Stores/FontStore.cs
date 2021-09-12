@@ -130,6 +130,26 @@ namespace osu.Framework.IO.Stores
             base.RemoveStore(store);
         }
 
+        /// <summary>
+        /// Searches for a <see cref="IGlyphStore"/> with the specified name.
+        /// </summary>
+        /// <param name="name">The font name.</param>
+        public IGlyphStore GetFont(string name)
+        {
+            var found = glyphStores.Find(g => g.FontName == name);
+
+            if (found == null)
+            {
+                foreach (var store in nestedFontStores)
+                {
+                    if ((found = store.GetFont(name)) != null)
+                        break;
+                }
+            }
+
+            return found;
+        }
+
         public new Texture Get(string name)
         {
             var found = base.Get(name, WrapMode.None, WrapMode.None);
