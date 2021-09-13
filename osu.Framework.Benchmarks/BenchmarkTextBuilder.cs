@@ -19,25 +19,35 @@ namespace osu.Framework.Benchmarks
         public void AddCharacters() => initialiseBuilder(false);
 
         [Benchmark]
+        public void AddCharactersWithDifferentBaselines() => initialiseBuilder(true);
+
+        [Benchmark]
         public void RemoveLastCharacter()
         {
             initialiseBuilder(false);
             textBuilder.RemoveLastCharacter();
         }
 
-        private void initialiseBuilder(bool allDifferentBaselines)
+        [Benchmark]
+        public void RemoveLastCharacterWithDifferentBaselines()
+        {
+            initialiseBuilder(true);
+            textBuilder.RemoveLastCharacter();
+        }
+
+        private void initialiseBuilder(bool withDifferentBaselines)
         {
             textBuilder = new TextBuilder(store, FontUsage.Default);
 
             char different = 'B';
 
             for (int i = 0; i < 100; i++)
-                textBuilder.AddCharacter(i % (allDifferentBaselines ? 1 : 10) == 0 ? different++ : 'A');
+                textBuilder.AddCharacter(withDifferentBaselines && (i % 10 == 0) ? different++ : 'A');
         }
 
         private class TestStore : ITexturedGlyphLookupStore
         {
-            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(new CharacterGlyph(character, character, character, character, null), Texture.WhitePixel);
+            public ITexturedCharacterGlyph Get(string fontName, char character) => new TexturedCharacterGlyph(new CharacterGlyph(character, character, character, character, character, null), Texture.WhitePixel);
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
         }
