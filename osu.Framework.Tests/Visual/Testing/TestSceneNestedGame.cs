@@ -3,7 +3,12 @@
 
 using System;
 using NUnit.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
+using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Framework.Tests.Visual.Testing
 {
@@ -83,6 +88,26 @@ namespace osu.Framework.Tests.Visual.Testing
 
         internal class NestedTestGame : TestGame
         {
+            private Box box;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Add(box = new Box
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Size = new Vector2(150, 150),
+                    Colour = Color4.Tomato
+                });
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+                box.Rotation += (float)Time.Elapsed / 10;
+            }
+
             protected override void Dispose(bool isDisposing)
             {
                 if (IsDisposed)
