@@ -30,7 +30,24 @@ namespace osu.Framework.Tests.Visual.Testing
 
             AddStep("Add game", () => AddGame(game = new TestGame()));
             AddStep("exit game", () => game.Exit());
-            AddUntilStep("game expired", () => game.Parent == null);
+            AddUntilStep("game exited", () => game.Parent == null);
+        }
+
+        [Test]
+        public void TestMultipleNestedGames()
+        {
+            TestGame game = null;
+            TestGame game2 = null;
+
+            AddStep("Add game", () => AddGame(game = new TestGame()));
+            AddUntilStep("game not exited", () => game.Parent != null);
+
+            AddStep("Add game 2", () => AddGame(game2 = new TestGame()));
+            AddUntilStep("game exited", () => game.Parent == null);
+            AddUntilStep("game2 not exited", () => game2.Parent != null);
+
+            AddStep("exit game2", () => game2.Exit());
+            AddUntilStep("game2 exited", () => game2.Parent == null);
         }
 
         [TearDownSteps]

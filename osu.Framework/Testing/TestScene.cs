@@ -57,6 +57,13 @@ namespace osu.Framework.Testing
             }
         }
 
+        /// <summary>
+        /// Add a full game instance in a nested state for visual testing.
+        /// </summary>
+        /// <remarks>
+        /// Any previous game added via this method will be disposed if called multiple times.
+        /// </remarks>
+        /// <param name="game">The game to add.</param>
         protected void AddGame(Game game)
         {
             host.RegisterNestedUsage(game);
