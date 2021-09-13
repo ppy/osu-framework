@@ -137,7 +137,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests()
+        protected virtual void RunTests()
         {
             RunTearDownSteps();
 
@@ -430,7 +430,7 @@ namespace osu.Framework.Testing
 
             public void RegisterNestedUsage(Game game)
             {
-                nestedGame?.Expire();
+                exitNestedGame();
 
                 nestedGame = game;
                 nestedGame.SetHost(this);
@@ -438,10 +438,21 @@ namespace osu.Framework.Testing
 
             public override void Exit()
             {
-                nestedGame?.Expire();
+                exitNestedGame();
 
                 // Block base call so nested game instances can't end the testing process.
                 // See ExitFromRunner below.
+            }
+
+            private void exitNestedGame()
+            {
+                if (nestedGame != null)
+                {
+                    // important that we do a synchronous disposal.
+                    // using Expire() will cause a deadlock in AsyncDisposalQueue.
+                    nestedGame.Parent?.RemoveInternal(nestedGame);
+                    nestedGame.Dispose();
+                }
             }
 
             public void ExitFromRunner() => base.Exit();
