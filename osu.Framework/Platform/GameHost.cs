@@ -541,7 +541,7 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public virtual void Exit() => PerformExit(false);
+        public void Exit() => PerformExit(false);
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
