@@ -33,7 +33,7 @@ namespace osu.Framework.Testing
 
         protected virtual ITestSceneTestRunner CreateRunner() => new TestSceneTestRunner();
 
-        private GameHost host;
+        private TestSceneHost host;
         private Task runTask;
         private ITestSceneTestRunner runner;
 
@@ -42,23 +42,46 @@ namespace osu.Framework.Testing
         [OneTimeSetUp]
         public void SetupGameHost()
         {
-            host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}");
+            host = new TestSceneHost($"{GetType().Name}-{Guid.NewGuid()}");
             runner = CreateRunner();
 
-            if (!(runner is Game game))
+            if (!(runner is Game runnerGame))
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
-            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+            runTask = Task.Factory.StartNew(() => host.Run(runnerGame), TaskCreationOptions.LongRunning);
 
-            while (!game.IsLoaded)
+            while (!runnerGame.IsLoaded)
             {
                 checkForErrors();
                 Thread.Sleep(10);
             }
         }
 
-        protected internal override void AddInternal(Drawable drawable) =>
+        /// <summary>
+        /// Add a full game instance in a nested state for visual testing.
+        /// </summary>
+        /// <remarks>
+        /// Any previous game added via this method will be disposed if called multiple times.
+        /// </remarks>
+        /// <param name="game">The game to add.</param>
+        protected void AddGame(Game game)
+        {
+            host.RegisterNestedUsage(game);
+            base.Add(game);
+        }
+
+        public override void Add(Drawable drawable)
+        {
+            if (drawable is Game)
+                throw new InvalidOperationException($"Use {nameof(AddGame)} when testing a game instance.");
+
+            base.Add(drawable);
+        }
+
+        protected internal override void AddInternal(Drawable drawable)
+        {
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Add)} instead.");
+        }
 
         protected internal override void ClearInternal(bool disposeChildren = true) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Clear)} instead.");
@@ -69,7 +92,7 @@ namespace osu.Framework.Testing
         [OneTimeTearDown]
         public void DestroyGameHost()
         {
-            host.Exit();
+            host.ExitFromRunner();
 
             try
             {
@@ -121,7 +144,7 @@ namespace osu.Framework.Testing
         }
 
         [TearDown]
-        public void RunTests()
+        protected virtual void RunTests()
         {
             RunTearDownSteps();
 
@@ -402,5 +425,44 @@ namespace osu.Framework.Testing
 
         // should run inline where possible. this is to fix RunAllSteps potentially finding no steps if the steps are added in LoadComplete (else they get forcefully scheduled too late)
         private void schedule(Action action) => Scheduler.Add(action, false);
+
+        private class TestSceneHost : TestRunHeadlessGameHost
+        {
+            private Game nestedGame;
+
+            public TestSceneHost(string name)
+                : base(name)
+            {
+            }
+
+            public void RegisterNestedUsage(Game game)
+            {
+                exitNestedGame();
+
+                nestedGame = game;
+                nestedGame.SetHost(this);
+            }
+
+            public override void Exit()
+            {
+                exitNestedGame();
+
+                // Block base call so nested game instances can't end the testing process.
+                // See ExitFromRunner below.
+            }
+
+            private void exitNestedGame()
+            {
+                if (nestedGame?.Parent != null)
+                {
+                    // important that we do a synchronous disposal.
+                    // using Expire() will cause a deadlock in AsyncDisposalQueue.
+                    nestedGame.Parent.RemoveInternal(nestedGame);
+                    nestedGame.Dispose();
+                }
+            }
+
+            public void ExitFromRunner() => base.Exit();
+        }
     }
 }
