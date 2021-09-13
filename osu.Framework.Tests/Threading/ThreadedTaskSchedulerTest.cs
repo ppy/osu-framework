@@ -22,17 +22,21 @@ namespace osu.Framework.Tests.Threading
 
             const int target_count = 128;
 
-            using (var taskScheduler = new ThreadedTaskScheduler(4, "test"))
+            using var taskScheduler = new ThreadedTaskScheduler(4, "test");
+
+            for (int i = 0; i < target_count; i++)
             {
-                for (int i = 0; i < target_count; i++)
+                Task.Factory.StartNew(() =>
                 {
-                    Task.Factory.StartNew(() =>
-                    {
-                        Interlocked.Increment(ref runCount);
-                        Thread.Sleep(100);
-                    }, default, TaskCreationOptions.HideScheduler, taskScheduler);
-                }
+                    Interlocked.Increment(ref runCount);
+                    Thread.Sleep(100);
+                }, default, TaskCreationOptions.HideScheduler, taskScheduler);
             }
+
+            taskScheduler.Dispose();
+
+            // test against double disposal crashes.
+            taskScheduler.Dispose();
 
             Assert.AreEqual(target_count, runCount);
         }
