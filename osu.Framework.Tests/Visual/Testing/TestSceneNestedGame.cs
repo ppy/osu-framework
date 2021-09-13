@@ -26,23 +26,41 @@ namespace osu.Framework.Tests.Visual.Testing
         [Test]
         public void TestNestedGame()
         {
-            TestGame game = null;
+            NestedTestGame game = null;
 
-            AddStep("Add game", () => AddGame(game = new TestGame()));
+            AddStep("Add game", () => AddGame(game = new NestedTestGame()));
             AddStep("exit game", () => game.Exit());
             AddUntilStep("game exited", () => game.Parent == null);
         }
 
         [Test]
-        public void TestMultipleNestedGames()
+        public void TestMultipleNestedGamesSequential()
         {
-            TestGame game = null;
-            TestGame game2 = null;
+            NestedTestGame game = null;
+            NestedTestGame game2 = null;
 
-            AddStep("Add game", () => AddGame(game = new TestGame()));
+            AddStep("Add game", () => AddGame(game = new NestedTestGame()));
+            AddUntilStep("game not exited", () => game.Parent != null);
+            AddStep("exit game", () => game.Exit());
+
+            AddStep("Add game 2", () => AddGame(game2 = new NestedTestGame()));
+            AddUntilStep("game exited", () => game.Parent == null);
+            AddUntilStep("game2 not exited", () => game2.Parent != null);
+
+            AddStep("exit game2", () => game2.Exit());
+            AddUntilStep("game2 exited", () => game2.Parent == null);
+        }
+
+        [Test]
+        public void TestMultipleNestedGamesOverwrite()
+        {
+            NestedTestGame game = null;
+            NestedTestGame game2 = null;
+
+            AddStep("Add game", () => AddGame(game = new NestedTestGame()));
             AddUntilStep("game not exited", () => game.Parent != null);
 
-            AddStep("Add game 2", () => AddGame(game2 = new TestGame()));
+            AddStep("Add game 2", () => AddGame(game2 = new NestedTestGame()));
             AddUntilStep("game exited", () => game.Parent == null);
             AddUntilStep("game2 not exited", () => game2.Parent != null);
 
@@ -61,6 +79,17 @@ namespace osu.Framework.Tests.Visual.Testing
             base.RunTests();
 
             Assert.IsTrue(hostWasRunningAfterNestedExit);
+        }
+
+        internal class NestedTestGame : TestGame
+        {
+            protected override void Dispose(bool isDisposing)
+            {
+                if (IsDisposed)
+                    throw new InvalidOperationException("Dispose called multiple times");
+
+                base.Dispose(isDisposing);
+            }
         }
     }
 }

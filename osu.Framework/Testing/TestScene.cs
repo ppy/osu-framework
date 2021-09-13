@@ -453,11 +453,11 @@ namespace osu.Framework.Testing
 
             private void exitNestedGame()
             {
-                if (nestedGame != null)
+                if (nestedGame?.Parent != null)
                 {
                     // important that we do a synchronous disposal.
                     // using Expire() will cause a deadlock in AsyncDisposalQueue.
-                    nestedGame.Parent?.RemoveInternal(nestedGame);
+                    nestedGame.Parent.RemoveInternal(nestedGame);
                     nestedGame.Dispose();
                 }
             }
