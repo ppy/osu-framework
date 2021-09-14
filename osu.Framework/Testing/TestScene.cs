@@ -46,24 +46,6 @@ namespace osu.Framework.Testing
 
         public object DynamicCompilationOriginal { get; internal set; }
 
-        [OneTimeSetUp]
-        public void SetupGameHost()
-        {
-            host = new TestSceneHost($"{GetType().Name}-{Guid.NewGuid()}", exitNestedGame);
-            runner = CreateRunner();
-
-            if (!(runner is Game game))
-                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
-
-            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
-
-            while (!game.IsLoaded)
-            {
-                checkForErrors();
-                Thread.Sleep(10);
-            }
-        }
-
         [BackgroundDependencyLoader]
         private void load(GameHost host)
         {
@@ -108,79 +90,6 @@ namespace osu.Framework.Testing
 
         protected internal override bool RemoveInternal(Drawable drawable) =>
             throw new InvalidOperationException($"Modifying {nameof(InternalChildren)} will cause critical failure. Use {nameof(Remove)} instead.");
-
-        [OneTimeTearDown]
-        public void DestroyGameHost()
-        {
-            (host as TestSceneHost)?.ExitFromRunner();
-
-            try
-            {
-                runTask.Wait();
-            }
-            finally
-            {
-                host.Dispose();
-
-                try
-                {
-                    // clean up after each run
-                    host.Storage.DeleteDirectory(string.Empty);
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        [SetUp]
-        public void SetUpTestForNUnit()
-        {
-            if (DebugUtils.IsNUnitRunning)
-            {
-                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
-                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
-                // for the game threads refers to the current _test_ execution context for each test
-                var executionContext = TestExecutionContext.CurrentContext;
-
-                foreach (var thread in host.Threads)
-                {
-                    thread.Scheduler.Add(() =>
-                    {
-                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
-                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
-                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
-                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
-                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
-                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
-                    });
-                }
-
-                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
-                    schedule(() => StepsContainer.Clear());
-
-                RunSetUpSteps();
-            }
-        }
-
-        [TearDown]
-        protected virtual void RunTests()
-        {
-            RunTearDownSteps();
-
-            checkForErrors();
-            runner.RunTestBlocking(this);
-            checkForErrors();
-        }
-
-        private void checkForErrors()
-        {
-            if (host.ExecutionState == ExecutionState.Stopping)
-                runTask.Wait();
-
-            if (runTask.Exception != null)
-                throw runTask.Exception;
-        }
 
         /// <summary>
         /// Tests any steps and assertions in the constructor of this <see cref="TestScene"/>.
@@ -456,6 +365,99 @@ namespace osu.Framework.Testing
             nestedGame.Dispose();
         }
 
+        #region NUnit execution setup
+
+        [OneTimeSetUp]
+        public void SetupGameHostForNUnit()
+        {
+            host = new TestSceneHost($"{GetType().Name}-{Guid.NewGuid()}", exitNestedGame);
+            runner = CreateRunner();
+
+            if (!(runner is Game game))
+                throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
+
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
+
+            while (!game.IsLoaded)
+            {
+                checkForErrors();
+                Thread.Sleep(10);
+            }
+        }
+
+        [SetUp]
+        public void SetUpTestForNUnit()
+        {
+            if (DebugUtils.IsNUnitRunning)
+            {
+                // Since the host is created in OneTimeSetUp, all game threads will have the fixture's execution context
+                // This is undesirable since each test is run using those same threads, so we must make sure the execution context
+                // for the game threads refers to the current _test_ execution context for each test
+                var executionContext = TestExecutionContext.CurrentContext;
+
+                foreach (var thread in host.Threads)
+                {
+                    thread.Scheduler.Add(() =>
+                    {
+                        TestExecutionContext.CurrentContext.CurrentResult = executionContext.CurrentResult;
+                        TestExecutionContext.CurrentContext.CurrentTest = executionContext.CurrentTest;
+                        TestExecutionContext.CurrentContext.CurrentCulture = executionContext.CurrentCulture;
+                        TestExecutionContext.CurrentContext.CurrentPrincipal = executionContext.CurrentPrincipal;
+                        TestExecutionContext.CurrentContext.CurrentRepeatCount = executionContext.CurrentRepeatCount;
+                        TestExecutionContext.CurrentContext.CurrentUICulture = executionContext.CurrentUICulture;
+                    });
+                }
+
+                if (TestContext.CurrentContext.Test.MethodName != nameof(TestConstructor))
+                    schedule(() => StepsContainer.Clear());
+
+                RunSetUpSteps();
+            }
+        }
+
+        [TearDown]
+        protected virtual void RunTestsFromNUnit()
+        {
+            RunTearDownSteps();
+
+            checkForErrors();
+            runner.RunTestBlocking(this);
+            checkForErrors();
+        }
+
+        [OneTimeTearDown]
+        public void DestroyGameHostFromNUnit()
+        {
+            (host as TestSceneHost)?.ExitFromRunner();
+
+            try
+            {
+                runTask.Wait();
+            }
+            finally
+            {
+                host.Dispose();
+
+                try
+                {
+                    // clean up after each run
+                    host.Storage.DeleteDirectory(string.Empty);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void checkForErrors()
+        {
+            if (host.ExecutionState == ExecutionState.Stopping)
+                runTask.Wait();
+
+            if (runTask.Exception != null)
+                throw runTask.Exception;
+        }
+
         private class TestSceneHost : TestRunHeadlessGameHost
         {
             private readonly Action onExitRequest;
@@ -476,4 +478,6 @@ namespace osu.Framework.Testing
             public void ExitFromRunner() => base.PerformExit(true);
         }
     }
+
+    #endregion
 }
