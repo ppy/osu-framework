@@ -26,7 +26,11 @@ namespace osu.Framework.Graphics.Sprites
     public partial class SpriteText : Drawable, IHasLineBaseHeight, ITexturedShaderDrawable, IHasText, IHasFilterTerms, IFillFlowContainer, IHasCurrentValue<string>
     {
         private const float default_text_size = 20;
-        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ' };
+
+        /// <remarks>
+        /// <c>U+00A0</c> is the Unicode NON-BREAKING SPACE character (distinct from the standard ASCII space).
+        /// </remarks>
+        private static readonly char[] default_never_fixed_width_characters = { '.', ',', ':', ' ', '\u00A0' };
 
         [Resolved]
         private FontStore store { get; set; }

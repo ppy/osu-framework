@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Mix;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Statistics;
 
@@ -108,30 +109,22 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </summary>
         /// <remarks>See: <see cref="ManagedBass.Bass.ChannelPause"/>.</remarks>
         /// <param name="channel">The channel to pause.</param>
+        /// <param name="flushMixer">Set to <c>true</c> to make the pause take effect immediately.
+        /// <para>
+        /// This will change the timing of <see cref="ChannelGetPosition"/>, so should be used sparingly.
+        /// </para>
+        /// </param>
         /// <returns>
         /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
         /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
         /// </returns>
-        public bool ChannelPause(IBassAudioChannel channel)
+        public bool ChannelPause(IBassAudioChannel channel, bool flushMixer = false)
         {
             bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            flush();
-            return result;
-        }
 
-        /// <summary>
-        /// Stops a channel.
-        /// </summary>
-        /// <remarks>See: <see cref="ManagedBass.Bass.ChannelStop"/>.</remarks>
-        /// <param name="channel">The channel to stop.</param>
-        /// <returns>
-        /// If successful, <see langword="true"/> is returned, else <see langword="false"/> is returned.
-        /// Use <see cref="ManagedBass.Bass.LastError"/> to get the error code.
-        /// </returns>
-        public bool ChannelStop(IBassAudioChannel channel)
-        {
-            bool result = BassMix.ChannelAddFlag(channel.Handle, BassFlags.MixerChanPause);
-            flush();
+            if (flushMixer)
+                flush();
+
             return result;
         }
 
@@ -148,7 +141,7 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             // The channel is always in a playing state unless stopped or stalled as it's a decoding channel. Retrieve the true playing state from the mixer channel.
             if (state == PlaybackState.Playing)
-                state = BassMix.ChannelHasFlag(channel.Handle, BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
+                state = BassMix.ChannelFlags(channel.Handle, BassFlags.Default, BassFlags.Default).HasFlagFast(BassFlags.MixerChanPause) ? PlaybackState.Paused : state;
 
             return state;
         }
@@ -179,8 +172,17 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// </returns>
         public bool ChannelSetPosition(IBassAudioChannel channel, long position, PositionFlags mode = PositionFlags.Bytes)
         {
+            // All BASS channels enter a stopped state once they reach the end.
+            // Non-decoding channels remain in the stopped state when seeked afterwards, however decoding channels are put back into a playing state which causes audio to play.
+            // Thus, on seek, in order to reproduce the expectations set out by non-decoding channels, manually pause the mixer channel when the decoding channel is stopped.
+            if (ChannelIsActive(channel) == PlaybackState.Stopped)
+                ChannelPause(channel, true);
+
             bool result = BassMix.ChannelSetPosition(channel.Handle, position, mode);
+
+            // Perform a flush so that ChannelGetPosition() immediately returns the new value.
             flush();
+
             return result;
         }
 
@@ -278,7 +280,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             if (!ManagedBass.Bass.GetDeviceInfo(ManagedBass.Bass.CurrentDevice, out var deviceInfo) || !deviceInfo.IsInitialized)
                 return;
 
-            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop | BassFlags.Float);
+            Handle = BassMix.CreateMixerStream(frequency, 2, BassFlags.MixerNonStop);
             if (Handle == 0)
                 return;
 
@@ -305,7 +307,7 @@ namespace osu.Framework.Audio.Mixing.Bass
             Debug.Assert(Handle != 0);
             Debug.Assert(channel.Handle != 0);
 
-            BassFlags flags = BassFlags.MixerChanBuffer;
+            BassFlags flags = BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin;
             if (channel.MixerChannelPaused)
                 flags |= BassFlags.MixerChanPause;
 
@@ -410,8 +412,11 @@ namespace osu.Framework.Audio.Mixing.Bass
         });
 
         /// <summary>
-        /// Flushes the mixer.
+        /// Flushes the mixer, causing pause and seek events to take effect immediately.
         /// </summary>
+        /// <remarks>
+        /// This will change the timing of <see cref="ChannelGetPosition"/>, so should be used sparingly.
+        /// </remarks>
         private void flush()
         {
             if (Handle != 0)

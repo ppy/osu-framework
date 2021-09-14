@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Threading;
+using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using NUnit.Framework;
@@ -301,6 +303,47 @@ namespace osu.Framework.Tests.Audio
 
             bass.Mixer.Effects.Insert(3, new BQFParameters());
             assertEffectParameters();
+        }
+
+        [Test]
+        public void TestChannelDoesNotPlayIfReachedEndAndSeekedBackwards()
+        {
+            bass.RunOnAudioThread(() =>
+            {
+                track.Seek(track.Length - 1);
+                track.Start();
+            });
+
+            Thread.Sleep(50);
+            bass.Update();
+
+            Assert.That(bass.Mixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
+
+            bass.RunOnAudioThread(() => track.SeekAsync(0));
+            bass.Update();
+
+            Assert.That(bass.Mixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
+        }
+
+        [Test]
+        public void TestChannelDoesNotPlayIfReachedEndAndMovedMixers()
+        {
+            bass.RunOnAudioThread(() =>
+            {
+                track.Seek(track.Length - 1);
+                track.Start();
+            });
+
+            Thread.Sleep(50);
+            bass.Update();
+
+            Assert.That(bass.Mixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
+
+            var secondMixer = bass.CreateMixer();
+            secondMixer.Add(track);
+            bass.Update();
+
+            Assert.That(secondMixer.ChannelIsActive(track), Is.Not.EqualTo(PlaybackState.Playing));
         }
 
         private void assertEffectParameters()

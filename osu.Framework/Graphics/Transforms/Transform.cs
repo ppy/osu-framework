@@ -54,9 +54,9 @@ namespace osu.Framework.Graphics.Transforms
 
         internal bool HasStartValue;
 
-        public Action OnComplete;
+        internal ITransformSequence CompletionTargetSequence;
 
-        public Action OnAbort;
+        internal ITransformSequence AbortTargetSequence;
 
         public Transform Clone() => (Transform)MemberwiseClone();
 
@@ -77,6 +77,10 @@ namespace osu.Framework.Graphics.Transforms
                 return compare;
             }
         }
+
+        internal void TriggerComplete() => CompletionTargetSequence?.TransformCompleted();
+
+        internal void TriggerAbort() => AbortTargetSequence?.TransformAborted();
     }
 
     public abstract class Transform<TValue> : Transform

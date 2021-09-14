@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using osu.Framework.Caching;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.IO.Serialization;
 using osu.Framework.Lists;
@@ -130,9 +128,9 @@ namespace osu.Framework.Bindables
             TriggerDefaultChange(previousValue, source ?? this, true, bypassChecks);
         }
 
-        private readonly Cached<WeakReference<Bindable<T>>> weakReferenceCache = new Cached<WeakReference<Bindable<T>>>();
+        private WeakReference<Bindable<T>> weakReferenceInstance;
 
-        private WeakReference<Bindable<T>> weakReference => weakReferenceCache.IsValid ? weakReferenceCache.Value : weakReferenceCache.Value = new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference => weakReferenceInstance ??= new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Creates a new bindable instance. This is used for deserialization of bindables.
@@ -391,24 +389,17 @@ namespace osu.Framework.Bindables
             return clone;
         }
 
-        /// <summary>
-        /// Retrieve a new bindable instance weakly bound to the configuration backing.
-        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
-        /// a local reference.
-        /// </summary>
-        /// <returns>A weakly bound copy of the specified bindable.</returns>
-        public Bindable<T> GetBoundCopy()
-        {
-            var copy = (Bindable<T>)Activator.CreateInstance(GetType(), Value);
-            Debug.Assert(copy != null);
+        IBindable IBindable.CreateInstance() => CreateInstance();
 
-            copy.BindTo(this);
-            return copy;
-        }
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected virtual Bindable<T> CreateInstance() => new Bindable<T>();
 
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
         IBindable<T> IBindable<T>.GetBoundCopy() => GetBoundCopy();
+
+        /// <inheritdoc cref="IBindable{T}.GetBoundCopy"/>
+        public Bindable<T> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         void ISerializableBindable.SerializeTo(JsonWriter writer, JsonSerializer serializer)
         {

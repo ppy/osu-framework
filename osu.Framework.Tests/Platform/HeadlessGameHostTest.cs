@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 using osu.Framework.Tests.IO;
 
 namespace osu.Framework.Tests.Platform
@@ -25,7 +26,7 @@ namespace osu.Framework.Tests.Platform
         [Test]
         public void TestGameHostDisposalWhenNeverRun()
         {
-            using (new HeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
+            using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
             {
                 // never call host.Run()
             }
@@ -69,7 +70,7 @@ namespace osu.Framework.Tests.Platform
             public string Bar;
         }
 
-        public class ExceptionDuringSetupGameHost : HeadlessGameHost
+        public class ExceptionDuringSetupGameHost : TestRunHeadlessGameHost
         {
             public ExceptionDuringSetupGameHost(string gameName)
                 : base(gameName)

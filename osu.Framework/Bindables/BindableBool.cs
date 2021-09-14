@@ -23,5 +23,7 @@ namespace osu.Framework.Bindables
         }
 
         public void Toggle() => Value = !Value;
+
+        protected override Bindable<bool> CreateInstance() => new BindableBool();
     }
 }
