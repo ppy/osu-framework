@@ -466,14 +466,14 @@ namespace osu.Framework.Testing
                 this.onExitRequest = onExitRequest;
             }
 
-            public override void Exit()
+            protected override void PerformExit(bool immediately)
             {
                 // Block base call so nested game instances can't end the testing process.
                 // See ExitFromRunner below.
                 onExitRequest?.Invoke();
             }
 
-            public void ExitFromRunner() => base.Exit();
+            public void ExitFromRunner() => base.PerformExit(true);
         }
     }
 }
