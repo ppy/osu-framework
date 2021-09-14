@@ -475,7 +475,7 @@ namespace osu.Framework.Testing
                 onExitRequest?.Invoke();
             }
 
-            public void ExitFromRunner() => base.PerformExit(true);
+            public void ExitFromRunner() => base.PerformExit(false);
         }
     }
 
