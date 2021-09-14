@@ -52,12 +52,12 @@ namespace osu.Framework.Testing
             host = new TestSceneHost($"{GetType().Name}-{Guid.NewGuid()}", exitNestedGame);
             runner = CreateRunner();
 
-            if (!(runner is Game runnerGame))
+            if (!(runner is Game game))
                 throw new InvalidCastException($"The test runner must be a {nameof(Game)}.");
 
-            runTask = Task.Factory.StartNew(() => host.Run(runnerGame), TaskCreationOptions.LongRunning);
+            runTask = Task.Factory.StartNew(() => host.Run(game), TaskCreationOptions.LongRunning);
 
-            while (!runnerGame.IsLoaded)
+            while (!game.IsLoaded)
             {
                 checkForErrors();
                 Thread.Sleep(10);
