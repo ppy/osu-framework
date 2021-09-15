@@ -22,25 +22,28 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     public class QuadVertexBuffer<T> : VertexBuffer<T>
         where T : struct, IEquatable<T>, IVertex
     {
-        private readonly int amountQuads;
+        private readonly int amountIndices;
+
+        private const int indices_per_quad = TextureGLSingle.VERTICES_PER_QUAD + 2;
 
         internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * TextureGLSingle.VERTICES_PER_QUAD, usage)
         {
-            this.amountQuads = amountQuads;
+            amountIndices = amountQuads * indices_per_quad;
+
+            if (amountIndices > ushort.MaxValue)
+                throw new OverflowException($"Attempted to initialise a {nameof(QuadVertexBuffer<T>)} with more than {ushort.MaxValue} indices.");
         }
 
         protected override void Initialise()
         {
             base.Initialise();
 
-            int amountIndices = amountQuads * 6;
-
             if (amountIndices > QuadIndexData.MaxAmountIndices)
             {
                 ushort[] indices = new ushort[amountIndices];
 
-                for (ushort i = 0, j = 0; j < amountIndices; i += TextureGLSingle.VERTICES_PER_QUAD, j += 6)
+                for (ushort i = 0, j = 0; j < amountIndices; i += TextureGLSingle.VERTICES_PER_QUAD, j += indices_per_quad)
                 {
                     indices[j] = i;
                     indices[j + 1] = (ushort)(i + 1);
