@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osuTK.Graphics.ES30;
@@ -26,13 +27,16 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private const int indices_per_quad = TextureGLSingle.VERTICES_PER_QUAD + 2;
 
+        /// <summary>
+        /// The maximum number of quads supported by this buffer.
+        /// </summary>
+        public const int MAX_QUADS = ushort.MaxValue / indices_per_quad;
+
         internal QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * TextureGLSingle.VERTICES_PER_QUAD, usage)
         {
             amountIndices = amountQuads * indices_per_quad;
-
-            if (amountIndices > ushort.MaxValue)
-                throw new OverflowException($"Attempted to initialise a {nameof(QuadVertexBuffer<T>)} with more than {ushort.MaxValue} indices.");
+            Debug.Assert(amountIndices <= ushort.MaxValue);
         }
 
         protected override void Initialise()
