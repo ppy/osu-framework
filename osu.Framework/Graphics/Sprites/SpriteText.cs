@@ -627,21 +627,12 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString() => $@"""{displayedText}"" " + base.ToString();
 
-        /// <summary>
-        /// Gets the base height of the font used by this text. If the font of this text is invalid, 0 is returned.
-        /// </summary>
         public float LineBaseHeight
         {
             get
             {
-                var baseHeight = store.GetBaseHeight(Font.FontName);
-                if (baseHeight.HasValue)
-                    return baseHeight.Value * Font.Size;
-
-                if (string.IsNullOrEmpty(displayedText))
-                    return 0;
-
-                return store.GetBaseHeight(displayedText[0]).GetValueOrDefault() * Font.Size;
+                computeCharacters();
+                return textBuilderCache.Value.LineBaseHeight;
             }
         }
 

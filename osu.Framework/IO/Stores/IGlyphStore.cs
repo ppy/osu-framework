@@ -17,6 +17,11 @@ namespace osu.Framework.IO.Stores
         string FontName { get; }
 
         /// <summary>
+        /// The font's baseline position, or <see langword="null"/> if not available (i.e. font not loaded or failed to load).
+        /// </summary>
+        float? Baseline { get; }
+
+        /// <summary>
         /// Loads glyph information for consumption asynchronously.
         /// </summary>
         Task LoadFontAsync();
@@ -25,11 +30,6 @@ namespace osu.Framework.IO.Stores
         /// Whether a glyph exists for the specified character in this store.
         /// </summary>
         bool HasGlyph(char c);
-
-        /// <summary>
-        /// Retrieves the height from the top of the glyph cell to the baseline.
-        /// </summary>
-        int GetBaseHeight();
 
         /// <summary>
         /// Retrieves a <see cref="CharacterGlyph"/> that contains associated spacing information for a character.
