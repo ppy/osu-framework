@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.IO;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osu.Framework.Text;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace osu.Framework.Tests.IO
 {
@@ -20,6 +23,58 @@ namespace osu.Framework.Tests.IO
         {
             storage = new TemporaryNativeStorage("fontstore-test");
             fontResourceStore = new NamespacedResourceStore<byte[]>(new DllResourceStore(typeof(Drawable).Assembly), "Resources.Fonts.Roboto");
+        }
+
+        [Test]
+        public void TestRefetchOnCacheFailure()
+        {
+            using (var fontStore = new RawCachingGlyphStore(fontResourceStore, "Roboto-Regular") { CacheStorage = storage })
+            {
+                fontStore.LoadFontAsync();
+
+                var upload = fontStore.Get("a");
+                Assert.That(hasNonZeroContent(upload.Data), Is.True);
+            }
+
+            // first cached fetch
+            using (var fontStore = new RawCachingGlyphStore(fontResourceStore, "Roboto-Regular") { CacheStorage = storage })
+            {
+                fontStore.LoadFontAsync();
+
+                var upload = fontStore.Get("a");
+                Assert.That(hasNonZeroContent(upload.Data), Is.True);
+            }
+
+            // intentionally corrupt files
+            foreach (var f in storage.GetFiles(string.Empty))
+            {
+                using (var stream = storage.GetStream(f, FileAccess.Write))
+                {
+                    for (int i = 0; i < stream.Length; i++)
+                        stream.WriteByte(0);
+                }
+            }
+
+            // second cached fetch
+            using (var fontStore = new RawCachingGlyphStore(fontResourceStore, "Roboto-Regular") { CacheStorage = storage })
+            {
+                fontStore.LoadFontAsync();
+
+                var upload = fontStore.Get("a");
+                Assert.That(hasNonZeroContent(upload.Data), Is.True);
+            }
+        }
+
+        private bool hasNonZeroContent(ReadOnlySpan<Rgba32> uploadData)
+        {
+            for (int i = 0; i < uploadData.Length; i++)
+            {
+                var pixel = uploadData[i];
+                if (pixel.A != 0)
+                    return true;
+            }
+
+            return false;
         }
 
         [Test]
