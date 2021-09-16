@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -139,6 +140,7 @@ namespace osu.Framework.Graphics.Video
             {
                 ffmpeg.av_seek_frame(formatContext, stream->index, (long)(targetTimestamp / timeBaseInSeconds / 1000.0), AGffmpeg.AVSEEK_FLAG_BACKWARD);
                 skipOutputUntilTime = targetTimestamp;
+                State = DecoderState.Ready;
             });
         }
 
@@ -160,6 +162,9 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public void StartDecoding()
         {
+            if (decodingTask != null)
+                throw new InvalidOperationException($"Cannot start decoding once already started. Call {nameof(StopDecoding)} first.");
+
             // only prepare for decoding if this is our first time starting the decoding process
             if (formatContext == null)
             {
@@ -252,7 +257,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
-        private static long seek(void* opaque, long offset, int whence)
+        private static long streamSeekCallbacks(void* opaque, long offset, int whence)
         {
             var handle = new ObjectHandle<VideoDecoder>((IntPtr)opaque);
             if (!handle.GetTarget(out VideoDecoder decoder))
@@ -312,7 +317,7 @@ namespace osu.Framework.Graphics.Video
             contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
-            seekCallback = seek;
+            seekCallback = streamSeekCallbacks;
             formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
@@ -360,96 +365,34 @@ namespace osu.Framework.Graphics.Video
 
             try
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
-
-                    if (decodedFrames.Count < max_pending_frames)
+                    switch (State)
                     {
-                        int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
-
-                        if (readFrameResult >= 0)
-                        {
-                            State = DecoderState.Running;
-
-                            if (packet->stream_index == stream->index)
+                        case DecoderState.Ready:
+                        case DecoderState.Running:
+                            if (decodedFrames.Count < max_pending_frames)
                             {
-                                int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
-
-                                if (sendPacketResult == 0)
-                                {
-                                    AVFrame* frame = ffmpeg.av_frame_alloc();
-                                    AVFrame* outFrame = null;
-
-                                    var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
-
-                                    if (result == 0)
-                                    {
-                                        var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
-
-                                        if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
-                                        {
-                                            skipOutputUntilTime = null;
-
-                                            if (convert)
-                                            {
-                                                outFrame = ffmpeg.av_frame_alloc();
-                                                outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
-                                                outFrame->width = stream->codec->width;
-                                                outFrame->height = stream->codec->height;
-
-                                                var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
-                                                if (ret < 0)
-                                                    throw new InvalidOperationException($"Error allocating video frame: {getErrorMessage(ret)}");
-
-                                                ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
-                                                    outFrame->data, outFrame->linesize);
-                                            }
-                                            else
-                                                outFrame = frame;
-
-                                            if (!availableTextures.TryDequeue(out var tex))
-                                                tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
-
-                                            var upload = new VideoTextureUpload(outFrame, ffmpeg.av_frame_free);
-
-                                            tex.SetData(upload);
-                                            decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
-                                        }
-
-                                        lastDecodedFrameTime = (float)frameTime;
-                                    }
-
-                                    // There are two cases: outFrame could be null in which case the above decode hasn't run, or the outFrame doesn't match the input frame,
-                                    // in which case it won't be automatically freed by the texture upload. In both cases we need to free the input frame.
-                                    if (outFrame != frame)
-                                        ffmpeg.av_frame_free(&frame);
-                                }
-                                else
-                                    Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
+                                decodeNextFrame(packet);
+                            }
+                            else
+                            {
+                                // wait until existing buffers are consumed.
+                                State = DecoderState.Ready;
+                                Thread.Sleep(1);
                             }
 
-                            ffmpeg.av_packet_unref(packet);
-                        }
-                        else if (readFrameResult == AGffmpeg.AVERROR_EOF)
-                        {
-                            if (Looping)
-                                Seek(0);
-                            else
-                                State = DecoderState.EndOfStream;
-                        }
-                        else
-                        {
-                            State = DecoderState.Ready;
-                            Thread.Sleep(1);
-                        }
-                    }
-                    else
-                    {
-                        // wait until existing buffers are consumed.
-                        State = DecoderState.Ready;
-                        Thread.Sleep(1);
+                            break;
+
+                        case DecoderState.EndOfStream:
+                            // While at the end of the stream, avoid attempting to read further as this comes with a non-negligible overhead.
+                            // A Seek() operation will trigger a state change, allowing decoding to potentially start again.
+                            Thread.Sleep(50);
+                            break;
+
+                        default:
+                            Debug.Fail($"Video decoder should never be in a \"{State}\" state during decode.");
+                            return;
                     }
 
                     while (!decoderCommands.IsEmpty)
@@ -473,6 +416,92 @@ namespace osu.Framework.Graphics.Video
 
                 if (State != DecoderState.Faulted)
                     State = DecoderState.Stopped;
+            }
+        }
+
+        private void decodeNextFrame(AVPacket* packet)
+        {
+            int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
+
+            if (readFrameResult >= 0)
+            {
+                State = DecoderState.Running;
+
+                if (packet->stream_index == stream->index)
+                {
+                    int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
+
+                    if (sendPacketResult == 0)
+                    {
+                        AVFrame* frame = ffmpeg.av_frame_alloc();
+                        AVFrame* outFrame = null;
+
+                        var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+
+                        if (result == 0)
+                        {
+                            var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+
+                            if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
+                            {
+                                skipOutputUntilTime = null;
+
+                                if (convert)
+                                {
+                                    outFrame = ffmpeg.av_frame_alloc();
+                                    outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
+                                    outFrame->width = stream->codec->width;
+                                    outFrame->height = stream->codec->height;
+
+                                    var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
+                                    if (ret < 0)
+                                        throw new InvalidOperationException($"Error allocating video frame: {getErrorMessage(ret)}");
+
+                                    ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
+                                        outFrame->data, outFrame->linesize);
+                                }
+                                else
+                                    outFrame = frame;
+
+                                if (!availableTextures.TryDequeue(out var tex))
+                                    tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
+
+                                var upload = new VideoTextureUpload(outFrame, ffmpeg.av_frame_free);
+
+                                tex.SetData(upload);
+                                decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
+                            }
+
+                            lastDecodedFrameTime = (float)frameTime;
+                        }
+
+                        // There are two cases: outFrame could be null in which case the above decode hasn't run, or the outFrame doesn't match the input frame,
+                        // in which case it won't be automatically freed by the texture upload. In both cases we need to free the input frame.
+                        if (outFrame != frame)
+                            ffmpeg.av_frame_free(&frame);
+                    }
+                    else
+                        Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
+                }
+
+                ffmpeg.av_packet_unref(packet);
+            }
+            else if (readFrameResult == AGffmpeg.AVERROR_EOF)
+            {
+                if (Looping)
+                {
+                    Seek(0);
+                }
+                else
+                {
+                    // This marks the video stream as no longer relevant (until a future potential Seek operation).
+                    State = DecoderState.EndOfStream;
+                }
+            }
+            else
+            {
+                State = DecoderState.Ready;
+                Thread.Sleep(1);
             }
         }
 

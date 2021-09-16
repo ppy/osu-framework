@@ -20,6 +20,8 @@ namespace osu.Framework.Threading
 
         private readonly ImmutableArray<Thread> threads;
 
+        private bool isDisposed;
+
         /// <summary>
         /// Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.
         /// </summary>
@@ -91,6 +93,11 @@ namespace osu.Framework.Threading
         /// </summary>
         public void Dispose()
         {
+            if (isDisposed)
+                return;
+
+            isDisposed = true;
+
             tasks.CompleteAdding();
 
             foreach (var thread in threads)

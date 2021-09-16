@@ -3,8 +3,8 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osuTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Batches
 {
@@ -14,6 +14,8 @@ namespace osu.Framework.Graphics.Batches
         public QuadBatch(int size, int maxBuffers)
             : base(size, maxBuffers)
         {
+            if (size > QuadVertexBuffer<T>.MAX_QUADS)
+                throw new OverflowException($"Attempted to initialise a {nameof(QuadVertexBuffer<T>)} with more than {nameof(QuadVertexBuffer<T>)}.{nameof(QuadVertexBuffer<T>.MAX_QUADS)} quads ({QuadVertexBuffer<T>.MAX_QUADS}).");
         }
 
         protected override VertexBuffer<T> CreateVertexBuffer() => new QuadVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);

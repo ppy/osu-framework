@@ -58,15 +58,6 @@ namespace osu.Framework.Testing
                 if (volume != null) volume.Value = volumeAtStartup;
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                host.MaximumDrawHz = int.MaxValue;
-                host.MaximumUpdateHz = int.MaxValue;
-                host.MaximumInactiveHz = int.MaxValue;
-            }
-
             /// <summary>
             /// Blocks execution until a provided <see cref="TestScene"/> runs to completion.
             /// </summary>

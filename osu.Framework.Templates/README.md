@@ -9,6 +9,9 @@ Templates to use when starting off with osu!framework. Create a fully-testable, 
 # this only needs to be done once
 dotnet new -i ppy.osu.Framework.Templates
 
+## IMPORTANT: Do not use spaces or hyphens in your project name for the following commands.
+## This does not play nice with the templating system.
+
 # create a new empty freeform osu!framework game
 dotnet new osu-framework-game -n MyNewGame
 
