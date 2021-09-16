@@ -12,11 +12,12 @@ namespace osu.Framework.Text
         public float XOffset { get; }
         public float YOffset { get; }
         public float XAdvance { get; }
+        public float Baseline { get; }
         public char Character { get; }
 
         private readonly IGlyphStore containingStore;
 
-        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, [CanBeNull] IGlyphStore containingStore)
+        public CharacterGlyph(char character, float xOffset, float yOffset, float xAdvance, float baseline, [CanBeNull] IGlyphStore containingStore)
         {
             this.containingStore = containingStore;
 
@@ -24,6 +25,7 @@ namespace osu.Framework.Text
             XOffset = xOffset;
             YOffset = yOffset;
             XAdvance = xAdvance;
+            Baseline = baseline;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
