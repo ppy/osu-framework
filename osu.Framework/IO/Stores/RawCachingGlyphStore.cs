@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using SharpFNT;
 using SixLabors.ImageSharp;
@@ -61,11 +62,14 @@ namespace osu.Framework.IO.Stores
                 if (existing != null)
                 {
                     var split = existing.Split('#');
-                    return pageLookup[page] = new PageInfo
+                    var pageInfo = new PageInfo
                     {
                         Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
                         Filename = existing
                     };
+
+                    if (validateCachedFile(pageInfo))
+                        return pageLookup[page] = pageInfo;
                 }
 
                 using (var convert = GetPageImage(page))
@@ -95,19 +99,15 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        private readonly Dictionary<string, Stream> pageStreamHandles = new Dictionary<string, Stream>();
-
         private TextureUpload createTextureUpload(Character character, PageInfo page)
         {
             int pageWidth = page.Size.Width;
 
-            if (readBuffer == null || readBuffer.Length < pageWidth * character.Height)
-                readBuffer = new byte[pageWidth * character.Height];
+            prepareReadBuffer(pageWidth * character.Height);
 
             var image = new Image<Rgba32>(SixLabors.ImageSharp.Configuration.Default, character.Width, character.Height);
 
-            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
-                source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+            var source = getStreamHandle(page);
 
             source.Seek(pageWidth * character.Y, SeekOrigin.Begin);
             source.Read(readBuffer, 0, pageWidth * character.Height);
@@ -128,6 +128,56 @@ namespace osu.Framework.IO.Stores
             return new TextureUpload(image);
         }
 
+        private readonly Dictionary<string, Stream> pageStreamHandles = new Dictionary<string, Stream>();
+
+        private bool validateCachedFile(PageInfo page)
+        {
+            var stream = getStreamHandle(page);
+
+            const int read_size = 64;
+
+            prepareReadBuffer(read_size);
+
+            int read;
+
+            while ((read = stream.Read(readBuffer, 0, read_size)) > 0)
+            {
+                for (int i = 0; i < read; i++)
+                {
+                    if (readBuffer[i] != 0)
+                        return true;
+                }
+            }
+
+            Logger.Log($"Font file {page.Filename} was null byte corrupted, regenerating.");
+            removeStreamHandle(page);
+            return false;
+        }
+
+        private Stream getStreamHandle(PageInfo page)
+        {
+            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
+                source = pageStreamHandles[page.Filename] = CacheStorage.GetStream(page.Filename);
+            return source;
+        }
+
+        private void removeStreamHandle(PageInfo page)
+        {
+            if (!pageStreamHandles.TryGetValue(page.Filename, out var source))
+                return;
+
+            source.Dispose();
+            pageStreamHandles.Remove(page.Filename);
+        }
+
+        private byte[] readBuffer;
+
+        private void prepareReadBuffer(int size)
+        {
+            if (readBuffer == null || readBuffer.Length < size)
+                readBuffer = new byte[size];
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -138,8 +188,6 @@ namespace osu.Framework.IO.Stores
                     h.Value?.Dispose();
             }
         }
-
-        private byte[] readBuffer;
 
         private class PageInfo
         {
