@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -20,24 +21,27 @@ namespace osu.Framework.Tests.Text
         private const float y_offset = 2;
         private const float x_advance = 3;
         private const float width = 4;
-        private const float height = 5;
-        private const float kerning = -6;
+        private const float baseline = 5;
+        private const float height = 6;
+        private const float kerning = -7;
 
-        private const float b_x_offset = 7;
-        private const float b_y_offset = 8;
-        private const float b_x_advance = 9;
-        private const float b_width = 10;
-        private const float b_height = 11;
-        private const float b_kerning = -12;
+        private const float b_x_offset = 8;
+        private const float b_y_offset = 9;
+        private const float b_x_advance = 10;
+        private const float b_width = 11;
+        private const float b_baseline = 12;
+        private const float b_height = 13;
+        private const float b_kerning = -14;
 
-        private const float m_x_offset = 13;
-        private const float m_y_offset = 14;
-        private const float m_x_advance = 15;
-        private const float m_width = 16;
-        private const float m_height = 17;
-        private const float m_kerning = -18;
+        private const float m_x_offset = 15;
+        private const float m_y_offset = 16;
+        private const float m_x_advance = 17;
+        private const float m_width = 18;
+        private const float m_baseline = 19;
+        private const float m_height = 20;
+        private const float m_kerning = -21;
 
-        private static readonly Vector2 spacing = new Vector2(19, 20);
+        private static readonly Vector2 spacing = new Vector2(22, 23);
 
         private static readonly TestFontUsage normal_font = new TestFontUsage("test");
         private static readonly TestFontUsage fixed_width_font = new TestFontUsage("test-fixedwidth", fixedWidth: true);
@@ -47,12 +51,12 @@ namespace osu.Framework.Tests.Text
         public TextBuilderTest()
         {
             fontStore = new TestStore(
-                new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
-                new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, height, kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_height, b_kerning)),
-                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_height, m_kerning))
+                new GlyphEntry(normal_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
+                new GlyphEntry(normal_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('a', x_offset, y_offset, x_advance, width, baseline, height, kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('b', b_x_offset, b_y_offset, b_x_advance, b_width, b_baseline, b_height, b_kerning)),
+                new GlyphEntry(fixed_width_font, new TestGlyph('m', m_x_offset, m_y_offset, m_x_advance, m_width, m_baseline, m_height, m_kerning))
             );
         }
 
@@ -239,20 +243,119 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
-        /// Tests that the current position is correctly reset when the first character is removed.
+        /// Tests that a character with a lower baseline moves the previous character down to align with the new character.
         /// </summary>
         [Test]
-        public void TestRemoveFirstCharacterResetsCurrentPosition()
+        public void TestCharacterWithLowerBaselineOffsetsPreviousCharacters()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("a");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(baseline));
+
+            builder.AddText("b");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(b_baseline));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset + (b_baseline - baseline)));
+
+            builder.AddText("m");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(m_baseline));
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset + (m_baseline - baseline)));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(b_y_offset + (m_baseline - b_baseline)));
+        }
+
+        /// <summary>
+        /// Tests that a character with a higher (lesser in value) baseline gets moved down to align with the previous characters.
+        /// </summary>
+        [Test]
+        public void TestCharacterWithHigherBaselineGetsOffset()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("m");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(m_baseline));
+
+            builder.AddText("b");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(m_baseline));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(b_y_offset + (m_baseline - b_baseline)));
+
+            builder.AddText("a");
+
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(m_baseline));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(b_y_offset + (m_baseline - b_baseline)));
+            Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(y_offset + (m_baseline - baseline)));
+        }
+
+        /// <summary>
+        /// Tests that baseline alignment adjustments only affect the line the new character was placed on.
+        /// </summary>
+        [Test]
+        public void TestBaselineAdjustmentAffectsRelevantLineOnly()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("a");
+            builder.AddNewLine();
+            builder.AddText("ab");
+            builder.AddNewLine();
+
+            builder.AddText("ab");
+
+            assertOtherCharactersNotAffected();
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + y_offset + (b_baseline - baseline)));
+            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + b_y_offset));
+
+            builder.AddText("m");
+
+            assertOtherCharactersNotAffected();
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + y_offset + (m_baseline - baseline)));
+            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + b_y_offset + (b_baseline - baseline)));
+            Assert.That(builder.Characters[5].DrawRectangle.Top, Is.EqualTo(font_size * 2 + m_y_offset));
+
+            void assertOtherCharactersNotAffected()
+            {
+                Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset));
+                Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + y_offset + (b_baseline - baseline)));
+                Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + b_y_offset));
+            }
+        }
+
+        /// <summary>
+        /// Tests that accessing <see cref="TextBuilder.LineBaseHeight"/> while the builder has multiline text throws.
+        /// </summary>
+        [Test]
+        public void TestLineBaseHeightThrowsOnMultiline()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("a");
+            builder.AddNewLine();
+            builder.AddText("b");
+
+            Assert.Throws<InvalidOperationException>(() => _ = builder.LineBaseHeight);
+        }
+
+        /// <summary>
+        /// Tests that the current position and "line base height" are correctly reset when the first character is removed.
+        /// </summary>
+        [Test]
+        public void TestRemoveFirstCharacterResetsCurrentPositionAndLineBaseHeight()
         {
             var builder = new TextBuilder(fontStore, normal_font, spacing: spacing);
 
             builder.AddText("a");
             builder.RemoveLastCharacter();
 
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(0f));
             Assert.That(builder.Bounds, Is.EqualTo(Vector2.Zero));
 
             builder.AddText("a");
 
+            Assert.That(builder.LineBaseHeight, Is.EqualTo(baseline));
             Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset));
             Assert.That(builder.Characters[0].DrawRectangle.Left, Is.EqualTo(x_offset));
         }
@@ -299,6 +402,73 @@ namespace osu.Framework.Tests.Text
         }
 
         /// <summary>
+        /// Tests that removing a character adjusts the baseline of the relevant line.
+        /// </summary>
+        [Test]
+        public void TestRemoveCharacterAdjustsCharactersBaselineOfRelevantLine()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("a");
+            builder.AddNewLine();
+            builder.AddText("ab");
+            builder.AddNewLine();
+            builder.AddText("abm");
+
+            builder.RemoveLastCharacter();
+
+            assertOtherCharactersNotAffected();
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + y_offset + (b_baseline - baseline)));
+            Assert.That(builder.Characters[4].DrawRectangle.Top, Is.EqualTo(font_size * 2 + b_y_offset));
+
+            builder.RemoveLastCharacter();
+
+            assertOtherCharactersNotAffected();
+            Assert.That(builder.Characters[3].DrawRectangle.Top, Is.EqualTo(font_size * 2 + y_offset));
+
+            void assertOtherCharactersNotAffected()
+            {
+                Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset));
+                Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(font_size + y_offset + (b_baseline - baseline)));
+                Assert.That(builder.Characters[2].DrawRectangle.Top, Is.EqualTo(font_size + b_y_offset));
+            }
+        }
+
+        /// <summary>
+        /// Tests that removing a character from a text that still has another character with the same baseline doesn't affect the alignment.
+        /// </summary>
+        [Test]
+        public void TestRemoveSameBaselineCharacterDoesntAffectAlignment()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("abb");
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset + (b_baseline - baseline)));
+
+            builder.RemoveLastCharacter();
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset + (b_baseline - baseline)));
+        }
+
+        /// <summary>
+        /// Tests that removing the first character of a line doesn't affect the baseline alignment of the line above it.
+        /// </summary>
+        [Test]
+        public void TestRemoveFirstCharacterOnNewlineDoesntAffectLastLineAlignment()
+        {
+            var builder = new TextBuilder(fontStore, normal_font);
+
+            builder.AddText("ab");
+            builder.AddNewLine();
+            builder.AddText("m");
+            builder.RemoveLastCharacter();
+
+            Assert.That(builder.Characters[0].DrawRectangle.Top, Is.EqualTo(y_offset + (b_baseline - baseline)));
+            Assert.That(builder.Characters[1].DrawRectangle.Top, Is.EqualTo(b_y_offset));
+        }
+
+        /// <summary>
         /// Tests that the custom user-provided spacing is added for a new character/line.
         /// </summary>
         [Test]
@@ -326,10 +496,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('a', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -346,10 +516,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('?', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -367,10 +537,10 @@ namespace osu.Framework.Tests.Text
             var font = new TestFontUsage("test");
             var nullFont = new TestFontUsage(null);
             var builder = new TextBuilder(new TestStore(
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0)),
-                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0))
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(font, new TestGlyph('b', 0, 0, 0, 0, 0, 0, 0)),
+                new GlyphEntry(nullFont, new TestGlyph('?', 1, 0, 0, 0, 0, 0, 0))
             ), font);
 
             builder.AddText("a");
@@ -424,14 +594,12 @@ namespace osu.Framework.Tests.Text
             public ITexturedCharacterGlyph Get(string fontName, char character)
             {
                 if (string.IsNullOrEmpty(fontName))
-                {
                     return glyphs.FirstOrDefault(g => g.Glyph.Character == character).Glyph;
-                }
 
                 return glyphs.FirstOrDefault(g => g.Font.FontName == fontName && g.Glyph.Character == character).Glyph;
             }
 
-            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new System.NotImplementedException();
+            public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => throw new NotImplementedException();
         }
 
         private readonly struct GlyphEntry
@@ -453,12 +621,13 @@ namespace osu.Framework.Tests.Text
             public float YOffset { get; }
             public float XAdvance { get; }
             public float Width { get; }
+            public float Baseline { get; }
             public float Height { get; }
             public char Character { get; }
 
             private readonly float glyphKerning;
 
-            public TestGlyph(char character, float xOffset, float yOffset, float xAdvance, float width, float height, float kerning)
+            public TestGlyph(char character, float xOffset, float yOffset, float xAdvance, float width, float baseline, float height, float kerning)
             {
                 glyphKerning = kerning;
                 Character = character;
@@ -466,6 +635,7 @@ namespace osu.Framework.Tests.Text
                 YOffset = yOffset;
                 XAdvance = xAdvance;
                 Width = width;
+                Baseline = baseline;
                 Height = height;
             }
 
