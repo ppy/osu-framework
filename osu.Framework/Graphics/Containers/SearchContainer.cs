@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
                 if (found < 0)
                     return false;
 
-                index = found;
+                index = found + 1;
             }
 
             return true;

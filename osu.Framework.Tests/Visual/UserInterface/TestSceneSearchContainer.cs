@@ -95,6 +95,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [TestCase("ssn 1", 6)]
         [TestCase("sns 1", 0)]
         [TestCase("hdr", 8)]
+        [TestCase("tt", 2)]
+        [TestCase("ttt", 0)]
         public void TestEagerFiltering(string term, int count)
         {
             setTerm(term);
