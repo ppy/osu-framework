@@ -86,7 +86,7 @@ namespace osu.Framework.Platform
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
 
                 default:
-                    return File.Open(path, mode, access);
+                    return new FlushingStream(path, mode, access);
             }
         }
 
