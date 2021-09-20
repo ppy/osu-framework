@@ -21,7 +21,15 @@ namespace osu.Framework.Platform
 
         protected override void Dispose(bool disposing)
         {
-            Flush(true);
+            try
+            {
+                Flush(true);
+            }
+            catch
+            {
+                // on some platforms, may fail due to the stream already being closed, or never being opened.
+                // we don't really care about such failures.
+            }
 
             base.Dispose(disposing);
         }
