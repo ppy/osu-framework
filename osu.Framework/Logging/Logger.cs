@@ -360,10 +360,10 @@ namespace osu.Framework.Logging
                     try
                     {
                         using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
-                        using (var writer = new StreamWriter(stream))
+                        using (var sw = new StreamWriter(stream, leaveOpen: true))
                         {
                             foreach (var line in lines)
-                                writer.WriteLine(line);
+                                sw.WriteLine(line);
                         }
                     }
                     catch
