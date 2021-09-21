@@ -70,7 +70,10 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        /// <summary>
+        /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
+        /// </summary>
+        public virtual bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
