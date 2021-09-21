@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -64,12 +65,12 @@ namespace osu.Framework.Graphics.Containers
             Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0));
         }
 
-        private static bool match(IFilterable filterable, IEnumerable<string> terms, bool searchActive)
+        private static bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive)
         {
             //Words matched by parent is not needed to match children
-            var childTerms = terms.Where(term =>
+            var childTerms = searchTerms.Where(term =>
                 !filterable.FilterTerms.Any(filterTerm =>
-                    filterTerm.Contains(term, StringComparison.InvariantCultureIgnoreCase))).ToArray();
+                    forwardMatch(filterTerm, term))).ToArray();
 
             bool matching = childTerms.Length == 0;
 
@@ -82,6 +83,26 @@ namespace osu.Framework.Graphics.Containers
 
             filterable.FilteringActive = searchActive;
             return filterable.MatchingFilter = matching;
+        }
+
+        /// <summary>
+        /// Check whether a search term exists in a forward direction, allowing for potentially non-matching characters to exist between matches.
+        /// </summary>
+        private static bool forwardMatch(string haystack, string needle)
+        {
+            int index = 0;
+
+            for (int i = 0; i < needle.Length; i++)
+            {
+                // string.IndexOf doesn't have an overload which takes both a `startIndex` and `StringComparison` mode.
+                int found = CultureInfo.InvariantCulture.CompareInfo.IndexOf(haystack, needle[i], index, CompareOptions.OrdinalIgnoreCase);
+                if (found < 0)
+                    return false;
+
+                index = found + 1;
+            }
+
+            return true;
         }
     }
 }
