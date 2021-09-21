@@ -19,9 +19,25 @@ namespace osu.Framework.Platform
         {
         }
 
+        private bool finalFlushRun;
+
         protected override void Dispose(bool disposing)
         {
-            Flush(true);
+            // dispose may be called more than once. without this check Flush will throw on an already-closed stream.
+            if (!finalFlushRun)
+            {
+                finalFlushRun = true;
+
+                try
+                {
+                    Flush(true);
+                }
+                catch
+                {
+                    // on some platforms, may fail due to a lower level file access issue.
+                    // we don't want to throw in disposal though.
+                }
+            }
 
             base.Dispose(disposing);
         }
