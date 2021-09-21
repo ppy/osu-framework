@@ -36,7 +36,7 @@ namespace osu.Framework.Configuration
             try
             {
                 using (var stream = storage.GetStream(FILENAME, FileAccess.Write, FileMode.Create))
-                using (var sw = new StreamWriter(stream, leaveOpen: true))
+                using (var sw = new StreamWriter(stream))
                 {
                     sw.Write(JsonConvert.SerializeObject(this));
                     return true;

@@ -84,10 +84,10 @@ namespace osu.Framework.Configuration
             try
             {
                 using (var stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
-                using (var sw = new StreamWriter(stream, leaveOpen: true))
+                using (var w = new StreamWriter(stream))
                 {
                     foreach (var p in ConfigStore)
-                        sw.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().AsNonNull().Replace("\n", "").Replace("\r", ""));
+                        w.WriteLine(@"{0} = {1}", p.Key, p.Value.ToString().AsNonNull().Replace("\n", "").Replace("\r", ""));
                 }
             }
             catch
