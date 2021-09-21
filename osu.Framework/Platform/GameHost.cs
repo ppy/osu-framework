@@ -574,6 +574,8 @@ namespace osu.Framework.Platform
             stoppedEvent.Set();
         }
 
+        private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
+
         public void Run(Game game)
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
@@ -589,6 +591,9 @@ namespace osu.Framework.Platform
 
             try
             {
+                if (!host_running_mutex.Wait(10000))
+                    throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -697,6 +702,8 @@ namespace osu.Framework.Platform
             {
                 // Close the window and stop all threads
                 PerformExit(true);
+
+                host_running_mutex.Release();
             }
         }
 
