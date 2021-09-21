@@ -15,17 +15,17 @@ namespace osu.Framework.Graphics.Containers
     public class TextChunk<TSpriteText> : TextPart
         where TSpriteText : SpriteText, new()
     {
-        protected readonly Action<TSpriteText> CreationParameters;
-
         private readonly string text;
         private readonly bool newLineIsParagraph;
+        private readonly Func<TSpriteText> creationFunc;
+        private readonly Action<TSpriteText> creationParameters;
 
-        public TextChunk(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
+        public TextChunk(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
         {
-            CreationParameters = creationParameters;
-
             this.text = text;
             this.newLineIsParagraph = newLineIsParagraph;
+            this.creationFunc = creationFunc;
+            this.creationParameters = creationParameters;
         }
 
         protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
@@ -98,25 +98,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual TSpriteText CreateSpriteText(TextFlowContainer textFlowContainer)
         {
-            var spriteText = new TSpriteText();
+            var spriteText = creationFunc.Invoke();
             textFlowContainer.ApplyDefaultCreationParamters(spriteText);
-            CreationParameters?.Invoke(spriteText);
-            return spriteText;
-        }
-    }
-
-    public class DefaultTextChunk : TextChunk<SpriteText>
-    {
-        public DefaultTextChunk(string text, bool newLineIsParagraph, Action<SpriteText> creationParameters = null)
-            : base(text, newLineIsParagraph, creationParameters)
-        {
-        }
-
-        protected override SpriteText CreateSpriteText(TextFlowContainer textFlowContainer)
-        {
-            var spriteText = textFlowContainer.CreateSpriteText();
-            textFlowContainer.ApplyDefaultCreationParamters(spriteText);
-            CreationParameters?.Invoke(spriteText);
+            creationParameters?.Invoke(spriteText);
             return spriteText;
         }
     }

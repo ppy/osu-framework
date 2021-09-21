@@ -210,11 +210,11 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
         public ITextPart AddText<TSpriteText>(string text, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
-            => AddPart(CreateChunkFor(text, true, creationParameters));
+            => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
 
         /// <inheritdoc cref="AddText{TSpriteText}(string,System.Action{TSpriteText})"/>
         public ITextPart AddText(string text, Action<SpriteText> creationParameters = null)
-            => AddPart(new DefaultTextChunk(text, true, creationParameters));
+            => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -240,18 +240,18 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
         public ITextPart AddParagraph<TSpriteText>(string paragraph, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
-            => AddPart(CreateChunkFor(paragraph, false, creationParameters));
+            => AddPart(CreateChunkFor(paragraph, false, () => new TSpriteText(), creationParameters));
 
         /// <inheritdoc cref="AddParagraph{TSpriteText}(string,Action{TSpriteText})"/>
         public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null)
-            => AddPart(new DefaultTextChunk(paragraph, false, creationParameters));
+            => AddPart(CreateChunkFor(paragraph, false, CreateSpriteText, creationParameters));
 
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
         /// </summary>
-        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
-            => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationParameters);
+            => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 
         /// <summary>
         /// End current line and start a new one.

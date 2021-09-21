@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.Containers
     internal class CustomizableTextChunk<TSpriteText> : TextChunk<TSpriteText>
         where TSpriteText : SpriteText, new()
     {
-        public CustomizableTextChunk(string text, bool newLineIsParagraph, Action<TSpriteText> creationParameters = null)
-            : base(text, newLineIsParagraph, creationParameters)
+        public CustomizableTextChunk(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+            : base(text, newLineIsParagraph, creationFunc, creationParameters)
         {
         }
 
