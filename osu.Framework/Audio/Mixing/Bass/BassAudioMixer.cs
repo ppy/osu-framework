@@ -368,7 +368,7 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.NewItems != null);
 
                     EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
-                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
+                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull()) { Handle = oldEffect.Handle };
 
                     ActiveEffects[e.NewStartingIndex] = newEffect;
 
