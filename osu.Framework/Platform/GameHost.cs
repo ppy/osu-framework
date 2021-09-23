@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
@@ -128,6 +129,7 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IWindow CreateWindow() => null;
 
+        [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
 
         /// <summary>
@@ -136,7 +138,10 @@ namespace osu.Framework.Platform
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
         public abstract Storage GetStorage(string path);
 
-        public abstract string UserStoragePath { get; }
+        /// <summary>
+        /// All valid user storage paths in order of usage priority.
+        /// </summary>
+        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -187,6 +192,12 @@ namespace osu.Framework.Platform
 
         private double maximumUpdateHz;
 
+        /// <summary>
+        /// The target number of update frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
@@ -195,12 +206,25 @@ namespace osu.Framework.Platform
 
         private double maximumDrawHz;
 
+        /// <summary>
+        /// The target number of draw frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
             set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
+        /// <summary>
+        /// The target number of updates per second when the game window is inactive.
+        /// This is applied to all threads.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumInactiveHz
         {
             get => DrawThread.InactiveHz;
@@ -523,7 +547,9 @@ namespace osu.Framework.Platform
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately) => performExit(immediately);
+
+        private void performExit(bool immediately)
         {
             if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
                 return;
@@ -534,20 +560,17 @@ namespace osu.Framework.Platform
                 exit();
             else
                 InputThread.Scheduler.Add(exit, false);
-        }
 
-        /// <summary>
-        /// Exits the game. This must always be called from <see cref="InputThread"/>.
-        /// </summary>
-        private void exit()
-        {
-            Debug.Assert(ExecutionState == ExecutionState.Stopping);
+            void exit()
+            {
+                Debug.Assert(ExecutionState == ExecutionState.Stopping);
 
-            Window?.Close();
-            threadRunner.Stop();
+                Window?.Close();
+                threadRunner.Stop();
 
-            ExecutionState = ExecutionState.Stopped;
-            stoppedEvent.Set();
+                ExecutionState = ExecutionState.Stopped;
+                stoppedEvent.Set();
+            }
         }
 
         public void Run(Game game)
@@ -672,7 +695,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                PerformExit(true);
+                performExit(true);
             }
         }
 
@@ -680,7 +703,33 @@ namespace osu.Framework.Platform
         /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
         /// </summary>
         /// <returns>The <see cref="Storage"/>.</returns>
-        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        protected virtual Storage GetDefaultGameStorage()
+        {
+            // first check all valid paths for any existing install.
+            foreach (var path in UserStoragePaths)
+            {
+                var storage = GetStorage(path);
+
+                // if an existing data directory exists for this application, prefer it immediately.
+                if (storage.ExistsDirectory(Name))
+                    return storage.GetStorageForDirectory(Name);
+            }
+
+            // if an existing directory could not be found, use the first path that can be created.
+            foreach (var path in UserStoragePaths)
+            {
+                try
+                {
+                    return GetStorage(path).GetStorageForDirectory(Name);
+                }
+                catch
+                {
+                    // may fail on directory creation.
+                }
+            }
+
+            throw new InvalidOperationException("No valid user storage path could be resolved.");
+        }
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
@@ -724,6 +773,7 @@ namespace osu.Framework.Platform
         protected virtual void SetupForRun()
         {
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+            Logger.Enabled = true;
         }
 
         private void populateInputHandlers()
@@ -1028,6 +1078,7 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), PlatformAction.DocumentPrevious),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.W), PlatformAction.DocumentClose),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), PlatformAction.DocumentClose),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.N), PlatformAction.DocumentNew),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.T), PlatformAction.TabNew),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.T), PlatformAction.TabRestore),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), PlatformAction.Save),

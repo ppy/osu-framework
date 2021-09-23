@@ -13,8 +13,10 @@ using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Graphics.Visualisation.Audio;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Platform;
@@ -62,6 +64,8 @@ namespace osu.Framework
         private TextureVisualiser textureVisualiser;
 
         private LogOverlay logOverlay;
+
+        private AudioMixerVisualiser audioMixerVisualiser;
 
         protected override Container<Drawable> Content => content;
 
@@ -245,11 +249,12 @@ namespace osu.Framework
 
         private Bindable<ExecutionMode> executionMode;
 
-        public bool OnPressed(FrameworkAction action)
+        public bool OnPressed(KeyBindingPressEvent<FrameworkAction> e)
         {
-            switch (action)
+            switch (e.Action)
             {
                 case FrameworkAction.CycleFrameStatistics:
+
                     switch (FrameStatistics.Value)
                     {
                         case FrameStatisticsMode.None:
@@ -267,6 +272,20 @@ namespace osu.Framework
 
                     return true;
 
+                case FrameworkAction.ToggleDrawVisualiser:
+
+                    if (drawVisualiser == null)
+                    {
+                        LoadComponentAsync(drawVisualiser = new DrawVisualiser
+                        {
+                            ToolPosition = getCascadeLocation(0),
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    drawVisualiser.ToggleVisibility();
+                    return true;
+
                 case FrameworkAction.ToggleGlobalStatistics:
 
                     if (globalStatistics == null)
@@ -274,25 +293,11 @@ namespace osu.Framework
                         LoadComponentAsync(globalStatistics = new GlobalStatisticsDisplay
                         {
                             Depth = float.MinValue / 2,
-                            Position = new Vector2(100 + ToolWindow.WIDTH, 100)
+                            Position = getCascadeLocation(1),
                         }, AddInternal);
                     }
 
                     globalStatistics.ToggleVisibility();
-                    return true;
-
-                case FrameworkAction.ToggleDrawVisualiser:
-
-                    if (drawVisualiser == null)
-                    {
-                        LoadComponentAsync(drawVisualiser = new DrawVisualiser
-                        {
-                            ToolPosition = new Vector2(100),
-                            Depth = float.MinValue / 2,
-                        }, AddInternal);
-                    }
-
-                    drawVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleAtlasVisualiser:
@@ -301,12 +306,25 @@ namespace osu.Framework
                     {
                         LoadComponentAsync(textureVisualiser = new TextureVisualiser
                         {
-                            Position = new Vector2(100 + 2 * ToolWindow.WIDTH, 100),
+                            Position = getCascadeLocation(2),
                             Depth = float.MinValue / 2,
                         }, AddInternal);
                     }
 
                     textureVisualiser.ToggleVisibility();
+                    return true;
+
+                case FrameworkAction.ToggleAudioMixerVisualiser:
+                    if (audioMixerVisualiser == null)
+                    {
+                        LoadComponentAsync(audioMixerVisualiser = new AudioMixerVisualiser
+                        {
+                            Position = getCascadeLocation(3),
+                            Depth = float.MinValue / 2,
+                        }, AddInternal);
+                    }
+
+                    audioMixerVisualiser.ToggleVisibility();
                     return true;
 
                 case FrameworkAction.ToggleLogOverlay:
@@ -337,15 +355,18 @@ namespace osu.Framework
             }
 
             return false;
+
+            Vector2 getCascadeLocation(int index)
+                => new Vector2(100 + index * (TitleBar.HEIGHT + 10));
         }
 
-        public void OnReleased(FrameworkAction action)
+        public void OnReleased(KeyBindingReleaseEvent<FrameworkAction> e)
         {
         }
 
-        public virtual bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            switch (action)
+            switch (e.Action)
             {
                 case PlatformAction.Exit:
                     Host.Window?.Close();
@@ -355,7 +376,7 @@ namespace osu.Framework
             return false;
         }
 
-        public virtual void OnReleased(PlatformAction action)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 

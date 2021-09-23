@@ -374,9 +374,9 @@ namespace osu.Framework.Testing
             new KeyBinding(new[] { InputKey.Control, InputKey.H }, TestBrowserAction.ToggleTestList),
         };
 
-        public bool OnPressed(TestBrowserAction action)
+        public bool OnPressed(KeyBindingPressEvent<TestBrowserAction> e)
         {
-            switch (action)
+            switch (e.Action)
             {
                 case TestBrowserAction.Search:
                     if (leftContainer.Width == 0) toggleTestList();
@@ -395,7 +395,7 @@ namespace osu.Framework.Testing
             return false;
         }
 
-        public void OnReleased(TestBrowserAction action)
+        public void OnReleased(KeyBindingReleaseEvent<TestBrowserAction> e)
         {
         }
 

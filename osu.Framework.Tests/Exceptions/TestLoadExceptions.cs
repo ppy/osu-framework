@@ -11,6 +11,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 using osuTK;
 using osuTK.Graphics;
 
@@ -198,7 +199,7 @@ namespace osu.Framework.Tests.Exceptions
 
             try
             {
-                using (var host = new HeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
+                using (var host = new TestRunHeadlessGameHost($"{GetType().Name}-{Guid.NewGuid()}", realtime: false))
                 {
                     using (var game = new TestGame())
                     {

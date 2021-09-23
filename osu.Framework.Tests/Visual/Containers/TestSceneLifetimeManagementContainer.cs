@@ -225,11 +225,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 r = rng.Next(5);
 
                 if (l > r)
-                {
-                    var l1 = l;
-                    l = r;
-                    r = l1;
-                }
+                    (l, r) = (r, l);
 
                 ++r;
             }

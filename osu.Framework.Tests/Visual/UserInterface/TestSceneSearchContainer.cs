@@ -91,6 +91,18 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkCount(count);
         }
 
+        [TestCase("tst", 2)]
+        [TestCase("ssn 1", 6)]
+        [TestCase("sns 1", 0)]
+        [TestCase("hdr", 8)]
+        [TestCase("tt", 2)]
+        [TestCase("ttt", 0)]
+        public void TestEagerFiltering(string term, int count)
+        {
+            setTerm(term);
+            checkCount(count);
+        }
+
         [TestCase]
         public void TestRefilterAfterNewChild()
         {

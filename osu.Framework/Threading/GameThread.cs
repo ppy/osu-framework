@@ -97,8 +97,11 @@ namespace osu.Framework.Threading
         private CultureInfo culture;
 
         /// <summary>
-        /// The refresh rate this thread should run at when active. Only applies when the underlying clock is throttling.
+        /// The target number of updates per second when the game window is active.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double ActiveHz
         {
             get => activeHz;
@@ -112,8 +115,11 @@ namespace osu.Framework.Threading
         private double activeHz = DEFAULT_ACTIVE_HZ;
 
         /// <summary>
-        /// The refresh rate this thread should run at when inactive. Only applies when the underlying clock is throttling.
+        /// The target number of updates per second when the game window is inactive.
         /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double InactiveHz
         {
             get => inactiveHz;

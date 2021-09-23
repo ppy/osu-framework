@@ -16,6 +16,10 @@ namespace osu.Framework.Bindables
             Value = Default = defaultValue;
         }
 
+        private NonNullableBindable()
+        {
+        }
+
         public override T Value
         {
             get => base.Value;
@@ -27,5 +31,7 @@ namespace osu.Framework.Bindables
                 base.Value = value;
             }
         }
+
+        protected override Bindable<T> CreateInstance() => new NonNullableBindable<T>();
     }
 }

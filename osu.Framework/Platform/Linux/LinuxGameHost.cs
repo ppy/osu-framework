@@ -2,40 +2,34 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using osu.Framework.Platform.Linux.SDL2;
-using osuTK;
 
 namespace osu.Framework.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(string gameName, bool bindIPC = false, ToolkitOptions toolkitOptions = default, bool portableInstallation = false)
+        internal LinuxGameHost(string gameName, bool bindIPC = false, bool portableInstallation = false)
             : base(gameName, bindIPC, portableInstallation)
         {
         }
 
         protected override IWindow CreateWindow() => new SDL2DesktopWindow();
 
-        public override string UserStoragePath
+        public override IEnumerable<string> UserStoragePaths
         {
             get
             {
-                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                string[] paths =
-                {
-                    xdg ?? Path.Combine(home, ".local", "share"),
-                    Path.Combine(home)
-                };
 
-                foreach (string path in paths)
-                {
-                    if (Directory.Exists(path))
-                        return path;
-                }
+                if (!string.IsNullOrEmpty(xdg))
+                    yield return xdg;
 
-                return paths[0];
+                yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
+
+                foreach (var path in base.UserStoragePaths)
+                    yield return path;
             }
         }
 

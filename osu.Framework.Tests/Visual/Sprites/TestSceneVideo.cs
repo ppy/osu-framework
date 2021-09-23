@@ -95,6 +95,25 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("decoding ran", () => didDecode);
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TestDecodingStopsBeforeStartTime(bool looping)
+        {
+            AddStep("Set looping", () => video.Loop = looping);
+
+            AddStep("Jump back to before start time", () => clock.CurrentTime = -30000);
+
+            AddUntilStep("decoding stopped", () => video.State == VideoDecoder.DecoderState.Ready);
+
+            AddStep("reset decode state", () => didDecode = false);
+
+            AddWaitStep("wait a bit", 10);
+            AddAssert("decoding didn't run", () => !didDecode);
+
+            AddStep("seek close to start", () => clock.CurrentTime = -500);
+            AddUntilStep("decoding ran", () => didDecode);
+        }
+
         [Test]
         public void TestJumpForward()
         {
@@ -109,6 +128,19 @@ namespace osu.Framework.Tests.Visual.Sprites
             AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
             AddStep("Jump back by 10 seconds", () => clock.CurrentTime -= 10000);
             AddUntilStep("Video seeked", () => video.PlaybackPosition < 30000);
+        }
+
+        [Test]
+        public void TestJumpBackAfterEndOfPlayback()
+        {
+            AddStep("Jump ahead by 60 seconds", () => clock.CurrentTime += 60000);
+
+            AddUntilStep("Video seeked", () => video.PlaybackPosition >= 30000);
+            AddUntilStep("Reached end", () => video.State == VideoDecoder.DecoderState.EndOfStream);
+            AddStep("reset decode state", () => didDecode = false);
+
+            AddStep("Jump back to valid time", () => clock.CurrentTime = 20000);
+            AddUntilStep("decoding ran", () => didDecode);
         }
 
         [Test]

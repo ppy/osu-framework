@@ -11,15 +11,27 @@ using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <inheritdoc />
+    public class TextFlowContainer : TextFlowContainer<SpriteText>
+    {
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+            : base(defaultCreationParameters)
+        {
+        }
+
+        protected override SpriteText CreateSpriteText() => new SpriteText();
+    }
+
     /// <summary>
     /// A drawable text object that supports more advanced text formatting.
     /// </summary>
-    public class TextFlowContainer : FillFlowContainer
+    public abstract class TextFlowContainer<T> : FillFlowContainer
+        where T : SpriteText
     {
         private float firstLineIndent;
-        private readonly Action<SpriteText> defaultCreationParameters;
+        private readonly Action<T> defaultCreationParameters;
 
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        protected TextFlowContainer(Action<T> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
         }
@@ -117,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
-        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
+        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{T})"/>
         /// </summary>
         public string Text
         {
@@ -200,12 +212,12 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
+        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{T})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<Drawable> AddText(string text, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(text, true, creationParameters));
+        public IEnumerable<Drawable> AddText(string text, Action<T> creationParameters = null) => AddLine(new TextChunk<T>(text, true, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -214,7 +226,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public void AddText(SpriteText text, Action<SpriteText> creationParameters = null)
+        public void AddText(T text, Action<T> creationParameters = null)
         {
             base.Add(text);
             defaultCreationParameters?.Invoke(text);
@@ -222,12 +234,12 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
+        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{T})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => AddLine(new TextChunk(paragraph, false, creationParameters));
+        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<T> creationParameters = null) => AddLine(new TextChunk<T>(paragraph, false, creationParameters));
 
         /// <summary>
         /// End current line and start a new one.
@@ -239,9 +251,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void NewParagraph() => base.Add(new NewLineContainer(true));
 
-        protected virtual SpriteText CreateSpriteText() => new SpriteText();
+        protected abstract T CreateSpriteText();
 
-        internal SpriteText CreateSpriteTextWithChunk(TextChunk chunk)
+        internal SpriteText CreateSpriteTextWithChunk(TextChunk<T> chunk)
         {
             var spriteText = CreateSpriteText();
             defaultCreationParameters?.Invoke(spriteText);
@@ -254,7 +266,7 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<Drawable> AddLine(TextChunk chunk)
+        internal virtual IEnumerable<Drawable> AddLine(TextChunk<T> chunk)
         {
             var sprites = new List<Drawable>();
 
@@ -272,7 +284,7 @@ namespace osu.Framework.Graphics.Containers
             return sprites;
         }
 
-        internal IEnumerable<Drawable> AddString(TextChunk chunk)
+        internal IEnumerable<Drawable> AddString(TextChunk<T> chunk)
         {
             bool first = true;
             var sprites = new List<Drawable>();

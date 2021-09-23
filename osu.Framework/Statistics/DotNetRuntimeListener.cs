@@ -127,6 +127,7 @@ namespace osu.Framework.Statistics
         /// Attrib: https://stackoverflow.com/questions/26972066/type-from-intptr-handle/54469241#54469241
         /// </remarks>
         // ReSharper disable once RedundantUnsafeContext
+        // ReSharper disable once UnusedParameter.Local
         private static unsafe Type getTypeFromHandle(IntPtr handle)
         {
 #if NET5_0

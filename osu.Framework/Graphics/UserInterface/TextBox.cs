@@ -159,15 +159,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public virtual bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!HasFocus)
                 return false;
 
-            if (!HandleLeftRightArrows && (action == PlatformAction.MoveBackwardChar || action == PlatformAction.MoveForwardChar))
+            if (!HandleLeftRightArrows && (e.Action == PlatformAction.MoveBackwardChar || e.Action == PlatformAction.MoveForwardChar))
                 return false;
 
-            switch (action)
+            switch (e.Action)
             {
                 // Clipboard
                 case PlatformAction.Cut:
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     clipboard?.SetText(SelectedText);
 
-                    if (action == PlatformAction.Cut)
+                    if (e.Action == PlatformAction.Cut)
                         DeleteBy(0);
 
                     return true;
@@ -276,7 +276,7 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public virtual void OnReleased(PlatformAction action)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 
@@ -288,7 +288,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!AllowWordNavigation)
                 return -1;
 
-            int searchPrev = Math.Clamp(selectionEnd - 2, 0, Math.Max(0, Text.Length - 1));
+            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
             while (searchPrev > 0 && text[searchPrev] == ' ')
                 searchPrev--;
             int lastSpace = text.LastIndexOf(' ', searchPrev);

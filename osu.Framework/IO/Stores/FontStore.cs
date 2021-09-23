@@ -17,7 +17,7 @@ namespace osu.Framework.IO.Stores
 {
     public class FontStore : TextureStore, ITexturedGlyphLookupStore
     {
-        private readonly List<GlyphStore> glyphStores = new List<GlyphStore>();
+        private readonly List<IGlyphStore> glyphStores = new List<IGlyphStore>();
 
         private readonly List<FontStore> nestedFontStores = new List<FontStore>();
 
@@ -73,7 +73,7 @@ namespace osu.Framework.IO.Stores
                     nestedFontStores.Add(fs);
                     return;
 
-                case GlyphStore gs:
+                case IGlyphStore gs:
 
                     if (gs is RawCachingGlyphStore raw && raw.CacheStorage == null)
                         raw.CacheStorage = cacheStorage;
@@ -91,7 +91,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Append child stores to a single threaded load task.
         /// </summary>
-        private void queueLoad(GlyphStore store)
+        private void queueLoad(IGlyphStore store)
         {
             var previousLoadStream = childStoreLoadTasks;
 
@@ -173,43 +173,6 @@ namespace osu.Framework.IO.Stores
         }
 
         public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
-
-        public float? GetBaseHeight(char c)
-        {
-            foreach (var store in glyphStores)
-            {
-                if (store.HasGlyph(c))
-                    return store.GetBaseHeight() / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(c);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
-
-        public float? GetBaseHeight(string fontName)
-        {
-            foreach (var store in glyphStores)
-            {
-                var bh = store.GetBaseHeight(fontName);
-                if (bh.HasValue)
-                    return bh.Value / ScaleAdjust;
-            }
-
-            foreach (var store in nestedFontStores)
-            {
-                var height = store.GetBaseHeight(fontName);
-                if (height.HasValue)
-                    return height;
-            }
-
-            return null;
-        }
 
         protected override void Dispose(bool disposing)
         {

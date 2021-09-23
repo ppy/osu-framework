@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
+using System;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -91,11 +93,26 @@ namespace osu.Framework.Testing.Input
         /// <summary>
         /// Press and release the specified key.
         /// </summary>
-        /// <param name="key">The key to press and release.</param>
+        /// <param name="key">The key to actuate.</param>
         public void Key(Key key)
         {
             PressKey(key);
             ReleaseKey(key);
+        }
+
+        /// <summary>
+        /// Press and release the keys in the specified <see cref="PlatformAction"/>.
+        /// </summary>
+        /// <param name="action">The platform action to actuate.</param>
+        public void Keys(PlatformAction action)
+        {
+            var binding = Host.PlatformKeyBindings.First(b => (PlatformAction)b.Action == action);
+
+            foreach (var k in binding.KeyCombination.Keys)
+                PressKey((Key)k);
+
+            foreach (var k in binding.KeyCombination.Keys)
+                ReleaseKey((Key)k);
         }
 
         public void ScrollBy(Vector2 delta, bool isPrecise = false) => Input(new MouseScrollRelativeInput { Delta = delta, IsPrecise = isPrecise });
@@ -106,6 +123,9 @@ namespace osu.Framework.Testing.Input
         public void MoveMouseTo(Vector2 position) => Input(new MousePositionAbsoluteInput { Position = position });
 
         public void MoveTouchTo(Touch touch) => Input(new TouchInput(touch, CurrentState.Touch.IsActive(touch.Source)));
+
+        public new bool TriggerClick() =>
+            throw new InvalidOperationException($"To trigger a click via a {nameof(ManualInputManager)} use {nameof(Click)} instead.");
 
         /// <summary>
         /// Press and release the specified button.

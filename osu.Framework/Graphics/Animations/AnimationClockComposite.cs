@@ -83,10 +83,11 @@ namespace osu.Framework.Graphics.Animations
         {
             get
             {
-                if (Loop)
-                    return manualClock.CurrentTime % Duration;
+                double current = manualClock.CurrentTime;
 
-                return Math.Min(manualClock.CurrentTime, Duration);
+                if (Loop) current %= Duration;
+
+                return Math.Clamp(current, 0, Duration);
             }
             set
             {

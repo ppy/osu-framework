@@ -40,6 +40,8 @@ namespace osu.Framework.Bindables
             }
         }
 
+        protected override Bindable<Size> CreateInstance() => new BindableSize();
+
         protected sealed override Size ClampValue(Size value, Size minValue, Size maxValue)
         {
             return new Size

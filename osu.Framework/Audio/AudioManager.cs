@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
@@ -34,6 +36,16 @@ namespace osu.Framework.Audio
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
         private readonly AudioThread thread;
+
+        /// <summary>
+        /// The global mixer which all tracks are routed into by default.
+        /// </summary>
+        public readonly AudioMixer TrackMixer;
+
+        /// <summary>
+        /// The global mixer which all samples are routed into by default.
+        /// </summary>
+        public readonly AudioMixer SampleMixer;
 
         /// <summary>
         /// The names of all available audio devices.
@@ -97,6 +109,9 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
+        internal IBindableList<int> ActiveMixerHandles => activeMixerHandles;
+        private readonly BindableList<int> activeMixerHandles = new BindableList<int>();
+
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
 
@@ -116,7 +131,7 @@ namespace osu.Framework.Audio
 
             globalTrackStore = new Lazy<TrackStore>(() =>
             {
-                var store = new TrackStore(trackStore);
+                var store = new TrackStore(trackStore, TrackMixer);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
                 return store;
@@ -124,11 +139,14 @@ namespace osu.Framework.Audio
 
             globalSampleStore = new Lazy<SampleStore>(() =>
             {
-                var store = new SampleStore(sampleStore);
+                var store = new SampleStore(sampleStore, SampleMixer);
                 AddItem(store);
                 store.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
                 return store;
             });
+
+            AddItem(TrackMixer = createAudioMixer(null));
+            AddItem(SampleMixer = createAudioMixer(null));
 
             CancellationToken token = cancelSource.Token;
 
@@ -182,6 +200,23 @@ namespace osu.Framework.Audio
         }
 
         /// <summary>
+        /// Creates a new <see cref="AudioMixer"/>.
+        /// </summary>
+        /// <remarks>
+        /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
+        /// </remarks>
+        public AudioMixer CreateAudioMixer() => createAudioMixer(SampleMixer);
+
+        private AudioMixer createAudioMixer(AudioMixer globalMixer)
+        {
+            var mixer = new BassAudioMixer(globalMixer);
+            mixer.HandleCreated += i => activeMixerHandles.Add(i);
+            mixer.HandleDestroyed += i => activeMixerHandles.Remove(i);
+            AddItem(mixer);
+            return mixer;
+        }
+
+        /// <summary>
         /// Obtains the <see cref="TrackStore"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
@@ -190,7 +225,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalTrackStore.Value;
 
-            TrackStore tm = new TrackStore(store);
+            TrackStore tm = new TrackStore(store, TrackMixer);
             globalTrackStore.Value.AddItem(tm);
             return tm;
         }
@@ -204,7 +239,7 @@ namespace osu.Framework.Audio
         {
             if (store == null) return globalSampleStore.Value;
 
-            SampleStore sm = new SampleStore(store);
+            SampleStore sm = new SampleStore(store, SampleMixer);
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }
