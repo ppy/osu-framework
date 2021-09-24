@@ -172,7 +172,7 @@ namespace osu.Framework.Platform
 
             pauseAllThreads();
 
-            switch (ExecutionMode)
+            switch (activeExecutionMode)
             {
                 case ExecutionMode.MultiThreaded:
                 {
