@@ -368,8 +368,14 @@ namespace osu.Framework.Audio.Mixing.Bass
                     Debug.Assert(e.NewItems != null);
 
                     EffectWithHandle oldEffect = ActiveEffects[e.NewStartingIndex];
-                    ActiveEffects[e.NewStartingIndex] = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull());
-                    removeEffect(oldEffect);
+                    EffectWithHandle newEffect = new EffectWithHandle((IEffectParameter)e.NewItems[0].AsNonNull()) { Handle = oldEffect.Handle };
+
+                    ActiveEffects[e.NewStartingIndex] = newEffect;
+
+                    // If the effect types don't match, the old effect has to be removed altogether. Otherwise, the new parameters can be applied onto the existing handle.
+                    if (oldEffect.Effect.FXType != newEffect.Effect.FXType)
+                        removeEffect(oldEffect);
+
                     applyEffects(e.NewStartingIndex, e.NewStartingIndex);
                     break;
                 }
@@ -403,10 +409,9 @@ namespace osu.Framework.Audio.Mixing.Bass
                     if (effect.Handle != 0)
                         ManagedBass.Bass.FXSetPriority(effect.Handle, effect.Priority);
                     else
-                    {
                         effect.Handle = ManagedBass.Bass.ChannelSetFX(Handle, effect.Effect.FXType, effect.Priority);
-                        ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
-                    }
+
+                    ManagedBass.Bass.FXSetParameters(effect.Handle, effect.Effect);
                 }
             }
         });
