@@ -1128,8 +1128,6 @@ namespace osu.Framework.Platform
             CurrentDisplayBindable.ValueChanged += evt =>
             {
                 windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
-                windowPositionX.Value = 0.5;
-                windowPositionY.Value = 0.5;
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
