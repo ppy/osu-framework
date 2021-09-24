@@ -163,10 +163,13 @@ namespace osu.Framework.Platform
             // locking is required as this method may be called from two different threads.
             lock (startStopLock)
             {
-                if (ExecutionMode == activeExecutionMode)
+                // pull into a local variable as the property is not locked during writes.
+                var executionMode = ExecutionMode;
+
+                if (executionMode == activeExecutionMode)
                     return;
 
-                activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
+                activeExecutionMode = ThreadSafety.ExecutionMode = executionMode;
                 Logger.Log($"Execution mode changed to {activeExecutionMode}");
             }
 
