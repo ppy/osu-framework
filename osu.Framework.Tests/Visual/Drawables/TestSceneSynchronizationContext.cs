@@ -4,14 +4,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Tests.Visual.Drawables
 {
     public class TestSceneSynchronizationContext : FrameworkTestScene
     {
+        [Resolved]
+        private GameHost host { get; set; }
+
         private AsyncPerformingBox box;
 
         [Test]
@@ -26,19 +31,23 @@ namespace osu.Framework.Tests.Visual.Drawables
         [Test]
         public void TestNoAsyncDoesntUseScheduler()
         {
+            int initialTasksRun = 0;
+            AddStep("get initial run count", () => initialTasksRun = host.UpdateThread.Scheduler.TotalTasksRun);
             AddStep("add box", () => Child = box = new AsyncPerformingBox(false));
-            AddAssert("scheduler run count 0", () => box.Scheduler.TotalTasksRun == 0);
+            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
-            AddAssert("scheduler run count 0", () => box.Scheduler.TotalTasksRun == 0);
+            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
         }
 
         [Test]
         public void TestAsyncUsesScheduler()
         {
+            int initialTasksRun = 0;
+            AddStep("get initial run count", () => initialTasksRun = host.UpdateThread.Scheduler.TotalTasksRun);
             AddStep("add box", () => Child = box = new AsyncPerformingBox(true));
-            AddAssert("scheduler run count 0", () => box.Scheduler.TotalTasksRun == 0);
+            AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
-            AddAssert("scheduler run count 1", () => box.Scheduler.TotalTasksRun == 1);
+            AddAssert("one new task run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun + 1);
         }
 
         [Test]
