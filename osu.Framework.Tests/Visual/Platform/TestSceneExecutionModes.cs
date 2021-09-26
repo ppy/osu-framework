@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
@@ -26,6 +27,26 @@ namespace osu.Framework.Tests.Visual.Platform
             AddRepeatStep("toggle execution mode", () => executionMode.Value = executionMode.Value == ExecutionMode.MultiThreaded
                 ? ExecutionMode.SingleThread
                 : ExecutionMode.MultiThreaded, 2);
+        }
+
+        [Test]
+        public void TestRapidSwitching()
+        {
+            ScheduledDelegate switchStep = null;
+            int switchCount = 0;
+
+            AddStep("install quick switch step", () =>
+            {
+                switchStep = Scheduler.AddDelayed(() =>
+                {
+                    executionMode.Value = executionMode.Value == ExecutionMode.MultiThreaded ? ExecutionMode.SingleThread : ExecutionMode.MultiThreaded;
+                    switchCount++;
+                }, 0, true);
+            });
+
+            AddUntilStep("switch count sufficiently high", () => switchCount > 1000);
+
+            AddStep("remove", () => switchStep.Cancel());
         }
     }
 }

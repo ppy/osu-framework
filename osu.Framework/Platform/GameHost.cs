@@ -550,7 +550,9 @@ namespace osu.Framework.Platform
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately) => performExit(immediately);
+
+        private void performExit(bool immediately)
         {
             if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
                 return;
@@ -561,20 +563,17 @@ namespace osu.Framework.Platform
                 exit();
             else
                 InputThread.Scheduler.Add(exit, false);
-        }
 
-        /// <summary>
-        /// Exits the game. This must always be called from <see cref="InputThread"/>.
-        /// </summary>
-        private void exit()
-        {
-            Debug.Assert(ExecutionState == ExecutionState.Stopping);
+            void exit()
+            {
+                Debug.Assert(ExecutionState == ExecutionState.Stopping);
 
-            Window?.Close();
-            threadRunner.Stop();
+                Window?.Close();
+                threadRunner.Stop();
 
-            ExecutionState = ExecutionState.Stopped;
-            stoppedEvent.Set();
+                ExecutionState = ExecutionState.Stopped;
+                stoppedEvent.Set();
+            }
         }
 
         private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
@@ -704,7 +703,7 @@ namespace osu.Framework.Platform
             finally
             {
                 // Close the window and stop all threads
-                PerformExit(true);
+                performExit(true);
 
                 host_running_mutex.Release();
             }

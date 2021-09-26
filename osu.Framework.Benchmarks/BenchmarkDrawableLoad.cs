@@ -16,6 +16,8 @@ namespace osu.Framework.Benchmarks
     {
         private TestGame game;
 
+        private const int nesting_level = 100;
+
         [Test]
         [Benchmark]
         public void NonRecursive()
@@ -24,7 +26,7 @@ namespace osu.Framework.Benchmarks
             {
                 Container container = new Container();
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < nesting_level; i++)
                 {
                     var box = new Box
                     {
@@ -50,7 +52,7 @@ namespace osu.Framework.Benchmarks
             {
                 Container container = new Container();
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < nesting_level; i++)
                 {
                     container.Add(new Container
                     {
@@ -83,7 +85,7 @@ namespace osu.Framework.Benchmarks
                 Container container = new Container();
                 Container target = container;
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < nesting_level; i++)
                 {
                     var newContainer = new Container { Size = new Vector2(100), Colour = Color4.Black };
 

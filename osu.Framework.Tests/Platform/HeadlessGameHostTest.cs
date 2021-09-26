@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.IO;
@@ -20,6 +21,24 @@ namespace osu.Framework.Tests.Platform
             using (var host = new ExceptionDuringSetupGameHost(nameof(TestGameHostExceptionDuringSetupHost)))
             {
                 Assert.Throws<InvalidOperationException>(() => host.Run(new TestGame()));
+
+                Assert.AreEqual(ExecutionState.Idle, host.ExecutionState);
+            }
+        }
+
+        /// <summary>
+        /// <see cref="GameHost.PerformExit"/> is virtual, but there are some cases where exit is mandatory.
+        /// This aims to test that shutdown from an exception firing (ie. the `finally` portion of <see cref="GameHost.Run"/>)
+        /// fires correctly even if the base call of <see cref="GameHost.PerformExit"/> is omitted.
+        /// </summary>
+        [Test]
+        public void TestGameHostExceptionDuringAsynchronousChildLoad()
+        {
+            using (var host = new TestRunHeadlessGameHostWithOverriddenExit(nameof(TestGameHostExceptionDuringAsynchronousChildLoad)))
+            {
+                Assert.Throws<InvalidOperationException>(() => host.Run(new ExceptionDuringAsynchronousLoadTestGame()));
+
+                Assert.AreEqual(ExecutionState.Stopped, host.ExecutionState);
             }
         }
 
@@ -80,6 +99,28 @@ namespace osu.Framework.Tests.Platform
             protected override void SetupForRun()
             {
                 base.SetupForRun();
+                throw new InvalidOperationException();
+            }
+        }
+
+        public class TestRunHeadlessGameHostWithOverriddenExit : TestRunHeadlessGameHost
+        {
+            public TestRunHeadlessGameHostWithOverriddenExit(string gameName)
+                : base(gameName)
+            {
+            }
+
+            protected override void PerformExit(bool immediately)
+            {
+                // matches TestGameHost behaviour for testing purposes
+            }
+        }
+
+        internal class ExceptionDuringAsynchronousLoadTestGame : TestGame
+        {
+            [BackgroundDependencyLoader]
+            private void load()
+            {
                 throw new InvalidOperationException();
             }
         }
