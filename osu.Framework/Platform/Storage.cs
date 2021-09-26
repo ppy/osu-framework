@@ -108,19 +108,6 @@ namespace osu.Framework.Platform
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>
-        /// Retrieve an SQLite database connection string from within this storage.
-        /// </summary>
-        /// <param name="name">The name of the database.</param>
-        /// <returns>An SQLite connection string.</returns>
-        public abstract string GetDatabaseConnectionString(string name);
-
-        /// <summary>
-        /// Delete an SQLite database from within this storage.
-        /// </summary>
-        /// <param name="name">The name of the database to delete.</param>
-        public abstract void DeleteDatabase(string name);
-
-        /// <summary>
         /// Opens a native file browser window to the root path of this storage.
         /// </summary>
         public void OpenInNativeExplorer() => OpenPathInNativeExplorer(string.Empty);
