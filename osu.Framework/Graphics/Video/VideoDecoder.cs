@@ -46,6 +46,11 @@ namespace osu.Framework.Graphics.Video
         public float LastDecodedFrameTime => lastDecodedFrameTime;
 
         /// <summary>
+        /// True if this video decoder is using hardware decode acceleration.
+        /// </summary>
+        public bool IsUsingHardwareDecoder => isUsingHardwareDecoder;
+
+        /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
         /// </summary>
         public double FrameRate => stream == null ? 0 : stream->avg_frame_rate.GetValue();
@@ -63,7 +68,7 @@ namespace osu.Framework.Graphics.Video
         // libav-context-related
         private AVFormatContext* formatContext;
         private AVStream* stream;
-        private AVCodecParameters codecParams;
+        private AVCodecContext* codecContext;
         private byte* contextBuffer;
         private byte[] managedContextBuffer;
 
@@ -77,11 +82,9 @@ namespace osu.Framework.Graphics.Video
         private double timeBaseInSeconds;
         private long duration;
 
-        private SwsContext* convCtx;
-        private bool convert = true;
-
         // active decoder state
         private volatile float lastDecodedFrameTime;
+        private volatile bool isUsingHardwareDecoder;
 
         private Task decodingTask;
         private CancellationTokenSource decodingTaskCancellationTokenSource;
@@ -181,7 +184,8 @@ namespace osu.Framework.Graphics.Video
             }
 
             decodingTaskCancellationTokenSource = new CancellationTokenSource();
-            decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            decodingTask = Task.Factory.StartNew(() => decodingLoop(decodingTaskCancellationTokenSource.Token), decodingTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
         /// <summary>
@@ -224,7 +228,7 @@ namespace osu.Framework.Graphics.Video
             if (stream == null)
                 return Matrix3.Zero;
 
-            switch (stream->codec->colorspace)
+            switch (codecContext->colorspace)
             {
                 case AVColorSpace.AVCOL_SPC_BT709:
                     return new Matrix3(1.164f, 1.164f, 1.164f,
@@ -290,19 +294,52 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
-        private void prepareFilters()
+        /// <remarks>
+        /// This function returns ALL device types that are supported by the loaded FFmpeg lib and not just types that are supported by the current machine.
+        /// </remarks>
+        private List<AVHWDeviceType> getAvailableHwDeviceTypes()
         {
-            // only convert if needed
-            if (stream->codec->pix_fmt == AVPixelFormat.AV_PIX_FMT_YUV420P)
+            var availableTypes = new List<AVHWDeviceType>();
+
+            var last = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE;
+
+            while (true)
             {
-                convert = false;
-                return;
+                var current = ffmpeg.av_hwdevice_iterate_types(last);
+                if (current != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
+                    availableTypes.Add(current);
+                else
+                    break;
+
+                last = current;
             }
 
-            // 1 =  SWS_FAST_BILINEAR
-            // https://www.ffmpeg.org/doxygen/3.1/swscale_8h_source.html#l00056
-            convCtx = ffmpeg.sws_getContext(stream->codec->width, stream->codec->height, stream->codec->pix_fmt, stream->codec->width, stream->codec->height,
-                AVPixelFormat.AV_PIX_FMT_YUV420P, 1, null, null, null);
+            return availableTypes;
+        }
+
+        private bool isHwPixelFormat(AVPixelFormat format)
+        {
+            switch (format)
+            {
+                case AVPixelFormat.AV_PIX_FMT_VDPAU:
+                case AVPixelFormat.AV_PIX_FMT_CUDA:
+                case AVPixelFormat.AV_PIX_FMT_VAAPI:
+                case AVPixelFormat.AV_PIX_FMT_VAAPI_IDCT:
+                case AVPixelFormat.AV_PIX_FMT_VAAPI_MOCO:
+                case AVPixelFormat.AV_PIX_FMT_DXVA2_VLD:
+                case AVPixelFormat.AV_PIX_FMT_QSV:
+                case AVPixelFormat.AV_PIX_FMT_VIDEOTOOLBOX:
+                case AVPixelFormat.AV_PIX_FMT_D3D11:
+                case AVPixelFormat.AV_PIX_FMT_D3D11VA_VLD:
+                case AVPixelFormat.AV_PIX_FMT_DRM_PRIME:
+                case AVPixelFormat.AV_PIX_FMT_OPENCL:
+                case AVPixelFormat.AV_PIX_FMT_MEDIACODEC:
+                case AVPixelFormat.AV_PIX_FMT_VULKAN:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -335,7 +372,7 @@ namespace osu.Framework.Graphics.Video
             {
                 stream = formatContext->streams[i];
 
-                codecParams = *stream->codecpar;
+                var codecParams = *stream->codecpar;
 
                 if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
                 {
@@ -346,15 +383,61 @@ namespace osu.Framework.Graphics.Video
                     if (codecPtr == null)
                         throw new InvalidOperationException($"Couldn't find codec with id: {codecParams.codec_id}");
 
-                    int openCodecResult = ffmpeg.avcodec_open2(stream->codec, codecPtr, null);
+                    codecContext = ffmpeg.avcodec_alloc_context3(codecPtr);
+                    if (codecContext == null)
+                        throw new InvalidOperationException($"Couldn't allocate codec context. Codec id: {codecParams.codec_id}");
+
+                    int paramCopyResult = ffmpeg.avcodec_parameters_to_context(codecContext, &codecParams);
+                    if (paramCopyResult < 0)
+                        throw new InvalidOperationException($"Couldn't copy codec parameters with id {codecParams.codec_id}: {getErrorMessage(paramCopyResult)}");
+
+                    // initilize hardware decode device
+                    foreach (var hwDeviceType in getAvailableHwDeviceTypes())
+                    {
+                        int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
+
+                        if (hwDeviceCreateResult < 0)
+                        {
+                            Logger.Log($"Couldn't open hardware video decoder {hwDeviceType}: {getErrorMessage(hwDeviceCreateResult)}");
+                        }
+                        else
+                        {
+                            Logger.Log($"Successfully opened hardware video decoder {hwDeviceType} for codec {codecParams.codec_id}");
+                            break;
+                        }
+                    }
+
+                    int openCodecResult = ffmpeg.avcodec_open2(codecContext, codecPtr, null);
                     if (openCodecResult < 0)
                         throw new InvalidOperationException($"Error trying to open codec with id {codecParams.codec_id}: {getErrorMessage(openCodecResult)}");
 
                     break;
                 }
             }
+        }
 
-            prepareFilters();
+        private SwsContext* currentScalerContext;
+        private AVPixelFormat currentScalerSourceFormat;
+
+        private SwsContext* getScaler(AVPixelFormat sourceFormat)
+        {
+            if (currentScalerContext != null && currentScalerSourceFormat == sourceFormat)
+            {
+                return currentScalerContext;
+            }
+
+            if (currentScalerContext != null)
+                ffmpeg.sws_freeContext(currentScalerContext);
+
+            // 1 =  SWS_FAST_BILINEAR
+            // https://www.ffmpeg.org/doxygen/3.1/swscale_8h_source.html#l00056
+            currentScalerContext = ffmpeg.sws_getContext(
+                codecContext->width, codecContext->height, sourceFormat,
+                codecContext->width, codecContext->height, AVPixelFormat.AV_PIX_FMT_YUV420P,
+                1, null, null, null);
+            currentScalerSourceFormat = sourceFormat;
+
+            return currentScalerContext;
         }
 
         private void decodingLoop(CancellationToken cancellationToken)
@@ -407,7 +490,7 @@ namespace osu.Framework.Graphics.Video
             }
             catch (Exception e)
             {
-                Logger.Log($"VideoDecoder faulted: {e}");
+                Logger.Error(e, "VideoDecoder faulted");
                 State = DecoderState.Faulted;
             }
             finally
@@ -429,56 +512,11 @@ namespace osu.Framework.Graphics.Video
 
                 if (packet->stream_index == stream->index)
                 {
-                    int sendPacketResult = ffmpeg.avcodec_send_packet(stream->codec, packet);
+                    int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
 
                     if (sendPacketResult == 0)
                     {
-                        AVFrame* frame = ffmpeg.av_frame_alloc();
-                        AVFrame* outFrame = null;
-
-                        var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
-
-                        if (result == 0)
-                        {
-                            var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
-
-                            if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
-                            {
-                                skipOutputUntilTime = null;
-
-                                if (convert)
-                                {
-                                    outFrame = ffmpeg.av_frame_alloc();
-                                    outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
-                                    outFrame->width = stream->codec->width;
-                                    outFrame->height = stream->codec->height;
-
-                                    var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
-                                    if (ret < 0)
-                                        throw new InvalidOperationException($"Error allocating video frame: {getErrorMessage(ret)}");
-
-                                    ffmpeg.sws_scale(convCtx, frame->data, frame->linesize, 0, stream->codec->height,
-                                        outFrame->data, outFrame->linesize);
-                                }
-                                else
-                                    outFrame = frame;
-
-                                if (!availableTextures.TryDequeue(out var tex))
-                                    tex = new Texture(new VideoTexture(codecParams.width, codecParams.height));
-
-                                var upload = new VideoTextureUpload(outFrame, ffmpeg.av_frame_free);
-
-                                tex.SetData(upload);
-                                decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
-                            }
-
-                            lastDecodedFrameTime = (float)frameTime;
-                        }
-
-                        // There are two cases: outFrame could be null in which case the above decode hasn't run, or the outFrame doesn't match the input frame,
-                        // in which case it won't be automatically freed by the texture upload. In both cases we need to free the input frame.
-                        if (outFrame != frame)
-                            ffmpeg.av_frame_free(&frame);
+                        readDecodedFrames();
                     }
                     else
                         Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
@@ -502,6 +540,86 @@ namespace osu.Framework.Graphics.Video
             {
                 State = DecoderState.Ready;
                 Thread.Sleep(1);
+            }
+        }
+
+        private void readDecodedFrames()
+        {
+            while (true)
+            {
+                AVFrame* tmpFrame = ffmpeg.av_frame_alloc();
+                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, tmpFrame);
+
+                if (receiveFrameResult < 0)
+                {
+                    ffmpeg.av_frame_free(&tmpFrame);
+                    break;
+                }
+
+                // use timestamp from `tmpFrame` as frames that were loaded with `av_hwframe_transfer_data` don't have valid timestamps.
+                var frameTime = (tmpFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+
+                // get final frame.
+                AVFrame* frame;
+
+                if (isHwPixelFormat((AVPixelFormat)tmpFrame->format))
+                {
+                    // transfer data from HW decoder to RAM.
+                    var swFrame = ffmpeg.av_frame_alloc();
+                    var transferResult = ffmpeg.av_hwframe_transfer_data(swFrame, tmpFrame, 0);
+
+                    if (transferResult < 0)
+                    {
+                        Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
+                        ffmpeg.av_frame_free(&swFrame);
+                        continue;
+                    }
+
+                    ffmpeg.av_frame_free(&tmpFrame);
+
+                    frame = swFrame;
+                    isUsingHardwareDecoder = true;
+                }
+                else
+                {
+                    frame = tmpFrame;
+                    isUsingHardwareDecoder = false;
+                }
+
+                lastDecodedFrameTime = (float)frameTime;
+
+                if (skipOutputUntilTime > frameTime)
+                    continue;
+
+                var frameFormat = (AVPixelFormat)frame->format;
+
+                // convert the resulting frame to a format that we can render.
+                if (frameFormat != AVPixelFormat.AV_PIX_FMT_YUV420P)
+                {
+                    var scalerContext = getScaler(frameFormat);
+
+                    var outFrame = ffmpeg.av_frame_alloc();
+                    outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
+                    outFrame->width = frame->width;
+                    outFrame->height = frame->height;
+
+                    ffmpeg.av_frame_get_buffer(outFrame, 32);
+
+                    ffmpeg.sws_scale(scalerContext, frame->data, frame->linesize, 0, frame->height,
+                        outFrame->data, outFrame->linesize);
+
+                    ffmpeg.av_frame_free(&frame);
+                    frame = outFrame;
+                }
+
+                // create texture.
+                if (!availableTextures.TryDequeue(out var tex))
+                    tex = new Texture(new VideoTexture(frame->width, frame->height));
+
+                var upload = new VideoTextureUpload(frame, ffmpeg.av_frame_free);
+
+                tex.SetData(upload);
+                decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
             }
         }
 
@@ -568,7 +686,13 @@ namespace osu.Framework.Graphics.Video
                 av_packet_free = AGffmpeg.av_packet_free,
                 av_read_frame = AGffmpeg.av_read_frame,
                 av_seek_frame = AGffmpeg.av_seek_frame,
+                av_hwdevice_iterate_types = AGffmpeg.av_hwdevice_iterate_types,
+                av_hwdevice_ctx_create = AGffmpeg.av_hwdevice_ctx_create,
+                av_hwframe_transfer_data = AGffmpeg.av_hwframe_transfer_data,
                 avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
+                avcodec_alloc_context3 = AGffmpeg.avcodec_alloc_context3,
+                avcodec_free_context = AGffmpeg.avcodec_free_context,
+                avcodec_parameters_to_context = AGffmpeg.avcodec_parameters_to_context,
                 avcodec_open2 = AGffmpeg.avcodec_open2,
                 avcodec_receive_frame = AGffmpeg.avcodec_receive_frame,
                 avcodec_send_packet = AGffmpeg.avcodec_send_packet,
@@ -613,6 +737,12 @@ namespace osu.Framework.Graphics.Video
                     ffmpeg.avformat_close_input(ptr);
             }
 
+            if (codecContext != null)
+            {
+                fixed (AVCodecContext** ptr = &codecContext)
+                    ffmpeg.avcodec_free_context(ptr);
+            }
+
             seekCallback = null;
             readPacketCallback = null;
             managedContextBuffer = null;
@@ -623,8 +753,8 @@ namespace osu.Framework.Graphics.Video
             // gets freed by libavformat when closing the input
             contextBuffer = null;
 
-            if (convCtx != null)
-                ffmpeg.sws_freeContext(convCtx);
+            if (currentScalerContext != null)
+                ffmpeg.sws_freeContext(currentScalerContext);
 
             while (decodedFrames.TryDequeue(out var f))
                 f.Texture.Dispose();
