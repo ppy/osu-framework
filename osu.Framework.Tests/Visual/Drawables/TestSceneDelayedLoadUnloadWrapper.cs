@@ -442,7 +442,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             });
 
             // Check that the child is disposed when its async-load completes while the wrapper is masked away.
-            AddAssert("wait for load to begin", () => child?.LoadState == LoadState.Loading);
+            AddUntilStep("wait for load to begin", () => child?.LoadState == LoadState.Loading);
             AddStep("scroll to end", () => scrollContainer.ScrollToEnd(false));
             AddStep("allow load", () => child.AllowLoad.Set());
             AddUntilStep("drawable disposed", () => child.IsDisposed);
