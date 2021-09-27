@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
@@ -64,7 +65,19 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private void showResources<T>(Func<IResourceStore<T>> store)
             where T : class
-            => showResources(() => store().GetAvailableResources(), l => store().Get(l));
+            => showResources(() => store().GetAvailableResources(), l =>
+            {
+                try
+                {
+                    return store().Get(l);
+                }
+                catch
+                {
+                    // This is iterating over all files in the game storage, which may include files that are actively being written to (ie. log files).
+                    // On windows, this can lead to file access errors, but we don't really care about that.
+                    return null;
+                }
+            });
 
         private void showResources<T>(Func<IEnumerable<string>> getResourceNames, Func<string, T> getResource)
         {
@@ -85,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Platform
         {
             public readonly object Resource;
 
-            public ResourceDisplay(string name, object resource)
+            public ResourceDisplay(string name, [CanBeNull] object resource)
             {
                 Resource = resource;
 
