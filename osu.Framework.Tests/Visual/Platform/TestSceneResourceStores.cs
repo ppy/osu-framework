@@ -90,8 +90,6 @@ namespace osu.Framework.Tests.Visual.Platform
             });
 
             AddAssert("ensure some loaded", () => flow.Children.Any());
-
-            AddAssert("ensure all loaded", () => flow.Children.All(rd => rd.Resource != null));
         }
 
         private class ResourceDisplay : Container
