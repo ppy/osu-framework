@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Visual.Sprites
 {
@@ -23,6 +24,12 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             Child = spriteContainer = new BlockingStoreProvidingContainer { RelativeSizeAxes = Axes.Both };
         });
+
+        [TearDownSteps]
+        public void TearDownSteps()
+        {
+            AddStep("reset", () => spriteContainer.BlockingOnlineStore.Reset());
+        }
 
         /// <summary>
         /// Tests that a ref-counted texture is disposed when all references are lost.
@@ -226,6 +233,12 @@ namespace osu.Framework.Tests.Visual.Sprites
                 LargeStore = new LargeTextureStore(host.CreateTextureLoaderStore(BlockingOnlineStore));
 
                 return base.CreateChildDependencies(parent);
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+                BlockingOnlineStore?.Reset();
             }
         }
     }
