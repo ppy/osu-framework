@@ -94,12 +94,8 @@ namespace osu.Framework.Tests.Visual.Platform
 
         private class ResourceDisplay : Container
         {
-            public readonly object Resource;
-
             public ResourceDisplay(string name, [CanBeNull] object resource)
             {
-                Resource = resource;
-
                 AutoSizeAxes = Axes.Y;
                 RelativeSizeAxes = Axes.X;
 
