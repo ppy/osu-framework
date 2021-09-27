@@ -543,6 +543,13 @@ namespace osu.Framework.Graphics.Video
             }
         }
 
+        private readonly ConcurrentQueue<Frame> hwTransferFrames = new ConcurrentQueue<Frame>();
+        private readonly ConcurrentQueue<Frame> scalerFrames = new ConcurrentQueue<Frame>();
+
+        private void freeFrame(Frame frame) => ffmpeg.av_frame_free(&frame.Value);
+        private void returnHwTransferFrame(Frame frame) => hwTransferFrames.Enqueue(frame);
+        private void returnScalerFrame(Frame frame) => scalerFrames.Enqueue(frame);
+
         private void readDecodedFrames()
         {
             while (true)
@@ -560,18 +567,20 @@ namespace osu.Framework.Graphics.Video
                 var frameTime = (tmpFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
                 // get final frame.
-                AVFrame* frame;
+                Frame frame;
 
                 if (isHwPixelFormat((AVPixelFormat)tmpFrame->format))
                 {
                     // transfer data from HW decoder to RAM.
-                    var swFrame = ffmpeg.av_frame_alloc();
-                    var transferResult = ffmpeg.av_hwframe_transfer_data(swFrame, tmpFrame, 0);
+                    if (!hwTransferFrames.TryDequeue(out var swFrame))
+                        swFrame = new Frame(ffmpeg.av_frame_alloc(), returnHwTransferFrame);
+
+                    var transferResult = ffmpeg.av_hwframe_transfer_data(swFrame.Value, tmpFrame, 0);
 
                     if (transferResult < 0)
                     {
                         Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
-                        ffmpeg.av_frame_free(&swFrame);
+                        ffmpeg.av_frame_free(&swFrame.Value);
                         continue;
                     }
 
@@ -582,7 +591,7 @@ namespace osu.Framework.Graphics.Video
                 }
                 else
                 {
-                    frame = tmpFrame;
+                    frame = new Frame(tmpFrame, freeFrame);
                     isUsingHardwareDecoder = false;
                 }
 
@@ -591,32 +600,43 @@ namespace osu.Framework.Graphics.Video
                 if (skipOutputUntilTime > frameTime)
                     continue;
 
-                var frameFormat = (AVPixelFormat)frame->format;
+                // if needed, convert the resulting frame to a format that we can render.
+                const AVPixelFormat target_pix_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
+                var frameFormat = (AVPixelFormat)frame.Value->format;
 
-                // convert the resulting frame to a format that we can render.
-                if (frameFormat != AVPixelFormat.AV_PIX_FMT_YUV420P)
+                if (frameFormat != target_pix_format)
                 {
                     var scalerContext = getScaler(frameFormat);
 
-                    var outFrame = ffmpeg.av_frame_alloc();
-                    outFrame->format = (int)AVPixelFormat.AV_PIX_FMT_YUV420P;
-                    outFrame->width = frame->width;
-                    outFrame->height = frame->height;
+                    if (!scalerFrames.TryDequeue(out var scalerFrame))
+                        scalerFrame = new Frame(ffmpeg.av_frame_alloc(), returnScalerFrame);
 
-                    ffmpeg.av_frame_get_buffer(outFrame, 32);
+                    // set the scaler's output to the pix format that we need.
+                    scalerFrame.Value->format = (int)target_pix_format;
 
-                    ffmpeg.sws_scale(scalerContext, frame->data, frame->linesize, 0, frame->height,
-                        outFrame->data, outFrame->linesize);
+                    // allocate buffer if the scaler frame settings don't match the decoded frame.
+                    if (scalerFrame.Value->width != frame.Value->width || scalerFrame.Value->height != frame.Value->height)
+                    {
+                        scalerFrame.Value->width = frame.Value->width;
+                        scalerFrame.Value->height = frame.Value->height;
 
-                    ffmpeg.av_frame_free(&frame);
-                    frame = outFrame;
+                        ffmpeg.av_frame_get_buffer(scalerFrame.Value, 0);
+                    }
+
+                    ffmpeg.sws_scale(
+                        scalerContext,
+                        frame.Value->data, frame.Value->linesize, 0, frame.Value->height,
+                        scalerFrame.Value->data, scalerFrame.Value->linesize);
+
+                    frame.Return();
+                    frame = scalerFrame;
                 }
 
                 // create texture.
                 if (!availableTextures.TryDequeue(out var tex))
-                    tex = new Texture(new VideoTexture(frame->width, frame->height));
+                    tex = new Texture(new VideoTexture(frame.Value->width, frame.Value->height));
 
-                var upload = new VideoTextureUpload(frame, ffmpeg.av_frame_free);
+                var upload = new VideoTextureUpload(frame);
 
                 tex.SetData(upload);
                 decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
@@ -757,10 +777,19 @@ namespace osu.Framework.Graphics.Video
                 ffmpeg.sws_freeContext(currentScalerContext);
 
             while (decodedFrames.TryDequeue(out var f))
+            {
+                ((VideoTexture)f.Texture.TextureGL).FlushUploads();
                 f.Texture.Dispose();
+            }
 
             while (availableTextures.TryDequeue(out var t))
                 t.Dispose();
+
+            while (hwTransferFrames.TryDequeue(out var hwF))
+                ffmpeg.av_frame_free(&hwF.Value);
+
+            while (scalerFrames.TryDequeue(out var sf))
+                ffmpeg.av_frame_free(&sf.Value);
 
             handle.Dispose();
         }
@@ -796,6 +825,21 @@ namespace osu.Framework.Graphics.Video
             /// The decoder has been completely stopped and cannot be resumed.
             /// </summary>
             Stopped = 4,
+        }
+
+        public readonly struct Frame
+        {
+            public readonly AVFrame* Value;
+
+            private readonly Action<Frame> returnDelegate;
+
+            public Frame(AVFrame* ptr, Action<Frame> returnDelegate = null)
+            {
+                Value = ptr;
+                this.returnDelegate = returnDelegate;
+            }
+
+            public void Return() => returnDelegate(this);
         }
     }
 }

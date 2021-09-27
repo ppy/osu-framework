@@ -12,9 +12,9 @@ namespace osu.Framework.Graphics.Video
 {
     public sealed unsafe class VideoTextureUpload : ITextureUpload
     {
-        public readonly AVFrame* Frame;
+        public AVFrame* Frame => framePtr.Value;
 
-        private readonly FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate;
+        private readonly VideoDecoder.Frame framePtr;
 
         public ReadOnlySpan<Rgba32> Data => ReadOnlySpan<Rgba32>.Empty;
 
@@ -28,19 +28,16 @@ namespace osu.Framework.Graphics.Video
         /// Sets the frame containing the data to be uploaded.
         /// </summary>
         /// <param name="frame">The frame to upload.</param>
-        /// <param name="freeFrameDelegate">A function to free the frame on disposal.</param>
-        internal VideoTextureUpload(AVFrame* frame, FFmpegFuncs.AvFrameFreeDelegate freeFrameDelegate)
+        internal VideoTextureUpload(VideoDecoder.Frame frame)
         {
-            Frame = frame;
-            this.freeFrameDelegate = freeFrameDelegate;
+            framePtr = frame;
         }
 
         #region IDisposable Support
 
         public void Dispose()
         {
-            fixed (AVFrame** ptr = &Frame)
-                freeFrameDelegate(ptr);
+            framePtr.Return();
         }
 
         #endregion
