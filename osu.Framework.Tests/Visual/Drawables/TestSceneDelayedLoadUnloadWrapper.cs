@@ -254,6 +254,7 @@ namespace osu.Framework.Tests.Visual.Drawables
         }
 
         [Test]
+        [Ignore("Fails intermittently on CI, can't be reproduced locally.")]
         public void TestManyChildrenUnload()
         {
             int loaded = 0;
