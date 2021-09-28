@@ -448,6 +448,7 @@ namespace osu.Framework.Graphics.Video
         private void decodingLoop(CancellationToken cancellationToken)
         {
             var packet = ffmpeg.av_packet_alloc();
+            var readFrame = ffmpeg.av_frame_alloc();
 
             const int max_pending_frames = 3;
 
@@ -461,7 +462,7 @@ namespace osu.Framework.Graphics.Video
                         case DecoderState.Running:
                             if (decodedFrames.Count < max_pending_frames)
                             {
-                                decodeNextFrame(packet);
+                                decodeNextFrame(packet, readFrame);
                             }
                             else
                             {
@@ -501,13 +502,14 @@ namespace osu.Framework.Graphics.Video
             finally
             {
                 ffmpeg.av_packet_free(&packet);
+                ffmpeg.av_frame_free(&readFrame);
 
                 if (State != DecoderState.Faulted)
                     State = DecoderState.Stopped;
             }
         }
 
-        private void decodeNextFrame(AVPacket* packet)
+        private void decodeNextFrame(AVPacket* packet, AVFrame* readFrame)
         {
             int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
 
@@ -521,7 +523,7 @@ namespace osu.Framework.Graphics.Video
 
                     if (sendPacketResult == 0)
                     {
-                        readDecodedFrames();
+                        readDecodedFrames(readFrame);
                     }
                     else
                         Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
@@ -555,31 +557,24 @@ namespace osu.Framework.Graphics.Video
         private void returnHwTransferFrame(Frame frame) => hwTransferFrames.Enqueue(frame);
         private void returnScalerFrame(Frame frame) => scalerFrames.Enqueue(frame);
 
-        private void readDecodedFrames()
+        private void readDecodedFrames(AVFrame* readFrame)
         {
             while (true)
             {
-                AVFrame* tmpFrame = ffmpeg.av_frame_alloc();
-                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, tmpFrame);
+                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, readFrame);
 
                 if (receiveFrameResult < 0)
-                {
-                    ffmpeg.av_frame_free(&tmpFrame);
                     break;
-                }
 
-                var frameTime = (tmpFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                var frameTime = (readFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
                 if (skipOutputUntilTime > frameTime)
-                {
-                    ffmpeg.av_frame_free(&tmpFrame);
                     continue;
-                }
 
                 // get final frame.
                 Frame frame;
 
-                if (isHwPixelFormat((AVPixelFormat)tmpFrame->format))
+                if (isHwPixelFormat((AVPixelFormat)readFrame->format))
                 {
                     // transfer data from HW decoder to RAM.
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
@@ -587,7 +582,7 @@ namespace osu.Framework.Graphics.Video
 
                     // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to long.MinValue instead of real values.
                     // if you need to use them later, take them from `tmpFrame` before it's freed.
-                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, tmpFrame, 0);
+                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, readFrame, 0);
 
                     if (transferResult < 0)
                     {
@@ -598,15 +593,15 @@ namespace osu.Framework.Graphics.Video
                         continue;
                     }
 
-                    ffmpeg.av_frame_free(&tmpFrame);
-
                     frame = hwTransferFrame;
                     isUsingHardwareDecoder = true;
                 }
                 else
                 {
-                    // frames from software decoders don't require any extra steps.
-                    frame = new Frame(tmpFrame, freeFrame);
+                    // copy data to a new AVFrame so that `readFrame` can be reused
+                    frame = new Frame(ffmpeg.av_frame_alloc(), freeFrame);
+                    ffmpeg.av_frame_move_ref(frame.Value, readFrame);
+
                     isUsingHardwareDecoder = false;
                 }
 
@@ -708,6 +703,7 @@ namespace osu.Framework.Graphics.Video
                 av_frame_alloc = AGffmpeg.av_frame_alloc,
                 av_frame_free = AGffmpeg.av_frame_free,
                 av_frame_unref = AGffmpeg.av_frame_unref,
+                av_frame_move_ref = AGffmpeg.av_frame_move_ref,
                 av_frame_get_buffer = AGffmpeg.av_frame_get_buffer,
                 av_strdup = AGffmpeg.av_strdup,
                 av_strerror = AGffmpeg.av_strerror,

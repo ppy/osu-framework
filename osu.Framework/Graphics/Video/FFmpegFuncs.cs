@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate void AvFrameUnrefDelegate(AVFrame* frame);
 
+        public delegate void AvFrameMoveRefDelegate(AVFrame* dst, AVFrame* src);
+
         public delegate int AvFrameGetBufferDelegate(AVFrame* frame, int align);
 
         public delegate byte* AvStrDupDelegate(string s);
@@ -37,17 +39,17 @@ namespace osu.Framework.Graphics.Video
 
         public delegate AVHWDeviceType AvHwdeviceIterateTypesDelegate(AVHWDeviceType prev);
 
-        public delegate int AvHwdeviceCtxCreate(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)0)] string device, AVDictionary* opts, int flags);
+        public delegate int AvHwdeviceCtxCreateDelegate(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)0)] string device, AVDictionary* opts, int flags);
 
-        public delegate int AvHwframeTransferData(AVFrame* dst, AVFrame* src, int flags);
+        public delegate int AvHwframeTransferDataDelegate(AVFrame* dst, AVFrame* src, int flags);
 
         public delegate AVCodec* AvcodecFindDecoderDelegate(AVCodecID id);
 
-        public delegate AVCodecContext* AvcodecAllocContext3(AVCodec* codec);
+        public delegate AVCodecContext* AvcodecAllocContext3Delegate(AVCodec* codec);
 
-        public delegate void AvcodecFreeContext(AVCodecContext** avctx);
+        public delegate void AvcodecFreeContextDelegate(AVCodecContext** avctx);
 
-        public delegate int AvcodecParametersToContext(AVCodecContext* codec, AVCodecParameters* par);
+        public delegate int AvcodecParametersToContextDelegate(AVCodecContext* codec, AVCodecParameters* par);
 
         public delegate int AvcodecOpen2Delegate(AVCodecContext* avctx, AVCodec* codec, AVDictionary** options);
 
@@ -76,6 +78,7 @@ namespace osu.Framework.Graphics.Video
         public AvFrameAllocDelegate av_frame_alloc;
         public AvFrameFreeDelegate av_frame_free;
         public AvFrameUnrefDelegate av_frame_unref;
+        public AvFrameMoveRefDelegate av_frame_move_ref;
         public AvFrameGetBufferDelegate av_frame_get_buffer;
         public AvStrDupDelegate av_strdup;
         public AvStrErrorDelegate av_strerror;
@@ -86,12 +89,12 @@ namespace osu.Framework.Graphics.Video
         public AvReadFrameDelegate av_read_frame;
         public AvSeekFrameDelegate av_seek_frame;
         public AvHwdeviceIterateTypesDelegate av_hwdevice_iterate_types;
-        public AvHwdeviceCtxCreate av_hwdevice_ctx_create;
-        public AvHwframeTransferData av_hwframe_transfer_data;
+        public AvHwdeviceCtxCreateDelegate av_hwdevice_ctx_create;
+        public AvHwframeTransferDataDelegate av_hwframe_transfer_data;
         public AvcodecFindDecoderDelegate avcodec_find_decoder;
-        public AvcodecAllocContext3 avcodec_alloc_context3;
-        public AvcodecFreeContext avcodec_free_context;
-        public AvcodecParametersToContext avcodec_parameters_to_context;
+        public AvcodecAllocContext3Delegate avcodec_alloc_context3;
+        public AvcodecFreeContextDelegate avcodec_free_context;
+        public AvcodecParametersToContextDelegate avcodec_parameters_to_context;
         public AvcodecOpen2Delegate avcodec_open2;
         public AvcodecReceiveFrameDelegate avcodec_receive_frame;
         public AvcodecSendPacketDelegate avcodec_send_packet;
