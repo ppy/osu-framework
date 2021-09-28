@@ -544,11 +544,18 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit() => PerformExit(false);
+        public void Exit()
+        {
+            if (CanExit)
+                PerformExit(false);
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
+        /// <remarks>
+        /// Will never be called if <see cref="CanExit"/> is <see langword="false"/>.
+        /// </remarks>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
         protected virtual void PerformExit(bool immediately) => performExit(immediately);
 
@@ -702,10 +709,13 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                // Close the window and stop all threads
-                performExit(true);
+                if (CanExit)
+                {
+                    // Close the window and stop all threads
+                    performExit(true);
 
-                host_running_mutex.Release();
+                    host_running_mutex.Release();
+                }
             }
         }
 
