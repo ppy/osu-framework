@@ -83,10 +83,5 @@ namespace osu.Framework.Android
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new AndroidVideoDecoder(stream);
-
-        protected override void PerformExit(bool immediately)
-        {
-            // Do not exit on Android, Window.Run() does not block
-        }
     }
 }
