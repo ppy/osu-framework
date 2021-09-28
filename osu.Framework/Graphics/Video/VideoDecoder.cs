@@ -26,6 +26,11 @@ namespace osu.Framework.Graphics.Video
     public unsafe class VideoDecoder : IDisposable
     {
         /// <summary>
+        /// Defines which pixel format is expected in <see cref="VideoTexture"/>
+        /// </summary>
+        private const AVPixelFormat expected_render_pixel_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
+
+        /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
         public double Duration => stream == null ? 0 : duration * timeBaseInSeconds * 1000;
@@ -433,7 +438,7 @@ namespace osu.Framework.Graphics.Video
             // https://www.ffmpeg.org/doxygen/3.1/swscale_8h_source.html#l00056
             currentScalerContext = ffmpeg.sws_getContext(
                 codecContext->width, codecContext->height, sourceFormat,
-                codecContext->width, codecContext->height, AVPixelFormat.AV_PIX_FMT_YUV420P,
+                codecContext->width, codecContext->height, expected_render_pixel_format,
                 1, null, null, null);
             currentScalerSourceFormat = sourceFormat;
 
@@ -572,21 +577,23 @@ namespace osu.Framework.Graphics.Video
                 if (isHwPixelFormat((AVPixelFormat)tmpFrame->format))
                 {
                     // transfer data from HW decoder to RAM.
-                    if (!hwTransferFrames.TryDequeue(out var swFrame))
-                        swFrame = new Frame(ffmpeg.av_frame_alloc(), returnHwTransferFrame);
+                    if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
+                        hwTransferFrame = new Frame(ffmpeg.av_frame_alloc(), returnHwTransferFrame);
 
-                    var transferResult = ffmpeg.av_hwframe_transfer_data(swFrame.Value, tmpFrame, 0);
+                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, tmpFrame, 0);
 
                     if (transferResult < 0)
                     {
                         Logger.Log($"Failed to transfer frame from HW decoder: {getErrorMessage(transferResult)}");
-                        ffmpeg.av_frame_free(&swFrame.Value);
+
+                        // free the frame instead of enqueueing it in case that the failure was caused by it's configuration.
+                        ffmpeg.av_frame_free(&hwTransferFrame.Value);
                         continue;
                     }
 
                     ffmpeg.av_frame_free(&tmpFrame);
 
-                    frame = swFrame;
+                    frame = hwTransferFrame;
                     isUsingHardwareDecoder = true;
                 }
                 else
@@ -601,10 +608,9 @@ namespace osu.Framework.Graphics.Video
                     continue;
 
                 // if needed, convert the resulting frame to a format that we can render.
-                const AVPixelFormat target_pix_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
                 var frameFormat = (AVPixelFormat)frame.Value->format;
 
-                if (frameFormat != target_pix_format)
+                if (frameFormat != expected_render_pixel_format)
                 {
                     var scalerContext = getScaler(frameFormat);
 
@@ -612,7 +618,7 @@ namespace osu.Framework.Graphics.Video
                         scalerFrame = new Frame(ffmpeg.av_frame_alloc(), returnScalerFrame);
 
                     // set the scaler's output to the pix format that we need.
-                    scalerFrame.Value->format = (int)target_pix_format;
+                    scalerFrame.Value->format = (int)expected_render_pixel_format;
 
                     // allocate buffer if the scaler frame settings don't match the decoded frame.
                     if (scalerFrame.Value->width != frame.Value->width || scalerFrame.Value->height != frame.Value->height)
