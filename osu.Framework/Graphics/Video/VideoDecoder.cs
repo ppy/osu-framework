@@ -568,8 +568,13 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                // use timestamp from `tmpFrame` as frames that were loaded with `av_hwframe_transfer_data` don't have valid timestamps.
                 var frameTime = (tmpFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+
+                if (skipOutputUntilTime > frameTime)
+                {
+                    ffmpeg.av_frame_free(&tmpFrame);
+                    continue;
+                }
 
                 // get final frame.
                 Frame frame;
@@ -580,6 +585,8 @@ namespace osu.Framework.Graphics.Video
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
                         hwTransferFrame = new Frame(ffmpeg.av_frame_alloc(), returnHwTransferFrame);
 
+                    // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to long.MinValue instead of real values.
+                    // if you need to use them later, take them from `tmpFrame` before it's freed.
                     var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, tmpFrame, 0);
 
                     if (transferResult < 0)
@@ -598,14 +605,12 @@ namespace osu.Framework.Graphics.Video
                 }
                 else
                 {
+                    // frames from software decoders don't require any extra steps.
                     frame = new Frame(tmpFrame, freeFrame);
                     isUsingHardwareDecoder = false;
                 }
 
                 lastDecodedFrameTime = (float)frameTime;
-
-                if (skipOutputUntilTime > frameTime)
-                    continue;
 
                 // if needed, convert the resulting frame to a format that we can render.
                 var frameFormat = (AVPixelFormat)frame.Value->format;
