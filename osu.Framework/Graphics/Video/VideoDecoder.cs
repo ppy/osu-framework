@@ -448,7 +448,7 @@ namespace osu.Framework.Graphics.Video
         private void decodingLoop(CancellationToken cancellationToken)
         {
             var packet = ffmpeg.av_packet_alloc();
-            var readFrame = ffmpeg.av_frame_alloc();
+            var receiveFrame = ffmpeg.av_frame_alloc();
 
             const int max_pending_frames = 3;
 
@@ -462,7 +462,7 @@ namespace osu.Framework.Graphics.Video
                         case DecoderState.Running:
                             if (decodedFrames.Count < max_pending_frames)
                             {
-                                decodeNextFrame(packet, readFrame);
+                                decodeNextFrame(packet, receiveFrame);
                             }
                             else
                             {
@@ -502,14 +502,14 @@ namespace osu.Framework.Graphics.Video
             finally
             {
                 ffmpeg.av_packet_free(&packet);
-                ffmpeg.av_frame_free(&readFrame);
+                ffmpeg.av_frame_free(&receiveFrame);
 
                 if (State != DecoderState.Faulted)
                     State = DecoderState.Stopped;
             }
         }
 
-        private void decodeNextFrame(AVPacket* packet, AVFrame* readFrame)
+        private void decodeNextFrame(AVPacket* packet, AVFrame* receiveFrame)
         {
             // read data from input into AVPacket.
             int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
@@ -525,7 +525,7 @@ namespace osu.Framework.Graphics.Video
 
                     if (sendPacketResult == 0)
                     {
-                        readDecodedFrames(readFrame);
+                        readDecodedFrames(receiveFrame);
                     }
                     else
                         Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
@@ -564,11 +564,11 @@ namespace osu.Framework.Graphics.Video
         private void returnHwTransferFrame(Frame frame) => hwTransferFrames.Enqueue(frame);
         private void returnScalerFrame(Frame frame) => scalerFrames.Enqueue(frame);
 
-        private void readDecodedFrames(AVFrame* readFrame)
+        private void readDecodedFrames(AVFrame* receiveFrame)
         {
             while (true)
             {
-                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, readFrame);
+                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, receiveFrame);
 
                 if (receiveFrameResult < 0)
                 {
@@ -580,7 +580,7 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                var frameTime = (readFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                var frameTime = (receiveFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
                 if (skipOutputUntilTime > frameTime)
                     continue;
@@ -588,7 +588,7 @@ namespace osu.Framework.Graphics.Video
                 // get final frame.
                 Frame frame;
 
-                if (isHwPixelFormat((AVPixelFormat)readFrame->format))
+                if (isHwPixelFormat((AVPixelFormat)receiveFrame->format))
                 {
                     // transfer data from HW decoder to RAM.
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
@@ -596,7 +596,7 @@ namespace osu.Framework.Graphics.Video
 
                     // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to long.MinValue instead of real values.
                     // if you need to use them later, take them from `tmpFrame` before it's freed.
-                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, readFrame, 0);
+                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, receiveFrame, 0);
 
                     if (transferResult < 0)
                     {
@@ -614,7 +614,7 @@ namespace osu.Framework.Graphics.Video
                 {
                     // copy data to a new AVFrame so that `readFrame` can be reused
                     frame = new Frame(ffmpeg.av_frame_alloc(), freeFrame);
-                    ffmpeg.av_frame_move_ref(frame.Value, readFrame);
+                    ffmpeg.av_frame_move_ref(frame.Value, receiveFrame);
 
                     isUsingHardwareDecoder = false;
                 }
