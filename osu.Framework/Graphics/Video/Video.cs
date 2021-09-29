@@ -199,10 +199,19 @@ namespace osu.Framework.Graphics.Video
             base.Dispose(isDisposing);
 
             isDisposed = true;
-            decoder?.Dispose();
 
-            foreach (var f in availableFrames)
-                f.Texture.Dispose();
+            if (decoder != null)
+            {
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+
+                decoder.Dispose();
+            }
+            else
+            {
+                foreach (var f in availableFrames)
+                    f.Texture.Dispose();
+            }
         }
 
         protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;
