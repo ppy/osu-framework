@@ -511,6 +511,7 @@ namespace osu.Framework.Graphics.Video
 
         private void decodeNextFrame(AVPacket* packet, AVFrame* readFrame)
         {
+            // read data from input into AVPacket.
             int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
 
             if (readFrameResult >= 0)
@@ -519,6 +520,7 @@ namespace osu.Framework.Graphics.Video
 
                 if (packet->stream_index == stream->index)
                 {
+                    // send the packet for decoding.
                     int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
 
                     if (sendPacketResult == 0)
@@ -526,7 +528,7 @@ namespace osu.Framework.Graphics.Video
                         readDecodedFrames(readFrame);
                     }
                     else
-                        Logger.Log($"Error {sendPacketResult} sending packet in VideoDecoder");
+                        Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
                 }
 
                 ffmpeg.av_packet_unref(packet);
@@ -543,9 +545,14 @@ namespace osu.Framework.Graphics.Video
                     State = DecoderState.EndOfStream;
                 }
             }
-            else
+            else if (readFrameResult == -AGffmpeg.EAGAIN)
             {
                 State = DecoderState.Ready;
+                Thread.Sleep(1);
+            }
+            else
+            {
+                Logger.Log($"Failed to read data into avcodec packet: {getErrorMessage(readFrameResult)}");
                 Thread.Sleep(1);
             }
         }
@@ -564,7 +571,14 @@ namespace osu.Framework.Graphics.Video
                 var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, readFrame);
 
                 if (receiveFrameResult < 0)
+                {
+                    if (receiveFrameResult != -AGffmpeg.EAGAIN && receiveFrameResult != AGffmpeg.AVERROR_EOF)
+                    {
+                        Logger.Log($"Failed to receive frame from avcodec: {getErrorMessage(receiveFrameResult)}");
+                    }
+
                     break;
+                }
 
                 var frameTime = (readFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
@@ -626,15 +640,34 @@ namespace osu.Framework.Graphics.Video
                         scalerFrame.Value->width = frame.Value->width;
                         scalerFrame.Value->height = frame.Value->height;
 
-                        ffmpeg.av_frame_get_buffer(scalerFrame.Value, 0);
+                        var getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Value, 0);
+
+                        if (getBufferResult < 0)
+                        {
+                            Logger.Log($"Failed to allocate SWS frame buffer: {getErrorMessage(getBufferResult)}");
+
+                            frame.Return();
+                            ffmpeg.av_frame_free(&scalerFrame.Value);
+                            continue;
+                        }
                     }
 
-                    ffmpeg.sws_scale(
+                    var scalerResult = ffmpeg.sws_scale(
                         scalerContext,
                         frame.Value->data, frame.Value->linesize, 0, frame.Value->height,
                         scalerFrame.Value->data, scalerFrame.Value->linesize);
 
+                    // return the original frame regardless of the scaler result.
                     frame.Return();
+
+                    if (scalerResult < 0)
+                    {
+                        Logger.Log($"Failed to scale frame: {getErrorMessage(scalerResult)}");
+
+                        ffmpeg.av_frame_free(&scalerFrame.Value);
+                        continue;
+                    }
+
                     frame = scalerFrame;
                 }
 
@@ -665,7 +698,7 @@ namespace osu.Framework.Graphics.Video
                 return $"{errorCode} (av_strerror failed with code {strErrorCode})";
 
             var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
-            return Encoding.ASCII.GetString(buffer[..messageLength]);
+            return $"{Encoding.ASCII.GetString(buffer[..messageLength])} ({errorCode})";
         }
 
         protected virtual FFmpegFuncs CreateFuncs()
