@@ -70,7 +70,10 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        /// <summary>
+        /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
+        /// </summary>
+        public virtual bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
@@ -541,11 +544,18 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit() => PerformExit(false);
+        public void Exit()
+        {
+            if (CanExit)
+                PerformExit(false);
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
+        /// <remarks>
+        /// Will never be called if <see cref="CanExit"/> is <see langword="false"/>.
+        /// </remarks>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
         protected virtual void PerformExit(bool immediately) => performExit(immediately);
 
@@ -573,6 +583,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
+
         public void Run(Game game)
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
@@ -588,6 +600,9 @@ namespace osu.Framework.Platform
 
             try
             {
+                if (!host_running_mutex.Wait(10000))
+                    throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -694,8 +709,13 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                // Close the window and stop all threads
-                performExit(true);
+                if (CanExit)
+                {
+                    // Close the window and stop all threads
+                    performExit(true);
+
+                    host_running_mutex.Release();
+                }
             }
         }
 

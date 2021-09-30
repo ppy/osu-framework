@@ -90,10 +90,6 @@ namespace osu.Framework.Platform
             }
         }
 
-        public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
-
-        public override void DeleteDatabase(string name) => Delete($@"{name}.db");
-
         public override Storage GetStorageForDirectory([NotNull] string path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));

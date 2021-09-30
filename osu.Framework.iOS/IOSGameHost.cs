@@ -82,11 +82,6 @@ namespace osu.Framework.iOS
             DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);
         }
 
-        protected override void PerformExit(bool immediately)
-        {
-            // we shouldn't exit on iOS, as Window.Run does not block
-        }
-
         public override bool OnScreenKeyboardOverlapsGameWindow => true;
 
         protected override bool LimitedMemoryEnvironment => true;
