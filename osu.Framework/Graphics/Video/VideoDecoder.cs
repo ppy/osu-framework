@@ -62,6 +62,7 @@ namespace osu.Framework.Graphics.Video
 
         // libav-context-related
         private AVFormatContext* formatContext;
+        private AVIOContext* ioContext;
         private AVStream* stream;
         private AVCodecParameters codecParams;
         private byte[] managedContextBuffer;
@@ -320,7 +321,8 @@ namespace osu.Framework.Graphics.Video
             // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
             // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
             var contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
-            formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+            ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+            formatContext->pb = ioContext;
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             inputOpened = openInputResult >= 0;
@@ -614,13 +616,15 @@ namespace osu.Framework.Graphics.Video
             if (formatContext != null && inputOpened)
             {
                 fixed (AVFormatContext** ptr = &formatContext)
-                {
-                    // free the context's buffer as `avio_context_free` doesn't do that by itself.
-                    ffmpeg.av_freep(&formatContext->pb->buffer);
-                    ffmpeg.avio_context_free(&formatContext->pb);
-
                     ffmpeg.avformat_close_input(ptr);
-                }
+            }
+
+            if (ioContext != null)
+            {
+                // free the context's buffer as `avio_context_free` doesn't do that by itself.
+                ffmpeg.av_freep(&ioContext->buffer);
+                fixed (AVIOContext** ptr = &ioContext)
+                    ffmpeg.avio_context_free(ptr);
             }
 
             seekCallback = null;
