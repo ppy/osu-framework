@@ -580,7 +580,7 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                var frameTime = (receiveFrame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                var frameTime = (receiveFrame->pts - stream->start_time) * timeBaseInSeconds * 1000;
 
                 if (skipOutputUntilTime > frameTime)
                     continue;
@@ -594,8 +594,8 @@ namespace osu.Framework.Graphics.Video
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
                         hwTransferFrame = new Frame(ffmpeg.av_frame_alloc(), returnHwTransferFrame);
 
-                    // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to long.MinValue instead of real values.
-                    // if you need to use them later, take them from `tmpFrame` before it's freed.
+                    // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to AV_NOPTS_VALUE instead of real values.
+                    // if you need to use them later, take them from `receiveFrame` before it's freed.
                     var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Value, receiveFrame, 0);
 
                     if (transferResult < 0)
