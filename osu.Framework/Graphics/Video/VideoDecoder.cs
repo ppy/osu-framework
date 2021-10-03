@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Video
         // https://en.wikipedia.org/wiki/YCbCr
         public Matrix3 GetConversionMatrix()
         {
-            if (stream == null)
+            if (codecContext == null)
                 return Matrix3.Zero;
 
             switch (codecContext->colorspace)
