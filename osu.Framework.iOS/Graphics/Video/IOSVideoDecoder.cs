@@ -30,6 +30,9 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern byte* av_strdup(string s);
 
         [DllImport(dll_name)]
+        private static extern int av_strerror(int errnum, byte* buffer, ulong bufSize);
+
+        [DllImport(dll_name)]
         private static extern void* av_malloc(ulong size);
 
         [DllImport(dll_name)]
@@ -37,6 +40,9 @@ namespace osu.Framework.iOS.Graphics.Video
 
         [DllImport(dll_name)]
         private static extern void av_packet_unref(AVPacket* pkt);
+
+        [DllImport(dll_name)]
+        private static extern void av_frame_move_ref(AVFrame* dst, AVFrame* src);
 
         [DllImport(dll_name)]
         private static extern void av_packet_free(AVPacket** pkt);
@@ -48,7 +54,25 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern int av_seek_frame(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
         [DllImport(dll_name)]
+        private static extern AVHWDeviceType av_hwdevice_iterate_types(AVHWDeviceType prev);
+
+        [DllImport(dll_name)]
+        private static extern int av_hwdevice_ctx_create(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)48)] string device, AVDictionary* opts, int flags);
+
+        [DllImport(dll_name)]
+        private static extern int av_hwframe_transfer_data(AVFrame* dst, AVFrame* src, int flags);
+
+        [DllImport(dll_name)]
         private static extern AVCodec* avcodec_find_decoder(AVCodecID id);
+
+        [DllImport(dll_name)]
+        private static extern AVCodecContext* avcodec_alloc_context3(AVCodec* codec);
+
+        [DllImport(dll_name)]
+        private static extern void avcodec_free_context(AVCodecContext** avctx);
+
+        [DllImport(dll_name)]
+        private static extern int avcodec_parameters_to_context(AVCodecContext* codec, AVCodecParameters* par);
 
         [DllImport(dll_name)]
         private static extern int avcodec_open2(AVCodecContext* avctx, AVCodec* codec, AVDictionary** options);
@@ -72,13 +96,15 @@ namespace osu.Framework.iOS.Graphics.Video
         private static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
 
         [DllImport(dll_name)]
-        private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
+        private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet,
+                                                              avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
         [DllImport(dll_name)]
         private static extern void sws_freeContext(SwsContext* swsContext);
 
         [DllImport(dll_name)]
-        private static extern SwsContext* sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
+        private static extern SwsContext* sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter,
+                                                         SwsFilter* dstFilter, double* param);
 
         [DllImport(dll_name)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
@@ -98,15 +124,23 @@ namespace osu.Framework.iOS.Graphics.Video
             av_frame_alloc = av_frame_alloc,
             av_frame_free = av_frame_free,
             av_frame_unref = av_frame_unref,
+            av_frame_move_ref = av_frame_move_ref,
             av_frame_get_buffer = av_frame_get_buffer,
             av_strdup = av_strdup,
+            av_strerror = av_strerror,
             av_malloc = av_malloc,
             av_packet_alloc = av_packet_alloc,
             av_packet_unref = av_packet_unref,
             av_packet_free = av_packet_free,
             av_read_frame = av_read_frame,
             av_seek_frame = av_seek_frame,
+            av_hwdevice_iterate_types = av_hwdevice_iterate_types,
+            av_hwdevice_ctx_create = av_hwdevice_ctx_create,
+            av_hwframe_transfer_data = av_hwframe_transfer_data,
             avcodec_find_decoder = avcodec_find_decoder,
+            avcodec_alloc_context3 = avcodec_alloc_context3,
+            avcodec_free_context = avcodec_free_context,
+            avcodec_parameters_to_context = avcodec_parameters_to_context,
             avcodec_open2 = avcodec_open2,
             avcodec_receive_frame = avcodec_receive_frame,
             avcodec_send_packet = avcodec_send_packet,
