@@ -33,6 +33,11 @@ namespace osu.Framework.Threading
         public bool HasPendingTasks => TotalPendingTasks > 0;
 
         /// <summary>
+        /// The total tasks this scheduler instance has run.
+        /// </summary>
+        public int TotalTasksRun { get; private set; }
+
+        /// <summary>
         /// The total number of <see cref="ScheduledDelegate"/>s tracked by this instance for future execution.
         /// </summary>
         internal int TotalPendingTasks => runQueue.Count + timedTasks.Count + perUpdateTasks.Count;
@@ -41,11 +46,10 @@ namespace osu.Framework.Threading
         /// The base thread is assumed to be the thread on which the constructor is run.
         /// </summary>
         public Scheduler()
+            : this(null, new StopwatchClock(true))
         {
-            var currentThread = Thread.CurrentThread;
-            isCurrentThread = () => Thread.CurrentThread == currentThread;
-
-            clock = new StopwatchClock(true);
+            var constructedThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == constructedThread;
         }
 
         /// <summary>
@@ -106,6 +110,8 @@ namespace osu.Framework.Threading
             {
                 //todo: error handling
                 sd.RunTaskInternal();
+
+                TotalTasksRun++;
 
                 if (++countRun == countToRun)
                     break;
