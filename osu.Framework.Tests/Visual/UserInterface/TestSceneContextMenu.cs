@@ -192,6 +192,32 @@ namespace osu.Framework.Tests.Visual.UserInterface
             assertMenuState(false);
         }
 
+        [Test]
+        public void TestHideWhileScrolledAndShow()
+        {
+            Drawable box = null;
+
+            addBoxStep(b => box = b, 1);
+            clickBoxStep(() => box);
+            assertMenuState(true);
+
+            AddStep("drag menu offscreen", () =>
+            {
+                InputManager.MoveMouseTo(contextMenuContainer.CurrentMenu);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(contextMenuContainer.CurrentMenu, new Vector2(0, 150));
+            });
+
+            AddStep("hide menu", () =>
+            {
+                InputManager.Key(Key.Escape);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+
+            clickBoxStep(() => box);
+            AddAssert("menu has correct size", () => contextMenuContainer.CurrentMenu.DrawSize.Y > 10);
+        }
+
         private void clickBoxStep(Func<Drawable> getBoxFunc)
         {
             AddStep("right-click box", () =>
