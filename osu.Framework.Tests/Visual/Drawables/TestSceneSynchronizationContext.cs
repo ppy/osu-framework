@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddStep("add box", () => Child = box = new AsyncPerformingBox(true));
             AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
-            AddAssert("one new task run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun + 1);
+            AddUntilStep("one new task run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun + 1);
         }
 
         [Test]
