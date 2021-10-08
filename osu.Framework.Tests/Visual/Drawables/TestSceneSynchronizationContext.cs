@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -48,6 +49,33 @@ namespace osu.Framework.Tests.Visual.Drawables
             AddAssert("no tasks run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun);
             AddStep("trigger", () => box.ReleaseAsyncLoadCompleteLock());
             AddUntilStep("one new task run", () => host.UpdateThread.Scheduler.TotalTasksRun == initialTasksRun + 1);
+        }
+
+        [Test]
+        public void TestAsyncThrows()
+        {
+            Exception thrown = null;
+
+            AddStep("watch for exceptions", () => host.ExceptionThrown += onException);
+            AddStep("throw on update thread", () =>
+            {
+                // ReSharper disable once AsyncVoidLambda
+                host.UpdateThread.Scheduler.Add(async () =>
+                {
+                    await Task.Delay(100).ConfigureAwait(true);
+
+                    throw new InvalidOperationException();
+                });
+            });
+
+            AddUntilStep("wait for exception to arrive", () => thrown is InvalidOperationException);
+            AddStep("stop watching for exceptions", () => host.ExceptionThrown -= onException);
+
+            bool onException(Exception arg)
+            {
+                thrown = arg;
+                return true;
+            }
         }
 
         [Test]
