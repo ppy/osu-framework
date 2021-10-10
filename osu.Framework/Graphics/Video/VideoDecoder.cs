@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -23,7 +24,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a video decoder that can be used convert video streams and files into textures.
     /// </summary>
-    public unsafe class VideoDecoder : IDisposable
+    public unsafe partial class VideoDecoder : IDisposable
     {
         /// <summary>
         /// Defines which pixel format is expected in <see cref="VideoTexture"/>
@@ -49,11 +50,6 @@ namespace osu.Framework.Graphics.Video
         /// The timestamp of the last frame that was decoded by this video decoder, or 0 if no frames have been decoded.
         /// </summary>
         public float LastDecodedFrameTime => lastDecodedFrameTime;
-
-        /// <summary>
-        /// True if this video decoder is using hardware decode acceleration.
-        /// </summary>
-        public bool IsUsingHardwareDecoder => isUsingHardwareDecoder;
 
         /// <summary>
         /// The frame rate of the video stream this decoder is decoding.
@@ -89,12 +85,13 @@ namespace osu.Framework.Graphics.Video
 
         // active decoder state
         private volatile float lastDecodedFrameTime;
-        private volatile bool isUsingHardwareDecoder;
 
         private Task decodingTask;
         private CancellationTokenSource decodingTaskCancellationTokenSource;
 
         private double? skipOutputUntilTime;
+
+        private readonly List<AVHWDeviceType> targetHwDecoders;
 
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
@@ -111,8 +108,9 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
         /// <param name="filename">The path to the file that should be decoded.</param>
-        public VideoDecoder(string filename)
-            : this(File.OpenRead(filename))
+        /// <param name="hwDecoder">The <see cref="HardwareVideoDecoder"/> that should be used for decode acceleration.</param>
+        public VideoDecoder(string filename, HardwareVideoDecoder hwDecoder)
+            : this(File.OpenRead(filename), hwDecoder)
         {
         }
 
@@ -120,7 +118,8 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
         /// <param name="videoStream">The stream that should be decoded.</param>
-        public VideoDecoder(Stream videoStream)
+        /// <param name="hwDecoder">The <see cref="HardwareVideoDecoder"/> that should be used for decode acceleration.</param>
+        public VideoDecoder(Stream videoStream, HardwareVideoDecoder hwDecoder)
         {
             ffmpeg = CreateFuncs();
 
@@ -128,6 +127,7 @@ namespace osu.Framework.Graphics.Video
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
+            targetHwDecoders = hwDecoder.ToFfmpegHardwareDeviceTypes();
             State = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
@@ -299,29 +299,6 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
-        /// <remarks>
-        /// This function returns ALL device types that are supported by the loaded FFmpeg lib and not just types that are supported by the current machine.
-        /// </remarks>
-        private List<AVHWDeviceType> getAvailableHwDeviceTypes()
-        {
-            var availableTypes = new List<AVHWDeviceType>();
-
-            var last = AVHWDeviceType.AV_HWDEVICE_TYPE_NONE;
-
-            while (true)
-            {
-                var current = ffmpeg.av_hwdevice_iterate_types(last);
-                if (current != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
-                    availableTypes.Add(current);
-                else
-                    break;
-
-                last = current;
-            }
-
-            return availableTypes;
-        }
-
         private bool isHwPixelFormat(AVPixelFormat format)
         {
             switch (format)
@@ -345,6 +322,44 @@ namespace osu.Framework.Graphics.Video
                 default:
                     return false;
             }
+        }
+
+        /// <remarks>
+        /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
+        /// </remarks>
+        private IEnumerable<(FFmpegCodec codec, IEnumerable<AVHWDeviceType> usableHwDeviceTypes)> getAvailableDecoders(AVCodecID codecId)
+        {
+            var codecs = new List<(FFmpegCodec, IEnumerable<AVHWDeviceType>)>();
+            FFmpegCodec? firstCodec = null;
+
+            void* iterator = null;
+
+            while (true)
+            {
+                var avCodec = ffmpeg.av_codec_iterate(&iterator);
+
+                if (avCodec == null) break;
+
+                var codec = new FFmpegCodec(avCodec, ffmpeg);
+                if (codec.Id != codecId || !codec.IsDecoder) continue;
+
+                firstCodec ??= codec;
+
+                if (targetHwDecoders.Count == 0)
+                    break;
+
+                // Note: Intersect order here is important, order of the returned elements is determined by the first enumerable.
+                // This means that we have better control over it by calling Intersect from `targetHwDecoders`.
+                // See `HardwareVideoDecoder.ToFfmpegHardwareDeviceTypes`
+                codecs.Add((codec, targetHwDecoders.Intersect(codec.SupportedHwDeviceTypes.Value)));
+            }
+
+            // default to the first codec that we found with no HW devices.
+            // The first codec is what FFmpeg's `avcodec_find_decoder` would return so this way we'll automatically fallback to that.
+            if (firstCodec.HasValue)
+                codecs.Add((firstCodec.Value, Array.Empty<AVHWDeviceType>()));
+
+            return codecs;
         }
 
         // sets up libavformat state: creates the AVFormatContext, the frames, etc. to start decoding, but does not actually start the decodingLoop
@@ -371,54 +386,72 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
-            var nStreams = formatContext->nb_streams;
+            var streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
+            if (streamIndex < 0)
+                throw new InvalidOperationException($"Couldn't find video stream: {getErrorMessage(streamIndex)}");
 
-            for (var i = 0; i < nStreams; ++i)
+            stream = formatContext->streams[streamIndex];
+            duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
+            timeBaseInSeconds = stream->time_base.GetValue();
+
+            var codecParams = *stream->codecpar;
+            bool openSuccessful = false;
+
+            foreach (var (decoder, hwDeviceTypes) in getAvailableDecoders(codecParams.codec_id))
             {
-                stream = formatContext->streams[i];
-
-                var codecParams = *stream->codecpar;
-
-                if (codecParams.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO)
+                // free context in case it was allocated in a previous iteration.
+                if (codecContext != null)
                 {
-                    duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
-
-                    timeBaseInSeconds = stream->time_base.GetValue();
-                    var codecPtr = ffmpeg.avcodec_find_decoder(codecParams.codec_id);
-                    if (codecPtr == null)
-                        throw new InvalidOperationException($"Couldn't find codec with id: {codecParams.codec_id}");
-
-                    codecContext = ffmpeg.avcodec_alloc_context3(codecPtr);
-                    if (codecContext == null)
-                        throw new InvalidOperationException($"Couldn't allocate codec context. Codec id: {codecParams.codec_id}");
-
-                    int paramCopyResult = ffmpeg.avcodec_parameters_to_context(codecContext, &codecParams);
-                    if (paramCopyResult < 0)
-                        throw new InvalidOperationException($"Couldn't copy codec parameters with id {codecParams.codec_id}: {getErrorMessage(paramCopyResult)}");
-
-                    // initilize hardware decode device
-                    foreach (var hwDeviceType in getAvailableHwDeviceTypes())
-                    {
-                        int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
-
-                        if (hwDeviceCreateResult < 0)
-                        {
-                            Logger.Log($"Couldn't open hardware video decoder {hwDeviceType}: {getErrorMessage(hwDeviceCreateResult)}");
-                        }
-                        else
-                        {
-                            Logger.Log($"Successfully opened hardware video decoder {hwDeviceType} for codec {codecParams.codec_id}");
-                            break;
-                        }
-                    }
-
-                    int openCodecResult = ffmpeg.avcodec_open2(codecContext, codecPtr, null);
-                    if (openCodecResult < 0)
-                        throw new InvalidOperationException($"Error trying to open codec with id {codecParams.codec_id}: {getErrorMessage(openCodecResult)}");
-
-                    break;
+                    fixed (AVCodecContext** ptr = &codecContext)
+                        ffmpeg.avcodec_free_context(ptr);
                 }
+
+                codecContext = ffmpeg.avcodec_alloc_context3(decoder.Pointer);
+
+                if (codecContext == null)
+                {
+                    Logger.Log($"Couldn't allocate codec context. Codec id: {codecParams.codec_id}");
+                    continue;
+                }
+
+                int paramCopyResult = ffmpeg.avcodec_parameters_to_context(codecContext, &codecParams);
+
+                if (paramCopyResult < 0)
+                {
+                    Logger.Log($"Couldn't copy codec parameters with id {codecParams.codec_id}: {getErrorMessage(paramCopyResult)}");
+                    continue;
+                }
+
+                // initilize hardware decode device
+                foreach (var hwDeviceType in hwDeviceTypes)
+                {
+                    int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
+
+                    if (hwDeviceCreateResult < 0)
+                    {
+                        Logger.Log($"Couldn't open hardware video decoder {hwDeviceType}: {getErrorMessage(hwDeviceCreateResult)}");
+                    }
+                    else
+                    {
+                        Logger.Log($"Successfully opened hardware video decoder {hwDeviceType} for codec {codecParams.codec_id}");
+                        break;
+                    }
+                }
+
+                int openCodecResult = ffmpeg.avcodec_open2(codecContext, decoder.Pointer, null);
+
+                if (openCodecResult < 0)
+                {
+                    Logger.Log($"Error trying to open codec with id {codecParams.codec_id}: {getErrorMessage(openCodecResult)}");
+                    continue;
+                }
+
+                openSuccessful = true;
+                break;
             }
+
+            if (!openSuccessful)
+                throw new InvalidOperationException("No usable decoder found");
         }
 
         private SwsContext* currentScalerContext;
@@ -608,15 +641,12 @@ namespace osu.Framework.Graphics.Video
                     }
 
                     frame = hwTransferFrame;
-                    isUsingHardwareDecoder = true;
                 }
                 else
                 {
                     // copy data to a new AVFrame so that `readFrame` can be reused
                     frame = new Frame(ffmpeg.av_frame_alloc(), freeFrame);
                     ffmpeg.av_frame_move_ref(frame.Value, receiveFrame);
-
-                    isUsingHardwareDecoder = false;
                 }
 
                 lastDecodedFrameTime = (float)frameTime;
@@ -746,10 +776,11 @@ namespace osu.Framework.Graphics.Video
                 av_packet_free = AGffmpeg.av_packet_free,
                 av_read_frame = AGffmpeg.av_read_frame,
                 av_seek_frame = AGffmpeg.av_seek_frame,
-                av_hwdevice_iterate_types = AGffmpeg.av_hwdevice_iterate_types,
                 av_hwdevice_ctx_create = AGffmpeg.av_hwdevice_ctx_create,
                 av_hwframe_transfer_data = AGffmpeg.av_hwframe_transfer_data,
-                avcodec_find_decoder = AGffmpeg.avcodec_find_decoder,
+                av_codec_iterate = AGffmpeg.av_codec_iterate,
+                av_codec_is_decoder = AGffmpeg.av_codec_is_decoder,
+                avcodec_get_hw_config = AGffmpeg.avcodec_get_hw_config,
                 avcodec_alloc_context3 = AGffmpeg.avcodec_alloc_context3,
                 avcodec_free_context = AGffmpeg.avcodec_free_context,
                 avcodec_parameters_to_context = AGffmpeg.avcodec_parameters_to_context,
@@ -760,6 +791,7 @@ namespace osu.Framework.Graphics.Video
                 avformat_close_input = AGffmpeg.avformat_close_input,
                 avformat_find_stream_info = AGffmpeg.avformat_find_stream_info,
                 avformat_open_input = AGffmpeg.avformat_open_input,
+                av_find_best_stream = AGffmpeg.av_find_best_stream,
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
                 sws_freeContext = AGffmpeg.sws_freeContext,
                 sws_getContext = AGffmpeg.sws_getContext,

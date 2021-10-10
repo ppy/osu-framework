@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -104,9 +105,9 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost, ShaderManager shaders)
+        private void load(GameHost gameHost, FrameworkConfigManager config, ShaderManager shaders)
         {
-            decoder = gameHost.CreateVideoDecoder(stream);
+            decoder = gameHost.CreateVideoDecoder(stream, config.Get<HardwareVideoDecoder>(FrameworkSetting.HardwareVideoDecoder));
             decoder.Looping = Loop;
             decoder.StartDecoding();
 

@@ -37,13 +37,15 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int AvSeekFrameDelegate(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
-        public delegate AVHWDeviceType AvHwdeviceIterateTypesDelegate(AVHWDeviceType prev);
-
         public delegate int AvHwdeviceCtxCreateDelegate(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)0)] string device, AVDictionary* opts, int flags);
 
         public delegate int AvHwframeTransferDataDelegate(AVFrame* dst, AVFrame* src, int flags);
 
-        public delegate AVCodec* AvcodecFindDecoderDelegate(AVCodecID id);
+        public delegate AVCodec* AvCodecIterateDelegate(void** opaque);
+
+        public delegate int AvCodecIsDecoderDelegate(AVCodec* codec);
+
+        public delegate AVCodecHWConfig* AvcodecGetHwConfigDelegate(AVCodec* codec, int index);
 
         public delegate AVCodecContext* AvcodecAllocContext3Delegate(AVCodec* codec);
 
@@ -64,6 +66,8 @@ namespace osu.Framework.Graphics.Video
         public delegate int AvformatFindStreamInfoDelegate(AVFormatContext* ic, AVDictionary** options);
 
         public delegate int AvformatOpenInputDelegate(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
+
+        public delegate int AvFindBestStreamDelegate(AVFormatContext* ic, AVMediaType type, int wanted_stream_nb, int related_stream, AVCodec** decoder_ret, int flags);
 
         public delegate AVIOContext* AvioAllocContextDelegate(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
@@ -88,10 +92,11 @@ namespace osu.Framework.Graphics.Video
         public AvPacketFreeDelegate av_packet_free;
         public AvReadFrameDelegate av_read_frame;
         public AvSeekFrameDelegate av_seek_frame;
-        public AvHwdeviceIterateTypesDelegate av_hwdevice_iterate_types;
         public AvHwdeviceCtxCreateDelegate av_hwdevice_ctx_create;
         public AvHwframeTransferDataDelegate av_hwframe_transfer_data;
-        public AvcodecFindDecoderDelegate avcodec_find_decoder;
+        public AvCodecIterateDelegate av_codec_iterate;
+        public AvCodecIsDecoderDelegate av_codec_is_decoder;
+        public AvcodecGetHwConfigDelegate avcodec_get_hw_config;
         public AvcodecAllocContext3Delegate avcodec_alloc_context3;
         public AvcodecFreeContextDelegate avcodec_free_context;
         public AvcodecParametersToContextDelegate avcodec_parameters_to_context;
@@ -102,6 +107,7 @@ namespace osu.Framework.Graphics.Video
         public AvformatCloseInputDelegate avformat_close_input;
         public AvformatFindStreamInfoDelegate avformat_find_stream_info;
         public AvformatOpenInputDelegate avformat_open_input;
+        public AvFindBestStreamDelegate av_find_best_stream;
         public AvioAllocContextDelegate avio_alloc_context;
         public SwsFreeContextDelegate sws_freeContext;
         public SwsGetContextDelegate sws_getContext;
