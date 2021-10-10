@@ -104,6 +104,12 @@ namespace osu.Framework.Platform.MacOS
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Z), PlatformAction.Undo),
             new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(new KeyCombination(InputKey.Delete), PlatformAction.Delete),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Plus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.KeypadPlus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Minus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.KeypadMinus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Number0), PlatformAction.ZoomDefault),
+            new KeyBinding(new KeyCombination(InputKey.Super, InputKey.Keypad0), PlatformAction.ZoomDefault),
         };
     }
 }
