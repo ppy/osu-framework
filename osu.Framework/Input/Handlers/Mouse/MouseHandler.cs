@@ -109,6 +109,15 @@ namespace osu.Framework.Input.Handlers.Mouse
                 }
             }, true);
 
+            window.Exited += () =>
+            {
+                if (window.RelativeMouseMode && cursorCaptured)
+                {
+                    window.RelativeMouseMode = false;
+                    transferLastPositionToHostCursor();
+                }
+            };
+
             return true;
         }
 
