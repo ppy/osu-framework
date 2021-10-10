@@ -429,8 +429,17 @@ namespace osu.Framework.Graphics.Containers
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// <list type="bullet">
+        /// <item>If the supplied <paramref name="drawable"/> is already attached to another <see cref="Drawable.Parent"/>.</item>
+        /// <item>If a child drawable was matched using <see cref="Compare"/>, but that child drawable was not the supplied <paramref name="drawable"/>.</item>
+        /// </list>
+        /// </exception>
         protected internal int IndexOfInternal(Drawable drawable)
         {
+            if (drawable.Parent != null && drawable.Parent != this)
+                throw new InvalidOperationException($@"Cannot call {nameof(IndexOfInternal)} for a drawable that already is a child of a different parent.");
+
             int index = internalChildren.IndexOf(drawable);
 
             if (index >= 0 && internalChildren[index].ChildID != drawable.ChildID)

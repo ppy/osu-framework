@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -32,6 +33,23 @@ namespace osu.Framework.Tests.Visual.Containers
             });
 
             AddAssert("children reversed", () => composite.InternalChildren[0] == lastItem && composite.InternalChildren[^1] == firstItem);
+        }
+
+        [Test]
+        public void TestChangeChildDepthFailsIfNotCalledOnDirectChild()
+        {
+            Container parent = null;
+            Container nestedChild = null;
+
+            AddStep("create hierarchy", () => Child = parent = new Container
+            {
+                Child = new Container
+                {
+                    Child = nestedChild = new Container()
+                }
+            });
+
+            AddStep("bad change child depth call fails", () => Assert.Throws<InvalidOperationException>(() => parent.ChangeChildDepth(nestedChild, 10)));
         }
 
         private class SortableComposite : CompositeDrawable
