@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Development;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics
 {
@@ -21,6 +23,34 @@ namespace osu.Framework.Graphics
         {
             adjustment?.Invoke(drawable);
             return drawable;
+        }
+
+        /// <summary>
+        /// Forces removal of this drawable from its parent, followed by immediate synchronous disposal.
+        /// </summary>
+        /// <remarks>
+        /// This is intended as a temporary solution for the fact that there is no way to easily dispose
+        /// a component in a way that is guaranteed to be synchronously run on the update thread.
+        ///
+        /// Eventually components will have a better method for unloading.
+        /// </remarks>
+        /// <param name="drawable">The <see cref="Drawable"/> to be disposed.</param>
+        public static void RemoveAndDisposeImmediately(this Drawable drawable)
+        {
+            ThreadSafety.EnsureUpdateThread();
+
+            switch (drawable.Parent)
+            {
+                case Container cont:
+                    cont.Remove(drawable);
+                    break;
+
+                case CompositeDrawable comp:
+                    comp.RemoveInternal(drawable);
+                    break;
+            }
+
+            drawable.Dispose();
         }
     }
 }
