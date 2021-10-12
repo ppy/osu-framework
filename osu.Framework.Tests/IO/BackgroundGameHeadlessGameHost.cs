@@ -13,32 +13,14 @@ namespace osu.Framework.Tests.IO
     /// </summary>
     public class BackgroundGameHeadlessGameHost : TestRunHeadlessGameHost
     {
-        private TestGame testGame;
-
         public BackgroundGameHeadlessGameHost(string gameName = null, bool bindIPC = false, bool realtime = true, bool portableInstallation = false)
             : base(gameName, bindIPC, realtime, portableInstallation)
         {
-            using (var gameCreated = new ManualResetEventSlim(false))
-            {
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        testGame = new TestGame();
-                        // ReSharper disable once AccessToDisposedClosure
-                        gameCreated.Set();
+            var testGame = new TestGame();
 
-                        Run(testGame);
-                    }
-                    catch
-                    {
-                        // may throw an unobserved exception if we don't handle here.
-                    }
-                });
+            Task.Factory.StartNew(() => Run(testGame), TaskCreationOptions.LongRunning);
 
-                gameCreated.Wait();
-                testGame.HasProcessed.Wait();
-            }
+            testGame.HasProcessed.Wait();
         }
 
         private class TestGame : Game

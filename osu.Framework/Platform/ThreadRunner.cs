@@ -120,6 +120,8 @@ namespace osu.Framework.Platform
                     mainThread.RunSingleFrame();
                     break;
             }
+
+            ThreadSafety.ResetAllForCurrentThread();
         }
 
         public void Start() => ensureCorrectExecutionMode();
