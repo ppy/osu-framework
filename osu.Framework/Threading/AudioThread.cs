@@ -81,8 +81,6 @@ namespace osu.Framework.Threading
         internal void RegisterInitialisedDevice(int deviceId)
         {
             Debug.Assert(ThreadSafety.IsAudioThread);
-
-            initialised_devices.Add(deviceId);
         }
 
         protected override void OnExit()
@@ -113,13 +111,46 @@ namespace osu.Framework.Threading
                 FreeDevice(d);
         }
 
+        internal static bool InitDevice(int deviceId)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+
+            bool didInit = Bass.Init(deviceId);
+
+            // If the device was already initialised, the device can be used without much fuss.
+            if (Bass.LastError == Errors.Already)
+            {
+                Bass.CurrentDevice = deviceId;
+
+                if (Bass.CurrentDevice == 0 && RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+                {
+                    // Device 0 is never freed on linux (see: FreeDevice()).
+                    didInit = true;
+                }
+                else
+                {
+                    // Without this call, on windows (and potentially other platforms), a device which is disconnected then reconnected
+                    // will look initialised but not work correctly in practice.
+                    FreeDevice(deviceId);
+                    didInit = Bass.Init(deviceId);
+                }
+            }
+
+            if (didInit)
+                initialised_devices.Add(deviceId);
+
+            return didInit;
+        }
+
         internal static void FreeDevice(int deviceId)
         {
+            Console.WriteLine($"Freeing device {deviceId}");
+
             Debug.Assert(ThreadSafety.IsAudioThread);
 
             int lastDevice = Bass.CurrentDevice;
 
-            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
+            // Freeing device 0 on linux can cause deadlocks. This doesn't always happen immediately.
             // Todo: Reproduce in native code and report to BASS at some point.
             if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
             {
