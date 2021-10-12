@@ -35,6 +35,12 @@ namespace osu.Framework.Audio
         /// <returns>A task which can be used for continuation logic. May return a <see cref="Task.CompletedTask"/> if called while already on the audio thread.</returns>
         protected Task EnqueueAction(Action action)
         {
+            if (CanPerformInline)
+            {
+                action();
+                return Task.CompletedTask;
+            }
+
             if (!acceptingActions)
                 // we don't want consumers to block on operations after we are disposed.
                 return Task.CompletedTask;
@@ -46,12 +52,6 @@ namespace osu.Framework.Audio
 
                 if (ThreadSafety.IsInputThread)
                     throw new InvalidOperationException("Cannot perform audio operation from input thread.");
-            }
-
-            if (CanPerformInline)
-            {
-                action();
-                return Task.CompletedTask;
             }
 
             var task = new Task(action);
