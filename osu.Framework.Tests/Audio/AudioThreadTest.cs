@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.Audio
             Manager = new AudioManagerWithDeviceLoss(thread, store, store);
 
             thread.Start();
+            WaitAudioFrame();
         }
 
         [TearDown]
