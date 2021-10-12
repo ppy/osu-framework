@@ -549,26 +549,38 @@ namespace osu.Framework.Graphics.Video
         private void decodeNextFrame(AVPacket* packet, AVFrame* receiveFrame)
         {
             // read data from input into AVPacket.
-            int readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
+            // only read if the packet is empty, otherwise we would overwrite what's already there which can lead to visual glitches.
+            int readFrameResult = 0;
+            if (packet->buf == null)
+                readFrameResult = ffmpeg.av_read_frame(formatContext, packet);
 
             if (readFrameResult >= 0)
             {
                 State = DecoderState.Running;
+
+                bool unrefPacket = true;
 
                 if (packet->stream_index == stream->index)
                 {
                     // send the packet for decoding.
                     int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
 
-                    if (sendPacketResult == 0)
+                    // Note: EAGAIN can be returned if there's too many pending frames so we have to read them,
+                    // otherwise we would get stuck in an infinite loop.
+                    if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
                     {
                         readDecodedFrames(receiveFrame);
+
+                        // keep the packet data for next frame if we didn't send it successfully.
+                        if (sendPacketResult != 0)
+                            unrefPacket = false;
                     }
                     else
                         Logger.Log($"Failed to send avcodec packet: {getErrorMessage(sendPacketResult)}");
                 }
 
-                ffmpeg.av_packet_unref(packet);
+                if (unrefPacket)
+                    ffmpeg.av_packet_unref(packet);
             }
             else if (readFrameResult == AGffmpeg.AVERROR_EOF)
             {
