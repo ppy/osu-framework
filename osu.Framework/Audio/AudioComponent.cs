@@ -45,15 +45,6 @@ namespace osu.Framework.Audio
                 // we don't want consumers to block on operations after we are disposed.
                 return Task.CompletedTask;
 
-            if (ThreadSafety.ExecutionMode == ExecutionMode.SingleThread)
-            {
-                if (ThreadSafety.IsDrawThread)
-                    throw new InvalidOperationException("Cannot perform audio operation from draw thread.");
-
-                if (ThreadSafety.IsInputThread)
-                    throw new InvalidOperationException("Cannot perform audio operation from input thread.");
-            }
-
             var task = new Task(action);
             PendingActions.Enqueue(task);
             return task;
