@@ -144,8 +144,6 @@ namespace osu.Framework.Threading
 
         internal static void FreeDevice(int deviceId)
         {
-            Console.WriteLine($"Freeing device {deviceId}");
-
             Debug.Assert(ThreadSafety.IsAudioThread);
 
             int lastDevice = Bass.CurrentDevice;
