@@ -18,7 +18,7 @@ namespace osu.Framework.Tests.IO
         {
             var testGame = new TestGame();
 
-            Task.Run(() => Run(testGame));
+            Task.Factory.StartNew(() => Run(testGame), TaskCreationOptions.LongRunning);
 
             testGame.HasProcessed.Wait();
         }
