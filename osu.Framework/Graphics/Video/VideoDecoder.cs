@@ -351,7 +351,11 @@ namespace osu.Framework.Graphics.Video
                 // Note: Intersect order here is important, order of the returned elements is determined by the first enumerable.
                 // This means that we have better control over it by calling Intersect from `targetHwDecoders`.
                 // See `HardwareVideoDecoder.ToFfmpegHardwareDeviceTypes`
-                codecs.Add((codec, targetHwDecoders.Intersect(codec.SupportedHwDeviceTypes.Value)));
+                var usableHwDeviceTypes = targetHwDecoders.Intersect(codec.SupportedHwDeviceTypes.Value).ToList();
+                if (usableHwDeviceTypes.Count == 0)
+                    continue;
+
+                codecs.Add((codec, usableHwDeviceTypes));
             }
 
             // default to the first codec that we found with no HW devices.
