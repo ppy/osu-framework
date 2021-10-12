@@ -36,6 +36,9 @@ namespace osu.Framework.Android
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
                 defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
 
+            if (!defaultOverrides.ContainsKey(FrameworkSetting.HardwareVideoDecoder))
+                defaultOverrides.Add(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.MediaCodec);
+
             base.SetupConfig(defaultOverrides);
         }
 
@@ -81,7 +84,7 @@ namespace osu.Framework.Android
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream)
-            => new AndroidVideoDecoder(stream);
+        public override VideoDecoder CreateVideoDecoder(Stream stream, HardwareVideoDecoder hwDecoder = HardwareVideoDecoder.None)
+            => new AndroidVideoDecoder(stream, hwDecoder);
     }
 }

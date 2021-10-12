@@ -1,9 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using Android.Runtime;
 using FFmpeg.AutoGen;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Threading;
 
@@ -58,16 +62,19 @@ namespace osu.Framework.Android.Graphics.Video
         private static extern int av_seek_frame(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
         [DllImport(lib_avutil)]
-        private static extern AVHWDeviceType av_hwdevice_iterate_types(AVHWDeviceType prev);
-
-        [DllImport(lib_avutil)]
         private static extern int av_hwdevice_ctx_create(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)48)] string device, AVDictionary* opts, int flags);
 
         [DllImport(lib_avutil)]
         private static extern int av_hwframe_transfer_data(AVFrame* dst, AVFrame* src, int flags);
 
         [DllImport(lib_avcodec)]
-        private static extern AVCodec* avcodec_find_decoder(AVCodecID id);
+        private static extern AVCodec* av_codec_iterate(void** opaque);
+
+        [DllImport(lib_avcodec)]
+        private static extern int av_codec_is_decoder(AVCodec* codec);
+
+        [DllImport(lib_avcodec)]
+        private static extern AVCodecHWConfig* avcodec_get_hw_config(AVCodec* codec, int index);
 
         [DllImport(lib_avcodec)]
         private static extern AVCodecContext* avcodec_alloc_context3(AVCodec* codec);
@@ -100,6 +107,9 @@ namespace osu.Framework.Android.Graphics.Video
         private static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
 
         [DllImport(lib_avformat)]
+        private static extern int av_find_best_stream(AVFormatContext* ic, AVMediaType type, int wanted_stream_nb, int related_stream, AVCodec** decoder_ret, int flags);
+
+        [DllImport(lib_avformat)]
         private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet,
                                                               avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
@@ -113,14 +123,34 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_swscale)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public AndroidVideoDecoder(string filename)
-            : base(filename)
+        [DllImport(lib_avcodec)]
+        private static extern int av_jni_set_java_vm(void* vm, void* logCtx);
+
+        public AndroidVideoDecoder(string filename, HardwareVideoDecoder hwDecoder)
+            : base(filename, hwDecoder)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream)
-            : base(videoStream)
+        public AndroidVideoDecoder(Stream videoStream, HardwareVideoDecoder hwDecoder)
+            : base(videoStream, hwDecoder)
         {
+            if (hwDecoder.HasFlagFast(HardwareVideoDecoder.MediaCodec))
+            {
+                // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
+                // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
+                // Unfortunately, Xamarin doesn't publicly expose this pointer anywhere, so we have to get it through reflection...
+                const string java_vm_field_name = "java_vm";
+
+                var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
+                object jvmPtrObj = jvmPtrInfo?.GetValue(null);
+
+                if (jvmPtrInfo == null || jvmPtrObj == null)
+                    throw new InvalidOperationException($"Couldn't get `{java_vm_field_name}` field from JNIEnv. Can't use MediaCodec decoder.");
+
+                int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
+                if (result < 0)
+                    throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
+            }
         }
 
         protected override FFmpegFuncs CreateFuncs() => new FFmpegFuncs
@@ -138,10 +168,11 @@ namespace osu.Framework.Android.Graphics.Video
             av_packet_free = av_packet_free,
             av_read_frame = av_read_frame,
             av_seek_frame = av_seek_frame,
-            av_hwdevice_iterate_types = av_hwdevice_iterate_types,
             av_hwdevice_ctx_create = av_hwdevice_ctx_create,
             av_hwframe_transfer_data = av_hwframe_transfer_data,
-            avcodec_find_decoder = avcodec_find_decoder,
+            av_codec_iterate = av_codec_iterate,
+            av_codec_is_decoder = av_codec_is_decoder,
+            avcodec_get_hw_config = avcodec_get_hw_config,
             avcodec_alloc_context3 = avcodec_alloc_context3,
             avcodec_free_context = avcodec_free_context,
             avcodec_parameters_to_context = avcodec_parameters_to_context,
@@ -152,6 +183,7 @@ namespace osu.Framework.Android.Graphics.Video
             avformat_close_input = avformat_close_input,
             avformat_find_stream_info = avformat_find_stream_info,
             avformat_open_input = avformat_open_input,
+            av_find_best_stream = av_find_best_stream,
             avio_alloc_context = avio_alloc_context,
             sws_freeContext = sws_freeContext,
             sws_getContext = sws_getContext,
