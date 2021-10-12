@@ -588,7 +588,12 @@ namespace osu.Framework.Platform
         public void Run(Game game)
         {
             if (Thread.CurrentThread.IsThreadPoolThread)
-                throw new InvalidOperationException($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
+            {
+                // This is a common misuse of GameHost, where typically consumers will have a mutex waiting for the game to run.
+                // Exceptions thrown here will become unobserved, so any such mutexes will never be set.
+                // Instead, immediately terminate the application in order to notify of incorrect use in all cases.
+                Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
+            }
 
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
