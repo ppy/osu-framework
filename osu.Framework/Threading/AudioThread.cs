@@ -78,11 +78,6 @@ namespace osu.Framework.Threading
                 managers.Remove(manager);
         }
 
-        internal void RegisterInitialisedDevice(int deviceId)
-        {
-            Debug.Assert(ThreadSafety.IsAudioThread);
-        }
-
         protected override void OnExit()
         {
             base.OnExit();
@@ -122,11 +117,8 @@ namespace osu.Framework.Threading
             {
                 Bass.CurrentDevice = deviceId;
 
-                if (Bass.CurrentDevice == 0 && RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-                {
-                    // Device 0 is never freed on linux (see: FreeDevice()).
+                if (!canFreeDevice(deviceId))
                     didInit = true;
-                }
                 else
                 {
                     // Without this call, on windows (and potentially other platforms), a device which is disconnected then reconnected
@@ -148,9 +140,7 @@ namespace osu.Framework.Threading
 
             int lastDevice = Bass.CurrentDevice;
 
-            // Freeing device 0 on linux can cause deadlocks. This doesn't always happen immediately.
-            // Todo: Reproduce in native code and report to BASS at some point.
-            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            if (canFreeDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
@@ -173,5 +163,11 @@ namespace osu.Framework.Threading
                 Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
             }
         }
+
+        /// <summary>
+        /// Whether a device can be freed.
+        /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
+        /// </summary>
+        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
     }
 }
