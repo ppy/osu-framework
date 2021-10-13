@@ -587,13 +587,14 @@ namespace osu.Framework.Platform
         {
             SDL.SDL_PumpEvents();
 
-            int incoming;
+            int eventsRead;
 
-            while ((incoming = SDL.SDL_PeepEvents(events, events_per_peep, SDL.SDL_eventaction.SDL_GETEVENT, SDL.SDL_EventType.SDL_FIRSTEVENT, SDL.SDL_EventType.SDL_LASTEVENT)) > 0)
+            do
             {
-                for (int i = 0; i < incoming; i++)
+                eventsRead = SDL.SDL_PeepEvents(events, events_per_peep, SDL.SDL_eventaction.SDL_GETEVENT, SDL.SDL_EventType.SDL_FIRSTEVENT, SDL.SDL_EventType.SDL_LASTEVENT);
+                for (int i = 0; i < eventsRead; i++)
                     handleSDLEvent(events[i]);
-            }
+            } while (eventsRead == events_per_peep);
         }
 
         private void handleSDLEvent(SDL.SDL_Event e)
