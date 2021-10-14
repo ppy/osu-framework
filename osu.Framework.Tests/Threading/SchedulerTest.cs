@@ -303,6 +303,25 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
         }
 
+        private int invocations;
+
+        [Test]
+        public void TestAddOnceClassMethod()
+        {
+            invocations = 0;
+
+            scheduler.AddOnce(action);
+            scheduler.AddOnce(action);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        private void action()
+        {
+            invocations++;
+        }
+
         [Test]
         public void TestAddOnceInlineFunction()
         {
