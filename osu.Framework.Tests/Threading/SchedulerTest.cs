@@ -337,6 +337,24 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
+        public void TestAddOnceInlineFunctionCalledMultipleTimes()
+        {
+            classInvocations = 0;
+
+            invokeAction();
+            invokeAction();
+
+            scheduler.Update();
+            Assert.AreEqual(1, classInvocations);
+        }
+
+        private void invokeAction()
+        {
+            void action() => classInvocations++;
+            scheduler.AddOnce(action);
+        }
+
+        [Test]
         public void TestAddOnceInlineFunctionWithVariable()
         {
             int invocations = 0;
