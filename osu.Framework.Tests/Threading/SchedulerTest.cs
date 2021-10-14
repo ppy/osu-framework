@@ -304,7 +304,7 @@ namespace osu.Framework.Tests.Threading
         }
 
         [Test]
-        public void TestAddOnce()
+        public void TestAddOnceInlineFunction()
         {
             int invocations = 0;
 
@@ -312,6 +312,34 @@ namespace osu.Framework.Tests.Threading
 
             scheduler.AddOnce(action);
             scheduler.AddOnce(action);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestAddOnceInlineFunctionWithVariable()
+        {
+            int invocations = 0;
+
+            void action(object o) => invocations++;
+
+            scheduler.AddOnce(action, this);
+            scheduler.AddOnce(action, this);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestAddOnceDelegateWithVariable()
+        {
+            int invocations = 0;
+
+            Action<object> action = _ => invocations++;
+
+            scheduler.AddOnce(action, this);
+            scheduler.AddOnce(action, this);
 
             scheduler.Update();
             Assert.AreEqual(1, invocations);
