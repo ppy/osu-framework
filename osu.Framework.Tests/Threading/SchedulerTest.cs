@@ -303,23 +303,23 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
         }
 
-        private int invocations;
+        private int classInvocations;
 
         [Test]
         public void TestAddOnceClassMethod()
         {
-            invocations = 0;
+            classInvocations = 0;
 
-            scheduler.AddOnce(action);
-            scheduler.AddOnce(action);
+            scheduler.AddOnce(classAction);
+            scheduler.AddOnce(classAction);
 
             scheduler.Update();
-            Assert.AreEqual(1, invocations);
+            Assert.AreEqual(1, classInvocations);
         }
 
-        private void action()
+        private void classAction()
         {
-            invocations++;
+            classInvocations++;
         }
 
         [Test]
