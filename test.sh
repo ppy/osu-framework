@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEADLOCK_TIME=600
+DEADLOCK_TIME=900
 
 UPTIME=$(uptime -p)
 echo "Uptime: $UPTIME"
