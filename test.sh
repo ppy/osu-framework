@@ -21,19 +21,16 @@ echo "R# PID: $PID"
 echo "Waiting $DEADLOCK_TIME seconds for deadlock"
 sleep $DEADLOCK_TIME
 
-if ! ps -p $PID > /dev/null; then
-    echo "Process finished, aborting."
-    exit 1
+if ps -p $PID > /dev/null; then
+    echo "Deadlocked, dumping..."
+    dotnet dump collect -p $PID -o deadlock.dmp
+
+    echo "Compressing dump..."
+    tar -cjSf deadlock.tar.bz2 deadlock.dmp
+
+    echo "Killing R# process"
+    kill $PID
 fi
-
-echo "Deadlocked, dumping..."
-dotnet dump collect -p $PID -o deadlock.dmp
-
-echo "Compressing dump..."
-tar -cjSf deadlock.tar.bz2 deadlock.dmp
 
 echo "Compressing log..."
 tar -cjSf inspectcode.log.tar.bz2 $(pwd)/inspectcode.log
-
-echo "Killing R# process"
-kill $PID
