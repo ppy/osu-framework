@@ -53,7 +53,7 @@ namespace osu.Framework.Benchmarks
             public ManualGameHost(Game runnableGame)
                 : base("manual")
             {
-                Task.Run(() =>
+                Task.Factory.StartNew(() =>
                 {
                     try
                     {
@@ -63,7 +63,7 @@ namespace osu.Framework.Benchmarks
                     {
                         // may throw an unobserved exception if we don't handle here.
                     }
-                });
+                }, TaskCreationOptions.LongRunning);
 
                 // wait for the game to initialise before continuing with the benchmark process.
                 while (threadRunner?.HasRunOnce != true)
