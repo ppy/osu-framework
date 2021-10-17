@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -39,7 +38,9 @@ namespace osu.Framework.Platform.Windows
         {
             if (Directory.Exists(filename))
             {
-                Process.Start("explorer.exe", filename);
+                // trim trailing directory separator (if any) and then add trailing directory separator so the native function opens the expected folder.
+                var folder = filename.TrimEnd(Path.DirectorySeparatorChar).TrimEnd(Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                Explorer.OpenFolderAndSelectItem(folder);
                 return;
             }
 
