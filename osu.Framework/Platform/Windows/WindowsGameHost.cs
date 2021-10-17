@@ -47,6 +47,8 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
+        public override void ShowFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename);
+
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
             // for windows platforms we want to override the relative mouse event handling behaviour.

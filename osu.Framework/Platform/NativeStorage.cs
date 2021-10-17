@@ -71,6 +71,9 @@ namespace osu.Framework.Platform
         public override void OpenPathInNativeExplorer(string path) =>
             host?.OpenFileExternally(GetFullPath(path));
 
+        public override void ShowFileInNativeExplorer(string filename) =>
+            host?.ShowFileExternally(GetFullPath(filename));
+
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
             path = GetFullPath(path, access != FileAccess.Read);

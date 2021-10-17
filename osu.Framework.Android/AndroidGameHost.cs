@@ -66,6 +66,9 @@ namespace osu.Framework.Android
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
 
+        public override void ShowFileExternally(string filename)
+            => throw new NotImplementedException();
+
         public override void OpenUrlExternally(string url)
         {
             var activity = (Activity)gameView.Context;

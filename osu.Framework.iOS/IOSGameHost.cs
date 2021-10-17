@@ -103,6 +103,8 @@ namespace osu.Framework.iOS
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
 
+        public override void ShowFileExternally(string filename) => throw new NotImplementedException();
+
         public override void OpenUrlExternally(string url)
         {
             UIApplication.SharedApplication.InvokeOnMainThread(() =>

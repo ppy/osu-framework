@@ -116,5 +116,11 @@ namespace osu.Framework.Platform
         /// Opens a native file browser window to the specified relative path.
         /// </summary>
         public abstract void OpenPathInNativeExplorer(string path);
+
+        /// <summary>
+        /// Opens a native file browser window to the parent folder of the file and highlights the file.
+        /// </summary>
+        /// <param name="filename">Relative path to the file.</param>
+        public abstract void ShowFileInNativeExplorer(string filename);
     }
 }

@@ -122,6 +122,20 @@ namespace osu.Framework.Platform
         public abstract void OpenFileExternally(string filename);
 
         /// <summary>
+        /// Requests to show a file externally in the native explorer.
+        /// </summary>
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <example>
+        ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
+        ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
+        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
+        /// </example>
+        /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
+        public abstract void ShowFileExternally(string filename);
+
+        /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
         /// </summary>
         /// <param name="url">The URL of the page which should be opened.</param>

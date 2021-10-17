@@ -90,6 +90,10 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
 
+        public override void ShowFileExternally(string filename)
+            // should be overriden to highlight/select the file in the folder if such native API exists.
+            => OpenFileExternally(Path.GetDirectoryName(filename));
+
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
             FileName = path,
