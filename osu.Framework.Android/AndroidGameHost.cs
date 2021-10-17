@@ -17,7 +17,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android

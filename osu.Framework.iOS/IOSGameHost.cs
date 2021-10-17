@@ -18,7 +18,6 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using UIKit;
 
 namespace osu.Framework.iOS
