@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Development;
-using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics
 {
@@ -39,17 +38,7 @@ namespace osu.Framework.Graphics
         {
             ThreadSafety.EnsureUpdateThread();
 
-            switch (drawable.Parent)
-            {
-                case Container cont:
-                    cont.Remove(drawable);
-                    break;
-
-                case CompositeDrawable comp:
-                    comp.RemoveInternal(drawable);
-                    break;
-            }
-
+            drawable.Parent?.RemoveInternal(drawable);
             drawable.Dispose();
         }
     }
