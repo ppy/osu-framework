@@ -299,31 +299,6 @@ namespace osu.Framework.Graphics.Video
             return decoder.videoStream.Position;
         }
 
-        private bool isHwPixelFormat(AVPixelFormat format)
-        {
-            switch (format)
-            {
-                case AVPixelFormat.AV_PIX_FMT_VDPAU:
-                case AVPixelFormat.AV_PIX_FMT_CUDA:
-                case AVPixelFormat.AV_PIX_FMT_VAAPI:
-                case AVPixelFormat.AV_PIX_FMT_VAAPI_IDCT:
-                case AVPixelFormat.AV_PIX_FMT_VAAPI_MOCO:
-                case AVPixelFormat.AV_PIX_FMT_DXVA2_VLD:
-                case AVPixelFormat.AV_PIX_FMT_QSV:
-                case AVPixelFormat.AV_PIX_FMT_VIDEOTOOLBOX:
-                case AVPixelFormat.AV_PIX_FMT_D3D11:
-                case AVPixelFormat.AV_PIX_FMT_D3D11VA_VLD:
-                case AVPixelFormat.AV_PIX_FMT_DRM_PRIME:
-                case AVPixelFormat.AV_PIX_FMT_OPENCL:
-                case AVPixelFormat.AV_PIX_FMT_MEDIACODEC:
-                case AVPixelFormat.AV_PIX_FMT_VULKAN:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
         /// <remarks>
         /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
         /// </remarks>
@@ -637,7 +612,7 @@ namespace osu.Framework.Graphics.Video
                 // get final frame.
                 Frame frame;
 
-                if (isHwPixelFormat((AVPixelFormat)receiveFrame->format))
+                if (((AVPixelFormat)receiveFrame->format).IsHardwarePixelFormat())
                 {
                     // transfer data from HW decoder to RAM.
                     if (!hwTransferFrames.TryDequeue(out var hwTransferFrame))
