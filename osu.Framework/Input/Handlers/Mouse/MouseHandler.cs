@@ -62,6 +62,11 @@ namespace osu.Framework.Input.Handlers.Mouse
         /// </summary>
         private bool previousPositionOutsideWindow = true;
 
+        /// <summary>
+        /// Set to true to unconditionally update relative mode on the next <see cref="FeedbackMousePositionChange"/>
+        /// </summary>
+        private bool pendingUpdateRelativeMode;
+
         public override bool Initialize(GameHost host)
         {
             if (!base.Initialize(host))
@@ -76,7 +81,14 @@ namespace osu.Framework.Input.Handlers.Mouse
             isActive.BindValueChanged(_ => updateRelativeMode());
 
             cursorInWindow = host.Window.CursorInWindow.GetBoundCopy();
-            cursorInWindow.BindValueChanged(_ => updateRelativeMode());
+            cursorInWindow.BindValueChanged(e =>
+            {
+                if (e.NewValue)
+                    // don't immediately update if the cursor has just entered the window
+                    pendingUpdateRelativeMode = true;
+                else
+                    updateRelativeMode();
+            });
 
             cursorState = desktopWindow.CursorStateBindable.GetBoundCopy();
             cursorState.BindValueChanged(_ => updateRelativeMode());
@@ -130,6 +142,12 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // if another handler has updated the cursor position, handle updating the OS cursor so we can seamlessly revert
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
+
+            if (pendingUpdateRelativeMode)
+            {
+                updateRelativeMode();
+                pendingUpdateRelativeMode = false;
+            }
 
             bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
 
