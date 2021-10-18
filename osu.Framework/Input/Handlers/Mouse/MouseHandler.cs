@@ -65,7 +65,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         /// <summary>
         /// Set to true to unconditionally update relative mode on the next <see cref="FeedbackMousePositionChange"/>
         /// </summary>
-        private bool updateNextTime;
+        private bool pendingUpdateRelativeMode;
 
         public override bool Initialize(GameHost host)
         {
@@ -85,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             {
                 if (e.NewValue)
                     // don't immediately update if the cursor has just entered the window
-                    updateNextTime = true;
+                    pendingUpdateRelativeMode = true;
                 else
                     updateRelativeMode();
             });
@@ -143,10 +143,10 @@ namespace osu.Framework.Input.Handlers.Mouse
                 // to mouse control at any point.
                 window.UpdateMousePosition(position);
 
-            if (updateNextTime)
+            if (pendingUpdateRelativeMode)
             {
                 updateRelativeMode();
-                updateNextTime = false;
+                pendingUpdateRelativeMode = false;
             }
 
             bool positionOutsideWindow = position.X < 0 || position.Y < 0 || position.X >= window.Size.Width || position.Y >= window.Size.Height;
