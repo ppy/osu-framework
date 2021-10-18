@@ -70,6 +70,8 @@ namespace osu.Framework.Graphics.Video
         private AVFormatContext* formatContext;
         private AVStream* stream;
         private AVCodecContext* codecContext;
+        private SwsContext* swsContext;
+
         private byte* contextBuffer;
         private byte[] managedContextBuffer;
 
@@ -433,30 +435,6 @@ namespace osu.Framework.Graphics.Video
                 throw new InvalidOperationException("No usable decoder found");
         }
 
-        private SwsContext* currentScalerContext;
-        private AVPixelFormat currentScalerSourceFormat;
-
-        private SwsContext* getScaler(AVPixelFormat sourceFormat)
-        {
-            if (currentScalerContext != null && currentScalerSourceFormat == sourceFormat)
-            {
-                return currentScalerContext;
-            }
-
-            if (currentScalerContext != null)
-                ffmpeg.sws_freeContext(currentScalerContext);
-
-            // 1 =  SWS_FAST_BILINEAR
-            // https://www.ffmpeg.org/doxygen/3.1/swscale_8h_source.html#l00056
-            currentScalerContext = ffmpeg.sws_getContext(
-                codecContext->width, codecContext->height, sourceFormat,
-                codecContext->width, codecContext->height, expected_render_pixel_format,
-                1, null, null, null);
-            currentScalerSourceFormat = sourceFormat;
-
-            return currentScalerContext;
-        }
-
         private void decodingLoop(CancellationToken cancellationToken)
         {
             var packet = ffmpeg.av_packet_alloc();
@@ -647,7 +625,11 @@ namespace osu.Framework.Graphics.Video
 
                 if (frameFormat != expected_render_pixel_format)
                 {
-                    var scalerContext = getScaler(frameFormat);
+                    swsContext = ffmpeg.sws_getCachedContext(
+                        swsContext,
+                        codecContext->width, codecContext->height, frameFormat,
+                        codecContext->width, codecContext->height, expected_render_pixel_format,
+                        1, null, null, null);
 
                     if (!scalerFrames.TryDequeue(out var scalerFrame))
                         scalerFrame = new Frame(ffmpeg.av_frame_alloc(), returnScalerFrame);
@@ -674,7 +656,7 @@ namespace osu.Framework.Graphics.Video
                     }
 
                     var scalerResult = ffmpeg.sws_scale(
-                        scalerContext,
+                        swsContext,
                         frame.Value->data, frame.Value->linesize, 0, frame.Value->height,
                         scalerFrame.Value->data, scalerFrame.Value->linesize);
 
@@ -785,7 +767,7 @@ namespace osu.Framework.Graphics.Video
                 av_find_best_stream = AGffmpeg.av_find_best_stream,
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
                 sws_freeContext = AGffmpeg.sws_freeContext,
-                sws_getContext = AGffmpeg.sws_getContext,
+                sws_getCachedContext = AGffmpeg.sws_getCachedContext,
                 sws_scale = AGffmpeg.sws_scale
             };
         }
@@ -836,8 +818,8 @@ namespace osu.Framework.Graphics.Video
             // gets freed by libavformat when closing the input
             contextBuffer = null;
 
-            if (currentScalerContext != null)
-                ffmpeg.sws_freeContext(currentScalerContext);
+            if (swsContext != null)
+                ffmpeg.sws_freeContext(swsContext);
 
             while (decodedFrames.TryDequeue(out var f))
             {

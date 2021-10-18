@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Video
 
         public delegate void SwsFreeContextDelegate(SwsContext* swsContext);
 
-        public delegate SwsContext* SwsGetContextDelegate(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
+        public delegate SwsContext* SwsGetCachedContextDelegate(SwsContext* context, int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
 
         public delegate int SwsScaleDelegate(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.Video
         public AvFindBestStreamDelegate av_find_best_stream;
         public AvioAllocContextDelegate avio_alloc_context;
         public SwsFreeContextDelegate sws_freeContext;
-        public SwsGetContextDelegate sws_getContext;
+        public SwsGetCachedContextDelegate sws_getCachedContext;
         public SwsScaleDelegate sws_scale;
     }
 }
