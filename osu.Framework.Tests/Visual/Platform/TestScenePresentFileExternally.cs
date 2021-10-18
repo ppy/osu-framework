@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
-                Spacing = new Vector2(30),
+                Spacing = new Vector2(20),
                 Padding = new MarginPadding(10),
                 Children = new Drawable[]
                 {
@@ -51,6 +51,18 @@ namespace osu.Framework.Tests.Visual.Platform
                         () => host.PresentFileExternally(@"C:\Windows\system32\"),
                         @"C:\Windows\system32\",
                         @"Opens: 'C:\Windows'   Selected: 'System32'"
+                    ),
+                    new ButtonWithDescription
+                    (
+                        () => host.OpenFileExternally(@"C:\Windows\system32"),
+                        @"Open C:\Windows\system32",
+                        @"Opens: 'C:\Windows\System32'   Selected: nothing"
+                    ),
+                    new ButtonWithDescription
+                    (
+                        () => host.OpenFileExternally(@"C:\Windows\system32\"),
+                        @"Open C:\Windows\system32\",
+                        @"Opens: 'C:\Windows\System32'   Selected: nothing"
                     ),
                     new ButtonWithDescription
                     (
@@ -86,7 +98,7 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 AutoSizeAxes = Axes.Both;
                 Direction = FillDirection.Vertical;
-                Spacing = new Vector2(5);
+                Spacing = new Vector2(3);
                 Children = new Drawable[]
                 {
                     new BasicButton
@@ -98,7 +110,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     },
                     new Container
                     {
-                        Size = new Vector2(430, 30),
+                        Size = new Vector2(430, 25),
                         Child = new SpriteText
                         {
                             Anchor = Anchor.Centre,
