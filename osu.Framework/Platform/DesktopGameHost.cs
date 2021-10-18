@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -92,7 +93,7 @@ namespace osu.Framework.Platform
 
         public override void PresentFileExternally(string filename)
             // should be overriden to highlight/select the file in the folder if such native API exists.
-            => OpenFileExternally(Path.GetDirectoryName(filename));
+            => OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
 
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {

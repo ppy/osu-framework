@@ -17,17 +17,14 @@ namespace osu.Framework.Tests.Visual.Platform
         [Resolved]
         private GameHost host { get; set; }
 
-        private Storage logStorage;
-
-        [BackgroundDependencyLoader]
-        private void load(Storage storage)
-        {
-            logStorage = storage.GetStorageForDirectory(@"logs");
-        }
+        [Resolved]
+        private Storage storage { get; set; }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            var logStorage = storage.GetStorageForDirectory(@"logs");
 
             Child = new FillFlowContainer
             {
@@ -53,7 +50,7 @@ namespace osu.Framework.Tests.Visual.Platform
                     (
                         () => host.PresentFileExternally(@"C:\Windows\system32\"),
                         @"C:\Windows\system32\",
-                        @"Opens: 'C:\Windows\system32'   Selected: nothing"
+                        @"Opens: 'C:\Windows'   Selected: 'System32'"
                     ),
                     new ButtonWithDescription
                     (

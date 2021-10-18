@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
@@ -38,8 +39,8 @@ namespace osu.Framework.Platform.Windows
         {
             if (Directory.Exists(filename))
             {
-                // trim trailing directory separator (if any) and then add trailing directory separator so the native function opens the expected folder.
-                var folder = filename.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                // ensure the path always has one trailing DirectorySeparator so the native function opens the expected folder.
+                var folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
 
                 Explorer.OpenFolderAndSelectItem(folder);
                 return;
@@ -48,7 +49,7 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
-        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename);
+        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename.TrimDirectorySeparator());
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
