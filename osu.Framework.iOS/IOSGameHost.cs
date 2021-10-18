@@ -18,7 +18,6 @@ using osu.Framework.iOS.Graphics.Textures;
 using osu.Framework.iOS.Graphics.Video;
 using osu.Framework.iOS.Input;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using UIKit;
 
 namespace osu.Framework.iOS
@@ -103,6 +102,8 @@ namespace osu.Framework.iOS
         public override Storage GetStorage(string path) => new IOSStorage(path, this);
 
         public override void OpenFileExternally(string filename) => throw new NotImplementedException();
+
+        public override void PresentFileExternally(string filename) => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
         {

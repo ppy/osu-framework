@@ -68,8 +68,11 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenPathInNativeExplorer(string path) =>
-            host?.OpenFileExternally(GetFullPath(path));
+        public override void OpenFileExternally(string filename) =>
+            host?.OpenFileExternally(GetFullPath(filename));
+
+        public override void PresentFileExternally(string filename) =>
+            host?.PresentFileExternally(GetFullPath(filename));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
