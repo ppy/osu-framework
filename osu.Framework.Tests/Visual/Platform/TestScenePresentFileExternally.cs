@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Framework.Tests.Visual.Platform
 {
-    public class TestSceneShowFileExternally : FrameworkTestScene
+    public class TestScenePresentFileExternally : FrameworkTestScene
     {
         [Resolved]
         private GameHost host { get; set; }
@@ -39,43 +39,43 @@ namespace osu.Framework.Tests.Visual.Platform
                 {
                     new ButtonWithDescription
                     (
-                        () => host.ShowFileExternally(@"C:/Windows/system32/winver.exe"),
+                        () => host.PresentFileExternally(@"C:/Windows/system32/winver.exe"),
                         @"C:/Windows/system32/winver.exe",
                         @"Opens: 'C:/Windows/system32'   Selected: 'winver.exe'"
                     ),
                     new ButtonWithDescription
                     (
-                        () => host.ShowFileExternally(@"C:\Windows\system32"),
+                        () => host.PresentFileExternally(@"C:\Windows\system32"),
                         @"C:\Windows\system32",
                         @"Opens: 'C:\Windows'   Selected: 'System32'"
                     ),
                     new ButtonWithDescription
                     (
-                        () => host.ShowFileExternally(@"C:\Windows\system32\"),
+                        () => host.PresentFileExternally(@"C:\Windows\system32\"),
                         @"C:\Windows\system32\",
                         @"Opens: 'C:\Windows\system32'   Selected: nothing"
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.OpenInNativeExplorer(),
+                        () => logStorage.PresentExternally(),
                         @"open logs folder",
                         @"Opens: 'logs'   Selected: nothing"
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.ShowFileInNativeExplorer(string.Empty),
+                        () => logStorage.PresentFileExternally(string.Empty),
                         @"show logs folder",
                         @"Opens: 'visual-tests'   Selected: 'logs'"
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.ShowFileInNativeExplorer(@"runtime.log"),
+                        () => logStorage.PresentFileExternally(@"runtime.log"),
                         @"show runtime.log",
                         @"Opens: 'logs'   Selected: 'runtime.log'"
                     ),
                     new ButtonWithDescription
                     (
-                        () => logStorage.ShowFileInNativeExplorer(@"file that doesn't exist"),
+                        () => logStorage.PresentFileExternally(@"file that doesn't exist"),
                         @"show non-existent file (in logs folder)",
                         @"Opens: 'logs'   Selected: nothing"
                     )

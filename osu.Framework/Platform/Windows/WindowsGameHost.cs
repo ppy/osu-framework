@@ -39,7 +39,8 @@ namespace osu.Framework.Platform.Windows
             if (Directory.Exists(filename))
             {
                 // trim trailing directory separator (if any) and then add trailing directory separator so the native function opens the expected folder.
-                var folder = filename.TrimEnd(Path.DirectorySeparatorChar).TrimEnd(Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                var folder = filename.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
                 Explorer.OpenFolderAndSelectItem(folder);
                 return;
             }
@@ -47,7 +48,7 @@ namespace osu.Framework.Platform.Windows
             base.OpenFileExternally(filename);
         }
 
-        public override void ShowFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename);
+        public override void PresentFileExternally(string filename) => Explorer.OpenFolderAndSelectItem(filename);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {

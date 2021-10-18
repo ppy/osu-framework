@@ -66,7 +66,7 @@ namespace osu.Framework.Android
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
 
-        public override void ShowFileExternally(string filename)
+        public override void PresentFileExtenally(string filename)
             => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
