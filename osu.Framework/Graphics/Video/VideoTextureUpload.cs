@@ -12,9 +12,7 @@ namespace osu.Framework.Graphics.Video
 {
     public sealed unsafe class VideoTextureUpload : ITextureUpload
     {
-        public AVFrame* Frame => framePtr.Value;
-
-        private readonly VideoDecoder.Frame framePtr;
+        public AVFrame* Frame => ffmpegFrame.Pointer;
 
         public ReadOnlySpan<Rgba32> Data => ReadOnlySpan<Rgba32>.Empty;
 
@@ -24,20 +22,22 @@ namespace osu.Framework.Graphics.Video
 
         public PixelFormat Format => PixelFormat.Red;
 
+        private readonly FFmpegFrame ffmpegFrame;
+
         /// <summary>
         /// Sets the frame containing the data to be uploaded.
         /// </summary>
-        /// <param name="frame">The frame to upload.</param>
-        internal VideoTextureUpload(VideoDecoder.Frame frame)
+        /// <param name="ffmpegFrame">The frame to upload.</param>
+        internal VideoTextureUpload(FFmpegFrame ffmpegFrame)
         {
-            framePtr = frame;
+            this.ffmpegFrame = ffmpegFrame;
         }
 
         #region IDisposable Support
 
         public void Dispose()
         {
-            framePtr.Return();
+            ffmpegFrame.Return();
         }
 
         #endregion
