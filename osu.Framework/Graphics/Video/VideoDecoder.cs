@@ -27,11 +27,6 @@ namespace osu.Framework.Graphics.Video
     public unsafe partial class VideoDecoder : IDisposable
     {
         /// <summary>
-        /// Defines which pixel format is expected in <see cref="VideoTexture"/>
-        /// </summary>
-        private const AVPixelFormat expected_render_pixel_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
-
-        /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
         /// </summary>
         public double Duration => stream == null ? 0 : duration * timeBaseInSeconds * 1000;
@@ -620,6 +615,8 @@ namespace osu.Framework.Graphics.Video
                 lastDecodedFrameTime = (float)frameTime;
 
                 // if needed, convert the resulting frame to a format that we can render.
+                const AVPixelFormat expected_render_pixel_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
+
                 if (frame.PixelFormat != expected_render_pixel_format)
                 {
                     swsContext = ffmpeg.sws_getCachedContext(
