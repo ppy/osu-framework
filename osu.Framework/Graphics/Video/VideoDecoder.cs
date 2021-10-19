@@ -386,7 +386,7 @@ namespace osu.Framework.Graphics.Video
 
                 if (codecContext == null)
                 {
-                    Logger.Log($"Couldn't allocate codec context. Codec id: {codecParams.codec_id}");
+                    Logger.Log($"Couldn't allocate codec context. Codec: {decoder.Name}");
                     continue;
                 }
 
@@ -394,7 +394,7 @@ namespace osu.Framework.Graphics.Video
 
                 if (paramCopyResult < 0)
                 {
-                    Logger.Log($"Couldn't copy codec parameters with id {codecParams.codec_id}: {getErrorMessage(paramCopyResult)}");
+                    Logger.Log($"Couldn't copy codec parameters from {decoder.Name}: {getErrorMessage(paramCopyResult)}");
                     continue;
                 }
 
@@ -405,11 +405,11 @@ namespace osu.Framework.Graphics.Video
 
                     if (hwDeviceCreateResult < 0)
                     {
-                        Logger.Log($"Couldn't open hardware video decoder {hwDeviceType}: {getErrorMessage(hwDeviceCreateResult)}");
+                        Logger.Log($"Couldn't create hardware video decoder context {hwDeviceType} for codec {decoder.Name}: {getErrorMessage(hwDeviceCreateResult)}");
                     }
                     else
                     {
-                        Logger.Log($"Successfully opened hardware video decoder {hwDeviceType} for codec {codecParams.codec_id}");
+                        Logger.Log($"Successfully opened hardware video decoder context {hwDeviceType} for codec {decoder.Name}");
                         break;
                     }
                 }
@@ -418,9 +418,11 @@ namespace osu.Framework.Graphics.Video
 
                 if (openCodecResult < 0)
                 {
-                    Logger.Log($"Error trying to open codec with id {codecParams.codec_id}: {getErrorMessage(openCodecResult)}");
+                    Logger.Log($"Error trying to open {decoder.Name} codec: {getErrorMessage(openCodecResult)}");
                     continue;
                 }
+
+                Logger.Log($"Successfully initialized decoder: {decoder.Name}");
 
                 openSuccessful = true;
                 break;

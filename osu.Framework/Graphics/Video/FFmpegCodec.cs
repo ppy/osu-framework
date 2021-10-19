@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 
 namespace osu.Framework.Graphics.Video
@@ -13,6 +14,9 @@ namespace osu.Framework.Graphics.Video
         public readonly Lazy<IReadOnlyList<AVHWDeviceType>> SupportedHwDeviceTypes;
 
         public AVCodecID Id => Pointer->id;
+
+        public string Name => Marshal.PtrToStringAnsi((IntPtr)Pointer->name);
+
         public bool IsDecoder => ffmpeg.av_codec_is_decoder(Pointer) != 0;
 
         private readonly FFmpegFuncs ffmpeg;
