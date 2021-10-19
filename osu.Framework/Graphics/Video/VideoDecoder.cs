@@ -302,7 +302,7 @@ namespace osu.Framework.Graphics.Video
         private IEnumerable<(FFmpegCodec codec, IEnumerable<AVHWDeviceType> usableHwDeviceTypes)> getAvailableDecoders(AVCodecID codecId)
         {
             var codecs = new List<(FFmpegCodec, IEnumerable<AVHWDeviceType>)>();
-            FFmpegCodec? firstCodec = null;
+            FFmpegCodec firstCodec = null;
 
             void* iterator = null;
 
@@ -312,7 +312,7 @@ namespace osu.Framework.Graphics.Video
 
                 if (avCodec == null) break;
 
-                var codec = new FFmpegCodec(avCodec, ffmpeg);
+                var codec = new FFmpegCodec(ffmpeg, avCodec);
                 if (codec.Id != codecId || !codec.IsDecoder) continue;
 
                 firstCodec ??= codec;
@@ -332,8 +332,8 @@ namespace osu.Framework.Graphics.Video
 
             // default to the first codec that we found with no HW devices.
             // The first codec is what FFmpeg's `avcodec_find_decoder` would return so this way we'll automatically fallback to that.
-            if (firstCodec.HasValue)
-                codecs.Add((firstCodec.Value, Array.Empty<AVHWDeviceType>()));
+            if (firstCodec != null)
+                codecs.Add((firstCodec, Array.Empty<AVHWDeviceType>()));
 
             return codecs;
         }
