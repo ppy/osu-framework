@@ -633,12 +633,13 @@ namespace osu.Framework.Graphics.Video
                     if (!scalerFrames.TryDequeue(out var scalerFrame))
                         scalerFrame = new FFmpegFrame(ffmpeg, returnScalerFrame);
 
-                    // set the scaler's output to the pix format that we need.
-                    scalerFrame.Pointer->format = (int)expected_render_pixel_format;
-
-                    // allocate buffer if the scaler frame settings don't match the decoded frame.
-                    if (scalerFrame.Pointer->width != frame.Pointer->width || scalerFrame.Pointer->height != frame.Pointer->height)
+                    // (re)initialize the scaler frame if needed.
+                    if (scalerFrame.PixelFormat == AVPixelFormat.AV_PIX_FMT_NONE || scalerFrame.Pointer->width != frame.Pointer->width || scalerFrame.Pointer->height != frame.Pointer->height)
                     {
+                        ffmpeg.av_frame_unref(scalerFrame.Pointer);
+
+                        // Note: this field determines the scaler's output pix format.
+                        scalerFrame.PixelFormat = expected_render_pixel_format;
                         scalerFrame.Pointer->width = frame.Pointer->width;
                         scalerFrame.Pointer->height = frame.Pointer->height;
 

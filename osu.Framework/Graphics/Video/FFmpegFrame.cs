@@ -11,7 +11,11 @@ namespace osu.Framework.Graphics.Video
     {
         public readonly AVFrame* Pointer;
 
-        public AVPixelFormat PixelFormat => (AVPixelFormat)Pointer->format;
+        public AVPixelFormat PixelFormat
+        {
+            get => (AVPixelFormat)Pointer->format;
+            set => Pointer->format = (int)value;
+        }
 
         private readonly FFmpegFuncs ffmpeg;
         private readonly Action<FFmpegFrame> returnDelegate;
