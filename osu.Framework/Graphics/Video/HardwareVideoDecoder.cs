@@ -30,35 +30,41 @@ namespace osu.Framework.Graphics.Video
         [Description("Nvidia NVDEC (CUDA)")]
         NVDEC = 1,
 
+        /// <summary>
+        /// Windows and Linux only.
+        /// </summary>
+        [Description("Intel Quick Sync Video")]
+        QuickSyncVideo = 1 << 2,
+
         /// <remarks>
         /// Windows only.
         /// </remarks>
         [Description("DirectX Video Acceleration 2.0")]
-        DXVA2 = 1 << 2,
+        DXVA2 = 1 << 3,
 
         /// <remarks>
         /// Linux only.
         /// </remarks>
         [Description("VDPAU")]
-        VDPAU = 1 << 3,
+        VDPAU = 1 << 4,
 
         /// <remarks>
         /// Linux only.
         /// </remarks>
         [Description("VA-API")]
-        VAAPI = 1 << 4,
+        VAAPI = 1 << 5,
 
         /// <remarks>
         /// Android only.
         /// </remarks>
         [Description("Android MediaCodec")]
-        MediaCodec = 1 << 5,
+        MediaCodec = 1 << 6,
 
         /// <remarks>
         /// Apple devices only.
         /// </remarks>
         [Description("Apple VideoToolbox")]
-        VideoToolbox = 1 << 6,
+        VideoToolbox = 1 << 7,
 
         [Description("Any")]
         Any = int.MaxValue,
@@ -75,6 +81,9 @@ namespace osu.Framework.Graphics.Video
 
             if (decoders.HasFlagFast(HardwareVideoDecoder.NVDEC))
                 types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA);
+
+            if (decoders.HasFlagFast(HardwareVideoDecoder.QuickSyncVideo))
+                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_QSV);
 
             if (decoders.HasFlagFast(HardwareVideoDecoder.DXVA2))
                 types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2);
