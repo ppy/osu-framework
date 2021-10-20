@@ -299,9 +299,9 @@ namespace osu.Framework.Graphics.Video
         /// <remarks>
         /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
         /// </remarks>
-        private IEnumerable<(FFmpegCodec codec, IEnumerable<AVHWDeviceType> usableHwDeviceTypes)> getAvailableDecoders(AVCodecID codecId)
+        private IEnumerable<(FFmpegCodec codec, IReadOnlyList<AVHWDeviceType> usableHwDeviceTypes)> getAvailableDecoders(AVCodecID codecId)
         {
-            var codecs = new List<(FFmpegCodec, IEnumerable<AVHWDeviceType>)>();
+            var codecs = new List<(FFmpegCodec, IReadOnlyList<AVHWDeviceType>)>();
             FFmpegCodec firstCodec = null;
 
             void* iterator = null;
@@ -398,7 +398,7 @@ namespace osu.Framework.Graphics.Video
                     continue;
                 }
 
-                // initilize hardware decode device
+                // initialize hardware decode context.
                 foreach (var hwDeviceType in hwDeviceTypes)
                 {
                     int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
@@ -413,6 +413,9 @@ namespace osu.Framework.Graphics.Video
                         break;
                     }
                 }
+
+                if (hwDeviceTypes.Count > 0 && codecContext->hw_device_ctx == null)
+                    continue;
 
                 int openCodecResult = ffmpeg.avcodec_open2(codecContext, decoder.Pointer, null);
 
