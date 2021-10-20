@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -560,10 +561,7 @@ namespace osu.Framework.Graphics.Video
         }
 
         private readonly ConcurrentQueue<FFmpegFrame> hwTransferFrames = new ConcurrentQueue<FFmpegFrame>();
-        private readonly ConcurrentQueue<FFmpegFrame> scalerFrames = new ConcurrentQueue<FFmpegFrame>();
-
         private void returnHwTransferFrame(FFmpegFrame frame) => hwTransferFrames.Enqueue(frame);
-        private void returnScalerFrame(FFmpegFrame frame) => scalerFrames.Enqueue(frame);
 
         private void readDecodedFrames(AVFrame* receiveFrame)
         {
@@ -619,62 +617,11 @@ namespace osu.Framework.Graphics.Video
 
                 lastDecodedFrameTime = (float)frameTime;
 
-                // if needed, convert the resulting frame to a format that we can render.
-                const AVPixelFormat expected_render_pixel_format = AVPixelFormat.AV_PIX_FMT_YUV420P;
+                // Note: this is the pixel format that `VideoTexture` expects internally
+                frame = ensureFramePixelFormat(frame, AVPixelFormat.AV_PIX_FMT_YUV420P);
+                if (frame == null)
+                    continue;
 
-                if (frame.PixelFormat != expected_render_pixel_format)
-                {
-                    swsContext = ffmpeg.sws_getCachedContext(
-                        swsContext,
-                        codecContext->width, codecContext->height, frame.PixelFormat,
-                        codecContext->width, codecContext->height, expected_render_pixel_format,
-                        1, null, null, null);
-
-                    if (!scalerFrames.TryDequeue(out var scalerFrame))
-                        scalerFrame = new FFmpegFrame(ffmpeg, returnScalerFrame);
-
-                    // (re)initialize the scaler frame if needed.
-                    if (scalerFrame.PixelFormat == AVPixelFormat.AV_PIX_FMT_NONE || scalerFrame.Pointer->width != frame.Pointer->width || scalerFrame.Pointer->height != frame.Pointer->height)
-                    {
-                        ffmpeg.av_frame_unref(scalerFrame.Pointer);
-
-                        // Note: this field determines the scaler's output pix format.
-                        scalerFrame.PixelFormat = expected_render_pixel_format;
-                        scalerFrame.Pointer->width = frame.Pointer->width;
-                        scalerFrame.Pointer->height = frame.Pointer->height;
-
-                        var getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Pointer, 0);
-
-                        if (getBufferResult < 0)
-                        {
-                            Logger.Log($"Failed to allocate SWS frame buffer: {getErrorMessage(getBufferResult)}");
-
-                            scalerFrame.Dispose();
-                            frame.Return();
-                            continue;
-                        }
-                    }
-
-                    var scalerResult = ffmpeg.sws_scale(
-                        swsContext,
-                        frame.Pointer->data, frame.Pointer->linesize, 0, frame.Pointer->height,
-                        scalerFrame.Pointer->data, scalerFrame.Pointer->linesize);
-
-                    // return the original frame regardless of the scaler result.
-                    frame.Return();
-
-                    if (scalerResult < 0)
-                    {
-                        Logger.Log($"Failed to scale frame: {getErrorMessage(scalerResult)}");
-
-                        scalerFrame.Dispose();
-                        continue;
-                    }
-
-                    frame = scalerFrame;
-                }
-
-                // create texture.
                 if (!availableTextures.TryDequeue(out var tex))
                     tex = new Texture(new VideoTexture(frame.Pointer->width, frame.Pointer->height));
 
@@ -683,6 +630,65 @@ namespace osu.Framework.Graphics.Video
                 tex.SetData(upload);
                 decodedFrames.Enqueue(new DecodedFrame { Time = frameTime, Texture = tex });
             }
+        }
+
+        private readonly ConcurrentQueue<FFmpegFrame> scalerFrames = new ConcurrentQueue<FFmpegFrame>();
+        private void returnScalerFrame(FFmpegFrame frame) => scalerFrames.Enqueue(frame);
+
+        [CanBeNull]
+        private FFmpegFrame ensureFramePixelFormat(FFmpegFrame frame, AVPixelFormat targetPixelFormat)
+        {
+            if (frame.PixelFormat == targetPixelFormat)
+                return frame;
+
+            swsContext = ffmpeg.sws_getCachedContext(
+                swsContext,
+                codecContext->width, codecContext->height, frame.PixelFormat,
+                codecContext->width, codecContext->height, targetPixelFormat,
+                1, null, null, null);
+
+            if (!scalerFrames.TryDequeue(out var scalerFrame))
+                scalerFrame = new FFmpegFrame(ffmpeg, returnScalerFrame);
+
+            // (re)initialize the scaler frame if needed.
+            if (scalerFrame.PixelFormat == AVPixelFormat.AV_PIX_FMT_NONE || scalerFrame.Pointer->width != frame.Pointer->width || scalerFrame.Pointer->height != frame.Pointer->height)
+            {
+                ffmpeg.av_frame_unref(scalerFrame.Pointer);
+
+                // Note: this field determines the scaler's output pix format.
+                scalerFrame.PixelFormat = targetPixelFormat;
+                scalerFrame.Pointer->width = frame.Pointer->width;
+                scalerFrame.Pointer->height = frame.Pointer->height;
+
+                var getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Pointer, 0);
+
+                if (getBufferResult < 0)
+                {
+                    Logger.Log($"Failed to allocate SWS frame buffer: {getErrorMessage(getBufferResult)}");
+
+                    scalerFrame.Dispose();
+                    frame.Return();
+                    return null;
+                }
+            }
+
+            var scalerResult = ffmpeg.sws_scale(
+                swsContext,
+                frame.Pointer->data, frame.Pointer->linesize, 0, frame.Pointer->height,
+                scalerFrame.Pointer->data, scalerFrame.Pointer->linesize);
+
+            // return the original frame regardless of the scaler result.
+            frame.Return();
+
+            if (scalerResult < 0)
+            {
+                Logger.Log($"Failed to scale frame: {getErrorMessage(scalerResult)}");
+
+                scalerFrame.Dispose();
+                return null;
+            }
+
+            return scalerFrame;
         }
 
         private string getErrorMessage(int errorCode)
