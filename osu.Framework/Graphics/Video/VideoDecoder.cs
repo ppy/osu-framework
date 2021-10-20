@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Video
     /// <summary>
     /// Represents a video decoder that can be used convert video streams and files into textures.
     /// </summary>
-    public unsafe partial class VideoDecoder : IDisposable
+    public unsafe class VideoDecoder : IDisposable
     {
         /// <summary>
         /// The duration of the video that is being decoded. Can only be queried after the decoder has started decoding has loaded. This value may be an estimate by FFmpeg, depending on the video loaded.
