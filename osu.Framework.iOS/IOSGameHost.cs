@@ -119,7 +119,8 @@ namespace osu.Framework.iOS
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new IOSTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream) => new IOSVideoDecoder(stream);
+        public override VideoDecoder CreateVideoDecoder(Stream stream, HardwareVideoDecoder hwDecoder = HardwareVideoDecoder.None)
+            => new IOSVideoDecoder(stream, hwDecoder);
 
         public override IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {

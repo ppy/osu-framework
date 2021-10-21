@@ -110,15 +110,13 @@ namespace osu.Framework.Android.Graphics.Video
         private static extern int av_find_best_stream(AVFormatContext* ic, AVMediaType type, int wanted_stream_nb, int related_stream, AVCodec** decoder_ret, int flags);
 
         [DllImport(lib_avformat)]
-        private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet,
-                                                              avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
+        private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
         [DllImport(lib_swscale)]
         private static extern void sws_freeContext(SwsContext* swsContext);
 
         [DllImport(lib_swscale)]
-        private static extern SwsContext* sws_getContext(int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter,
-                                                         SwsFilter* dstFilter, double* param);
+        private static extern SwsContext* sws_getCachedContext(SwsContext* context, int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
 
         [DllImport(lib_swscale)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
@@ -186,7 +184,7 @@ namespace osu.Framework.Android.Graphics.Video
             av_find_best_stream = av_find_best_stream,
             avio_alloc_context = avio_alloc_context,
             sws_freeContext = sws_freeContext,
-            sws_getContext = sws_getContext,
+            sws_getCachedContext = sws_getCachedContext,
             sws_scale = sws_scale
         };
     }
