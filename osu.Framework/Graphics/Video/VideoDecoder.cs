@@ -641,24 +641,27 @@ namespace osu.Framework.Graphics.Video
             if (frame.PixelFormat == targetPixelFormat)
                 return frame;
 
+            var width = frame.Pointer->width;
+            var height = frame.Pointer->height;
+
             swsContext = ffmpeg.sws_getCachedContext(
                 swsContext,
-                codecContext->width, codecContext->height, frame.PixelFormat,
-                codecContext->width, codecContext->height, targetPixelFormat,
+                width, height, frame.PixelFormat,
+                width, height, targetPixelFormat,
                 1, null, null, null);
 
             if (!scalerFrames.TryDequeue(out var scalerFrame))
                 scalerFrame = new FFmpegFrame(ffmpeg, returnScalerFrame);
 
             // (re)initialize the scaler frame if needed.
-            if (scalerFrame.PixelFormat == AVPixelFormat.AV_PIX_FMT_NONE || scalerFrame.Pointer->width != frame.Pointer->width || scalerFrame.Pointer->height != frame.Pointer->height)
+            if (scalerFrame.PixelFormat != targetPixelFormat || scalerFrame.Pointer->width != width || scalerFrame.Pointer->height != height)
             {
                 ffmpeg.av_frame_unref(scalerFrame.Pointer);
 
                 // Note: this field determines the scaler's output pix format.
                 scalerFrame.PixelFormat = targetPixelFormat;
-                scalerFrame.Pointer->width = frame.Pointer->width;
-                scalerFrame.Pointer->height = frame.Pointer->height;
+                scalerFrame.Pointer->width = width;
+                scalerFrame.Pointer->height = height;
 
                 var getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Pointer, 0);
 
@@ -674,7 +677,7 @@ namespace osu.Framework.Graphics.Video
 
             var scalerResult = ffmpeg.sws_scale(
                 swsContext,
-                frame.Pointer->data, frame.Pointer->linesize, 0, frame.Pointer->height,
+                frame.Pointer->data, frame.Pointer->linesize, 0, height,
                 scalerFrame.Pointer->data, scalerFrame.Pointer->linesize);
 
             // return the original frame regardless of the scaler result.
