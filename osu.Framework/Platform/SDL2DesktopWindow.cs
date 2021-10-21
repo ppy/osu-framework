@@ -577,13 +577,24 @@ namespace osu.Framework.Platform
 
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
+        private const int events_per_peep = 64;
+        private SDL.SDL_Event[] events = new SDL.SDL_Event[events_per_peep];
+
         /// <summary>
         /// Poll for all pending events.
         /// </summary>
         private void pollSDLEvents()
         {
-            while (SDL.SDL_PollEvent(out var e) > 0)
-                handleSDLEvent(e);
+            SDL.SDL_PumpEvents();
+
+            int eventsRead;
+
+            do
+            {
+                eventsRead = SDL.SDL_PeepEvents(events, events_per_peep, SDL.SDL_eventaction.SDL_GETEVENT, SDL.SDL_EventType.SDL_FIRSTEVENT, SDL.SDL_EventType.SDL_LASTEVENT);
+                for (int i = 0; i < eventsRead; i++)
+                    handleSDLEvent(events[i]);
+            } while (eventsRead == events_per_peep);
         }
 
         private void handleSDLEvent(SDL.SDL_Event e)
@@ -1128,8 +1139,6 @@ namespace osu.Framework.Platform
             CurrentDisplayBindable.ValueChanged += evt =>
             {
                 windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
-                windowPositionX.Value = 0.5;
-                windowPositionY.Value = 0.5;
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);

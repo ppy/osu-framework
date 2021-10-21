@@ -132,6 +132,8 @@ namespace osu.Framework.Threading
 
         private double inactiveHz = DEFAULT_INACTIVE_HZ;
 
+        private readonly SchedulerSynchronizationContext synchronizationContext;
+
         internal PerformanceMonitor Monitor { get; }
 
         internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => Array.Empty<StatisticsCounterType>();
@@ -163,7 +165,9 @@ namespace osu.Framework.Threading
             Clock = new ThrottledFrameClock();
             if (monitorPerformance)
                 Monitor = new PerformanceMonitor(this, StatisticsCounters);
+
             Scheduler = new GameThreadScheduler(this);
+            synchronizationContext = new SchedulerSynchronizationContext(Scheduler);
 
             IsActive.BindValueChanged(_ => updateMaximumHz(), true);
         }
@@ -273,6 +277,8 @@ namespace osu.Framework.Threading
         internal virtual void MakeCurrent()
         {
             ThreadSafety.ResetAllForCurrentThread();
+
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
         }
 
         /// <summary>

@@ -351,6 +351,33 @@ namespace osu.Framework.Tests.Localisation
             Assert.AreEqual("number 12.34 with number 98.76% EN and number romanised EN EN", text.Value);
         }
 
+        [Test]
+        public void TestTranslatableComplexStringUsesFallbackFormatWithTranslatedParts()
+        {
+            const string nested_key = FakeStorage.LOCALISABLE_NUMBER_FORMAT_STRING_EN;
+
+            manager.AddLanguage("fr", new FakeStorage("fr"));
+
+            var text = manager.GetLocalisedString(new TranslatableString("_", "{0} / {1} / {2}",
+                new LocalisableFormattableString(12.34, "0.00"),
+                new TranslatableString(nested_key, nested_key, new LocalisableFormattableString(0.9876, "0.00%")),
+                new TranslatableString(nested_key, nested_key, new RomanisableString("unicode", "romanised"))));
+
+            Assert.AreEqual("12.34 / number 98.76% EN / number unicode EN", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "fr");
+
+            Assert.AreEqual("12,34 / number 98,76% FR / number unicode FR", text.Value);
+
+            config.SetValue(FrameworkSetting.ShowUnicode, false);
+
+            Assert.AreEqual("12,34 / number 98,76% FR / number romanised FR", text.Value);
+
+            config.SetValue(FrameworkSetting.Locale, "en");
+
+            Assert.AreEqual("12.34 / number 98.76% EN / number romanised EN", text.Value);
+        }
+
         private class FakeFrameworkConfigManager : FrameworkConfigManager
         {
             protected override string Filename => null;

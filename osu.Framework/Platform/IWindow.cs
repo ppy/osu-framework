@@ -133,7 +133,8 @@ namespace osu.Framework.Platform
         void Close();
 
         /// <summary>
-        /// Start the window's run loop. Is a blocking call.
+        /// Start the window's run loop.
+        /// Is a blocking call on desktop platforms, and a non-blocking call on mobile platforms.
         /// </summary>
         void Run();
 

@@ -70,7 +70,10 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        /// <summary>
+        /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
+        /// </summary>
+        public virtual bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
@@ -117,6 +120,20 @@ namespace osu.Framework.Platform
         /// </summary>
         /// <param name="filename">The absolute path to the file which should be opened.</param>
         public abstract void OpenFileExternally(string filename);
+
+        /// <summary>
+        /// Requests to present a file externally in the platform's native file browser.
+        /// </summary>
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <example>
+        ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
+        ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
+        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
+        /// </example>
+        /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
+        public abstract void PresentFileExternally(string filename);
 
         /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
@@ -541,13 +558,22 @@ namespace osu.Framework.Platform
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit() => PerformExit(false);
+        public void Exit()
+        {
+            if (CanExit)
+                PerformExit(false);
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
+        /// <remarks>
+        /// Will never be called if <see cref="CanExit"/> is <see langword="false"/>.
+        /// </remarks>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately) => performExit(immediately);
+
+        private void performExit(bool immediately)
         {
             if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
                 return;
@@ -558,24 +584,31 @@ namespace osu.Framework.Platform
                 exit();
             else
                 InputThread.Scheduler.Add(exit, false);
+
+            void exit()
+            {
+                Debug.Assert(ExecutionState == ExecutionState.Stopping);
+
+                Window?.Close();
+                threadRunner.Stop();
+
+                ExecutionState = ExecutionState.Stopped;
+                stoppedEvent.Set();
+            }
         }
 
-        /// <summary>
-        /// Exits the game. This must always be called from <see cref="InputThread"/>.
-        /// </summary>
-        private void exit()
-        {
-            Debug.Assert(ExecutionState == ExecutionState.Stopping);
-
-            Window?.Close();
-            threadRunner.Stop();
-
-            ExecutionState = ExecutionState.Stopped;
-            stoppedEvent.Set();
-        }
+        private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
 
         public void Run(Game game)
         {
+            if (Thread.CurrentThread.IsThreadPoolThread)
+            {
+                // This is a common misuse of GameHost, where typically consumers will have a mutex waiting for the game to run.
+                // Exceptions thrown here will become unobserved, so any such mutexes will never be set.
+                // Instead, immediately terminate the application in order to notify of incorrect use in all cases.
+                Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
+            }
+
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             if (LimitedMemoryEnvironment)
@@ -589,6 +622,9 @@ namespace osu.Framework.Platform
 
             try
             {
+                if (!host_running_mutex.Wait(10000))
+                    throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -695,8 +731,13 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                // Close the window and stop all threads
-                PerformExit(true);
+                if (CanExit)
+                {
+                    // Close the window and stop all threads
+                    performExit(true);
+
+                    host_running_mutex.Release();
+                }
             }
         }
 
@@ -1088,6 +1129,12 @@ namespace osu.Framework.Platform
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
             new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
             new KeyBinding(InputKey.Delete, PlatformAction.Delete),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadPlus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Minus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadMinus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Number0), PlatformAction.ZoomDefault),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Keypad0), PlatformAction.ZoomDefault),
         };
 
         /// <summary>

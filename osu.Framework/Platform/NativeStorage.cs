@@ -68,8 +68,11 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenPathInNativeExplorer(string path) =>
-            host?.OpenFileExternally(GetFullPath(path));
+        public override void OpenFileExternally(string filename) =>
+            host?.OpenFileExternally(GetFullPath(filename));
+
+        public override void PresentFileExternally(string filename) =>
+            host?.PresentFileExternally(GetFullPath(filename));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
@@ -89,10 +92,6 @@ namespace osu.Framework.Platform
                     return new FlushingStream(path, mode, access);
             }
         }
-
-        public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
-
-        public override void DeleteDatabase(string name) => Delete($@"{name}.db");
 
         public override Storage GetStorageForDirectory([NotNull] string path)
         {

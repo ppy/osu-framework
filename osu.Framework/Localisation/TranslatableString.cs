@@ -53,9 +53,7 @@ namespace osu.Framework.Localisation
             if (parameters.Store == null)
                 return ToString();
 
-            var localisedFormat = parameters.Store.Get(Key);
-            if (localisedFormat == null)
-                return ToString();
+            var localisedFormat = parameters.Store.Get(Key) ?? Fallback;
 
             try
             {

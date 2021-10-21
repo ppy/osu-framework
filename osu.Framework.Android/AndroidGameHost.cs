@@ -17,7 +17,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
@@ -67,6 +66,9 @@ namespace osu.Framework.Android
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
 
+        public override void PresentFileExtenally(string filename)
+            => throw new NotImplementedException();
+
         public override void OpenUrlExternally(string url)
         {
             var activity = (Activity)gameView.Context;
@@ -83,10 +85,5 @@ namespace osu.Framework.Android
 
         public override VideoDecoder CreateVideoDecoder(Stream stream)
             => new AndroidVideoDecoder(stream);
-
-        protected override void PerformExit(bool immediately)
-        {
-            // Do not exit on Android, Window.Run() does not block
-        }
     }
 }
