@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -142,8 +143,7 @@ namespace osu.Framework.Android.Graphics.Video
                 var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
                 object jvmPtrObj = jvmPtrInfo?.GetValue(null);
 
-                if (jvmPtrInfo == null || jvmPtrObj == null)
-                    throw new InvalidOperationException($"Couldn't get `{java_vm_field_name}` field from JNIEnv. Can't use MediaCodec decoder.");
+                Debug.Assert(jvmPtrObj != null);
 
                 int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
                 if (result < 0)
