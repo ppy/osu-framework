@@ -194,8 +194,19 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             decodingTaskCancellationTokenSource.Cancel();
+
             if (waitForDecoderExit)
-                decodingTask.Wait();
+            {
+                try
+                {
+                    decodingTask.Wait();
+                }
+                catch
+                {
+                    // Can throw an TaskCanceledException (inside of an AggregateException)
+                    // if the decoding task was enqueued but not running yet.
+                }
+            }
 
             decodingTask = null;
             decodingTaskCancellationTokenSource.Dispose();
