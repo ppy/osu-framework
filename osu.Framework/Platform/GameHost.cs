@@ -718,6 +718,7 @@ namespace osu.Framework.Platform
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
+                        Window.KeymapChanged += readableKeyCombinationProvider.OnKeymapChanged;
 
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).

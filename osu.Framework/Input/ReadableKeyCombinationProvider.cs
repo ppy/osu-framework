@@ -1,17 +1,30 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
     public class ReadableKeyCombinationProvider
     {
         /// <summary>
+        /// Invoked when the system keyboard layout has changed.
+        /// </summary>
+        /// <remarks>
+        /// Mirrored from <see cref="IWindow.KeymapChanged"/> for convenience.
+        /// </remarks>
+        public event Action KeymapChanged;
+
+        /// <summary>
         /// Returns a human-readable string for a given <see cref="KeyCombination"/>.
         /// </summary>
+        /// <remarks>
+        /// Consumers should subscribe to <see cref="KeymapChanged"/> and re-generate the readable KeyCombination when the keyboard layout changes.
+        /// </remarks>
         /// <returns>The <see cref="KeyCombination"/> as a human-readable string.</returns>
         public string GetReadableString(KeyCombination c)
         {
@@ -48,6 +61,11 @@ namespace osu.Framework.Input
 
                 return GetReadableKey(key);
             }).Where(s => !string.IsNullOrEmpty(s)));
+        }
+
+        internal void OnKeymapChanged()
+        {
+            KeymapChanged?.Invoke();
         }
 
         protected virtual string GetReadableKey(InputKey key)

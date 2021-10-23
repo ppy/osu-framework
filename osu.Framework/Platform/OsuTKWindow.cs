@@ -46,6 +46,11 @@ namespace osu.Framework.Platform
         /// </summary>
         public event Action Resized;
 
+        /// <inheritdoc cref="IWindow.KeymapChanged"/>
+#pragma warning disable CS0067 // used in SDL2DesktopWindow
+        public event Action KeymapChanged;
+#pragma warning restore CS0067
+
         /// <summary>
         /// Invoked when any key has been pressed.
         /// </summary>
