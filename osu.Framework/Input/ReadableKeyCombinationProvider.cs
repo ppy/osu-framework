@@ -19,6 +19,11 @@ namespace osu.Framework.Input
         /// </remarks>
         public event Action KeymapChanged;
 
+        internal void OnKeymapChanged()
+        {
+            KeymapChanged?.Invoke();
+        }
+
         /// <summary>
         /// Returns a human-readable string for a given <see cref="KeyCombination"/>.
         /// </summary>
@@ -61,11 +66,6 @@ namespace osu.Framework.Input
 
                 return GetReadableKey(key);
             }).Where(s => !string.IsNullOrEmpty(s)));
-        }
-
-        internal void OnKeymapChanged()
-        {
-            KeymapChanged?.Invoke();
         }
 
         protected virtual string GetReadableKey(InputKey key)
