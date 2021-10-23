@@ -236,6 +236,9 @@ namespace osu.Framework.Input.Bindings
         /// <returns>The string representation.</returns>
         public override string ToString() => string.Join(',', Keys.Select(k => (int)k));
 
+        /// <remarks>
+        /// Obsolete, resolve <see cref="ReadableKeyCombinationProvider"/> with DI and use <see cref="ReadableKeyCombinationProvider.GetReadableString"/>
+        /// </remarks>
         public string ReadableString()
         {
             var sortedKeys = Keys.GetValuesInOrder().ToArray();
