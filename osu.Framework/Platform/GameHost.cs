@@ -149,6 +149,10 @@ namespace osu.Framework.Platform
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
 
+        protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
+
+        private ReadableKeyCombinationProvider readableKeyCombinationProvider;
+
         /// <summary>
         /// Retrieve a storage for the specified location.
         /// </summary>
@@ -677,6 +681,8 @@ namespace osu.Framework.Platform
 
                     IsActive.BindTo(Window.IsActive);
                 }
+
+                Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
 
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();

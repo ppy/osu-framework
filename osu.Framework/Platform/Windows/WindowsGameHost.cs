@@ -11,6 +11,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Platform.SDL2;
 using osu.Framework.Platform.Windows.Native;
 
 namespace osu.Framework.Platform.Windows
@@ -20,6 +21,8 @@ namespace osu.Framework.Platform.Windows
         private TimePeriod timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
+
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new SDL2ReadableKeyCombinationProvider();
 
         public override IEnumerable<string> UserStoragePaths =>
             // on windows this is guaranteed to exist (and be usable) so don't fallback to the base/default.
