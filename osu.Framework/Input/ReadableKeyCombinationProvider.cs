@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Bindings;
-using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
@@ -14,9 +13,6 @@ namespace osu.Framework.Input
         /// <summary>
         /// Invoked when the system keyboard layout has changed.
         /// </summary>
-        /// <remarks>
-        /// Mirrored from <see cref="IWindow.KeymapChanged"/> for convenience.
-        /// </remarks>
         public event Action KeymapChanged;
 
         internal void OnKeymapChanged()
