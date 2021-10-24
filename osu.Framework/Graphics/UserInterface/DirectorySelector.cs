@@ -38,8 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         [Cached]
         public readonly Bindable<DirectoryInfo> CurrentPath = new Bindable<DirectoryInfo>();
 
-        private readonly string initialPath;
-        private string defaultInitialPath;
+        private string initialPath;
 
         protected DirectorySelector(string initialPath = null)
         {
@@ -50,13 +49,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            CurrentPath.Value = new DirectoryInfo(initialPath ?? defaultInitialPath);
+            CurrentPath.Value = new DirectoryInfo(initialPath);
         }
 
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost)
         {
-            defaultInitialPath = gameHost.DefaultInitialPath;
+            initialPath ??= gameHost.DefaultInitialPath;
 
             InternalChild = new GridContainer
             {
