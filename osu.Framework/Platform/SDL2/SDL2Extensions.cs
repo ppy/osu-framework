@@ -445,9 +445,19 @@ namespace osu.Framework.Platform.SDL2
             }
         }
 
-        public static SDL.SDL_Scancode ToScancode(this InputKey key)
+        /// <summary>
+        /// Returns the corresponding <see cref="SDL.SDL_Scancode"/> for a given <see cref="InputKey"/>.
+        /// </summary>
+        /// <param name="inputKey">
+        /// Should be within <see cref="InputKey.A"/> and <see cref="InputKey.NonUSBackSlash"/>.
+        /// </param>
+        /// <returns>
+        /// The corresponding <see cref="SDL.SDL_Scancode"/> if the <see cref="InputKey"/> is valid.
+        /// <see cref="SDL.SDL_Scancode.SDL_SCANCODE_UNKNOWN"/> otherwise.
+        /// </returns>
+        public static SDL.SDL_Scancode ToScancode(this InputKey inputKey)
         {
-            switch (key)
+            switch (inputKey)
             {
                 default:
                     return SDL.SDL_Scancode.SDL_SCANCODE_UNKNOWN;
