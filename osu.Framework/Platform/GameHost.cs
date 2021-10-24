@@ -150,6 +150,14 @@ namespace osu.Framework.Platform
         public virtual Clipboard GetClipboard() => null;
 
         /// <summary>
+        /// The default initial path when requesting a user to select a file/folder.
+        /// </summary>
+        /// <remarks>
+        /// Provides a sane starting point for user-accessible storage.
+        /// </remarks>
+        public virtual string DefaultInitialPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>
         /// Retrieve a storage for the specified location.
         /// </summary>
         /// <param name="path">The absolute path to be used as a root for the storage.</param>

@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -37,14 +38,26 @@ namespace osu.Framework.Graphics.UserInterface
         [Cached]
         public readonly Bindable<DirectoryInfo> CurrentPath = new Bindable<DirectoryInfo>();
 
+        private readonly string initialPath;
+        private string defaultInitialPath;
+
         protected DirectorySelector(string initialPath = null)
         {
-            CurrentPath.Value = new DirectoryInfo(initialPath ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+            this.initialPath = initialPath;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            CurrentPath.Value = new DirectoryInfo(initialPath ?? defaultInitialPath);
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameHost gameHost)
         {
+            defaultInitialPath = gameHost.DefaultInitialPath;
+
             InternalChild = new GridContainer
             {
                 RelativeSizeAxes = Axes.Both,
