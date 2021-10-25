@@ -56,6 +56,8 @@ namespace osu.Framework.Android
                 new MidiHandler()
             };
 
+        public override string InitialFileSelectorPath => @"/sdcard";
+
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
         public override IEnumerable<string> UserStoragePaths => new[]
