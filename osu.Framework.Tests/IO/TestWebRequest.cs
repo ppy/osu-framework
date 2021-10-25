@@ -497,13 +497,13 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
-            WebRequest request;
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
 
-            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
-                   {
-                       Method = HttpMethod.Get,
-                       AllowInsecureRequests = true,
-                   })
+            using (request)
             {
                 request.Started += () => { };
                 request.Failed += e => { };
