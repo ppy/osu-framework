@@ -271,7 +271,6 @@ namespace osu.Framework.Testing
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
                        && kind != SyntaxKind.NameColon
                        && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
-                       && kind != SyntaxKind.NameColon
                        && kind != SyntaxKind.ElementAccessExpression
                        && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
