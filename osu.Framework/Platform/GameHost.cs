@@ -155,7 +155,7 @@ namespace osu.Framework.Platform
         /// <remarks>
         /// Provides a sane starting point for user-accessible storage.
         /// </remarks>
-        public virtual string DefaultInitialPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         /// <summary>
         /// Retrieve a storage for the specified location.

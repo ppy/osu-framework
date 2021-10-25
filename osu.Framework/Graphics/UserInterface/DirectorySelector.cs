@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost)
         {
-            initialPath ??= gameHost.DefaultInitialPath;
+            initialPath ??= gameHost.InitialFileSelectorPath;
 
             InternalChild = new GridContainer
             {
