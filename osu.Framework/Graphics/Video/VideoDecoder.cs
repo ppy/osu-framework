@@ -65,7 +65,6 @@ namespace osu.Framework.Graphics.Video
         private AVStream* stream;
         private AVCodecParameters codecParams;
         private byte* contextBuffer;
-        private byte[] managedContextBuffer;
 
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
@@ -248,12 +247,9 @@ namespace osu.Framework.Graphics.Video
             if (!handle.GetTarget(out VideoDecoder decoder))
                 return 0;
 
-            if (bufferSize != decoder.managedContextBuffer.Length)
-                decoder.managedContextBuffer = new byte[bufferSize];
+            var span = new Span<byte>(bufferPtr, bufferSize);
 
-            var bytesRead = decoder.videoStream.Read(decoder.managedContextBuffer, 0, bufferSize);
-            Marshal.Copy(decoder.managedContextBuffer, 0, (IntPtr)bufferPtr, bytesRead);
-            return bytesRead;
+            return decoder.videoStream.Read(span);
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
@@ -315,7 +311,6 @@ namespace osu.Framework.Graphics.Video
             var fcPtr = ffmpeg.avformat_alloc_context();
             formatContext = fcPtr;
             contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
-            managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
             formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
@@ -615,7 +610,6 @@ namespace osu.Framework.Graphics.Video
 
             seekCallback = null;
             readPacketCallback = null;
-            managedContextBuffer = null;
 
             videoStream.Dispose();
             videoStream = null;
