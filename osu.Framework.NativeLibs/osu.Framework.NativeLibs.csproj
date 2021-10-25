@@ -27,4 +27,7 @@
       <PackagePath>lib\$(TargetFramework)</PackagePath>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.3" />
+  </ItemGroup>
 </Project>
