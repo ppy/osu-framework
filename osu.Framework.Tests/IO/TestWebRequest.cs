@@ -500,10 +500,10 @@ namespace osu.Framework.Tests.IO
             WebRequest request;
 
             using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
-            {
-                Method = HttpMethod.Get,
-                AllowInsecureRequests = true,
-            })
+                   {
+                       Method = HttpMethod.Get,
+                       AllowInsecureRequests = true,
+                   })
             {
                 request.Started += () => { };
                 request.Failed += e => { };

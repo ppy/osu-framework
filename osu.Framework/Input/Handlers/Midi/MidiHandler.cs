@@ -220,7 +220,7 @@ namespace osu.Framework.Input.Handlers.Midi
                     break;
 
                 case MidiEvent.NoteOff:
-                case MidiEvent.NoteOn when velocity == 0:
+                case MidiEvent.NoteOn:
                     Logger.Log($"NoteOff: {(MidiKey)key}/{velocity / 128f:P}");
                     PendingInputs.Enqueue(new MidiKeyInput((MidiKey)key, 0, false));
                     FrameStatistics.Increment(StatisticsCounterType.MidiEvents);
