@@ -53,7 +53,7 @@ namespace FlappyDon.Game.Elements
                     return null;
 
                 return new TexturedCharacterGlyph(new CharacterGlyph(character, 0, 0,
-                    texture.Width, null), texture, 0.09f);
+                    texture.Width, 0, null), texture, 0.09f);
             }
 
             public Task<ITexturedCharacterGlyph> GetAsync(string fontName, char character) => Task.Run(() => Get(fontName, character));
