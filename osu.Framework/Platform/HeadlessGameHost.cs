@@ -24,6 +24,8 @@ namespace osu.Framework.Platform
 
         public override void OpenFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be opened.");
 
+        public override void PresentFileExternally(string filename) => Logger.Log($"Application has requested file \"{filename}\" to be shown.");
+
         public override void OpenUrlExternally(string url) => Logger.Log($"Application has requested URL \"{url}\" to be opened.");
 
         public override IEnumerable<string> UserStoragePaths => new[] { "./headless/" };

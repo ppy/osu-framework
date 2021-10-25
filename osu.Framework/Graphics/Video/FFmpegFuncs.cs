@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate void* AvMallocDelegate(ulong size);
 
+        public delegate void AvFreepDelegate(void* ptr);
+
         public delegate AVPacket* AvPacketAllocDelegate();
 
         public delegate void AvPacketUnrefDelegate(AVPacket* pkt);
@@ -71,6 +73,8 @@ namespace osu.Framework.Graphics.Video
 
         public delegate AVIOContext* AvioAllocContextDelegate(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
+        public delegate void AvioContextFreeDelegate(AVIOContext** s);
+
         public delegate void SwsFreeContextDelegate(SwsContext* swsContext);
 
         public delegate SwsContext* SwsGetCachedContextDelegate(SwsContext* context, int srcW, int srcH, AVPixelFormat srcFormat, int dstW, int dstH, AVPixelFormat dstFormat, int flags, SwsFilter* srcFilter, SwsFilter* dstFilter, double* param);
@@ -87,6 +91,7 @@ namespace osu.Framework.Graphics.Video
         public AvStrDupDelegate av_strdup;
         public AvStrErrorDelegate av_strerror;
         public AvMallocDelegate av_malloc;
+        public AvFreepDelegate av_freep;
         public AvPacketAllocDelegate av_packet_alloc;
         public AvPacketUnrefDelegate av_packet_unref;
         public AvPacketFreeDelegate av_packet_free;
@@ -109,6 +114,7 @@ namespace osu.Framework.Graphics.Video
         public AvformatOpenInputDelegate avformat_open_input;
         public AvFindBestStreamDelegate av_find_best_stream;
         public AvioAllocContextDelegate avio_alloc_context;
+        public AvioContextFreeDelegate avio_context_free;
         public SwsFreeContextDelegate sws_freeContext;
         public SwsGetCachedContextDelegate sws_getCachedContext;
         public SwsScaleDelegate sws_scale;

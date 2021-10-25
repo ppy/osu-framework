@@ -303,8 +303,27 @@ namespace osu.Framework.Tests.Threading
             Assert.AreEqual(ScheduledDelegate.RunState.Cancelled, del.State);
         }
 
+        private int classInvocations;
+
         [Test]
-        public void TestAddOnce()
+        public void TestAddOnceClassMethod()
+        {
+            classInvocations = 0;
+
+            scheduler.AddOnce(classAction);
+            scheduler.AddOnce(classAction);
+
+            scheduler.Update();
+            Assert.AreEqual(1, classInvocations);
+        }
+
+        private void classAction()
+        {
+            classInvocations++;
+        }
+
+        [Test]
+        public void TestAddOnceInlineFunction()
         {
             int invocations = 0;
 
@@ -312,6 +331,52 @@ namespace osu.Framework.Tests.Threading
 
             scheduler.AddOnce(action);
             scheduler.AddOnce(action);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestAddOnceInlineFunctionCalledMultipleTimes()
+        {
+            classInvocations = 0;
+
+            invokeAction();
+            invokeAction();
+
+            scheduler.Update();
+            Assert.AreEqual(1, classInvocations);
+        }
+
+        private void invokeAction()
+        {
+            void action() => classInvocations++;
+            scheduler.AddOnce(action);
+        }
+
+        [Test]
+        public void TestAddOnceInlineFunctionWithVariable()
+        {
+            int invocations = 0;
+
+            void action(object o) => invocations++;
+
+            scheduler.AddOnce(action, this);
+            scheduler.AddOnce(action, this);
+
+            scheduler.Update();
+            Assert.AreEqual(1, invocations);
+        }
+
+        [Test]
+        public void TestAddOnceDelegateWithVariable()
+        {
+            int invocations = 0;
+
+            Action<object> action = _ => invocations++;
+
+            scheduler.AddOnce(action, this);
+            scheduler.AddOnce(action, this);
 
             scheduler.Update();
             Assert.AreEqual(1, invocations);

@@ -108,13 +108,23 @@ namespace osu.Framework.Platform
         public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         /// <summary>
-        /// Opens a native file browser window to the root path of this storage.
+        /// Requests that a file be opened externally with an associated application, if available.
         /// </summary>
-        public void OpenInNativeExplorer() => OpenPathInNativeExplorer(string.Empty);
+        /// <param name="filename">The relative path to the file which should be opened.</param>
+        public abstract void OpenFileExternally(string filename);
 
         /// <summary>
-        /// Opens a native file browser window to the specified relative path.
+        /// Opens a native file browser window to the root path of this storage.
         /// </summary>
-        public abstract void OpenPathInNativeExplorer(string path);
+        public void PresentExternally() => OpenFileExternally(string.Empty);
+
+        /// <summary>
+        /// Requests to present a file externally in the platform's native file browser.
+        /// </summary>
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <param name="filename">Relative path to the file.</param>
+        public abstract void PresentFileExternally(string filename);
     }
 }

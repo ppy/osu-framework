@@ -26,7 +26,7 @@ namespace osu.Framework.Platform.Windows
             try
             {
                 // SDL doesn't handle DPI correctly on windows, but this brings things mostly in-line with expectations. (https://bugzilla.libsdl.org/show_bug.cgi?id=3281)
-                SetProcessDpiAwareness(ProcessDpiAwareness.Process_System_DPI_Aware);
+                SetProcessDpiAwareness(ProcessDpiAwareness.Process_Per_Monitor_DPI_Aware);
             }
             catch
             {

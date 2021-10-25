@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Localisation;
+
 namespace osu.Framework.Configuration.Tracking
 {
     /// <summary>
@@ -16,17 +18,17 @@ namespace osu.Framework.Configuration.Tracking
         /// <summary>
         /// The readable setting name.
         /// </summary>
-        public readonly string Name;
+        public readonly LocalisableString Name;
 
         /// <summary>
         /// The readable setting value.
         /// </summary>
-        public readonly string Value;
+        public readonly LocalisableString Value;
 
         /// <summary>
         /// The shortcut keys that cause this setting to change.
         /// </summary>
-        public readonly string Shortcut;
+        public readonly LocalisableString Shortcut;
 
         /// <summary>
         /// Constructs a new <see cref="SettingDescription"/>.
@@ -35,12 +37,12 @@ namespace osu.Framework.Configuration.Tracking
         /// <param name="name">The readable setting name.</param>
         /// <param name="value">The readable setting value.</param>
         /// <param name="shortcut">The shortcut keys that cause this setting to change.</param>
-        public SettingDescription(object rawValue, string name, string value, string shortcut = @"")
+        public SettingDescription(object rawValue, LocalisableString name, LocalisableString value, LocalisableString? shortcut = null)
         {
             RawValue = rawValue;
             Name = name;
             Value = value;
-            Shortcut = shortcut;
+            Shortcut = shortcut ?? string.Empty;
         }
     }
 }

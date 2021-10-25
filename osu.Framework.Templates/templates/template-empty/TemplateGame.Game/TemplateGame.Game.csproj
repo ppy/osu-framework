@@ -6,6 +6,6 @@
     <ProjectReference Include="..\TemplateGame.Resources\TemplateGame.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2021.830.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2021.929.0" />
   </ItemGroup>
 </Project>

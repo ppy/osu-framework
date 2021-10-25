@@ -317,6 +317,17 @@ namespace osu.Framework.Extensions
             => path.Replace('\\', '/');
 
         /// <summary>
+        /// Trim DirectorySeparatorChar from the end of the path.
+        /// </summary>
+        /// <remarks>
+        /// Trims both <see cref="Path.DirectorySeparatorChar"/> and <see cref="Path.AltDirectorySeparatorChar"/>.
+        /// </remarks>
+        /// <param name="path">The path string to trim.</param>
+        /// <returns>The path with DirectorySeparatorChar trimmed.</returns>
+        public static string TrimDirectorySeparator(this string path)
+            => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        /// <summary>
         /// Converts an osuTK <see cref="DisplayDevice"/> to a <see cref="Display"/> structure.
         /// </summary>
         /// <param name="device">The <see cref="DisplayDevice"/> to convert.</param>

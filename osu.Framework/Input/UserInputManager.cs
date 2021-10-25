@@ -38,7 +38,7 @@ namespace osu.Framework.Input
                     if (Host.Window != null && Host.Window.CursorState.HasFlagFast(CursorState.Confined))
                     {
                         var clientSize = Host.Window.ClientSize;
-                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(clientSize.Width, clientSize.Height));
+                        mouse.Position = Vector2.Clamp(mouse.Position, Vector2.Zero, new Vector2(clientSize.Width - 1, clientSize.Height - 1));
                     }
 
                     break;

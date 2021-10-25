@@ -64,12 +64,10 @@ namespace osu.Framework.Graphics.Video
 
         // libav-context-related
         private AVFormatContext* formatContext;
+        private AVIOContext* ioContext;
         private AVStream* stream;
         private AVCodecContext* codecContext;
         private SwsContext* swsContext;
-
-        private byte* contextBuffer;
-        private byte[] managedContextBuffer;
 
         private avio_alloc_context_read_packet readPacketCallback;
         private avio_alloc_context_seek seekCallback;
@@ -201,8 +199,19 @@ namespace osu.Framework.Graphics.Video
                 return;
 
             decodingTaskCancellationTokenSource.Cancel();
+
             if (waitForDecoderExit)
-                decodingTask.Wait();
+            {
+                try
+                {
+                    decodingTask.Wait();
+                }
+                catch
+                {
+                    // Can throw an TaskCanceledException (inside of an AggregateException)
+                    // if the decoding task was enqueued but not running yet.
+                }
+            }
 
             decodingTask = null;
             decodingTaskCancellationTokenSource.Dispose();
@@ -255,12 +264,9 @@ namespace osu.Framework.Graphics.Video
             if (!handle.GetTarget(out VideoDecoder decoder))
                 return 0;
 
-            if (bufferSize != decoder.managedContextBuffer.Length)
-                decoder.managedContextBuffer = new byte[bufferSize];
+            var span = new Span<byte>(bufferPtr, bufferSize);
 
-            var bytesRead = decoder.videoStream.Read(decoder.managedContextBuffer, 0, bufferSize);
-            Marshal.Copy(decoder.managedContextBuffer, 0, (IntPtr)bufferPtr, bytesRead);
-            return bytesRead;
+            return decoder.videoStream.Read(span);
         }
 
         [MonoPInvokeCallback(typeof(avio_alloc_context_seek))]
@@ -348,11 +354,14 @@ namespace osu.Framework.Graphics.Video
             // this will be safely handled in StartDecoding()
             var fcPtr = ffmpeg.avformat_alloc_context();
             formatContext = fcPtr;
-            contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
-            managedContextBuffer = new byte[context_buffer_size];
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
-            formatContext->pb = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+
+            // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
+            // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
+            var contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
+            ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+            formatContext->pb = ioContext;
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             inputOpened = openInputResult >= 0;
@@ -753,6 +762,7 @@ namespace osu.Framework.Graphics.Video
                 av_strdup = AGffmpeg.av_strdup,
                 av_strerror = AGffmpeg.av_strerror,
                 av_malloc = AGffmpeg.av_malloc,
+                av_freep = AGffmpeg.av_freep,
                 av_packet_alloc = AGffmpeg.av_packet_alloc,
                 av_packet_unref = AGffmpeg.av_packet_unref,
                 av_packet_free = AGffmpeg.av_packet_free,
@@ -775,6 +785,7 @@ namespace osu.Framework.Graphics.Video
                 avformat_open_input = AGffmpeg.avformat_open_input,
                 av_find_best_stream = AGffmpeg.av_find_best_stream,
                 avio_alloc_context = AGffmpeg.avio_alloc_context,
+                avio_context_free = AGffmpeg.avio_context_free,
                 sws_freeContext = AGffmpeg.sws_freeContext,
                 sws_getCachedContext = AGffmpeg.sws_getCachedContext,
                 sws_scale = AGffmpeg.sws_scale
@@ -819,13 +830,9 @@ namespace osu.Framework.Graphics.Video
 
             seekCallback = null;
             readPacketCallback = null;
-            managedContextBuffer = null;
 
             videoStream.Dispose();
             videoStream = null;
-
-            // gets freed by libavformat when closing the input
-            contextBuffer = null;
 
             if (swsContext != null)
                 ffmpeg.sws_freeContext(swsContext);

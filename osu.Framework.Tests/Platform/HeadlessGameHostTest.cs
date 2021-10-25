@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Framework.Tests.IO;
@@ -48,6 +50,36 @@ namespace osu.Framework.Tests.Platform
             using (new TestRunHeadlessGameHost(nameof(TestGameHostDisposalWhenNeverRun), true))
             {
                 // never call host.Run()
+            }
+        }
+
+        [Test]
+        [SuppressMessage("ReSharper", "AccessToDisposedClosure")]
+        public void TestThreadSafetyResetOnEnteringThread()
+        {
+            using (var host = new TestRunHeadlessGameHost(nameof(TestThreadSafetyResetOnEnteringThread)))
+            {
+                bool isDrawThread = false;
+                bool isUpdateThread = false;
+                bool isInputThread = false;
+                bool isAudioThread = false;
+
+                var task = Task.Factory.StartNew(() =>
+                {
+                    var game = new TestGame();
+                    game.Scheduler.Add(() => host.Exit());
+
+                    host.Run(game);
+
+                    isDrawThread = ThreadSafety.IsDrawThread;
+                    isUpdateThread = ThreadSafety.IsUpdateThread;
+                    isInputThread = ThreadSafety.IsInputThread;
+                    isAudioThread = ThreadSafety.IsAudioThread;
+                }, TaskCreationOptions.LongRunning);
+
+                task.Wait();
+
+                Assert.That(!isDrawThread && !isUpdateThread && !isInputThread && !isAudioThread);
             }
         }
 
