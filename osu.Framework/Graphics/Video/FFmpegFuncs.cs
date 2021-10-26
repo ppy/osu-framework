@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int AvSeekFrameDelegate(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
-        public delegate int AvHwdeviceCtxCreateDelegate(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)0)] string device, AVDictionary* opts, int flags);
+        public delegate int AvHwdeviceCtxCreateDelegate(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs(UnmanagedType.LPUTF8Str)] string device, AVDictionary* opts, int flags);
 
         public delegate int AvHwframeTransferDataDelegate(AVFrame* dst, AVFrame* src, int flags);
 
@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Video
 
         public delegate int AvformatFindStreamInfoDelegate(AVFormatContext* ic, AVDictionary** options);
 
-        public delegate int AvformatOpenInputDelegate(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
+        public delegate int AvformatOpenInputDelegate(AVFormatContext** ps, [MarshalAs(UnmanagedType.LPUTF8Str)] string url, AVInputFormat* fmt, AVDictionary** options);
 
         public delegate int AvFindBestStreamDelegate(AVFormatContext* ic, AVMediaType type, int wanted_stream_nb, int related_stream, AVCodec** decoder_ret, int flags);
 

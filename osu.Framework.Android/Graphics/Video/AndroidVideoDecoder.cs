@@ -65,7 +65,7 @@ namespace osu.Framework.Android.Graphics.Video
         private static extern int av_seek_frame(AVFormatContext* s, int stream_index, long timestamp, int flags);
 
         [DllImport(lib_avutil)]
-        private static extern int av_hwdevice_ctx_create(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs((UnmanagedType)48)] string device, AVDictionary* opts, int flags);
+        private static extern int av_hwdevice_ctx_create(AVBufferRef** device_ctx, AVHWDeviceType type, [MarshalAs(UnmanagedType.LPUTF8Str)] string device, AVDictionary* opts, int flags);
 
         [DllImport(lib_avutil)]
         private static extern int av_hwframe_transfer_data(AVFrame* dst, AVFrame* src, int flags);
@@ -107,7 +107,7 @@ namespace osu.Framework.Android.Graphics.Video
         private static extern int avformat_find_stream_info(AVFormatContext* ic, AVDictionary** options);
 
         [DllImport(lib_avformat)]
-        private static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs((UnmanagedType)48)] string url, AVInputFormat* fmt, AVDictionary** options);
+        private static extern int avformat_open_input(AVFormatContext** ps, [MarshalAs(UnmanagedType.LPUTF8Str)] string url, AVInputFormat* fmt, AVDictionary** options);
 
         [DllImport(lib_avformat)]
         private static extern int av_find_best_stream(AVFormatContext* ic, AVMediaType type, int wanted_stream_nb, int related_stream, AVCodec** decoder_ret, int flags);
