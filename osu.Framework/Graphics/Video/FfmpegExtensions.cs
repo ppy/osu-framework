@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Video
                 case AVPixelFormat.AV_PIX_FMT_MEDIACODEC:
                 case AVPixelFormat.AV_PIX_FMT_VULKAN:
                 case AVPixelFormat.AV_PIX_FMT_MMAL:
+                case AVPixelFormat.AV_PIX_FMT_XVMC:
                     return true;
 
                 default:
