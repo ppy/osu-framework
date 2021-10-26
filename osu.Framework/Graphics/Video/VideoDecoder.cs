@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Video
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
-            targetHwDecoders = hwDecoder.ToFfmpegHardwareDeviceTypes();
+            targetHwDecoders = hwDecoder.ToFFmpegHardwareDeviceTypes();
             State = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.Video
 
                 // Note: Intersect order here is important, order of the returned elements is determined by the first enumerable.
                 // This means that we have better control over it by calling Intersect from `targetHwDecoders`.
-                // See `HardwareVideoDecoder.ToFfmpegHardwareDeviceTypes`
+                // See `HardwareVideoDecoder.ToFFmpegHardwareDeviceTypes`
                 var usableHwDeviceTypes = targetHwDecoders.Intersect(codec.SupportedHwDeviceTypes.Value).ToList();
                 if (usableHwDeviceTypes.Count == 0)
                     continue;

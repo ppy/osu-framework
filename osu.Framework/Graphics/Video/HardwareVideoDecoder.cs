@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Video
         /// <remarks>
         /// The returned <see cref="AVHWDeviceType"/>s are very roughly ordered by their performance (descending).
         /// </remarks>
-        public static List<AVHWDeviceType> ToFfmpegHardwareDeviceTypes(this HardwareVideoDecoder decoders)
+        public static List<AVHWDeviceType> ToFFmpegHardwareDeviceTypes(this HardwareVideoDecoder decoders)
         {
             var types = new List<AVHWDeviceType>();
 

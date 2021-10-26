@@ -5,7 +5,7 @@ using FFmpeg.AutoGen;
 
 namespace osu.Framework.Graphics.Video
 {
-    internal static class FfmpegExtensions
+    internal static class FFmpegExtensions
     {
         internal static double GetValue(this AVRational rational) => rational.num / (double)rational.den;
 
