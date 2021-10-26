@@ -224,6 +224,7 @@ namespace osu.Framework.Testing
                                     Masking = false,
                                     Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
+                                        AllowNonContiguousMatching = true,
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
