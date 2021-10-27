@@ -130,30 +130,27 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avcodec)]
         private static extern int av_jni_set_java_vm(void* vm, void* logCtx);
 
-        public AndroidVideoDecoder(string filename, HardwareVideoDecoder hwDecoder)
-            : base(filename, hwDecoder)
+        public AndroidVideoDecoder(string filename)
+            : base(filename)
         {
         }
 
-        public AndroidVideoDecoder(Stream videoStream, HardwareVideoDecoder hwDecoder)
-            : base(videoStream, hwDecoder)
+        public AndroidVideoDecoder(Stream videoStream)
+            : base(videoStream)
         {
-            if (hwDecoder.HasFlagFast(HardwareVideoDecoder.MediaCodec))
-            {
-                // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
-                // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
-                // Unfortunately, Xamarin doesn't publicly expose this pointer anywhere, so we have to get it through reflection...
-                const string java_vm_field_name = "java_vm";
+            // Hardware decoding with MediaCodec requires that we pass a Java VM pointer
+            // to FFmpeg so that it can call the MediaCodec APIs through JNI (as they're Java only).
+            // Unfortunately, Xamarin doesn't publicly expose this pointer anywhere, so we have to get it through reflection...
+            const string java_vm_field_name = "java_vm";
 
-                var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
-                object jvmPtrObj = jvmPtrInfo?.GetValue(null);
+            var jvmPtrInfo = typeof(JNIEnv).GetField(java_vm_field_name, BindingFlags.NonPublic | BindingFlags.Static);
+            object jvmPtrObj = jvmPtrInfo?.GetValue(null);
 
-                Debug.Assert(jvmPtrObj != null);
+            Debug.Assert(jvmPtrObj != null);
 
-                int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
-                if (result < 0)
-                    throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
-            }
+            int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
+            if (result < 0)
+                throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
         }
 
         protected override FFmpegFuncs CreateFuncs() => new FFmpegFuncs

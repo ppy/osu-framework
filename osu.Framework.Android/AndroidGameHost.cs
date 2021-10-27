@@ -86,7 +86,7 @@ namespace osu.Framework.Android
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream, HardwareVideoDecoder hwDecoder = HardwareVideoDecoder.None)
-            => new AndroidVideoDecoder(stream, hwDecoder);
+        public override VideoDecoder CreateVideoDecoder(Stream stream)
+            => new AndroidVideoDecoder(stream);
     }
 }

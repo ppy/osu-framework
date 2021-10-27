@@ -1150,9 +1150,8 @@ namespace osu.Framework.Platform
         /// decoder implementation.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
-        /// <param name="hwDecoder">The <see cref="HardwareVideoDecoder"/> that should be used for decode acceleration.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream, HardwareVideoDecoder hwDecoder = HardwareVideoDecoder.None) => new VideoDecoder(stream, hwDecoder);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

@@ -107,8 +107,11 @@ namespace osu.Framework.Graphics.Video
         [BackgroundDependencyLoader]
         private void load(GameHost gameHost, FrameworkConfigManager config, ShaderManager shaders)
         {
-            decoder = gameHost.CreateVideoDecoder(stream, config.Get<HardwareVideoDecoder>(FrameworkSetting.HardwareVideoDecoder));
+            decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;
+
+            config.BindWith(FrameworkSetting.HardwareVideoDecoder, decoder.TargetHardwareVideoDecoders);
+
             decoder.StartDecoding();
 
             Duration = decoder.Duration;

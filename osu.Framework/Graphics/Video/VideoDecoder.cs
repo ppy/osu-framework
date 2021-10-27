@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
@@ -62,6 +63,11 @@ namespace osu.Framework.Graphics.Video
         /// </summary>
         public DecoderState State { get; private set; }
 
+        /// <summary>
+        /// Determines which hardware acceleration device(s) should be used.
+        /// </summary>
+        public readonly Bindable<HardwareVideoDecoder> TargetHardwareVideoDecoders = new Bindable<HardwareVideoDecoder>();
+
         // libav-context-related
         private AVFormatContext* formatContext;
         private AVIOContext* ioContext;
@@ -87,8 +93,6 @@ namespace osu.Framework.Graphics.Video
 
         private double? skipOutputUntilTime;
 
-        private readonly List<AVHWDeviceType> targetHwDecoders;
-
         private readonly ConcurrentQueue<DecodedFrame> decodedFrames;
         private readonly ConcurrentQueue<Action> decoderCommands;
 
@@ -104,9 +108,8 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video file.
         /// </summary>
         /// <param name="filename">The path to the file that should be decoded.</param>
-        /// <param name="hwDecoder">The <see cref="HardwareVideoDecoder"/> that should be used for decode acceleration.</param>
-        public VideoDecoder(string filename, HardwareVideoDecoder hwDecoder)
-            : this(File.OpenRead(filename), hwDecoder)
+        public VideoDecoder(string filename)
+            : this(File.OpenRead(filename))
         {
         }
 
@@ -114,8 +117,7 @@ namespace osu.Framework.Graphics.Video
         /// Creates a new video decoder that decodes the given video stream.
         /// </summary>
         /// <param name="videoStream">The stream that should be decoded.</param>
-        /// <param name="hwDecoder">The <see cref="HardwareVideoDecoder"/> that should be used for decode acceleration.</param>
-        public VideoDecoder(Stream videoStream, HardwareVideoDecoder hwDecoder)
+        public VideoDecoder(Stream videoStream)
         {
             ffmpeg = CreateFuncs();
 
@@ -123,12 +125,20 @@ namespace osu.Framework.Graphics.Video
             if (!videoStream.CanRead)
                 throw new InvalidOperationException($"The given stream does not support reading. A stream used for a {nameof(VideoDecoder)} must support reading.");
 
-            targetHwDecoders = hwDecoder.ToFFmpegHardwareDeviceTypes();
             State = DecoderState.Ready;
             decodedFrames = new ConcurrentQueue<DecodedFrame>();
             decoderCommands = new ConcurrentQueue<Action>();
             availableTextures = new ConcurrentQueue<Texture>(); // TODO: use "real" object pool when there's some public pool supporting disposables
             handle = new ObjectHandle<VideoDecoder>(this, GCHandleType.Normal);
+
+            TargetHardwareVideoDecoders.BindValueChanged(e =>
+            {
+                // ignore if decoding wasn't initialized yet.
+                if (formatContext == null)
+                    return;
+
+                decoderCommands.Enqueue(recreateCodecContext);
+            });
         }
 
         /// <summary>
@@ -175,6 +185,7 @@ namespace osu.Framework.Graphics.Video
                 try
                 {
                     prepareDecoding();
+                    recreateCodecContext();
                 }
                 catch (Exception e)
                 {
@@ -311,6 +322,7 @@ namespace osu.Framework.Graphics.Video
             var codecs = new List<(FFmpegCodec, IReadOnlyList<AVHWDeviceType>)>();
             FFmpegCodec firstCodec = null;
 
+            var targetHwDecoders = TargetHardwareVideoDecoders.Value.ToFFmpegHardwareDeviceTypes();
             void* iterator = null;
 
             while (true)
@@ -379,13 +391,19 @@ namespace osu.Framework.Graphics.Video
             stream = formatContext->streams[streamIndex];
             duration = stream->duration <= 0 ? formatContext->duration : stream->duration;
             timeBaseInSeconds = stream->time_base.GetValue();
+        }
+
+        private void recreateCodecContext()
+        {
+            if (stream == null)
+                return;
 
             var codecParams = *stream->codecpar;
             bool openSuccessful = false;
 
             foreach (var (decoder, hwDeviceTypes) in getAvailableDecoders(codecParams.codec_id))
             {
-                // free context in case it was allocated in a previous iteration.
+                // free context in case it was allocated in a previous iteration or recreate call.
                 if (codecContext != null)
                 {
                     fixed (AVCodecContext** ptr = &codecContext)

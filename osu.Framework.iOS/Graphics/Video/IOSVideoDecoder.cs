@@ -119,13 +119,13 @@ namespace osu.Framework.iOS.Graphics.Video
         [DllImport(dll_name)]
         private static extern int sws_scale(SwsContext* c, byte*[] srcSlice, int[] srcStride, int srcSliceY, int srcSliceH, byte*[] dst, int[] dstStride);
 
-        public IOSVideoDecoder(string filename, HardwareVideoDecoder hwDecoder)
-            : base(filename, hwDecoder)
+        public IOSVideoDecoder(string filename)
+            : base(filename)
         {
         }
 
-        public IOSVideoDecoder(Stream videoStream, HardwareVideoDecoder hwDecoder)
-            : base(videoStream, hwDecoder)
+        public IOSVideoDecoder(Stream videoStream)
+            : base(videoStream)
         {
         }
 
