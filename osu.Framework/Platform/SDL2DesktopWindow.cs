@@ -579,7 +579,7 @@ namespace osu.Framework.Platform
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
         private const int events_per_peep = 64;
-        private SDL.SDL_Event[] events = new SDL.SDL_Event[events_per_peep];
+        private readonly SDL.SDL_Event[] events = new SDL.SDL_Event[events_per_peep];
 
         /// <summary>
         /// Poll for all pending events.
