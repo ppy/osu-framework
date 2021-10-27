@@ -30,7 +30,7 @@ namespace osu.Framework.Tests.Bindables
             var bindable = new Bindable<TestEnum>();
             var nullable = new Bindable<TestEnum?>();
 
-            foreach (var value in values.Append(expected))
+            foreach (object value in values.Append(expected))
             {
                 bindable.Parse(value);
                 nullable.Parse(value);

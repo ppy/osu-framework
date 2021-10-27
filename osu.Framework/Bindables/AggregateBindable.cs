@@ -84,7 +84,7 @@ namespace osu.Framework.Bindables
 
             lock (sourceMapping)
             {
-                for (var i = 0; i < sourceMapping.Count; i++)
+                for (int i = 0; i < sourceMapping.Count; i++)
                 {
                     var pair = sourceMapping[i];
 

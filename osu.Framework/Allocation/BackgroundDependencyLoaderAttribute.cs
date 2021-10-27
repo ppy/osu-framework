@@ -57,7 +57,7 @@ namespace osu.Framework.Allocation
                     var attribute = method.GetCustomAttribute<BackgroundDependencyLoaderAttribute>();
                     Debug.Assert(attribute != null);
 
-                    var permitNulls = attribute.permitNulls;
+                    bool permitNulls = attribute.permitNulls;
                     var parameterGetters = method.GetParameters().Select(p => p.ParameterType)
                                                  .Select(t => getDependency(t, type, permitNulls || t.IsNullable())).ToArray();
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Allocation
                     {
                         try
                         {
-                            var parameterArray = new object[parameterGetters.Length];
+                            object[] parameterArray = new object[parameterGetters.Length];
                             for (int i = 0; i < parameterGetters.Length; i++)
                                 parameterArray[i] = parameterGetters[i](dc);
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Allocation
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls) => dc =>
         {
-            var val = dc.Get(type);
+            object val = dc.Get(type);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 

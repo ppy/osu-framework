@@ -325,7 +325,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         protected void QueueBackgroundSave()
         {
-            var current = Interlocked.Increment(ref lastSave);
+            int current = Interlocked.Increment(ref lastSave);
 
             Task.Delay(100).ContinueWith(task =>
             {

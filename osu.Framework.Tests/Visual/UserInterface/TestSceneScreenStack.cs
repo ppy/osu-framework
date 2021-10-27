@@ -635,7 +635,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < 5; i++)
             {
-                var local = i; // needed to store the correct value for our delegate
+                int local = i; // needed to store the correct value for our delegate
                 pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
             }
 
@@ -677,7 +677,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < screen_count; i++)
             {
-                var local = i; // needed to store the correct value for our delegate
+                int local = i; // needed to store the correct value for our delegate
                 pushAndEnsureCurrent(() => screens[local], () => local > 0 ? screens[local - 1] : null);
             }
 

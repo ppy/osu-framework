@@ -49,7 +49,7 @@ namespace osu.Framework.Configuration
                 var type = item.GetType();
                 var assemblyName = type.Assembly.GetName();
 
-                var typeString = $"{type.FullName}, {assemblyName.Name}";
+                string typeString = $"{type.FullName}, {assemblyName.Name}";
 
                 var itemObject = JObject.FromObject(item, serializer);
                 itemObject.AddFirst(new JProperty("$type", typeString));

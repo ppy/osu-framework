@@ -66,7 +66,7 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         {
             ReadOnlySpan<char> prefix = default;
 
-            foreach (var str in collection)
+            foreach (string str in collection)
             {
                 if (prefix.IsEmpty) // the first string
                 {

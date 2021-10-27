@@ -15,7 +15,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestAdd()
         {
-            var obj = new object();
+            object obj = new object();
             var list = new WeakList<object> { obj };
 
             Assert.That(list.Count(), Is.EqualTo(1));
@@ -27,7 +27,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestAddWeakReference()
         {
-            var obj = new object();
+            object obj = new object();
             var weakRef = new WeakReference<object>(obj);
             var list = new WeakList<object> { weakRef };
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestEnumerate()
         {
-            var obj = new object();
+            object obj = new object();
             var list = new WeakList<object> { obj };
 
             Assert.That(list.Count(), Is.EqualTo(1));
@@ -51,7 +51,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestRemove()
         {
-            var obj = new object();
+            object obj = new object();
             var list = new WeakList<object> { obj };
 
             list.Remove(obj);
@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestRemoveWeakReference()
         {
-            var obj = new object();
+            object obj = new object();
             var weakRef = new WeakReference<object>(obj);
             var list = new WeakList<object> { weakRef };
 
@@ -91,7 +91,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             list.Remove(objects[0]);
@@ -118,7 +118,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             list.Remove(objects[2]);
@@ -141,10 +141,10 @@ namespace osu.Framework.Tests.Lists
                 new object(),
             };
 
-            var newLastObject = new object();
+            object newLastObject = new object();
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             list.Remove(objects[2]);
@@ -171,7 +171,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             for (int i = 0; i < objects.Count; i++)
@@ -194,7 +194,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             for (int i = 0; i < objects.Count; i++)
@@ -220,7 +220,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             for (int i = 0; i < objects.Count; i++)
@@ -237,7 +237,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestCountIsZeroAfterClear()
         {
-            var obj = new object();
+            object obj = new object();
             var weakRef = new WeakReference<object>(obj);
             var list = new WeakList<object> { obj, weakRef };
 
@@ -260,10 +260,10 @@ namespace osu.Framework.Tests.Lists
                 new object(),
             };
 
-            var newObject = new object();
+            object newObject = new object();
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             list.Clear();
@@ -276,15 +276,15 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestIterateWithRemove()
         {
-            var obj = new object();
-            var obj2 = new object();
-            var obj3 = new object();
+            object obj = new object();
+            object obj2 = new object();
+            object obj3 = new object();
 
             var list = new WeakList<object> { obj, obj2, obj3 };
 
             int count = 0;
 
-            foreach (var item in list)
+            foreach (object item in list)
             {
                 if (count == 1)
                     list.Remove(item);
@@ -305,15 +305,15 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestIterateWithRemoveSkipsInvalidated()
         {
-            var obj = new object();
-            var obj2 = new object();
-            var obj3 = new object();
+            object obj = new object();
+            object obj2 = new object();
+            object obj3 = new object();
 
             var list = new WeakList<object> { obj, obj2, obj3 };
 
             int count = 0;
 
-            foreach (var item in list)
+            foreach (object item in list)
             {
                 if (count == 0)
                     list.Remove(obj2);
@@ -335,13 +335,13 @@ namespace osu.Framework.Tests.Lists
         {
             GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
 
-            var (list, aliveObjects) = generateWeakList();
+            (var list, object[] aliveObjects) = generateWeakList();
 
             GC.EndNoGCRegion();
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-            foreach (var obj in list)
+            foreach (object obj in list)
             {
                 if (!aliveObjects.Contains(obj))
                     Assert.Fail("Dead objects were iterated over.");
@@ -353,7 +353,7 @@ namespace osu.Framework.Tests.Lists
         {
             GC.TryStartNoGCRegion(10 * 1000000); // 10MB (should be enough)
 
-            var (list, aliveObjects) = generateWeakList();
+            (var list, object[] aliveObjects) = generateWeakList();
 
             using (var enumerator = list.GetEnumerator())
             {
@@ -383,7 +383,7 @@ namespace osu.Framework.Tests.Lists
             };
 
             var list = new WeakList<object>();
-            foreach (var o in objects)
+            foreach (object o in objects)
                 list.Add(o);
 
             return (list, new[] { objects[1], objects[2], objects[4] });

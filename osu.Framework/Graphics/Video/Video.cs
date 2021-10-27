@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Video
                 seekIntoSync();
             }
 
-            var frameTime = CurrentFrameTime;
+            double frameTime = CurrentFrameTime;
 
             while (availableFrames.Count > 0 && checkNextFrameValid(availableFrames.Peek()))
             {

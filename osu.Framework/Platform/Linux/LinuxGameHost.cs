@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Linux
 
                 yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".local", "share");
 
-                foreach (var path in base.UserStoragePaths)
+                foreach (string path in base.UserStoragePaths)
                     yield return path;
             }
         }
