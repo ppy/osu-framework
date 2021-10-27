@@ -56,7 +56,7 @@ namespace osu.Framework.IO.Stores
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";
 
-                string? existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
+                string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {

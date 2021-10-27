@@ -113,7 +113,7 @@ namespace osu.Framework.Platform
                 for (int i = 0; i < entryPointsInstance.Length; i++)
                 {
                     byte* ptr = name + entryPointNameOffsetsInstance[i];
-                    string? str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
+                    string str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
                     entryPointsInstance[i] = GetProcAddress(str);
                 }
             }

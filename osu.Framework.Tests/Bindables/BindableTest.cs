@@ -126,7 +126,7 @@ namespace osu.Framework.Tests.Bindables
                 typeof(string)
             };
 
-            object[] inputs = new object[]
+            object[] inputs =
             {
                 1, "1", 1.0, 1.0f, 1L, 1m,
                 1.5, "1.5", 1.5f, 1.5m,

@@ -221,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
         private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            for (var i = 0; i < components.Count; i++)
+            for (int i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
                     break;

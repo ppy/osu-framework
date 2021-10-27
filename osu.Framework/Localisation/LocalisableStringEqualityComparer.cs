@@ -16,8 +16,8 @@ namespace osu.Framework.Localisation
 
         public bool Equals(LocalisableString x, LocalisableString y)
         {
-            object? xData = x.Data;
-            object? yData = y.Data;
+            object xData = x.Data;
+            object yData = y.Data;
 
             if (ReferenceEquals(null, xData) != ReferenceEquals(null, yData))
                 return false;

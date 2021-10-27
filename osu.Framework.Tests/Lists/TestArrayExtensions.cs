@@ -143,7 +143,7 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestInvertRectangular()
         {
-            int?[,] original = new int?[,]
+            int?[,] original =
             {
                 { 1, 2, null },
                 { null, 3, 4 },
@@ -167,7 +167,7 @@ namespace osu.Framework.Tests.Lists
         public void TestInvertJagged()
         {
             // 4x5 array
-            int?[][] original = new[]
+            int?[][] original =
             {
                 new int?[] { 1, 2, null },
                 new int?[] { 3, 4 },
