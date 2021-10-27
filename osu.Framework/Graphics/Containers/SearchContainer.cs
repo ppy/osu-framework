@@ -80,14 +80,14 @@ namespace osu.Framework.Graphics.Containers
 
         private void performFilter()
         {
-            var terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] terms = (searchTerm ?? string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             Children.OfType<IFilterable>().ForEach(child => match(child, terms, terms.Length > 0, allowNonContiguousMatching));
         }
 
         private static bool match(IFilterable filterable, IEnumerable<string> searchTerms, bool searchActive, bool nonContiguousMatching)
         {
             //Words matched by parent is not needed to match children
-            var childTerms = searchTerms.Where(term =>
+            string[] childTerms = searchTerms.Where(term =>
                 !filterable.FilterTerms.Any(filterTerm =>
                     checkTerm(filterTerm, term, nonContiguousMatching))).ToArray();
 
