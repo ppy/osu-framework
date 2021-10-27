@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url)
             {
                 Method = HttpMethod.Get,
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new CustomUserAgentWebRequest(url)
             {
                 Method = HttpMethod.Get,

@@ -121,7 +121,7 @@ namespace osu.Framework.Input.Handlers.Midi
         private void onMidiMessageReceived(object sender, MidiReceivedEventArgs e)
         {
             Debug.Assert(sender is IMidiInput);
-            var senderId = ((IMidiInput)sender).Details.Id;
+            string senderId = ((IMidiInput)sender).Details.Id;
 
             try
             {
@@ -133,7 +133,7 @@ namespace osu.Framework.Input.Handlers.Midi
             }
             catch (Exception exception)
             {
-                var dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
+                string dataString = string.Join("-", e.Data.Select(b => b.ToString("X2")));
                 Logger.Error(exception, $"An exception occurred while reading MIDI data from sender {senderId}: {dataString}");
             }
         }
