@@ -35,5 +35,35 @@ namespace osu.Framework.Graphics.Video
                     return false;
             }
         }
+
+        public static HardwareVideoDecoder? ToHardwareVideoDecoder(this AVHWDeviceType hwDeviceType)
+        {
+            switch (hwDeviceType)
+            {
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA:
+                    return HardwareVideoDecoder.NVDEC;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_QSV:
+                    return HardwareVideoDecoder.QuickSyncVideo;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2:
+                    return HardwareVideoDecoder.DXVA2;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_VDPAU:
+                    return HardwareVideoDecoder.VDPAU;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_VAAPI:
+                    return HardwareVideoDecoder.VAAPI;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_MEDIACODEC:
+                    return HardwareVideoDecoder.MediaCodec;
+
+                case AVHWDeviceType.AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+                    return HardwareVideoDecoder.VideoToolbox;
+
+                default:
+                    return null;
+            }
+        }
     }
 }

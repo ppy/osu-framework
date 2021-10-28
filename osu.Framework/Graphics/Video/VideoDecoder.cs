@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -17,6 +16,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using AGffmpeg = FFmpeg.AutoGen.ffmpeg;
@@ -317,12 +317,12 @@ namespace osu.Framework.Graphics.Video
         /// <remarks>
         /// Returned HW devices are not guaranteed to be available on the current machine, they only represent what the loaded FFmpeg libraries support.
         /// </remarks>
-        private IEnumerable<(FFmpegCodec codec, IReadOnlyList<AVHWDeviceType> usableHwDeviceTypes)> getAvailableDecoders(AVCodecID codecId)
+        private IEnumerable<(FFmpegCodec codec, AVHWDeviceType hwDeviceType)> getAvailableDecoders(AVCodecID codecId)
         {
-            var codecs = new List<(FFmpegCodec, IReadOnlyList<AVHWDeviceType>)>();
+            var comparer = new AVHWDeviceTypePerformanceComparer();
+            var codecs = new Lists.SortedList<(FFmpegCodec, AVHWDeviceType hwDeviceType)>((x, y) => comparer.Compare(x.hwDeviceType, y.hwDeviceType));
             FFmpegCodec firstCodec = null;
 
-            var targetHwDecoders = TargetHardwareVideoDecoders.Value.ToFFmpegHardwareDeviceTypes();
             void* iterator = null;
 
             while (true)
@@ -336,23 +336,24 @@ namespace osu.Framework.Graphics.Video
 
                 firstCodec ??= codec;
 
-                if (targetHwDecoders.Count == 0)
+                if (TargetHardwareVideoDecoders.Value == HardwareVideoDecoder.None)
                     break;
 
-                // Note: Intersect order here is important, order of the returned elements is determined by the first enumerable.
-                // This means that we have better control over it by calling Intersect from `targetHwDecoders`.
-                // See `HardwareVideoDecoder.ToFFmpegHardwareDeviceTypes`
-                var usableHwDeviceTypes = targetHwDecoders.Intersect(codec.SupportedHwDeviceTypes.Value).ToList();
-                if (usableHwDeviceTypes.Count == 0)
-                    continue;
+                foreach (var hwDeviceType in codec.SupportedHwDeviceTypes.Value)
+                {
+                    var hwVideoDecoder = hwDeviceType.ToHardwareVideoDecoder();
 
-                codecs.Add((codec, usableHwDeviceTypes));
+                    if (!hwVideoDecoder.HasValue || !TargetHardwareVideoDecoders.Value.HasFlagFast(hwVideoDecoder.Value))
+                        continue;
+
+                    codecs.Add((codec, hwDeviceType));
+                }
             }
 
             // default to the first codec that we found with no HW devices.
             // The first codec is what FFmpeg's `avcodec_find_decoder` would return so this way we'll automatically fallback to that.
             if (firstCodec != null)
-                codecs.Add((firstCodec, Array.Empty<AVHWDeviceType>()));
+                codecs.Add((firstCodec, AVHWDeviceType.AV_HWDEVICE_TYPE_NONE));
 
             return codecs;
         }
@@ -401,7 +402,7 @@ namespace osu.Framework.Graphics.Video
             var codecParams = *stream->codecpar;
             bool openSuccessful = false;
 
-            foreach (var (decoder, hwDeviceTypes) in getAvailableDecoders(codecParams.codec_id))
+            foreach (var (decoder, hwDeviceType) in getAvailableDecoders(codecParams.codec_id))
             {
                 // free context in case it was allocated in a previous iteration or recreate call.
                 if (codecContext != null)
@@ -427,23 +428,18 @@ namespace osu.Framework.Graphics.Video
                 }
 
                 // initialize hardware decode context.
-                foreach (var hwDeviceType in hwDeviceTypes)
+                if (hwDeviceType != AVHWDeviceType.AV_HWDEVICE_TYPE_NONE)
                 {
                     int hwDeviceCreateResult = ffmpeg.av_hwdevice_ctx_create(&codecContext->hw_device_ctx, hwDeviceType, null, null, 0);
 
                     if (hwDeviceCreateResult < 0)
                     {
                         Logger.Log($"Couldn't create hardware video decoder context {hwDeviceType} for codec {decoder.Name}: {getErrorMessage(hwDeviceCreateResult)}");
+                        continue;
                     }
-                    else
-                    {
-                        Logger.Log($"Successfully opened hardware video decoder context {hwDeviceType} for codec {decoder.Name}");
-                        break;
-                    }
-                }
 
-                if (hwDeviceTypes.Count > 0 && codecContext->hw_device_ctx == null)
-                    continue;
+                    Logger.Log($"Successfully opened hardware video decoder context {hwDeviceType} for codec {decoder.Name}");
+                }
 
                 int openCodecResult = ffmpeg.avcodec_open2(codecContext, decoder.Pointer, null);
 

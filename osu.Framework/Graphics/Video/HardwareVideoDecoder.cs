@@ -2,10 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using FFmpeg.AutoGen;
-using osu.Framework.Extensions.EnumExtensions;
 
 namespace osu.Framework.Graphics.Video
 {
@@ -68,39 +65,5 @@ namespace osu.Framework.Graphics.Video
 
         [Description("Any")]
         Any = int.MaxValue,
-    }
-
-    internal static class HardwareVideoDecoderExtensions
-    {
-        /// <remarks>
-        /// The returned <see cref="AVHWDeviceType"/>s are very roughly ordered by their performance (descending).
-        /// </remarks>
-        public static List<AVHWDeviceType> ToFFmpegHardwareDeviceTypes(this HardwareVideoDecoder decoders)
-        {
-            var types = new List<AVHWDeviceType>();
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.NVDEC))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.QuickSyncVideo))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_QSV);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.DXVA2))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.VDPAU))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_VDPAU);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.VAAPI))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_VAAPI);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_MEDIACODEC);
-
-            if (decoders.HasFlagFast(HardwareVideoDecoder.VideoToolbox))
-                types.Add(AVHWDeviceType.AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
-
-            return types;
-        }
     }
 }
