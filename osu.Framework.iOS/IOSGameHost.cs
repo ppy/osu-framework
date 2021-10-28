@@ -76,9 +76,6 @@ namespace osu.Framework.iOS
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
                 defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
 
-            if (!defaultOverrides.ContainsKey(FrameworkSetting.HardwareVideoDecoder))
-                defaultOverrides.Add(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.VideoToolbox);
-
             base.SetupConfig(defaultOverrides);
 
             DebugConfig.SetValue(DebugSetting.BypassFrontToBackPass, true);

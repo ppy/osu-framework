@@ -33,7 +33,7 @@ namespace osu.Framework.Configuration
             SetDefault(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0, 0.01);
             SetDefault(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0, 0.01);
-            SetDefault(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None);
+            SetDefault(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any);
             SetDefault(FrameworkSetting.SizeFullscreen, new Size(9999, 9999), new Size(320, 240));
             SetDefault(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             SetDefault(FrameworkSetting.WindowMode, WindowMode.Windowed);

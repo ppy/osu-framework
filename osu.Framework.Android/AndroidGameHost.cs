@@ -35,9 +35,6 @@ namespace osu.Framework.Android
             if (!defaultOverrides.ContainsKey(FrameworkSetting.ExecutionMode))
                 defaultOverrides.Add(FrameworkSetting.ExecutionMode, ExecutionMode.SingleThread);
 
-            if (!defaultOverrides.ContainsKey(FrameworkSetting.HardwareVideoDecoder))
-                defaultOverrides.Add(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.MediaCodec);
-
             base.SetupConfig(defaultOverrides);
         }
 
