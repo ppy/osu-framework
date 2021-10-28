@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Track
         {
             base.UpdateState();
 
-            var running = isRunningState(bassMixer.ChannelIsActive(this));
+            bool running = isRunningState(bassMixer.ChannelIsActive(this));
 
             // because device validity check isn't done frequently, when switching to "No sound" device,
             // there will be a brief time where this track will be stopped, before we resume it manually (see comments in UpdateDevice(int).)
@@ -302,7 +302,7 @@ namespace osu.Framework.Audio.Track
         {
             Debug.Assert(CanPerformInline);
 
-            var bytePosition = bassMixer.ChannelGetPosition(this);
+            long bytePosition = bassMixer.ChannelGetPosition(this);
             Interlocked.Exchange(ref currentTime, Bass.ChannelBytes2Seconds(activeStream, bytePosition) * 1000);
         }
 

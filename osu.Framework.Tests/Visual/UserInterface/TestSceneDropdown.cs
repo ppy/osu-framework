@@ -105,7 +105,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestBasic()
         {
-            var i = items_to_add;
+            int i = items_to_add;
 
             toggleDropdownViaClick(testDropdown, "dropdown1");
             AddAssert("dropdown is open", () => testDropdown.Menu.State == MenuState.Open);
@@ -169,8 +169,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
         private void performPlatformAction(PlatformAction action, PlatformActionContainer platformActionContainer, Drawable drawable)
         {
-            var tempIsHovered = drawable.IsHovered;
-            var tempHasFocus = drawable.HasFocus;
+            bool tempIsHovered = drawable.IsHovered;
+            bool tempHasFocus = drawable.HasFocus;
 
             drawable.IsHovered = true;
             drawable.HasFocus = true;

@@ -247,7 +247,7 @@ namespace osu.Framework.Tests.Visual.Input
                 AddAssert("received regular mouse-move event", () =>
                 {
                     // ReSharper disable once AccessToModifiedClosure
-                    var result = assertMouseOnTouchChange(touch, lastMovePosition, true);
+                    bool result = assertMouseOnTouchChange(touch, lastMovePosition, true);
                     lastMovePosition = touch.Position;
                     return result;
                 });
@@ -262,7 +262,7 @@ namespace osu.Framework.Tests.Visual.Input
                 AddAssert("no mouse-move event received", () =>
                 {
                     // ReSharper disable once AccessToModifiedClosure
-                    var result = assertMouseOnTouchChange(touch, lastMovePosition, false);
+                    bool result = assertMouseOnTouchChange(touch, lastMovePosition, false);
                     lastMovePosition = touch.Position;
                     return result;
                 });

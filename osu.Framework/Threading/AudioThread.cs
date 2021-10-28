@@ -53,7 +53,7 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                for (var i = 0; i < managers.Count; i++)
+                for (int i = 0; i < managers.Count; i++)
                 {
                     var m = managers[i];
                     m.Update();
@@ -102,7 +102,7 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialised_devices.ToArray())
+            foreach (int d in initialised_devices.ToArray())
                 FreeDevice(d);
         }
 

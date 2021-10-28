@@ -83,7 +83,7 @@ namespace osu.Framework.Tests.Audio
             Assert.AreEqual(4.0f, trackVirtual.Rate);
 
             trackVirtual.Stop();
-            var stoppedTime = trackVirtual.CurrentTime;
+            double stoppedTime = trackVirtual.CurrentTime;
             Assert.Greater(stoppedTime, 0);
 
             trackVirtual.Seek(stoppedTime);

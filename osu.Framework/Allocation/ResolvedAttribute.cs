@@ -109,7 +109,7 @@ namespace osu.Framework.Allocation
 
         private static Func<IReadOnlyDependencyContainer, object> getDependency(Type type, Type requestingType, bool permitNulls, CacheInfo info) => dc =>
         {
-            var val = dc.Get(type, info);
+            object val = dc.Get(type, info);
             if (val == null && !permitNulls)
                 throw new DependencyNotRegisteredException(requestingType, type);
 

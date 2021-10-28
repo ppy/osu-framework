@@ -357,9 +357,9 @@ namespace osu.Framework.Audio
             {
                 eventScheduler.Add(delegate
                 {
-                    foreach (var d in newDevices)
+                    foreach (string d in newDevices)
                         OnNewDevice?.Invoke(d);
-                    foreach (var d in lostDevices)
+                    foreach (string d in lostDevices)
                         OnLostDevice?.Invoke(d);
                 });
             }
@@ -382,7 +382,7 @@ namespace osu.Framework.Audio
 
         public override string ToString()
         {
-            var deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
+            string deviceName = audioDevices.ElementAtOrDefault(Bass.CurrentDevice).Name;
             return $@"{GetType().ReadableName()} ({deviceName ?? "Unknown"})";
         }
 

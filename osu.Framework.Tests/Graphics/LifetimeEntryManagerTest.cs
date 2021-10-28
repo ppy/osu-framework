@@ -256,7 +256,7 @@ namespace osu.Framework.Tests.Graphics
 
             void addEntry()
             {
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 manager.AddEntry(new LifetimeEntry { LifetimeStart = l, LifetimeEnd = r });
                 checkAll();
             }
@@ -271,7 +271,7 @@ namespace osu.Framework.Tests.Graphics
             void changeLifetime()
             {
                 var entry = manager.Entries[rng.Next(manager.Entries.Count)];
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 entry.LifetimeStart = l;
                 entry.LifetimeEnd = r;
                 checkAll();

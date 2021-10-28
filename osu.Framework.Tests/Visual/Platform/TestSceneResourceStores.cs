@@ -85,7 +85,7 @@ namespace osu.Framework.Tests.Visual.Platform
             {
                 flow.Clear();
 
-                foreach (var resourceName in getResourceNames())
+                foreach (string resourceName in getResourceNames())
                     flow.Add(new ResourceDisplay(resourceName, getResource(resourceName)));
             });
 

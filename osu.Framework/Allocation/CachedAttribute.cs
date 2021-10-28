@@ -65,7 +65,7 @@ namespace osu.Framework.Allocation
             var additionActivators = new List<Action<object, DependencyContainer, CacheInfo>>();
 
             // Types within the framework should be able to cache value types if they desire (e.g. cancellation tokens)
-            var allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
+            bool allowValueTypes = type.Assembly == typeof(Drawable).Assembly;
 
             foreach (var iface in type.GetInterfaces())
             {

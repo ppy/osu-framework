@@ -326,7 +326,7 @@ namespace osu.Framework.Graphics.Video
 
             // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
             // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
-            var contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
+            byte* contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
             formatContext->pb = ioContext;
 
@@ -339,9 +339,9 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
-            var nStreams = formatContext->nb_streams;
+            uint nStreams = formatContext->nb_streams;
 
-            for (var i = 0; i < nStreams; ++i)
+            for (int i = 0; i < nStreams; ++i)
             {
                 stream = formatContext->streams[i];
 
@@ -446,11 +446,11 @@ namespace osu.Framework.Graphics.Video
                         AVFrame* frame = ffmpeg.av_frame_alloc();
                         AVFrame* outFrame = null;
 
-                        var result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
+                        int result = ffmpeg.avcodec_receive_frame(stream->codec, frame);
 
                         if (result == 0)
                         {
-                            var frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
+                            double frameTime = (frame->best_effort_timestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
                             if (!skipOutputUntilTime.HasValue || skipOutputUntilTime.Value < frameTime)
                             {
@@ -463,7 +463,7 @@ namespace osu.Framework.Graphics.Video
                                     outFrame->width = stream->codec->width;
                                     outFrame->height = stream->codec->height;
 
-                                    var ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
+                                    int ret = ffmpeg.av_frame_get_buffer(outFrame, 32);
                                     if (ret < 0)
                                         throw new InvalidOperationException($"Error allocating video frame: {getErrorMessage(ret)}");
 
@@ -530,7 +530,7 @@ namespace osu.Framework.Graphics.Video
             if (strErrorCode < 0)
                 return $"{errorCode} (av_strerror failed with code {strErrorCode})";
 
-            var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
+            int messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
             return Encoding.ASCII.GetString(buffer[..messageLength]);
         }
 

@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.OpenGL
             // (the latter approach can incur a quadratic time penalty).
             int lastExecutedDisposal = -1;
 
-            for (var i = 0; i < pendingDisposals.Count; i++)
+            for (int i = 0; i < pendingDisposals.Count; i++)
             {
                 var item = pendingDisposals[i];
 

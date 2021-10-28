@@ -244,7 +244,7 @@ namespace osu.Framework.Tests.Graphics
         {
             // note that we use a fairly high delta since the test constants are approximations
             const float delta = 0.005f;
-            var message = $"({type}) Expected: {expected}, Actual: {actual}";
+            string message = $"({type}) Expected: {expected}, Actual: {actual}";
             Assert.AreEqual(expected.X, actual.X, delta, message);
             Assert.AreEqual(expected.Y, actual.Y, delta, message);
             Assert.AreEqual(expected.Z, actual.Z, delta, message);

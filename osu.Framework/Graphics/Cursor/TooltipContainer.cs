@@ -179,7 +179,7 @@ namespace osu.Framework.Graphics.Cursor
 
         private bool hasValidTooltip(ITooltipContentProvider target)
         {
-            var targetContent = getTargetContent(target);
+            object targetContent = getTargetContent(target);
 
             if (targetContent is LocalisableString localisableString)
                 return !string.IsNullOrEmpty(localisableString.Data?.ToString());

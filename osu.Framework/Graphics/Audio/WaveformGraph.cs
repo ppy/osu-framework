@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Audio
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.OnInvalidate(invalidation, source);
+            bool result = base.OnInvalidate(invalidation, source);
 
             if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
             {
@@ -199,10 +199,10 @@ namespace osu.Framework.Graphics.Audio
                 Waveform.GenerateResampledAsync((int)Math.Max(0, Math.Ceiling(DrawWidth * Scale.X) * Resolution), token).ContinueWith(w =>
                 {
                     var points = w.Result.GetPoints();
-                    var channels = w.Result.GetChannels();
-                    var maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
-                    var maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
-                    var maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
+                    int channels = w.Result.GetChannels();
+                    double maxHighIntensity = points.Count > 0 ? points.Max(p => p.HighIntensity) : 0;
+                    double maxMidIntensity = points.Count > 0 ? points.Max(p => p.MidIntensity) : 0;
+                    double maxLowIntensity = points.Count > 0 ? points.Max(p => p.LowIntensity) : 0;
 
                     Schedule(() =>
                     {

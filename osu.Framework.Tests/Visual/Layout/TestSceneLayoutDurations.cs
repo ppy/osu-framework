@@ -100,7 +100,7 @@ namespace osu.Framework.Tests.Visual.Layout
                 fillFlowContainer.Width = 100;
             });
 
-            foreach (var ratio in new[] { .25f, .5f, .75f, 1 })
+            foreach (float ratio in new[] { .25f, .5f, .75f, 1 })
             {
                 skipTo(ratio);
                 check(ratio);

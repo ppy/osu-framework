@@ -425,7 +425,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <returns>true if the provided texture was not already bound (causing a binding change).</returns>
         public static bool BindTexture(int textureId, TextureUnit unit = TextureUnit.Texture0, WrapMode wrapModeS = WrapMode.None, WrapMode wrapModeT = WrapMode.None)
         {
-            var index = GetTextureUnitId(unit);
+            int index = GetTextureUnitId(unit);
 
             if (wrapModeS != CurrentWrapModeS)
             {
