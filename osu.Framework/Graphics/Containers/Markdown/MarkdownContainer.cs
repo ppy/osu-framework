@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         {
             if (!contentCache.IsValid)
             {
-                var markdownText = Text;
+                string markdownText = Text;
                 var pipeline = CreateBuilder();
                 var parsed = Markdig.Markdown.Parse(markdownText, pipeline);
 

@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             {
                 case NotifyCollectionChangedAction.Add:
                     Debug.Assert(e.NewItems != null);
-                    foreach (var handle in e.NewItems.OfType<int>())
+                    foreach (int handle in e.NewItems.OfType<int>())
                         mixerFlow.Add(new MixerDisplay(handle));
                     break;
 

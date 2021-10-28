@@ -161,7 +161,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns>The hex code representing the colour.</returns>
         public static string ToHex(this Color4 colour, bool alwaysOutputAlpha = false)
         {
-            var argb = colour.ToArgb();
+            int argb = colour.ToArgb();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
@@ -236,8 +236,8 @@ namespace osu.Framework.Extensions.Color4Extensions
             float g = colour.G;
             float b = colour.B;
 
-            var max = Math.Max(r, Math.Max(g, b));
-            var min = Math.Min(r, Math.Min(g, b));
+            float max = Math.Max(r, Math.Max(g, b));
+            float min = Math.Min(r, Math.Min(g, b));
 
             if (max == min)
                 h = 0;
@@ -253,7 +253,7 @@ namespace osu.Framework.Extensions.Color4Extensions
             else
                 s = (max - min) / max;
 
-            var v = max;
+            float v = max;
 
             return (h, s, v);
         }

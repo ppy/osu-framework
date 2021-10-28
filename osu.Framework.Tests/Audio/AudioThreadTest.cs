@@ -47,7 +47,7 @@ namespace osu.Framework.Tests.Audio
             // playback should be continuing after device change
             for (int i = 0; i < 2; i++)
             {
-                var checkAfter = track.CurrentTime;
+                double checkAfter = track.CurrentTime;
                 WaitForOrAssert(() => track.CurrentTime > checkAfter, "Track time did not increase", 1000);
                 Assert.IsTrue(track.IsRunning);
             }

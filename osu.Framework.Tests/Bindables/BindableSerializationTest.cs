@@ -125,7 +125,7 @@ namespace osu.Framework.Tests.Bindables
                 }
             };
 
-            var serialized = JsonConvert.SerializeObject(obj);
+            string serialized = JsonConvert.SerializeObject(obj);
             obj.Bindable.Value = 100;
 
             bool valueChanged = false;

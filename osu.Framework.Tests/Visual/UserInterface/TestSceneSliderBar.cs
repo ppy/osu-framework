@@ -163,7 +163,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
-                var before = sliderBar.IsHovered;
+                bool before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
                 InputManager.PressKey(Key.Left);
                 InputManager.ReleaseKey(Key.Left);

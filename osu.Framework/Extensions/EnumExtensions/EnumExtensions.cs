@@ -67,29 +67,29 @@ namespace osu.Framework.Extensions.EnumExtensions
 
             if (sizeof(T) == 1)
             {
-                var value1 = Unsafe.As<T, byte>(ref enumValue);
-                var value2 = Unsafe.As<T, byte>(ref flag);
+                byte value1 = Unsafe.As<T, byte>(ref enumValue);
+                byte value2 = Unsafe.As<T, byte>(ref flag);
                 return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 2)
             {
-                var value1 = Unsafe.As<T, short>(ref enumValue);
-                var value2 = Unsafe.As<T, short>(ref flag);
+                short value1 = Unsafe.As<T, short>(ref enumValue);
+                short value2 = Unsafe.As<T, short>(ref flag);
                 return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 4)
             {
-                var value1 = Unsafe.As<T, int>(ref enumValue);
-                var value2 = Unsafe.As<T, int>(ref flag);
+                int value1 = Unsafe.As<T, int>(ref enumValue);
+                int value2 = Unsafe.As<T, int>(ref flag);
                 return (value1 & value2) == value2;
             }
 
             if (sizeof(T) == 8)
             {
-                var value1 = Unsafe.As<T, long>(ref enumValue);
-                var value2 = Unsafe.As<T, long>(ref flag);
+                long value1 = Unsafe.As<T, long>(ref enumValue);
+                long value2 = Unsafe.As<T, long>(ref flag);
                 return (value1 & value2) == value2;
             }
 

@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Video
 
         public override int Compare(AVHWDeviceType x, AVHWDeviceType y)
         {
-            var xScore = performance_scores.GetValueOrDefault(x, int.MinValue);
-            var yScore = performance_scores.GetValueOrDefault(y, int.MinValue);
+            int xScore = performance_scores.GetValueOrDefault(x, int.MinValue);
+            int yScore = performance_scores.GetValueOrDefault(y, int.MinValue);
 
             return -Comparer<int>.Default.Compare(xScore, yScore);
         }

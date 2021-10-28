@@ -76,7 +76,7 @@ namespace osu.Framework.IO.Stores
 
                 int lastDot = n.LastIndexOf('.');
 
-                var chars = n.ToCharArray();
+                char[] chars = n.ToCharArray();
 
                 for (int i = 0; i < lastDot; i++)
                 {
@@ -91,7 +91,7 @@ namespace osu.Framework.IO.Stores
         {
             this.LogIfNonBackgroundThread(name);
 
-            var split = name.Split('/');
+            string[] split = name.Split('/');
             for (int i = 0; i < split.Length - 1; i++)
                 split[i] = split[i].Replace('-', '_');
 

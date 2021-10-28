@@ -19,7 +19,7 @@ namespace osu.Framework.Audio
             if (Bass.LastError == Errors.OK)
                 return false;
 
-            var failMessage = $@"BASS faulted with error code {Bass.LastError:D}: {Bass.LastError}.";
+            string failMessage = $@"BASS faulted with error code {Bass.LastError:D}: {Bass.LastError}.";
 
             if (throwException)
                 throw new InvalidOperationException(failMessage);

@@ -284,7 +284,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             var type = drawable.GetType();
 
-            if (has_custom_drawnode_cache.TryGetValue(type, out var existing))
+            if (has_custom_drawnode_cache.TryGetValue(type, out bool existing))
                 return existing;
 
             return has_custom_drawnode_cache[type] = type.GetMethod(nameof(CreateDrawNode), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType != typeof(Drawable);

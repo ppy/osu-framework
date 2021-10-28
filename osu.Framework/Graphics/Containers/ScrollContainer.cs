@@ -530,7 +530,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (!scrollbarCache.IsValid)
             {
-                var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
                 Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);

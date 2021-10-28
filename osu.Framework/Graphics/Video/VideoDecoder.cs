@@ -372,7 +372,7 @@ namespace osu.Framework.Graphics.Video
 
             // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
             // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
-            var contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
+            byte* contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
             ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
             formatContext->pb = ioContext;
 
@@ -385,7 +385,7 @@ namespace osu.Framework.Graphics.Video
             if (findStreamInfoResult < 0)
                 throw new InvalidOperationException($"Error finding stream info: {getErrorMessage(findStreamInfoResult)}");
 
-            var streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
+            int streamIndex = ffmpeg.av_find_best_stream(formatContext, AVMediaType.AVMEDIA_TYPE_VIDEO, -1, -1, null, 0);
             if (streamIndex < 0)
                 throw new InvalidOperationException($"Couldn't find video stream: {getErrorMessage(streamIndex)}");
 
@@ -542,7 +542,7 @@ namespace osu.Framework.Graphics.Video
                     // send the packet for decoding.
                     int sendPacketResult = ffmpeg.avcodec_send_packet(codecContext, packet);
 
-                    // Note: EAGAIN can be returned if there's too many pending frames so we have to read them,
+                    // Note: EAGAIN can be returned if there's too many pending frames, which we have to read,
                     // otherwise we would get stuck in an infinite loop.
                     if (sendPacketResult == 0 || sendPacketResult == -AGffmpeg.EAGAIN)
                     {
@@ -590,7 +590,7 @@ namespace osu.Framework.Graphics.Video
         {
             while (true)
             {
-                var receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, receiveFrame);
+                int receiveFrameResult = ffmpeg.avcodec_receive_frame(codecContext, receiveFrame);
 
                 if (receiveFrameResult < 0)
                 {
@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                var frameTime = (receiveFrame->pts - stream->start_time) * timeBaseInSeconds * 1000;
+                double frameTime = (receiveFrame->pts - stream->start_time) * timeBaseInSeconds * 1000;
 
                 if (skipOutputUntilTime > frameTime)
                     continue;
@@ -618,7 +618,7 @@ namespace osu.Framework.Graphics.Video
 
                     // WARNING: frames from `av_hwframe_transfer_data` have their timestamps set to AV_NOPTS_VALUE instead of real values.
                     // if you need to use them later, take them from `receiveFrame`.
-                    var transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Pointer, receiveFrame, 0);
+                    int transferResult = ffmpeg.av_hwframe_transfer_data(hwTransferFrame.Pointer, receiveFrame, 0);
 
                     if (transferResult < 0)
                     {
@@ -664,8 +664,8 @@ namespace osu.Framework.Graphics.Video
             if (frame.PixelFormat == targetPixelFormat)
                 return frame;
 
-            var width = frame.Pointer->width;
-            var height = frame.Pointer->height;
+            int width = frame.Pointer->width;
+            int height = frame.Pointer->height;
 
             swsContext = ffmpeg.sws_getCachedContext(
                 swsContext,
@@ -686,7 +686,7 @@ namespace osu.Framework.Graphics.Video
                 scalerFrame.Pointer->width = width;
                 scalerFrame.Pointer->height = height;
 
-                var getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Pointer, 0);
+                int getBufferResult = ffmpeg.av_frame_get_buffer(scalerFrame.Pointer, 0);
 
                 if (getBufferResult < 0)
                 {
@@ -698,7 +698,7 @@ namespace osu.Framework.Graphics.Video
                 }
             }
 
-            var scalerResult = ffmpeg.sws_scale(
+            int scalerResult = ffmpeg.sws_scale(
                 swsContext,
                 frame.Pointer->data, frame.Pointer->linesize, 0, height,
                 scalerFrame.Pointer->data, scalerFrame.Pointer->linesize);
@@ -732,7 +732,7 @@ namespace osu.Framework.Graphics.Video
             if (strErrorCode < 0)
                 return $"{errorCode} (av_strerror failed with code {strErrorCode})";
 
-            var messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
+            int messageLength = Math.Max(0, Array.IndexOf(buffer, (byte)0));
             return $"{Encoding.ASCII.GetString(buffer[..messageLength])} ({errorCode})";
         }
 

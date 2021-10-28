@@ -25,7 +25,7 @@ namespace osu.Framework.Benchmarks
 
             for (int i = 0; i < 100; i++)
             {
-                foreach (var val in list)
+                foreach (int val in list)
                     result += val;
             }
 

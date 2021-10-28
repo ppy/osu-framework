@@ -104,9 +104,9 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             float[] levels = new float[2];
             BassMix.ChannelGetLevel(ChannelHandle, levels, 1 / 1000f * sample_window, LevelRetrievalFlags.Stereo);
 
-            var curPeakL = levels[0];
-            var curPeakR = levels[1];
-            var curPeak = (curPeakL + curPeakR) / 2f;
+            float curPeakL = levels[0];
+            float curPeakR = levels[1];
+            float curPeak = (curPeakL + curPeakR) / 2f;
 
             if (curPeak > maxPeak || Clock.CurrentTime - lastMaxPeakTime > peak_hold_time)
             {
@@ -119,8 +119,8 @@ namespace osu.Framework.Graphics.Visualisation.Audio
             volBarL.ResizeHeightTo(curPeakL, sample_window * 4);
             volBarR.ResizeHeightTo(curPeakR, sample_window * 4);
 
-            var peakDisplay = curPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(curPeak):F}";
-            var maxPeakDisplay = maxPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(maxPeak):F}";
+            string peakDisplay = curPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(curPeak):F}";
+            string maxPeakDisplay = maxPeak == 0 ? "-∞ " : $"{BassUtils.LevelToDb(maxPeak):F}";
             peakText.Text = $"curr: {peakDisplay}dB";
             maxPeakText.Text = $"peak: {maxPeakDisplay}dB";
             peakText.Colour = BassUtils.LevelToDb(curPeak) > 0 ? Colour4.Red : Colour4.White;

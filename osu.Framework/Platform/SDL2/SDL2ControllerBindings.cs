@@ -54,7 +54,7 @@ namespace osu.Framework.Platform.SDL2
 
         public SDL.SDL_GameControllerButton GetButtonForIndex(byte index)
         {
-            for (var i = 0; i < ButtonBindings.Length; i++)
+            for (int i = 0; i < ButtonBindings.Length; i++)
             {
                 if (ButtonBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && ButtonBindings[i].value.button == index)
                     return (SDL.SDL_GameControllerButton)i;
@@ -65,7 +65,7 @@ namespace osu.Framework.Platform.SDL2
 
         public SDL.SDL_GameControllerAxis GetAxisForIndex(byte index)
         {
-            for (var i = 0; i < AxisBindings.Length; i++)
+            for (int i = 0; i < AxisBindings.Length; i++)
             {
                 if (AxisBindings[i].bindType != SDL.SDL_GameControllerBindType.SDL_CONTROLLER_BINDTYPE_NONE && AxisBindings[i].value.button == index)
                     return (SDL.SDL_GameControllerAxis)i;

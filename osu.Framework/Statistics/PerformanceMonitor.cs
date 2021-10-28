@@ -142,7 +142,7 @@ namespace osu.Framework.Statistics
             {
                 if (ActiveCounters[i])
                 {
-                    var count = FrameStatistics.COUNTERS[i];
+                    long count = FrameStatistics.COUNTERS[i];
                     var type = (StatisticsCounterType)i;
 
                     if (!globalStatistics.TryGetValue(type, out var global))

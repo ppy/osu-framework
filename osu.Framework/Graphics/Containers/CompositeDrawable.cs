@@ -221,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
         private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            for (var i = 0; i < components.Count; i++)
+            for (int i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
                     break;
@@ -597,16 +597,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.Depth == newDepth) return;
 
-            var index = IndexOfInternal(child);
+            int index = IndexOfInternal(child);
             if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
             internalChildren.RemoveAt(index);
-            var aliveIndex = aliveInternalChildren.IndexOf(child);
+            int aliveIndex = aliveInternalChildren.IndexOf(child);
             if (aliveIndex >= 0) // remove if found
                 aliveInternalChildren.RemoveAt(aliveIndex);
 
-            var chId = child.ChildID;
+            ulong chId = child.ChildID;
             child.ChildID = 0; // ensure Depth-change does not throw an exception
             child.Depth = newDepth;
             child.ChildID = chId;
@@ -830,7 +830,7 @@ namespace osu.Framework.Graphics.Containers
             // while this is quite a bad issue, it is rare and generally happens in tests which have frame perfect behaviours.
             // as such, for loop is used here intentionally to avoid collection modified exceptions for this (usually) non-critical failure.
             // see https://github.com/ppy/osu-framework/issues/4054.
-            for (var i = 0; i < internalChildren.Count; i++)
+            for (int i = 0; i < internalChildren.Count; i++)
             {
                 Drawable child = internalChildren[i];
                 child.UnbindAllBindablesSubTree();

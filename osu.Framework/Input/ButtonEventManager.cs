@@ -72,7 +72,7 @@ namespace osu.Framework.Input
             if (handledBy != null)
             {
                 // only drawables up to the one that handled mouse down should handle mouse up, so remove all subsequent drawables from the queue (for future use).
-                var count = inputQueue.IndexOf(handledBy) + 1;
+                int count = inputQueue.IndexOf(handledBy) + 1;
                 inputQueue.RemoveRange(count, inputQueue.Count - count);
             }
 

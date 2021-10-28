@@ -28,7 +28,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
 
             for (int i = 0; i < texture_width; ++i)
             {
-                var brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
+                byte brightnessByte = (byte)((float)i / (texture_width - 1) * 255);
                 image[i, 0] = new Rgba32(255, 255, 255, brightnessByte);
             }
 
