@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Extensions.ListExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -14,10 +13,15 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class TextPart : ITextPart
     {
-        public IEnumerable<Drawable> Drawables => drawables.AsSlimReadOnly();
+        public IEnumerable<Drawable> Drawables { get; }
+        public event Action<IEnumerable<Drawable>> DrawablePartsRecreated;
+
         private readonly List<Drawable> drawables = new List<Drawable>();
 
-        public event Action<IEnumerable<Drawable>> DrawablePartsRecreated;
+        protected TextPart()
+        {
+            Drawables = drawables.AsReadOnly();
+        }
 
         public void RecreateDrawablesFor(TextFlowContainer textFlowContainer)
         {
