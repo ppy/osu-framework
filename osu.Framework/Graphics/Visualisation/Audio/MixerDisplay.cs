@@ -51,12 +51,12 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.Update();
 
-            var channels = BassMix.MixerGetChannels(MixerHandle);
+            int[] channels = BassMix.MixerGetChannels(MixerHandle);
 
             if (channels == null)
                 return;
 
-            foreach (var channel in channels)
+            foreach (int channel in channels)
             {
                 if (channelsContainer.All(ch => ch.ChannelHandle != channel))
                     channelsContainer.Add(new AudioChannelDisplay(channel));

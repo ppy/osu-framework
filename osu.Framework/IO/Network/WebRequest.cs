@@ -251,7 +251,7 @@ namespace osu.Framework.IO.Network
 
         private async Task internalPerform(CancellationToken cancellationToken = default)
         {
-            var url = Url;
+            string url = Url;
 
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {

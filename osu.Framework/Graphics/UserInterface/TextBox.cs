@@ -535,7 +535,7 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            var removedText = text.Substring(removeStart, removeCount);
+            string removedText = text.Substring(removeStart, removeCount);
             text = text.Remove(removeStart, removeCount);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
@@ -1034,7 +1034,7 @@ namespace osu.Framework.Graphics.UserInterface
                 matching = false;
             }
 
-            var unmatchingCount = imeDrawables.Count - matchCount;
+            int unmatchingCount = imeDrawables.Count - matchCount;
 
             if (unmatchingCount > 0)
             {

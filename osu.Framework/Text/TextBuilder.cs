@@ -113,7 +113,7 @@ namespace osu.Framework.Text
         /// <param name="text">The text to append.</param>
         public void AddText(string text)
         {
-            foreach (var c in text)
+            foreach (char c in text)
             {
                 if (!AddCharacter(c))
                     break;
@@ -233,7 +233,7 @@ namespace osu.Framework.Text
             //    This brings the current position to the post-XAdvanced position of the previous glyph.
             // 4. Also if the character is not the first on a new line and removing it changed the baseline, adjust the characters behind it to the new baseline.
 
-            var lastLineBase = currentLineBase;
+            float? lastLineBase = currentLineBase;
 
             currentLineBase = null;
             currentLineHeight = 0;

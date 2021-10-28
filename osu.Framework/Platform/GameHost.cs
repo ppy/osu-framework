@@ -756,7 +756,7 @@ namespace osu.Framework.Platform
         protected virtual Storage GetDefaultGameStorage()
         {
             // first check all valid paths for any existing install.
-            foreach (var path in UserStoragePaths)
+            foreach (string path in UserStoragePaths)
             {
                 var storage = GetStorage(path);
 
@@ -766,7 +766,7 @@ namespace osu.Framework.Platform
             }
 
             // if an existing directory could not be found, use the first path that can be created.
-            foreach (var path in UserStoragePaths)
+            foreach (string path in UserStoragePaths)
             {
                 try
                 {
@@ -938,7 +938,7 @@ namespace osu.Framework.Platform
 
                 foreach (var handler in AvailableInputHandlers)
                 {
-                    var handlerType = handler.ToString();
+                    string handlerType = handler.ToString();
                     handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };

@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Sprites
             RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // Pre-cache the characters in the texture store
-            foreach (var character in localisedText.Value)
+            foreach (char character in localisedText.Value)
             {
                 var unused = store.Get(font.FontName, character) ?? store.Get(null, character);
             }
@@ -595,7 +595,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <returns>The <see cref="TextBuilder"/>.</returns>
         protected virtual TextBuilder CreateTextBuilder(ITexturedGlyphLookupStore store)
         {
-            var excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
+            char[] excludeCharacters = FixedWidthExcludeCharacters ?? default_never_fixed_width_characters;
 
             float builderMaxWidth = requiresAutoSizedWidth
                 ? MaxWidth

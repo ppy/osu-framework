@@ -28,7 +28,7 @@ namespace osu.Framework.Platform.Windows.Native
                 {
                     filename = filename.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-                    var folderPath = Path.GetDirectoryName(filename);
+                    string folderPath = Path.GetDirectoryName(filename);
 
                     SHParseDisplayName(folderPath, IntPtr.Zero, out nativeFolder, 0, out _);
 

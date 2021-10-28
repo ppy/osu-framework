@@ -536,7 +536,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {

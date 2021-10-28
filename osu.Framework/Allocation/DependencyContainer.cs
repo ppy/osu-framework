@@ -169,7 +169,7 @@ namespace osu.Framework.Allocation
         {
             info = info.WithType(type.GetUnderlyingNullableType() ?? type);
 
-            if (cache.TryGetValue(info, out var existing))
+            if (cache.TryGetValue(info, out object existing))
                 return existing;
 
             return parentContainer?.Get(type, info);

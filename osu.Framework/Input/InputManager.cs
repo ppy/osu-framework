@@ -513,7 +513,7 @@ namespace osu.Framework.Input
 
         protected virtual List<IInput> GetPendingInputs()
         {
-            var now = Clock.CurrentTime;
+            double now = Clock.CurrentTime;
             double elapsed = now - lastPendingInputRetrievalTime;
             lastPendingInputRetrievalTime = now;
 
@@ -855,7 +855,7 @@ namespace osu.Framework.Input
 
                 if (shouldLog(e))
                 {
-                    var detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
+                    string detail = d is ISuppressKeyEventLogging ? e.GetType().ReadableName() : e.ToString();
                     Logger.Log($"{detail} handled by {d}.", LoggingTarget.Runtime, LogLevel.Debug);
                 }
 

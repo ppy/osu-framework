@@ -53,7 +53,7 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string url)
         {
-            var ret = Get(url);
+            byte[] ret = Get(url);
 
             if (ret == null) return null;
 

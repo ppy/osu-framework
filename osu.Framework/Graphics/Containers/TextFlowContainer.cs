@@ -324,7 +324,7 @@ namespace osu.Framework.Graphics.Containers
             var words = new List<string>();
             var builder = new StringBuilder();
 
-            for (var i = 0; i < text.Length; i++)
+            for (int i = 0; i < text.Length; i++)
             {
                 if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
                 {
