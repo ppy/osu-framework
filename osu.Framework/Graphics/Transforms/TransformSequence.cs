@@ -245,7 +245,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            double iterDuration = endTime - startTime + pause;
             var toLoop = transforms.ToArray();
 
             // Duplicate existing transforms numIters times
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.Transforms
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-            var iterDuration = endTime - startTime + pause;
+            double iterDuration = endTime - startTime + pause;
 
             foreach (var t in transforms)
             {

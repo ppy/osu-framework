@@ -5,7 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Android.Graphics.Video
 {
@@ -35,6 +34,9 @@ namespace osu.Framework.Android.Graphics.Video
 
         [DllImport(lib_avutil)]
         private static extern void* av_malloc(ulong size);
+
+        [DllImport(lib_avutil)]
+        private static extern void av_freep(void* ptr);
 
         [DllImport(lib_avcodec)]
         private static extern AVPacket* av_packet_alloc();
@@ -78,6 +80,9 @@ namespace osu.Framework.Android.Graphics.Video
         [DllImport(lib_avformat)]
         private static extern AVIOContext* avio_alloc_context(byte* buffer, int buffer_size, int write_flag, void* opaque, avio_alloc_context_read_packet_func read_packet, avio_alloc_context_write_packet_func write_packet, avio_alloc_context_seek_func seek);
 
+        [DllImport(lib_avformat)]
+        private static extern void avio_context_free(AVIOContext** s);
+
         [DllImport(lib_swscale)]
         private static extern void sws_freeContext(SwsContext* swsContext);
 
@@ -105,6 +110,7 @@ namespace osu.Framework.Android.Graphics.Video
             av_frame_get_buffer = av_frame_get_buffer,
             av_strdup = av_strdup,
             av_malloc = av_malloc,
+            av_freep = av_freep,
             av_packet_alloc = av_packet_alloc,
             av_packet_unref = av_packet_unref,
             av_packet_free = av_packet_free,
@@ -119,6 +125,7 @@ namespace osu.Framework.Android.Graphics.Video
             avformat_find_stream_info = avformat_find_stream_info,
             avformat_open_input = avformat_open_input,
             avio_alloc_context = avio_alloc_context,
+            avio_context_free = avio_context_free,
             sws_freeContext = sws_freeContext,
             sws_getContext = sws_getContext,
             sws_scale = sws_scale

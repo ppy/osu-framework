@@ -202,8 +202,8 @@ namespace osu.Framework.Graphics.Containers
             if (cellLayout.IsValid)
                 return;
 
-            var widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
-            var heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
+            float[] widths = distribute(columnDimensions, DrawWidth, getCellSizesAlongAxis(Axes.X, DrawWidth));
+            float[] heights = distribute(rowDimensions, DrawHeight, getCellSizesAlongAxis(Axes.Y, DrawHeight));
 
             for (int col = 0; col < cellColumns; col++)
             {
@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.Containers
             var spanDimensions = axis == Axes.X ? columnDimensions : rowDimensions;
             int spanCount = axis == Axes.X ? cellColumns : cellRows;
 
-            var sizes = new float[spanCount];
+            float[] sizes = new float[spanCount];
 
             for (int i = 0; i < spanCount; i++)
             {
@@ -361,7 +361,7 @@ namespace osu.Framework.Graphics.Containers
         {
             protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
             {
-                var result = base.OnInvalidate(invalidation, source);
+                bool result = base.OnInvalidate(invalidation, source);
 
                 if (source == InvalidationSource.Child && (invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Presence)) > 0)
                     result |= Parent?.Invalidate(invalidation, InvalidationSource.Child) ?? false;

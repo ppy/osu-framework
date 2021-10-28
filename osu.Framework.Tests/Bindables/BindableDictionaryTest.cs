@@ -44,9 +44,9 @@ namespace osu.Framework.Tests.Bindables
 
             Assert.Multiple(() =>
             {
-                foreach (var (key, value) in array)
+                foreach ((string key, byte value) in array)
                 {
-                    Assert.That(dict.TryGetValue(key, out var val), Is.True);
+                    Assert.That(dict.TryGetValue(key, out byte val), Is.True);
                     Assert.That(val, Is.EqualTo(value));
                 }
 
@@ -653,7 +653,7 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("test4", 4)
             };
 
-            foreach (var (key, value) in items)
+            foreach ((string key, byte value) in items)
                 bindableStringByteDictionary.Add(key, value);
 
             NotifyDictionaryChangedEventArgs<string, byte> triggeredArgs = null;
@@ -947,7 +947,7 @@ namespace osu.Framework.Tests.Bindables
                 new KeyValuePair<string, byte>("testC", 2),
             };
 
-            foreach (var (key, value) in array)
+            foreach ((string key, byte value) in array)
                 bindableStringByteDictionary.Add(key, value);
 
             var triggeredArgs = new List<NotifyDictionaryChangedEventArgs<string, byte>>();

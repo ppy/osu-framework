@@ -56,11 +56,11 @@ namespace osu.Framework.IO.Stores
 
                 string accessFilename = $"{filenameMd5}#{streamMd5}";
 
-                var existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
+                string existing = CacheStorage.GetFiles(string.Empty, $"{accessFilename}*").FirstOrDefault();
 
                 if (existing != null)
                 {
-                    var split = existing.Split('#');
+                    string[] split = existing.Split('#');
                     return pageLookup[page] = new PageInfo
                     {
                         Size = new Size(int.Parse(split[2]), int.Parse(split[3])),
@@ -78,7 +78,7 @@ namespace osu.Framework.IO.Stores
                         output[i] = source[i].A;
 
                     // ensure any stale cached versions are deleted.
-                    foreach (var f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
+                    foreach (string f in CacheStorage.GetFiles(string.Empty, $"{filenameMd5}*"))
                         CacheStorage.Delete(f);
 
                     accessFilename += $"#{convert.Width}#{convert.Height}";

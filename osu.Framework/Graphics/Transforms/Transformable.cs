@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Transforms
             lastUpdateTransformsTime = time;
 
             // collection may grow due to abort / completion events.
-            for (var i = 0; i < targetGroupingTrackers.Count; i++)
+            for (int i = 0; i < targetGroupingTrackers.Count; i++)
                 targetGroupingTrackers[i].UpdateTransforms(time, rewinding);
         }
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Transforms
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].ClearTransformsAfter(time);
             }
         }
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Transforms
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].FinishTransforms();
             }
         }

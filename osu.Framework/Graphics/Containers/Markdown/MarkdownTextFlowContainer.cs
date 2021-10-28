@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 switch (single)
                 {
                     case LiteralInline literal:
-                        var text = literal.Content.ToString();
+                        string text = literal.Content.ToString();
 
                         if (container.GetPrevious(literal) is HtmlInline && container.GetNext(literal) is HtmlInline)
                             AddHtmlInLineText(text, literal);
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             bool hasItalic = false;
             bool hasBold = false;
 
-            foreach (var e in emphases)
+            foreach (string e in emphases)
             {
                 switch (e)
                 {

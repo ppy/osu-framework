@@ -312,7 +312,7 @@ namespace osu.Framework.Tests.Audio
             track.Frequency.Value = 0;
             bass.Update();
 
-            var currentTime = track.CurrentTime;
+            double currentTime = track.CurrentTime;
 
             // assert time is frozen after 50ms sleep and didn't change with full precision, but "IsRunning" is still true.
             Thread.Sleep(50);

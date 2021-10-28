@@ -2440,7 +2440,7 @@ namespace osu.Framework.Graphics
             {
                 var type = drawable.GetType();
 
-                if (!cache.TryGetValue(type, out var value))
+                if (!cache.TryGetValue(type, out bool value))
                 {
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
@@ -2451,9 +2451,9 @@ namespace osu.Framework.Graphics
 
             private static bool compute([NotNull] Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
+                string[] inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
-                foreach (var inputMethod in inputMethods)
+                foreach (string inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
                     var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2473,9 +2473,9 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+                string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
 
-                foreach (var inputProperty in inputProperties)
+                foreach (string inputProperty in inputProperties)
                 {
                     var property = type.GetProperty(inputProperty);
 

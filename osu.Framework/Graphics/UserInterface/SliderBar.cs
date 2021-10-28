@@ -87,13 +87,13 @@ namespace osu.Framework.Graphics.UserInterface
                                                         + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
                 }
 
-                var min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
-                var max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
+                float min = Convert.ToSingle(currentNumberInstantaneous.MinValue);
+                float max = Convert.ToSingle(currentNumberInstantaneous.MaxValue);
 
                 if (max - min == 0)
                     return 1;
 
-                var val = Convert.ToSingle(currentNumberInstantaneous.Value);
+                float val = Convert.ToSingle(currentNumberInstantaneous.Value);
                 return (val - min) / (max - min);
             }
         }
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!shouldHandle)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
+            float step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(currentNumberInstantaneous.MaxValue) - Convert.ToSingle(currentNumberInstantaneous.MinValue)) / 20;
             if (currentNumberInstantaneous.IsInteger) step = MathF.Ceiling(step);
 
             switch (e.Key)
@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(UIEvent e)
         {
-            var xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
+            float xPosition = ToLocalSpace(e.ScreenSpaceMousePosition).X - RangePadding;
 
             if (currentNumberInstantaneous.Disabled)
                 return;

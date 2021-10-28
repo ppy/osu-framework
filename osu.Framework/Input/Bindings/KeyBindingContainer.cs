@@ -180,7 +180,7 @@ namespace osu.Framework.Input.Bindings
         {
             pressedInputKeys.Add(newKey);
 
-            var scrollAmount = getScrollAmount(newKey, scrollDelta);
+            float scrollAmount = getScrollAmount(newKey, scrollDelta);
             var pressedCombination = new KeyCombination(pressedInputKeys);
 
             bool handled = false;
@@ -221,7 +221,7 @@ namespace osu.Framework.Input.Bindings
                 if (handledBy != null)
                 {
                     // only drawables up to the one that handled the press should handle the release, so remove all subsequent drawables from the queue (for future use).
-                    var count = inputQueue.IndexOf(handledBy) + 1;
+                    int count = inputQueue.IndexOf(handledBy) + 1;
                     inputQueue.RemoveRange(count, inputQueue.Count - count);
 
                     handled = true;

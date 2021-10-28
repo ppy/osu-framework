@@ -56,6 +56,8 @@ namespace osu.Framework.Android
                 new MidiHandler()
             };
 
+        public override string InitialFileSelectorPath => @"/sdcard";
+
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
         public override IEnumerable<string> UserStoragePaths => new[]
@@ -66,7 +68,7 @@ namespace osu.Framework.Android
         public override void OpenFileExternally(string filename)
             => throw new NotImplementedException();
 
-        public override void PresentFileExtenally(string filename)
+        public override void PresentFileExternally(string filename)
             => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)

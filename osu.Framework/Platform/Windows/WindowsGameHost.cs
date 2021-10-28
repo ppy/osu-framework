@@ -40,7 +40,7 @@ namespace osu.Framework.Platform.Windows
             if (Directory.Exists(filename))
             {
                 // ensure the path always has one trailing DirectorySeparator so the native function opens the expected folder.
-                var folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
+                string folder = filename.TrimDirectorySeparator() + Path.DirectorySeparatorChar;
 
                 Explorer.OpenFolderAndSelectItem(folder);
                 return;
