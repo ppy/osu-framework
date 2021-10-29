@@ -3,37 +3,30 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
-    /// <inheritdoc />
-    public class CustomizableTextContainer : CustomizableTextContainer<SpriteText>
-    {
-        protected override SpriteText CreateSpriteText() => new SpriteText();
-    }
-
     /// <summary>
     /// A <see cref="TextFlowContainer"/> that supports adding icons into its text. Inherit from this class to define reusable custom placeholders for icons.
     /// </summary>
-    public abstract class CustomizableTextContainer<T> : TextFlowContainer<T>
-        where T : SpriteText
+    public class CustomizableTextContainer : TextFlowContainer
     {
-        private const string unescaped_left = "[";
-        private const string escaped_left = "[[";
+        internal const string UNESCAPED_LEFT = "[";
+        internal const string ESCAPED_LEFT = "[[";
 
-        private const string unescaped_right = "]";
-        private const string escaped_right = "]]";
+        internal const string UNESCAPED_RIGHT = "]";
+        internal const string ESCAPED_RIGHT = "]]";
 
-        public static string Escape(string text) => text.Replace(unescaped_left, escaped_left).Replace(unescaped_right, escaped_right);
+        public static string Escape(string text) => text.Replace(UNESCAPED_LEFT, ESCAPED_LEFT).Replace(UNESCAPED_RIGHT, ESCAPED_RIGHT);
 
-        public static string Unescape(string text) => text.Replace(escaped_left, unescaped_left).Replace(escaped_right, unescaped_right);
+        public static string Unescape(string text) => text.Replace(ESCAPED_LEFT, UNESCAPED_LEFT).Replace(ESCAPED_RIGHT, UNESCAPED_RIGHT);
 
         /// <summary>
         /// Sets the placeholders that should be used to replace the numeric placeholders, in the order given.
         /// </summary>
         public IEnumerable<Drawable> Placeholders
         {
+            get => placeholders;
             set
             {
                 if (value == null)
@@ -87,111 +80,15 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="factory">The factory method creating drawables.</param>
         protected void AddIconFactory(string name, Func<int, int, Drawable> factory) => iconFactories.Add(name, factory);
 
-        internal override IEnumerable<Drawable> AddLine(TextChunk<T> chunk)
-        {
-            if (!chunk.NewLineIsParagraph)
-                AddInternal(new NewLineContainer(true));
+        /// <summary>
+        /// Attempts to retrieve an icon factory matching the placeholder with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name of the placeholder.</param>
+        /// <param name="iconFactory">The icon factory matching <paramref name="name"/>, if the method returned <see langword="true"/>.</param>
+        /// <returns>Whether an icon factory was found for the given <paramref name="name"/>.</returns>
+        internal bool TryGetIconFactory(string name, out Delegate iconFactory) => iconFactories.TryGetValue(name, out iconFactory);
 
-            var sprites = new List<Drawable>();
-            int index = 0;
-            string str = chunk.Text;
-
-            while (index < str.Length)
-            {
-                Drawable placeholderDrawable = null;
-                int nextPlaceholderIndex = str.IndexOf(unescaped_left, index, StringComparison.Ordinal);
-                // make sure we skip ahead to the next [ as long as the current [ is escaped
-                while (nextPlaceholderIndex != -1 && str.IndexOf(escaped_left, nextPlaceholderIndex, StringComparison.Ordinal) == nextPlaceholderIndex)
-                    nextPlaceholderIndex = str.IndexOf(unescaped_left, nextPlaceholderIndex + 2, StringComparison.Ordinal);
-
-                string strPiece = null;
-
-                if (nextPlaceholderIndex != -1)
-                {
-                    int placeholderEnd = str.IndexOf(unescaped_right, nextPlaceholderIndex, StringComparison.Ordinal);
-                    // make sure we skip  ahead to the next ] as long as the current ] is escaped
-                    while (placeholderEnd != -1 && str.IndexOf(escaped_right, placeholderEnd, StringComparison.InvariantCulture) == placeholderEnd)
-                        placeholderEnd = str.IndexOf(unescaped_right, placeholderEnd + 2, StringComparison.Ordinal);
-
-                    if (placeholderEnd != -1)
-                    {
-                        strPiece = str[index..nextPlaceholderIndex];
-                        string placeholderStr = str.AsSpan(nextPlaceholderIndex + 1, placeholderEnd - nextPlaceholderIndex - 1).Trim().ToString();
-                        string placeholderName = placeholderStr;
-                        string paramStr = "";
-                        int parensOpen = placeholderStr.IndexOf('(');
-
-                        if (parensOpen != -1)
-                        {
-                            placeholderName = placeholderStr.AsSpan(0, parensOpen).Trim().ToString();
-                            int parensClose = placeholderStr.IndexOf(')', parensOpen);
-                            if (parensClose != -1)
-                                paramStr = placeholderStr.AsSpan(parensOpen + 1, parensClose - parensOpen - 1).Trim().ToString();
-                            else
-                                throw new ArgumentException($"Missing ) in placeholder {placeholderStr}.");
-                        }
-
-                        if (int.TryParse(placeholderStr, out int placeholderIndex))
-                        {
-                            if (placeholderIndex >= placeholders.Count)
-                                throw new ArgumentException($"This text has {placeholders.Count} placeholders. But placeholder with index {placeholderIndex} was used.");
-                            if (placeholderIndex < 0)
-                                throw new ArgumentException($"Negative placeholder indices are invalid. Index {placeholderIndex} was used.");
-
-                            placeholderDrawable = placeholders[placeholderIndex];
-                        }
-                        else
-                        {
-                            object[] args;
-
-                            if (string.IsNullOrWhiteSpace(paramStr))
-                            {
-                                args = Array.Empty<object>();
-                            }
-                            else
-                            {
-                                string[] argStrs = paramStr.Split(',');
-                                args = new object[argStrs.Length];
-
-                                for (int i = 0; i < argStrs.Length; ++i)
-                                {
-                                    if (!int.TryParse(argStrs[i], out int argVal))
-                                        throw new ArgumentException($"The argument \"{argStrs[i]}\" in placeholder {placeholderStr} is not an integer.");
-
-                                    args[i] = argVal;
-                                }
-                            }
-
-                            if (!iconFactories.TryGetValue(placeholderName, out Delegate cb))
-                                throw new ArgumentException($"There is no placeholder named {placeholderName}.");
-
-                            placeholderDrawable = (Drawable)cb.DynamicInvoke(args);
-                        }
-
-                        index = placeholderEnd + 1;
-                    }
-                }
-
-                if (strPiece == null)
-                {
-                    strPiece = str.Substring(index);
-                    index = str.Length;
-                }
-
-                // unescape stuff
-                strPiece = Unescape(strPiece);
-                sprites.AddRange(AddString(new TextChunk<T>(strPiece, chunk.NewLineIsParagraph, chunk.CreationParameters)));
-
-                if (placeholderDrawable != null)
-                {
-                    if (placeholderDrawable.Parent != null)
-                        throw new ArgumentException("All icons used by a customizable text container must not have a parent. If you get this error message it means one of your icon factories created a drawable that was already added to another parent, or you used a drawable as a placeholder that already has another parent or you used an index-based placeholder (like [2]) more than once.");
-
-                    AddInternal(placeholderDrawable);
-                }
-            }
-
-            return sprites;
-        }
+        protected internal override TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+            => new CustomizableTextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
     }
 }
