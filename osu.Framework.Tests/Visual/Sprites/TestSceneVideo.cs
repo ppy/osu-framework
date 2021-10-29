@@ -24,8 +24,11 @@ namespace osu.Framework.Tests.Visual.Sprites
 
         private bool didDecode;
 
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
+
         [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
+        private void load()
         {
             Children = new Drawable[]
             {
@@ -40,11 +43,6 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Text = "Video is loading...",
                 }
             };
-
-            AddToggleStep("enable hardware decoding", val =>
-            {
-                config.SetValue(FrameworkSetting.HardwareVideoDecoder, val ? HardwareVideoDecoder.Any : HardwareVideoDecoder.None);
-            });
         }
 
         [SetUpSteps]
@@ -69,6 +67,14 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Loop = false,
                 };
             });
+        }
+
+        [Test]
+        public void TestHardwareDecode()
+        {
+            AddStep("disable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None));
+            AddWaitStep("Wait some", 20);
+            AddStep("enable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any));
         }
 
         [Test]
