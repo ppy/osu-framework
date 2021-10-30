@@ -6,8 +6,10 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -20,11 +22,6 @@ namespace osu.Framework.Graphics.Containers
         private readonly Action<SpriteText> defaultCreationParameters;
 
         private readonly List<ITextPart> parts = new List<ITextPart>();
-
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
-        {
-            this.defaultCreationParameters = defaultCreationParameters;
-        }
 
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
@@ -119,15 +116,38 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
-        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
+        /// This will overwrite any existing text added using this method of <see cref="AddText(LocalisableString, Action{SpriteText})"/>
         /// </summary>
-        public string Text
+        public LocalisableString Text
         {
             set
             {
                 Clear();
                 AddText(value);
             }
+        }
+
+        [Resolved]
+        internal LocalisationManager Localisation { get; private set; }
+
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            foreach (var part in parts)
+                recreatePart(part);
+        }
+
+        private void recreatePart(ITextPart part)
+        {
+            part.RecreateDrawablesFor(this);
+            foreach (var drawable in part.Drawables)
+                base.Add(drawable);
         }
 
         protected override void InvalidateLayout()
@@ -203,17 +223,17 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break.
-        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(string, Action{TSpriteText})"/> instead.
+        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public ITextPart AddText<TSpriteText>(string text, Action<TSpriteText> creationParameters = null)
+        public ITextPart AddText<TSpriteText>(LocalisableString text, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
 
-        /// <inheritdoc cref="AddText{TSpriteText}(string,System.Action{TSpriteText})"/>
-        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null)
+        /// <inheritdoc cref="AddText{TSpriteText}(LocalisableString,System.Action{TSpriteText})"/>
+        public ITextPart AddText(LocalisableString text, Action<SpriteText> creationParameters = null)
             => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
 
         /// <summary>
@@ -233,23 +253,23 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break
-        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(string, Action{TSpriteText})"/> instead.
+        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public ITextPart AddParagraph<TSpriteText>(string paragraph, Action<TSpriteText> creationParameters = null)
+        public ITextPart AddParagraph<TSpriteText>(LocalisableString paragraph, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => AddPart(CreateChunkFor(paragraph, false, () => new TSpriteText(), creationParameters));
 
-        /// <inheritdoc cref="AddParagraph{TSpriteText}(string,Action{TSpriteText})"/>
-        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null)
+        /// <inheritdoc cref="AddParagraph{TSpriteText}(LocalisableString,Action{TSpriteText})"/>
+        public ITextPart AddParagraph(LocalisableString paragraph, Action<SpriteText> creationParameters = null)
             => AddPart(CreateChunkFor(paragraph, false, CreateSpriteText, creationParameters));
 
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
         /// </summary>
-        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 
@@ -285,9 +305,8 @@ namespace osu.Framework.Graphics.Containers
         {
             parts.Add(part);
 
-            part.RecreateDrawablesFor(this);
-            foreach (var drawable in part.Drawables)
-                base.Add(drawable);
+            if (IsLoaded)
+                recreatePart(part);
 
             return part;
         }
@@ -301,6 +320,9 @@ namespace osu.Framework.Graphics.Containers
             if (!parts.Remove(partToRemove))
                 return false;
 
+            if (!IsLoaded)
+                return true;
+
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
             foreach (var manualPart in parts.OfType<TextPartManual>())
@@ -310,11 +332,7 @@ namespace osu.Framework.Graphics.Containers
             base.Clear(true);
 
             foreach (var part in parts)
-            {
-                part.RecreateDrawablesFor(this);
-                foreach (var drawable in part.Drawables)
-                    base.Add(drawable);
-            }
+                recreatePart(part);
 
             return true;
         }

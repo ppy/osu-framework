@@ -1,10 +1,13 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -15,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
     internal class CustomizableTextChunk<TSpriteText> : TextChunk<TSpriteText>
         where TSpriteText : SpriteText, new()
     {
-        public CustomizableTextChunk(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        public CustomizableTextChunk(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText>? creationParameters = null)
             : base(text, newLineIsParagraph, creationFunc, creationParameters)
         {
         }
@@ -30,13 +33,13 @@ namespace osu.Framework.Graphics.Containers
 
             while (index < str.Length)
             {
-                Drawable placeholderDrawable = null;
+                Drawable? placeholderDrawable = null;
                 int nextPlaceholderIndex = str.IndexOf(CustomizableTextContainer.UNESCAPED_LEFT, index, StringComparison.Ordinal);
                 // make sure we skip ahead to the next [ as long as the current [ is escaped
                 while (nextPlaceholderIndex != -1 && str.IndexOf(CustomizableTextContainer.ESCAPED_LEFT, nextPlaceholderIndex, StringComparison.Ordinal) == nextPlaceholderIndex)
                     nextPlaceholderIndex = str.IndexOf(CustomizableTextContainer.UNESCAPED_LEFT, nextPlaceholderIndex + 2, StringComparison.Ordinal);
 
-                string strPiece = null;
+                string? strPiece = null;
 
                 if (nextPlaceholderIndex != -1)
                 {
@@ -97,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
                             if (!customizableContainer.TryGetIconFactory(placeholderName, out Delegate cb))
                                 throw new ArgumentException($"There is no placeholder named {placeholderName}.");
 
-                            placeholderDrawable = (Drawable)cb.DynamicInvoke(args);
+                            placeholderDrawable = (Drawable?)cb.DynamicInvoke(args);
                         }
 
                         index = placeholderEnd + 1;
