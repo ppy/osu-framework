@@ -23,7 +23,20 @@ namespace osu.Framework.Graphics.Containers
         private readonly Func<TSpriteText> creationFunc;
         private readonly Action<TSpriteText>? creationParameters;
 
-        private ILocalisedBindableString? current;
+        private ILocalisedBindableString? currentBacking;
+
+        private ILocalisedBindableString? current
+        {
+            get => currentBacking;
+            set
+            {
+                if (value == null)
+                    return;
+
+                currentBacking = value;
+                currentBacking.BindValueChanged(_ => RaiseContentChanged());
+            }
+        }
 
         public TextChunk(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText>? creationParameters = null)
         {

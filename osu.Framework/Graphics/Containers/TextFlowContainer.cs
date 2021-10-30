@@ -123,6 +123,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 Clear();
+                clearParts();
+
                 AddText(value);
             }
         }
@@ -138,10 +140,24 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            recreateAllParts();
+        }
+
+        private void recreateAllParts()
+        {
+            // manual parts need to be manually removed before clearing contents,
+            // to avoid accidentally disposing of them in the process.
+            foreach (var manualPart in parts.OfType<TextPartManual>())
+                RemoveRange(manualPart.Drawables);
+
+            // make sure not to clear the list of parts on accident.
+            base.Clear(true);
 
             foreach (var part in parts)
                 recreatePart(part);
         }
+
+        private void scheduleRecreateAllParts() => Scheduler.AddOnce(recreateAllParts);
 
         private void recreatePart(ITextPart part)
         {
@@ -304,6 +320,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal ITextPart AddPart(ITextPart part)
         {
             parts.Add(part);
+            part.ContentChanged += scheduleRecreateAllParts;
 
             if (IsLoaded)
                 recreatePart(part);
@@ -320,21 +337,25 @@ namespace osu.Framework.Graphics.Containers
             if (!parts.Remove(partToRemove))
                 return false;
 
-            if (!IsLoaded)
-                return true;
+            partToRemove.ContentChanged -= scheduleRecreateAllParts;
 
-            // manual parts need to be manually removed before clearing contents,
-            // to avoid accidentally disposing of them in the process.
-            foreach (var manualPart in parts.OfType<TextPartManual>())
-                RemoveRange(manualPart.Drawables);
-
-            // make sure not to clear the list of parts on accident.
-            base.Clear(true);
-
-            foreach (var part in parts)
-                recreatePart(part);
+            if (IsLoaded)
+                recreateAllParts();
 
             return true;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            clearParts();
+        }
+
+        private void clearParts()
+        {
+            foreach (var part in parts)
+                part.ContentChanged -= scheduleRecreateAllParts;
+            parts.Clear();
         }
 
         private readonly Cached layout = new Cached();

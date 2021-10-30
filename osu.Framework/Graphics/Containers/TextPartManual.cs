@@ -21,6 +21,12 @@ namespace osu.Framework.Graphics.Containers
             remove { }
         }
 
+        public event Action ContentChanged
+        {
+            add { }
+            remove { }
+        }
+
         public TextPartManual(IEnumerable<Drawable> drawables)
         {
             Drawables = drawables.ToImmutableArray();

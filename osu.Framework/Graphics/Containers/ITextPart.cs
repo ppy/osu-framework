@@ -19,7 +19,14 @@ namespace osu.Framework.Graphics.Containers
         IEnumerable<Drawable> Drawables { get; }
 
         /// <summary>
+        /// Raised when the <see cref="ITextPart"/>'s content changed due to changing language, etc.
+        /// Signals to the parent <see cref="TextFlowContainer"/> that it needs to reload its contents in the following frame.
+        /// </summary>
+        event Action ContentChanged;
+
+        /// <summary>
         /// Raised when <see cref="Drawables"/> is reconstructed (e.g. when the user language was changed).
+        /// Can be used by consumers to re-apply manual adjustments to the appearance of <see cref="Drawables"/>.
         /// </summary>
         event Action<IEnumerable<Drawable>> DrawablePartsRecreated;
 
