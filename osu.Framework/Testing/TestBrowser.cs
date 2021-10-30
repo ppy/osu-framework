@@ -224,6 +224,7 @@ namespace osu.Framework.Testing
                                     Masking = false,
                                     Child = leftFlowContainer = new SearchContainer<TestGroupButton>
                                     {
+                                        AllowNonContiguousMatching = true,
                                         Padding = new MarginPadding { Top = 3, Bottom = 20 },
                                         Direction = FillDirection.Vertical,
                                         AutoSizeAxes = Axes.Y,
@@ -326,7 +327,7 @@ namespace osu.Framework.Testing
 
             if (CurrentTest == null)
             {
-                var lastTest = config.Get<string>(TestBrowserSetting.LastTest);
+                string lastTest = config.Get<string>(TestBrowserSetting.LastTest);
 
                 var foundTest = TestTypes.Find(t => t.FullName == lastTest);
 
@@ -478,7 +479,7 @@ namespace osu.Framework.Testing
 
             foreach (var m in newTest.GetType().GetMethods())
             {
-                var name = m.Name;
+                string name = m.Name;
 
                 if (name == nameof(TestScene.TestConstructor) || m.GetCustomAttribute(typeof(IgnoreAttribute), false) != null)
                     continue;
@@ -490,7 +491,7 @@ namespace osu.Framework.Testing
 
                 if (m.GetCustomAttribute(typeof(RepeatAttribute), false) != null)
                 {
-                    var count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
+                    object count = m.GetCustomAttributesData().Single(a => a.AttributeType == typeof(RepeatAttribute)).ConstructorArguments.Single().Value;
                     Debug.Assert(count != null);
 
                     runCount += (int)count;
@@ -518,7 +519,7 @@ namespace osu.Framework.Testing
 
                                 List<object> choices = new List<object>();
 
-                                foreach (var choice in valueAttrib.GetData(p))
+                                foreach (object choice in valueAttrib.GetData(p))
                                     choices.Add(choice);
 
                                 valueMatrix.Add(choices);
@@ -557,13 +558,13 @@ namespace osu.Framework.Testing
                             throw new InvalidOperationException($"The value of the source member {tcs.SourceName} must be non-null.");
                         }
 
-                        foreach (var argument in sourceValue)
+                        foreach (object argument in sourceValue)
                         {
                             hadTestAttributeTest = true;
 
                             if (argument is IEnumerable argumentsEnumerable)
                             {
-                                var arguments = argumentsEnumerable.Cast<object>().ToArray();
+                                object[] arguments = argumentsEnumerable.Cast<object>().ToArray();
 
                                 CurrentTest.AddLabel($"{name}({string.Join(", ", arguments)}){repeatSuffix}");
                                 handleTestMethod(m, arguments);
@@ -641,7 +642,7 @@ namespace osu.Framework.Testing
                     return (IEnumerable)sp.GetValue(null);
 
                 case MethodInfo sm:
-                    var methodParamsLength = sm.GetParameters().Length;
+                    int methodParamsLength = sm.GetParameters().Length;
                     if (methodParamsLength != (tcs.MethodParams?.Length ?? 0))
                         throw new InvalidOperationException($"The given source method parameters count doesn't match the method. (attribute has {tcs.MethodParams?.Length ?? 0}, method has {methodParamsLength})");
 

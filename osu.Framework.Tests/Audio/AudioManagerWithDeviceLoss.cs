@@ -60,7 +60,7 @@ namespace osu.Framework.Tests.Audio
 
         public void SimulateDeviceLoss()
         {
-            var current = CurrentDevice;
+            int current = CurrentDevice;
 
             simulateLoss = true;
 
@@ -70,7 +70,7 @@ namespace osu.Framework.Tests.Audio
 
         public void SimulateDeviceRestore()
         {
-            var current = CurrentDevice;
+            int current = CurrentDevice;
 
             simulateLoss = false;
 

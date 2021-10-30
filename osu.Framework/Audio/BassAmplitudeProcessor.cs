@@ -40,8 +40,8 @@ namespace osu.Framework.Audio
 
             channel.Mixer.ChannelGetLevel(channel, channelLevels, 1 / 60f, LevelRetrievalFlags.Stereo);
 
-            var leftChannel = active ? channelLevels[0] : -1;
-            var rightChannel = active ? channelLevels[1] : -1;
+            float leftChannel = active ? channelLevels[0] : -1;
+            float rightChannel = active ? channelLevels[1] : -1;
 
             if (leftChannel >= 0 && rightChannel >= 0)
             {

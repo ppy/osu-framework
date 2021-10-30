@@ -54,7 +54,7 @@ namespace osu.Framework.Input.StateChanges
                 touches.TouchPositions[(int)touch.Source] = touch.Position;
 
                 bool activityChanged = touches.ActiveSources.SetPressed(touch.Source, Activate);
-                var positionChanged = lastPosition != null && touch.Position != lastPosition;
+                bool positionChanged = lastPosition != null && touch.Position != lastPosition;
 
                 if (activityChanged || positionChanged)
                 {

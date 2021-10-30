@@ -154,6 +154,14 @@ namespace osu.Framework.Platform
         private ReadableKeyCombinationProvider readableKeyCombinationProvider;
 
         /// <summary>
+        /// The default initial path when requesting a user to select a file/folder.
+        /// </summary>
+        /// <remarks>
+        /// Provides a sane starting point for user-accessible storage.
+        /// </remarks>
+        public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>
         /// Retrieve a storage for the specified location.
         /// </summary>
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
@@ -755,7 +763,7 @@ namespace osu.Framework.Platform
         protected virtual Storage GetDefaultGameStorage()
         {
             // first check all valid paths for any existing install.
-            foreach (var path in UserStoragePaths)
+            foreach (string path in UserStoragePaths)
             {
                 var storage = GetStorage(path);
 
@@ -765,7 +773,7 @@ namespace osu.Framework.Platform
             }
 
             // if an existing directory could not be found, use the first path that can be created.
-            foreach (var path in UserStoragePaths)
+            foreach (string path in UserStoragePaths)
             {
                 try
                 {
@@ -937,7 +945,7 @@ namespace osu.Framework.Platform
 
                 foreach (var handler in AvailableInputHandlers)
                 {
-                    var handlerType = handler.ToString();
+                    string handlerType = handler.ToString();
                     handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };

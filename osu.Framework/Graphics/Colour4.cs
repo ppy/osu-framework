@@ -366,7 +366,7 @@ namespace osu.Framework.Graphics
         /// <returns>The hex code representing the colour.</returns>
         public string ToHex(bool alwaysOutputAlpha = false)
         {
-            var argb = ToARGB();
+            uint argb = ToARGB();
             byte a = (byte)(argb >> 24);
             byte r = (byte)(argb >> 16);
             byte g = (byte)(argb >> 8);
@@ -424,12 +424,12 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
         public Vector4 ToHSV()
         {
-            var red = R;
-            var green = G;
-            var blue = B;
+            float red = R;
+            float green = G;
+            float blue = B;
 
-            var max = Math.Max(red, Math.Max(green, blue));
-            var min = Math.Min(red, Math.Min(green, blue));
+            float max = Math.Max(red, Math.Max(green, blue));
+            float min = Math.Min(red, Math.Min(green, blue));
 
             float hue;
 
@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics
             else
                 hue = (red - green) / (max - min) + 4;
 
-            var saturation = max == 0 ? 0 : (max - min) / max;
+            float saturation = max == 0 ? 0 : (max - min) / max;
             hue = Math.Clamp(hue / 6f, 0f, 1f);
 
             return new Vector4(hue == 1f ? 0f : hue, saturation, max, A);
@@ -457,9 +457,9 @@ namespace osu.Framework.Graphics
         /// <param name="alpha">The alpha, between 0 and 1.</param>
         public static Colour4 FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
         {
-            var c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
-            var h = hue * 6f;
-            var x = c * (1f - Math.Abs(h % 2f - 1f));
+            float c = (1f - Math.Abs(2f * lightness - 1f)) * saturation;
+            float h = hue * 6f;
+            float x = c * (1f - Math.Abs(h % 2f - 1f));
 
             float r, g, b;
 
@@ -502,7 +502,7 @@ namespace osu.Framework.Graphics
             else
                 r = g = b = 0f;
 
-            var m = lightness - c * 0.5f;
+            float m = lightness - c * 0.5f;
             return new Colour4(r + m, g + m, b + m, alpha);
         }
 
@@ -514,19 +514,19 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="Vector4"/> representing the colour, where all four components are in the 0-1 range.</returns>
         public Vector4 ToHSL()
         {
-            var red = R;
-            var green = G;
-            var blue = B;
+            float red = R;
+            float green = G;
+            float blue = B;
 
-            var max = Math.Max(red, Math.Max(green, blue));
-            var min = Math.Min(red, Math.Min(green, blue));
+            float max = Math.Max(red, Math.Max(green, blue));
+            float min = Math.Min(red, Math.Min(green, blue));
 
-            var lightness = (max + min) / 2f;
+            float lightness = (max + min) / 2f;
             if (lightness <= 0)
                 return new Vector4(0f, 0f, 0f, A);
 
-            var diff = max - min;
-            var saturation = diff;
+            float diff = max - min;
+            float saturation = diff;
             if (saturation <= 0)
                 return new Vector4(0f, 0f, lightness, A);
 

@@ -53,7 +53,7 @@ namespace osu.Framework.Localisation
             if (parameters.Store == null)
                 return ToString();
 
-            var localisedFormat = parameters.Store.Get(Key) ?? Fallback;
+            string localisedFormat = parameters.Store.Get(Key) ?? Fallback;
 
             try
             {
@@ -98,7 +98,7 @@ namespace osu.Framework.Localisation
             var hashCode = new HashCode();
             hashCode.Add(Key);
             hashCode.Add(Fallback);
-            foreach (var arg in Args)
+            foreach (object? arg in Args)
                 hashCode.Add(arg);
             return hashCode.ToHashCode();
         }

@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
                 path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
-            var fullPath = GetFullPath(path, true);
+            string fullPath = GetFullPath(path, true);
 
             return (Storage)Activator.CreateInstance(GetType(), fullPath);
         }

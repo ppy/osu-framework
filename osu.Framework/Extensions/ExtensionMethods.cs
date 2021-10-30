@@ -99,8 +99,8 @@ namespace osu.Framework.Extensions
             if (jagged == null)
                 return null;
 
-            var rows = jagged.Length;
-            var cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
+            int rows = jagged.Length;
+            int cols = rows == 0 ? 0 : jagged.Max(c => c?.Length ?? 0);
 
             var rectangular = new T[rows, cols];
 

@@ -251,7 +251,7 @@ namespace osu.Framework.Logging
         {
             lock (static_sync_lock)
             {
-                var nameLower = name.ToLower();
+                string nameLower = name.ToLower();
 
                 if (!static_loggers.TryGetValue(nameLower, out Logger l))
                 {
@@ -330,7 +330,7 @@ namespace osu.Framework.Logging
 
                     bool bypassRateLimit = level >= LogLevel.Verbose;
 
-                    foreach (var line in lines)
+                    foreach (string line in lines)
                     {
                         if (bypassRateLimit || debugOutputRollingTime.RequestEntry())
                         {
@@ -362,7 +362,7 @@ namespace osu.Framework.Logging
                         using (var stream = Storage.GetStream(Filename, FileAccess.Write, FileMode.Append))
                         using (var writer = new StreamWriter(stream))
                         {
-                            foreach (var line in lines)
+                            foreach (string line in lines)
                                 writer.WriteLine(line);
                         }
                     }

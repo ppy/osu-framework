@@ -3,6 +3,7 @@
 
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -22,6 +23,9 @@ namespace osu.Framework.Tests.Visual.Sprites
         private TestVideo video;
 
         private bool didDecode;
+
+        [Resolved]
+        private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -63,6 +67,14 @@ namespace osu.Framework.Tests.Visual.Sprites
                     Loop = false,
                 };
             });
+        }
+
+        [Test]
+        public void TestHardwareDecode()
+        {
+            AddStep("disable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.None));
+            AddWaitStep("Wait some", 20);
+            AddStep("enable hardware decoding", () => config.SetValue(FrameworkSetting.HardwareVideoDecoder, HardwareVideoDecoder.Any));
         }
 
         [Test]
@@ -182,7 +194,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             if (video != null)
             {
-                var newSecond = (int)(video.PlaybackPosition / 1000.0);
+                int newSecond = (int)(video.PlaybackPosition / 1000.0);
 
                 if (newSecond != currentSecond)
                 {

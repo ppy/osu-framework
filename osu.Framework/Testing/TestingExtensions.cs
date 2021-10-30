@@ -19,7 +19,7 @@ namespace osu.Framework.Testing
 
             if (drawable is CompositeDrawable composite)
             {
-                for (var i = 0; i < composite.InternalChildren.Count; i++)
+                for (int i = 0; i < composite.InternalChildren.Count; i++)
                 {
                     var child = composite.InternalChildren[i];
 

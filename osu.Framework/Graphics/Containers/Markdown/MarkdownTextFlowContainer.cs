@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
         public new void AddText(string text, Action<SpriteText> creationParameters = null)
             => base.AddText(Escape(text), creationParameters);
 
-        public new IEnumerable<Drawable> AddParagraph(string text, Action<SpriteText> creationParameters = null)
+        public new ITextPart AddParagraph(string text, Action<SpriteText> creationParameters = null)
             => base.AddParagraph(Escape(text), creationParameters);
 
         public void AddInlineText(ContainerInline container)
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
                 switch (single)
                 {
                     case LiteralInline literal:
-                        var text = literal.Content.ToString();
+                        string text = literal.Content.ToString();
 
                         if (container.GetPrevious(literal) is HtmlInline && container.GetNext(literal) is HtmlInline)
                             AddHtmlInLineText(text, literal);
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             bool hasItalic = false;
             bool hasBold = false;
 
-            foreach (var e in emphases)
+            foreach (string e in emphases)
             {
                 switch (e)
                 {
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Containers.Markdown
             AddDrawable(textDrawable);
         }
 
-        protected override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
+        protected internal override SpriteText CreateSpriteText() => parentTextComponent.CreateSpriteText();
 
         /// <summary>
         /// Creates an emphasised <see cref="SpriteText"/>.

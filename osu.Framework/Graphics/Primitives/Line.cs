@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Primitives
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public (bool success, float distance) IntersectWith(in Line other)
         {
-            bool success = TryIntersectWith(other, out var distance);
+            bool success = TryIntersectWith(other, out float distance);
             return (success, distance);
         }
 

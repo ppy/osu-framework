@@ -102,8 +102,8 @@ namespace osu.Framework.Platform
             var offsetsInfo = type.GetRuntimeFields().First(x => x.Name == "_EntryPointNameOffsetsInstance");
 
             var entryPointsInstance = (IntPtr[])pointsInfo.GetValue(bindings);
-            var entryPointNamesInstance = (byte[])namesInfo.GetValue(bindings);
-            var entryPointNameOffsetsInstance = (int[])offsetsInfo.GetValue(bindings);
+            byte[] entryPointNamesInstance = (byte[])namesInfo.GetValue(bindings);
+            int[] entryPointNameOffsetsInstance = (int[])offsetsInfo.GetValue(bindings);
 
             Debug.Assert(entryPointsInstance != null);
             Debug.Assert(entryPointNameOffsetsInstance != null);
@@ -112,8 +112,8 @@ namespace osu.Framework.Platform
             {
                 for (int i = 0; i < entryPointsInstance.Length; i++)
                 {
-                    var ptr = name + entryPointNameOffsetsInstance[i];
-                    var str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
+                    byte* ptr = name + entryPointNameOffsetsInstance[i];
+                    string str = Marshal.PtrToStringAnsi(new IntPtr(ptr));
                     entryPointsInstance[i] = GetProcAddress(str);
                 }
             }

@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 var t = transforms[i];
 
-                var tCanRewind = !transformable.RemoveCompletedTransforms && t.Rewindable;
+                bool tCanRewind = !transformable.RemoveCompletedTransforms && t.Rewindable;
 
                 bool flushAppliedCache = false;
 
@@ -375,7 +375,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private void resetLastAppliedCache()
         {
-            foreach (var tracked in targetMembers)
+            foreach (string tracked in targetMembers)
                 lastAppliedTransformIndices[tracked] = 0;
         }
     }

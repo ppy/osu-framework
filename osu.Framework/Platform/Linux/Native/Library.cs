@@ -22,10 +22,10 @@ namespace osu.Framework.Platform.Linux.Native
         /// <param name="flags">See 'man dlopen' for more information.</param>
         public static void Load(string library, LoadFlags flags)
         {
-            var paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
+            string paths = (string)AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES");
             Debug.Assert(paths != null);
 
-            foreach (var path in paths.Split(':'))
+            foreach (string path in paths.Split(':'))
             {
                 if (dlopen(Path.Combine(path, library), flags) != IntPtr.Zero)
                     break;

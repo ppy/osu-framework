@@ -6,32 +6,22 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
-    /// <inheritdoc />
-    public class TextFlowContainer : TextFlowContainer<SpriteText>
-    {
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
-            : base(defaultCreationParameters)
-        {
-        }
-
-        protected override SpriteText CreateSpriteText() => new SpriteText();
-    }
-
     /// <summary>
     /// A drawable text object that supports more advanced text formatting.
     /// </summary>
-    public abstract class TextFlowContainer<T> : FillFlowContainer
-        where T : SpriteText
+    public class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
-        private readonly Action<T> defaultCreationParameters;
+        private readonly Action<SpriteText> defaultCreationParameters;
 
-        protected TextFlowContainer(Action<T> defaultCreationParameters = null)
+        private readonly List<ITextPart> parts = new List<ITextPart>();
+
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
         }
@@ -129,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
-        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{T})"/>
+        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
         /// </summary>
         public string Text
         {
@@ -212,12 +202,19 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{T})"/> instead.
+        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break.
+        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(string, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<Drawable> AddText(string text, Action<T> creationParameters = null) => AddLine(new TextChunk<T>(text, true, creationParameters));
+        public ITextPart AddText<TSpriteText>(string text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
+
+        /// <inheritdoc cref="AddText{TSpriteText}(string,System.Action{TSpriteText})"/>
+        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null)
+            => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
 
         /// <summary>
         /// Add an arbitrary <see cref="SpriteText"/> to this <see cref="TextFlowContainer"/>.
@@ -226,119 +223,100 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public void AddText(T text, Action<T> creationParameters = null)
+        public void AddText<TSpriteText>(TSpriteText text, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText
         {
-            base.Add(text);
             defaultCreationParameters?.Invoke(text);
             creationParameters?.Invoke(text);
+            AddPart(new TextPartManual(text.Yield()));
         }
 
         /// <summary>
-        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{T})"/> instead.
+        /// Add a new paragraph to this text flow. The \n character will create a line break
+        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(string, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public IEnumerable<Drawable> AddParagraph(string paragraph, Action<T> creationParameters = null) => AddLine(new TextChunk<T>(paragraph, false, creationParameters));
+        public ITextPart AddParagraph<TSpriteText>(string paragraph, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => AddPart(CreateChunkFor(paragraph, false, () => new TSpriteText(), creationParameters));
+
+        /// <inheritdoc cref="AddParagraph{TSpriteText}(string,Action{TSpriteText})"/>
+        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null)
+            => AddPart(CreateChunkFor(paragraph, false, CreateSpriteText, creationParameters));
+
+        /// <summary>
+        /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
+        /// </summary>
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+            where TSpriteText : SpriteText, new()
+            => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 
         /// <summary>
         /// End current line and start a new one.
         /// </summary>
-        public void NewLine() => base.Add(new NewLineContainer(false));
+        public void NewLine() => AddPart(new TextNewLine(false));
 
         /// <summary>
         /// End current paragraph and start a new one.
         /// </summary>
-        public void NewParagraph() => base.Add(new NewLineContainer(true));
+        public void NewParagraph() => AddPart(new TextNewLine(true));
 
-        protected abstract T CreateSpriteText();
+        protected internal virtual SpriteText CreateSpriteText() => new SpriteText();
 
-        internal SpriteText CreateSpriteTextWithChunk(TextChunk<T> chunk)
-        {
-            var spriteText = CreateSpriteText();
-            defaultCreationParameters?.Invoke(spriteText);
-            chunk.ApplyParameters(spriteText);
-            return spriteText;
-        }
+        internal void ApplyDefaultCreationParamters(SpriteText spriteText) => defaultCreationParameters?.Invoke(spriteText);
 
         public override void Add(Drawable drawable)
         {
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        internal virtual IEnumerable<Drawable> AddLine(TextChunk<T> chunk)
+        public override void Clear(bool disposeChildren)
         {
-            var sprites = new List<Drawable>();
-
-            // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
-            // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if (!chunk.NewLineIsParagraph)
-            {
-                var newLine = new NewLineContainer(true);
-                sprites.Add(newLine);
-                base.Add(newLine);
-            }
-
-            sprites.AddRange(AddString(chunk));
-
-            return sprites;
+            base.Clear(disposeChildren);
+            parts.Clear();
         }
 
-        internal IEnumerable<Drawable> AddString(TextChunk<T> chunk)
+        /// <summary>
+        /// Adds an <see cref="ITextPart"/> and its associated drawables to this <see cref="TextFlowContainer"/>.
+        /// </summary>
+        protected internal ITextPart AddPart(ITextPart part)
         {
-            bool first = true;
-            var sprites = new List<Drawable>();
+            parts.Add(part);
 
-            foreach (string l in chunk.Text.Split('\n'))
-            {
-                if (!first)
-                {
-                    Drawable lastChild = Children.LastOrDefault();
+            part.RecreateDrawablesFor(this);
+            foreach (var drawable in part.Drawables)
+                base.Add(drawable);
 
-                    if (lastChild != null)
-                    {
-                        var newLine = new NewLineContainer(chunk.NewLineIsParagraph);
-                        sprites.Add(newLine);
-                        base.Add(newLine);
-                    }
-                }
-
-                foreach (string word in SplitWords(l))
-                {
-                    if (string.IsNullOrEmpty(word)) continue;
-
-                    var textSprite = CreateSpriteTextWithChunk(chunk);
-                    textSprite.Text = word;
-                    sprites.Add(textSprite);
-                    base.Add(textSprite);
-                }
-
-                first = false;
-            }
-
-            return sprites;
+            return part;
         }
 
-        protected string[] SplitWords(string text)
+        /// <summary>
+        /// Removes an <see cref="ITextPart"/> from this text flow.
+        /// </summary>
+        /// <returns>Whether <see cref="ITextPart"/> was successfully removed from the flow.</returns>
+        public bool RemovePart(ITextPart partToRemove)
         {
-            var words = new List<string>();
-            var builder = new StringBuilder();
+            if (!parts.Remove(partToRemove))
+                return false;
 
-            for (var i = 0; i < text.Length; i++)
+            // manual parts need to be manually removed before clearing contents,
+            // to avoid accidentally disposing of them in the process.
+            foreach (var manualPart in parts.OfType<TextPartManual>())
+                RemoveRange(manualPart.Drawables);
+
+            // make sure not to clear the list of parts on accident.
+            base.Clear(true);
+
+            foreach (var part in parts)
             {
-                if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
-                {
-                    words.Add(builder.ToString());
-                    builder.Clear();
-                }
-
-                builder.Append(text[i]);
+                part.RecreateDrawablesFor(this);
+                foreach (var drawable in part.Drawables)
+                    base.Add(drawable);
             }
 
-            if (builder.Length > 0)
-                words.Add(builder.ToString());
-
-            return words.ToArray();
+            return true;
         }
 
         private readonly Cached layout = new Cached();

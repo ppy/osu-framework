@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Animations;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -104,10 +105,13 @@ namespace osu.Framework.Graphics.Video
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost gameHost, ShaderManager shaders)
+        private void load(GameHost gameHost, FrameworkConfigManager config, ShaderManager shaders)
         {
             decoder = gameHost.CreateVideoDecoder(stream);
             decoder.Looping = Loop;
+
+            config.BindWith(FrameworkSetting.HardwareVideoDecoder, decoder.TargetHardwareVideoDecoders);
+
             decoder.StartDecoding();
 
             Duration = decoder.Duration;
@@ -146,7 +150,7 @@ namespace osu.Framework.Graphics.Video
                 seekIntoSync();
             }
 
-            var frameTime = CurrentFrameTime;
+            double frameTime = CurrentFrameTime;
 
             while (availableFrames.Count > 0 && checkNextFrameValid(availableFrames.Peek()))
             {
@@ -199,10 +203,19 @@ namespace osu.Framework.Graphics.Video
             base.Dispose(isDisposing);
 
             isDisposed = true;
-            decoder?.Dispose();
 
-            foreach (var f in availableFrames)
-                f.Texture.Dispose();
+            if (decoder != null)
+            {
+                decoder.ReturnFrames(availableFrames);
+                availableFrames.Clear();
+
+                decoder.Dispose();
+            }
+            else
+            {
+                foreach (var f in availableFrames)
+                    f.Texture.Dispose();
+            }
         }
 
         protected override float GetFillAspectRatio() => Sprite.FillAspectRatio;

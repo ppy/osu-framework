@@ -68,7 +68,7 @@ namespace osu.Framework.Tests.Exceptions
 
         private void assertCorrectStack(Func<Exception> exception) => AddAssert("exception has correct callstack", () =>
         {
-            var stackTrace = exception().StackTrace;
+            string stackTrace = exception().StackTrace;
             Debug.Assert(stackTrace != null);
 
             return stackTrace.Contains($"{nameof(TestSceneDependencyInjectionExceptions)}.{nameof(Thrower)}");

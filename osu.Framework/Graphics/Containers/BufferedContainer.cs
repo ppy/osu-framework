@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds)
         {
-            var result = base.UpdateSubTreeMasking(source, maskingBounds);
+            bool result = base.UpdateSubTreeMasking(source, maskingBounds);
 
             childrenUpdateVersion = updateVersion;
 
@@ -281,7 +281,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnInvalidate(Invalidation invalidation, InvalidationSource source)
         {
-            var result = base.OnInvalidate(invalidation, source);
+            bool result = base.OnInvalidate(invalidation, source);
 
             if ((invalidation & Invalidation.DrawNode) > 0)
             {

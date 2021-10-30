@@ -65,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
                 {
-                    var propValue = p.GetValue(null);
+                    object propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)propValue));

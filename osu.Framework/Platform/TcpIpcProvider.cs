@@ -67,7 +67,7 @@ namespace osu.Framework.Platform
                             int len = BitConverter.ToInt32(header, 0);
                             byte[] data = new byte[len];
                             await stream.ReadAsync(data.AsMemory(), token).ConfigureAwait(false);
-                            var str = Encoding.UTF8.GetString(data);
+                            string str = Encoding.UTF8.GetString(data);
                             var json = JToken.Parse(str);
 
                             var type = Type.GetType(json["Type"].Value<string>());
@@ -110,7 +110,7 @@ namespace osu.Framework.Platform
 
                 using (var stream = client.GetStream())
                 {
-                    var str = JsonConvert.SerializeObject(message, Formatting.None);
+                    string str = JsonConvert.SerializeObject(message, Formatting.None);
                     byte[] data = Encoding.UTF8.GetBytes(str);
                     byte[] header = BitConverter.GetBytes(data.Length);
                     await stream.WriteAsync(header.AsMemory()).ConfigureAwait(false);
