@@ -9,17 +9,14 @@ using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.Timing;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -103,8 +100,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public event OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
-
         protected TextBox()
         {
             Masking = true;
@@ -143,20 +138,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
-
-            if (textInput != null)
-            {
-                textInput.OnNewImeComposition += s =>
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += s =>
-                {
-                    textUpdateScheduler.Add(onImeResult);
-                    cursorAndLayout.Invalidate();
-                };
-            }
         }
 
         protected override void LoadComplete()
@@ -356,12 +337,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        internal override void UpdateClock(IFrameBasedClock clock)
-        {
-            base.UpdateClock(clock);
-            textUpdateScheduler.UpdateClock(Clock);
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -378,8 +353,6 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateCursorAndLayout()
         {
             Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
-
-            textUpdateScheduler.Update();
 
             float cursorPos = 0;
             if (text.Length > 0)
@@ -724,8 +697,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void setText(string value)
         {
-            textUpdateScheduler.CancelDelayedTasks();
-
             int startBefore = selectionStart;
             selectionStart = selectionEnd = 0;
 
