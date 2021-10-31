@@ -626,6 +626,30 @@ namespace osu.Framework.Tests.Visual.UserInterface
         }
 
         [Test]
+        public void TestInputOverride()
+        {
+            InsertableTextBox overrideInputBox = null;
+
+            AddStep("add override textbox", () =>
+            {
+                textBoxes.Add(overrideInputBox = new InsertableTextBox
+                {
+                    Text = @"Override input textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+                overrideInputBox.Current.BindValueChanged(vce =>
+                {
+                    if (vce.NewValue != @"Input overridden!")
+                        overrideInputBox.Current.Value = @"Input overridden!";
+                });
+            });
+
+            AddStep(@"set some text", () => overrideInputBox.Text = "smth");
+            AddAssert(@"verify display state", () => overrideInputBox.FlowingText == "Input overridden!");
+        }
+
+        [Test]
         public void TestDisableAndSetText()
         {
             InsertableTextBox textBox = null;
