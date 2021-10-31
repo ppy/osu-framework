@@ -159,6 +159,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            setText(Text);
+        }
+
         public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!HasFocus)
@@ -712,19 +718,26 @@ namespace osu.Framework.Graphics.UserInterface
                 if (!IsLoaded)
                     Current.Value = text = value;
 
-                int startBefore = selectionStart;
-                selectionStart = selectionEnd = 0;
-
-                TextFlow?.Clear();
-                text = string.Empty;
-
-                // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
-                insertString(value, d => d.FinishTransforms());
-
-                selectionStart = Math.Clamp(startBefore, 0, text.Length);
-
-                cursorAndLayout.Invalidate();
+                setText(value);
             }
+        }
+
+        private void setText(string value)
+        {
+            textUpdateScheduler.CancelDelayedTasks();
+
+            int startBefore = selectionStart;
+            selectionStart = selectionEnd = 0;
+
+            TextFlow?.Clear();
+            text = string.Empty;
+
+            // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
+            insertString(value, d => d.FinishTransforms());
+
+            selectionStart = Math.Clamp(startBefore, 0, text.Length);
+
+            cursorAndLayout.Invalidate();
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
