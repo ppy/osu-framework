@@ -57,6 +57,8 @@ namespace osu.Framework.Platform
             }
         }
 
+        private readonly object startStopLock = new object();
+
         /// <summary>
         /// Construct a new ThreadRunner instance.
         /// </summary>
@@ -107,7 +109,7 @@ namespace osu.Framework.Platform
                     lock (threads)
                     {
                         foreach (var t in threads)
-                            t.ProcessFrame();
+                            t.RunSingleFrame();
                     }
 
                     break;
@@ -115,19 +117,22 @@ namespace osu.Framework.Platform
 
                 case ExecutionMode.MultiThreaded:
                     // still need to run the main/input thread on the window loop
-                    mainThread.ProcessFrame();
+                    mainThread.RunSingleFrame();
                     break;
             }
+
+            ThreadSafety.ResetAllForCurrentThread();
         }
 
         public void Start() => ensureCorrectExecutionMode();
 
         public void Suspend()
         {
-            pauseAllThreads();
-
-            // set the active execution mode back to null to set the state checking back to when it can be resumed.
-            activeExecutionMode = null;
+            lock (startStopLock)
+            {
+                pauseAllThreads();
+                activeExecutionMode = null;
+            }
         }
 
         public void Stop()
@@ -150,33 +155,35 @@ namespace osu.Framework.Platform
             });
 
             // as the input thread isn't actually handled by a thread, the above join does not necessarily mean it has been completed to an exiting state.
-            while (!mainThread.Exited)
-                mainThread.ProcessFrame();
+            mainThread.WaitForState(GameThreadState.Exited);
 
             ThreadSafety.ResetAllForCurrentThread();
         }
 
         private void ensureCorrectExecutionMode()
         {
-            if (ExecutionMode == activeExecutionMode)
-                return;
+            // locking is required as this method may be called from two different threads.
+            lock (startStopLock)
+            {
+                // pull into a local variable as the property is not locked during writes.
+                var executionMode = ExecutionMode;
 
-            // if null, we have not yet got an execution mode, so set this early to allow usage in GameThread.Initialize overrides.
-            activeExecutionMode ??= ThreadSafety.ExecutionMode = ExecutionMode;
-            Logger.Log($"Execution mode changed to {activeExecutionMode}");
+                if (executionMode == activeExecutionMode)
+                    return;
+
+                activeExecutionMode = ThreadSafety.ExecutionMode = executionMode;
+                Logger.Log($"Execution mode changed to {activeExecutionMode}");
+            }
 
             pauseAllThreads();
 
-            switch (ExecutionMode)
+            switch (activeExecutionMode)
             {
                 case ExecutionMode.MultiThreaded:
                 {
                     // switch to multi-threaded
                     foreach (var t in Threads)
-                    {
                         t.Start();
-                        t.Clock.Throttling = true;
-                    }
 
                     break;
                 }
@@ -196,8 +203,6 @@ namespace osu.Framework.Platform
                     break;
                 }
             }
-
-            activeExecutionMode = ThreadSafety.ExecutionMode = ExecutionMode;
 
             updateMainThreadRates();
         }

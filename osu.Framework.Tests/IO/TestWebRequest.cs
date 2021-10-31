@@ -49,7 +49,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestValidGet([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new JsonWebRequest<HttpBinGetResponse>(url)
             {
                 Method = HttpMethod.Get,
@@ -62,7 +62,7 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestCustomUserAgent([ValueSource(nameof(protocols))] string protocol, [Values(true, false)] bool async)
         {
-            var url = $"{protocol}://{host}/get";
+            string url = $"{protocol}://{host}/get";
             var request = new CustomUserAgentWebRequest(url)
             {
                 Method = HttpMethod.Get,
@@ -497,13 +497,13 @@ namespace osu.Framework.Tests.IO
         [Test, Retry(5)]
         public void TestUnbindOnDispose([Values(true, false)] bool async)
         {
-            WebRequest request;
-
-            using (request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
+            var request = new JsonWebRequest<HttpBinGetResponse>($"{default_protocol}://{host}/get")
             {
                 Method = HttpMethod.Get,
                 AllowInsecureRequests = true,
-            })
+            };
+
+            using (request)
             {
                 request.Started += () => { };
                 request.Failed += e => { };
@@ -520,6 +520,40 @@ namespace osu.Framework.Tests.IO
                 var field = request.GetType().GetField(e.Name, BindingFlags.Instance | BindingFlags.Public);
                 Assert.IsFalse(((Delegate)field?.GetValue(request))?.GetInvocationList().Length > 0);
             }
+        }
+
+        [Test, Retry(5)]
+        public void TestGetWithQueryStringParameters()
+        {
+            const string test_key_1 = "testkey1";
+            const string test_val_1 = "testval1 that ends with a #";
+
+            const string test_key_2 = "testkey2";
+            const string test_val_2 = "testval2 that ends with a space ";
+
+            var request = new JsonWebRequest<HttpBinGetResponse>($@"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true
+            };
+
+            request.AddParameter(test_key_1, test_val_1);
+            request.AddParameter(test_key_2, test_val_2);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            var responseObject = request.ResponseObject;
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            Assert.NotNull(responseObject.Arguments);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, responseObject.Arguments[test_key_1]);
+
+            Assert.True(responseObject.Arguments.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, responseObject.Arguments[test_key_2]);
         }
 
         [Test, Retry(5)]
@@ -609,6 +643,60 @@ namespace osu.Framework.Tests.IO
         }
 
         [Test, Retry(5)]
+        public void TestPutWithQueryAndFormParams()
+        {
+            const string test_key_1 = "param1";
+            const string test_val_1 = "in query! ";
+
+            const string test_key_2 = "param2";
+            const string test_val_2 = "in form!";
+
+            const string test_key_3 = "param3";
+            const string test_val_3 = "in form by default!";
+
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/put")
+            {
+                Method = HttpMethod.Put,
+                AllowInsecureRequests = true,
+            };
+
+            request.AddParameter(test_key_1, test_val_1, RequestParameterType.Query);
+            request.AddParameter(test_key_2, test_val_2, RequestParameterType.Form);
+            request.AddParameter(test_key_3, test_val_3);
+
+            Assert.DoesNotThrow(request.Perform);
+
+            Assert.IsTrue(request.Completed);
+            Assert.IsFalse(request.Aborted);
+
+            var response = request.ResponseObject;
+
+            Assert.NotNull(response.Arguments);
+            Assert.True(response.Arguments.ContainsKey(test_key_1));
+            Assert.AreEqual(test_val_1, response.Arguments[test_key_1]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_2));
+            Assert.AreEqual(test_val_2, response.Form[test_key_2]);
+
+            Assert.NotNull(response.Form);
+            Assert.True(response.Form.ContainsKey(test_key_3));
+            Assert.AreEqual(test_val_3, response.Form[test_key_3]);
+        }
+
+        [Test]
+        public void TestFormParamsNotSupportedForGet()
+        {
+            var request = new JsonWebRequest<HttpBinPutResponse>($"{default_protocol}://{host}/get")
+            {
+                Method = HttpMethod.Get,
+                AllowInsecureRequests = true,
+            };
+
+            Assert.Throws<ArgumentException>(() => request.AddParameter("cannot", "work", RequestParameterType.Form));
+        }
+
+        [Test, Retry(5)]
         public void TestGetBinaryData([Values(true, false)] bool async, [Values(true, false)] bool chunked)
         {
             const int bytes_count = 65536;
@@ -638,6 +726,9 @@ namespace osu.Framework.Tests.IO
         [Serializable]
         private class HttpBinGetResponse
         {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
             [JsonProperty("headers")]
             public HttpBinHeaders Headers { get; set; }
 
@@ -659,6 +750,16 @@ namespace osu.Framework.Tests.IO
 
             [JsonProperty("json")]
             public TestObject Json { get; set; }
+        }
+
+        [Serializable]
+        private class HttpBinPutResponse
+        {
+            [JsonProperty("args")]
+            public Dictionary<string, string> Arguments { get; set; }
+
+            [JsonProperty("form")]
+            public Dictionary<string, string> Form { get; set; }
         }
 
         [Serializable]

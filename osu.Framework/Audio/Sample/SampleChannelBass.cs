@@ -1,12 +1,16 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using ManagedBass;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Track;
+using osu.Framework.Extensions.ObjectExtensions;
 
 namespace osu.Framework.Audio.Sample
 {
-    internal sealed class SampleChannelBass : SampleChannel, IBassAudio
+    internal sealed class SampleChannelBass : SampleChannel, IBassAudioChannel
     {
         private readonly SampleBass sample;
         private volatile int channel;
@@ -33,8 +37,12 @@ namespace osu.Framework.Audio.Sample
         private volatile bool enqueuedPlaybackStart;
 
         private readonly BassRelativeFrequencyHandler relativeFrequencyHandler;
-        private BassAmplitudeProcessor bassAmplitudeProcessor;
+        private BassAmplitudeProcessor? bassAmplitudeProcessor;
 
+        /// <summary>
+        /// Creates a new <see cref="SampleChannelBass"/>.
+        /// </summary>
+        /// <param name="sample">The <see cref="SampleBass"/> to create the channel from.</param>
         public SampleChannelBass(SampleBass sample)
         {
             this.sample = sample;
@@ -66,15 +74,6 @@ namespace osu.Framework.Audio.Sample
             playChannel();
         }
 
-        void IBassAudio.UpdateDevice(int deviceIndex)
-        {
-            // Channels created from samples can not be migrated, so we need to ensure
-            // a new channel is created after switching the device. We do not need to
-            // manually free the channel, because our Bass.Free call upon switching devices
-            // takes care of that.
-            channel = 0;
-        }
-
         internal override void OnStateChanged()
         {
             base.OnStateChanged();
@@ -101,7 +100,7 @@ namespace osu.Framework.Audio.Sample
         {
             if (hasChannel)
             {
-                switch (Bass.ChannelIsActive(channel))
+                switch (bassMixer.ChannelIsActive(this))
                 {
                     case PlaybackState.Playing:
                     // Stalled counts as playing, as playback will continue once more data has streamed in.
@@ -136,7 +135,7 @@ namespace osu.Framework.Audio.Sample
             stopChannel();
         }
 
-        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(channel)).CurrentAmplitudes;
+        public override ChannelAmplitudes CurrentAmplitudes => (bassAmplitudeProcessor ??= new BassAmplitudeProcessor(this)).CurrentAmplitudes;
 
         private bool hasChannel => channel != 0;
 
@@ -156,13 +155,13 @@ namespace osu.Framework.Audio.Sample
                 // Bass will restart the sample if it has reached its end. This behavior isn't desirable so block locally.
                 // Unlike TrackBass, sample channels can't have sync callbacks attached, so the stopped state is used instead
                 // to indicate the natural stoppage of a sample as a result of having reaching the end.
-                if (Played && Bass.ChannelIsActive(channel) == PlaybackState.Stopped)
+                if (Played && bassMixer.ChannelIsActive(this) == PlaybackState.Stopped)
                     return;
 
                 playing = true;
 
                 if (!relativeFrequencyHandler.IsFrequencyZero)
-                    Bass.ChannelPlay(channel);
+                    bassMixer.ChannelPlay(this);
             }
             finally
             {
@@ -173,7 +172,7 @@ namespace osu.Framework.Audio.Sample
         private void stopChannel() => EnqueueAction(() =>
         {
             if (hasChannel)
-                Bass.ChannelPause(channel);
+                bassMixer.ChannelPause(this);
         });
 
         private void setLoopFlag(bool value) => EnqueueAction(() =>
@@ -187,17 +186,29 @@ namespace osu.Framework.Audio.Sample
             if (hasChannel)
                 return;
 
-            channel = Bass.SampleGetChannel(sample.SampleId);
+            channel = Bass.SampleGetChannel(sample.SampleId, BassFlags.SampleChannelStream | BassFlags.Decode);
 
             if (!hasChannel)
                 return;
 
-            Bass.ChannelSetAttribute(channel, ChannelAttribute.NoRamp, 1);
             setLoopFlag(Looping);
 
             relativeFrequencyHandler.SetChannel(channel);
-            bassAmplitudeProcessor?.SetChannel(channel);
         });
+
+        #region Mixing
+
+        private BassAudioMixer bassMixer => (BassAudioMixer)Mixer.AsNonNull();
+
+        bool IBassAudioChannel.IsActive => IsAlive;
+
+        int IBassAudioChannel.Handle => channel;
+
+        bool IBassAudioChannel.MixerChannelPaused { get; set; } = true;
+
+        BassAudioMixer IBassAudioChannel.Mixer => bassMixer;
+
+        #endregion
 
         protected override void Dispose(bool disposing)
         {
@@ -206,7 +217,7 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                Bass.ChannelStop(channel);
+                bassMixer.StreamFree(this);
                 channel = 0;
             }
 

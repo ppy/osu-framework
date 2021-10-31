@@ -5,11 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using osu.Framework.Graphics.OpenGL;
 using osuTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    internal class ShaderPart
+    internal class ShaderPart : IDisposable
     {
         internal const string SHADER_ATTRIBUTE_PATTERN = "^\\s*(?>attribute|in)\\s+(?:(?:lowp|mediump|highp)\\s+)?\\w+\\s+(\\w+)";
 
@@ -149,13 +150,32 @@ namespace osu.Framework.Graphics.Shaders
 
         public static implicit operator int(ShaderPart program) => program.partID;
 
-        private void delete()
-        {
-            if (partID == -1) return;
+        #region IDisposable Support
 
-            GL.DeleteShader(this);
-            Compiled = false;
-            partID = -1;
+        protected internal bool IsDisposed { get; private set; }
+
+        ~ShaderPart()
+        {
+            GLWrapper.ScheduleDisposal(() => Dispose(false));
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                if (partID != -1)
+                    GL.DeleteShader(this);
+            }
+        }
+
+        #endregion
     }
 }

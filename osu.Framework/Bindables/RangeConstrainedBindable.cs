@@ -173,6 +173,14 @@ namespace osu.Framework.Bindables
             base.BindTo(them);
         }
 
+        public override void UnbindEvents()
+        {
+            base.UnbindEvents();
+
+            MinValueChanged = null;
+            MaxValueChanged = null;
+        }
+
         public new RangeConstrainedBindable<T> GetBoundCopy() => (RangeConstrainedBindable<T>)base.GetBoundCopy();
 
         public new RangeConstrainedBindable<T> GetUnboundCopy() => (RangeConstrainedBindable<T>)base.GetUnboundCopy();

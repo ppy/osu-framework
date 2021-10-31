@@ -34,11 +34,8 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("move caret to end", () =>
-            {
-                textBox.MoveToEnd();
-                textBox.CaretMovedQueue.Dequeue();
-            });
+            AddStep("move caret to end", () => InputManager.Keys(PlatformAction.MoveForwardLine));
+            AddStep("dequeue caret event", () => textBox.CaretMovedQueue.Dequeue());
         }
 
         [Test]
@@ -88,7 +85,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddStep("invoke delete action to remove text", () =>
             {
                 lastText = textBox.Text;
-                textBox.DeletePreviousCharacter();
+                InputManager.Keys(PlatformAction.DeleteBackwardChar);
             });
             AddAssert("user text removed event raised", () => textBox.UserRemovedTextQueue.Dequeue() == lastText.Last().ToString() && textBox.UserRemovedTextQueue.Count == 0);
         }
@@ -117,12 +114,12 @@ namespace osu.Framework.Tests.Visual.UserInterface
         [Test]
         public void TestMovingOrExpandingSelectionInvokesEvent()
         {
-            AddStep("invoke move action to move caret", () => textBox.MoveToStart());
+            AddStep("invoke move action to move caret", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
             AddAssert("caret moved event", () =>
                 // Ensure dequeued caret move event has selecting = false.
                 textBox.CaretMovedQueue.Dequeue() == false && textBox.CommittedTextQueue.Count == 0);
 
-            AddStep("invoke select action to expand selection", () => textBox.OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)));
+            AddStep("invoke select action to expand selection", () => InputManager.Keys(PlatformAction.SelectForwardChar));
             AddAssert("caret moved event", () =>
                 // Ensure dequeued caret move event has selecting = true.
                 textBox.CaretMovedQueue.Dequeue() && textBox.CommittedTextQueue.Count == 0);

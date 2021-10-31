@@ -12,6 +12,11 @@ namespace osu.Framework.Graphics.UserInterface
             ? FontAwesome.Solid.Database
             : FontAwesome.Regular.Folder;
 
+        protected override SpriteText CreateSpriteText() => new SpriteText
+        {
+            Font = FrameworkFont.Regular.With(size: FONT_SIZE)
+        };
+
         public BasicDirectorySelectorDirectory(DirectoryInfo directory, string displayName = null)
             : base(directory, displayName)
         {

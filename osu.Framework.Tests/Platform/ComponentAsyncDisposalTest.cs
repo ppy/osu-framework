@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Platform
 {
@@ -28,15 +29,15 @@ namespace osu.Framework.Tests.Platform
         {
             var gameCreated = new ManualResetEventSlim();
 
-            var task = Task.Run(() =>
+            var task = Task.Factory.StartNew(() =>
             {
-                using (host = new HeadlessGameHost(@"host", false))
+                using (host = new TestRunHeadlessGameHost(@"host", false))
                 {
                     game = new TestTestGame();
                     gameCreated.Set();
                     host.Run(game);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             Assert.IsTrue(gameCreated.Wait(timeout));
             Assert.IsTrue(game.BecameAlive.Wait(timeout));

@@ -320,13 +320,43 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert three words", () => textBox.InsertString("some long text"));
-            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("two words remain", () => textBox.Text == "some long ");
-            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("one word remains", () => textBox.Text == "some ");
-            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
-            AddStep("delete last word", () => textBox.DeletePreviousWord());
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestPreviousWordDeletionWithShortWords()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("a b c"));
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("two words remain", () => textBox.Text == "a b ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("one word remains", () => textBox.Text == "a ");
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete last word", () => InputManager.Keys(PlatformAction.DeleteBackwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
         }
 
@@ -350,14 +380,45 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert three words", () => textBox.InsertString("some long text"));
-            AddStep("move caret to start", () => textBox.MoveToStart());
-            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("two words remain", () => textBox.Text == " long text");
-            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("one word remains", () => textBox.Text == " text");
-            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
-            AddStep("delete first word", () => textBox.DeleteNextWord());
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+        }
+
+        [Test]
+        public void TestNextWordDeletionWithShortWords()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40)
+                });
+            });
+
+            AddStep("click on textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+
+            AddStep("insert three words", () => textBox.InsertString("a b c"));
+            AddStep("move caret to start", () => InputManager.Keys(PlatformAction.MoveBackwardLine));
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("two words remain", () => textBox.Text == " b c");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("one word remains", () => textBox.Text == " c");
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
+            AddAssert("text is empty", () => textBox.Text.Length == 0);
+            AddStep("delete first word", () => InputManager.Keys(PlatformAction.DeleteForwardWord));
             AddAssert("text is empty", () => textBox.Text.Length == 0);
         }
 
@@ -384,14 +445,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert word", () => textBox.InsertString("eventext"));
-            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
-            AddStep("append string", () => textBox.AppendString("ev"));
-            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
-            AddStep("append string", () => textBox.AppendString("en"));
-            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
-            AddStep("append string", () => textBox.AppendString("te"));
-            AddStep("remove 2 letters", () => textBox.RemoveFirstCharacters(2));
-            AddStep("append string", () => textBox.AppendString("xt"));
+            AddStep("remove 2 letters", () => removeFirstCharacters(2));
+            AddStep("append string", () => appendString(textBox, "ev"));
+            AddStep("remove 2 letters", () => removeFirstCharacters(2));
+            AddStep("append string", () => appendString(textBox, "en"));
+            AddStep("remove 2 letters", () => removeFirstCharacters(2));
+            AddStep("append string", () => appendString(textBox, "te"));
+            AddStep("remove 2 letters", () => removeFirstCharacters(2));
+            AddStep("append string", () => appendString(textBox, "xt"));
             AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
         }
 
@@ -418,14 +479,14 @@ namespace osu.Framework.Tests.Visual.UserInterface
             });
 
             AddStep("insert word", () => textBox.InsertString("eventext"));
-            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
-            AddStep("prepend string", () => textBox.PrependString("xt"));
-            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
-            AddStep("prepend string", () => textBox.PrependString("te"));
-            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
-            AddStep("prepend string", () => textBox.PrependString("en"));
-            AddStep("remove 2 letters", () => textBox.RemoveLastCharacters(2));
-            AddStep("prepend string", () => textBox.PrependString("ev"));
+            AddStep("remove 2 letters", () => removeLastCharacters(2));
+            AddStep("prepend string", () => prependString(textBox, "xt"));
+            AddStep("remove 2 letters", () => removeLastCharacters(2));
+            AddStep("prepend string", () => prependString(textBox, "te"));
+            AddStep("remove 2 letters", () => removeLastCharacters(2));
+            AddStep("prepend string", () => prependString(textBox, "en"));
+            AddStep("remove 2 letters", () => removeLastCharacters(2));
+            AddStep("prepend string", () => prependString(textBox, "ev"));
             AddAssert("is correct displayed text", () => textBox.FlowingText == "eventext" && textBox.FlowingText == textBox.Text);
         }
 
@@ -451,9 +512,103 @@ namespace osu.Framework.Tests.Visual.UserInterface
                 InputManager.Click(MouseButton.Left);
             });
 
-            AddStep("select all", () => textBox.OnPressed(new PlatformAction(PlatformActionType.SelectAll)));
+            AddStep("select all", () => InputManager.Keys(PlatformAction.SelectAll));
             AddStep("insert string", () => textBox.InsertString("another"));
             AddAssert("text replaced", () => textBox.FlowingText == "another" && textBox.FlowingText == textBox.Text);
+        }
+
+        [Test]
+        public void TestReadOnly()
+        {
+            BasicTextBox firstTextBox = null;
+            BasicTextBox secondTextBox = null;
+
+            AddStep("add textboxes", () => textBoxes.AddRange(new[]
+            {
+                firstTextBox = new BasicTextBox
+                {
+                    Text = "Readonly textbox",
+                    Size = new Vector2(500, 30),
+                    ReadOnly = true,
+                    TabbableContentContainer = textBoxes
+                },
+                secondTextBox = new BasicTextBox
+                {
+                    Text = "Standard textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                }
+            }));
+
+            AddStep("click first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("click second (editable) textbox", () =>
+            {
+                InputManager.MoveMouseTo(secondTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("try to tab backwards", () =>
+            {
+                InputManager.PressKey(Key.ShiftLeft);
+                InputManager.Key(Key.Tab);
+                InputManager.ReleaseKey(Key.ShiftLeft);
+            });
+            AddAssert("first (readonly) has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("drag on first (readonly) textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.Centre);
+                InputManager.PressButton(MouseButton.Left);
+                InputManager.MoveMouseTo(firstTextBox.ScreenSpaceDrawQuad.TopLeft);
+                InputManager.ReleaseButton(MouseButton.Left);
+            });
+            AddAssert("first textbox has no focus", () => !firstTextBox.HasFocus);
+
+            AddStep("make first textbox non-readonly", () => firstTextBox.ReadOnly = false);
+            AddStep("click first textbox", () =>
+            {
+                InputManager.MoveMouseTo(firstTextBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("make first textbox readonly again", () => firstTextBox.ReadOnly = true);
+            AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
+            AddStep("delete last character", () => InputManager.Keys(PlatformAction.DeleteBackwardChar));
+            AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
+        }
+
+        private void prependString(InsertableTextBox textBox, string text)
+        {
+            InputManager.Keys(PlatformAction.MoveBackwardLine);
+
+            ScheduleAfterChildren(() => textBox.InsertString(text));
+        }
+
+        private void appendString(InsertableTextBox textBox, string text)
+        {
+            InputManager.Keys(PlatformAction.MoveForwardLine);
+
+            ScheduleAfterChildren(() => textBox.InsertString(text));
+        }
+
+        private void removeFirstCharacters(int count)
+        {
+            InputManager.Keys(PlatformAction.MoveBackwardLine);
+
+            for (int i = 0; i < count; i++)
+                InputManager.Keys(PlatformAction.DeleteForwardChar);
+        }
+
+        private void removeLastCharacters(int count)
+        {
+            InputManager.Keys(PlatformAction.MoveForwardLine);
+
+            for (int i = 0; i < count; i++)
+                InputManager.Keys(PlatformAction.DeleteBackwardChar);
         }
 
         public class InsertableTextBox : BasicTextBox
@@ -464,43 +619,6 @@ namespace osu.Framework.Tests.Visual.UserInterface
             public string FlowingText => string.Concat(TextFlow.FlowingChildren.OfType<FallingDownContainer>().Select(c => c.OfType<SpriteText>().Single().Text.ToString()[0]));
 
             public new void InsertString(string text) => base.InsertString(text);
-
-            public void PrependString(string text)
-            {
-                MoveToStart();
-                InsertString(text);
-            }
-
-            public void AppendString(string text)
-            {
-                MoveToEnd();
-                InsertString(text);
-            }
-
-            public void RemoveFirstCharacters(int count)
-            {
-                MoveToStart();
-
-                for (int i = 0; i < count; i++)
-                    DeleteNextCharacter();
-            }
-
-            public void RemoveLastCharacters(int count)
-            {
-                MoveToEnd();
-
-                for (int i = 0; i < count; i++)
-                    DeletePreviousCharacter();
-            }
-
-            public void MoveToStart() => OnPressed(new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move));
-            public void MoveToEnd() => OnPressed(new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move));
-
-            public void DeletePreviousCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextCharacter() => OnPressed(new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete));
-
-            public void DeletePreviousWord() => OnPressed(new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete));
-            public void DeleteNextWord() => OnPressed(new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete));
         }
 
         private class NumberTextBox : BasicTextBox

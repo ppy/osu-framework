@@ -54,7 +54,7 @@ namespace osu.Framework.Testing
             }
 
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-            var basePath = getSolutionPath(di);
+            string basePath = getSolutionPath(di);
 
             if (!Directory.Exists(basePath))
             {
@@ -76,7 +76,7 @@ namespace osu.Framework.Testing
 
                 await referenceBuilder.Initialise(Directory.GetFiles(basePath, "*.sln").First()).ConfigureAwait(false);
 
-                foreach (var dir in Directory.GetDirectories(basePath))
+                foreach (string dir in Directory.GetDirectories(basePath))
                 {
                     // only watch directories which house a csproj. this avoids submodules and directories like .git which can contain many files.
                     if (!Directory.GetFiles(dir, "*.csproj").Any())
@@ -129,7 +129,7 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                foreach (var f in await referenceBuilder.GetReferencedFiles(targetType, changedFile).ConfigureAwait(false))
+                foreach (string f in await referenceBuilder.GetReferencedFiles(targetType, changedFile).ConfigureAwait(false))
                     requiredFiles.Add(f);
 
                 var assemblies = await referenceBuilder.GetReferencedAssemblies(targetType, changedFile).ConfigureAwait(false);
@@ -206,7 +206,7 @@ namespace osu.Framework.Testing
 
             // Add the syntax trees for all referenced files.
             var syntaxTrees = new List<SyntaxTree>();
-            foreach (var f in files)
+            foreach (string f in files)
                 syntaxTrees.Add(CSharpSyntaxTree.ParseText(File.ReadAllText(f, Encoding.UTF8), parseOptions, f, encoding: Encoding.UTF8));
 
             // Add the new assembly version, such that it replaces any existing dynamic assembly.

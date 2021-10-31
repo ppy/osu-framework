@@ -89,9 +89,14 @@ namespace osu.Framework.IO.Network
         public string Url;
 
         /// <summary>
-        /// POST parameters.
+        /// Query string parameters.
         /// </summary>
-        private readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> queryParameters = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Form parameters.
+        /// </summary>
+        private readonly Dictionary<string, string> formParameters = new Dictionary<string, string>();
 
         /// <summary>
         /// FILE parameters.
@@ -246,7 +251,7 @@ namespace osu.Framework.IO.Network
 
         private async Task internalPerform(CancellationToken cancellationToken = default)
         {
-            var url = Url;
+            string url = Url;
 
             if (!AllowInsecureRequests && !url.StartsWith(@"https://", StringComparison.Ordinal))
             {
@@ -268,17 +273,18 @@ namespace osu.Framework.IO.Network
 
                     HttpRequestMessage request;
 
+                    StringBuilder requestParameters = new StringBuilder();
+                    foreach (var p in queryParameters)
+                        requestParameters.Append($@"{p.Key}={Uri.EscapeDataString(p.Value)}&");
+                    string requestString = requestParameters.ToString().TrimEnd('&');
+                    url = string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}";
+
                     if (Method == HttpMethod.Get)
                     {
                         if (files.Count > 0)
                             throw new InvalidOperationException($"Cannot use {nameof(AddFile)} in a GET request. Please set the {nameof(Method)} to POST.");
 
-                        StringBuilder requestParameters = new StringBuilder();
-                        foreach (var p in parameters)
-                            requestParameters.Append($@"{p.Key}={p.Value}&");
-                        string requestString = requestParameters.ToString().TrimEnd('&');
-
-                        request = new HttpRequestMessage(HttpMethod.Get, string.IsNullOrEmpty(requestString) ? url : $"{url}?{requestString}");
+                        request = new HttpRequestMessage(HttpMethod.Get, url);
                     }
                     else
                     {
@@ -288,8 +294,8 @@ namespace osu.Framework.IO.Network
 
                         if (rawContent != null)
                         {
-                            if (parameters.Count > 0)
-                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddParameter)}");
+                            if (formParameters.Count > 0)
+                                throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with form parameters");
                             if (files.Count > 0)
                                 throw new InvalidOperationException($"Cannot use {nameof(AddRaw)} in conjunction with {nameof(AddFile)}");
 
@@ -300,16 +306,16 @@ namespace osu.Framework.IO.Network
 
                             postContent.Position = 0;
                         }
-                        else if (parameters.Count > 0 || files.Count > 0)
+                        else if (formParameters.Count > 0 || files.Count > 0)
                         {
                             if (!string.IsNullOrEmpty(ContentType) && ContentType != form_content_type)
-                                throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request.");
+                                throw new InvalidOperationException($"Cannot use custom {nameof(ContentType)} in a POST request with form/file parameters.");
 
                             ContentType = form_content_type;
 
                             var formData = new MultipartFormDataContent(form_boundary);
 
-                            foreach (var p in parameters)
+                            foreach (var p in formParameters)
                                 formData.Add(new StringContent(p.Value), p.Key);
 
                             foreach (var p in files)
@@ -600,7 +606,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter(string,string,RequestParameterType)"/>.
         /// </summary>
         /// <param name="text">The text.</param>
         public void AddRaw(string text)
@@ -610,7 +616,7 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter(string,string,RequestParameterType)"/>.
         /// </summary>
         /// <param name="bytes">The raw data.</param>
         public void AddRaw(byte[] bytes)
@@ -620,7 +626,8 @@ namespace osu.Framework.IO.Network
 
         /// <summary>
         /// Adds a raw POST body to this request.
-        /// This may not be used in conjunction with <see cref="AddFile"/> and <see cref="AddParameter"/>.
+        /// This may not be used in conjunction with <see cref="AddFile"/>
+        /// and <see cref="AddParameter(string,string,RequestParameterType)"/> with the request type of <see cref="RequestParameterType.Form"/>.
         /// </summary>
         /// <param name="stream">The stream containing the raw data. This stream will _not_ be finalized by this request.</param>
         public void AddRaw(Stream stream)
@@ -647,18 +654,61 @@ namespace osu.Framework.IO.Network
         }
 
         /// <summary>
-        /// Add a new POST parameter to this request. Replaces any existing parameter with the same name.
-        /// This may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// <para>
+        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// </para>
+        /// <para>
+        /// If this request's <see cref="Method"/> supports a request body (<c>POST, PUT, DELETE, PATCH</c>), a <see cref="RequestParameterType.Form"/> parameter will be added;
+        /// otherwise, a <see cref="RequestParameterType.Query"/> parameter will be added.
+        /// For more fine-grained control over the parameter type, use the <see cref="AddParameter(string,string,RequestParameterType)"/> overload.
+        /// </para>
+        /// <para>
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// </para>
         /// </summary>
+        /// <remarks>
+        /// Values added to the request URL query string are automatically percent-encoded before sending the request.
+        /// </remarks>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
         public void AddParameter(string name, string value)
+            => AddParameter(name, value, supportsRequestBody(Method) ? RequestParameterType.Form : RequestParameterType.Query);
+
+        /// <summary>
+        /// Add a new parameter to this request. Replaces any existing parameter with the same name.
+        /// <see cref="RequestParameterType.Form"/> parameters may not be used in conjunction with <see cref="AddRaw(Stream)"/>.
+        /// </summary>
+        /// <remarks>
+        /// Values added to the request URL query string are automatically percent-encoded before sending the request.
+        /// </remarks>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <param name="type">The type of the request parameter.</param>
+        public void AddParameter(string name, string value, RequestParameterType type)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (value == null) throw new ArgumentNullException(nameof(value));
 
-            parameters[name] = value;
+            switch (type)
+            {
+                case RequestParameterType.Query:
+                    queryParameters[name] = value;
+                    break;
+
+                case RequestParameterType.Form:
+                    if (!supportsRequestBody(Method))
+                        throw new ArgumentException("Cannot add form parameter to a request type which has no body.", nameof(type));
+
+                    formParameters[name] = value;
+                    break;
+            }
         }
+
+        private static bool supportsRequestBody(HttpMethod method)
+            => method == HttpMethod.Post
+               || method == HttpMethod.Put
+               || method == HttpMethod.Delete
+               || method == HttpMethod.Patch;
 
         /// <summary>
         /// Adds a new header to this request. Replaces any existing header with the same name.

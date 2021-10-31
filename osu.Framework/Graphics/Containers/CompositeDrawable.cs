@@ -221,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
         private void loadComponents<TLoadable>(List<TLoadable> components, IReadOnlyDependencyContainer dependencies, bool isDirectAsyncContext, CancellationToken cancellation = default)
             where TLoadable : Drawable
         {
-            for (var i = 0; i < components.Count; i++)
+            for (int i = 0; i < components.Count; i++)
             {
                 if (cancellation.IsCancellationRequested)
                     break;
@@ -429,8 +429,17 @@ namespace osu.Framework.Graphics.Containers
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// <list type="bullet">
+        /// <item>If the supplied <paramref name="drawable"/> is already attached to another <see cref="Drawable.Parent"/>.</item>
+        /// <item>If a child drawable was matched using <see cref="Compare"/>, but that child drawable was not the supplied <paramref name="drawable"/>.</item>
+        /// </list>
+        /// </exception>
         protected internal int IndexOfInternal(Drawable drawable)
         {
+            if (drawable.Parent != null && drawable.Parent != this)
+                throw new InvalidOperationException($@"Cannot call {nameof(IndexOfInternal)} for a drawable that already is a child of a different parent.");
+
             int index = internalChildren.IndexOf(drawable);
 
             if (index >= 0 && internalChildren[index].ChildID != drawable.ChildID)
@@ -567,6 +576,12 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected internal void AddRangeInternal(IEnumerable<Drawable> range)
         {
+            if (range is IContainerEnumerable<Drawable>)
+            {
+                throw new InvalidOperationException($"Attempting to add a {nameof(IContainer)} as a range of children to {this}."
+                                                    + $"If intentional, consider using the {nameof(IContainerEnumerable<Drawable>.Children)} property instead.");
+            }
+
             foreach (Drawable d in range)
                 AddInternal(d);
         }
@@ -582,16 +597,16 @@ namespace osu.Framework.Graphics.Containers
 
             if (child.Depth == newDepth) return;
 
-            var index = IndexOfInternal(child);
+            int index = IndexOfInternal(child);
             if (index < 0)
                 throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
             internalChildren.RemoveAt(index);
-            var aliveIndex = aliveInternalChildren.IndexOf(child);
+            int aliveIndex = aliveInternalChildren.IndexOf(child);
             if (aliveIndex >= 0) // remove if found
                 aliveInternalChildren.RemoveAt(aliveIndex);
 
-            var chId = child.ChildID;
+            ulong chId = child.ChildID;
             child.ChildID = 0; // ensure Depth-change does not throw an exception
             child.Depth = newDepth;
             child.ChildID = chId;
@@ -811,8 +826,15 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UnbindAllBindablesSubTree();
 
-            foreach (Drawable child in internalChildren)
+            // TODO: this code can potentially be run from an update thread while a drawable is still loading (see ScreenStack as an example).
+            // while this is quite a bad issue, it is rare and generally happens in tests which have frame perfect behaviours.
+            // as such, for loop is used here intentionally to avoid collection modified exceptions for this (usually) non-critical failure.
+            // see https://github.com/ppy/osu-framework/issues/4054.
+            for (int i = 0; i < internalChildren.Count; i++)
+            {
+                Drawable child = internalChildren[i];
                 child.UnbindAllBindablesSubTree();
+            }
         }
 
         /// <summary>
@@ -1229,19 +1251,29 @@ namespace osu.Framework.Graphics.Containers
         {
             EnsureTransformMutationAllowed();
 
-            var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
-            if (!recursive)
-                return baseDisposalAction;
+            if (!recursive || internalChildren.Count == 0)
+                return base.BeginAbsoluteSequence(newTransformStartTime, false);
 
-            List<IDisposable> disposalActions = new List<IDisposable>(internalChildren.Count + 1) { baseDisposalAction };
+            List<AbsoluteSequenceSender> disposalActions = new List<AbsoluteSequenceSender>(internalChildren.Count + 1);
+
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
+
             foreach (var c in internalChildren)
-                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, disposalActions);
 
-            return new ValueInvokeOnDisposal<List<IDisposable>>(disposalActions, actions =>
+            return new ValueInvokeOnDisposal<List<AbsoluteSequenceSender>>(disposalActions, actions =>
             {
                 foreach (var a in actions)
                     a.Dispose();
             });
+        }
+
+        internal override void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<AbsoluteSequenceSender> actions)
+        {
+            base.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
+
+            foreach (var c in internalChildren)
+                c.CollectAbsoluteSequenceActionsFromSubTree(newTransformStartTime, actions);
         }
 
         public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)

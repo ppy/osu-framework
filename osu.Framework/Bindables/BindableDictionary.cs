@@ -75,8 +75,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -110,8 +108,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-removing from the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -195,8 +191,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -328,8 +322,6 @@ namespace osu.Framework.Bindables
             {
                 foreach (var b in bindings)
                 {
-                    Debug.Assert(b != null);
-
                     // prevent re-adding the item back to the callee.
                     // That would result in a <see cref="StackOverflowException"/>.
                     if (b != caller)
@@ -379,10 +371,7 @@ namespace osu.Framework.Bindables
             if (propagateToBindings && bindings != null)
             {
                 foreach (var b in bindings)
-                {
-                    Debug.Assert(b != null);
                     b.Disabled = disabled;
-                }
             }
 
             if (beforePropagation == disabled)
@@ -405,10 +394,7 @@ namespace osu.Framework.Bindables
                 return;
 
             foreach (var b in bindings)
-            {
-                Debug.Assert(b != null);
                 b.unbind(this);
-            }
 
             bindings?.Clear();
         }
@@ -511,21 +497,17 @@ namespace osu.Framework.Bindables
 
         private void removeWeakReference(WeakReference<BindableDictionary<TKey, TValue>> weakReference) => bindings?.Remove(weakReference);
 
+        IBindable IBindable.CreateInstance() => CreateInstance();
+
+        /// <inheritdoc cref="IBindable.CreateInstance"/>
+        protected virtual BindableDictionary<TKey, TValue> CreateInstance() => new BindableDictionary<TKey, TValue>();
+
         IBindable IBindable.GetBoundCopy() => GetBoundCopy();
 
-        IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.GetBoundCopy()
-            => GetBoundCopy();
+        IBindableDictionary<TKey, TValue> IBindableDictionary<TKey, TValue>.GetBoundCopy() => GetBoundCopy();
 
-        /// <summary>
-        /// Create a new instance of <see cref="BindableDictionary{TKey, TValue}"/> and binds it to this instance.
-        /// </summary>
-        /// <returns>The created instance.</returns>
-        public BindableDictionary<TKey, TValue> GetBoundCopy()
-        {
-            var copy = new BindableDictionary<TKey, TValue>();
-            copy.BindTo(this);
-            return copy;
-        }
+        /// <inheritdoc cref="IBindable.GetBoundCopy"/>
+        public BindableDictionary<TKey, TValue> GetBoundCopy() => IBindable.GetBoundCopyImplementation(this);
 
         #endregion IBindableCollection
 

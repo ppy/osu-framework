@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Joystick;
@@ -39,17 +40,31 @@ namespace osu.Framework.Platform
 
         public sealed override Storage GetStorage(string path) => new DesktopStorage(path, this);
 
+        public override bool IsPrimaryInstance
+        {
+            get
+            {
+                // make sure we have actually attempted to bind IPC as this call may occur before the host is run.
+                ensureIPCReady();
+
+                return base.IsPrimaryInstance;
+            }
+        }
+
         protected override void SetupForRun()
         {
-            if (bindIPCPort)
-                startIPC();
+            ensureIPCReady();
 
             base.SetupForRun();
         }
 
-        private void startIPC()
+        private void ensureIPCReady()
         {
-            Debug.Assert(ipcProvider == null);
+            if (!bindIPCPort)
+                return;
+
+            if (ipcProvider != null)
+                return;
 
             ipcProvider = new TcpIpcProvider();
             IsPrimaryInstance = ipcProvider.Bind();
@@ -76,6 +91,10 @@ namespace osu.Framework.Platform
 
         public override void OpenUrlExternally(string url) => openUsingShellExecute(url);
 
+        public override void PresentFileExternally(string filename)
+            // should be overriden to highlight/select the file in the folder if such native API exists.
+            => OpenFileExternally(Path.GetDirectoryName(filename.TrimDirectorySeparator()));
+
         private void openUsingShellExecute(string path) => Process.Start(new ProcessStartInfo
         {
             FileName = path,
@@ -97,7 +116,12 @@ namespace osu.Framework.Platform
                 new MidiHandler(),
             };
 
-        public override Task SendMessageAsync(IpcMessage message) => ipcProvider.SendMessageAsync(message);
+        public override Task SendMessageAsync(IpcMessage message)
+        {
+            ensureIPCReady();
+
+            return ipcProvider.SendMessageAsync(message);
+        }
 
         protected override void Dispose(bool isDisposing)
         {

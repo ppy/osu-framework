@@ -5,9 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
+using NUnit.Framework;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
-using osu.Framework.Tests;
+using osu.Framework.Testing;
 using SixLabors.ImageSharp.Memory;
 
 namespace osu.Framework.Benchmarks
@@ -22,7 +23,13 @@ namespace osu.Framework.Benchmarks
             SixLabors.ImageSharp.Configuration.Default.MemoryAllocator = ArrayPoolMemoryAllocator.CreateDefault();
 
             baseResources = new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources");
-            sharedTemp = new TemporaryNativeStorage("fontstore-test" + Guid.NewGuid());
+            sharedTemp = new TemporaryNativeStorage("fontstore-test-" + Guid.NewGuid());
+        }
+
+        [OneTimeTearDown]
+        public void TearDown()
+        {
+            sharedTemp?.Dispose();
         }
 
         [Params(1, 10, 100, 1000, 10000)]
@@ -83,7 +90,7 @@ namespace osu.Framework.Benchmarks
             {
                 foreach (var p in props)
                 {
-                    var propValue = p.GetValue(null);
+                    object propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     var icon = (IconUsage)propValue;

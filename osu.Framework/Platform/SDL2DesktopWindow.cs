@@ -25,6 +25,9 @@ using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 using Size = System.Drawing.Size;
 
+// ReSharper disable UnusedParameter.Local
+// (Class regularly handles native events where we don't consume all parameters)
+
 namespace osu.Framework.Platform
 {
     /// <summary>
@@ -283,22 +286,12 @@ namespace osu.Framework.Platform
 
         public readonly Bindable<ConfineMouseMode> ConfineMouseMode = new Bindable<ConfineMouseMode>();
 
-        private DisplayMode currentDisplayMode;
+        private readonly Bindable<DisplayMode> currentDisplayMode = new Bindable<DisplayMode>();
 
         /// <summary>
-        /// Gets or sets the <see cref="DisplayMode"/> for the display that this window is currently on.
+        /// The <see cref="DisplayMode"/> for the display that this window is currently on.
         /// </summary>
-        public DisplayMode CurrentDisplayMode
-        {
-            get => currentDisplayMode;
-            set
-            {
-                currentDisplayMode = value;
-
-                // todo: proper handling of this, if we decide we want it.
-                pendingWindowState = windowState;
-            }
-        }
+        public IBindable<DisplayMode> CurrentDisplayMode => currentDisplayMode;
 
         /// <summary>
         /// Gets the native window handle as provided by the operating system.
@@ -474,8 +467,8 @@ namespace osu.Framework.Platform
         /// <returns>Whether the window size has been changed after updating.</returns>
         private void updateWindowSize()
         {
-            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out var w, out var h);
-            SDL.SDL_GetWindowSize(SDLWindowHandle, out var actualW, out var _);
+            SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
+            SDL.SDL_GetWindowSize(SDLWindowHandle, out int actualW, out int _);
 
             Scale = (float)w / actualW;
             Size = new Size(w, h);
@@ -524,7 +517,7 @@ namespace osu.Framework.Platform
         private void enqueueJoystickAxisInput(JoystickAxisSource axisSource, short axisValue)
         {
             // SDL reports axis values in the range short.MinValue to short.MaxValue, so we scale and clamp it to the range of -1f to 1f
-            var clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
+            float clamped = Math.Clamp((float)axisValue / short.MaxValue, -1f, 1f);
             ScheduleEvent(() => JoystickAxisChanged?.Invoke(new JoystickAxis(axisSource, clamped)));
         }
 
@@ -562,15 +555,15 @@ namespace osu.Framework.Platform
 
         private void pollMouse()
         {
-            SDL.SDL_GetGlobalMouseState(out var x, out var y);
+            SDL.SDL_GetGlobalMouseState(out int x, out int y);
             if (previousPolledPoint.X == x && previousPolledPoint.Y == y)
                 return;
 
             previousPolledPoint = new Point(x, y);
 
             var pos = WindowMode.Value == Configuration.WindowMode.Windowed ? Position : windowDisplayBounds.Location;
-            var rx = x - pos.X;
-            var ry = y - pos.Y;
+            int rx = x - pos.X;
+            int ry = y - pos.Y;
 
             ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
         }
@@ -585,13 +578,24 @@ namespace osu.Framework.Platform
 
         protected void ScheduleCommand(Action action) => commandScheduler.Add(action, false);
 
+        private const int events_per_peep = 64;
+        private readonly SDL.SDL_Event[] events = new SDL.SDL_Event[events_per_peep];
+
         /// <summary>
         /// Poll for all pending events.
         /// </summary>
         private void pollSDLEvents()
         {
-            while (SDL.SDL_PollEvent(out var e) > 0)
-                handleSDLEvent(e);
+            SDL.SDL_PumpEvents();
+
+            int eventsRead;
+
+            do
+            {
+                eventsRead = SDL.SDL_PeepEvents(events, events_per_peep, SDL.SDL_eventaction.SDL_GETEVENT, SDL.SDL_EventType.SDL_FIRSTEVENT, SDL.SDL_EventType.SDL_LASTEVENT);
+                for (int i = 0; i < eventsRead; i++)
+                    handleSDLEvent(events[i]);
+            } while (eventsRead == events_per_peep);
         }
 
         private void handleSDLEvent(SDL.SDL_Event e)
@@ -692,7 +696,7 @@ namespace osu.Framework.Platform
             switch (evtDrop.type)
             {
                 case SDL.SDL_EventType.SDL_DROPFILE:
-                    var str = SDL.UTF8_ToManaged(evtDrop.file, true);
+                    string str = SDL.UTF8_ToManaged(evtDrop.file, true);
                     if (str != null)
                         ScheduleEvent(() => DragDrop?.Invoke(str));
 
@@ -746,7 +750,7 @@ namespace osu.Framework.Platform
 
         private void addJoystick(int which)
         {
-            var instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
+            int instanceID = SDL.SDL_JoystickGetDeviceInstanceID(which);
 
             // if the joystick is already opened, ignore it
             if (controllers.ContainsKey(instanceID))
@@ -1008,7 +1012,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Fullscreen:
-                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.RefreshRate, currentDisplay.Index);
+                    var closestMode = getClosestDisplayMode(sizeFullscreen.Value, currentDisplayMode.Value.RefreshRate, currentDisplay.Index);
 
                     Size = new Size(closestMode.w, closestMode.h);
 
@@ -1021,6 +1025,7 @@ namespace osu.Framework.Platform
                     break;
 
                 case WindowState.Maximised:
+                    SDL.SDL_RestoreWindow(SDLWindowHandle);
                     SDL.SDL_MaximizeWindow(SDLWindowHandle);
 
                     SDL.SDL_GL_GetDrawableSize(SDLWindowHandle, out int w, out int h);
@@ -1035,7 +1040,7 @@ namespace osu.Framework.Platform
             updateMaximisedState();
 
             if (SDL.SDL_GetWindowDisplayMode(SDLWindowHandle, out var mode) >= 0)
-                currentDisplayMode = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
+                currentDisplayMode.Value = new DisplayMode(mode.format.ToString(), new Size(mode.w, mode.h), 32, mode.refresh_rate, displayIndex, displayIndex);
         }
 
         private void updateMaximisedState()
@@ -1053,8 +1058,8 @@ namespace osu.Framework.Platform
 
             var displayBounds = CurrentDisplay.Bounds;
             var windowSize = sizeWindowed.Value;
-            var windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
-            var windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
+            int windowX = (int)Math.Round((displayBounds.Width - windowSize.Width) * configPosition.X);
+            int windowY = (int)Math.Round((displayBounds.Height - windowSize.Height) * configPosition.Y);
 
             Position = new Point(windowX + displayBounds.X, windowY + displayBounds.Y);
         }
@@ -1066,8 +1071,8 @@ namespace osu.Framework.Platform
 
             var displayBounds = CurrentDisplay.Bounds;
 
-            var windowX = Position.X - displayBounds.X;
-            var windowY = Position.Y - displayBounds.Y;
+            int windowX = Position.X - displayBounds.X;
+            int windowY = Position.Y - displayBounds.Y;
 
             var windowSize = sizeWindowed.Value;
 
@@ -1135,8 +1140,6 @@ namespace osu.Framework.Platform
             CurrentDisplayBindable.ValueChanged += evt =>
             {
                 windowDisplayIndexBindable.Value = (DisplayIndex)evt.NewValue.Index;
-                windowPositionX.Value = 0.5;
-                windowPositionY.Value = 0.5;
             };
 
             config.BindWith(FrameworkSetting.LastDisplayDevice, windowDisplayIndexBindable);
@@ -1241,7 +1244,7 @@ namespace osu.Framework.Platform
         internal virtual void SetIconFromGroup(IconGroup iconGroup)
         {
             // LoadRawIcon returns raw PNG data if available, which avoids any Windows-specific pinvokes
-            var bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
+            byte[] bytes = iconGroup.LoadRawIcon(default_icon_size, default_icon_size);
             if (bytes == null)
                 return;
 
@@ -1312,7 +1315,7 @@ namespace osu.Framework.Platform
 
         private static DisplayMode displayModeFromSDL(SDL.SDL_DisplayMode mode, int displayIndex, int modeIndex)
         {
-            SDL.SDL_PixelFormatEnumToMasks(mode.format, out var bpp, out _, out _, out _, out _);
+            SDL.SDL_PixelFormatEnumToMasks(mode.format, out int bpp, out _, out _, out _, out _);
             return new DisplayMode(SDL.SDL_GetPixelFormatName(mode.format), new Size(mode.w, mode.h), bpp, mode.refresh_rate, modeIndex, displayIndex);
         }
 

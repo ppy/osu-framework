@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using osu.Framework.Graphics.UserInterface;
 
 namespace osu.Framework.Bindables
 {
@@ -10,7 +9,7 @@ namespace osu.Framework.Bindables
     /// A bindable which holds a reference to a bound target, allowing switching between targets and handling unbind/rebind.
     /// </summary>
     /// <typeparam name="T">The type of our stored <see cref="Bindable{T}.Value"/>.</typeparam>
-    public class BindableWithCurrent<T> : Bindable<T>, IHasCurrentValue<T>
+    public class BindableWithCurrent<T> : Bindable<T>, IBindableWithCurrent<T>
     {
         private Bindable<T> currentBound;
 
@@ -26,5 +25,12 @@ namespace osu.Framework.Bindables
                 BindTo(currentBound = value);
             }
         }
+
+        public BindableWithCurrent(T defaultValue = default)
+            : base(defaultValue)
+        {
+        }
+
+        protected override Bindable<T> CreateInstance() => new BindableWithCurrent<T>();
     }
 }

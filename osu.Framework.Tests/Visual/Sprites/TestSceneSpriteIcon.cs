@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -21,6 +22,7 @@ namespace osu.Framework.Tests.Visual.Sprites
     {
         public TestSceneSpriteIcon()
         {
+            Box background;
             FillFlowContainer flow;
 
             Add(new TooltipContainer
@@ -28,7 +30,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new Box
+                    background = new Box
                     {
                         Colour = Color4.Teal,
                         RelativeSizeAxes = Axes.Both,
@@ -42,6 +44,7 @@ namespace osu.Framework.Tests.Visual.Sprites
                             Origin = Anchor.TopRight,
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
+                            Spacing = new Vector2(5),
                             Direction = FillDirection.Full,
                         },
                     }
@@ -62,7 +65,7 @@ namespace osu.Framework.Tests.Visual.Sprites
 
                 foreach (var p in w.GetProperties(BindingFlags.Public | BindingFlags.Static))
                 {
-                    var propValue = p.GetValue(null);
+                    object propValue = p.GetValue(null);
                     Debug.Assert(propValue != null);
 
                     flow.Add(new Icon($"{nameof(FontAwesome)}.{w.Name}.{p.Name}", (IconUsage)propValue));
@@ -71,11 +74,12 @@ namespace osu.Framework.Tests.Visual.Sprites
 
             AddStep("toggle shadows", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Shadow = !i.SpriteIcon.Shadow));
             AddStep("change icons", () => flow.Children.OfType<Icon>().ForEach(i => i.SpriteIcon.Icon = new IconUsage((char)(i.SpriteIcon.Icon.Icon + 1))));
+            AddStep("white background", () => background.FadeColour(Color4.White, 200));
         }
 
         private class Icon : Container, IHasTooltip
         {
-            public string TooltipText { get; }
+            public LocalisableString TooltipText { get; }
 
             public SpriteIcon SpriteIcon { get; }
 

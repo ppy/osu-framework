@@ -1,15 +1,19 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using osu.Framework.Statistics;
 using System;
+using System.Threading.Tasks;
+using osu.Framework.Audio.Mixing;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, ITrack
+    public abstract class Track : AdjustableAudioComponent, ITrack, IAudioChannel
     {
-        public event Action Completed;
-        public event Action Failed;
+        public event Action? Completed;
+        public event Action? Failed;
 
         protected virtual void RaiseCompleted() => Completed?.Invoke();
         protected virtual void RaiseFailed() => Failed?.Invoke();
@@ -116,5 +120,19 @@ namespace osu.Framework.Audio.Track
             if (Looping && HasCompleted)
                 Restart();
         }
+
+        #region Mixing
+
+        protected virtual AudioMixer? Mixer { get; set; }
+
+        AudioMixer? IAudioChannel.Mixer
+        {
+            get => Mixer;
+            set => Mixer = value;
+        }
+
+        Task IAudioChannel.EnqueueAction(Action action) => EnqueueAction(action);
+
+        #endregion
     }
 }

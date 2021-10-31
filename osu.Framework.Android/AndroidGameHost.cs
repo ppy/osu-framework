@@ -17,7 +17,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Midi;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using Uri = Android.Net.Uri;
 
 namespace osu.Framework.Android
@@ -57,11 +56,19 @@ namespace osu.Framework.Android
                 new MidiHandler()
             };
 
+        public override string InitialFileSelectorPath => @"/sdcard";
+
         public override Storage GetStorage(string path) => new AndroidStorage(path, this);
 
-        public override string UserStoragePath => Application.Context.GetExternalFilesDir(string.Empty).ToString();
+        public override IEnumerable<string> UserStoragePaths => new[]
+        {
+            Application.Context.GetExternalFilesDir(string.Empty).ToString()
+        };
 
         public override void OpenFileExternally(string filename)
+            => throw new NotImplementedException();
+
+        public override void PresentFileExternally(string filename)
             => throw new NotImplementedException();
 
         public override void OpenUrlExternally(string url)
@@ -78,12 +85,7 @@ namespace osu.Framework.Android
         public override IResourceStore<TextureUpload> CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore)
             => new AndroidTextureLoaderStore(underlyingStore);
 
-        public override VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler)
-            => new AndroidVideoDecoder(stream, scheduler);
-
-        protected override void PerformExit(bool immediately)
-        {
-            // Do not exit on Android, Window.Run() does not block
-        }
+        public override VideoDecoder CreateVideoDecoder(Stream stream)
+            => new AndroidVideoDecoder(stream);
     }
 }

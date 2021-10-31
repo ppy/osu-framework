@@ -74,15 +74,15 @@ namespace osu.Framework.Statistics
             {
                 active = Active;
 
-                if (!active)
-                {
-                    lastReport = 0;
-                    GlobalStatistics.Clear(group_name);
-                    collected_times.Clear();
-                    framesSinceLastReport = 0;
-                    return;
-                }
+                lastReport = 0;
+                framesSinceLastReport = 0;
+
+                GlobalStatistics.Clear(group_name);
+                collected_times.Clear();
             }
+
+            if (!active)
+                return;
 
             //reset frame totals
             current_collection_type_stack.Clear();

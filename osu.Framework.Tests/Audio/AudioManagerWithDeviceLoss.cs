@@ -27,20 +27,17 @@ namespace osu.Framework.Tests.Audio
 
         protected override bool InitBass(int device)
         {
-            if (simulateLoss)
+            try
             {
-                if (device != Bass.NoSoundDevice || !base.InitBass(device))
-                    return false;
+                if (simulateLoss)
+                    return device == Bass.NoSoundDevice && base.InitBass(device);
 
-                CurrentDevice = device;
-                return true;
+                return base.InitBass(device);
             }
-
-            if (!base.InitBass(device))
-                return false;
-
-            CurrentDevice = device;
-            return true;
+            finally
+            {
+                CurrentDevice = Bass.CurrentDevice;
+            }
         }
 
         protected override IEnumerable<DeviceInfo> EnumerateAllDevices()
@@ -63,7 +60,7 @@ namespace osu.Framework.Tests.Audio
 
         public void SimulateDeviceLoss()
         {
-            var current = CurrentDevice;
+            int current = CurrentDevice;
 
             simulateLoss = true;
 
@@ -73,7 +70,7 @@ namespace osu.Framework.Tests.Audio
 
         public void SimulateDeviceRestore()
         {
-            var current = CurrentDevice;
+            int current = CurrentDevice;
 
             simulateLoss = false;
 

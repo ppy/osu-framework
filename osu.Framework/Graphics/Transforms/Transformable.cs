@@ -61,10 +61,14 @@ namespace osu.Framework.Graphics.Transforms
                 //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
                 double max = TransformStartTime;
 
-                foreach (Transform t in Transforms)
+                foreach (var tracker in targetGroupingTrackers)
                 {
-                    if (t.EndTime > max)
-                        max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                    for (int i = 0; i < tracker.Transforms.Count; i++)
+                    {
+                        var t = tracker.Transforms[i];
+                        if (t.EndTime > max)
+                            max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                    }
                 }
 
                 return max;
@@ -128,7 +132,7 @@ namespace osu.Framework.Graphics.Transforms
             lastUpdateTransformsTime = time;
 
             // collection may grow due to abort / completion events.
-            for (var i = 0; i < targetGroupingTrackers.Count; i++)
+            for (int i = 0; i < targetGroupingTrackers.Count; i++)
                 targetGroupingTrackers[i].UpdateTransforms(time, rewinding);
         }
 
@@ -142,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
 
             getTrackerForGrouping(toRemove.TargetGrouping, false)?.RemoveTransform(toRemove);
 
-            toRemove.OnAbort?.Invoke();
+            toRemove.TriggerAbort();
         }
 
         /// <summary>
@@ -180,7 +184,7 @@ namespace osu.Framework.Graphics.Transforms
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].ClearTransformsAfter(time);
             }
         }
@@ -221,7 +225,7 @@ namespace osu.Framework.Graphics.Transforms
             else
             {
                 // collection may grow due to abort / completion events.
-                for (var i = 0; i < targetGroupingTrackers.Count; i++)
+                for (int i = 0; i < targetGroupingTrackers.Count; i++)
                     targetGroupingTrackers[i].FinishTransforms();
             }
         }
@@ -291,34 +295,48 @@ namespace osu.Framework.Graphics.Transforms
         {
             EnsureTransformMutationAllowed();
 
+            return createAbsoluteSequenceAction(newTransformStartTime);
+        }
+
+        internal virtual void CollectAbsoluteSequenceActionsFromSubTree(double newTransformStartTime, List<AbsoluteSequenceSender> actions)
+        {
+            actions.Add(createAbsoluteSequenceAction(newTransformStartTime));
+        }
+
+        private AbsoluteSequenceSender createAbsoluteSequenceAction(double newTransformStartTime)
+        {
             double oldTransformDelay = TransformDelay;
             double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
-            return new ValueInvokeOnDisposal<AbsoluteSequenceSender>(new AbsoluteSequenceSender(this, oldTransformDelay, newTransformDelay), sender =>
-            {
-                if (!Precision.AlmostEquals(sender.NewTransformDelay, sender.Transformable.TransformDelay))
-                {
-                    throw new InvalidOperationException(
-                        $"{nameof(sender.Transformable.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={sender.NewTransformDelay} end={sender.Transformable.TransformDelay})");
-                }
-
-                sender.Transformable.TransformDelay = sender.OldTransformDelay;
-            });
+            return new AbsoluteSequenceSender(this, oldTransformDelay, newTransformDelay);
         }
 
         /// An ad-hoc struct used as a closure environment in <see cref="BeginAbsoluteSequence" />.
-        private readonly struct AbsoluteSequenceSender
+        internal readonly struct AbsoluteSequenceSender : IDisposable
         {
-            public readonly Transformable Transformable;
+            public readonly Transformable Sender;
+
             public readonly double OldTransformDelay;
             public readonly double NewTransformDelay;
 
-            public AbsoluteSequenceSender(Transformable transformable, double oldTransformDelay, double newTransformDelay)
+            public AbsoluteSequenceSender(Transformable sender, double oldTransformDelay, double newTransformDelay)
             {
-                Transformable = transformable;
                 OldTransformDelay = oldTransformDelay;
                 NewTransformDelay = newTransformDelay;
+
+                Sender = sender;
+            }
+
+            public void Dispose()
+            {
+                if (!Precision.AlmostEquals(NewTransformDelay, Sender.TransformDelay))
+                {
+                    throw new InvalidOperationException(
+                        $"{nameof(Sender.TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={NewTransformDelay} end={Sender.TransformDelay})");
+                }
+
+                Sender.TransformDelay = OldTransformDelay;
             }
         }
 
@@ -354,7 +372,8 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 transform.Apply(transform.EndTime);
-                transform.OnComplete?.Invoke();
+                transform.TriggerComplete();
+
                 return;
             }
 

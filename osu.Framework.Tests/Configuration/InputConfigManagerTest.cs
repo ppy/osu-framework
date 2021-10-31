@@ -11,6 +11,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Platform;
+using osu.Framework.Testing;
 
 namespace osu.Framework.Tests.Configuration
 {
@@ -22,7 +23,7 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestOldConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost())
+            using (var host = new TestHeadlessGameHost(bypassCleanup: true))
             {
                 host.Run(new TestGame((h, config) =>
                 {
@@ -49,7 +50,7 @@ namespace osu.Framework.Tests.Configuration
         [Test]
         public void TestNewConfigPersists()
         {
-            using (var host = new TestHeadlessGameHost())
+            using (var host = new TestHeadlessGameHost(bypassCleanup: true))
             {
                 host.Run(new TestGame((h, config) =>
                 {
@@ -71,10 +72,10 @@ namespace osu.Framework.Tests.Configuration
             Assert.AreEqual(5, sensitivity);
         }
 
-        public class TestHeadlessGameHost : HeadlessGameHost
+        public class TestHeadlessGameHost : TestRunHeadlessGameHost
         {
-            public TestHeadlessGameHost([CallerMemberName] string caller = "")
-                : base(caller)
+            public TestHeadlessGameHost([CallerMemberName] string caller = "", bool bypassCleanup = false)
+                : base(caller, bypassCleanup: bypassCleanup)
             {
             }
 

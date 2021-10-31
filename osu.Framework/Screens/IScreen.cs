@@ -56,7 +56,7 @@ namespace osu.Framework.Screens
             var stack = getStack(screen);
 
             if (stack == null)
-                throw new InvalidOperationException($"Cannot {nameof(Push)} to a non-loaded {nameof(IScreen)} directly. Consider using {nameof(ScreenStack.Push)} instead.");
+                throw new InvalidOperationException($"Cannot {nameof(Push)} to a non-loaded {nameof(IScreen)} directly. Consider using {nameof(ScreenStack)}.{nameof(ScreenStack.Push)} instead.");
 
             stack.Push(screen, newScreen);
         }

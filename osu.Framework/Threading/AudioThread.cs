@@ -18,13 +18,8 @@ namespace osu.Framework.Threading
         public AudioThread()
             : base(name: "Audio")
         {
-            OnNewFrame = onNewFrame;
-
-            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
-            {
-                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
-                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
-            }
+            OnNewFrame += onNewFrame;
+            PreloadBass();
         }
 
         public override bool IsCurrent => ThreadSafety.IsAudioThread;
@@ -43,6 +38,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.Samples,
             StatisticsCounterType.SChannels,
             StatisticsCounterType.Components,
+            StatisticsCounterType.MixChannels,
         };
 
         private readonly List<AudioManager> managers = new List<AudioManager>();
@@ -57,7 +53,7 @@ namespace osu.Framework.Threading
 
             lock (managers)
             {
-                for (var i = 0; i < managers.Count; i++)
+                for (int i = 0; i < managers.Count; i++)
                 {
                     var m = managers[i];
                     m.Update();
@@ -82,16 +78,9 @@ namespace osu.Framework.Threading
                 managers.Remove(manager);
         }
 
-        internal void RegisterInitialisedDevice(int deviceId)
+        protected override void OnExit()
         {
-            Debug.Assert(ThreadSafety.IsAudioThread);
-
-            initialised_devices.Add(deviceId);
-        }
-
-        protected override void PerformExit()
-        {
-            base.PerformExit();
+            base.OnExit();
 
             lock (managers)
             {
@@ -113,8 +102,36 @@ namespace osu.Framework.Threading
             // Safety net to ensure we have freed all devices before exiting.
             // This is mainly required for device-lost scenarios.
             // See https://github.com/ppy/osu-framework/pull/3378 for further discussion.
-            foreach (var d in initialised_devices.ToArray())
+            foreach (int d in initialised_devices.ToArray())
                 FreeDevice(d);
+        }
+
+        internal static bool InitDevice(int deviceId)
+        {
+            Debug.Assert(ThreadSafety.IsAudioThread);
+
+            bool didInit = Bass.Init(deviceId);
+
+            // If the device was already initialised, the device can be used without much fuss.
+            if (Bass.LastError == Errors.Already)
+            {
+                Bass.CurrentDevice = deviceId;
+
+                if (!canFreeDevice(deviceId))
+                    didInit = true;
+                else
+                {
+                    // Without this call, on windows (and potentially other platforms), a device which is disconnected then reconnected
+                    // will look initialised but not work correctly in practice.
+                    FreeDevice(deviceId);
+                    didInit = Bass.Init(deviceId);
+                }
+            }
+
+            if (didInit)
+                initialised_devices.Add(deviceId);
+
+            return didInit;
         }
 
         internal static void FreeDevice(int deviceId)
@@ -123,9 +140,7 @@ namespace osu.Framework.Threading
 
             int lastDevice = Bass.CurrentDevice;
 
-            // Freeing the 0 device on linux can cause deadlocks. This doesn't always happen immediately.
-            // Todo: Reproduce in native code and report to BASS at some point.
-            if (deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux)
+            if (canFreeDevice(deviceId))
             {
                 Bass.CurrentDevice = deviceId;
                 Bass.Free();
@@ -136,5 +151,23 @@ namespace osu.Framework.Threading
 
             initialised_devices.Remove(deviceId);
         }
+
+        /// <summary>
+        /// Makes BASS available to be consumed.
+        /// </summary>
+        internal static void PreloadBass()
+        {
+            if (RuntimeInfo.OS == RuntimeInfo.Platform.Linux)
+            {
+                // required for the time being to address libbass_fx.so load failures (see https://github.com/ppy/osu/issues/2852)
+                Library.Load("libbass.so", Library.LoadFlags.RTLD_LAZY | Library.LoadFlags.RTLD_GLOBAL);
+            }
+        }
+
+        /// <summary>
+        /// Whether a device can be freed.
+        /// On Linux, freeing device 0 is disallowed as it can cause deadlocks which don't surface immediately.
+        /// </summary>
+        private static bool canFreeDevice(int deviceId) => deviceId != 0 || RuntimeInfo.OS != RuntimeInfo.Platform.Linux;
     }
 }

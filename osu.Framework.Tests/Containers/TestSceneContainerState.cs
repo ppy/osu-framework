@@ -43,8 +43,7 @@ namespace osu.Framework.Tests.Containers
         }
 
         /// <summary>
-        /// Tests whether adding a child to multiple containers by abusing <see cref="Container{T}.Children"/>
-        /// results in a <see cref="InvalidOperationException"/>.
+        /// Tests whether adding a child to multiple containers results in a <see cref="InvalidOperationException"/>.
         /// </summary>
         [Test]
         public void TestPreLoadMultipleAdds()
@@ -52,13 +51,12 @@ namespace osu.Framework.Tests.Containers
             // Non-async
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var unused = new Container
+                var unused1 = new Container
                 {
-                    // Container is an IReadOnlyList<T>, so Children can accept a Container.
-                    // This further means that CompositeDrawable.AddInternal will try to add all of
-                    // the children of the Container that was set to Children, which should throw an exception
-                    Children = new Container { Child = new Container() }
+                    Child = new Container(),
                 };
+
+                var unused2 = new Container { Child = unused1.Child };
             });
         }
 
@@ -75,14 +73,12 @@ namespace osu.Framework.Tests.Containers
 
                 try
                 {
-                    loadedContainer.Add(new Container
+                    var unused = new Container
                     {
-                        // Container is an IReadOnlyList<T>, so Children can accept a Container.
-                        // This further means that CompositeDrawable.AddInternal will try to add all of
-                        // the children of the Container that was set to Children, which should throw an exception
-                        Children = new Container { Child = new Container() }
-                    });
+                        Child = new Container(),
+                    };
 
+                    loadedContainer.Add(new Container { Child = unused.Child });
                     return false;
                 }
                 catch (InvalidOperationException)

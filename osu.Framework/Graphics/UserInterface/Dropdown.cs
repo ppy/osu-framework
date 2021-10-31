@@ -536,7 +536,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return base.OnKeyDown(e);
 
                 var currentPreselected = PreselectedItem;
-                var targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
+                int targetPreselectionIndex = drawableMenuItemsList.IndexOf(currentPreselected);
 
                 switch (e.Key)
                 {
@@ -579,15 +579,15 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public bool OnPressed(PlatformAction action)
+            public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
             {
-                switch (action.ActionType)
+                switch (e.Action)
                 {
-                    case PlatformActionType.ListStart:
+                    case PlatformAction.MoveToListStart:
                         PreselectItem(Items.FirstOrDefault());
                         return true;
 
-                    case PlatformActionType.ListEnd:
+                    case PlatformAction.MoveToListEnd:
                         PreselectItem(Items.LastOrDefault());
                         return true;
 
@@ -596,7 +596,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            public void OnReleased(PlatformAction action)
+            public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
             {
             }
         }

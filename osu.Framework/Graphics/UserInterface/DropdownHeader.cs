@@ -126,18 +126,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!Enabled.Value)
                 return true;
 
-            switch (action.ActionType)
+            switch (e.Action)
             {
-                case PlatformActionType.ListStart:
+                case PlatformAction.MoveToListStart:
                     ChangeSelection?.Invoke(DropdownSelectionAction.First);
                     return true;
 
-                case PlatformActionType.ListEnd:
+                case PlatformAction.MoveToListEnd:
                     ChangeSelection?.Invoke(DropdownSelectionAction.Last);
                     return true;
 
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public void OnReleased(PlatformAction action)
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 

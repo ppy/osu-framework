@@ -225,11 +225,7 @@ namespace osu.Framework.Tests.Visual.Containers
                 r = rng.Next(5);
 
                 if (l > r)
-                {
-                    var l1 = l;
-                    l = r;
-                    r = l1;
-                }
+                    (l, r) = (r, l);
 
                 ++r;
             }
@@ -245,7 +241,7 @@ namespace osu.Framework.Tests.Visual.Containers
 
             void addChild()
             {
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 container.AddInternal(new TestChild(l, r));
                 checkAll();
             }
@@ -260,7 +256,7 @@ namespace osu.Framework.Tests.Visual.Containers
             void changeLifetime()
             {
                 var child = container.InternalChildren[rng.Next(container.InternalChildren.Count)];
-                randomLifetime(out var l, out var r);
+                randomLifetime(out double l, out double r);
                 Console.WriteLine($"changeLifetime: {child.ChildID}, {l}, {r}");
                 child.LifetimeStart = l;
                 child.LifetimeEnd = r;

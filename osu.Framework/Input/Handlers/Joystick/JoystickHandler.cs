@@ -61,7 +61,7 @@ namespace osu.Framework.Input.Handlers.Joystick
         /// </summary>
         private void enqueueJoystickAxisChanged(JoystickAxis axis)
         {
-            var value = rescaleByDeadzone(axis.Value);
+            float value = rescaleByDeadzone(axis.Value);
 
             int index = (int)axis.Source;
             var currentButton = axisDirectionButtons[index];
@@ -86,13 +86,13 @@ namespace osu.Framework.Input.Handlers.Joystick
 
         private static float rescaleByDeadzone(float axisValue)
         {
-            var absoluteValue = Math.Abs(axisValue);
+            float absoluteValue = Math.Abs(axisValue);
 
             if (absoluteValue < deadzone_threshold)
                 return 0;
 
             // rescale the given axis value such that the edge of the deadzone is considered the "new zero".
-            var absoluteRescaled = (absoluteValue - deadzone_threshold) / (1f - deadzone_threshold);
+            float absoluteRescaled = (absoluteValue - deadzone_threshold) / (1f - deadzone_threshold);
             return Math.Sign(axisValue) * absoluteRescaled;
         }
 

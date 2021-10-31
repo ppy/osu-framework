@@ -54,8 +54,4 @@
     <Reference Include="Mono.Android" />
     <Reference Include="Java.Interop" />
   </ItemGroup>
-  <ItemGroup Label="Package References">
-    <PackageReference Include="ManagedBass" Version="2.0.4" />
-    <PackageReference Include="ManagedBass.Fx" Version="2.0.1" />
-  </ItemGroup>
 </Project>

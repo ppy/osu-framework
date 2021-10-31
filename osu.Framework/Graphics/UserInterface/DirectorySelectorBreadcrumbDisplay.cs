@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
@@ -13,6 +14,12 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DirectorySelectorBreadcrumbDisplay : CompositeDrawable
     {
+        /// <summary>
+        /// Creates a caption to be displayed in front of the breadcrumb items.
+        /// </summary>
+        [CanBeNull]
+        protected virtual Drawable CreateCaption() => null;
+
         /// <summary>
         /// Create a directory item in the breadcrumb trail.
         /// </summary>
@@ -58,10 +65,11 @@ namespace osu.Framework.Graphics.UserInterface
                 ptr = ptr.Parent;
             }
 
-            flow.ChildrenEnumerable = new Drawable[]
-            {
-                CreateRootDirectoryItem(),
-            }.Concat(pathPieces);
+            var caption = CreateCaption();
+            if (caption != null)
+                flow.Add(caption);
+
+            flow.AddRange(pathPieces.Prepend(CreateRootDirectoryItem()));
         }
     }
 }

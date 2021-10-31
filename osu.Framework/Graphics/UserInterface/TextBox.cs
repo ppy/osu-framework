@@ -63,7 +63,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// <returns>Whether the character is allowed to be added.</returns>
         protected virtual bool CanAddCharacter(char character) => true;
 
-        public bool ReadOnly;
+        private bool readOnly;
+
+        public bool ReadOnly
+        {
+            get => readOnly;
+            set
+            {
+                readOnly = value;
+
+                if (readOnly)
+                    KillFocus();
+            }
+        }
 
         /// <summary>
         /// Whether the textbox should rescind focus on commit.
@@ -147,36 +159,29 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public virtual bool OnPressed(PlatformAction action)
+        public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
-            int? amount = null;
-
             if (!HasFocus)
                 return false;
 
-            if (!HandleLeftRightArrows &&
-                action.ActionMethod == PlatformActionMethod.Move &&
-                (action.ActionType == PlatformActionType.CharNext || action.ActionType == PlatformActionType.CharPrevious))
+            if (!HandleLeftRightArrows && (e.Action == PlatformAction.MoveBackwardChar || e.Action == PlatformAction.MoveForwardChar))
                 return false;
 
-            switch (action.ActionType)
+            switch (e.Action)
             {
                 // Clipboard
-                case PlatformActionType.Cut:
-                case PlatformActionType.Copy:
+                case PlatformAction.Cut:
+                case PlatformAction.Copy:
                     if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
 
                     clipboard?.SetText(SelectedText);
 
-                    if (action.ActionType == PlatformActionType.Cut)
-                    {
-                        string removedText = removeSelection();
-                        OnUserTextRemoved(removedText);
-                    }
+                    if (e.Action == PlatformAction.Cut)
+                        DeleteBy(0);
 
                     return true;
 
-                case PlatformActionType.Paste:
+                case PlatformAction.Paste:
                     //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
                     string pending = textInput?.GetPendingText();
 
@@ -186,104 +191,169 @@ namespace osu.Framework.Graphics.UserInterface
                     InsertString(pending);
                     return true;
 
-                case PlatformActionType.SelectAll:
+                case PlatformAction.SelectAll:
                     selectionStart = 0;
                     selectionEnd = text.Length;
                     cursorAndLayout.Invalidate();
                     return true;
 
                 // Cursor Manipulation
-                case PlatformActionType.CharNext:
-                    amount = 1;
-                    break;
+                case PlatformAction.MoveBackwardChar:
+                    MoveCursorBy(-1);
+                    return true;
 
-                case PlatformActionType.CharPrevious:
-                    amount = -1;
-                    break;
+                case PlatformAction.MoveForwardChar:
+                    MoveCursorBy(1);
+                    return true;
 
-                case PlatformActionType.LineEnd:
-                    amount = text.Length;
-                    break;
+                case PlatformAction.MoveBackwardWord:
+                    MoveCursorBy(GetBackwardWordAmount());
+                    return true;
 
-                case PlatformActionType.LineStart:
-                    amount = -text.Length;
-                    break;
+                case PlatformAction.MoveForwardWord:
+                    MoveCursorBy(GetForwardWordAmount());
+                    return true;
 
-                case PlatformActionType.WordNext:
-                    if (!AllowWordNavigation)
-                        amount = 1;
-                    else
-                    {
-                        int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
-                        while (searchNext < Text.Length && text[searchNext] == ' ')
-                            searchNext++;
-                        int nextSpace = text.IndexOf(' ', searchNext);
-                        amount = (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
-                    }
+                case PlatformAction.MoveBackwardLine:
+                    MoveCursorBy(GetBackwardLineAmount());
+                    return true;
 
-                    break;
+                case PlatformAction.MoveForwardLine:
+                    MoveCursorBy(GetForwardLineAmount());
+                    return true;
 
-                case PlatformActionType.WordPrevious:
-                    if (!AllowWordNavigation)
-                        amount = -1;
-                    else
-                    {
-                        int searchPrev = Math.Clamp(selectionEnd - 2, 0, Math.Max(0, Text.Length - 1));
-                        while (searchPrev > 0 && text[searchPrev] == ' ')
-                            searchPrev--;
-                        int lastSpace = text.LastIndexOf(' ', searchPrev);
-                        amount = lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
-                    }
+                // Deletion
+                case PlatformAction.DeleteBackwardChar:
+                    DeleteBy(-1);
+                    return true;
 
-                    break;
-            }
+                case PlatformAction.DeleteForwardChar:
+                    DeleteBy(1);
+                    return true;
 
-            if (amount.HasValue)
-            {
-                switch (action.ActionMethod)
-                {
-                    case PlatformActionMethod.Move:
-                        resetSelection();
-                        moveSelection(amount.Value, false);
-                        break;
+                case PlatformAction.DeleteBackwardWord:
+                    DeleteBy(GetBackwardWordAmount());
+                    return true;
 
-                    case PlatformActionMethod.Select:
-                        moveSelection(amount.Value, true);
-                        break;
+                case PlatformAction.DeleteForwardWord:
+                    DeleteBy(GetForwardWordAmount());
+                    return true;
 
-                    case PlatformActionMethod.Delete:
-                        if (selectionLength == 0)
-                            selectionEnd = Math.Clamp(selectionStart + amount.Value, 0, text.Length);
+                case PlatformAction.DeleteBackwardLine:
+                    DeleteBy(GetBackwardLineAmount());
+                    return true;
 
-                        if (selectionLength > 0)
-                        {
-                            string removedText = removeSelection();
-                            OnUserTextRemoved(removedText);
-                        }
+                case PlatformAction.DeleteForwardLine:
+                    DeleteBy(GetForwardLineAmount());
+                    return true;
 
-                        break;
-                }
+                // Expand selection
+                case PlatformAction.SelectBackwardChar:
+                    ExpandSelectionBy(-1);
+                    return true;
 
-                return true;
+                case PlatformAction.SelectForwardChar:
+                    ExpandSelectionBy(1);
+                    return true;
+
+                case PlatformAction.SelectBackwardWord:
+                    ExpandSelectionBy(GetBackwardWordAmount());
+                    return true;
+
+                case PlatformAction.SelectForwardWord:
+                    ExpandSelectionBy(GetForwardWordAmount());
+                    return true;
+
+                case PlatformAction.SelectBackwardLine:
+                    ExpandSelectionBy(GetBackwardLineAmount());
+                    return true;
+
+                case PlatformAction.SelectForwardLine:
+                    ExpandSelectionBy(GetForwardLineAmount());
+                    return true;
             }
 
             return false;
         }
 
-        public virtual void OnReleased(PlatformAction action)
+        public virtual void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
+        }
+
+        /// <summary>
+        /// Find the word boundary in the backward direction, then return the negative amount of characters.
+        /// </summary>
+        protected int GetBackwardWordAmount()
+        {
+            if (!AllowWordNavigation)
+                return -1;
+
+            int searchPrev = Math.Clamp(selectionEnd - 1, 0, Math.Max(0, Text.Length - 1));
+            while (searchPrev > 0 && text[searchPrev] == ' ')
+                searchPrev--;
+            int lastSpace = text.LastIndexOf(' ', searchPrev);
+            return lastSpace > 0 ? -(selectionEnd - lastSpace - 1) : -selectionEnd;
+        }
+
+        /// <summary>
+        /// Find the word boundary in the forward direction, then return the positive amount of characters.
+        /// </summary>
+        protected int GetForwardWordAmount()
+        {
+            if (!AllowWordNavigation)
+                return 1;
+
+            int searchNext = Math.Clamp(selectionEnd, 0, Math.Max(0, Text.Length - 1));
+            while (searchNext < Text.Length && text[searchNext] == ' ')
+                searchNext++;
+            int nextSpace = text.IndexOf(' ', searchNext);
+            return (nextSpace >= 0 ? nextSpace : text.Length) - selectionEnd;
+        }
+
+        // Currently only single line is supported and line length and text length are the same.
+        protected int GetBackwardLineAmount() => -text.Length;
+
+        protected int GetForwardLineAmount() => text.Length;
+
+        /// <summary>
+        /// Move the current cursor by the signed <paramref name="amount"/>.
+        /// </summary>
+        protected void MoveCursorBy(int amount)
+        {
+            selectionStart = selectionEnd;
+            cursorAndLayout.Invalidate();
+            moveSelection(amount, false);
+        }
+
+        /// <summary>
+        /// Expand the current selection by the signed <paramref name="amount"/>.
+        /// </summary>
+        protected void ExpandSelectionBy(int amount)
+        {
+            moveSelection(amount, true);
+        }
+
+        /// <summary>
+        /// If there is a selection, delete the selected text.
+        /// Otherwise, delete characters from the cursor position by the signed <paramref name="amount"/>.
+        /// A negative amount represents a backward deletion, and a positive amount represents a forward deletion.
+        /// </summary>
+        protected void DeleteBy(int amount)
+        {
+            if (selectionLength == 0)
+                selectionEnd = Math.Clamp(selectionStart + amount, 0, text.Length);
+
+            if (selectionLength > 0)
+            {
+                string removedText = removeSelection();
+                OnUserTextRemoved(removedText);
+            }
         }
 
         internal override void UpdateClock(IFrameBasedClock clock)
         {
             base.UpdateClock(clock);
             textUpdateScheduler.UpdateClock(Clock);
-        }
-
-        private void resetSelection()
-        {
-            selectionStart = selectionEnd;
-            cursorAndLayout.Invalidate();
         }
 
         protected override void Dispose(bool isDisposing)
@@ -465,7 +535,7 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            var removedText = text.Substring(removeStart, removeCount);
+            string removedText = text.Substring(removeStart, removeCount);
             text = text.Remove(removeStart, removeCount);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
@@ -742,7 +812,7 @@ namespace osu.Framework.Graphics.UserInterface
         private void killFocus()
         {
             var manager = GetContainingInputManager();
-            if (manager.FocusedDrawable == this)
+            if (manager?.FocusedDrawable == this)
                 manager.ChangeFocus(null);
         }
 
@@ -777,6 +847,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void OnDrag(DragEvent e)
         {
             //if (textInput?.ImeActive == true) return true;
+
+            if (ReadOnly)
+                return;
 
             if (doubleClickWord != null)
             {
@@ -867,7 +940,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (textInput?.ImeActive == true) return true;
+            if (textInput?.ImeActive == true || ReadOnly) return true;
 
             selectionStart = selectionEnd = getCharacterClosestTo(e.MousePosition);
 
@@ -894,7 +967,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override bool AcceptsFocus => true;
 
-        protected override bool OnClick(ClickEvent e) => !ReadOnly;
+        protected override bool OnClick(ClickEvent e)
+        {
+            if (!ReadOnly && HasFocus)
+                textInput?.EnsureActivated();
+
+            return !ReadOnly;
+        }
 
         protected override void OnFocus(FocusEvent e)
         {
@@ -910,12 +989,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void unbindInput()
         {
-            textInput?.Deactivate(this);
+            textInput?.Deactivate();
         }
 
         private void bindInput()
         {
-            textInput?.Activate(this);
+            textInput?.Activate();
         }
 
         private void onImeResult()
@@ -954,7 +1033,7 @@ namespace osu.Framework.Graphics.UserInterface
                 matching = false;
             }
 
-            var unmatchingCount = imeDrawables.Count - matchCount;
+            int unmatchingCount = imeDrawables.Count - matchCount;
 
             if (unmatchingCount > 0)
             {

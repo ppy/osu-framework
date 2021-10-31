@@ -203,12 +203,12 @@ namespace osu.Framework.Graphics.Containers
 
             if (localPos.Y < 0)
             {
-                var power = Math.Min(MaxExponent, Math.Abs(localPos.Y));
+                float power = Math.Min(MaxExponent, Math.Abs(localPos.Y));
                 scrollSpeed = (float)(-MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
             else if (localPos.Y > ScrollContainer.DrawHeight)
             {
-                var power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - localPos.Y));
+                float power = Math.Min(MaxExponent, Math.Abs(ScrollContainer.DrawHeight - localPos.Y));
                 scrollSpeed = (float)(MathF.Pow(exp_base, power) * Clock.ElapsedFrameTime * 0.1);
             }
 

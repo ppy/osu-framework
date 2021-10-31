@@ -151,9 +151,9 @@ namespace osu.Framework.Graphics
                         {
                             a(target);
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            // Execution should continue regardless of whether an unbind failed
+                            Logger.Error(e, $"Failed to unbind a local bindable in {type.ReadableName()}");
                         }
                     }
                 };
@@ -428,7 +428,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lock exclusively used for initial acquisition/construction of the <see cref="Scheduler"/>.
         /// </summary>
-        private readonly object schedulerAcquisitionLock = new object();
+        private static readonly object scheduler_acquisition_lock = new object();
 
         private Scheduler scheduler;
 
@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics
                 if (scheduler != null)
                     return scheduler;
 
-                lock (schedulerAcquisitionLock)
+                lock (scheduler_acquisition_lock)
                     return scheduler ??= new Scheduler(() => ThreadSafety.IsUpdateThread, Clock);
             }
         }
@@ -2086,11 +2086,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        [Obsolete("Use TriggerClick instead.")] // Can be removed 20220203
+        public bool Click() => TriggerClick();
+
         /// <summary>
         /// Triggers a left click event for this <see cref="Drawable"/>.
         /// </summary>
         /// <returns>Whether the click event is handled.</returns>
-        public bool Click() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
+        public bool TriggerClick() => TriggerEvent(new ClickEvent(GetContainingInputManager()?.CurrentState ?? new InputState(), MouseButton.Left));
 
         #region Individual event handlers
 
@@ -2410,6 +2413,7 @@ namespace osu.Framework.Graphics
                 typeof(IHasTooltip),
                 typeof(IHasCustomTooltip),
                 typeof(IHasContextMenu),
+                typeof(IHasPopover),
             };
 
             private static readonly Type[] non_positional_input_interfaces =
@@ -2436,7 +2440,7 @@ namespace osu.Framework.Graphics
             {
                 var type = drawable.GetType();
 
-                if (!cache.TryGetValue(type, out var value))
+                if (!cache.TryGetValue(type, out bool value))
                 {
                     value = compute(type, positional);
                     cache.TryAdd(type, value);
@@ -2447,9 +2451,9 @@ namespace osu.Framework.Graphics
 
             private static bool compute([NotNull] Type type, bool positional)
             {
-                var inputMethods = positional ? positional_input_methods : non_positional_input_methods;
+                string[] inputMethods = positional ? positional_input_methods : non_positional_input_methods;
 
-                foreach (var inputMethod in inputMethods)
+                foreach (string inputMethod in inputMethods)
                 {
                     // check for any input method overrides which are at a higher level than drawable.
                     var method = type.GetMethod(inputMethod, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2469,9 +2473,9 @@ namespace osu.Framework.Graphics
                         return true;
                 }
 
-                var inputProperties = positional ? positional_input_properties : non_positional_input_properties;
+                string[] inputProperties = positional ? positional_input_properties : non_positional_input_properties;
 
-                foreach (var inputProperty in inputProperties)
+                foreach (string inputProperty in inputProperties)
                 {
                     var property = type.GetProperty(inputProperty);
 

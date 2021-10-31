@@ -11,20 +11,18 @@ namespace osu.Framework.Localisation
     {
         private class LocalisedBindableString : Bindable<string>, ILocalisedBindableString
         {
-            private readonly IBindable<ILocalisationStore?> storage = new Bindable<ILocalisationStore?>();
-            private readonly IBindable<bool> preferUnicode = new Bindable<bool>();
+            private IBindable<LocalisationParameters> parameters;
 
             private LocalisableString text;
 
-            public LocalisedBindableString(LocalisableString text, Bindable<ILocalisationStore?> storage, IBindable<bool> preferUnicode)
+            private readonly LocalisationManager manager;
+
+            public LocalisedBindableString(LocalisableString text, LocalisationManager manager)
             {
                 this.text = text;
+                this.manager = manager;
 
-                this.storage.BindTo(storage);
-                this.preferUnicode.BindTo(preferUnicode);
-
-                this.storage.BindValueChanged(_ => updateValue());
-                this.preferUnicode.BindValueChanged(_ => updateValue(), true);
+                updateValue();
             }
 
             private void updateValue()
@@ -35,12 +33,15 @@ namespace osu.Framework.Localisation
                         Value = plain;
                         break;
 
-                    case RomanisableString romanisable:
-                        Value = romanisable.GetPreferred(preferUnicode.Value);
-                        break;
+                    case ILocalisableStringData data:
+                        if (parameters == null)
+                        {
+                            parameters = new Bindable<LocalisationParameters>();
+                            parameters.BindTo(manager.currentParameters);
+                            parameters.BindValueChanged(_ => updateValue());
+                        }
 
-                    case TranslatableString translatable:
-                        Value = translatable.Format(storage.Value);
+                        Value = data.GetLocalised(parameters.Value);
                         break;
 
                     default:
@@ -60,6 +61,16 @@ namespace osu.Framework.Localisation
 
                     updateValue();
                 }
+            }
+
+            internal override void UnbindAllInternal()
+            {
+                base.UnbindAllInternal();
+
+                // optimisation to ensure cleanup happens aggressively.
+                // without this, the central parameters bindable's internal WeakList can balloon out of control due to the
+                // weak reference cleanup only occurring on Value retrieval (which rarely/never happens in this case).
+                parameters?.UnbindAll();
             }
         }
     }

@@ -25,7 +25,7 @@ namespace osu.Framework.Utils
             if (number == 0)
                 return "0";
 
-            var isNeg = number < 0;
+            bool isNeg = number < 0;
             number = Math.Abs(number);
 
             int log1000 = (int)Math.Floor(Math.Log(number, 1000));

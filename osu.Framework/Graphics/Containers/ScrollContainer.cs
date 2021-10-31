@@ -1,4 +1,4 @@
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -374,7 +374,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(Clamp(fromScrollbarPosition(value)), false);
+        private void onScrollbarMovement(float value) => OnUserScroll(Clamp(fromScrollbarPosition(value)), false);
 
         /// <summary>
         /// Immediately offsets the current and target scroll position.
@@ -530,7 +530,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (!scrollbarCache.IsValid)
             {
-                var size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
+                float size = ScrollDirection == Direction.Horizontal ? DrawWidth : DrawHeight;
                 if (size > 0)
                     Scrollbar.ResizeTo(Math.Clamp(AvailableContent > 0 ? DisplayableContent / AvailableContent : 0, Math.Min(Scrollbar.MinimumDimSize / size, 1), 1), 200, Easing.OutQuint);
                 Scrollbar.FadeTo(ScrollbarVisible && AvailableContent - 1 > DisplayableContent ? 1 : 0, 200);
@@ -630,18 +630,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (!IsHandlingKeyboardScrolling)
                 return false;
 
-            switch (action.ActionType)
+            switch (e.Action)
             {
-                case PlatformActionType.LineStart:
+                case PlatformAction.MoveBackwardLine:
                     ScrollToStart();
                     return true;
 
-                case PlatformActionType.LineEnd:
+                case PlatformAction.MoveForwardLine:
                     ScrollToEnd();
                     return true;
 
@@ -650,7 +650,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public void OnReleased(PlatformAction action)
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
     }

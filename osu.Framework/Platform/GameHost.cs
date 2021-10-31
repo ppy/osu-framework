@@ -13,6 +13,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osuTK;
 using osuTK.Graphics;
@@ -69,7 +70,10 @@ namespace osu.Framework.Platform
         /// </remarks>
         public readonly AggregateBindable<bool> AllowScreenSuspension = new AggregateBindable<bool>((a, b) => a & b, new Bindable<bool>(true));
 
-        public bool IsPrimaryInstance { get; protected set; } = true;
+        /// <summary>
+        /// For IPC messaging purposes, whether this <see cref="GameHost"/> is the primary (bound) host.
+        /// </summary>
+        public virtual bool IsPrimaryInstance { get; protected set; } = true;
 
         /// <summary>
         /// Invoked when the game window is activated. Always invoked from the update thread.
@@ -118,6 +122,20 @@ namespace osu.Framework.Platform
         public abstract void OpenFileExternally(string filename);
 
         /// <summary>
+        /// Requests to present a file externally in the platform's native file browser.
+        /// </summary>
+        /// <remarks>
+        /// This will open the parent folder and, (if available) highlight the file.
+        /// </remarks>
+        /// <example>
+        ///     <para>"C:\Windows\explorer.exe" -> opens 'C:\Windows' and highlights 'explorer.exe' in the window.</para>
+        ///     <para>"C:\Windows\System32" -> opens 'C:\Windows' and highlights 'System32' in the window.</para>
+        ///     <para>"C:\Windows\System32\" -> opens 'C:\Windows\System32' and highlights nothing.</para>
+        /// </example>
+        /// <param name="filename">The absolute path to the file/folder to be shown in its parent folder.</param>
+        public abstract void PresentFileExternally(string filename);
+
+        /// <summary>
         /// Requests that a URL be opened externally in a web browser, if available.
         /// </summary>
         /// <param name="url">The URL of the page which should be opened.</param>
@@ -128,7 +146,16 @@ namespace osu.Framework.Platform
         /// </summary>
         protected virtual IWindow CreateWindow() => null;
 
+        [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
+
+        /// <summary>
+        /// The default initial path when requesting a user to select a file/folder.
+        /// </summary>
+        /// <remarks>
+        /// Provides a sane starting point for user-accessible storage.
+        /// </remarks>
+        public virtual string InitialFileSelectorPath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         /// <summary>
         /// Retrieve a storage for the specified location.
@@ -136,7 +163,10 @@ namespace osu.Framework.Platform
         /// <param name="path">The absolute path to be used as a root for the storage.</param>
         public abstract Storage GetStorage(string path);
 
-        public abstract string UserStoragePath { get; }
+        /// <summary>
+        /// All valid user storage paths in order of usage priority.
+        /// </summary>
+        public virtual IEnumerable<string> UserStoragePaths => Environment.GetFolderPath(Environment.SpecialFolder.Personal).Yield();
 
         /// <summary>
         /// The main storage as proposed by the host game.
@@ -180,13 +210,19 @@ namespace osu.Framework.Platform
             thread.UnhandledException = null;
         }
 
-        public DrawThread DrawThread;
-        public GameThread UpdateThread;
-        public InputThread InputThread;
-        public AudioThread AudioThread;
+        public DrawThread DrawThread { get; private set; }
+        public GameThread UpdateThread { get; private set; }
+        public InputThread InputThread { get; private set; }
+        public AudioThread AudioThread { get; private set; }
 
         private double maximumUpdateHz;
 
+        /// <summary>
+        /// The target number of update frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumUpdateHz
         {
             get => maximumUpdateHz;
@@ -195,12 +231,25 @@ namespace osu.Framework.Platform
 
         private double maximumDrawHz;
 
+        /// <summary>
+        /// The target number of draw frames per second when the game window is active.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumDrawHz
         {
             get => maximumDrawHz;
             set => DrawThread.ActiveHz = maximumDrawHz = value;
         }
 
+        /// <summary>
+        /// The target number of updates per second when the game window is inactive.
+        /// This is applied to all threads.
+        /// </summary>
+        /// <remarks>
+        /// A value of 0 is treated the same as "unlimited" or <see cref="double.MaxValue"/>.
+        /// </remarks>
         public double MaximumInactiveHz
         {
             get => DrawThread.InactiveHz;
@@ -299,10 +348,6 @@ namespace osu.Framework.Platform
             // To avoid this, pause the exceptioning thread until the rethrow takes place.
             waitForThrow();
 
-            // schedule an exit to the input thread.
-            // this is required for single threaded execution, else the draw thread may get stuck looping before the above schedule finishes.
-            PerformExit(false);
-
             void waitForThrow()
             {
                 // This is bypassed for sources in a few situations where deadlocks can occur:
@@ -392,14 +437,20 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            while (ExecutionState > ExecutionState.Stopping)
+            while (ExecutionState == ExecutionState.Running)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {
                     if (buffer?.Object == null || buffer.FrameId == lastDrawFrameId)
                     {
+                        // if a buffer is not available in single threaded mode there's no point in looping.
+                        // in the general case this should never happen, but may occur during exception handling.
+                        if (executionMode.Value == ExecutionMode.SingleThread)
+                            break;
+
                         using (drawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                             Thread.Sleep(1);
+
                         continue;
                     }
 
@@ -497,43 +548,75 @@ namespace osu.Framework.Platform
             }
         }
 
-        public ExecutionState ExecutionState { get; private set; }
+        public ExecutionState ExecutionState
+        {
+            get => executionState;
+            private set
+            {
+                if (executionState == value)
+                    return;
+
+                executionState = value;
+                Logger.Log($"Host execution state changed to {value}");
+            }
+        }
+
+        private ExecutionState executionState;
 
         /// <summary>
         /// Schedules the game to exit in the next frame.
         /// </summary>
-        public void Exit() => PerformExit(false);
+        public void Exit()
+        {
+            if (CanExit)
+                PerformExit(false);
+        }
 
         /// <summary>
         /// Schedules the game to exit in the next frame (or immediately if <paramref name="immediately"/> is true).
         /// </summary>
+        /// <remarks>
+        /// Will never be called if <see cref="CanExit"/> is <see langword="false"/>.
+        /// </remarks>
         /// <param name="immediately">If true, exits the game immediately.  If false (default), schedules the game to exit in the next frame.</param>
-        protected virtual void PerformExit(bool immediately)
+        protected virtual void PerformExit(bool immediately) => performExit(immediately);
+
+        private void performExit(bool immediately)
         {
+            if (executionState == ExecutionState.Stopped || executionState == ExecutionState.Idle)
+                return;
+
+            ExecutionState = ExecutionState.Stopping;
+
             if (immediately)
                 exit();
             else
-            {
-                ExecutionState = ExecutionState.Stopping;
                 InputThread.Scheduler.Add(exit, false);
+
+            void exit()
+            {
+                Debug.Assert(ExecutionState == ExecutionState.Stopping);
+
+                Window?.Close();
+                threadRunner.Stop();
+
+                ExecutionState = ExecutionState.Stopped;
+                stoppedEvent.Set();
             }
         }
 
-        /// <summary>
-        /// Exits the game. This must always be called from <see cref="InputThread"/>.
-        /// </summary>
-        private void exit()
-        {
-            // exit() may be called without having been scheduled from Exit(), so ensure the correct exiting state
-            ExecutionState = ExecutionState.Stopping;
-            Window?.Close();
-            threadRunner.Stop();
-            ExecutionState = ExecutionState.Stopped;
-            stoppedEvent.Set();
-        }
+        private static readonly SemaphoreSlim host_running_mutex = new SemaphoreSlim(1);
 
         public void Run(Game game)
         {
+            if (Thread.CurrentThread.IsThreadPoolThread)
+            {
+                // This is a common misuse of GameHost, where typically consumers will have a mutex waiting for the game to run.
+                // Exceptions thrown here will become unobserved, so any such mutexes will never be set.
+                // Instead, immediately terminate the application in order to notify of incorrect use in all cases.
+                Environment.FailFast($"{nameof(GameHost)}s should not be run on a TPL thread (use TaskCreationOptions.LongRunning).");
+            }
+
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
             if (LimitedMemoryEnvironment)
@@ -547,6 +630,9 @@ namespace osu.Framework.Platform
 
             try
             {
+                if (!host_running_mutex.Wait(10000))
+                    throw new TimeoutException($"This {nameof(GameHost)} could not start {game} because another {nameof(GameHost)} was already running.");
+
                 threadRunner = CreateThreadRunner(InputThread = new InputThread());
 
                 AppDomain.CurrentDomain.UnhandledException += unhandledExceptionHandler;
@@ -581,8 +667,6 @@ namespace osu.Framework.Platform
 
                 Window = CreateWindow();
 
-                ExecutionState = ExecutionState.Running;
-
                 populateInputHandlers();
 
                 SetupConfig(game.GetFrameworkConfigDefaults() ?? new Dictionary<FrameworkSetting, object>());
@@ -596,9 +680,13 @@ namespace osu.Framework.Platform
 
                     Window.Create();
 
+                    currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
+                    currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
+
                     IsActive.BindTo(Window.IsActive);
                 }
 
+                ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
 
                 DrawThread.WaitUntilInitialized();
@@ -651,8 +739,13 @@ namespace osu.Framework.Platform
             }
             finally
             {
-                // Close the window and stop all threads
-                PerformExit(true);
+                if (CanExit)
+                {
+                    // Close the window and stop all threads
+                    performExit(true);
+
+                    host_running_mutex.Release();
+                }
             }
         }
 
@@ -660,15 +753,41 @@ namespace osu.Framework.Platform
         /// Finds the default <see cref="Storage"/> for the game to be used if <see cref="Game.CreateStorage"/> is not overridden.
         /// </summary>
         /// <returns>The <see cref="Storage"/>.</returns>
-        protected virtual Storage GetDefaultGameStorage() => GetStorage(UserStoragePath).GetStorageForDirectory(Name);
+        protected virtual Storage GetDefaultGameStorage()
+        {
+            // first check all valid paths for any existing install.
+            foreach (string path in UserStoragePaths)
+            {
+                var storage = GetStorage(path);
+
+                // if an existing data directory exists for this application, prefer it immediately.
+                if (storage.ExistsDirectory(Name))
+                    return storage.GetStorageForDirectory(Name);
+            }
+
+            // if an existing directory could not be found, use the first path that can be created.
+            foreach (string path in UserStoragePaths)
+            {
+                try
+                {
+                    return GetStorage(path).GetStorageForDirectory(Name);
+                }
+                catch
+                {
+                    // may fail on directory creation.
+                }
+            }
+
+            throw new InvalidOperationException("No valid user storage path could be resolved.");
+        }
 
         /// <summary>
         /// Pauses all active threads. Call <see cref="Resume"/> to resume execution.
         /// </summary>
         public void Suspend()
         {
-            threadRunner.Suspend();
             suspended = true;
+            threadRunner.Suspend();
         }
 
         /// <summary>
@@ -704,6 +823,7 @@ namespace osu.Framework.Platform
         protected virtual void SetupForRun()
         {
             Logger.Storage = Storage.GetStorageForDirectory("logs");
+            Logger.Enabled = true;
         }
 
         private void populateInputHandlers()
@@ -771,6 +891,8 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
+        private IBindable<DisplayMode> currentDisplayMode;
+
         private Bindable<string> ignoredInputHandlers;
 
         private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
@@ -805,52 +927,7 @@ namespace osu.Framework.Platform
             executionMode.BindValueChanged(e => threadRunner.ExecutionMode = e.NewValue, true);
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
-            frameSyncMode.ValueChanged += e =>
-            {
-                if (Window == null)
-                    return;
-
-                float refreshRate = Window.CurrentDisplayMode.RefreshRate;
-
-                // For invalid refresh rates let's assume 60 Hz as it is most common.
-                if (refreshRate <= 0)
-                    refreshRate = 60;
-
-                float drawLimiter = refreshRate;
-                float updateLimiter = drawLimiter * 2;
-
-                setVSyncMode();
-
-                switch (e.NewValue)
-                {
-                    case FrameSync.VSync:
-                        drawLimiter = int.MaxValue;
-                        updateLimiter *= 2;
-                        break;
-
-                    case FrameSync.Limit2x:
-                        drawLimiter *= 2;
-                        updateLimiter *= 2;
-                        break;
-
-                    case FrameSync.Limit4x:
-                        drawLimiter *= 4;
-                        updateLimiter *= 4;
-                        break;
-
-                    case FrameSync.Limit8x:
-                        drawLimiter *= 8;
-                        updateLimiter *= 8;
-                        break;
-
-                    case FrameSync.Unlimited:
-                        drawLimiter = updateLimiter = int.MaxValue;
-                        break;
-                }
-
-                MaximumDrawHz = drawLimiter;
-                MaximumUpdateHz = updateLimiter;
-            };
+            frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
 
 #pragma warning disable 618
             // pragma region can be removed 20210911
@@ -861,7 +938,7 @@ namespace osu.Framework.Platform
 
                 foreach (var handler in AvailableInputHandlers)
                 {
-                    var handlerType = handler.ToString();
+                    string handlerType = handler.ToString();
                     handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
                 }
             };
@@ -905,6 +982,53 @@ namespace osu.Framework.Platform
             Dependencies.Cache(InputConfig = new InputConfigManager(Storage, AvailableInputHandlers));
         }
 
+        private void updateFrameSyncMode()
+        {
+            if (Window == null)
+                return;
+
+            float refreshRate = Window.CurrentDisplayMode.Value.RefreshRate;
+
+            // For invalid refresh rates let's assume 60 Hz as it is most common.
+            if (refreshRate <= 0)
+                refreshRate = 60;
+
+            float drawLimiter = refreshRate;
+            float updateLimiter = drawLimiter * 2;
+
+            setVSyncMode();
+
+            switch (frameSyncMode.Value)
+            {
+                case FrameSync.VSync:
+                    drawLimiter = int.MaxValue;
+                    updateLimiter *= 2;
+                    break;
+
+                case FrameSync.Limit2x:
+                    drawLimiter *= 2;
+                    updateLimiter *= 2;
+                    break;
+
+                case FrameSync.Limit4x:
+                    drawLimiter *= 4;
+                    updateLimiter *= 4;
+                    break;
+
+                case FrameSync.Limit8x:
+                    drawLimiter *= 8;
+                    updateLimiter *= 8;
+                    break;
+
+                case FrameSync.Unlimited:
+                    drawLimiter = updateLimiter = int.MaxValue;
+                    break;
+            }
+
+            MaximumDrawHz = drawLimiter;
+            MaximumUpdateHz = updateLimiter;
+        }
+
         private void setVSyncMode()
         {
             if (Window == null) return;
@@ -934,11 +1058,17 @@ namespace osu.Framework.Platform
 
             isDisposed = true;
 
-            if (ExecutionState > ExecutionState.Stopping)
-                throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
+            switch (ExecutionState)
+            {
+                case ExecutionState.Running:
+                    throw new InvalidOperationException($"{nameof(Exit)} must be called before the {nameof(GameHost)} is disposed.");
 
-            // Delay disposal until the game has exited
-            stoppedEvent.Wait();
+                case ExecutionState.Stopping:
+                case ExecutionState.Stopped:
+                    // Delay disposal until the game has exited
+                    stoppedEvent.Wait();
+                    break;
+            }
 
             AppDomain.CurrentDomain.UnhandledException -= unhandledExceptionHandler;
             TaskScheduler.UnobservedTaskException -= unobservedExceptionHandler;
@@ -971,40 +1101,48 @@ namespace osu.Framework.Platform
         /// </summary>
         public virtual IEnumerable<KeyBinding> PlatformKeyBindings => new[]
         {
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.X), new PlatformAction(PlatformActionType.Cut)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.C), new PlatformAction(PlatformActionType.Copy)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.V), new PlatformAction(PlatformActionType.Paste)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), new PlatformAction(PlatformActionType.SelectAll)),
-            new KeyBinding(InputKey.Left, new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.Right, new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.BackSpace, new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(InputKey.Delete, new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.CharNext, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), new PlatformAction(PlatformActionType.CharPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Left), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Right), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.BackSpace), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Delete), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Delete)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Left), new PlatformAction(PlatformActionType.WordPrevious, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Right), new PlatformAction(PlatformActionType.WordNext, PlatformActionMethod.Select)),
-            new KeyBinding(InputKey.Home, new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Home), new PlatformAction(PlatformActionType.LineStart, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.End), new PlatformAction(PlatformActionType.LineEnd, PlatformActionMethod.Select)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageUp), new PlatformAction(PlatformActionType.DocumentPrevious)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageDown), new PlatformAction(PlatformActionType.DocumentNext)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentNext)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), new PlatformAction(PlatformActionType.DocumentPrevious)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.W), new PlatformAction(PlatformActionType.DocumentClose)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), new PlatformAction(PlatformActionType.DocumentClose)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.T), new PlatformAction(PlatformActionType.TabNew)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.T), new PlatformAction(PlatformActionType.TabRestore)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), new PlatformAction(PlatformActionType.Save)),
-            new KeyBinding(InputKey.Home, new PlatformAction(PlatformActionType.ListStart, PlatformActionMethod.Move)),
-            new KeyBinding(InputKey.End, new PlatformAction(PlatformActionType.ListEnd, PlatformActionMethod.Move)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), new PlatformAction(PlatformActionType.Undo)),
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), new PlatformAction(PlatformActionType.Redo)),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.X), PlatformAction.Cut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.C), PlatformAction.Copy),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.V), PlatformAction.Paste),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.A), PlatformAction.SelectAll),
+            new KeyBinding(InputKey.Left, PlatformAction.MoveBackwardChar),
+            new KeyBinding(InputKey.Right, PlatformAction.MoveForwardChar),
+            new KeyBinding(InputKey.BackSpace, PlatformAction.DeleteBackwardChar),
+            new KeyBinding(InputKey.Delete, PlatformAction.DeleteForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.BackSpace), PlatformAction.DeleteBackwardChar),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Left), PlatformAction.MoveBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Right), PlatformAction.MoveForwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.BackSpace), PlatformAction.DeleteBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Delete), PlatformAction.DeleteForwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Left), PlatformAction.SelectBackwardWord),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Right), PlatformAction.SelectForwardWord),
+            new KeyBinding(InputKey.Home, PlatformAction.MoveBackwardLine),
+            new KeyBinding(InputKey.End, PlatformAction.MoveForwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.Home), PlatformAction.SelectBackwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.End), PlatformAction.SelectForwardLine),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageUp), PlatformAction.DocumentPrevious),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.PageDown), PlatformAction.DocumentNext),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Tab), PlatformAction.DocumentNext),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Tab), PlatformAction.DocumentPrevious),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.W), PlatformAction.DocumentClose),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), PlatformAction.DocumentClose),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.N), PlatformAction.DocumentNew),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.T), PlatformAction.TabNew),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.T), PlatformAction.TabRestore),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.S), PlatformAction.Save),
+            new KeyBinding(InputKey.Home, PlatformAction.MoveToListStart),
+            new KeyBinding(InputKey.End, PlatformAction.MoveToListEnd),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Z), PlatformAction.Undo),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Shift, InputKey.Z), PlatformAction.Redo),
+            new KeyBinding(InputKey.Delete, PlatformAction.Delete),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Plus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadPlus), PlatformAction.ZoomIn),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Minus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.KeypadMinus), PlatformAction.ZoomOut),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Number0), PlatformAction.ZoomDefault),
+            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.Keypad0), PlatformAction.ZoomDefault),
         };
 
         /// <summary>
@@ -1020,9 +1158,8 @@ namespace osu.Framework.Platform
         /// decoder implementation.
         /// </summary>
         /// <param name="stream">The <see cref="Stream"/> to decode.</param>
-        /// <param name="scheduler">The <see cref="Scheduler"/> to use when scheduling tasks from the decoder thread.</param>
         /// <returns>An instance of <see cref="VideoDecoder"/> initialised with the given stream.</returns>
-        public virtual VideoDecoder CreateVideoDecoder(Stream stream, Scheduler scheduler) => new VideoDecoder(stream, scheduler);
+        public virtual VideoDecoder CreateVideoDecoder(Stream stream) => new VideoDecoder(stream);
 
         /// <summary>
         /// Creates the <see cref="ThreadRunner"/> to run the threads of this <see cref="GameHost"/>.

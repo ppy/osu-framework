@@ -59,8 +59,8 @@ namespace osu.Framework.Platform
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-            var basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
-            var resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
+            string basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
+            string resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
 
             if (!resolvedPath.StartsWith(basePath, StringComparison.Ordinal)) throw new ArgumentException($"\"{resolvedPath}\" traverses outside of \"{basePath}\" and is probably malformed");
 
@@ -68,8 +68,11 @@ namespace osu.Framework.Platform
             return resolvedPath;
         }
 
-        public override void OpenPathInNativeExplorer(string path) =>
-            host?.OpenFileExternally(GetFullPath(path));
+        public override void OpenFileExternally(string filename) =>
+            host?.OpenFileExternally(GetFullPath(filename));
+
+        public override void PresentFileExternally(string filename) =>
+            host?.PresentFileExternally(GetFullPath(filename));
 
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
@@ -86,13 +89,9 @@ namespace osu.Framework.Platform
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
 
                 default:
-                    return File.Open(path, mode, access);
+                    return new FlushingStream(path, mode, access);
             }
         }
-
-        public override string GetDatabaseConnectionString(string name) => string.Concat("Data Source=", GetFullPath($@"{name}.db", true));
-
-        public override void DeleteDatabase(string name) => Delete($@"{name}.db");
 
         public override Storage GetStorageForDirectory([NotNull] string path)
         {
@@ -102,7 +101,7 @@ namespace osu.Framework.Platform
                 path += Path.DirectorySeparatorChar;
 
             // create non-existing path.
-            var fullPath = GetFullPath(path, true);
+            string fullPath = GetFullPath(path, true);
 
             return (Storage)Activator.CreateInstance(GetType(), fullPath, host);
         }

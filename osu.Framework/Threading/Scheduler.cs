@@ -33,6 +33,11 @@ namespace osu.Framework.Threading
         public bool HasPendingTasks => TotalPendingTasks > 0;
 
         /// <summary>
+        /// The total tasks this scheduler instance has run.
+        /// </summary>
+        public int TotalTasksRun { get; private set; }
+
+        /// <summary>
         /// The total number of <see cref="ScheduledDelegate"/>s tracked by this instance for future execution.
         /// </summary>
         internal int TotalPendingTasks => runQueue.Count + timedTasks.Count + perUpdateTasks.Count;
@@ -41,11 +46,10 @@ namespace osu.Framework.Threading
         /// The base thread is assumed to be the thread on which the constructor is run.
         /// </summary>
         public Scheduler()
+            : this(null, new StopwatchClock(true))
         {
-            var currentThread = Thread.CurrentThread;
-            isCurrentThread = () => Thread.CurrentThread == currentThread;
-
-            clock = new StopwatchClock(true);
+            var constructedThread = Thread.CurrentThread;
+            isCurrentThread = () => Thread.CurrentThread == constructedThread;
         }
 
         /// <summary>
@@ -106,6 +110,8 @@ namespace osu.Framework.Threading
             {
                 //todo: error handling
                 sd.RunTaskInternal();
+
+                TotalTasksRun++;
 
                 if (++countRun == countToRun)
                     break;
@@ -264,6 +270,26 @@ namespace osu.Framework.Threading
                 Add(del);
                 return del;
             }
+        }
+
+        /// <summary>
+        /// Adds a task which will only be run once per frame, no matter how many times it was scheduled in the previous frame.
+        /// </summary>
+        /// <remarks>The task will be run on the next <see cref="Update"/> independent of the current clock time.</remarks>
+        /// <param name="task">The work to be done.</param>
+        /// <param name="data">The data to be passed to the task. Note that duplicate schedules may result in previous data never being run.</param>
+        /// <returns>Whether this is the first queue attempt of this work.</returns>
+        public bool AddOnce<T>([NotNull] Action<T> task, T data)
+        {
+            lock (queueLock)
+            {
+                if (runQueue.OfType<ScheduledDelegateWithData<T>>().Any(sd => sd.Task == task))
+                    return false;
+
+                runQueue.Enqueue(new ScheduledDelegateWithData<T>(task, data));
+            }
+
+            return true;
         }
 
         /// <summary>

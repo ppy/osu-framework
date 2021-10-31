@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -162,7 +163,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
             checkValue(-5, disabled);
             AddStep("Press left arrow key", () =>
             {
-                var before = sliderBar.IsHovered;
+                bool before = sliderBar.IsHovered;
                 sliderBar.IsHovered = true;
                 InputManager.PressKey(Key.Left);
                 InputManager.ReleaseKey(Key.Left);
@@ -220,6 +221,7 @@ namespace osu.Framework.Tests.Visual.UserInterface
         {
             public bool KeyboardInput;
 
+            [Obsolete("Implement this kind of behaviour separately instead.")]
             protected override bool AllowKeyboardInputWhenNotHovered => KeyboardInput;
         }
     }

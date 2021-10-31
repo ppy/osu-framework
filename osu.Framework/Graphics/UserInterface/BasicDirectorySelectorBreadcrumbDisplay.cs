@@ -10,6 +10,14 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class BasicDirectorySelectorBreadcrumbDisplay : DirectorySelectorBreadcrumbDisplay
     {
+        protected override Drawable CreateCaption() => new SpriteText
+        {
+            Text = "Current Directory:",
+            Font = FrameworkFont.Condensed.With(size: 20),
+            Anchor = Anchor.CentreLeft,
+            Origin = Anchor.CentreLeft
+        };
+
         protected override DirectorySelectorDirectory CreateRootDirectoryItem() => new BreadcrumbDisplayComputer();
 
         protected override DirectorySelectorDirectory CreateDirectoryItem(DirectoryInfo directory, string displayName = null) => new BreadcrumbDisplayDirectory(directory, displayName);

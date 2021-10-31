@@ -11,6 +11,7 @@ using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osuTK;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -97,7 +98,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool SelectFirstTabByDefault { get; set; } = true;
 
         /// <summary>
-        /// When true, tabs can be switched back and forth using <see cref="PlatformActionType.DocumentPrevious"/> and <see cref="PlatformActionType.DocumentNext"/> respectively.
+        /// When true, tabs can be switched back and forth using <see cref="PlatformAction.DocumentPrevious"/> and <see cref="PlatformAction.DocumentNext"/> respectively.
         /// </summary>
         public bool IsSwitchable { get; set; }
 
@@ -204,6 +205,10 @@ namespace osu.Framework.Graphics.UserInterface
                 Current.Value = Items.First();
 
             Current.BindValueChanged(v => selectTab(v.NewValue != null ? tabMap[v.NewValue] : null), true);
+
+            // TabContainer doesn't have valid layout yet, so TabItems all have y=0 and selectTab() didn't call performTabSort() so we call it here instead
+            if (AutoSort && Current.Value != null)
+                performTabSort(tabMap[Current.Value]);
         }
 
         /// <summary>
@@ -404,17 +409,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
-        public bool OnPressed(PlatformAction action)
+        public bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
         {
             if (IsSwitchable)
             {
-                switch (action.ActionType)
+                switch (e.Action)
                 {
-                    case PlatformActionType.DocumentNext:
+                    case PlatformAction.DocumentNext:
                         SwitchTab(1);
                         return true;
 
-                    case PlatformActionType.DocumentPrevious:
+                    case PlatformAction.DocumentPrevious:
                         SwitchTab(-1);
                         return true;
                 }
@@ -423,7 +428,7 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        public void OnReleased(PlatformAction action)
+        public void OnReleased(KeyBindingReleaseEvent<PlatformAction> e)
         {
         }
 

@@ -14,8 +14,8 @@ namespace osu.Framework.Tests.Audio
     [TestFixture]
     public abstract class AudioThreadTest
     {
+        internal AudioManagerWithDeviceLoss Manager { get; private set; }
         private AudioThread thread;
-        internal AudioManagerWithDeviceLoss Manager;
 
         [SetUp]
         public virtual void SetUp()
@@ -27,6 +27,7 @@ namespace osu.Framework.Tests.Audio
             Manager = new AudioManagerWithDeviceLoss(thread, store, store);
 
             thread.Start();
+            WaitAudioFrame();
         }
 
         [TearDown]
@@ -34,10 +35,10 @@ namespace osu.Framework.Tests.Audio
         {
             Assert.IsFalse(thread.Exited);
 
-            thread.Exit();
-
             Manager?.Dispose();
+            WaitAudioFrame();
 
+            thread.Exit();
             WaitForOrAssert(() => thread.Exited, "Audio thread did not exit in time");
         }
 
@@ -46,7 +47,7 @@ namespace osu.Framework.Tests.Audio
             // playback should be continuing after device change
             for (int i = 0; i < 2; i++)
             {
-                var checkAfter = track.CurrentTime;
+                double checkAfter = track.CurrentTime;
                 WaitForOrAssert(() => track.CurrentTime > checkAfter, "Track time did not increase", 1000);
                 Assert.IsTrue(track.IsRunning);
             }
@@ -63,5 +64,31 @@ namespace osu.Framework.Tests.Audio
             {
                 while (!condition()) Thread.Sleep(50);
             }).Wait(timeout), message);
+
+        /// <summary>
+        /// Block for a specified number of audio thread frames.
+        /// </summary>
+        /// <param name="count">The number of frames to wait for. Two frames is generally considered safest.</param>
+        protected void WaitAudioFrame(int count = 2)
+        {
+            var cts = new TaskCompletionSource<bool>();
+
+            void runScheduled()
+            {
+                thread.Scheduler.Add(() =>
+                {
+                    if (count-- > 0)
+                        runScheduled();
+                    else
+                    {
+                        cts.SetResult(true);
+                    }
+                });
+            }
+
+            runScheduled();
+
+            Task.WaitAll(cts.Task);
+        }
     }
 }

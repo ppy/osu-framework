@@ -271,7 +271,6 @@ namespace osu.Framework.Testing
                        && (kind != SyntaxKind.QualifiedName || !(n.Parent is NamespaceDeclarationSyntax))
                        && kind != SyntaxKind.NameColon
                        && (kind != SyntaxKind.QualifiedName || n.Parent?.Kind() != SyntaxKind.NamespaceDeclaration)
-                       && kind != SyntaxKind.NameColon
                        && kind != SyntaxKind.ElementAccessExpression
                        && (n.Parent?.Kind() != SyntaxKind.InvocationExpression || n != ((InvocationExpressionSyntax)n.Parent).Expression);
             });
@@ -505,8 +504,8 @@ namespace osu.Framework.Testing
 
             if (expansions.Count > 1)
             {
-                var q1 = getMedian(expansions.Take(expansions.Count / 2).ToList(), out var q1Centre);
-                var q3 = getMedian(expansions.Skip((int)Math.Ceiling(expansions.Count / 2f)).ToList(), out _);
+                ulong q1 = getMedian(expansions.Take(expansions.Count / 2).ToList(), out int q1Centre);
+                ulong q3 = getMedian(expansions.Skip((int)Math.Ceiling(expansions.Count / 2f)).ToList(), out _);
 
                 rightBound = q3 + 3 * (q3 - q1);
 
@@ -555,7 +554,7 @@ namespace osu.Framework.Testing
 
         private bool typeInheritsFromGame(TypeReference reference)
         {
-            if (typeInheritsFromGameCache.TryGetValue(reference, out var existing))
+            if (typeInheritsFromGameCache.TryGetValue(reference, out bool existing))
                 return existing;
 
             // When used via a nuget package, the local type name seems to always be more qualified than the symbol's type name.
@@ -625,7 +624,7 @@ namespace osu.Framework.Testing
         /// <returns>The <see cref="Project"/> containing the currently-executing test.</returns>
         private Project findTestProject()
         {
-            var executingAssembly = Assembly.GetEntryAssembly()?.GetName().Name;
+            string executingAssembly = Assembly.GetEntryAssembly()?.GetName().Name;
             return solution.Projects.FirstOrDefault(p => p.AssemblyName == executingAssembly);
         }
 

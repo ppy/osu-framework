@@ -15,5 +15,7 @@ namespace osu.Framework.Bindables
             : base(value)
         {
         }
+
+        protected override Bindable<MarginPadding> CreateInstance() => new BindableSafeArea();
     }
 }

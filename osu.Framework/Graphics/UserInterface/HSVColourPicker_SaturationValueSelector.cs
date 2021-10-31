@@ -1,10 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Utils;
 using osuTK;
@@ -40,8 +44,8 @@ namespace osu.Framework.Graphics.UserInterface
             /// </summary>
             protected Container SelectionArea { get; }
 
-            private readonly Box hueBox;
             private readonly Drawable marker;
+            private readonly SaturationBox box;
 
             protected SaturationValueSelector()
             {
@@ -52,26 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
                     SelectionArea = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new[]
-                        {
-                            hueBox = new Box
-                            {
-                                Name = "Hue",
-                                RelativeSizeAxes = Axes.Both
-                            },
-                            new Box
-                            {
-                                Name = "Saturation",
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = ColourInfo.GradientHorizontal(Colour4.White, Colour4.White.Opacity(0))
-                            },
-                            new Box
-                            {
-                                Name = "Value",
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = ColourInfo.GradientVertical(Colour4.Black.Opacity(0), Colour4.Black)
-                            },
-                        }
+                        Child = box = new SaturationBox()
                     },
                     marker = CreateMarker().With(d =>
                     {
@@ -92,11 +77,14 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 base.LoadComplete();
 
-                Current.BindValueChanged(_ => currentChanged(), true);
+                // the following handlers aren't fired immediately to avoid mutating Current by accident when ran prematurely.
+                // if necessary, they will run when the Current value change callback fires at the end of this method.
+                Hue.BindValueChanged(_ => debounce(hueChanged));
+                Saturation.BindValueChanged(_ => debounce(saturationChanged));
+                Value.BindValueChanged(_ => debounce(valueChanged));
 
-                Hue.BindValueChanged(_ => hueChanged(), true);
-                Saturation.BindValueChanged(_ => saturationChanged(), true);
-                Value.BindValueChanged(_ => valueChanged(), true);
+                // Current takes precedence over HSV controls, and as such it must run last after HSV handlers have been set up for correct operation.
+                Current.BindValueChanged(_ => currentChanged(), true);
             }
 
             // As Current and {Hue,Saturation,Value} are mutually bound together,
@@ -105,6 +93,23 @@ namespace osu.Framework.Graphics.UserInterface
             // To prevent this, this flag is set on every original change on each of the four bindables,
             // and any subsequent value change callbacks are supposed to not mutate any of those bindables further if the flag is set.
             private bool changeInProgress;
+
+            private void debounce(Action updateFunc)
+            {
+                if (changeInProgress)
+                {
+                    // if changeInProgress is set, it means that this call is triggered by Current changing.
+                    // the update cannot be scheduled, because due to floating-point / HSV-to-RGB conversion foibles it could potentially slightly change Current again in the next frame.
+                    // running immediately is fine, however, as updateCurrent() guards against that by checking changeInProgress itself.
+                    updateFunc.Invoke();
+                }
+                else
+                {
+                    // if changeInProgress is not set, it means that this call is triggered by actual user input on the hue/saturation/value controls.
+                    // as such it can be debounced to reduce the amount of performed work.
+                    Scheduler.AddOnce(updateFunc);
+                }
+            }
 
             private void currentChanged()
             {
@@ -139,7 +144,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             private void hueChanged()
             {
-                hueBox.Colour = Colour4.FromHSV(Hue.Value, 1, 1);
+                box.Hue = Hue.Value;
                 updateCurrent();
             }
 
@@ -198,6 +203,64 @@ namespace osu.Framework.Graphics.UserInterface
             protected abstract class Marker : CompositeDrawable
             {
                 public IBindable<Colour4> Current { get; } = new Bindable<Colour4>();
+            }
+
+            private class SaturationBox : Box, ITexturedShaderDrawable
+            {
+                public new IShader TextureShader { get; private set; }
+                public new IShader RoundedTextureShader { get; private set; }
+
+                private float hue;
+
+                public float Hue
+                {
+                    get => hue;
+                    set
+                    {
+                        if (hue == value) return;
+
+                        hue = value;
+                        Invalidate(Invalidation.DrawNode);
+                    }
+                }
+
+                public SaturationBox()
+                {
+                    RelativeSizeAxes = Axes.Both;
+                }
+
+                [BackgroundDependencyLoader]
+                private void load(ShaderManager shaders)
+                {
+                    TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackground");
+                    RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, "SaturationSelectorBackgroundRounded");
+                }
+
+                protected override DrawNode CreateDrawNode() => new SaturationBoxDrawNode(this);
+
+                private class SaturationBoxDrawNode : SpriteDrawNode
+                {
+                    public new SaturationBox Source => (SaturationBox)base.Source;
+
+                    public SaturationBoxDrawNode(SaturationBox source)
+                        : base(source)
+                    {
+                    }
+
+                    private float hue;
+
+                    public override void ApplyState()
+                    {
+                        base.ApplyState();
+                        hue = Source.hue;
+                    }
+
+                    protected override void Blit(Action<TexturedVertex2D> vertexAction)
+                    {
+                        Shader.GetUniform<float>("hue").UpdateValue(ref hue);
+                        base.Blit(vertexAction);
+                    }
+                }
             }
         }
     }

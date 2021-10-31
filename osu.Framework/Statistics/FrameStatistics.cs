@@ -11,6 +11,7 @@ namespace osu.Framework.Statistics
         internal readonly Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>(NUM_STATISTICS_COUNTER_TYPES);
         internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>(NUM_STATISTICS_COUNTER_TYPES);
         internal readonly List<int> GarbageCollections = new List<int>();
+        public double FramesPerSecond { get; set; }
 
         internal static readonly int NUM_STATISTICS_COUNTER_TYPES = Enum.GetValues(typeof(StatisticsCounterType)).Length;
         internal static readonly int NUM_PERFORMANCE_COLLECTION_TYPES = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
@@ -22,6 +23,7 @@ namespace osu.Framework.Statistics
             CollectedTimes.Clear();
             GarbageCollections.Clear();
             Counts.Clear();
+            FramesPerSecond = 0;
         }
 
         internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
@@ -71,6 +73,7 @@ namespace osu.Framework.Statistics
         Samples,
         SChannels,
         Components,
+        MixChannels,
 
         MouseEvents,
         KeyEvents,

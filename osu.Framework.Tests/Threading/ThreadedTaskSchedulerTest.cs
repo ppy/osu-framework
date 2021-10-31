@@ -22,7 +22,9 @@ namespace osu.Framework.Tests.Threading
 
             const int target_count = 128;
 
-            using (var taskScheduler = new ThreadedTaskScheduler(4, "test"))
+            var taskScheduler = new ThreadedTaskScheduler(4, "test");
+
+            using (taskScheduler)
             {
                 for (int i = 0; i < target_count; i++)
                 {
@@ -33,6 +35,9 @@ namespace osu.Framework.Tests.Threading
                     }, default, TaskCreationOptions.HideScheduler, taskScheduler);
                 }
             }
+
+            // test against double disposal crashes.
+            taskScheduler.Dispose();
 
             Assert.AreEqual(target_count, runCount);
         }
