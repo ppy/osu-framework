@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -579,6 +580,49 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
             AddStep("delete last character", () => InputManager.Keys(PlatformAction.DeleteBackwardChar));
             AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
+        }
+
+        [Test]
+        public void TestValueCorrectionViaCurrent()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () => textBoxes.AddRange(new[]
+            {
+                textBox = new InsertableTextBox
+                {
+                    Text = "24",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                },
+            }));
+
+            AddStep("register current callback", () => textBox.Current.BindValueChanged(text =>
+            {
+                if (string.IsNullOrEmpty(text.NewValue))
+                    return;
+
+                if (!int.TryParse(text.NewValue, out int value) || value > 100)
+                    textBox.Current.Value = "0";
+            }));
+
+            AddStep("click textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("insert digit", () => textBox.InsertString("9"));
+            AddUntilStep("textbox value is 0", () => textBox.Current.Value == "0");
+            AddUntilStep("caret is in correct position", () =>
+            {
+                var spriteText = textBox.ChildrenOfType<SpriteText>().SingleOrDefault(text => text.Text == "0");
+                var caret = textBox.ChildrenOfType<Caret>().Single();
+
+                return spriteText != null && Precision.AlmostEquals(
+                    spriteText.ScreenSpaceDrawQuad.TopRight.X,
+                    caret.ScreenSpaceDrawQuad.TopLeft.X,
+                    5f);
+            });
         }
 
         private void prependString(InsertableTextBox textBox, string text)
