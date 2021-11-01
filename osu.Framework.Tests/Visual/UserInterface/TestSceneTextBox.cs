@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
@@ -579,6 +580,102 @@ namespace osu.Framework.Tests.Visual.UserInterface
             AddAssert("first textbox yielded focus", () => !firstTextBox.HasFocus);
             AddStep("delete last character", () => InputManager.Keys(PlatformAction.DeleteBackwardChar));
             AddAssert("no text removed", () => firstTextBox.Text == "Readonly textbox");
+        }
+
+        [Test]
+        public void TestValueCorrectionViaCurrent()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add textbox", () => textBoxes.AddRange(new[]
+            {
+                textBox = new InsertableTextBox
+                {
+                    Text = "24",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                },
+            }));
+
+            AddStep("register current callback", () => textBox.Current.BindValueChanged(text =>
+            {
+                if (string.IsNullOrEmpty(text.NewValue))
+                    return;
+
+                if (!int.TryParse(text.NewValue, out int value) || value > 100)
+                    textBox.Current.Value = "0";
+            }));
+
+            AddStep("click textbox", () =>
+            {
+                InputManager.MoveMouseTo(textBox);
+                InputManager.Click(MouseButton.Left);
+            });
+            AddStep("insert digit", () => textBox.InsertString("9"));
+            AddUntilStep("textbox value is 0", () => textBox.Current.Value == "0");
+            AddUntilStep("caret is in correct position", () =>
+            {
+                var spriteText = textBox.ChildrenOfType<SpriteText>().SingleOrDefault(text => text.Text == "0");
+                var caret = textBox.ChildrenOfType<Caret>().Single();
+
+                return spriteText != null && Precision.AlmostEquals(
+                    spriteText.ScreenSpaceDrawQuad.TopRight.X,
+                    caret.ScreenSpaceDrawQuad.TopLeft.X,
+                    5f);
+            });
+        }
+
+        [Test]
+        public void TestInputOverride()
+        {
+            InsertableTextBox overrideInputBox = null;
+
+            AddStep("add override textbox", () =>
+            {
+                textBoxes.Add(overrideInputBox = new InsertableTextBox
+                {
+                    Text = @"Override input textbox",
+                    Size = new Vector2(500, 30),
+                    TabbableContentContainer = textBoxes
+                });
+                overrideInputBox.Current.BindValueChanged(vce =>
+                {
+                    if (vce.NewValue != @"Input overridden!")
+                        overrideInputBox.Current.Value = @"Input overridden!";
+                });
+            });
+
+            AddStep(@"set some text", () => overrideInputBox.Text = "smth");
+            AddAssert(@"verify display state", () => overrideInputBox.FlowingText == "Input overridden!");
+        }
+
+        [Test]
+        public void TestDisableAndSetText()
+        {
+            InsertableTextBox textBox = null;
+
+            AddStep("add text box", () =>
+            {
+                textBoxes.Add(textBox = new InsertableTextBox
+                {
+                    Size = new Vector2(200, 40),
+                    Text = "hello"
+                });
+            });
+            AddAssert("text is hello", () => textBox.Text == "hello");
+
+            AddStep("set new text and disable", () =>
+            {
+                textBox.Text = "goodbye";
+                textBox.Current.Disabled = true;
+            });
+            AddAssert("text is goodbye", () => textBox.Text == "goodbye");
+
+            AddStep("attempt to set text", () => textBox.Text = "change!");
+            AddAssert("text is unchanged", () => textBox.Text == "goodbye");
+
+            AddStep("attempt to insert text", () => textBox.InsertString("maybe this way?"));
+            AddAssert("text is unchanged", () => textBox.Text == "goodbye");
         }
 
         private void prependString(InsertableTextBox textBox, string text)
