@@ -35,6 +35,29 @@ namespace osu.Framework.Localisation
         }
 
         /// <summary>
+        /// Returns the appropriate <see cref="string"/> value for a <see cref="LocalisableString"/> given the currently valid <see cref="LocalisationParameters"/>.
+        /// </summary>
+        /// <remarks>
+        /// The returned value is only valid until the next change to <see cref="CurrentParameters"/>.
+        /// To facilitate tracking changes to the localised value across <see cref="CurrentParameters"/> changes, use <see cref="GetLocalisedBindableString"/>
+        /// and subscribe to its <see cref="Bindable{T}.ValueChanged"/> instead.
+        /// </remarks>
+        internal string GetLocalisedString(LocalisableString text)
+        {
+            switch (text.Data)
+            {
+                case string plain:
+                    return plain;
+
+                case ILocalisableStringData data:
+                    return data.GetLocalised(currentParameters.Value);
+
+                default:
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Creates an <see cref="ILocalisedBindableString"/> which automatically updates its text according to information provided in <see cref="ILocalisedBindableString.Text"/>.
         /// </summary>
         /// <returns>The <see cref="ILocalisedBindableString"/>.</returns>
