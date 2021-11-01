@@ -15,7 +15,6 @@ namespace osu.Framework.Graphics.Containers
     {
         public IEnumerable<Drawable> Drawables { get; }
         public event Action<IEnumerable<Drawable>> DrawablePartsRecreated;
-        public event Action ContentChanged;
 
         private readonly List<Drawable> drawables = new List<Drawable>();
 
@@ -36,11 +35,5 @@ namespace osu.Framework.Graphics.Containers
         /// to be appended to the <paramref name="textFlowContainer"/>.
         /// </summary>
         protected abstract IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer);
-
-        /// <summary>
-        /// Raises <see cref="ContentChanged"/>, signalling to the parent <see cref="TextFlowContainer"/>
-        /// that the contents of this part have changed.
-        /// </summary>
-        protected void RaiseContentChanged() => ContentChanged?.Invoke();
     }
 }

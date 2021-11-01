@@ -23,21 +23,6 @@ namespace osu.Framework.Graphics.Containers
         private readonly Func<TSpriteText> creationFunc;
         private readonly Action<TSpriteText>? creationParameters;
 
-        private ILocalisedBindableString? currentBacking;
-
-        private ILocalisedBindableString? current
-        {
-            get => currentBacking;
-            set
-            {
-                if (value == null)
-                    return;
-
-                currentBacking = value;
-                currentBacking.BindValueChanged(_ => RaiseContentChanged());
-            }
-        }
-
         public TextChunk(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText>? creationParameters = null)
         {
             this.text = text;
@@ -48,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
         {
-            current ??= textFlowContainer.Localisation?.GetLocalisedBindableString(text);
+            string currentContent = textFlowContainer.Localisation?.GetLocalisedString(text) ?? text.ToString();
 
             var drawables = new List<Drawable>();
 
@@ -61,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
                 drawables.AddRange(newLine.Drawables);
             }
 
-            drawables.AddRange(CreateDrawablesFor(current?.Value ?? text.ToString(), textFlowContainer));
+            drawables.AddRange(CreateDrawablesFor(currentContent, textFlowContainer));
             return drawables;
         }
 

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
@@ -123,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 Clear();
-                clearParts();
+                parts.Clear();
 
                 AddText(value);
             }
@@ -131,6 +132,8 @@ namespace osu.Framework.Graphics.Containers
 
         [Resolved]
         internal LocalisationManager Localisation { get; private set; }
+
+        private readonly IBindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
@@ -140,7 +143,9 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            recreateAllParts();
+
+            localisationParameters.BindTo(Localisation.CurrentParameters);
+            localisationParameters.BindValueChanged(_ => recreateAllParts(), true);
         }
 
         private void recreateAllParts()
@@ -156,8 +161,6 @@ namespace osu.Framework.Graphics.Containers
             foreach (var part in parts)
                 recreatePart(part);
         }
-
-        private void scheduleRecreateAllParts() => Scheduler.AddOnce(recreateAllParts);
 
         private void recreatePart(ITextPart part)
         {
@@ -320,7 +323,6 @@ namespace osu.Framework.Graphics.Containers
         protected internal ITextPart AddPart(ITextPart part)
         {
             parts.Add(part);
-            part.ContentChanged += scheduleRecreateAllParts;
 
             if (IsLoaded)
                 recreatePart(part);
@@ -337,25 +339,10 @@ namespace osu.Framework.Graphics.Containers
             if (!parts.Remove(partToRemove))
                 return false;
 
-            partToRemove.ContentChanged -= scheduleRecreateAllParts;
-
             if (IsLoaded)
                 recreateAllParts();
 
             return true;
-        }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-            clearParts();
-        }
-
-        private void clearParts()
-        {
-            foreach (var part in parts)
-                part.ContentChanged -= scheduleRecreateAllParts;
-            parts.Clear();
         }
 
         private readonly Cached layout = new Cached();

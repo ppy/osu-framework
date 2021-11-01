@@ -12,12 +12,14 @@ namespace osu.Framework.Localisation
 {
     public partial class LocalisationManager
     {
+        public IBindable<LocalisationParameters> CurrentParameters => currentParameters;
+
+        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
+
         private readonly List<LocaleMapping> locales = new List<LocaleMapping>();
 
         private readonly Bindable<string> configLocale = new Bindable<string>();
         private readonly Bindable<bool> configPreferUnicode = new BindableBool();
-
-        private readonly Bindable<LocalisationParameters> currentParameters = new Bindable<LocalisationParameters>(new LocalisationParameters(null, false));
 
         public LocalisationManager(FrameworkConfigManager config)
         {
