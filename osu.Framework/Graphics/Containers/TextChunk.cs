@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
         {
-            current ??= textFlowContainer.Localisation?.GetLocalisedString(text);
+            current ??= textFlowContainer.Localisation?.GetLocalisedBindableString(text);
 
             var drawables = new List<Drawable>();
 
