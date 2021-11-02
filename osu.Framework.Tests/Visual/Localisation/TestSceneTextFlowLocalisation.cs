@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -42,6 +43,8 @@ namespace osu.Framework.Tests.Visual.Localisation
         private const string rank_default = "{0} achieved rank #{1} on {2} ({3})";
         private const string rank_lost_default = "{0} has lost first place on {1} ({2})";
 
+        private const string simple = "simple";
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -49,19 +52,22 @@ namespace osu.Framework.Tests.Visual.Localisation
             manager.AddLanguage("en", new TestLocalisationStore("en", new Dictionary<string, string>
             {
                 [rank] = rank_default,
-                [rank_lost] = rank_lost_default
+                [rank_lost] = rank_lost_default,
+                [simple] = "simple english",
             }));
 
             manager.AddLanguage("fr", new TestLocalisationStore("fr", new Dictionary<string, string>
             {
                 [rank] = "{0} a atteint le rang #{1} sur {2} ({3})",
-                [rank_lost] = "{0} a perdu la première place sur {1} ({2})"
+                [rank_lost] = "{0} a perdu la première place sur {1} ({2})",
+                [simple] = "simple french",
             }));
 
             manager.AddLanguage("tr", new TestLocalisationStore("tr", new Dictionary<string, string>
             {
                 [rank] = "{0} {2} ({3}) beatmapinde #{1} sıralamaya ulaştı",
-                [rank_lost] = "{0} {1} ({2}) beatmapinde birinciliği kaybetti"
+                [rank_lost] = "{0} {1} ({2}) beatmapinde birinciliği kaybetti",
+                [simple] = "simple turkish",
             }));
         }
 
@@ -122,6 +128,109 @@ namespace osu.Framework.Tests.Visual.Localisation
                 if (textFlowParent != null)
                     textFlowParent.Width = width;
             });
+        }
+
+        [Test]
+        public void TestChangeLocalisationBeforeAsyncLoad()
+        {
+            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+
+            TextFlowContainer textFlowContainer = null;
+            ITextPart textPart = null;
+
+            AddStep("create text flow", () =>
+            {
+                textFlowContainer = new TextFlowContainer(text => text.Font = FrameworkFont.Condensed)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
+                };
+            });
+
+            AddStep("Add text", () => textPart = textFlowContainer.AddText(new TranslatableString(simple, "fallback")));
+
+            AddStep("Add text flow to hierarchy", () => Child = textFlowContainer);
+
+            AddAssert("Ensure parts are correct", () =>
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "english"
+            );
+        }
+
+        [Test]
+        public void TestChangeLocalisationAfterAsyncLoad()
+        {
+            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+
+            TextFlowContainer textFlowContainer = null;
+            ITextPart textPart = null;
+
+            AddStep("create text flow", () =>
+            {
+                textFlowContainer = new TextFlowContainer(text => text.Font = FrameworkFont.Condensed)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
+                };
+            });
+
+            AddStep("Add text", () => textPart = textFlowContainer.AddText(new TranslatableString(simple, "fallback")));
+
+            AddStep("Load async ahead of time", () => LoadComponent(textFlowContainer));
+
+            // Parts are created eagerly during async load to alleviate synchronous overhead.
+            AddAssert("Ensure parts are correct", () =>
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "english");
+
+            AddStep("change locale to fr", () => configManager.SetValue(FrameworkSetting.Locale, "fr"));
+
+            AddStep("Add text flow to hierarchy", () => Child = textFlowContainer);
+
+            AddAssert("Ensure parts are correct", () =>
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "french"
+            );
+        }
+
+        [Test]
+        public void TestChangeLocalisationBeforeAfterLoadComplete()
+        {
+            AddStep("change locale to en", () => configManager.SetValue(FrameworkSetting.Locale, "en"));
+
+            TextFlowContainer textFlowContainer = null;
+            ITextPart textPart = null;
+
+            AddStep("create text flow", () =>
+            {
+                textFlowContainer = new TextFlowContainer(text => text.Font = FrameworkFont.Condensed)
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
+                };
+            });
+
+            AddStep("Add text", () => textPart = textFlowContainer.AddText(new TranslatableString(simple, "fallback")));
+
+            AddStep("Add text flow to hierarchy", () => Child = textFlowContainer);
+
+            // Parts are created eagerly during async load to alleviate synchronous overhead.
+            AddAssert("Ensure parts are correct", () =>
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "english");
+
+            AddStep("change locale to fr", () => configManager.SetValue(FrameworkSetting.Locale, "fr"));
+
+            AddAssert("Ensure parts are correct", () =>
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(0)?.Text == "simple " &&
+                textPart.Drawables.OfType<SpriteText>().ElementAtOrDefault(1)?.Text == "french"
+            );
         }
 
         private class TestLocalisationStore : ILocalisationStore
