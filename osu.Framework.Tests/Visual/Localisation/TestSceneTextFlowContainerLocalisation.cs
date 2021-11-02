@@ -20,7 +20,7 @@ using osu.Framework.Localisation;
 namespace osu.Framework.Tests.Visual.Localisation
 {
     [TestFixture]
-    public class TestSceneTextFlowLocalisation : FrameworkTestScene
+    public class TestSceneTextFlowContainerLocalisation : FrameworkTestScene
     {
         private FrameworkConfigManager configManager { get; set; }
 
