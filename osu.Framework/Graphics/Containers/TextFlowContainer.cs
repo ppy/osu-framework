@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var manualPart in parts.OfType<TextPartManual>())
                 RemoveRange(manualPart.Drawables);
 
-            // make sure not to clear the list of parts on accident.
+            // make sure not to clear the list of parts by accident.
             base.Clear(true);
 
             foreach (var part in parts)
