@@ -24,6 +24,8 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly List<ITextPart> parts = new List<ITextPart>();
 
+        private readonly Cached partsCache = new Cached();
+
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
         /// </summary>
@@ -152,35 +154,22 @@ namespace osu.Framework.Graphics.Containers
         {
             base.LoadComplete();
 
-            localisationParameters.BindValueChanged(_ => recreateAllParts());
+            localisationParameters.BindValueChanged(_ => partsCache.Invalidate());
             ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
-        }
-
-        private void recreateAllParts()
-        {
-            // manual parts need to be manually removed before clearing contents,
-            // to avoid accidentally disposing of them in the process.
-            foreach (var manualPart in parts.OfType<TextPartManual>())
-                RemoveRange(manualPart.Drawables);
-
-            // make sure not to clear the list of parts by accident.
-            base.Clear(true);
-
-            foreach (var part in parts)
-                recreatePart(part);
-        }
-
-        private void recreatePart(ITextPart part)
-        {
-            part.RecreateDrawablesFor(this);
-            foreach (var drawable in part.Drawables)
-                base.Add(drawable);
         }
 
         protected override void InvalidateLayout()
         {
             base.InvalidateLayout();
             layout.Invalidate();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!partsCache.IsValid)
+                recreateAllParts();
         }
 
         public override IEnumerable<Drawable> FlowingChildren
@@ -199,32 +188,6 @@ namespace osu.Framework.Graphics.Containers
 
                 return childArray;
             }
-        }
-
-        private void reverseHorizontal(Drawable[] children)
-        {
-            int reverseStartIndex = 0;
-
-            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
-            for (int i = 0; i < children.Length; i++)
-            {
-                if (!(children[i] is NewLineContainer))
-                    continue;
-
-                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
-                reverseStartIndex = i + 1;
-            }
-
-            // Extra loop for the last newline boundary (or all children if there are no newlines)
-            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
-        }
-
-        private void reverseVertical(Drawable[] children)
-        {
-            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
-            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
-            Array.Reverse(children);
-            reverseHorizontal(children);
         }
 
         protected override void UpdateAfterChildren()
@@ -332,7 +295,8 @@ namespace osu.Framework.Graphics.Containers
         {
             parts.Add(part);
 
-            if (IsLoaded)
+            // if the parts cached is already invalid, there's no need to recreate the new addition. it will be created as part of the next validation.
+            if (partsCache.IsValid)
                 recreatePart(part);
 
             return part;
@@ -347,10 +311,57 @@ namespace osu.Framework.Graphics.Containers
             if (!parts.Remove(partToRemove))
                 return false;
 
-            if (IsLoaded)
-                recreateAllParts();
-
+            partsCache.Invalidate();
             return true;
+        }
+
+        private void recreateAllParts()
+        {
+            // manual parts need to be manually removed before clearing contents,
+            // to avoid accidentally disposing of them in the process.
+            foreach (var manualPart in parts.OfType<TextPartManual>())
+                RemoveRange(manualPart.Drawables);
+
+            // make sure not to clear the list of parts by accident.
+            base.Clear(true);
+
+            foreach (var part in parts)
+                recreatePart(part);
+
+            partsCache.Validate();
+        }
+
+        private void recreatePart(ITextPart part)
+        {
+            part.RecreateDrawablesFor(this);
+            foreach (var drawable in part.Drawables)
+                base.Add(drawable);
+        }
+
+        private void reverseHorizontal(Drawable[] children)
+        {
+            int reverseStartIndex = 0;
+
+            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (!(children[i] is NewLineContainer))
+                    continue;
+
+                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
+                reverseStartIndex = i + 1;
+            }
+
+            // Extra loop for the last newline boundary (or all children if there are no newlines)
+            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
+        }
+
+        private void reverseVertical(Drawable[] children)
+        {
+            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
+            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
+            Array.Reverse(children);
+            reverseHorizontal(children);
         }
 
         private readonly Cached layout = new Cached();
