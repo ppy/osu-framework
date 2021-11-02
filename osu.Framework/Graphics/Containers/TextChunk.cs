@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -15,12 +18,12 @@ namespace osu.Framework.Graphics.Containers
     public class TextChunk<TSpriteText> : TextPart
         where TSpriteText : SpriteText, new()
     {
-        private readonly string text;
+        private readonly LocalisableString text;
         private readonly bool newLineIsParagraph;
         private readonly Func<TSpriteText> creationFunc;
-        private readonly Action<TSpriteText> creationParameters;
+        private readonly Action<TSpriteText>? creationParameters;
 
-        public TextChunk(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        public TextChunk(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText>? creationParameters = null)
         {
             this.text = text;
             this.newLineIsParagraph = newLineIsParagraph;
@@ -30,15 +33,21 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Drawable> CreateDrawablesFor(TextFlowContainer textFlowContainer)
         {
+            string currentContent = textFlowContainer.Localisation?.GetLocalisedString(text) ?? text.ToString();
+
+            var drawables = new List<Drawable>();
+
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
             if (!newLineIsParagraph)
             {
                 var newLine = new TextNewLine(true);
-                textFlowContainer.AddPart(newLine);
+                newLine.RecreateDrawablesFor(textFlowContainer);
+                drawables.AddRange(newLine.Drawables);
             }
 
-            return CreateDrawablesFor(text, textFlowContainer);
+            drawables.AddRange(CreateDrawablesFor(currentContent, textFlowContainer));
+            return drawables;
         }
 
         protected virtual IEnumerable<Drawable> CreateDrawablesFor(string text, TextFlowContainer textFlowContainer)
@@ -50,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!first)
                 {
-                    Drawable lastChild = sprites.LastOrDefault() ?? textFlowContainer.Children.LastOrDefault();
+                    Drawable? lastChild = sprites.LastOrDefault() ?? textFlowContainer.Children.LastOrDefault();
 
                     if (lastChild != null)
                     {
