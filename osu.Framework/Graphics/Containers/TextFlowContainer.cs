@@ -133,19 +133,27 @@ namespace osu.Framework.Graphics.Containers
         [Resolved]
         internal LocalisationManager Localisation { get; private set; }
 
-        private readonly IBindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
+        private readonly Bindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
             this.defaultCreationParameters = defaultCreationParameters;
         }
 
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            localisationParameters.Value = Localisation.CurrentParameters.Value;
+            recreateAllParts();
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            localisationParameters.BindTo(Localisation.CurrentParameters);
-            localisationParameters.BindValueChanged(_ => recreateAllParts(), true);
+            localisationParameters.BindValueChanged(_ => recreateAllParts());
+            ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
         }
 
         private void recreateAllParts()
