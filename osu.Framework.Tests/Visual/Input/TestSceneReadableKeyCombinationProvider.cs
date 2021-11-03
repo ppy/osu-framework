@@ -71,7 +71,7 @@ namespace osu.Framework.Tests.Visual.Input
                     Direction = FillDirection.Horizontal,
                 };
 
-                var keyWidth = 1f / row.Length;
+                float keyWidth = 1f / row.Length;
 
                 foreach (var key in row)
                 {
@@ -139,7 +139,7 @@ namespace osu.Framework.Tests.Visual.Input
 
             private void updateText()
             {
-                var newText = readableKeyCombinationProvider.GetReadableString(keyCombination);
+                string newText = readableKeyCombinationProvider.GetReadableString(keyCombination);
 
                 if (text.Text != newText)
                 {
