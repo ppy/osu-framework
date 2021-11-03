@@ -449,7 +449,7 @@ namespace osu.Framework.Platform.SDL2
         /// Returns the corresponding <see cref="SDL.SDL_Scancode"/> for a given <see cref="InputKey"/>.
         /// </summary>
         /// <param name="inputKey">
-        /// Should be within <see cref="InputKey.A"/> and <see cref="InputKey.NonUSBackSlash"/>.
+        /// Should be a keyboard key.
         /// </param>
         /// <returns>
         /// The corresponding <see cref="SDL.SDL_Scancode"/> if the <see cref="InputKey"/> is valid.
@@ -460,7 +460,209 @@ namespace osu.Framework.Platform.SDL2
             switch (inputKey)
             {
                 default:
+                case InputKey.Shift:
+                case InputKey.Control:
+                case InputKey.Alt:
+                case InputKey.Super:
+                case InputKey.F25:
+                case InputKey.F26:
+                case InputKey.F27:
+                case InputKey.F28:
+                case InputKey.F29:
+                case InputKey.F30:
+                case InputKey.F31:
+                case InputKey.F32:
+                case InputKey.F33:
+                case InputKey.F34:
+                case InputKey.F35:
+                case InputKey.Clear:
                     return SDL.SDL_Scancode.SDL_SCANCODE_UNKNOWN;
+
+                case InputKey.Menu:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_MENU;
+
+                case InputKey.F1:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F1;
+
+                case InputKey.F2:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F2;
+
+                case InputKey.F3:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F3;
+
+                case InputKey.F4:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F4;
+
+                case InputKey.F5:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F5;
+
+                case InputKey.F6:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F6;
+
+                case InputKey.F7:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F7;
+
+                case InputKey.F8:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F8;
+
+                case InputKey.F9:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F9;
+
+                case InputKey.F10:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F10;
+
+                case InputKey.F11:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F11;
+
+                case InputKey.F12:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F12;
+
+                case InputKey.F13:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F13;
+
+                case InputKey.F14:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F14;
+
+                case InputKey.F15:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F15;
+
+                case InputKey.F16:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F16;
+
+                case InputKey.F17:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F17;
+
+                case InputKey.F18:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F18;
+
+                case InputKey.F19:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F19;
+
+                case InputKey.F20:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F20;
+
+                case InputKey.F21:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F21;
+
+                case InputKey.F22:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F22;
+
+                case InputKey.F23:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F23;
+
+                case InputKey.F24:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_F24;
+
+                case InputKey.Up:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_UP;
+
+                case InputKey.Down:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_DOWN;
+
+                case InputKey.Left:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_LEFT;
+
+                case InputKey.Right:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RIGHT;
+
+                case InputKey.Enter:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RETURN;
+
+                case InputKey.Escape:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_ESCAPE;
+
+                case InputKey.Space:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_SPACE;
+
+                case InputKey.Tab:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_TAB;
+
+                case InputKey.BackSpace:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_BACKSPACE;
+
+                case InputKey.Insert:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_INSERT;
+
+                case InputKey.Delete:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_DELETE;
+
+                case InputKey.PageUp:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_PAGEUP;
+
+                case InputKey.PageDown:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_PAGEDOWN;
+
+                case InputKey.Home:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_HOME;
+
+                case InputKey.End:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_END;
+
+                case InputKey.CapsLock:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_CAPSLOCK;
+
+                case InputKey.ScrollLock:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_SCROLLLOCK;
+
+                case InputKey.PrintScreen:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_PRINTSCREEN;
+
+                case InputKey.Pause:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_PAUSE;
+
+                case InputKey.NumLock:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_NUMLOCKCLEAR;
+
+                case InputKey.Sleep:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_SLEEP;
+
+                case InputKey.Keypad0:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_0;
+
+                case InputKey.Keypad1:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_1;
+
+                case InputKey.Keypad2:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_2;
+
+                case InputKey.Keypad3:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_3;
+
+                case InputKey.Keypad4:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_4;
+
+                case InputKey.Keypad5:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_5;
+
+                case InputKey.Keypad6:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_6;
+
+                case InputKey.Keypad7:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_7;
+
+                case InputKey.Keypad8:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_8;
+
+                case InputKey.Keypad9:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_9;
+
+                case InputKey.KeypadDivide:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_DIVIDE;
+
+                case InputKey.KeypadMultiply:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_MULTIPLY;
+
+                case InputKey.KeypadMinus:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_MINUS;
+
+                case InputKey.KeypadPlus:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_PLUS;
+
+                case InputKey.KeypadPeriod:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_PERIOD;
+
+                case InputKey.KeypadEnter:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_KP_ENTER;
 
                 case InputKey.A:
                     return SDL.SDL_Scancode.SDL_SCANCODE_A;
@@ -605,6 +807,51 @@ namespace osu.Framework.Platform.SDL2
 
                 case InputKey.NonUSBackSlash:
                     return SDL.SDL_Scancode.SDL_SCANCODE_NONUSBACKSLASH;
+
+                case InputKey.Mute:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_AUDIOMUTE;
+
+                case InputKey.PlayPause:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_AUDIOPLAY;
+
+                case InputKey.Stop:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_AUDIOSTOP;
+
+                case InputKey.VolumeUp:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_VOLUMEUP;
+
+                case InputKey.VolumeDown:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_VOLUMEDOWN;
+
+                case InputKey.TrackPrevious:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_AUDIOPREV;
+
+                case InputKey.TrackNext:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_AUDIONEXT;
+
+                case InputKey.LShift:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_LSHIFT;
+
+                case InputKey.RShift:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RSHIFT;
+
+                case InputKey.LControl:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_LCTRL;
+
+                case InputKey.RControl:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RCTRL;
+
+                case InputKey.LAlt:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_LALT;
+
+                case InputKey.RAlt:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RALT;
+
+                case InputKey.LSuper:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_LGUI;
+
+                case InputKey.RSuper:
+                    return SDL.SDL_Scancode.SDL_SCANCODE_RGUI;
             }
         }
 
