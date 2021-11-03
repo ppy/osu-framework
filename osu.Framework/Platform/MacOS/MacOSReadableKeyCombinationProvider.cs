@@ -3,35 +3,34 @@
 
 using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
+using SDL2;
 
 namespace osu.Framework.Platform.MacOS
 {
     public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
-        protected override string GetReadableKey(InputKey key)
+        protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
         {
-            switch (key)
+            switch (keycode)
             {
-                case InputKey.Super:
-                    return "Cmd";
+                case SDL.SDL_Keycode.SDLK_LGUI:
+                    name = "LCmd";
+                    return true;
 
-                case InputKey.LSuper:
-                    return "LCmd";
+                case SDL.SDL_Keycode.SDLK_RGUI:
+                    name = "RCmd";
+                    return true;
 
-                case InputKey.RSuper:
-                    return "RCmd";
+                case SDL.SDL_Keycode.SDLK_LALT:
+                    name = "LOption";
+                    return true;
 
-                case InputKey.Alt:
-                    return "Option";
-
-                case InputKey.LAlt:
-                    return "LOption";
-
-                case InputKey.RAlt:
-                    return "ROption";
+                case SDL.SDL_Keycode.SDLK_RALT:
+                    name = "ROption";
+                    return true;
 
                 default:
-                    return base.GetReadableKey(key);
+                    return base.TryGetNameFromKeycode(keycode, out name);
             }
         }
     }

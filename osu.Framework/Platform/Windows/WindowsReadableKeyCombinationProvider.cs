@@ -5,20 +5,20 @@ using osu.Framework.Input.Bindings;
 using osu.Framework.Platform.SDL2;
 using SDL2;
 
-namespace osu.Framework.Platform.Linux
+namespace osu.Framework.Platform.Windows
 {
-    public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
+    public class WindowsReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
         protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
         {
             switch (keycode)
             {
                 case SDL.SDL_Keycode.SDLK_LGUI:
-                    name = "LSuper";
+                    name = "LWin";
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_RGUI:
-                    name = "RSuper";
+                    name = "RWin";
                     return true;
 
                 default:
