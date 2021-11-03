@@ -85,16 +85,20 @@ namespace osu.Framework.Platform
 
         public override ITextInputSource GetTextInput()
         {
-            if (Window == null)
-                return null;
+            switch (Window)
+            {
+                case null:
+                    return null;
 
-            if (Window is SDL2DesktopWindow)
-                return new SDL2DesktopWindowTextInput(Window as SDL2DesktopWindow);
+                case SDL2DesktopWindow sdlWindow:
+                    return new SDL2DesktopWindowTextInput(sdlWindow);
 
-            if (Window is OsuTKWindow)
-                return new OsuTKWindowTextInput(Window as OsuTKWindow);
+                case OsuTKWindow osuTKWindow:
+                    return new OsuTKWindowTextInput(osuTKWindow);
 
-            throw new InvalidOperationException($"Unable to create text input source instance from window type {nameof(Window)}");
+                default:
+                    throw new InvalidOperationException($"Unable to create text input source instance from window type {nameof(Window)}");
+            }
         }
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
