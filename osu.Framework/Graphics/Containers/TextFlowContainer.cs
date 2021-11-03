@@ -6,8 +6,11 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -21,10 +24,7 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly List<ITextPart> parts = new List<ITextPart>();
 
-        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
-        {
-            this.defaultCreationParameters = defaultCreationParameters;
-        }
+        private readonly Cached partsCache = new Cached();
 
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
@@ -119,21 +119,57 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// An easy way to set the full text of a text flow in one go.
-        /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
+        /// This will overwrite any existing text added using this method of <see cref="AddText(LocalisableString, Action{SpriteText})"/>
         /// </summary>
-        public string Text
+        public LocalisableString Text
         {
             set
             {
                 Clear();
+                parts.Clear();
+
                 AddText(value);
             }
+        }
+
+        [Resolved]
+        internal LocalisationManager Localisation { get; private set; }
+
+        private readonly Bindable<LocalisationParameters> localisationParameters = new Bindable<LocalisationParameters>();
+
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
+        protected override void LoadAsyncComplete()
+        {
+            base.LoadAsyncComplete();
+
+            localisationParameters.Value = Localisation.CurrentParameters.Value;
+            recreateAllParts();
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            localisationParameters.BindValueChanged(_ => partsCache.Invalidate());
+            ((IBindable<LocalisationParameters>)localisationParameters).BindTo(Localisation.CurrentParameters);
         }
 
         protected override void InvalidateLayout()
         {
             base.InvalidateLayout();
             layout.Invalidate();
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (!partsCache.IsValid)
+                recreateAllParts();
         }
 
         public override IEnumerable<Drawable> FlowingChildren
@@ -152,32 +188,6 @@ namespace osu.Framework.Graphics.Containers
 
                 return childArray;
             }
-        }
-
-        private void reverseHorizontal(Drawable[] children)
-        {
-            int reverseStartIndex = 0;
-
-            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
-            for (int i = 0; i < children.Length; i++)
-            {
-                if (!(children[i] is NewLineContainer))
-                    continue;
-
-                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
-                reverseStartIndex = i + 1;
-            }
-
-            // Extra loop for the last newline boundary (or all children if there are no newlines)
-            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
-        }
-
-        private void reverseVertical(Drawable[] children)
-        {
-            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
-            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
-            Array.Reverse(children);
-            reverseHorizontal(children);
         }
 
         protected override void UpdateAfterChildren()
@@ -203,17 +213,17 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break.
-        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(string, Action{TSpriteText})"/> instead.
+        /// If you need \n to be a line break, use <see cref="AddParagraph{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public ITextPart AddText<TSpriteText>(string text, Action<TSpriteText> creationParameters = null)
+        public ITextPart AddText<TSpriteText>(LocalisableString text, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => AddPart(CreateChunkFor(text, true, () => new TSpriteText(), creationParameters));
 
-        /// <inheritdoc cref="AddText{TSpriteText}(string,System.Action{TSpriteText})"/>
-        public ITextPart AddText(string text, Action<SpriteText> creationParameters = null)
+        /// <inheritdoc cref="AddText{TSpriteText}(LocalisableString,System.Action{TSpriteText})"/>
+        public ITextPart AddText(LocalisableString text, Action<SpriteText> creationParameters = null)
             => AddPart(CreateChunkFor(text, true, CreateSpriteText, creationParameters));
 
         /// <summary>
@@ -233,23 +243,23 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Add a new paragraph to this text flow. The \n character will create a line break
-        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(string, Action{TSpriteText})"/> instead.
+        /// If you need \n to be a new paragraph, not just a line break, use <see cref="AddText{TSpriteText}(LocalisableString, Action{TSpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of <see cref="Drawable" /> objects for each <see cref="SpriteText"/> word and <see cref="NewLineContainer"/> created from the given text.</returns>
         /// <param name="paragraph">The paragraph to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
-        public ITextPart AddParagraph<TSpriteText>(string paragraph, Action<TSpriteText> creationParameters = null)
+        public ITextPart AddParagraph<TSpriteText>(LocalisableString paragraph, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => AddPart(CreateChunkFor(paragraph, false, () => new TSpriteText(), creationParameters));
 
-        /// <inheritdoc cref="AddParagraph{TSpriteText}(string,Action{TSpriteText})"/>
-        public ITextPart AddParagraph(string paragraph, Action<SpriteText> creationParameters = null)
+        /// <inheritdoc cref="AddParagraph{TSpriteText}(LocalisableString,Action{TSpriteText})"/>
+        public ITextPart AddParagraph(LocalisableString paragraph, Action<SpriteText> creationParameters = null)
             => AddPart(CreateChunkFor(paragraph, false, CreateSpriteText, creationParameters));
 
         /// <summary>
         /// Creates an appropriate implementation of <see cref="TextChunk{TSpriteText}"/> for this text flow container type.
         /// </summary>
-        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(string text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
+        protected internal virtual TextChunk<TSpriteText> CreateChunkFor<TSpriteText>(LocalisableString text, bool newLineIsParagraph, Func<TSpriteText> creationFunc, Action<TSpriteText> creationParameters = null)
             where TSpriteText : SpriteText, new()
             => new TextChunk<TSpriteText>(text, newLineIsParagraph, creationFunc, creationParameters);
 
@@ -285,9 +295,9 @@ namespace osu.Framework.Graphics.Containers
         {
             parts.Add(part);
 
-            part.RecreateDrawablesFor(this);
-            foreach (var drawable in part.Drawables)
-                base.Add(drawable);
+            // if the parts cached is already invalid, there's no need to recreate the new addition. it will be created as part of the next validation.
+            if (partsCache.IsValid)
+                recreatePart(part);
 
             return part;
         }
@@ -301,22 +311,57 @@ namespace osu.Framework.Graphics.Containers
             if (!parts.Remove(partToRemove))
                 return false;
 
+            partsCache.Invalidate();
+            return true;
+        }
+
+        private void recreateAllParts()
+        {
             // manual parts need to be manually removed before clearing contents,
             // to avoid accidentally disposing of them in the process.
             foreach (var manualPart in parts.OfType<TextPartManual>())
                 RemoveRange(manualPart.Drawables);
 
-            // make sure not to clear the list of parts on accident.
+            // make sure not to clear the list of parts by accident.
             base.Clear(true);
 
             foreach (var part in parts)
+                recreatePart(part);
+
+            partsCache.Validate();
+        }
+
+        private void recreatePart(ITextPart part)
+        {
+            part.RecreateDrawablesFor(this);
+            foreach (var drawable in part.Drawables)
+                base.Add(drawable);
+        }
+
+        private void reverseHorizontal(Drawable[] children)
+        {
+            int reverseStartIndex = 0;
+
+            // Inverse the order of all children when displaying backwards, stopping at newline boundaries
+            for (int i = 0; i < children.Length; i++)
             {
-                part.RecreateDrawablesFor(this);
-                foreach (var drawable in part.Drawables)
-                    base.Add(drawable);
+                if (!(children[i] is NewLineContainer))
+                    continue;
+
+                Array.Reverse(children, reverseStartIndex, i - reverseStartIndex);
+                reverseStartIndex = i + 1;
             }
 
-            return true;
+            // Extra loop for the last newline boundary (or all children if there are no newlines)
+            Array.Reverse(children, reverseStartIndex, children.Length - reverseStartIndex);
+        }
+
+        private void reverseVertical(Drawable[] children)
+        {
+            // A vertical reverse reverses the order of the newline sections, but not the order within the newline sections
+            // For code clarity this is done by reversing the entire array, and then reversing within the newline sections to restore horizontal order
+            Array.Reverse(children);
+            reverseHorizontal(children);
         }
 
         private readonly Cached layout = new Cached();

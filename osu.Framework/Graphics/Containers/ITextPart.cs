@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Raised when <see cref="Drawables"/> is reconstructed (e.g. when the user language was changed).
+        /// Can be used by consumers to re-apply manual adjustments to the appearance of <see cref="Drawables"/>.
         /// </summary>
         event Action<IEnumerable<Drawable>> DrawablePartsRecreated;
 

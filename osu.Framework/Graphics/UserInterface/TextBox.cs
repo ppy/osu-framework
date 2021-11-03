@@ -9,17 +9,14 @@ using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Development;
 using osu.Framework.Platform;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
-using osu.Framework.Timing;
 using osu.Framework.Localisation;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -103,8 +100,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public event OnCommitHandler OnCommit;
 
-        private readonly Scheduler textUpdateScheduler = new Scheduler(() => ThreadSafety.IsUpdateThread, null);
-
         protected TextBox()
         {
             Masking = true;
@@ -134,7 +129,15 @@ namespace osu.Framework.Graphics.UserInterface
                 },
             };
 
-            Current.ValueChanged += e => { Text = e.NewValue; };
+            Current.ValueChanged += e =>
+            {
+                // we generally want Text and Current to be synchronised at all times.
+                // a change to Text will trigger a Current set, and potentially cause a feedback loop which isn't always desirable
+                // (could lead to no animations playing out, etc.)
+                // the following guard is supposed to not allow that feedback loop to close.
+                if (Text != e.NewValue)
+                    Text = e.NewValue;
+            };
             caret.Hide();
         }
 
@@ -143,20 +146,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
+        }
 
-            if (textInput != null)
-            {
-                textInput.OnNewImeComposition += s =>
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += s =>
-                {
-                    textUpdateScheduler.Add(onImeResult);
-                    cursorAndLayout.Invalidate();
-                };
-            }
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            setText(Text);
         }
 
         public virtual bool OnPressed(KeyBindingPressEvent<PlatformAction> e)
@@ -350,12 +345,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        internal override void UpdateClock(IFrameBasedClock clock)
-        {
-            base.UpdateClock(clock);
-            textUpdateScheduler.UpdateClock(Clock);
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             OnCommit = null;
@@ -372,8 +361,6 @@ namespace osu.Framework.Graphics.UserInterface
         private void updateCursorAndLayout()
         {
             Placeholder.Font = Placeholder.Font.With(size: CalculatedTextSize);
-
-            textUpdateScheduler.Update();
 
             float cursorPos = 0;
             if (text.Length > 0)
@@ -399,9 +386,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (HasFocus)
                 caret.DisplayAt(new Vector2(cursorPos, 0), selectionWidth);
-
-            if (textAtLastLayout != text)
-                Current.Value = text;
 
             if (textAtLastLayout.Length == 0 || text.Length == 0)
             {
@@ -498,6 +482,41 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
+        /// Indicates whether a complex change operation to <see cref="Text"/> has begun.
+        /// This is relevant because, for example, an insertion operation with text selected is really a removal of the selection and an insertion.
+        /// We want to ensure that <see cref="Text"/> is transferred out to <see cref="Current"/> only at the end of such an operation chain.
+        /// </summary>
+        private bool textChanging;
+
+        /// <summary>
+        /// Starts a text change operation.
+        /// </summary>
+        /// <returns>Whether this call has initiated a text change.</returns>
+        private bool beginTextChange()
+        {
+            if (textChanging)
+                return false;
+
+            return textChanging = true;
+        }
+
+        /// <summary>
+        /// Ends a text change operation.
+        /// This causes <see cref="Text"/> to be transferred out to <see cref="Current"/>.
+        /// </summary>
+        /// <param name="started">The return value of a corresponding <see cref="beginTextChange"/> call should be passed here.</param>
+        private void endTextChange(bool started)
+        {
+            if (!started)
+                return;
+
+            if (Current.Value != Text)
+                Current.Value = Text;
+
+            textChanging = false;
+        }
+
+        /// <summary>
         /// Removes the selected text if a selection persists.
         /// </summary>
         private string removeSelection() => removeCharacters(selectionLength);
@@ -522,6 +541,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             Debug.Assert(selectionLength == 0 || removeCount == selectionLength);
 
+            bool beganChange = beginTextChange();
+
             foreach (var d in TextFlow.Children.Skip(removeStart).Take(removeCount).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 TextFlow.Remove(d);
@@ -536,6 +557,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             string removedText = text.Substring(removeStart, removeCount);
+
             text = text.Remove(removeStart, removeCount);
 
             // Reorder characters depth after removal to avoid ordering issues with newly added characters.
@@ -544,6 +566,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             selectionStart = selectionEnd = removeStart;
 
+            endTextChange(beganChange);
             cursorAndLayout.Invalidate();
 
             return removedText;
@@ -598,6 +621,8 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
             }
 
+            bool beganChange = beginTextChange();
+
             foreach (char c in value)
             {
                 if (char.IsControl(c) || !CanAddCharacter(c))
@@ -621,11 +646,12 @@ namespace osu.Framework.Graphics.UserInterface
                 drawableCreationParameters?.Invoke(drawable);
 
                 text = text.Insert(selectionLeft, c.ToString());
-
                 selectionStart = selectionEnd = selectionLeft + 1;
 
                 cursorAndLayout.Invalidate();
             }
+
+            endTextChange(beganChange);
         }
 
         /// <summary>
@@ -681,7 +707,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract Caret CreateCaret();
 
-        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>();
+        private readonly BindableWithCurrent<string> current = new BindableWithCurrent<string>(string.Empty);
 
         public Bindable<string> Current
         {
@@ -709,23 +735,27 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     Placeholder.Hide();
 
-                if (!IsLoaded)
-                    Current.Value = text = value;
-
-                textUpdateScheduler.Add(delegate
-                {
-                    int startBefore = selectionStart;
-                    selectionStart = selectionEnd = 0;
-                    TextFlow?.Clear();
-
-                    text = string.Empty;
-                    InsertString(value);
-
-                    selectionStart = Math.Clamp(startBefore, 0, text.Length);
-                });
-
-                cursorAndLayout.Invalidate();
+                setText(value);
             }
+        }
+
+        private void setText(string value)
+        {
+            bool beganChange = beginTextChange();
+
+            int startBefore = selectionStart;
+            selectionStart = selectionEnd = 0;
+
+            TextFlow?.Clear();
+            text = string.Empty;
+
+            // insert string and fast forward any transforms (generally when replacing the full content of a textbox we don't want any kind of fade etc.).
+            insertString(value, d => d.FinishTransforms());
+
+            selectionStart = Math.Clamp(startBefore, 0, text.Length);
+
+            endTextChange(beganChange);
+            cursorAndLayout.Invalidate();
         }
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
