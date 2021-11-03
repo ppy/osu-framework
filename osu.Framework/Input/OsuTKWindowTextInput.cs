@@ -8,13 +8,15 @@ namespace osu.Framework.Input
 {
     public class OsuTKWindowTextInput : ITextInputSource
     {
+        private readonly OsuTKWindow window;
+
         public event Action<string> OnTextInput;
 
         public bool Active { get; private set; }
 
         public OsuTKWindowTextInput(OsuTKWindow window)
         {
-            window.KeyPress += HandleKeyPress;
+            this.window = window;
         }
 
         protected virtual void HandleKeyPress(object sender, osuTK.KeyPressEventArgs e)
@@ -23,12 +25,24 @@ namespace osu.Framework.Input
                 OnTextInput?.Invoke(e.KeyChar.ToString());
         }
 
-        public void Activate() => Active = true;
-
-        public void Deactivate() => Active = false;
-
-        public void EnsureActivated()
+        public void Activate()
         {
+            if (Active)
+                return;
+
+            window.KeyPress += HandleKeyPress;
+            Active = true;
         }
+
+        public void Deactivate()
+        {
+            if (!Active)
+                return;
+
+            window.KeyPress -= HandleKeyPress;
+            Active = false;
+        }
+
+        public void EnsureActivated() => Activate();
     }
 }
