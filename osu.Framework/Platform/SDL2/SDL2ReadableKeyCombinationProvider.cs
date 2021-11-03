@@ -19,6 +19,10 @@ namespace osu.Framework.Platform.SDL2
 
             var keycode = SDL.SDL_GetKeyFromScancode(key.ToScancode());
 
+            // early return if unknown, probably because key isn't a keyboard key.
+            if (keycode == SDL.SDL_Keycode.SDLK_UNKNOWN)
+                return base.GetReadableKey(key);
+
             // overrides for some keys that we want displayed differently from SDL_GetKeyName().
             if (TryGetNameFromKeycode(keycode, out name))
                 return name;
