@@ -13,6 +13,8 @@ namespace osu.Framework.Input
     {
         event Action<string> OnTextInput;
 
+        event Action<string> OnIMEComposition;
+
         bool Active { get; }
 
         void Activate();

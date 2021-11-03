@@ -12,6 +12,8 @@ namespace osu.Framework.Input
 
         public event Action<string> OnTextInput;
 
+        public event Action<string> OnIMEComposition;
+
         public bool Active { get; private set; }
 
         public OsuTKWindowTextInput(OsuTKWindow window)

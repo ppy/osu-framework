@@ -13,6 +13,8 @@ namespace osu.Framework.iOS.Input
 
         public event Action<string> OnTextInput;
 
+        public event Action<string> OnIMEComposition;
+
         public bool Active { get; private set; }
 
         public IOSTextInput(IOSGameView view)
@@ -30,12 +32,14 @@ namespace osu.Framework.iOS.Input
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(true);
+            Active = true;
         }
 
         public void Deactivate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
             view.KeyboardTextField.UpdateFirstResponder(false);
+            Active = false;
         }
 
         public void EnsureActivated()
