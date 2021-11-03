@@ -8,7 +8,7 @@ namespace osu.Framework.Input
 {
     public class SDL2DesktopWindowTextInput : ITextInputSource
     {
-        private readonly SDL2DesktopWindow sdlWindow;
+        private readonly SDL2DesktopWindow window;
 
         public event Action<string> OnTextInput;
 
@@ -16,8 +16,7 @@ namespace osu.Framework.Input
 
         public SDL2DesktopWindowTextInput(SDL2DesktopWindow window)
         {
-            this.sdlWindow = window;
-            this.sdlWindow.TextInput += HandleTextInput;
+            this.window = window;
         }
 
         protected virtual void HandleTextInput(string text)
@@ -28,13 +27,21 @@ namespace osu.Framework.Input
 
         public void Activate()
         {
-            sdlWindow.StartTextInput();
+            if (Active)
+                return;
+
+            window.TextInput += HandleTextInput;
+            window.StartTextInput();
             Active = true;
         }
 
         public void Deactivate()
         {
-            sdlWindow.StopTextInput();
+            if (!Active)
+                return;
+
+            window.TextInput -= HandleTextInput;
+            window.StopTextInput();
             Active = false;
         }
 
