@@ -321,7 +321,7 @@ namespace osu.Framework.Platform.SDL2
                     return numLockOn ? Key.Keypad4 : Key.Left;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_5:
-                    return Key.Keypad5;
+                    return numLockOn ? Key.Keypad5 : Key.Clear;
 
                 case SDL.SDL_Scancode.SDL_SCANCODE_KP_6:
                     return numLockOn ? Key.Keypad6 : Key.Right;
