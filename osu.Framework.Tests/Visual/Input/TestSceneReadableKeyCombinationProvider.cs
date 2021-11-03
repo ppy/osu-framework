@@ -42,6 +42,10 @@ namespace osu.Framework.Tests.Visual.Input
             new[]
             {
                 InputKey.LControl, InputKey.LSuper, InputKey.LAlt, InputKey.Space, InputKey.RAlt, InputKey.RSuper, InputKey.Menu, InputKey.RControl
+            },
+            new[]
+            {
+                InputKey.Control, InputKey.Super, InputKey.Alt
             }
         };
 
@@ -179,7 +183,7 @@ namespace osu.Framework.Tests.Visual.Input
             {
                 var state = new InputState(keyboard: e.CurrentState.Keyboard);
                 var keyCombination = KeyCombination.FromInputState(state);
-                var str = readableKeyCombinationProvider.GetReadableString(keyCombination);
+                string str = readableKeyCombinationProvider.GetReadableString(keyCombination);
                 text.Text = $"pressed: {str}";
             }
 
