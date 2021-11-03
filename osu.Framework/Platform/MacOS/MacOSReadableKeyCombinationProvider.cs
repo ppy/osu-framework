@@ -9,6 +9,23 @@ namespace osu.Framework.Platform.MacOS
 {
     public class MacOSReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
+        protected override bool TryGetNameFromInputKey(InputKey inputKey, out string name)
+        {
+            switch (inputKey)
+            {
+                case InputKey.Super:
+                    name = "Cmd";
+                    return true;
+
+                case InputKey.Alt:
+                    name = "Option";
+                    return true;
+
+                default:
+                    return base.TryGetNameFromInputKey(inputKey, out name);
+            }
+        }
+
         protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
         {
             switch (keycode)

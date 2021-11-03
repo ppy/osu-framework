@@ -9,6 +9,19 @@ namespace osu.Framework.Platform.Windows
 {
     public class WindowsReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
+        protected override bool TryGetNameFromInputKey(InputKey inputKey, out string name)
+        {
+            switch (inputKey)
+            {
+                case InputKey.Super:
+                    name = "Win";
+                    return true;
+
+                default:
+                    return base.TryGetNameFromInputKey(inputKey, out name);
+            }
+        }
+
         protected override bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
         {
             switch (keycode)
