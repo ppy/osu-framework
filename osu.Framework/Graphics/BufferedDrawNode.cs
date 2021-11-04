@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+#nullable enable
+
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
@@ -187,7 +189,8 @@ namespace osu.Framework.Graphics
                 return;
 
             // Get the root node
-            IDrawable rootNode = rootNodeCached;
+            IDrawable? rootNode = rootNodeCached;
+
             if (rootNodeCached == null)
             {
                 rootNode = Source;
@@ -195,6 +198,9 @@ namespace osu.Framework.Graphics
                     rootNode = rootNode.Parent;
                 rootNodeCached = rootNode;
             }
+
+            if (rootNode == null)
+                return;
 
             // Clip the screen space draw rectangle to the bounds of the root node
             RectangleF clipBounds = new RectangleF(rootNode.ScreenSpaceDrawQuad.TopLeft, rootNode.ScreenSpaceDrawQuad.Size);
