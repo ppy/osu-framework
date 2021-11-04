@@ -412,6 +412,7 @@ namespace osu.Framework.Graphics.Video
                 }
 
                 codecContext = ffmpeg.avcodec_alloc_context3(decoder.Pointer);
+                codecContext->pkt_timebase = stream->time_base;
 
                 if (codecContext == null)
                 {
