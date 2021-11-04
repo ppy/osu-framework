@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = true)
             : base(formats, pixelSnapping, clipToRootNode)
         {
         }
@@ -246,8 +246,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
-        /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node.</param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+        /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node. Should only be disabled if you plan to draw to a region outside (or larger than) the screen.</param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = true)
         {
             sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, clipToRootNode);
 
