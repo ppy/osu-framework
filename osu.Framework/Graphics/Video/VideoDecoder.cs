@@ -602,8 +602,9 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                // some formats (e.g. AVI) don't contain "presentation timestamp" so fallback to the best effort one if it's missing.
-                long frameTimestamp = receiveFrame->pts != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->pts : receiveFrame->best_effort_timestamp;
+                // use `best_effort_timestamp` as it can be more accurate if timestamps from the source file (pts) are broken.
+                // but some HW codecs don't set it in which case fallback to `pts`
+                long frameTimestamp = receiveFrame->best_effort_timestamp != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->best_effort_timestamp : receiveFrame->pts;
 
                 double frameTime = (frameTimestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
