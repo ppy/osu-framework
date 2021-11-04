@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable enable
-
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.OpenGL;
@@ -40,7 +38,7 @@ namespace osu.Framework.Graphics
         private RectangleF screenSpaceDrawRectangle;
         private Vector2 frameBufferScale;
         private Vector2 frameBufferSize;
-        private IDrawable? rootNodeCached;
+        private IDrawable rootNodeCached;
 
         public BufferedDrawNode(IBufferedDrawable source, DrawNode child, BufferedDrawNodeSharedData sharedData)
             : base(source)
@@ -189,7 +187,7 @@ namespace osu.Framework.Graphics
                 return;
 
             // Get the root node
-            IDrawable? rootNode = rootNodeCached;
+            IDrawable rootNode = rootNodeCached;
 
             if (rootNodeCached == null)
             {
