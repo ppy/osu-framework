@@ -34,6 +34,11 @@ namespace osu.Framework.Graphics
         public readonly bool PixelSnapping;
 
         /// <summary>
+        /// Whether the frame buffer should be clipped to be contained in the root node.
+        /// </summary>
+        public readonly bool ClipToRootNode;
+
+        /// <summary>
         /// A set of <see cref="FrameBuffer"/>s which are used in a ping-pong manner to render effects to.
         /// </summary>
         private readonly FrameBuffer[] effectBuffers;
@@ -41,8 +46,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Creates a new <see cref="BufferedDrawNodeSharedData"/> with no effect buffers.
         /// </summary>
-        public BufferedDrawNodeSharedData(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
-            : this(0, formats, pixelSnapping)
+        public BufferedDrawNodeSharedData(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
+            : this(0, formats, pixelSnapping, clipToRootNode)
         {
         }
 
@@ -53,14 +58,17 @@ namespace osu.Framework.Graphics
         /// <param name="formats">The render buffer formats to attach to each frame buffer.</param>
         /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".</param>
+        /// <param name="clipToRootNode">Whether the frame buffer should be clipped to be contained in the root node..</param>
         /// <exception cref="ArgumentOutOfRangeException">If <paramref name="effectBufferCount"/> is less than 0.</exception>
-        public BufferedDrawNodeSharedData(int effectBufferCount, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+        public BufferedDrawNodeSharedData(int effectBufferCount, RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool clipToRootNode = false)
         {
             if (effectBufferCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(effectBufferCount), "Must be positive.");
 
             PixelSnapping = pixelSnapping;
             All filterMode = pixelSnapping ? All.Nearest : All.Linear;
+
+            ClipToRootNode = clipToRootNode;
 
             MainBuffer = new FrameBuffer(formats, filterMode);
             effectBuffers = new FrameBuffer[effectBufferCount];
