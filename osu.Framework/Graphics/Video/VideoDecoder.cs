@@ -602,7 +602,10 @@ namespace osu.Framework.Graphics.Video
                     break;
                 }
 
-                double frameTime = (receiveFrame->pts - stream->start_time) * timeBaseInSeconds * 1000;
+                // some formats (e.g. AVI) don't contain "presentation timestamp" so fallback to the best effort one if it's missing.
+                long frameTimestamp = receiveFrame->pts != AGffmpeg.AV_NOPTS_VALUE ? receiveFrame->pts : receiveFrame->best_effort_timestamp;
+
+                double frameTime = (frameTimestamp - stream->start_time) * timeBaseInSeconds * 1000;
 
                 if (skipOutputUntilTime > frameTime)
                     continue;
