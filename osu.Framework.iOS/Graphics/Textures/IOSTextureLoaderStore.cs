@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.IO;
 using CoreGraphics;
 using Foundation;
@@ -22,6 +23,8 @@ namespace osu.Framework.iOS.Graphics.Textures
         {
             using (var uiImage = UIImage.LoadFromData(NSData.FromStream(stream)))
             {
+                if (uiImage == null) throw new ArgumentException($"{nameof(Image)} could not be created from {nameof(stream)}.");
+
                 int width = (int)uiImage.Size.Width;
                 int height = (int)uiImage.Size.Height;
 
