@@ -28,9 +28,7 @@ namespace osu.Framework.Android.Graphics.Textures
 
                 for (int i = 0; i < pixels.Length; i++)
                 {
-                    byte b = result[i * 4];
-                    result[i * 4] = result[i * 4 + 2];
-                    result[i * 4 + 2] = b;
+                    (result[i * 4], result[i * 4 + 2]) = (result[i * 4 + 2], result[i * 4]);
                 }
 
                 bitmap.Recycle();
