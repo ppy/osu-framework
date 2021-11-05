@@ -62,7 +62,8 @@ namespace osu.Framework.Android
 
         public override IEnumerable<string> UserStoragePaths => new[]
         {
-            Application.Context.GetExternalFilesDir(string.Empty).ToString()
+            // not null as internal "external storage" is always available.
+            Application.Context.GetExternalFilesDir(string.Empty)!.ToString(),
         };
 
         public override void OpenFileExternally(string filename)
@@ -74,6 +75,8 @@ namespace osu.Framework.Android
         public override void OpenUrlExternally(string url)
         {
             var activity = (Activity)gameView.Context;
+
+            if (activity?.PackageManager == null) return;
 
             using (var intent = new Intent(Intent.ActionView, Uri.Parse(url)))
             {
