@@ -52,12 +52,13 @@ namespace osu.Framework.Android.Input
 
         public void Activate()
         {
+            view.KeyDown += keyDown;
+            view.CommitText += commitText;
+
             activity.RunOnUiThread(() =>
             {
                 view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
-                view.KeyDown += keyDown;
-                view.CommitText += commitText;
             });
         }
 
@@ -65,18 +66,20 @@ namespace osu.Framework.Android.Input
         {
             activity.RunOnUiThread(() =>
             {
+                view.RequestFocus();
                 inputMethodManager?.ShowSoftInput(view, 0);
             });
         }
 
         public void Deactivate()
         {
+            view.KeyDown -= keyDown;
+            view.CommitText -= commitText;
+
             activity.RunOnUiThread(() =>
             {
                 inputMethodManager?.HideSoftInputFromWindow(view.WindowToken, HideSoftInputFlags.None);
                 view.ClearFocus();
-                view.KeyDown -= keyDown;
-                view.CommitText -= commitText;
             });
         }
 
