@@ -40,7 +40,7 @@ namespace osu.Framework.Android.Input
         {
             lock (pendingLock)
             {
-                var oldPending = pending;
+                string oldPending = pending;
                 pending = string.Empty;
                 return oldPending;
             }

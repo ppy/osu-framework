@@ -49,7 +49,7 @@ namespace osu.Framework.iOS
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
             RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
 
-            var softwareKeyboard = keyboardFrame.Height > 120;
+            bool softwareKeyboard = keyboardFrame.Height > 120;
 
             if (keyboardHandler != null)
                 keyboardHandler.KeyboardActive = softwareKeyboard;

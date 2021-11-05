@@ -27,7 +27,7 @@ namespace osu.Framework.iOS.Graphics.Textures
 
                 // TODO: Use pool/memory when builds success with Xamarin.
                 // Probably at .NET Core 3.1 time frame.
-                var data = new byte[width * height * 4];
+                byte[] data = new byte[width * height * 4];
                 using (CGBitmapContext textureContext = new CGBitmapContext(data, width, height, 8, width * 4, CGColorSpace.CreateDeviceRGB(), CGImageAlphaInfo.PremultipliedLast))
                     textureContext.DrawImage(new CGRect(0, 0, width, height), uiImage.CGImage);
 
