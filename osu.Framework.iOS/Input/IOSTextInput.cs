@@ -38,12 +38,6 @@ namespace osu.Framework.iOS.Input
                 pending += text;
         }
 
-        public void Deactivate()
-        {
-            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
-            view.KeyboardTextField.UpdateFirstResponder(false);
-        }
-
         public void Activate()
         {
             view.KeyboardTextField.HandleShouldChangeCharacters += handleShouldChangeCharacters;
@@ -59,16 +53,13 @@ namespace osu.Framework.iOS.Input
             // TODO: add iOS implementation
         }
 
-        public event Action<string> OnNewImeComposition
+        public void Deactivate()
         {
-            add { }
-            remove { }
+            view.KeyboardTextField.HandleShouldChangeCharacters -= handleShouldChangeCharacters;
+            view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
-        public event Action<string> OnNewImeResult
-        {
-            add { }
-            remove { }
-        }
+        public event Action<string> OnNewImeComposition { add { } remove { } }
+        public event Action<string> OnNewImeResult { add { } remove { } }
     }
 }
