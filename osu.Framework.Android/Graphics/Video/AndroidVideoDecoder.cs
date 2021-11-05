@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Android.Runtime;
 using FFmpeg.AutoGen;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Video;
 
 namespace osu.Framework.Android.Graphics.Video
