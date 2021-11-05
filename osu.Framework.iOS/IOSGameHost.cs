@@ -46,6 +46,8 @@ namespace osu.Framework.iOS
         /// </summary>
         private void handleKeyboardNotification(NSNotification notification)
         {
+            if (notification.UserInfo == null) return;
+
             NSValue nsKeyboardFrame = (NSValue)notification.UserInfo[UIKeyboard.FrameEndUserInfoKey];
             RectangleF keyboardFrame = nsKeyboardFrame.RectangleFValue;
 
