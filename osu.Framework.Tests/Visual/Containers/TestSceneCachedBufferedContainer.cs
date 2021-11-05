@@ -120,7 +120,7 @@ namespace osu.Framework.Tests.Visual.Containers
             private readonly SpriteText count;
 
             public CountingBox(bool rotating = false, bool moving = false, bool cached = false)
-                : base(useCachedFrameBuffer: cached)
+                : base(cachedFrameBuffer: cached)
             {
                 this.rotating = rotating;
                 this.moving = moving;

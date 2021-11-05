@@ -26,8 +26,8 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool useCachedFrameBuffer = false)
-            : base(formats, pixelSnapping, useCachedFrameBuffer)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+            : base(formats, pixelSnapping, cachedFrameBuffer)
         {
         }
     }
@@ -248,16 +248,16 @@ namespace osu.Framework.Graphics.Containers
         /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
         /// This amounts to setting the texture filtering mode to "nearest".
         /// </param>
-        /// <param name="useCachedFrameBuffer">
+        /// <param name="cachedFrameBuffer">
         /// Whether the rendered framebuffer should be cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
         /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
         /// </param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool useCachedFrameBuffer = false)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
-            UsingCachedFrameBuffer = useCachedFrameBuffer;
+            UsingCachedFrameBuffer = cachedFrameBuffer;
 
-            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !useCachedFrameBuffer);
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
 
             AddLayout(screenSpaceSizeBacking);
         }
