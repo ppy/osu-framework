@@ -35,19 +35,12 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool PadExtent;
 
-        /// <summary>
-        /// True if the effect should be cached. This is an optimization, but can cause issues if the drawable changes the way it looks without changing its size.
-        /// Turned off by default.
-        /// </summary>
-        public bool CacheDrawnEffect;
-
         public BufferedContainer ApplyTo(Drawable drawable) => drawable.WithEffect(new BlurEffect
         {
             Strength = Strength,
             Sigma = BlurSigma,
             Colour = Colour,
             PadExtent = PadExtent,
-            CacheDrawnEffect = CacheDrawnEffect,
 
             DrawOriginal = true,
         });
