@@ -9,7 +9,7 @@ namespace TemplateGame.iOS
     {
         public static void Main(string[] args)
         {
-            UIApplication.Main(args, "GameUIApplication", "AppDelegate");
+            UIApplication.Main(args, typeof(GameUIApplication), typeof(AppDelegate));
         }
     }
 }
