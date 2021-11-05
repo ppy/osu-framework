@@ -38,7 +38,13 @@ namespace osu.Framework.Platform.MacOS
             }
         }
 
-        public override ITextInputSource GetTextInput() => Window == null ? null : new MacOSTextInput(Window);
+        public override ITextInputSource GetTextInput()
+        {
+            if (Window is OsuTKWindow osuTKWindow)
+                return new MacOSTextInput(osuTKWindow);
+
+            return base.GetTextInput();
+        }
 
         public override Clipboard GetClipboard() => new MacOSClipboard();
 

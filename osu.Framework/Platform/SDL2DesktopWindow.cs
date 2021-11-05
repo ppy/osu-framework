@@ -396,6 +396,10 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
+            // We want text input to only be active when SDL2DesktopWindowTextInput is active.
+            // SDL activates it by default, so we deactivate it on startup.
+            SDL.SDL_StopTextInput();
+
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
 
             Exists = true;
@@ -567,6 +571,10 @@ namespace osu.Framework.Platform
 
             ScheduleEvent(() => MouseMove?.Invoke(new Vector2(rx * Scale, ry * Scale)));
         }
+
+        public void StartTextInput() => ScheduleCommand(SDL.SDL_StartTextInput);
+
+        public void StopTextInput() => ScheduleCommand(SDL.SDL_StopTextInput);
 
         #region SDL Event Handling
 
@@ -865,14 +873,20 @@ namespace osu.Framework.Platform
             if (ptr == IntPtr.Zero)
                 return;
 
-            string text = Marshal.PtrToStringUTF8(ptr) ?? "";
+            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
-            foreach (char c in text)
-                ScheduleEvent(() => KeyTyped?.Invoke(c));
+            TextInput?.Invoke(text);
         }
 
-        private void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
+        private unsafe void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
         {
+            var ptr = new IntPtr(evtEdit.text);
+            if (ptr == IntPtr.Zero)
+                return;
+
+            string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
+
+            TextEditing?.Invoke(text, evtEdit.start, evtEdit.length);
         }
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
@@ -1401,9 +1415,15 @@ namespace osu.Framework.Platform
         public event Action<Key> KeyUp;
 
         /// <summary>
-        /// Invoked when the user types a character.
+        /// Invoked when the user enters text.
         /// </summary>
-        public event Action<char> KeyTyped;
+        public event Action<string> TextInput;
+
+        /// <summary>
+        /// Invoked when an IME text editing event occurs.
+        /// Parameters are, in order: composition text, selection start, selection length.
+        /// </summary>
+        public event Action<string, int, int> TextEditing;
 
         /// <summary>
         /// Invoked when a joystick axis changes.
