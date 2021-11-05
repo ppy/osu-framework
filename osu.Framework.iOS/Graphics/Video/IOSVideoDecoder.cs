@@ -5,7 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using FFmpeg.AutoGen;
 using osu.Framework.Graphics.Video;
-using osu.Framework.Threading;
 
 namespace osu.Framework.iOS.Graphics.Video
 {
