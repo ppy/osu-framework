@@ -24,7 +24,7 @@ namespace osu.Framework.Input
         /// Returns a human-readable string for a given <see cref="KeyCombination"/>.
         /// </summary>
         /// <remarks>
-        /// Consumers should subscribe to <see cref="KeymapChanged"/> and re-generate the readable KeyCombination when the keyboard layout changes.
+        /// Consumers should subscribe to <see cref="KeymapChanged"/> and re-generate the readable <see cref="KeyCombination"/> when the keyboard layout changes.
         /// </remarks>
         /// <returns>The <see cref="KeyCombination"/> as a human-readable string.</returns>
         public string GetReadableString(KeyCombination c)
