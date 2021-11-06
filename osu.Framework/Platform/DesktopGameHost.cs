@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -102,23 +101,7 @@ namespace osu.Framework.Platform
             UseShellExecute = true //see https://github.com/dotnet/corefx/issues/10361
         });
 
-        public override ITextInputSource GetTextInput()
-        {
-            switch (Window)
-            {
-                case null:
-                    return null;
-
-                case SDL2DesktopWindow window:
-                    return new SDL2DesktopWindowTextInput(window);
-
-                case OsuTKWindow osuTKWindow:
-                    return new OsuTKWindowTextInput(osuTKWindow);
-
-                default:
-                    throw new InvalidOperationException($"Unable to create {nameof(ITextInputSource)} instance from window type {nameof(Window)}");
-            }
-        }
+        public override ITextInputSource GetTextInput() => Window == null ? null : new SDL2DesktopWindowTextInput(Window as SDL2DesktopWindow);
 
         protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() =>
             new InputHandler[]
