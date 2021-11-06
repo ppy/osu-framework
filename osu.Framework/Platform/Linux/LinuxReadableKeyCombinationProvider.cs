@@ -9,16 +9,15 @@ namespace osu.Framework.Platform.Linux
 {
     public class LinuxReadableKeyCombinationProvider : SDL2ReadableKeyCombinationProvider
     {
-        protected override bool TryGetNameFromInputKey(InputKey inputKey, out string name)
+        protected override string GetReadableKey(InputKey key)
         {
-            switch (inputKey)
+            switch (key)
             {
                 case InputKey.Super:
-                    name = "Super";
-                    return true;
+                    return "Super";
 
                 default:
-                    return base.TryGetNameFromInputKey(inputKey, out name);
+                    return base.GetReadableKey(key);
             }
         }
 

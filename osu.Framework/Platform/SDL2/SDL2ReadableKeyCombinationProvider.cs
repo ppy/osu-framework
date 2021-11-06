@@ -11,17 +11,13 @@ namespace osu.Framework.Platform.SDL2
     {
         protected override string GetReadableKey(InputKey key)
         {
-            string name;
-
-            // special case for left-right agnostic modifier keys that don't map to a scancode.
-            if (TryGetNameFromInputKey(key, out name))
-                return name;
-
             var keycode = SDL.SDL_GetKeyFromScancode(key.ToScancode());
 
-            // early return if unknown, probably because key isn't a keyboard key.
+            // early return if unknown. probably because key isn't a keyboard key, or doesn't map to an `SDL_Scancode`.
             if (keycode == SDL.SDL_Keycode.SDLK_UNKNOWN)
                 return base.GetReadableKey(key);
+
+            string name;
 
             // overrides for some keys that we want displayed differently from SDL_GetKeyName().
             if (TryGetNameFromKeycode(keycode, out name))
@@ -41,23 +37,6 @@ namespace osu.Framework.Platform.SDL2
             // SDL_GetKeyName() returned a unicode character that would be produced if that key was pressed.
             // consumers expect an uppercase letter.
             return name.ToUpper();
-        }
-
-        protected virtual bool TryGetNameFromInputKey(InputKey inputKey, out string name)
-        {
-            switch (inputKey)
-            {
-                case InputKey.Shift:
-                case InputKey.Control:
-                case InputKey.Alt:
-                case InputKey.Super:
-                    name = base.GetReadableKey(inputKey);
-                    return true;
-
-                default:
-                    name = string.Empty;
-                    return false;
-            }
         }
 
         protected virtual bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
