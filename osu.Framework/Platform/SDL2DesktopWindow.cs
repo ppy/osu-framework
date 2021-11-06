@@ -396,8 +396,9 @@ namespace osu.Framework.Platform
             SDL.SDL_SetHint(SDL.SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "1");
 
-            // We want text input to only be active when SDL2DesktopWindowTextInput is active.
-            // SDL activates it by default, so we deactivate it on startup.
+            // we want text input to only be active when SDL2DesktopWindowTextInput is active.
+            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
+            // so we deactivate it on startup.
             SDL.SDL_StopTextInput();
 
             SDLWindowHandle = SDL.SDL_CreateWindow(title, Position.X, Position.Y, Size.Width, Size.Height, flags);
