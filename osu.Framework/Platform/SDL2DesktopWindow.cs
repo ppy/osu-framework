@@ -876,7 +876,7 @@ namespace osu.Framework.Platform
 
             string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
-            TextInput?.Invoke(text);
+            ScheduleEvent(() => TextInput?.Invoke(text));
         }
 
         private unsafe void handleTextEditingEvent(SDL.SDL_TextEditingEvent evtEdit)
@@ -887,7 +887,11 @@ namespace osu.Framework.Platform
 
             string text = Marshal.PtrToStringUTF8(ptr) ?? string.Empty;
 
-            TextEditing?.Invoke(text, evtEdit.start, evtEdit.length);
+            // copy to avoid CS1686
+            int start = evtEdit.start;
+            int length = evtEdit.length;
+
+            ScheduleEvent(() => TextEditing?.Invoke(text, start, length));
         }
 
         private void handleKeyboardEvent(SDL.SDL_KeyboardEvent evtKey)
