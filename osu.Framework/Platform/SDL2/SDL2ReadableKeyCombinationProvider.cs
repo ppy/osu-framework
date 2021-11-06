@@ -39,6 +39,12 @@ namespace osu.Framework.Platform.SDL2
             return name.ToUpper();
         }
 
+        /// <summary>
+        /// Provides overrides for some keys that we want displayed differently from SDL_GetKeyName().
+        /// </summary>
+        /// <remarks>
+        /// Should be overriden per-platform to provide platform-specific names for applicable keys.
+        /// </remarks>
         protected virtual bool TryGetNameFromKeycode(SDL.SDL_Keycode keycode, out string name)
         {
             switch (keycode)
