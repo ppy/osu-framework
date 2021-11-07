@@ -21,31 +21,7 @@ namespace osu.Framework.Tests.Configuration
         private Storage storage;
 
         [Test]
-        public void TestOldConfigPersists()
-        {
-            using (var host = new TestHeadlessGameHost(bypassCleanup: true))
-            {
-                host.Run(new TestGame((h, config) =>
-                {
-                    storage = h.Storage;
-                }));
-            }
-
-            // test with only FrameworkConfigManager configuration file present
-            storage.Delete(InputConfigManager.FILENAME);
-
-            double sensitivity = 0;
-
-            using (var host = new TestHeadlessGameHost())
-            {
-                host.Run(new TestGame((h, config) => sensitivity = h.AvailableInputHandlers.OfType<MouseHandler>().First().Sensitivity.Value));
-            }
-
-            Assert.AreEqual(5, sensitivity);
-        }
-
-        [Test]
-        public void TestNewConfigPersists()
+        public void TestConfigPersists()
         {
             using (var host = new TestHeadlessGameHost(bypassCleanup: true))
             {
