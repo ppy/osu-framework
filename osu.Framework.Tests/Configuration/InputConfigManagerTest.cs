@@ -28,9 +28,6 @@ namespace osu.Framework.Tests.Configuration
                 host.Run(new TestGame((h, config) =>
                 {
                     storage = h.Storage;
-#pragma warning disable 618
-                    config.SetValue(FrameworkSetting.CursorSensitivity, 5.0);
-#pragma warning restore 618
                 }));
             }
 
