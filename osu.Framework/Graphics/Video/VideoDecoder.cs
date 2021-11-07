@@ -362,19 +362,18 @@ namespace osu.Framework.Graphics.Video
         private void prepareDecoding()
         {
             const int context_buffer_size = 4096;
-
-            // the first call to FFmpeg will throw an exception if the libraries cannot be found
-            // this will be safely handled in StartDecoding()
-            var fcPtr = ffmpeg.avformat_alloc_context();
-            formatContext = fcPtr;
             readPacketCallback = readPacket;
             seekCallback = streamSeekCallbacks;
-
             // we shouldn't keep a reference to this buffer as it can be freed and replaced by the native libs themselves.
             // https://ffmpeg.org/doxygen/4.1/aviobuf_8c.html#a853f5149136a27ffba3207d8520172a5
             byte* contextBuffer = (byte*)ffmpeg.av_malloc(context_buffer_size);
+
             ioContext = ffmpeg.avio_alloc_context(contextBuffer, context_buffer_size, 0, (void*)handle.Handle, readPacketCallback, null, seekCallback);
+
+            var fcPtr = ffmpeg.avformat_alloc_context();
+            formatContext = fcPtr;
             formatContext->pb = ioContext;
+            formatContext->flags |= AGffmpeg.AVFMT_FLAG_GENPTS; // required for most HW decoders as they only read `pts`
 
             int openInputResult = ffmpeg.avformat_open_input(&fcPtr, "dummy", null, null);
             inputOpened = openInputResult >= 0;
