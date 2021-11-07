@@ -845,9 +845,6 @@ namespace osu.Framework.Platform
         /// </summary>
         public void ResetInputHandlers()
         {
-            // restore any disable handlers per legacy configuration.
-            ignoredInputHandlers.TriggerChange();
-
             foreach (var handler in AvailableInputHandlers)
             {
                 handler.Reset();
@@ -893,10 +890,6 @@ namespace osu.Framework.Platform
 
         private IBindable<DisplayMode> currentDisplayMode;
 
-        private Bindable<string> ignoredInputHandlers;
-
-        private readonly Bindable<double> cursorSensitivity = new Bindable<double>(1);
-
         public readonly Bindable<bool> PerformanceLogging = new Bindable<bool>();
 
         private Bindable<WindowMode> windowMode;
@@ -928,35 +921,6 @@ namespace osu.Framework.Platform
 
             frameSyncMode = Config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += _ => updateFrameSyncMode();
-
-#pragma warning disable 618
-            // pragma region can be removed 20210911
-            ignoredInputHandlers = Config.GetBindable<string>(FrameworkSetting.IgnoredInputHandlers);
-            ignoredInputHandlers.ValueChanged += e =>
-            {
-                var configIgnores = e.NewValue.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
-
-                foreach (var handler in AvailableInputHandlers)
-                {
-                    string handlerType = handler.ToString();
-                    handler.Enabled.Value = configIgnores.All(ch => ch != handlerType);
-                }
-            };
-
-            Config.BindWith(FrameworkSetting.CursorSensitivity, cursorSensitivity);
-
-            var cursorSensitivityHandlers = AvailableInputHandlers.OfType<IHasCursorSensitivity>();
-
-            // one way bindings to preserve compatibility.
-            cursorSensitivity.BindValueChanged(val =>
-            {
-                foreach (var h in cursorSensitivityHandlers)
-                    h.Sensitivity.Value = val.NewValue;
-            }, true);
-
-            foreach (var h in cursorSensitivityHandlers)
-                h.Sensitivity.BindValueChanged(s => cursorSensitivity.Value = s.NewValue);
-#pragma warning restore 618
 
             PerformanceLogging.BindValueChanged(logging =>
             {
