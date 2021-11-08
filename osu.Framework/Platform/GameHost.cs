@@ -149,6 +149,10 @@ namespace osu.Framework.Platform
         [CanBeNull]
         public virtual Clipboard GetClipboard() => null;
 
+        protected virtual ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new ReadableKeyCombinationProvider();
+
+        private ReadableKeyCombinationProvider readableKeyCombinationProvider;
+
         /// <summary>
         /// The default initial path when requesting a user to select a file/folder.
         /// </summary>
@@ -686,6 +690,8 @@ namespace osu.Framework.Platform
                     IsActive.BindTo(Window.IsActive);
                 }
 
+                Dependencies.CacheAs(readableKeyCombinationProvider = CreateReadableKeyCombinationProvider());
+
                 ExecutionState = ExecutionState.Running;
                 threadRunner.Start();
 
@@ -720,6 +726,7 @@ namespace osu.Framework.Platform
 
                         Window.ExitRequested += OnExitRequested;
                         Window.Exited += OnExited;
+                        Window.KeymapChanged += readableKeyCombinationProvider.OnKeymapChanged;
 
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).

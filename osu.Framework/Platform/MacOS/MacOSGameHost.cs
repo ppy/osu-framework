@@ -42,6 +42,8 @@ namespace osu.Framework.Platform.MacOS
 
         public override Clipboard GetClipboard() => new MacOSClipboard();
 
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new MacOSReadableKeyCombinationProvider();
+
         protected override void Swap()
         {
             base.Swap();

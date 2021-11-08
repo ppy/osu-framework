@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Input;
 using osu.Framework.Platform.Linux.SDL2;
 
 namespace osu.Framework.Platform.Linux
@@ -34,5 +35,7 @@ namespace osu.Framework.Platform.Linux
         }
 
         public override Clipboard GetClipboard() => new SDL2Clipboard();
+
+        protected override ReadableKeyCombinationProvider CreateReadableKeyCombinationProvider() => new LinuxReadableKeyCombinationProvider();
     }
 }
