@@ -342,13 +342,13 @@ namespace osu.Framework.Audio
 
             audioDevices = updatedAudioDevices;
 
-            // Bass should always be providing "No sound" device
-            Trace.Assert(audioDevices.Count > 0, "Bass did not provide any audio devices.");
+            // Bass should always be providing "No sound" and "Default" device
+            Trace.Assert(audioDevices.Count >= 2, "Bass did not provide any audio devices.");
 
             onDevicesChanged();
 
             var oldDeviceNames = audioDeviceNames;
-            var newDeviceNames = audioDeviceNames = audioDevices.Skip(1).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
+            var newDeviceNames = audioDeviceNames = audioDevices.Skip(2).Where(d => d.IsEnabled).Select(d => d.Name).ToImmutableList();
 
             var newDevices = newDeviceNames.Except(oldDeviceNames).ToList();
             var lostDevices = oldDeviceNames.Except(newDeviceNames).ToList();
