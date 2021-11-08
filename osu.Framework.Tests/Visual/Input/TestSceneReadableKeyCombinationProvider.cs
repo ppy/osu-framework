@@ -37,7 +37,7 @@ namespace osu.Framework.Tests.Visual.Input
             new[]
             {
                 InputKey.LShift, InputKey.NonUSBackSlash, InputKey.Z, InputKey.X, InputKey.C, InputKey.V, InputKey.B,
-                InputKey.N, InputKey.M, InputKey.Comma, InputKey.Period, InputKey.Slash, InputKey.LShift
+                InputKey.N, InputKey.M, InputKey.Comma, InputKey.Period, InputKey.Slash, InputKey.RShift
             },
             new[]
             {
