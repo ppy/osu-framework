@@ -680,9 +680,9 @@ namespace osu.Framework.Platform
                 if (Window != null)
                 {
                     Window.SetupWindow(Config);
-                    Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     Window.Create();
+                    Window.Title = $@"osu!framework (running ""{Name}"")";
 
                     currentDisplayMode = Window.CurrentDisplayMode.GetBoundCopy();
                     currentDisplayMode.BindValueChanged(_ => updateFrameSyncMode());
