@@ -137,6 +137,22 @@ namespace osu.Framework.Tests.Visual.Input
                 updateText();
             }
 
+            protected override bool OnKeyDown(KeyDownEvent e)
+            {
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                    box.Colour = Color4.Navy;
+
+                return base.OnKeyDown(e);
+            }
+
+            protected override void OnKeyUp(KeyUpEvent e)
+            {
+                if (keyCombination.IsPressed(new KeyCombination(KeyCombination.FromKey(e.Key)), KeyCombinationMatchingMode.Any))
+                    box.Colour = Color4.DarkGray;
+
+                base.OnKeyUp(e);
+            }
+
             private void updateText()
             {
                 string newText = readableKeyCombinationProvider.GetReadableString(keyCombination);
