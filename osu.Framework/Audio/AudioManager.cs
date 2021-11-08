@@ -336,6 +336,9 @@ namespace osu.Framework.Audio
             // ensure there are no brief delays on audio operations (causing stream STALLs etc.) after periods of silence.
             Bass.Configure(ManagedBass.Configuration.DevNonStop, true);
 
+            // Always provide a default device. This should be a no-op, but we have asserts for this behaviour.
+            Bass.Configure(ManagedBass.Configuration.IncludeDefaultDevice, true);
+
             return AudioThread.InitDevice(device);
         }
 
