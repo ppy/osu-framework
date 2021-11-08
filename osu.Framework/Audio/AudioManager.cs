@@ -23,6 +23,14 @@ namespace osu.Framework.Audio
     public class AudioManager : AudioCollectionManager<AdjustableAudioComponent>
     {
         /// <summary>
+        /// The name of the internal BASS audio device denoting the OS default.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_DEFAULT.html for more information on the included device.
+        /// </remarks>
+        private const string bass_default_device = @"Default";
+
+        /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
         /// </summary>
         public ITrackStore Tracks => globalTrackStore.Value;
@@ -258,7 +266,7 @@ namespace osu.Framework.Audio
                 return true;
 
             // try using the system default device
-            if (setAudioDevice(audioDevices.FindIndex(d => d.Name != deviceName && d.IsDefault)))
+            if (setAudioDevice(audioDevices.FindIndex(d => d.Name == bass_default_device)))
                 return true;
 
             // no audio devices can be used, so try using Bass-provided "No sound" device as last resort
