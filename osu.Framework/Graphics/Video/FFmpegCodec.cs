@@ -8,7 +8,7 @@ using FFmpeg.AutoGen;
 
 namespace osu.Framework.Graphics.Video
 {
-    internal sealed unsafe class FFmpegCodec
+    public sealed unsafe class FFmpegCodec
     {
         public readonly AVCodec* Pointer;
         public readonly Lazy<IReadOnlyList<AVHWDeviceType>> SupportedHwDeviceTypes;

@@ -26,8 +26,8 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : BufferedContainer<Drawable>
     {
         /// <inheritdoc />
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
-            : base(formats, pixelSnapping)
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
+            : base(formats, pixelSnapping, cachedFrameBuffer)
         {
         }
     }
@@ -192,12 +192,12 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Whether the rendered framebuffer shall be cached until <see cref="ForceRedraw"/> is called
+        /// Whether the rendered framebuffer is being cached until <see cref="ForceRedraw"/> is called
         /// or the size of the container (i.e. framebuffer) changes.
         /// If false, then the framebuffer is re-rendered before it is blitted to the screen; equivalent
         /// to calling <see cref="ForceRedraw"/> every frame.
         /// </summary>
-        public bool CacheDrawnFrameBuffer;
+        public readonly bool UsingCachedFrameBuffer;
 
         private bool redrawOnScale = true;
 
@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Forces a redraw of the framebuffer before it is blitted the next time.
-        /// Only relevant if <see cref="CacheDrawnFrameBuffer"/> is true.
+        /// Only relevant if <see cref="UsingCachedFrameBuffer"/> is true.
         /// </summary>
         public void ForceRedraw() => Invalidate(Invalidation.DrawNode);
 
@@ -244,11 +244,20 @@ namespace osu.Framework.Graphics.Containers
         /// Constructs an empty buffered container.
         /// </summary>
         /// <param name="formats">The render buffer formats attached to the frame buffers of this <see cref="BufferedContainer"/>.</param>
-        /// <param name="pixelSnapping">Whether the frame buffer position should be snapped to the nearest pixel when blitting.
-        /// This amounts to setting the texture filtering mode to "nearest".</param>
-        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false)
+        /// <param name="pixelSnapping">
+        /// Whether the frame buffer position should be snapped to the nearest pixel when blitting.
+        /// This amounts to setting the texture filtering mode to "nearest".
+        /// </param>
+        /// <param name="cachedFrameBuffer">
+        /// Whether the rendered framebuffer should be cached until <see cref="ForceRedraw"/> is called
+        /// or the size of the container (i.e. framebuffer) changes.
+        /// When disabled, drawing will be clipped to the game window bounds. Enabling can allow drawing larger than (or outside) the game window bounds.
+        /// </param>
+        public BufferedContainer(RenderbufferInternalFormat[] formats = null, bool pixelSnapping = false, bool cachedFrameBuffer = false)
         {
-            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping);
+            UsingCachedFrameBuffer = cachedFrameBuffer;
+
+            sharedData = new BufferedContainerDrawNodeSharedData(formats, pixelSnapping, !cachedFrameBuffer);
 
             AddLayout(screenSpaceSizeBacking);
         }
@@ -300,7 +309,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
 
             // Invalidate drawn frame buffer every frame.
-            if (!CacheDrawnFrameBuffer)
+            if (!UsingCachedFrameBuffer)
                 ForceRedraw();
             else if (!screenSpaceSizeBacking.IsValid)
             {

@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -10,6 +11,7 @@ using Android.Runtime;
 using FFmpeg.AutoGen;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Video;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Android.Graphics.Video
 {
@@ -151,6 +153,32 @@ namespace osu.Framework.Android.Graphics.Video
             int result = av_jni_set_java_vm((void*)(IntPtr)jvmPtrObj, null);
             if (result < 0)
                 throw new InvalidOperationException($"Couldn't pass Java VM handle to FFmpeg: ${result}");
+        }
+
+        protected override IEnumerable<(FFmpegCodec codec, AVHWDeviceType hwDeviceType)> GetAvailableDecoders(
+            AVInputFormat* inputFormat,
+            AVCodecID codecId,
+            HardwareVideoDecoder targetHwDecoders
+        )
+        {
+            if (targetHwDecoders.HasFlagFast(HardwareVideoDecoder.MediaCodec))
+            {
+                string formatName = Marshal.PtrToStringAnsi((IntPtr)inputFormat->name);
+
+                switch (formatName)
+                {
+                    // MediaCodec doesn't return correct timestamps when playing back AVI files
+                    // which results in the video running at ~30% less FPS than it's supposed to.
+                    case "avi":
+                    {
+                        Logger.Log($"Disabling HW decoding for this video because of unsupported input format: ${formatName}");
+                        targetHwDecoders &= ~HardwareVideoDecoder.MediaCodec;
+                        break;
+                    }
+                }
+            }
+
+            return base.GetAvailableDecoders(inputFormat, codecId, targetHwDecoders);
         }
 
         protected override FFmpegFuncs CreateFuncs() => new FFmpegFuncs

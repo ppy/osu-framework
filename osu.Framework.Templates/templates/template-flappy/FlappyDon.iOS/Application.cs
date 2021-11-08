@@ -1,4 +1,5 @@
-﻿using UIKit;
+﻿using osu.Framework.iOS;
+using UIKit;
 
 namespace FlappyDon.iOS
 {
@@ -6,7 +7,7 @@ namespace FlappyDon.iOS
     {
         public static void Main(string[] args)
         {
-            UIApplication.Main(args, "GameUIApplication", "AppDelegate");
+            UIApplication.Main(args, typeof(GameUIApplication), typeof(AppDelegate));
         }
     }
 }

@@ -117,7 +117,7 @@ namespace osu.Framework.Android
             Host = new AndroidGameHost(this);
             Host.ExceptionThrown += handleException;
             Host.Run(game);
-            HostStarted.Invoke(Host);
+            HostStarted?.Invoke(Host);
         }
 
         private bool handleException(Exception ex)

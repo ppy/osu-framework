@@ -46,7 +46,7 @@ namespace FlappyDon.Game.Elements
         /// <summary>
         /// A collection holding all the obstacles to remove during the update step.
         /// </summary>
-        private Stack<Drawable> obstaclesToRemove = new Stack<Drawable>();
+        private readonly Stack<Drawable> obstaclesToRemove = new Stack<Drawable>();
 
         /// <summary>
         /// A counter that keeps track of the number of pipes spawned in order to track

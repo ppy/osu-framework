@@ -279,7 +279,7 @@ namespace osu.Framework.Graphics.Lines
 
         public Color4 BackgroundColour => new Color4(0, 0, 0, 0);
 
-        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 });
+        private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderbufferInternalFormat.DepthComponent16 }, clipToRootNode: true);
 
         protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PathDrawNode(this), sharedData);
 
