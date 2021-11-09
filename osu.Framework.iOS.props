@@ -68,7 +68,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.178" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.226801"/>
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="ppy.ManagedBass" Version="3.1.3-alpha"/>
