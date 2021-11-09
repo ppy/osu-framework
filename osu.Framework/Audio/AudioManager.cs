@@ -20,7 +20,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    public class AudioManager : AudioCollectionManager<AdjustableAudioComponent>
+    public class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
@@ -221,11 +221,12 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null)
+        /// <param name="mixer">The <see cref="AudioMixer"/> to use for tracks created by this store. Defaults to the global <see cref="TrackMixer"/>.</param>
+        public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
         {
             if (store == null) return globalTrackStore.Value;
 
-            TrackStore tm = new TrackStore(store, TrackMixer);
+            TrackStore tm = new TrackStore(store, mixer ?? TrackMixer);
             globalTrackStore.Value.AddItem(tm);
             return tm;
         }
@@ -235,11 +236,12 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="SampleStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="SampleStore"/>.</param>
-        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null)
+        /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="SampleMixer"/>.</param>
+        public ISampleStore GetSampleStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
         {
             if (store == null) return globalSampleStore.Value;
 
-            SampleStore sm = new SampleStore(store, SampleMixer);
+            SampleStore sm = new SampleStore(store, mixer ?? SampleMixer);
             globalSampleStore.Value.AddItem(sm);
             return sm;
         }
