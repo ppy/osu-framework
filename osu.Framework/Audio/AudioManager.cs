@@ -109,8 +109,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        internal IBindableList<int> ActiveMixerHandles => activeMixerHandles;
-        private readonly BindableList<int> activeMixerHandles = new BindableList<int>();
+        internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
+        private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;

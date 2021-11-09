@@ -3,6 +3,7 @@
 
 using System.Linq;
 using ManagedBass.Mix;
+using osu.Framework.Audio.Mixing;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -13,13 +14,13 @@ namespace osu.Framework.Graphics.Visualisation.Audio
 {
     public class MixerDisplay : CompositeDrawable
     {
-        public readonly int MixerHandle;
+        public readonly AudioMixer Mixer;
 
         private readonly FillFlowContainer<AudioChannelDisplay> channelsContainer;
 
-        public MixerDisplay(int mixerHandle)
+        public MixerDisplay(AudioMixer mixer)
         {
-            MixerHandle = mixerHandle;
+            Mixer = mixer;
 
             RelativeSizeAxes = Axes.Y;
             AutoSizeAxes = Axes.X;
@@ -51,7 +52,7 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.Update();
 
-            int[] channels = BassMix.MixerGetChannels(MixerHandle);
+            int[] channels = BassMix.MixerGetChannels(Mixer.Handle);
 
             if (channels == null)
                 return;
