@@ -109,8 +109,8 @@ namespace osu.Framework.Audio
         /// </summary>
         public Scheduler EventScheduler;
 
-        internal IBindableList<int> ActiveMixerHandles => activeMixerHandles;
-        private readonly BindableList<int> activeMixerHandles = new BindableList<int>();
+        internal IBindableList<AudioMixer> ActiveMixers => activeMixers;
+        private readonly BindableList<AudioMixer> activeMixers = new BindableList<AudioMixer>();
 
         private readonly Lazy<TrackStore> globalTrackStore;
         private readonly Lazy<SampleStore> globalSampleStore;
@@ -170,6 +170,13 @@ namespace osu.Framework.Audio
             });
         }
 
+        protected override void UpdateChildren()
+        {
+            base.UpdateChildren();
+
+            activeMixers.RemoveAll(m => m.HasCompleted);
+        }
+
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
@@ -210,8 +217,7 @@ namespace osu.Framework.Audio
         private AudioMixer createAudioMixer(AudioMixer globalMixer)
         {
             var mixer = new BassAudioMixer(globalMixer);
-            mixer.HandleCreated += i => activeMixerHandles.Add(i);
-            mixer.HandleDestroyed += i => activeMixerHandles.Remove(i);
+            activeMixers.Add(mixer);
             AddItem(mixer);
             return mixer;
         }
