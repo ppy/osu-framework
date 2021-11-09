@@ -10,7 +10,7 @@ dotnet tool restore
 
 dotnet tool install -g dotnet-dump
 
-dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --debug --loglevel=TRACE --logfile=$(pwd)/inspectcode.log --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode &
+dotnet jb inspectcode $(pwd)/osu-framework.Desktop.slnf --no-build --debug --loglevel=TRACE --logfile=$(pwd)/inspectcode.log --output=$(pwd)/inspectcodereport.xml --cachesDir=$(pwd)/inspectcode &
 
 echo "Waiting for R# CLI"
 sleep 10
