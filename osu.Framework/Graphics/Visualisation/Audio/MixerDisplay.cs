@@ -4,6 +4,7 @@
 using System.Linq;
 using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
+using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -52,7 +53,10 @@ namespace osu.Framework.Graphics.Visualisation.Audio
         {
             base.Update();
 
-            int[] channels = BassMix.MixerGetChannels(Mixer.Handle);
+            if (!(Mixer is BassAudioMixer bassMixer))
+                return;
+
+            int[] channels = BassMix.MixerGetChannels(bassMixer.Handle);
 
             if (channels == null)
                 return;
