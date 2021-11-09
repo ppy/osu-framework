@@ -14,6 +14,11 @@ namespace osu.Framework.Audio.Mixing
     /// </summary>
     public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
     {
+        /// <summary>
+        /// The handle for this mixer.
+        /// </summary>
+        public int Handle { get; protected set; }
+
         private readonly AudioMixer? globalMixer;
 
         /// <summary>

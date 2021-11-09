@@ -26,10 +26,6 @@ namespace osu.Framework.Audio.Mixing.Bass
         public event Action<int>? HandleCreated;
         public event Action<int>? HandleDestroyed;
 
-        /// <summary>
-        /// The handle for this mixer.
-        /// </summary>
-        public int Handle { get; private set; }
 
         /// <summary>
         /// The list of effects which are currently active in the BASS mix.
