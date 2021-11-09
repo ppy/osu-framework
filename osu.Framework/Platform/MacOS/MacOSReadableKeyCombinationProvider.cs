@@ -17,7 +17,7 @@ namespace osu.Framework.Platform.MacOS
                     return "Cmd";
 
                 case InputKey.Alt:
-                    return "Option";
+                    return "Opt";
 
                 default:
                     return base.GetReadableKey(key);
@@ -37,11 +37,11 @@ namespace osu.Framework.Platform.MacOS
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_LALT:
-                    name = "LOption";
+                    name = "LOpt";
                     return true;
 
                 case SDL.SDL_Keycode.SDLK_RALT:
-                    name = "ROption";
+                    name = "ROpt";
                     return true;
 
                 default:
