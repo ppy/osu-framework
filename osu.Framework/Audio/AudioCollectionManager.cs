@@ -10,7 +10,7 @@ namespace osu.Framework.Audio
     /// A collection of audio components which need central property control.
     /// </summary>
     public class AudioCollectionManager<T> : AdjustableAudioComponent, IBassAudio
-        where T : AdjustableAudioComponent
+        where T : AudioComponent
     {
         internal List<T> Items = new List<T>();
 
@@ -20,7 +20,8 @@ namespace osu.Framework.Audio
             {
                 if (Items.Contains(item)) return;
 
-                item.BindAdjustments(this);
+                if (item is IAdjustableAudioComponent adjustable)
+                    adjustable.BindAdjustments(this);
                 Items.Add(item);
             });
         }

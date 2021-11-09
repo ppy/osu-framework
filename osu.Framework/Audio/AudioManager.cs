@@ -20,7 +20,7 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
-    public class AudioManager : AudioCollectionManager<AdjustableAudioComponent>
+    public class AudioManager : AudioCollectionManager<AudioComponent>
     {
         /// <summary>
         /// The manager component responsible for audio tracks (e.g. songs).
