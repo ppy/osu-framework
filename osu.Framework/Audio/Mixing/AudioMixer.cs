@@ -12,7 +12,7 @@ namespace osu.Framework.Audio.Mixing
     /// <summary>
     /// Mixes together multiple <see cref="IAudioChannel"/>s into one output.
     /// </summary>
-    public abstract class AudioMixer : AdjustableAudioComponent, IAudioMixer
+    public abstract class AudioMixer : AudioComponent, IAudioMixer
     {
         /// <summary>
         /// The handle for this mixer.
