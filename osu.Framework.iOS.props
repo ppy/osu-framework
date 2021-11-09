@@ -85,4 +85,15 @@
          See https://github.com/mono/mono/issues/21188 -->
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
   </ItemGroup>
+  <Target
+    Name="VS16_RemoveSystemMemory"
+    BeforeTargets="FindReferenceAssembliesForReferences"
+    Condition="'$(MSBuildVersion)' &gt;= '16.0'">
+    <ItemGroup>
+      <_ReferencePathToRemove
+        Include="@(ReferencePath)"
+        Condition="'%(ReferencePath.NuGetPackageId)'=='System.Memory'" />
+      <ReferencePath Remove="@(_ReferencePathToRemove)" />
+    </ItemGroup>
+  </Target>
 </Project>
