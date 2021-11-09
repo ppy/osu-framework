@@ -23,9 +23,6 @@ namespace osu.Framework.Audio.Mixing.Bass
     /// </summary>
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
-        public event Action<AudioMixer>? HandleCreated;
-        public event Action<AudioMixer>? HandleDestroyed;
-
         /// <summary>
         /// The list of effects which are currently active in the BASS mix.
         /// </summary>
@@ -291,7 +288,6 @@ namespace osu.Framework.Audio.Mixing.Bass
             Effects.BindCollectionChanged(onEffectsChanged, true);
 
             ManagedBass.Bass.ChannelPlay(Handle);
-            HandleCreated?.Invoke(this);
         }
 
         /// <summary>
@@ -433,14 +429,9 @@ namespace osu.Framework.Audio.Mixing.Bass
 
             if (Handle != 0)
             {
-                HandleDestroyed?.Invoke(this);
-
                 ManagedBass.Bass.StreamFree(Handle);
                 Handle = 0;
             }
-
-            HandleCreated = null;
-            HandleDestroyed = null;
         }
 
         internal class EffectWithHandle
