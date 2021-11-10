@@ -59,7 +59,7 @@ namespace osu.Framework.iOS.Input
             view.KeyboardTextField.UpdateFirstResponder(false);
         }
 
-        public event Action<string> OnNewImeComposition { add { } remove { } }
-        public event Action<string> OnNewImeResult { add { } remove { } }
+        public event Action<string> OnNewImeComposition;
+        public event Action<string> OnNewImeResult;
     }
 }
