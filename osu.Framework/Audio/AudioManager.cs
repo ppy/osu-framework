@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ManagedBass;
+using ManagedBass.Fx;
+using ManagedBass.Mix;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Audio.Sample;
@@ -301,7 +303,8 @@ namespace osu.Framework.Audio
 
             Logger.Log($@"BASS Initialized
                           BASS Version:               {Bass.Version}
-                          BASS FX Version:            {ManagedBass.Fx.BassFx.Version}
+                          BASS FX Version:            {BassFx.Version}
+                          BASS MIX Version:           {BassMix.Version}
                           Device:                     {device.Name}
                           Drive:                      {device.Driver}");
 
