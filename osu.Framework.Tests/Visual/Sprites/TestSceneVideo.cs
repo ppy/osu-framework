@@ -8,6 +8,7 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Video;
+using osu.Framework.IO.Stores;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -15,6 +16,8 @@ namespace osu.Framework.Tests.Visual.Sprites
 {
     public class TestSceneVideo : FrameworkTestScene
     {
+        private ResourceStore<byte[]> videoStore;
+
         private Container videoContainer;
         private TextFlowContainer timeText;
 
@@ -28,8 +31,10 @@ namespace osu.Framework.Tests.Visual.Sprites
         private FrameworkConfigManager config { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(Game game)
         {
+            videoStore = new NamespacedResourceStore<byte[]>(game.Resources, @"Videos");
+
             Children = new Drawable[]
             {
                 videoContainer = new Container
@@ -62,9 +67,11 @@ namespace osu.Framework.Tests.Visual.Sprites
         {
             AddStep("load video", () =>
             {
-                videoContainer.Child = video = new TestVideo
+                videoContainer.Child = video = new TestVideo(videoStore.GetStream("sample-video.mp4"))
                 {
                     Loop = false,
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
                 };
             });
         }
