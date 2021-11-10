@@ -31,10 +31,27 @@ namespace osu.Framework.Utils
         {
             if (@base < 0 || @base > 1)
                 throw new ArgumentOutOfRangeException(nameof(@base), $"{nameof(@base)} has to lie in [0,1], but is {@base}.");
-            if (exponent < 0)
-                throw new ArgumentOutOfRangeException(nameof(exponent), $"{nameof(exponent)} has to be bigger than 0, but is {exponent}.");
 
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
+        }
+
+        /// <summary>
+        /// Interpolate the current value towards the target value based on the elapsed time.
+        /// If this function is applied to the current value at every frame,
+        /// the approximately same value is calculated at the same time regardless of the frame rate.
+        /// </summary>
+        /// <remarks>
+        /// Because floating-point errors can accumulate over a long time, this function shouldn't be
+        /// used for things requiring accurate values.
+        /// </remarks>
+        /// <param name="current">The current value.</param>
+        /// <param name="target">The target value.</param>
+        /// <param name="halfTime">The time it takes to reach the middle value of the current and the target value.</param>
+        /// <param name="elapsedTime">The elapsed time of the current frame.</param>
+        public static double DampContinuously(double current, double target, double halfTime, double elapsedTime)
+        {
+            double exponent = elapsedTime / halfTime;
+            return Damp(current, target, 0.5, exponent);
         }
 
         /// <summary>
