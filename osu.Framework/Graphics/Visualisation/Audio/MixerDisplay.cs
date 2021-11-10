@@ -8,6 +8,7 @@ using osu.Framework.Audio.Mixing.Bass;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 
@@ -37,13 +38,26 @@ namespace osu.Framework.Graphics.Visualisation.Audio
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Black.Opacity(0.2f)
                     },
+                    new SpriteText
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.BottomCentre,
+                        Text = mixer.Identifier,
+                        Font = FrameworkFont.Condensed.With(size: 14),
+                        Colour = FrameworkColour.Yellow,
+                        Padding = new MarginPadding(2),
+                    },
                     channelsContainer = new FillFlowContainer<AudioChannelDisplay>
                     {
                         RelativeSizeAxes = Axes.Y,
                         AutoSizeAxes = Axes.X,
                         Direction = FillDirection.Horizontal,
                         Spacing = new Vector2(10),
-                        Padding = new MarginPadding { Horizontal = 10 }
+                        Padding = new MarginPadding
+                        {
+                            Horizontal = 10,
+                            Bottom = 20
+                        }
                     }
                 }
             };
