@@ -37,8 +37,7 @@ namespace osu.Framework.Utils
 
         /// <summary>
         /// Interpolate the current value towards the target value based on the elapsed time.
-        /// If this function is applied to the current value at every frame,
-        /// the approximately same value is calculated at the same time regardless of the frame rate.
+        /// If the current value is updated every frame using this function, the result is approximately frame-rate independent.
         /// </summary>
         /// <remarks>
         /// Because floating-point errors can accumulate over a long time, this function shouldn't be
