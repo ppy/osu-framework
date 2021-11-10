@@ -36,6 +36,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <!-- Without separate dll configs and using BundleResource, dllmaps won't work properly
+         See https://github.com/ManagedBass/ManagedBass/issues/76 -->
     <BundleResource Include="ManagedBass.Fx.dll.config" />
     <BundleResource Include="ManagedBass.Mix.dll.config" />
   </ItemGroup>
