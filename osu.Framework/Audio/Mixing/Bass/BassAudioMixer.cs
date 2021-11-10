@@ -24,6 +24,11 @@ namespace osu.Framework.Audio.Mixing.Bass
     internal class BassAudioMixer : AudioMixer, IBassAudio
     {
         /// <summary>
+        /// The handle for this mixer.
+        /// </summary>
+        public int Handle { get; private set; }
+
+        /// <summary>
         /// The list of effects which are currently active in the BASS mix.
         /// </summary>
         internal readonly List<EffectWithHandle> ActiveEffects = new List<EffectWithHandle>();

@@ -32,6 +32,32 @@ namespace osu.Framework.Tests.MathUtils
         }
 
         [Test]
+        public void TestContinuousDamp()
+        {
+            const double start = 1;
+            const double target = 2;
+            const double half_time = 1000;
+
+            Assert.AreEqual(start, damp(start, 0));
+            Assert.AreEqual(target, damp(start, double.PositiveInfinity));
+
+            double middle = Interpolation.Lerp(start, target, 0.5);
+            Assert.AreEqual(middle, damp(start, half_time));
+
+            // The final value shouldn't depend on the frame rate
+            Assert.AreEqual(
+                damp(start, 300 + 700),
+                damp(damp(start, 300), 700));
+
+            // The elapsed time can be negative.
+            Assert.AreEqual(
+                damp(start, 500 - 200),
+                damp(damp(start, 500), -200));
+
+            static double damp(double current, double elapsed) => Interpolation.DampContinuously(current, target, half_time, elapsed);
+        }
+
+        [Test]
         public void TestLagrange()
         {
             // lagrange of (0,0) (0.5,0.35) (1,1) is equal to 0.6x*x + 0.4x

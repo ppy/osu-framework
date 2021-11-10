@@ -16,11 +16,6 @@ namespace osu.Framework.Audio.Mixing
     {
         public readonly string Identifier;
 
-        /// <summary>
-        /// The handle for this mixer.
-        /// </summary>
-        public int Handle { get; protected set; }
-
         private readonly AudioMixer? globalMixer;
 
         /// <summary>

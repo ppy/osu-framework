@@ -230,7 +230,7 @@ namespace osu.Framework.Audio
         /// Returns the global <see cref="TrackStore"/> if no resource store is passed.
         /// </summary>
         /// <param name="store">The <see cref="IResourceStore{T}"/> of which to retrieve the <see cref="TrackStore"/>.</param>
-        /// <param name="mixer">The <see cref="AudioMixer"/> to use for samples created by this store. Defaults to the global <see cref="TrackMixer"/>.</param>
+        /// <param name="mixer">The <see cref="AudioMixer"/> to use for tracks created by this store. Defaults to the global <see cref="TrackMixer"/>.</param>
         public ITrackStore GetTrackStore(IResourceStore<byte[]> store = null, AudioMixer mixer = null)
         {
             if (store == null) return globalTrackStore.Value;
