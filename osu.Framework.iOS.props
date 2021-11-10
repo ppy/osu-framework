@@ -90,7 +90,7 @@
   <Target
     Name="VS16_RemoveSystemMemory"
     BeforeTargets="FindReferenceAssembliesForReferences"
-    Condition="'$(MSBuildVersion)' &gt;= '16.0'">
+    Condition="'$(MSBuildVersion)' >= '16.0'">
     <ItemGroup>
       <_ReferencePathToRemove
         Include="@(ReferencePath)"
