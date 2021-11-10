@@ -68,7 +68,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" />
     <PackageReference Include="ppy.osuTK.NS20" Version="1.0.178" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.226801"/>
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="ManagedBass" Version="3.1.0"/>
@@ -81,5 +80,9 @@
 
     <!-- Manually downgrade for 4.5.1-4.5.3. Should be removed when 4.6.0 released. -->
     <PackageReference Include="System.Memory" Version="4.5.4" NoWarn="NU1605" />
+
+    <!-- Any version ahead of this will cause AOT issues with iOS
+         See https://github.com/mono/mono/issues/21188 -->
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.0.161401"/>
   </ItemGroup>
 </Project>
