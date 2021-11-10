@@ -44,8 +44,9 @@ namespace osu.Framework.Audio.Mixing.Bass
         /// Creates a new <see cref="BassAudioMixer"/>.
         /// </summary>
         /// <param name="globalMixer"><inheritdoc /></param>
-        public BassAudioMixer(AudioMixer? globalMixer)
-            : base(globalMixer)
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public BassAudioMixer(AudioMixer? globalMixer, string identifier)
+            : base(globalMixer, identifier)
         {
             EnqueueAction(createMixer);
         }

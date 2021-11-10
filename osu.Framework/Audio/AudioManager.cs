@@ -145,8 +145,8 @@ namespace osu.Framework.Audio
                 return store;
             });
 
-            AddItem(TrackMixer = createAudioMixer(null));
-            AddItem(SampleMixer = createAudioMixer(null));
+            AddItem(TrackMixer = createAudioMixer(null, nameof(TrackMixer)));
+            AddItem(SampleMixer = createAudioMixer(null, nameof(SampleMixer)));
 
             CancellationToken token = cancelSource.Token;
 
@@ -206,17 +206,20 @@ namespace osu.Framework.Audio
             });
         }
 
+        private static int userMixerID;
+
         /// <summary>
         /// Creates a new <see cref="AudioMixer"/>.
         /// </summary>
         /// <remarks>
         /// Channels removed from this <see cref="AudioMixer"/> fall back to the global <see cref="SampleMixer"/>.
         /// </remarks>
-        public AudioMixer CreateAudioMixer() => createAudioMixer(SampleMixer);
+        /// <param name="identifier">An identifier displayed on the audio mixer visualiser.</param>
+        public AudioMixer CreateAudioMixer(string identifier = default) => createAudioMixer(SampleMixer, !string.IsNullOrEmpty(identifier) ? identifier : $"user #{Interlocked.Increment(ref userMixerID)}");
 
-        private AudioMixer createAudioMixer(AudioMixer globalMixer)
+        private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
         {
-            var mixer = new BassAudioMixer(globalMixer);
+            var mixer = new BassAudioMixer(globalMixer, identifier);
             activeMixers.Add(mixer);
             AddItem(mixer);
             return mixer;
