@@ -22,7 +22,9 @@ namespace osu.Framework.Audio
 
                 if (item is IAdjustableAudioComponent adjustable)
                     adjustable.BindAdjustments(this);
+
                 Items.Add(item);
+                ItemAdded(item);
             });
         }
 
@@ -45,11 +47,20 @@ namespace osu.Framework.Audio
                 if (!item.IsAlive)
                 {
                     Items.RemoveAt(i--);
+                    ItemRemoved(item);
                     continue;
                 }
 
                 item.Update();
             }
+        }
+
+        protected virtual void ItemAdded(T item)
+        {
+        }
+
+        protected virtual void ItemRemoved(T item)
+        {
         }
 
         protected override void Dispose(bool disposing)
