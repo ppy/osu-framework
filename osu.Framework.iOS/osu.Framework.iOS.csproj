@@ -36,6 +36,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app.config" CopyToOutputDirectory="Always" />
+    <BundleResource Include="ManagedBass.Fx.dll.config" />
+    <BundleResource Include="ManagedBass.Mix.dll.config" />
   </ItemGroup>
 </Project>
