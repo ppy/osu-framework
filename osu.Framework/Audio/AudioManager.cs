@@ -172,13 +172,6 @@ namespace osu.Framework.Audio
             });
         }
 
-        protected override void UpdateChildren()
-        {
-            base.UpdateChildren();
-
-            activeMixers.RemoveAll(m => m.HasCompleted);
-        }
-
         protected override void Dispose(bool disposing)
         {
             cancelSource.Cancel();
@@ -222,9 +215,22 @@ namespace osu.Framework.Audio
         private AudioMixer createAudioMixer(AudioMixer globalMixer, string identifier)
         {
             var mixer = new BassAudioMixer(globalMixer, identifier);
-            activeMixers.Add(mixer);
             AddItem(mixer);
             return mixer;
+        }
+
+        protected override void ItemAdded(AudioComponent item)
+        {
+            base.ItemAdded(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Add(mixer);
+        }
+
+        protected override void ItemRemoved(AudioComponent item)
+        {
+            base.ItemRemoved(item);
+            if (item is AudioMixer mixer)
+                activeMixers.Remove(mixer);
         }
 
         /// <summary>
